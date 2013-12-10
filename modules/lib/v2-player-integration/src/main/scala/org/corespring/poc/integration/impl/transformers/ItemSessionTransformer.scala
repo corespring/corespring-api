@@ -1,32 +1,45 @@
 package org.corespring.poc.integration.impl.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, ItemSession}
+import org.corespring.platform.core.models.itemSession.ItemSession
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{StringResponse, ArrayResponse, Response}
-import org.joda.time.DateTime
 import play.api.Logger
 import play.api.libs.json._
 
-trait ItemSessionTransformer {
-  def toPocJson(session: ItemSession): JsValue
+trait SessionDocumentTransformer{
+  /**
+   * Convert a session document to v2 json. This involves
+   * converting the legacy <ItemSession>#responses property to
+   * 'components'.
+   * @param sessionDoc - the complete session document.
+   * @return
+   */
+  def toV2(sessionDoc:JsValue) : JsValue
 
-  def toItemSession(pocJson: JsValue): ItemSession
+  /**
+   * Convert v2 json to a session document.
+   * v2 Json is a subset of the full document so it'll need
+   * to be merged with the existing document. Note that
+   * @param v2Json - the update
+   * @param sessionDoc - the document to merge with
+   * @return
+   */
+  def toSessionDoc(v2Json:JsValue,sessionDoc: JsValue) : JsValue
+}
+
+trait ItemSessionTransformer {
+  def toItemSession(v2Json: JsValue): ItemSession
+  def toV2Session(itemSession:ItemSession): JsValue
 }
 
 object ItemSessionTransformer extends ItemSessionTransformer {
 
   private val logger = Logger("poc.integration")
 
-  def toPocJson(session: ItemSession): JsValue = {
+  def toV2Session(session: ItemSession): JsValue = {
 
-    def settingsJson: JsObject = Json.obj(
-      "maxNoOfAttempts" -> JsNumber(session.settings.maxNoOfAttempts),
-      "showCorrectResponse" -> JsBoolean(session.settings.highlightCorrectResponse),
-      "showFeedback" -> JsBoolean(session.settings.showFeedback),
-      "showUserResponse" -> JsBoolean(session.settings.highlightUserResponse))
-
-    def answers: JsObject = {
+    def components: JsObject = {
 
       def response(r: Response): JsValue = {
         r match {
@@ -36,56 +49,31 @@ object ItemSessionTransformer extends ItemSessionTransformer {
       }
 
       val out: Seq[(String, JsValue)] = session.responses.map {
-        r => (r.id, response(r))
+        r => (r.id, Json.obj( "answers" -> response(r)))
       }
+
       JsObject(out)
     }
 
-    def sessionJson = {
-
-      val out : Seq[(String,JsValue)] = Seq(
-        "id" -> JsString(session.id.toString),
-        "itemId" -> JsString(session.itemId.toString),
-        "answers" -> answers,
-        "isFinished" -> JsBoolean(session.isFinished),
-        "remainingAttempts" -> JsNumber(session.settings.maxNoOfAttempts - session.attempts)
-      )
-
-      val maybes: Seq[(String, JsValue)] = Seq(
-        session.start.map(s => ("start" -> JsNumber(s.getMillis))
-        )).flatten
-
-      JsObject(out ++ maybes) ++ settingsJson
-    }
-
-    sessionJson
+    Json.obj(
+      "id" -> JsString(session.id.toString),
+      "itemId" -> JsString(session.itemId.toString),
+      "components" -> components
+    )
   }
 
   /**
-   * {
-   * "itemId":"5252c7c108738c6d85653725",
-   * "maxNoOfAttempts":1,
-   * "showCorrectResponse":true,
-   * "showFeedback":true,
-   * "showUserResponse":true,
-   * "remainingAttempts":0,
-   * "answers":
-   * {"Q_01":
-   * {"value":"ChoiceA text (Correct Choice)"}
-   * },
-   * "isFinished":true
-   * }
-   * @param pocJson
-   * @return
    */
-  def toItemSession(pocJson: JsValue): ItemSession = {
-    logger.debug(Json.stringify(pocJson))
-    val itemId = VersionedId((pocJson \ "itemId").as[String]).getOrElse(throw new RuntimeException("Invalid versioned id"))
+  def toItemSession(v2Session: JsValue): ItemSession = {
+
+    logger.debug(Json.stringify(v2Session))
+
+    val itemId = VersionedId((v2Session \ "itemId").as[String]).getOrElse(throw new RuntimeException("Invalid versioned id"))
 
     def makeResponses(answers: JsObject): Seq[Response] = answers.fields.map {
       (f: (String, JsValue)) =>
         val (key, json) = f
-        json match {
+        (json \ "answers") match {
           case jsonArray: JsArray => ArrayResponse(id = key, responseValue = jsonArray.as[Seq[String]])
           case jsonString: JsString => StringResponse(id = key, responseValue = jsonString.as[String])
           case _ => {
@@ -94,33 +82,13 @@ object ItemSessionTransformer extends ItemSessionTransformer {
         }
     }
 
-    def makeSettings(settings: JsObject): ItemSessionSettings = {
-      ItemSessionSettings(
-        maxNoOfAttempts = (settings \ "maxNoOfAttempts").as[Int],
-        highlightCorrectResponse = (settings \ "showCorrectResponse").as[Boolean],
-        highlightUserResponse = (settings \ "showUserResponse").as[Boolean],
-        showFeedback = (settings \ "showFeedback").as[Boolean]
-      )
-    }
-    val responses = makeResponses((pocJson \ "answers").as[JsObject])
-
-    val settings: ItemSessionSettings = makeSettings(pocJson.as[JsObject])
-
-    val attemptsCount = (pocJson \ "remainingAttempts").asOpt[Int].map {
-      remaining =>
-        settings.maxNoOfAttempts - remaining
-    }.getOrElse(0)
+    val responses = makeResponses((v2Session \ "components").as[JsObject])
 
     val out = ItemSession(
-      id = new ObjectId((pocJson \ "id").as[String]),
+      id = new ObjectId((v2Session \ "id").as[String]),
       itemId = itemId,
-      responses = responses,
-      attempts = attemptsCount,
-      settings = settings,
-      start = (pocJson \ "start").asOpt[Long].map(new DateTime(_)),
-      finish = (pocJson \ "finish").asOpt[Long].map(new DateTime(_))
+      responses = responses
     )
-
     out
   }
 }

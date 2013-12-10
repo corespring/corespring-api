@@ -32,6 +32,9 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 ->     /                      public.Routes
 ->     /v2-player             playerWeb.Routes
 
+GET    /client/components/*file  controllers.Assets.at(path = "/container-client/bower_components", file)
+GET    /client/*file             controllers.Assets.at(path = "/container-client", file)
+
 ->     /logger/               clientlogging.Routes
 
 #

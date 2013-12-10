@@ -21,7 +21,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     out
   }
 
-  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all).controllers
+  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all, current.configuration).controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {

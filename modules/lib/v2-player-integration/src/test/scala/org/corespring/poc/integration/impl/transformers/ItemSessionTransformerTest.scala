@@ -15,7 +15,7 @@ class ItemSessionTransformerTest extends Specification{
 
   "ItemSessionTransformer" should {
 
-    "transform to a poc item and back again" in {
+    "transform to a v2 session and back again" in {
 
       val oid = ObjectId.get
 
@@ -27,23 +27,21 @@ class ItemSessionTransformerTest extends Specification{
           ArrayResponse(id="2", responseValue = Seq("2.1", "2.2"))
         )
       )
-      val out = ItemSessionTransformer.toPocJson(session)
+      val out = ItemSessionTransformer.toV2Session(session)
 
       val expectedJson =
         s"""
           {
             "id" : "$oid",
             "itemId" : "$oid",
-            "answers" : {
-              "1" : "1",
-              "2" : ["2.1", "2.2"]
-            },
-            "maxNoOfAttempts" : 1,
-            "showCorrectResponse" : true,
-            "showFeedback" : true,
-            "showUserResponse" : true,
-            "isFinished" : false,
-            "remainingAttempts" : 1
+            "components" : {
+              "1" : {
+                "answers" : "1"
+               },
+              "2" : {
+                "answers" : ["2.1", "2.2"]
+              }
+            }
           }
         """.stripMargin
 
