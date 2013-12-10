@@ -33,6 +33,7 @@ object Dependencies {
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
   val componentLoader = "org.corespring" %% "component-loader" % containerVersion
+  val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   // TODO: temporary solution: taking out yui which is used for css minification as it breaks
   // dependencies for corespring-qti. This needs to be sorted out properly!

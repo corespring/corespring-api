@@ -3,10 +3,10 @@ package org.corespring.poc.integration.impl.controllers.player
 import org.bson.types.ObjectId
 import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Session
+import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.{ItemSession, ItemSessionCompanion}
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.poc.integration.impl.transformers.ItemSessionTransformer
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
@@ -15,45 +15,34 @@ import scalaz._
 
 trait ClientSessionImpl extends Session{
 
-  def sessionService: ItemSessionCompanion
-
   def itemService: ItemService
+
+  def sessionService: MongoService
 
   def transformItem: Item => JsValue
 
-  def sessionTransformer: ItemSessionTransformer
-
-  def saveSession(id: String, pocSession: JsValue): Option[JsValue] = {
-
-    sessionService.findOneById(new ObjectId(id)).map{ dbSession =>
-
-      val session: ItemSession = sessionTransformer.toItemSession(pocSession)
-      val merged = dbSession.copy(responses = session.responses)
-      val result = sessionService.save(merged)
-
-      if (result.getLastError.ok) {
-        Some(pocSession)
-      } else {
-        None
-      }
-
-    }.getOrElse(None)
-  }
+  def saveSession(id: String, pocSession: JsValue): Option[JsValue] = sessionService.save(id, pocSession)
 
   def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
-  private def loadSession(sessionId: String): Validation[String, ItemSession] = for {
+  private def loadSession(sessionId: String): Validation[String, JsValue] = for {
     oid <- oid(sessionId).toSuccess("invalid object id")
-    session <- sessionService.findOneById(oid).toSuccess("can't find session by id")
+    session <- sessionService.load(oid.toString).toSuccess("can't find session by id")
   } yield {
     session
   }
 
+  private def versionedId(json: JsValue): Option[VersionedId[ObjectId]] = json match {
+    case JsString(s) => VersionedId(s)
+    case _ => None
+  }
+
   private def loadItemAndSession(sessionId: String): Validation[String, (JsValue, JsValue)] = for {
     session <- loadSession(sessionId)
-    item <- itemService.findOneById(session.itemId).toSuccess("can't find item by id")
+    vId <- versionedId(session \ "itemId").toSuccess("can't convert to versioned id")
+    item <- itemService.findOneById(vId).toSuccess("can't find item by id")
   } yield {
-    (transformItem(item), sessionTransformer.toV2Session(session))
+    (transformItem(item), session)
   }
 
   private def loadEverythingJson(id: String): Validation[String, JsValue] = loadItemAndSession(id) match {
@@ -95,7 +84,7 @@ trait ClientSessionImpl extends Session{
         //TODO: Add security
         handleValidationResult{
           loadSession(id)
-            .map( s => SaveSessionRequest(sessionTransformer.toV2Session(s), false, false, saveSession, request))
+            .map(s => SaveSessionRequest(s, false, false, saveSession, request))
             .map(block)
         }
 

@@ -12,14 +12,16 @@ import org.corespring.platform.core.models.itemSession.{PreviewItemSessionCompan
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
-import org.corespring.poc.integration.impl.transformers.{ItemSessionTransformer, ItemTransformer}
+import org.corespring.poc.integration.impl.transformers.ItemTransformer
 import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import scala.Some
 import org.bson.types.ObjectId
+import org.corespring.mongo.json.services.MongoService
+import com.mongodb.casbah.MongoDB
 
-class V2PlayerIntegration(comps: => Seq[Component], config: Configuration) {
+class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : MongoDB) {
 
   def rootUiComponents = comps.filter(_.isInstanceOf[UiComponent]).map(_.asInstanceOf[UiComponent])
 
@@ -27,6 +29,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration) {
 
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs)
 
+  private lazy val rootSessionService : MongoService = new MongoService(db("v2.itemSessions"))
 
   private lazy val icons = new Icons {
     def loadedComponents: Seq[Component] = comps
@@ -73,10 +76,9 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration) {
 
     def loadedComponents: Seq[Component] = comps
 
-    def sessionService: ItemSessionCompanion = PreviewItemSessionCompanion
+    def sessionService: MongoService = rootSessionService
     def itemService: ItemService = ItemServiceImpl
     def transformItem = ItemTransformer.transformToPocItem
-    def transformSession = ItemSessionTransformer.toV2Session
 }
 
   private lazy val editorHooks = new EditorHooksImpl {
@@ -104,12 +106,11 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration) {
 
     def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
 
-    def sessionService: ItemSessionCompanion = PreviewItemSessionCompanion
+    def sessionService: MongoService = rootSessionService
 
     def itemService: ItemService = ItemServiceImpl
 
     def transformItem: (Item) => JsValue = ItemTransformer.transformToPocItem
 
-    def sessionTransformer: ItemSessionTransformer = ItemSessionTransformer
   }
 }

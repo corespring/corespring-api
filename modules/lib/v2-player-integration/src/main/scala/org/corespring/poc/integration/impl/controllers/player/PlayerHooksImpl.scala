@@ -3,25 +3,27 @@ package org.corespring.poc.integration.impl.controllers.player
 import org.bson.types.ObjectId
 import org.corespring.container.client.actions.{SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.PlayerHooks
+import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.{ItemSessionSettings, ItemSession, ItemSessionCompanion}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.JsValue
+import play.api.libs.json.{Json, JsString, JsValue}
 import play.api.mvc.{Action, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
 
 trait PlayerHooksImpl extends PlayerHooks {
 
-  def sessionService : ItemSessionCompanion
+  def sessionService : MongoService
 
   def itemService : ItemService
 
   def transformItem : Item => JsValue
 
-  def transformSession : ItemSession => JsValue
-
+  private def versionedId(json: JsValue): Option[VersionedId[ObjectId]] = json match {
+    case JsString(s) => VersionedId(s)
+    case _ => None
+  }
 
   def builder: ClientHooksActionBuilder[AnyContent] = new ClientHooksActionBuilder[AnyContent] {
 
@@ -29,19 +31,19 @@ trait PlayerHooksImpl extends PlayerHooks {
 
     private def load(sessionId:String)(block : PlayerRequest[AnyContent] => Result) : Action[AnyContent] = Action{ request =>
 
-      val s : Validation[String, (Item,ItemSession)] = for{
+      val s : Validation[String, (Item,JsValue)] = for{
 
         oid <- maybeOid(sessionId).toSuccess("Invalid object id")
-        session <- sessionService.findOneById(oid).toSuccess("Not found")
-        item <- itemService.findOneById(session.itemId).toSuccess("Can't find item")
+        session <- sessionService.load(oid.toString).toSuccess("Session Not found")
+        vId <- versionedId( session \ "itemId").toSuccess("Can't find item")
+        item <- itemService.findOneById(vId).toSuccess("Can't find item")
       } yield (item,session)
 
       s match {
         case Success(models) => {
           val (item, session) = models
-          val sessionJson = transformSession(session)
           val itemJson = transformItem(item)
-          block(PlayerRequest(itemJson, request, Some(sessionJson)))
+          block(PlayerRequest(itemJson, request, Some(session)))
         }
         case Failure(msg) => BadRequest(msg)
       }
@@ -55,11 +57,18 @@ trait PlayerHooksImpl extends PlayerHooks {
 
     def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = Action{ request =>
 
-      val settings = ItemSessionSettings(maxNoOfAttempts = 4)
+      def createSessionJson(vid: VersionedId[ObjectId]) = {
+        Some(
+          Json.obj(
+          "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
+          "itemId" -> JsString(vid.toString)
+        ))
+      }
 
       val result = for {
-        vid <- VersionedId(itemId).toSuccess("Error creating item id")
-        sessionId <- sessionService.insert(ItemSession(itemId = vid, settings = settings)).toSuccess("Error creating session")
+        vid <- VersionedId(itemId).toSuccess(s"Error parsing item id: $itemId")
+        json <- createSessionJson(vid).toSuccess("Error creating json")
+        sessionId <- sessionService.create(json).toSuccess("Error creating session")
       } yield sessionId
 
       result match {

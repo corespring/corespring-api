@@ -94,7 +94,8 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(
       containerClientWeb,
       componentLoader,
-      componentModel )
+      componentModel,
+      mongoJsonService)
   ).dependsOn(core % "test->test;compile->compile")
 
   val playerLib = builders.lib("player-lib")

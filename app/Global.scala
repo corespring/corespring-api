@@ -1,4 +1,5 @@
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
@@ -21,7 +22,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     out
   }
 
-  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all, current.configuration).controllers
+  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all, current.configuration, SeedDb.salatDb()).controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
