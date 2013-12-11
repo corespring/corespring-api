@@ -934,7 +934,7 @@
   angular.module('cs.directives').directive('multiSelect', [
     '$timeout', 'Utils', function($timeout, Utils) {
       var compile, defaultRepeater, definition, link, template;
-      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\" >\n    <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n    {{multiGetTitle(o)}}\n  </li>\n</ul>";
+      defaultRepeater = "<ul>\n  <li ng-repeat=\"o in options\" >\n    <input type=\"checkbox\" ng-model=\"selectedArr[o.${uidKey}]\" ng-click=\"toggleItem(o)\"></input>\n    {{multiGetTitle(o)}}\n  </li>\n<li><a ng-click=\"clear()\">clear</a></li></ul>";
       template = "<span class=\"multi-select\">\n ${summaryHtml}\n  <div class=\"chooser\" ng-show=\"showChooser\">\n   ${repeater}\n  </div>\n</span>";
       /*
       Linking function
@@ -978,10 +978,16 @@
           }
           return null;
         };
-        /*
-        Need to use $eval to support nested values
-        */
 
+
+
+        scope.clear = function() {
+            Utils.applyValue(scope, modelProp, []);
+            updateSelection();
+            if (changeCallback != null) {
+                scope[changeCallback]();
+            }
+        };
         scope.toggleItem = function(i) {
           var arr, getIndexById, index, optionIndex, sortFn;
           getIndexById = function(arr, item) {
