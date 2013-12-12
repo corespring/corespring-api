@@ -2,41 +2,15 @@ import sbt._
 
 object Dependencies {
 
-  val playVersion = "2.2.0"
+  val playVersion = "2.2.1"
 
   //TODO: May need to change this
-  val playJson = "com.typesafe.play" %% "play-json" % "2.2.0-RC2"
 
-  val playFramework = "com.typesafe.play" %% "play" % playVersion
-  val playTest = "com.typesafe.play" %% "play-test" % playVersion
-
-  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
-  val corespringQti = "org.corespring" %% "corespring-qti" % "0.1-ae4add0"
-  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
-  val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
-  val salatPlay = "se.radley" %% "play-plugins-salat" % "1.3.0-ecf6d88"
-  val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
-  val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.1.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-b185ac1"
-  val playS3 = "org.corespring" %% "play-s3" % "0.1-efd22ba"
-  val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.1.0"
-  val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
-  val securesocial = "org.corespring" %% "securesocial" % "master-c376674"
-  val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.3.0.3"
-  val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
-
-  // TODO: temporary solution: taking out yui which is used for css minification as it breaks
-  // dependencies for corespring-qti. This needs to be sorted out properly!
-
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11-03314a1")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.2-d588974")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
-
-  val specs2 = "org.specs2" %% "specs2" % "2.1.1"
-  val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-  val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
-
+  val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
+  val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
     .exclude("com.google.guava", "guava")
@@ -46,19 +20,42 @@ object Dependencies {
     .exclude("com.google.code.findbugs", "jsr305")
     .exclude("com.googlecode.jarjar", "jarjar")
     .exclude("junit", "junit")
+  val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
+  val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
+  val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
+  val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
+  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
+  val playFramework = "com.typesafe.play" %% "play" % playVersion
+  val playJson = "com.typesafe.play" %% "play-json" % playVersion exclude("org.scala-stm", "scala-stm_2.10.0")
+  val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
+  val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
+  val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
+  val playS3 = "org.corespring" %% "play-s3" % "0.2-35dbed6"
+  val playTest = "com.typesafe.play" %% "play-test" % playVersion
+  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-dfb50a3-SNAPSHOT"
+  val rhino = "org.mozilla" % "rhino" % "1.7R4"
+  val salat = "com.novus" %% "salat" % "1.9.2"
+  val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-b185ac1"
+  val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
+  val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
+  val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"
+  val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
+  val specs2 = "org.specs2" %% "specs2" % "2.3.6"
+
   val all = Seq(
     playS3,
     slf4j,
     salatVersioningDao,
     amapClient,
     assetsLoader,
-    aws,
-    mongoDbSeeder,
-    jbcrypt,
-    mockito,
-    scalaFaker,
-    playMemcached,
-    playPluginMailer,
+    //aws,
+    //mongoDbSeeder,
+    //jbcrypt,
+    //mockito,
+    //scalaFaker,
+    //playMemcached,
+    //playPluginMailer,
     playPluginUtil,
     salatPlay,
     securesocial,

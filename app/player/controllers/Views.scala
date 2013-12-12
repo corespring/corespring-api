@@ -2,7 +2,7 @@ package player.controllers
 
 import common.controllers.QtiResource
 import org.xml.sax.SAXParseException
-import play.api.mvc.Action
+import play.api.mvc.{SimpleResult, Action}
 import play.api.templates.Html
 import player.views.models.{ QtiKeys, ExceptionMessage, PlayerParams }
 import scala.xml.Elem
@@ -19,6 +19,7 @@ import org.corespring.web.common.controllers.deployment.{ AssetsLoader, AssetsLo
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import VersionedIdImplicits.Binders._
 import org.corespring.qti.models.RenderingMode._
+import scala.concurrent.{Await, Future}
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
   extends BaseApi
@@ -127,13 +128,14 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
     tokenRequest =>
-      ApiAction {
+       val future : Future[SimpleResult] = ApiAction {
         implicit request =>
           prepareHtml(params, request.ctx.organization) match {
             case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
             case None => NotFound("not found")
           }
       }(tokenRequest)
+      future
   }
 
   protected def prepareHtml(params: RenderParams, orgId: ObjectId): Option[Html] =

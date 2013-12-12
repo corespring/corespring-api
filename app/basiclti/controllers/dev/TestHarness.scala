@@ -80,7 +80,7 @@ object TestHarness extends BaseApi with SecureSocial {
           val mockHeaders = new Headers {
             override def keys: Set[String] = Set("x-forward-proto=" + protocol)
 
-            protected def data: Seq[(String, Seq[String])] = Seq()
+            protected val data: Seq[(String, Seq[String])] = Seq()
 
             override def getAll(key: String): Seq[String] = Seq(protocol)
           }

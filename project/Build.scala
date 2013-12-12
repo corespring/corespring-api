@@ -1,6 +1,6 @@
-import play.Project._
 import sbt.Keys._
 import sbt._
+import play.Project._
 
 /**
  * Note: We are getting cross-versioning errors - they don't have an impact on the build
@@ -13,7 +13,7 @@ object Build extends sbt.Build {
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.2"
+  val ScalaVersion = "2.10.3"
   val org = "org.corespring"
 
   val forkInTests = true
@@ -67,16 +67,20 @@ object Build extends sbt.Build {
 
   val assets = builders.lib("assets")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader, corespringCommonUtils),
+      libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils),
       credentials += cred)
     .dependsOn(apiUtils)
     .settings(disableDocsSettings: _*)
+
+
+  val qti = builders.lib("qti").settings(
+    libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos)
+  )
 
   /** Core data model */
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
       salatPlay,
-      corespringQti,
       corespringCommonUtils,
       salatVersioningDao,
       specs2 % "test",
@@ -90,7 +94,7 @@ object Build extends sbt.Build {
       scalaFaker),
     Keys.fork in Test := forkInTests,
     parallelExecution.in(Test) := false,
-    credentials += cred).dependsOn(assets, testLib % "test->compile").settings(disableDocsSettings: _*)
+    credentials += cred).dependsOn(assets, testLib % "test->compile", qti).settings(disableDocsSettings: _*)
 
   val playerLib = builders.lib("player-lib")
     .settings(
@@ -121,6 +125,6 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"))
 //      (test in Test) <<= (test in Test).map(Commands.runJsTests)).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib).settings(disableDocsSettings: _*)
+    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, qti).settings(disableDocsSettings: _*)
 
 }

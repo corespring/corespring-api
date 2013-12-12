@@ -136,7 +136,7 @@ object CollectionApi extends BaseApi {
                     case Right(_) => Ok(Json.toJson(coll))
                     case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
                   }
-                  case JsUndefined(_) => Ok(Json.toJson(coll))
+                  case JsUndefined() => Ok(Json.toJson(coll))
                   case _ => BadRequest(Json.toJson(ApiError.UpdateCollection(Some("organizations was included but was not the right format"))))
                 }
                 case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(e.clientOutput)))
