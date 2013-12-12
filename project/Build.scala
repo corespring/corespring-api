@@ -128,8 +128,36 @@ object Build extends sbt.Build {
   /**client logging*/
   val clientLogging = builders.web("client-logging").settings(
     libraryDependencies ++= Seq(playFramework, scalaz)
-  ).dependsOn(apiUtils)
+  ).dependsOn(apiUtils,  core % "test->test" )
 
+  val scormLib = builders.lib("scorm").settings(
+    libraryDependencies ++= Seq(playFramework)
+  ).dependsOn(core)
+
+  val ltiLib = builders.lib("lti").dependsOn(core)
+
+  val v1Api = builders.web("v1-api").settings(
+    libraryDependencies ++= Seq(casbah),
+    templatesImport ++= TemplateImports.Ids,
+    routesImport ++= customImports
+  ).dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+
+  object TemplateImports{
+    val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
+  }
+
+  val v1Player = builders.web("v1-player")
+    .settings(
+      libraryDependencies ++= Seq(corespringQti),
+      templatesImport ++= TemplateImports.Ids,
+      routesImport ++= customImports
+    )
+    .dependsOn(playerLib, v1Api, apiUtils, testLib % "test->compile", core, commonViews)
+
+  val ltiWeb = builders.web("lti-web").settings(
+    templatesImport ++= TemplateImports.Ids,
+    routesImport ++= customImports
+  ).dependsOn(core, ltiLib, playerLib, v1Player)
 
   /** The public play module */
   val public = builders.web("public").settings(
@@ -144,14 +172,14 @@ object Build extends sbt.Build {
       scalaVersion := ScalaVersion,
       parallelExecution.in(Test) := false,
       routesImport ++= customImports,
-      templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
+      templatesImport ++= TemplateImports.Ids,
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
     ).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging).settings(disableDocsSettings: _*)
+    .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .aggregate(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging).settings(disableDocsSettings: _*)
 
 }

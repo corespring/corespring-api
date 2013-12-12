@@ -13,6 +13,7 @@ import org.corespring.common.log.PackageLogging
 import org.corespring.test.{TestModelHelpers, BaseTest}
 import java.util.regex.{Matcher, Pattern}
 import play.api.test.FakeRequest
+import org.corespring.platform.core.controllers.auth.AuthController
 
 class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
 
@@ -60,7 +61,7 @@ class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
       val clientSecret = m.group(2)
       val clientId = m.group(1)
       val tokenRequest = fakeRequest(AnyContentAsFormUrlEncoded(Map("client_id" -> Seq(clientId), "client_secret" -> Seq(clientSecret))))
-      val tokenResult = controllers.auth.AuthController.getAccessToken()(tokenRequest)
+      val tokenResult = AuthController.getAccessToken()(tokenRequest)
       status(tokenResult) === OK
       val token = (Json.parse(contentAsString(tokenResult)) \ "access_token").as[String]
       val listCall = api.v1.routes.OrganizationApi.list()

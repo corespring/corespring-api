@@ -1,11 +1,11 @@
 package tests.scorm.utils
 
 import org.specs2.mutable.{BeforeAfter, Specification}
-import scorm.utils.ScormExporter
 import java.io.{FileNotFoundException, File}
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.test.{PlaySingleton, BaseTest}
+import org.corespring.scorm.export.ScormExporter
 
 class ScormExporterTest extends BaseTest {
 

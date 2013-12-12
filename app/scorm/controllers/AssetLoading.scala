@@ -1,12 +1,12 @@
 package scorm.controllers
 
-import common.controllers.utils.BaseUrl
-import play.api.mvc.{ AnyContent, Request }
-import player.controllers.{ AssetLoading => PlayerAssetLoading, AssetLoadingDefaults }
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.common.url.BaseUrl
 import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.player.v1.controllers.AssetLoadingDefaults
+import play.api.mvc.{ AnyContent, Request }
 
-object AssetLoading extends PlayerAssetLoading(
+object AssetLoading extends org.corespring.player.v1.controllers.AssetLoading(
   AESCrypto,
   AssetLoadingDefaults.Templates.player,
   ItemServiceImpl,

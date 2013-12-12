@@ -1,0 +1,22 @@
+@(params: org.corespring.player.v1.views.models.PlayerParams, quizId:String, resultSourcedId:String)
+
+    @scripts = {
+
+  @org.corespring.player.v1.views.html.partials.angularConfig(params, ("quizId" -> quizId), ("resultSourcedId" -> resultSourcedId) )
+  <!-- need to override the config to add the Lti Params
+  <script type="text/javascript">
+    angular.module('qti.services').factory('Config', [function(){
+        return {
+        }
+    }]);
+  </script>
+  -->
+}
+
+@bodyAttributes = @{ "ng-controller='QtiAppController'" }
+@afterBody = {
+    <!-- Init the LtiController -->
+    <div ng-controller="LtiController"></div>
+}
+
+@org.corespring.player.v1.views.html.basePlayer( params, bodyAttributes, Some(scripts), Some(afterBody) )

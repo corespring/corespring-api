@@ -1,4 +1,4 @@
-@(params: player.views.models.PlayerParams)
+@(params: org.corespring.player.v1.views.models.PlayerParams)
 
     @bodyAttributes = @{ "ng-controller=QtiAppController" }
 
@@ -15,4 +15,4 @@
         Some(html)
     }
 
-@player.views.html.basePlayer(params, bodyAttributes, belowPlayer = belowPlayer)
+@org.corespring.player.v1.views.html.basePlayer(params, bodyAttributes, belowPlayer = belowPlayer)

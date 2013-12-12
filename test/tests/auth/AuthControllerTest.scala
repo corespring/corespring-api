@@ -1,25 +1,23 @@
 package tests.auth
 
-import play.api.test.FakeRequest
-import org.specs2.execute.{Result, Failure}
-import play.api.test.Helpers._
-import securesocial.core.SecureSocial
-import controllers.auth.{OAuthConstants}
-import play.api.libs.json.Json
-import scala.Left
-import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
-import play.api.mvc.AnyContentAsFormUrlEncoded
-import org.corespring.platform.core.models.{User, Organization}
+import org.corespring.api.v1.routes.OrganizationApi
+import org.corespring.platform.core.controllers.auth.OAuthConstants
 import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
-import org.corespring.common.encryption.ShaHash
+import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.specs2.execute.Result
+import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
+
+//TODO: Move AuthController to its own module then this test with it.
 class AuthControllerTest extends BaseTest with TestModelHelpers {
 
-  val Routes = controllers.auth.routes.AuthController
+  val Routes = org.corespring.platform.core.controllers.auth.routes.AuthController
 
 
   /** Execute a specs method body once we register and have a client id and secret, tidy up after */
@@ -166,7 +164,7 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
               (id, secret) =>
                 withToken(user, id, secret, {
                   token =>
-                    val OrgRoutes = api.v1.routes.OrganizationApi
+                    val OrgRoutes = OrganizationApi
                     val call = OrgRoutes.list()
                     val orgRequest = FakeRequest(call.method, (call.url + "?access_token=%s").format(token))
                     route(orgRequest) match {

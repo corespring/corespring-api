@@ -1,11 +1,8 @@
 package org.corespring.clientlogging
 
-import play.api.mvc.{Request, Result, Action, Controller}
-import play.api.libs.json._
 import play.api.libs.json.JsSuccess
-import play.api.data.validation.ValidationError
-import scalaz._
-import Scalaz._
+import play.api.libs.json._
+import play.api.mvc.{Action, Controller}
 
 object ClientLogger extends Controller with ClientLogging{
   def submitLog(logType:String) = Action(parse.json) { request =>

@@ -1,6 +1,5 @@
 package dev.tools.controllers
 
-import player.controllers.Views
 import org.corespring.player.accessControl.auth.{TokenizedRequestActionBuilder, CheckSessionAccess}
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.core.services.quiz.basic.QuizService
@@ -14,8 +13,9 @@ import org.corespring.platform.core.models.auth.AccessToken
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
-import player.views.models.PlayerParams
 import play.api.templates.Html
+import org.corespring.player.v1.views.models.PlayerParams
+import org.corespring.player.v1.controllers.Views
 
 object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieWriter{
 

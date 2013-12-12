@@ -3,6 +3,7 @@ package tests.helpers
 import org.specs2.mutable.After
 import tests.helpers.models._
 import org.corespring.platform.core.models.Organization
+import org.corespring.test.helpers.models._
 
 /*
  * Including this trait in the context of a mutable.Specification "in" block will make available all the fixture data.

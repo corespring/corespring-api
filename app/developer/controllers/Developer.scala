@@ -1,8 +1,6 @@
 package developer.controllers
 
-import api.ApiError
 import controllers.Assets
-import controllers.auth.{ BaseApi, OAuthProvider }
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
 import play.api.libs.json._
@@ -17,6 +15,8 @@ import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.platform.core.models.auth.{ Permission, ApiClient }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.controllers.auth.{OAuthProvider, BaseApi}
+import org.corespring.api.v1.errors.ApiError
 
 /**
  * TODO: remove magic strings

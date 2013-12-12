@@ -1,0 +1,41 @@
+@(params:org.corespring.player.v1.views.models.PlayerParams, bodyAttributes:String, additionalScripts: Option[Html] = None, afterBody : Option[Html] = None, belowPlayer : Option[Html] = None)
+
+@cssClass = @{
+    if(params.previewEnabled) "assessment-page" else "student-assessment-page"
+}
+<!DOCTYPE html>
+<html ng-app="qti" dimensions-checker>
+<head>
+    <title>@params.itemId</title>
+    @org.corespring.web.common.views.html.partials.ieEightSupport()
+    @partials.scripts(params.xml, new org.corespring.player.v1.views.qti.QtiAssetsLoaderImpl(params.qtiKeys, params.mode))(params.assetsLoader)
+
+
+    @partials.angularConfig(params)
+
+    @additionalScripts.map{ s =>
+      @s
+    }
+
+</head>
+<body @bodyAttributes >
+<!-- after body -->
+@afterBody.map{ b =>
+ @b
+}
+
+@if( params.previewEnabled ){
+    @partials.controlBar()
+    <div class="student-view-header" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">Student View</div>
+} else {
+    <br/>
+}
+
+<div class="@cssClass" ng-class="{true: 'fade-out', false: ''}[settingsHaveChanged]">
+    @Html(params.xml)
+    @belowPlayer.map{ bp =>
+        @bp
+    }
+</div>
+</body>
+</html>
