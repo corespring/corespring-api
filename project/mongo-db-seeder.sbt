@@ -1,4 +1,5 @@
-resolvers += "Ed Eustace Mvn Repo" at "http://edeustace.com/repository/snapshots"
+resolvers ++= Seq( "cs snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots", "cs releases" at "http://repository.corespring.org/artifactory/ivy-releases")
 
-// TODO: Uncomment when compiled for sbt 0.13
-// addSbtPlugin("com.ee" % "mongo-db-seeder-sbt" % "0.5-6380cac")
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.7-45bb3dc")
