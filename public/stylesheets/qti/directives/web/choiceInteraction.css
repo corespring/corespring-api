@@ -1,32 +1,160 @@
+/* Choice interaction styles */
 .choice-interaction {
     display: block;
     margin-top: 15px;
     margin-bottom: 15px;
     margin-left: 20px;
+    color: #333;
+    font-size: 14px;
 }
+
+.choice-table {
+    display: table;
+    border-collapse: collapse;
+}
+
 .choice-prompt {
     display: block;
     margin-bottom: 10px;
     font-size: 20px;
 }
+
+/* Simple choice styles */
+
+.choice-wrap {
+    overflow: hidden;
+    width: 100%;
+    display: table-row;
+}
+
 .simple-choice {
     font-size: 18px;
 }
+
 .simple-choice input {
     margin-left: 10px;
     margin-right: 10px;
 }
-.simplechoice-inner{
-	margin:0 0 5px 20px;
-}
-.choiceInput,
-.choice-content{
-	display:table-cell;
-	vertical-align:middle;
-	color:#4d4d4f;
-	font-size:14px;
-}
-.choiceInput{
-	padding-left: 3px;
+
+.simple-choice-inner {
+    margin: 0 0 5px 20px;
+    display: table-row;
+    line-height: 15px;
 }
 
+.simple-choice-inner-horizontal {
+    display: table-cell;
+    line-height: 20px;
+    margin-right: 10px;
+    padding: 0 10px 10px;
+    text-align: center;
+    vertical-align: top;
+}
+
+.incorrect-response .simple-choice-content,
+.correct-response .simple-choice-content,
+.received-response .simple-choice-content {
+    border: 2px solid #f8a31a;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    padding: 10px;
+    width: 100%;
+}
+
+.correct-response .simple-choice-content {
+    border: 2px solid #80b312;
+}
+
+.received-response .simple-choice-content {
+    border: 2px solid #00ACCE;
+}
+
+.incorrect-response-horizontal .choice-content-horizontal {
+    border-radius: 6px;
+    border: 2px solid #F8A31A;
+    margin: 0 0 15px;
+}
+
+.correct-response-horizontal .choice-content-horizontal {
+    border-radius: 6px;
+    border: 2px solid #80b312;
+    margin: 0 0 15px;
+}
+
+.correct-response-horizontal .feedback-container,
+.incorrect-response-horizontal .feedback-container,
+.received-response-horizontal .feedback-container {
+    background: url("/assets/images/wrong-icon.png") no-repeat 0 0;
+    display: block;
+    height: 22px;
+    width: 26px;
+    margin: 0 auto;
+}
+
+.correct-response-horizontal .feedback-container {
+    background: url("/assets/images/correct-icon.png") no-repeat 0 0;
+}
+
+.correct-response-horizontal .feedback-container span,
+.incorrect-response-horizontal .feedback-container span,
+.received-response-horizontal .feedback-container span {
+    display: none;
+}
+
+.incorrect-response [feedbackinline] {
+    background: url(/assets/images/wrong-icon.png) no-repeat 0 50%;
+}
+
+.correct-response [feedbackinline] {
+    background: url(/assets/images/correct-icon.png) no-repeat 0 50%;
+}
+
+.feedbackinline,
+[feedbackinline] {
+    color: #333;
+    padding-left: 10px;
+    font-size: 12px;
+}
+
+.incorrect-response [feedbackinline],
+.correct-response [feedbackinline] {
+    padding: 5px 5px 5px 20px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.choice-content-horizontal {
+    padding: 8px;
+}
+
+.choiceInput {
+    width: 20px;
+    display: table-cell;
+    vertical-align: baseline;
+    color: #4d4d4f;
+    font-size: 14px;
+}
+
+.choiceInput input {
+    margin-top: 0px;
+}
+
+.letter {
+    padding-right: 10px;
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.choice-label {
+    text-align: right;
+    display: inline-block;
+    vertical-align: baseline;
+}
+
+.rightAlign .choice-label {
+    float: right;
+}
+
+.choiceInput {
+    padding-left: 3px;
+}

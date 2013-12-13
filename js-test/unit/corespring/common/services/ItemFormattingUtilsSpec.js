@@ -74,15 +74,15 @@ describe('common.ItemFormattingUtils', function () {
 
     it("builds a standards tooltip", function(){
 
-      expect(scope.buildStandardTooltip([])).toBe("");
+      expect(scope.buildStandardTooltip([])).toBe("<span></span>");
 
       var s = [
       { standard: "s", dotNotation: "dn"}
       ];
 
-      expect(scope.buildStandardTooltip(s)).toBe("s");
+      expect(scope.buildStandardTooltip(s)).toBe("<span>s</span>");
       s.push({ standard: "a b c d e f g", dotNotation: "dn2"});
-      expect(scope.buildStandardTooltip(s)).toBe("dn: s, dn2: a b c d e f...");
+      expect(scope.buildStandardTooltip(s)).toBe("<span>dn: s, dn2: a b c d e f...</span>");
     });
 
     it('should get short subject label', function(){
