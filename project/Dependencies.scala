@@ -7,7 +7,7 @@ object Dependencies {
   //TODO: May need to change this
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.2-d588974")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.2-15c74df")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -49,13 +49,13 @@ object Dependencies {
     salatVersioningDao,
     amapClient,
     assetsLoader,
-    //aws,
-    //mongoDbSeeder,
-    //jbcrypt,
-    //mockito,
-    //scalaFaker,
-    //playMemcached,
-    //playPluginMailer,
+    aws,
+    mongoDbSeeder,
+    jbcrypt,
+    mockito,
+    scalaFaker,
+    playMemcached,
+    playPluginMailer,
     playPluginUtil,
     salatPlay,
     securesocial,
