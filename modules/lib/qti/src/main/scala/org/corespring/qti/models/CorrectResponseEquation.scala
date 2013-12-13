@@ -1,9 +1,10 @@
 package org.corespring.qti.models
 
 import java.util.regex.{Matcher, Pattern}
-import javax.script.ScriptEngineManager
 import util.Random
 import xml.Node
+import org.mozilla.javascript.Context
+import org.mozilla.javascript.tools.shell.Global
 
 class Domain(var include:Seq[(Int,Int)] = Seq(-10 -> 10), var notInclude: Seq[Int] = Seq())
 object Domain{
@@ -97,7 +98,13 @@ object CorrectResponseEquation {
   def lineEquationMatch(value: String, responseValue: String,
     domain: Domain = new Domain(), variables: (String, String) = "x" -> "y",
     numOfTestPoints: Int = 50, sigfigs: Int = 4): Boolean = {
-    val engine = new ScriptEngineManager().getEngineByName("JavaScript")
+
+
+    val ctx = Context.enter
+    ctx.setOptimizationLevel(-1)
+    val global = new Global
+    global.init(ctx)
+    val scope = ctx.initStandardObjects(global)
 
     def formatExpression(expr: String, variableValues: Seq[(String, Double)]): String = {
       def replaceVar(expr: String, variable: String, num: Double): String = {
@@ -142,7 +149,8 @@ object CorrectResponseEquation {
       getRandomValues(numOfTestPoints,domain).foreach(rvalue => {
         val xcoord: Double = rvalue
         val expr = formatExpression(rhs, Seq(variables._1 -> xcoord))
-        val ycoord: Double = engine.eval(formatExpression(rhs, Seq(variables._1 -> xcoord))).toString.toDouble
+        val evalResult = ctx.evaluateString(scope, expr, "?", 1, null)
+        val ycoord: Double = evalResult.toString.toDouble
         testCoords = testCoords :+ (xcoord,ycoord)
       })
       testCoords
@@ -159,7 +167,7 @@ object CorrectResponseEquation {
      */
     def evaluate(expr:String,variableValues:Seq[(String,Double)]):(Double,Double,Double) = {
       val formattedExpr= formatExpression(expr, variableValues)
-      val num = engine.eval(formattedExpr).toString.toDouble
+      val num = ctx.evaluateString(scope, formattedExpr, "?", 1, null).toString.toDouble
       val bound:Double = scala.math.pow(10, 0-sigfigs)
       val center = round(num)
       //round upper and lower bounds as a result of some funky things that occur to double's

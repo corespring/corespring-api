@@ -2,16 +2,22 @@ package org.corespring.qti.helpers
 
 import scala.xml.transform.{ RuleTransformer, RewriteRule }
 import scala.xml.{ Node, Elem, NodeSeq }
+import java.io.{FileReader, File, FileInputStream}
 
 object MockXml {
 
-  val base = "src/test/resources"
-  val AllItems = scala.xml.XML.loadFile("src/test/resources/test/mockXml/all-items.xml")
+  val baseFile = new File("test/mockXml")
+  val AllItems = loadXml("all-items.xml")
+
+  def loadXml(name : String) = {
+    val reader =  new FileReader( new File(baseFile.getPath + "/" + name ))
+    scala.xml.XML.load( reader )
+  }
 
   val incorrectResponseFeedback = "incorrect response feedback"
   val correctResponseFeedback = "correct response feedback"
 
-  def load(filename: String): Elem = scala.xml.XML.loadFile( s"$base/test/mockXml/$filename")
+  def load(filename: String): Elem = loadXml(filename)
 
   def createXml(identifier: String, cardinality: String, values: NodeSeq, interaction: NodeSeq = <none/>): Elem = {
     <assessmentItem>

@@ -26,7 +26,7 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
   val playFramework = "com.typesafe.play" %% "play" % playVersion
-  val playJson = "com.typesafe.play" %% "play-json" % playVersion exclude("org.scala-stm", "scala-stm_2.10.0")
+  val playJson = "com.typesafe.play" %% "play-json" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
@@ -34,9 +34,9 @@ object Dependencies {
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-dfb50a3-SNAPSHOT"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
-  val salat = "com.novus" %% "salat" % "1.9.2"
+  val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-b185ac1"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-eed656b"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
   val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"

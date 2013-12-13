@@ -65,10 +65,8 @@ class QtiItemTest extends Specification {
     }
 
     "parse an inline choice interaction even though its nested" in {
-      val path = "src/test/resources/test/mockXml/inline-choice-interaction-in-p.xml"
 
-      val s = io.Source.fromFile(path)(new Codec(Charset.forName("UTF-8"))).mkString
-      val xml = XML.loadString(s)
+      val xml = MockXml.loadXml("inline-choice-interaction-in-p.xml")
 
       val qtiItem = QtiItem(xml)
 

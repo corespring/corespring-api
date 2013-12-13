@@ -32,11 +32,12 @@ object QuizService extends QuizService {
    */
   private object Dao extends ModelCompanion[Quiz, ObjectId] {
 
-    import org.corespring.platform.core.models.mongoContext.context
+    import com.novus.salat.global._
     import play.api.Play.current
+    import org.corespring.platform.core.models.mongoContext.context
 
     val collection = mongoCollection("quizzes")
-    val dao = new SalatDAO[Quiz, ObjectId](collection = collection) {}
+    val dao = new SalatDAO[Quiz, ObjectId](collection = collection){}
   }
 
   /** Bind Item title and standards to the question */
@@ -45,7 +46,7 @@ object QuizService extends QuizService {
   }
 
   def create(q: Quiz) {
-    Dao.save(bindItemData(q))
+    Dao.insert(bindItemData(q))
   }
 
   def update(q: Quiz) {

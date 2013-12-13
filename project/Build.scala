@@ -17,7 +17,7 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.3"
   val org = "org.corespring"
 
-  val forkInTests = true
+  val forkInTests = false
 
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
@@ -125,7 +125,9 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
-     ).settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+     )
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
     .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, qti).settings(disableDocsSettings: _*)
 

@@ -50,7 +50,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
 
      userFromRequest(request)
         .filterNot( _.hasRegisteredOrg )
-        .map( u => Future(Redirect(DeveloperRoutes.createOrganization().url)))
+        .map( u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
         .getOrElse(defaultView)
   }
 
