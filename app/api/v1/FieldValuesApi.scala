@@ -235,12 +235,13 @@ object FieldValuesApi extends BaseApi {
                 key match {
                   case "subject" => {
                     Subject.findOneById(new ObjectId(value)) match {
-                      case Some(subject) => subject.subject match {
-                        case Some(subjectString) => {
-                          acc.get(key) match {
-                            case Some(seq) => acc + (key -> (seq :+ subjectString))
-                            case None => acc + (key -> Seq(subjectString))
+                      case Some(subject) => subject.category match {
+                        case Some(subjectString) => acc.get(key) match {
+                          case Some(seq) => seq.contains(subjectString) match {
+                            case true => acc
+                            case false => acc + (key -> (seq :+ subjectString))
                           }
+                          case None => acc + (key -> Seq(subjectString))
                         }
                         case _ => {
                           Logger.error(s"Could not find subject text for subject with id ${value}")
@@ -267,6 +268,7 @@ object FieldValuesApi extends BaseApi {
           }
           case _ => acc
         })
+        println(fieldValueMap)
         Ok(Json.toJson(fieldValueMap))
       }
       case error: MapReduceError => {
