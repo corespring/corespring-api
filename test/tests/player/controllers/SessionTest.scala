@@ -3,7 +3,7 @@ package tests.player.controllers
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
-import play.api.mvc.{Result, Action, AnyContentAsJson, AnyContent}
+import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import org.corespring.player.accessControl.models.RequestedAccess
@@ -13,6 +13,9 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
 import org.corespring.test.PlaySingleton
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
+import scala.concurrent.Future
 
 class SessionTest extends Specification with PlayerCookieWriter {
 
@@ -28,7 +31,7 @@ class SessionTest extends Specification with PlayerCookieWriter {
 
   import org.specs2.execute.{Result => SpecsResult}
 
-  private def assertAction(msg: String, action: Action[AnyContent], r: FakeRequest[AnyContent], idFn: (Result => ObjectId), inPreview: Boolean): SpecsResult = {
+  private def assertAction(msg: String, action: Action[AnyContent], r: FakeRequest[AnyContent], idFn: (Future[SimpleResult] => ObjectId), inPreview: Boolean): SpecsResult = {
 
     val result = action(r)
     val id = idFn(result)
@@ -50,7 +53,7 @@ class SessionTest extends Specification with PlayerCookieWriter {
       "create" in {
         val action = session.create(TestIds.testId)
 
-        def idFromCreate(r: Result): ObjectId = Json.parse(contentAsString(r)).as[ItemSession].id
+        def idFromCreate(r: Future[SimpleResult]): ObjectId = Json.parse(contentAsString(r)).as[ItemSession].id
         assertAction("preview::create", action, request(Preview, itemSession), idFromCreate, inPreview = true)
 
         forallWhen(List(Render, Administer, Aggregate)) {

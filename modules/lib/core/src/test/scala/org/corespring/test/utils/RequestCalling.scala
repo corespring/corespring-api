@@ -6,6 +6,7 @@ import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import scala.concurrent.Future
 
 trait RequestCalling extends PackageLogging with JsonToModel {
 
@@ -25,7 +26,7 @@ trait RequestCalling extends PackageLogging with JsonToModel {
       FakeAuthHeader,
       content)
 
-    val result: Result = action(request)
+    val result: Future[SimpleResult] = action(request)
 
     if (status(result) == OK) {
       val json: JsValue = Json.parse(contentAsString(result))

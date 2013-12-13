@@ -41,7 +41,7 @@ object Dependencies {
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
   val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-  val specs2 = "org.specs2" %% "specs2" % "2.3.6"
+  val specs2 = "org.specs2" %% "specs2" % "2.1.1"
 
   val all = Seq(
     playS3,

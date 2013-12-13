@@ -22,6 +22,7 @@ import play.api.libs.json.JsSuccess
 import scala.Some
 import play.api.libs.json.JsObject
 import tests.helpers.models.{CollectionHelper, ItemHelper}
+import scala.concurrent.Future
 
 class ItemApiTest extends BaseTest with Mockito {
 
@@ -31,14 +32,14 @@ class ItemApiTest extends BaseTest with Mockito {
 
   val DefaultPageSize = 50
 
-  def assertBasics(result: Result): List[org.specs2.execute.Result] = {
+  def assertBasics(result: Future[SimpleResult]): List[org.specs2.execute.Result] = {
     List(
       status(result) === OK,
       charset(result) === Some("utf-8"),
       contentType(result) === Some("application/json"))
   }
 
-  def assertResult(result: Result, count: Int): org.specs2.execute.Result = {
+  def assertResult(result: Future[SimpleResult], count: Int): org.specs2.execute.Result = {
     forall(assertBasics(result))(r =>
       r.isSuccess === true
     )
@@ -49,7 +50,7 @@ class ItemApiTest extends BaseTest with Mockito {
     items.size === count
   }
 
-  def assertSingleResult(result: Result, block: JsValue => org.specs2.execute.Result) = {
+  def assertSingleResult(result: Future[SimpleResult], block: JsValue => org.specs2.execute.Result) = {
     forall(assertBasics(result))(r =>
       r.isSuccess === true
     )
