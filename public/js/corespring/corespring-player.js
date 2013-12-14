@@ -1,5 +1,6 @@
 (function (root) {
-  var console = console || {log: function(){}};
+
+  var console = window.console || {log: function(){}};
   var com = root.com = root.com || {};
 
   com.corespring = com.corespring || {};
@@ -41,6 +42,10 @@
     playerListeners = [];
   }
 
+  var logError = function(message){
+    $.post("/logger/error",{message: message})
+  }
+
   com.corespring.players.config = {
     baseUrl: "${baseUrl}",
     paths: {
@@ -66,18 +71,27 @@
 
   function addDimensionChangeListener(element) {
 
-    var listenerFunction = function (data) {
+    var listenerFunction = function (data, event) {
       try {
         var json = JSON.parse(data);
         if (json.message == 'dimensionsUpdate') {
-          $(element).height(json.h + 30);
+          var frames = document.getElementsByTagName('iframe');
+          var found = false;
+          for (var i = 0; i < frames.length; i++) {
+            if (frames[i].contentWindow == event.source) {
+              $(frames[i]).height(json.h + 30);
+              found = true;
+              break;
+            }
+          }
+          if (!found) $(element).height(json.h + 30);
         }
       } catch (e) {
-
+            logError("Exception in addDimensionChangeListener: "+e);
       }
     }
 
-    addPlayerListener(function(e){ listenerFunction(e.data) });
+    addPlayerListener(function(e){ listenerFunction(e.data, e) });
   }
 
   var isValidMode = function (m) {
@@ -141,7 +155,7 @@
           }
         }
         catch (e) {
-
+            logError("Exception in ItemPlayer.addSessionListener: "+e);
         }
       });
     };
@@ -217,11 +231,21 @@
           error("Unknown mode", codes.NEED_MODE);
           break;
       }
-      return template
+      template = template
         .replace(":itemId", options.itemId)
         .replace(":sessionId", options.sessionId)
         .replace(":assessmentId", options.assessmentId);
+      if(options.role) return addQueryString(template,options.role)
+      else return template
     };
+
+    function addQueryString(url,param){
+        if(url.indexOf("?") != -1){
+            return url+"&role="+param;
+        }else{
+            return url+"?role="+param;
+        }
+    }
 
     options.corespringUrl = getUrl(com.corespring.players.config.mode, options);
 
@@ -229,27 +253,38 @@
       error("Need to specify either itemId or sessionId in options", com.corespring.players.errors.NEED_ITEMID_OR_SESSIONID);
       return;
     }
+
+    var submitFunction = function (isAttempt) {
+      try {
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message": "submitItem", "isAttempt": isAttempt}), "*");
+        return true;
+      } catch (e) {
+        logError("Exception in ItemPlayer.submitItem: " + e);
+        return false;
+      }
+    };
+
     /**
      * programmatically submits the item
      *
      * @returns true if successfully submitted, false if error
      **/
-    this.submitItem = function () {
-      try {
-        window.postMessage(JSON.stringify({"message": "submitItem"}), "*");
+    var submitFunction = function(isAttempt) {
+      try{
+        e.find('iframe')[0].contentWindow.postMessage(JSON.stringify({"message":"submitItem","isAttempt":isAttempt}), "*");
         return true;
       } catch (e) {
+        logError("Exception in ItemPlayer.saveResponses: "+e);
         return false;
       }
+    }
+
+    this.submitItem = function () {
+      submitFunction(true);
     };
 
     this.saveResponses = function(){
-      try{
-        window.postMessage(JSON.stringify({"message":"submitItem","isAttempt":false}), "*");
-        return true;
-      } catch (e) {
-        return false;
-      }
+      submitFunction(false);
     }
 
     var playerRenderFunction = iframePlayerStrategy;

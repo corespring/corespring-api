@@ -4,5 +4,5 @@
    @player.views.html.partials.angularConfig(params, ("quizId" -> quizId))
 }
 
-@bodyAttributes = @{ "ng-controller='AggregateAppController'" }
+@bodyAttributes = @{ "ng-controller=AggregateAppController" }
 @_root_.player.views.html.basePlayer( params, bodyAttributes, Some(scripts) )

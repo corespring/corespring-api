@@ -16,7 +16,7 @@
  * TODO: We do alot of data formatting on the client side here - should that be server side instead?
  */
 angular.module('tagger.services')
-  .factory('CollectionManager', [ 'Collection', 'UserInfo', function (Collection, UserInfo) {
+  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', function (Collection, UserInfo, Logger) {
     "use strict";
 
     var rawData = {};
@@ -115,8 +115,8 @@ angular.module('tagger.services')
           out.sortedCollections = createSortedCollection(data, _.clone(UserInfo.org));
           if (onComplete) onComplete();
         },
-        function () {
-            //console.log("load collections: error: " + arguments);
+        function (err) {
+            Logger.error("Error initializing collections: "+JSON.stringify(err));
         });
     };
 

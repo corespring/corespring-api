@@ -2,15 +2,27 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
 import play.api.libs.json._
 import play.api.mvc.Result
-import scalaz.{ Failure, Success }
 import org.corespring.platform.core.models.error.InternalError
+import com.mongodb.casbah.map_reduce._
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import com.mongodb.DBObject
+import org.corespring.platform.core.models.search.SearchCancelled
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsUndefined
+import scalaz.Failure
+import play.api.libs.json.JsString
+import com.mongodb.casbah.map_reduce.MapReduceCommand
+import scala.Some
+import play.api.libs.json.JsNumber
+import com.novus.salat.dao.SalatMongoCursor
+import scalaz.Success
+import play.api.libs.json.JsObject
+import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
 
 /**
  * The Collections API
@@ -33,6 +45,55 @@ object CollectionApi extends BaseApi {
         doList(orgId, q, f, c, sk, l, sort)
       } else
         Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
+  }
+
+  val fieldValueMap = Map(
+    "itemType" -> "taskInfo.itemType",
+    "contributor" -> "contributorDetails.contributor"
+  )
+
+  def fieldValuesByFrequency(collectionIds: String, fieldName: String) = ApiActionRead { request =>
+    fieldValueMap.get(fieldName) match {
+      case Some(field) => {
+        // Expand "one.two" into Seq("this.one", "this.one.two") for checks down path in a JSON object
+        val fieldCheck =
+          field.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
+            acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
+        val cmd = MapReduceCommand(
+          input = "content",
+          map = s"""
+            function() {
+              if (${fieldCheck}) {
+                emit(this.$field, 1);
+              }
+            }""",
+          reduce = s"""
+            function(previous, current) {
+              var count = 0;
+              for (index in current) {
+                count += current[index];
+              }
+              return count;
+            }""",
+          query = Some(MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.split(",").toSeq))),
+          output = MapReduceInlineOutput
+        )
+
+        ItemServiceImpl.collection.mapReduce(cmd) match {
+          case result: MapReduceInlineResult => {
+            val fieldValueMap = result.map(_ match {
+              case dbo: DBObject => {
+                Some(dbo.get("_id").toString -> dbo.get("value").asInstanceOf[Double])
+              }
+              case _ => None
+            }).flatten.toMap
+            Ok(Json.prettyPrint(Json.toJson(fieldValueMap)))
+          }
+          case _ => BadRequest(Json.toJson(ApiError.InvalidField))
+        }
+      }
+      case _ => BadRequest(Json.toJson(ApiError.InvalidField))
+    }
   }
 
   private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort: Option[String]) = {

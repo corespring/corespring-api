@@ -67,21 +67,22 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
 
             var divs = isHorizontal ? [
                     '<div class="simple-choice-inner-horizontal" ng-class="{noResponse: noResponse}">',
-                    '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
-                    '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="' + modelName + '" value="{{value}}"></input></div>',
+                    '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved,
+                    '   <div><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="' + modelName + '" value="{{value}}"></input></div>',
                     '</div>',
-                    createFeedbackContainerDiv(tElement.html(), true)
+                    createFeedbackContainerDiv(tElement.html(), true),
+                    '</div>'
+              ]
+
+                :
+
+                ['<div class="simple-choice-inner">',
+                    '  <div class="choiceInput">',
+                    '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
+                    '<div class="simple-choice-content {{choiceStyle}}">'+nodeWithFeedbackRemoved+'</div>',
+                    createFeedbackContainerDiv(tElement.html()),
+                    '</div>'
                 ]
-
-                    :
-
-                    ['<div class="simple-choice-inner">',
-                        '  <div class="choiceInput">',
-                        '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
-                        '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
-                        '</div>',
-                        createFeedbackContainerDiv(tElement.html())
-                    ]
 
                 ;
 
@@ -89,7 +90,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
 
 
             // now can modify DOM
-            tElement.html(template);
+            tElement.replaceWith(template);
 
             // return link function
             return function (localScope, element, attrs, choiceInteractionController) {

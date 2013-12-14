@@ -72,7 +72,7 @@ class ItemSessionTest extends BaseTest {
       val xml = scala.xml.XML.loadFile("test/mockXml/item-session-test-two.xml")
 
       try {
-        itemSession.process(session, xml)
+        itemSession.process(session, xml)(false)
         failure
       } catch {
         case e: IllegalArgumentException => success
@@ -131,7 +131,7 @@ class ItemSessionTest extends BaseTest {
 
       session.finish = Some(new DateTime())
 
-      itemSession.process(session, xml) match {
+      itemSession.process(session, xml)(false) match {
         case Right(newSession) => {
           val json: JsValue = toJson(newSession)
           println("finish = " + session.isFinished)
@@ -152,7 +152,7 @@ class ItemSessionTest extends BaseTest {
       val session = ItemSession(itemId = genItemId, settings = settings)
 
       itemSession.begin(session)
-      itemSession.process(session, DummyXml)
+      itemSession.process(session, DummyXml)(false)
 
       itemSession.findOneById(session.id).get.isFinished === true
     }
@@ -165,14 +165,14 @@ class ItemSessionTest extends BaseTest {
 
       (1 to settings.maxNoOfAttempts).foreach(c => {
 
-        itemSession.process(session, DummyXml) match {
+        itemSession.process(session, DummyXml)(false) match {
           case Left(e) => failure
           case Right(e) => success
         }
       })
 
       //Should fail now
-      itemSession.process(session, DummyXml) match {
+      itemSession.process(session, DummyXml)(false) match {
         case Left(e) => success
         case Right(e) => failure
       }
@@ -195,7 +195,7 @@ class ItemSessionTest extends BaseTest {
       val session = ItemSession(itemId = genItemId)
       itemSession.begin(session)
       session.responses = Seq(StringResponse("a", "a"))
-      itemSession.process(session, SimpleXml) match {
+      itemSession.process(session, SimpleXml)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(true)
       }
@@ -206,7 +206,7 @@ class ItemSessionTest extends BaseTest {
       session.settings.maxNoOfAttempts = 0 // no max... multiple attempts allowed
       itemSession.begin(session)
       session.responses = Seq(StringResponse("a", "b"))
-      itemSession.process(session, SimpleXml) match {
+      itemSession.process(session, SimpleXml)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => s.isFinished must equalTo(false)
       }
@@ -215,7 +215,7 @@ class ItemSessionTest extends BaseTest {
     "automatically start an item if its not started" in {
       val session = ItemSession(itemId = genItemId)
       itemSession.save(session)
-      itemSession.process(session, DummyXml) match {
+      itemSession.process(session, DummyXml)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(processed) => {
           processed.isStarted must equalTo(true)
@@ -228,7 +228,7 @@ class ItemSessionTest extends BaseTest {
       val settings = ItemSessionSettings(maxNoOfAttempts = 1)
       val session = ItemSession(itemId = genItemId, settings = settings)
       itemSession.begin(session)
-      itemSession.process(session, DummyXml) match {
+      itemSession.process(session, DummyXml)(false) match {
         case Left(e) => failure
         case Right(s) => s.finish must not beNone
       }
@@ -253,7 +253,7 @@ class ItemSessionTest extends BaseTest {
         StringResponse("q1", "q1Answer"))
 
       itemSession.save(session)
-      itemSession.process(session, xml) match {
+      itemSession.process(session, xml)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.responses(0).outcome must beSome
@@ -271,7 +271,7 @@ class ItemSessionTest extends BaseTest {
         ArrayResponse("rainbowColors", Seq("blue", "violet", "red")),
         StringResponse("winterDiscontent", "york"))
 
-      itemSession.process(session, MockXml.AllItems) match {
+      itemSession.process(session, MockXml.AllItems)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.responses(0).outcome must beSome
@@ -305,7 +305,7 @@ class ItemSessionTest extends BaseTest {
         StringResponse("q2", "wrong"))
 
       itemSession.save(session)
-      itemSession.process(session, xml) match {
+      itemSession.process(session, xml)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.outcome must beSome
@@ -326,7 +326,7 @@ class ItemSessionTest extends BaseTest {
       }
 
       session.responses = Seq(StringResponse("winterDiscontent", "york"))
-      itemSession.process(session, MockXml.AllItems) match {
+      itemSession.process(session, MockXml.AllItems)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.dateModified !== None
@@ -334,7 +334,7 @@ class ItemSessionTest extends BaseTest {
       }
 
       session.finish = Some(new DateTime())
-      itemSession.process(session, MockXml.AllItems) match {
+      itemSession.process(session, MockXml.AllItems)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           s.dateModified === session.finish
@@ -349,7 +349,7 @@ class ItemSessionTest extends BaseTest {
       //Allow multiple attempts
       itemSession.save(session)
       session.responses = Seq(StringResponse("winterDiscontent", "york"))
-      itemSession.process(session, MockXml.AllItems, false) match {
+      itemSession.process(session, MockXml.AllItems, false)(false) match {
         case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           session.attempts === 0
@@ -357,7 +357,7 @@ class ItemSessionTest extends BaseTest {
         }
       }
       session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
-      itemSession.process(session, MockXml.AllItems, false) match {
+      itemSession.process(session, MockXml.AllItems, false)(false) match {
         case Left(e) => failure("error: "+e.message)
         case Right(s) => {
           println(Json.toJson(s).toString())
@@ -420,7 +420,7 @@ class ItemSessionTest extends BaseTest {
       val xml: Elem = itemSession.getXmlWithFeedback(session).right.get
 
       session.finish = Some(new DateTime())
-      itemSession.process(session, xml)
+      itemSession.process(session, xml)(false)
 
       val (score, maxScore) = itemSession.getTotalScore(session)
 
@@ -445,4 +445,17 @@ class ItemSessionTest extends BaseTest {
       assertScore("5155a8e6ed0db8d2dd136e85", 1.0, 1.0)
     }
   }
+
+  "reopen" should {
+    "reopen a session" in {
+      val id = ObjectId.get
+      val session = ItemSession(id = id, itemId = genItemId, finish = Some(DateTime.now), attempts = 10)
+      val dbId = itemSession.insert(session)
+      itemSession.reopen(session)
+      itemSession.findOneById(id).map{ s =>
+        s.finish.isEmpty === true
+        s.attempts === 0
+      }.getOrElse(failure(s"Can't find session with id: $id"))
+    }
+   }
 }

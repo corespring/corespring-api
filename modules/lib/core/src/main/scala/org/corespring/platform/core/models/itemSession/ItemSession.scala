@@ -4,10 +4,12 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{ SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError }
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qti.models.responses.{ ResponseOutcome, Response }
+import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.{ FeedbackIdMapEntry, QtiItem }
 import org.corespring.qti.processors.FeedbackProcessor
 import org.joda.time.DateTime
@@ -15,10 +17,8 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
-import se.radley.plugin.salat._
-import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import scalaz.{Failure, Success}
+import se.radley.plugin.salat._
 
 /**
  * Case class representing an individual item session
@@ -52,6 +52,7 @@ object ItemSession {
     val settings = "settings"
     val dateModified = "dateModified"
   }
+
 
   implicit object Writes extends Writes[ItemSession] {
 
@@ -110,21 +111,26 @@ object ItemSession {
 }
 
 object PreviewItemSessionCompanion extends ItemSessionCompanion {
+  override val debugMode = true;
+
   //Note: using a normal collection because in a capped collection a document's size may not grow beyond its original size.
   def collection = mongoCollection("itemsessionsPreview")
   def itemService: ItemService = ItemServiceImpl
 }
 
 object DefaultItemSession extends ItemSessionCompanion {
+  override val debugMode = false
+
   def collection = mongoCollection("itemsessions")
 
   def itemService: ItemService = ItemServiceImpl
 }
-
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging {
 
   import ItemSession.Keys._
   import org.corespring.platform.core.models.mongoContext.context
+
+  val debugMode:Boolean;
 
   def collection: MongoCollection
 
@@ -211,7 +217,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[InternalError, ItemSession])) = {
     findOneById(session.id) match {
       case Some(dbSession) => fn(dbSession)
-      case _ => Left(InternalError("can't find item session" + session.id.toString))
+      case _ => Left(InternalError(s"can't find item session: ${session.id}"))
     }
   }
 
@@ -247,7 +253,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)(implicit isInstructor:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
@@ -273,7 +279,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         updateFromDbo(update.id, dboUpdate, (u) => {
           if(isAttempt){
             val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem)
+            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem,debugMode)
             sessionOutcome match {
               case Success(so) => {
                 u.outcome = Some(so)
@@ -285,7 +291,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
                   save(u)
                 }
                 //TODO: We need to be careful with session data - you can't persist it
-                u.sessionData = Some(SessionData(qtiItem, u))
+                u.sessionData = Some(SessionData(qtiItem, u)(isInstructor))
               }
               case Failure(error) => Left(error)
             }
@@ -300,7 +306,6 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param session
    * @return a tuple (score, maxScore)
    */
-
   def getTotalScore(session: ItemSession): (Double, Double) = {
     require(session.isFinished, "The session isn't finished.")
 
@@ -329,16 +334,28 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param id - the item session id
    * @return
    */
-  def get(id: ObjectId): Option[ItemSession] = {
+  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean): Option[ItemSession] = {
     findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
     }
   }
 
+
+  def reopen(session:ItemSession) : Option[ItemSession] = {
+    val update = session.copy(finish = None, attempts = 0)
+    val result = save(update)
+
+    if(result.getLastError.ok){
+      Some(update)
+    } else {
+      None
+    }
+  }
+
   private def addExtrasIfFinished(
     session: ItemSession,
-    fns: ((ItemSession, Elem) => Unit)*): ItemSession =
+    fns: ((ItemSession, Elem) => Unit)*)( implicit includeResponsesOverride:Boolean): ItemSession =
     if (session.isFinished) {
       getXmlWithFeedback(session) match {
         case Right(xml) => {
@@ -351,11 +368,11 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       session
     }
 
-  private def addSessionData(session: ItemSession, xml: Elem) {
+  private def addSessionData(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.sessionData = Some(SessionData(QtiItem(xml), session))
   }
 
-  private def addResponses(session: ItemSession, xml: Elem) {
+  private def addResponses(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 

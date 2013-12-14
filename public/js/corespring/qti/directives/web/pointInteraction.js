@@ -33,6 +33,11 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
     "   <div class='additional-text' ng-show='additionalText'>",
     "       <p>{{additionalText}}</p>",
     "   </div>",
+    "   <div id='scale-display' class='scale-display' ng-show='showInputs'>",
+    "       scale={{scale}}",
+    "       <button type='button' class='btn btn-default btn-undo' ng-click='undo()'>Undo</button>",
+    "       <button type='button' class='btn btn-default btn-start-over' ng-click='startOver()'>Start Over</button>",
+    "   </div>",
     "   <div class='graph-container'></div>",
     "   <div id='initialParams' ng-transclude></div>",
     "</div>"].join("\n"),
@@ -41,7 +46,8 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
     scope: true,
     require: '?^assessmentitem',
     controller: ['$scope', function($scope){
-      $scope.submissions = 0
+      $scope.submissions = 0;
+      $scope.points = {};
       this.setInitialParams = function(initialParams){
         $scope.initialParams = initialParams;
       };
@@ -77,6 +83,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
          return {x: px,y: py};
         }
         if(params.points){
+          $scope.points = params.points;
           $scope.pointResponse = _.map(params.points,function(coord){
             var newCoord = round(coord);
             return newCoord.x+","+newCoord.y;
@@ -98,12 +105,29 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           $scope.locked = false;
         }
       })
+      function renewResponse(){
+        var response = _.find($scope.itemSession.responses,function(r){
+            return r.id === $scope.responseIdentifier;
+         });
+        if(response){
+          var points = [];
+          for(var i = 0; i < response.value.length; i++){
+              var point = response.value[i].split(",");
+              points.push({x: point[0], y: point[1]});
+          }
+          $scope.graphCallback({points: points});
+        }
+        return response;
+      }
+      $scope.$on("highlightUserResponses", function(){
+        if($scope.itemSession.responses){
+            renewResponse();
+        }
+      })
       $scope.$on("formSubmitted",function(){
         if(!$scope.locked){
           $scope.submissions++;
-          var response = _.find($scope.itemSession.responses,function(r){
-            return r.id === $scope.responseIdentifier;
-          });
+          var response = renewResponse();
           if($scope.itemSession.settings.highlightUserResponse){
             if(response && response.outcome.isCorrect){
               $scope.graphCallback({graphStyle: {borderColor: "green", borderWidth: "2px"}, pointsStyle: "green"})
@@ -140,6 +164,25 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
           }
         }
       });
+      $scope.undo = function(){
+        if(!$scope.locked){
+            var pointsArray = _.map($scope.points, function(point,ptName){
+                return {name: ptName, index: point.index }
+            });
+            var removeName = _.max(pointsArray,function(point){return point.index;}).name;
+            delete $scope.points[removeName]
+            if($scope.graphCallback){
+              $scope.graphCallback({points: $scope.points});
+            }
+        }
+      }
+      $scope.startOver = function(){
+        if(!$scope.locked){
+            if($scope.graphCallback){
+              $scope.graphCallback({points: {}});
+            }
+        }
+      }
     }],
     compile: function(element, attrs, transclude){
       var graphAttrs = {
@@ -187,6 +230,7 @@ angular.module("qti.directives").directive("pointinteraction", ['$compile', func
         scope.tickLabelFrequency = attrs.tickLabelFrequency
         scope.pointLabels = graphAttrs.pointLabels
         scope.maxPoints = graphAttrs.maxPoints
+        scope.showInputs = (attrs.showInputs?attrs.showInputs:'true') == 'true'
       }
     }
   }

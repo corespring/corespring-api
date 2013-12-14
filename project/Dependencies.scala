@@ -4,10 +4,8 @@ object Dependencies {
 
   val playVersion = "2.2.1"
 
-  //TODO: May need to change this
-
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.2-15c74df")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.1-SNAPSHOT")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
@@ -44,56 +42,55 @@ object Dependencies {
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
 
   val all = Seq(
-    playS3,
-    slf4j,
-    salatVersioningDao,
     amapClient,
     assetsLoader,
     aws,
-    mongoDbSeeder,
+    closureCompiler,
     jbcrypt,
+    mongoDbSeeder,
+    playS3,
     mockito,
+    salatPlay,
+    salatVersioningDao,
     scalaFaker,
+    scalaz,
+    securesocial,
+    slf4j,
     playMemcached,
     playPluginMailer,
-    playPluginUtil,
-    salatPlay,
-    securesocial,
-    scalaz,
-    closureCompiler)
+    playPluginUtil
+  )
 
   object Resolvers {
 
-    //val localIvy = Resolver.file("local ivy", file(Path.userHome.absolutePath+"/.ivy2/local/"))//(Resolver.ivyStylePatterns)
-    //val localIvy = "Local Ivy Repository" at file(Path.userHome.absolutePath+"/.ivy2/local/") (Resolver.ivyStylePatterns)
-    val localIvy = Resolver.file("Local Ivy Repository", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
     val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"
     val corespringReleases = "Corespring Artifactory Releases" at "http://repository.corespring.org/artifactory/ivy-releases"
+    val corespringPublicSnapshots = "Corespring Public Artifactory Snapshots" at "http://repository.corespring.org/artifactory/public-ivy-snapshots"
     val typesafe = "typesafe releases" at "http://repo.typesafe.com/typesafe/releases/"
-    val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
-    val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val spy = "Spy Repository" at "http://files.couchbase.com/maven2"
     val sonatypeSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
     val sonatypeReleases = "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/releases"
     val sbtPluginSnapshots = Resolver.url("sbt-plugin-releases", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+    val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
+    val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
+    val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
-    // TODO: Publish to repository.corespring.org!!!!!!!
     val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
 
     val all: Seq[Resolver] = Seq(
-      localIvy,
       sonatypeSnapshots,
       typesafe,
       corespringSnapshots,
       corespringReleases,
+      corespringPublicSnapshots,
       spy,
-      edeustaceSnapshots,
-      edeustaceReleases,
       sbtPluginSnapshots,
       sbtPluginReleases,
-      justWroteSnapshots)
+      edeustaceReleases,
+      edeustaceSnapshots,
+      justWroteSnapshots,
+      localRepo)
   }
 
 }

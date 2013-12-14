@@ -39,7 +39,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
             settings = ItemSessionSettings())),
         participants = Seq(
           Participant(
-            answers = Seq(Answer(new ObjectId(), new ObjectId())),
+            answers = Seq(Answer(new ObjectId(), VersionedId(new ObjectId()))),
             externalUid = "blah")))
 
       val json = Json.toJson(q)
@@ -55,7 +55,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
       val q = Quiz(questions = Seq(), participants = Seq(
         Participant(externalUid = "sam.smith@gmail.com", answers = Seq())))
       service.create(q)
-      val answer = Answer(new ObjectId(), new ObjectId())
+      val answer = Answer(new ObjectId(), VersionedId(new ObjectId()))
 
       service.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
         case Some(updated) => {
@@ -71,7 +71,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
         case _ => failure("couldn't find updated")
       }
 
-      service.addAnswer(q.id, "sam.smith@gmail.com", Answer(new ObjectId(), new ObjectId())) match {
+      service.addAnswer(q.id, "sam.smith@gmail.com", Answer(new ObjectId(), VersionedId(new ObjectId()))) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 2
         }

@@ -31,6 +31,8 @@ POST    /auth/access_token                      controllers.auth.AuthController.
 
 ->     /                      public.Routes
 
+->     /logger/                clientlogging.Routes
+
 #
 # V1 API
 #
@@ -52,6 +54,7 @@ GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWit
 POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
+GET     /api/v1/collections/:ids/fieldValues/:field  api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
 
 # Users
 GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
@@ -107,14 +110,18 @@ DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDa
 GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
 GET     /api/v1/field_values/multiple        api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
 GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /api/v1/field_values/contributor/:contributor   api.v1.FieldValuesApi.getFieldValuesByContributor(contributor: String)
+GET     /api/v1/field_values/collection/:collectionId   api.v1.FieldValuesApi.getFieldValuesByCollection(collectionId: ObjectId)
 
 # Item Session API
 
 POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
-GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId)
-PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, action : Option[String] ?= None)
+GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
+PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
+PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
+GET     /api/v1/quizzes/author/:authorId                       api.v1.QuizApi.getByAuthor(authorId: String)
 PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
 GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
 GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
@@ -128,15 +135,15 @@ GET     /api/v1/quizzes                             api.v1.QuizApi.list()
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
 GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId)
+GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
 GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
 # New Player
 ## REST calls
 POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
-GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId)
-PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId,action : Option[String] ?= None)
+GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
+PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
 GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
@@ -150,7 +157,7 @@ GET    /player/item/:itemId/administer                     player.controllers.Vi
 GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
 GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
-GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId)
+GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
 GET    /player/session/:sessionId/administer               player.controllers.Views.administerSession(sessionId:ObjectId)
 GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
@@ -162,6 +169,13 @@ GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.As
 GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript
 GET    /tagger-player.js                            player.controllers.AssetLoading.noSessionPlayerJavascript
 GET    /profile.js                                  player.controllers.AssetLoading.itemProfileJavascript
+
+## Dev endpoints...
+GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
+GET    /dev/tools/player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
+
+GET    /dev/tools/player/session/:sessionId/render                   dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
+GET    /dev/tools/player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 
 # Web tier

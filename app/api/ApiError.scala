@@ -98,6 +98,8 @@ object ApiError {
   val AddToOrganization = ApiError(404, "Failed to link collection to organization(s)")
   val CollectionUnauthorized = ApiError(405, "You do not have permissions for the specified collection")
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
+  val InvalidField = ApiError(407, "The provided field cannot be queried")
+  val MapReduceError = ApiError(408, "There was an error querying the database")
 
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")
@@ -115,6 +117,7 @@ object ApiError {
   val UpdateItemSession = ApiError(604, "could not update item session")
   val ItemSessionNotFound = ApiError(605, "item session specified could not be found")
   val ItemSessionFinished = ApiError(606, "item session is alredy finished - can't update it")
+  val ReopenItemSessionFailed = ApiError(607, "error reopening item session")
 
   //Item API
   val CollectionIdMissing = ApiError(700, "collection id is missing in given json")

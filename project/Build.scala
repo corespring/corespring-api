@@ -1,13 +1,10 @@
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import sbt.Keys._
 import sbt._
 import play.Project._
 import MongoDbSeederPlugin._
 
-/**
- * Note: We are getting cross-versioning errors - they don't have an impact on the build
- * and will be picked up when we migrate to a newer version of play. So the choice is to ignore them for now.
- * @see: https://groups.google.com/forum/#!topic/play-framework-dev/vXbkCEvJrkQ
- */
 object Build extends sbt.Build {
 
   import Dependencies._
@@ -26,10 +23,7 @@ object Build extends sbt.Build {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  //TODO: this isn't working atm :: scalaVersion in ThisBuild := ScalaVersion
-
   val cred = {
-
     val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
     val path = if (envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2" / ".credentials").mkString
     val f: File = file(path)
@@ -87,7 +81,6 @@ object Build extends sbt.Build {
       specs2 % "test",
       playS3,
       playFramework,
-      mongoDbSeeder,
       securesocial,
       assetsLoader,
       mockito,
@@ -103,8 +96,32 @@ object Build extends sbt.Build {
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
+
+  val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
+
+  val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
+    (base, n, v, s) =>
+      s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
+      val file = base / "buildInfo.properties"
+      val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
+      val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
+      val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
+      val date =formatter.print(DateTime.now)
+      val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
+      IO.write(file, contents)
+  }
+
   val commonViews = builders.web("common-views").settings(
-    libraryDependencies ++= Seq(playJson % "test")).dependsOn(core).settings(disableDocsSettings: _*)
+    buildInfoTask,
+    (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
+    libraryDependencies ++= Seq(playJson % "test")
+  ).dependsOn(core).settings(disableDocsSettings: _*)
+
+  /**client logging*/
+  val clientLogging = builders.web("client-logging").settings(
+    libraryDependencies ++= Seq(playFramework, scalaz)
+  ).dependsOn(apiUtils)
+
 
   /** The public play module */
   val public = builders.web("public").settings(
@@ -128,7 +145,8 @@ object Build extends sbt.Build {
      )
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile")
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, qti).settings(disableDocsSettings: _*)
+    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
+    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, clientLogging)
+    .settings(disableDocsSettings: _*)
 
 }

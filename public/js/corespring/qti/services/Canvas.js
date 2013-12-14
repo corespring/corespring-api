@@ -74,6 +74,7 @@ angular.module('qti.services').factory('Canvas', function () {
   Canvas.prototype.addPoint = function(coords, ptName) {
     var pointAttrs = {strokeColor: "blue", fillColor: "blue", snapToGrid: true, snapSizeX: this.scale, snapSizeY: this.scale, showInfobox: false, withLabel:false};
     var point = this.board.create('point', [coords.x, coords.y], pointAttrs);
+    point.canvasIndex = this.points.length;
     this.points.push(point);
     if(this.showLabels){
         var name = (function(labels,points){

@@ -26,14 +26,22 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
     return out;
   };
 
+  var wrapChoiceContents = function(choices) {
+    for (var i = 0; i < choices.length; i++) {
+      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)([\s\S]*)(<\/:*simplechoice>)/gmi, "$1<div class='choice-label'>$2</div>$3");
+    }
+  };
+
   var insertAlphabetPrefixes = function (choices) {
     for (var i = 0; i < choices.length; i++) {
-      var ch = '';
+      var ch = '<div class="letter">';
       var times = Math.floor(i / 32);
       for (var j = 0; j < times + 1; j++)
-        ch += String.fromCharCode(65 + i % 32);
+        ch += String.fromCharCode(65 + i % 32) + ".";
 
-      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch + ". &nbsp;");
+      ch += "</div>";
+
+      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch);
     }
   }
 
@@ -52,6 +60,7 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
       html.replace(/<:*simplechoice[\s\S]*?>[\s\S]*<\/:*simplechoice>/gmi, TOKEN);
 
     var choices = shuffle ? simpleChoicesArray.shuffle(fixedIndexes) : simpleChoicesArray;
+    wrapChoiceContents(choices);
     if (insertLetters) insertAlphabetPrefixes(choices);
 
     return contentsWithChoicesStripped.replace(TOKEN, choices.join("\n"));
@@ -79,7 +88,7 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
     var newNode = isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
       :
-      ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + finalContents + '</div>')
+      ('<div class="choice-interaction" ng-class="{noResponse: noResponse}">' + prompt + "<div class='choice-table'>" + finalContents + "</div>" + '</div>')
     element.html(newNode);
     return link;
   };
@@ -88,6 +97,7 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
   var link = function (scope, element, attrs, AssessmentItemCtrl, $timeout) {
 
     scope.controller = AssessmentItemCtrl;
+    scope.choiceStyle = attrs.choicestyle;
 
     scope.controller.registerInteraction(element.attr('responseIdentifier'), element.find('.prompt').html(), "choice");
 

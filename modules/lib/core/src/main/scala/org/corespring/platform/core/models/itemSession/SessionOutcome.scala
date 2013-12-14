@@ -7,58 +7,114 @@ import org.corespring.common.log.ClassLogging
 import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.responses.processing.ResponseProcessing
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import org.corespring.platform.core.models.error.InternalError
+import com.scalapeno.rhinos.EcmaErrorWithSource
 
-case class SessionOutcome(
-  score: Double, isCorrect: Boolean, isComplete: Boolean, identifierOutcomes: Option[Map[String, SessionOutcome]] = None)
+case class IdentifierOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)
+
+object IdentifierOutcome{
+  implicit val identifierOutcomeReads = (
+    (__ \ "score").read[Double] and
+    (__ \ "isCorrect").read[Boolean] and
+    (__ \ "isComplete").read[Boolean]
+  )(IdentifierOutcome.apply _)
+
+  implicit val identifierOutcomeWrites = new Writes[IdentifierOutcome] {
+    def writes(o: IdentifierOutcome): JsValue = Json.obj(
+      "score" -> JsNumber(o.score),
+      "isCorrect" -> JsBoolean(o.isCorrect),
+      "isComplete" -> JsBoolean(o.isComplete)
+    )
+  }
+}
+case class SessionOutcome(score: Double,
+                          isCorrect: Boolean,
+                          isComplete: Boolean,
+                          identifierOutcomes: Map[String, IdentifierOutcome] = Map(),
+                          script:Option[String] = None)
 
 object SessionOutcome extends ClassLogging {
 
-  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem): Validation[InternalError, SessionOutcome] = {
+  def processSessionOutcome(itemSession: ItemSession, qtiItem: QtiItem, debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
     qtiItem.responseProcessing match {
-      case Some(processing) => responseProcessingScoring(itemSession, qtiItem, processing)
+      case Some(processing) => responseProcessingScoring(itemSession, qtiItem, processing)(debugMode)
       case _ => defaultScoring(itemSession, qtiItem)
     }
   }
 
-  def fromJsObject(jsObject: JsObject, responseDeclarations: Option[Seq[ResponseDeclaration]] = None): SessionOutcome = {
-    new SessionOutcome(
-      score = (jsObject \ "score").asInstanceOf[JsNumber].value.toDouble,
-      isCorrect = (jsObject \ "isCorrect").asInstanceOf[JsBoolean].value,
-      isComplete = (jsObject \ "isComplete").asInstanceOf[JsBoolean].value,
-      identifierOutcomes = responseDeclarations match {
-        case Some(declarations: Seq[ResponseDeclaration]) =>
-          Some(declarations.map(_.identifier).map(id => id -> fromJsObject((jsObject \ id).asInstanceOf[JsObject])).toMap)
-        case None => None
-      })
+  implicit val sessionOutcomeReads = (
+    (__ \ "score").read[Double] and
+    (__ \ "isCorrect").read[Boolean] and
+    (__ \ "isComplete").read[Boolean] and
+    (__ \ "identifierOutcomes").read[Map[String,IdentifierOutcome]]
+  )((score,isCorrect,isComplete,identifierOutcomes) => SessionOutcome.apply(score,isCorrect,isComplete,identifierOutcomes))
+
+  def fromJsObject(json:JsValue, responseDeclarations: Seq[ResponseDeclaration] = Seq()): JsResult[SessionOutcome] = {
+      def computeIdentifierOutcomes(json:JsValue):JsResult[Map[String,IdentifierOutcome]] = {
+        responseDeclarations.map(d =>
+          d.identifier -> Json.fromJson[IdentifierOutcome]((json \ "identifierOutcomes" \ d.identifier)))
+          .foldLeft[JsResult[Map[String,IdentifierOutcome]]](JsSuccess(Map()))((result,input) => {
+            result.fold[JsResult[Map[String,IdentifierOutcome]]](
+              JsError(_),
+              identifierOutcomes => input._2.fold[JsResult[Map[String,IdentifierOutcome]]](
+                e => JsError(e),
+                io => JsSuccess(identifierOutcomes + (input._1 ->  io))
+              )
+            )
+          })
+      }
+      (
+        (__ \ "score").read[Double] and
+        (__ \ "isCorrect").read[Boolean] and
+        (__ \ "isComplete").read[Boolean] and
+        Reads.apply(computeIdentifierOutcomes) and
+        (__ \ "script").readNullable[String]
+      )(SessionOutcome.apply _).reads(json)
   }
 
   private def responseProcessingScoring(
     itemSession: ItemSession,
-    qtiItem: QtiItem, responseProcessing: ResponseProcessing): Validation[InternalError, SessionOutcome] = {
+    qtiItem: QtiItem, responseProcessing: ResponseProcessing)(implicit debugMode:Boolean): Validation[InternalError, SessionOutcome] = {
 
     defaultScoring(itemSession, qtiItem) match {
       case s: Success[_, SessionOutcome] => {
         s.getOrElse(null) match {
           case defaultOutcome: SessionOutcome => {
-            val identifierDefaults = defaultOutcome.identifierOutcomes match {
-              case Some(outcomes) => outcomes.map({
-                case (identifier, outcome) => {
-                  identifier -> Json.obj(
-                    "outcome" -> Json.obj(
-                      "score" -> JsNumber(outcome.score),
-                      "isCorrect" -> JsBoolean(outcome.isCorrect),
-                      "isComplete" -> JsBoolean(outcome.isComplete)
-                    )
+            val identifierDefaults = defaultOutcome.identifierOutcomes.map({
+              case (identifier, outcome) => {
+                identifier -> Json.obj(
+                  "outcome" -> Json.obj(
+                    "score" -> JsNumber(outcome.score),
+                    "isCorrect" -> JsBoolean(outcome.isCorrect),
+                    "isComplete" -> JsBoolean(outcome.isComplete)
                   )
+                )
+              }
+            })
+
+            try {
+              val response = responseProcessing.process(
+                Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
+
+              response match {
+                case Some((script:String,jsObject: JsObject)) => {
+                  val result = Writes.writes(defaultOutcome).deepMerge(jsObject)
+                  ResponseProcessingOutputValidator(result, qtiItem).map(so => if(debugMode) so.copy(script = Some(script)) else so)
                 }
-              })
-              case None => Map.empty
+                case Some((script:String,jsNumber: JsNumber)) => {
+                  val result = Writes.writes(defaultOutcome).deepMerge(Json.obj("score" -> jsNumber))
+                  ResponseProcessingOutputValidator(result, qtiItem).map(so => if(debugMode) so.copy(script = Some(script)) else so)
+                }
+                case _ => Failure(InternalError(s"""Response processing for item did not return a JsObject"""))
+              }
+            } catch {
+              case e: EcmaErrorWithSource => {
+                println(e.source)
+                throw new RuntimeException(e);
+              }
             }
 
-            val response = responseProcessing.process(
-              Some(Map("itemSession" -> Json.toJson(itemSession)) ++ identifierDefaults), Some(itemSession.responses))
-            ResponseProcessingOutputValidator(response, qtiItem)
           }
           case _ => Failure(InternalError(s"Default scoring failed"))
         }
@@ -77,24 +133,20 @@ object SessionOutcome extends ClassLogging {
       score = score,
       isCorrect = score == 1,
       isComplete = session.isFinished || isMaxAttemptsExceeded(session) || score == 1,
-      identifierOutcomes = (session.responses.length > 1) match {
+      identifierOutcomes = session.responses.nonEmpty match {
         case true => {
-          Some(
             session.responses.map(response => {
               response.outcome match {
                 case Some(outcome) => {
                   val score = outcome.score.toDouble
                   Some(response.id ->
-                    SessionOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1, None))
+                    IdentifierOutcome(score, score == 1, session.isFinished || isMaxAttemptsExceeded(session) || score == 1))
                 }
                 case _ => None
               }
             }).flatten.toMap
-          )
         }
-        case _ => {
-          None
-        }
+        case _ => Map()
       }).success[InternalError]
   }
 
@@ -112,20 +164,20 @@ object SessionOutcome extends ClassLogging {
   }
 
   implicit object Writes extends Writes[SessionOutcome] {
-    def writes(outcome: SessionOutcome): JsValue = {
+    def writes(outcome: SessionOutcome): JsObject = {
       JsObject(
         Seq(
           "score" -> JsNumber(outcome.score),
           "isCorrect" -> JsBoolean(outcome.isCorrect),
-          "isComplete" -> JsBoolean(outcome.isComplete)) ++ (
-            outcome.identifierOutcomes match {
-              case Some(outcomes) => outcomes.map {
-                case (identifier, sessionOutcome) => {
-                  identifier -> writes(sessionOutcome)
-                }
+          "isComplete" -> JsBoolean(outcome.isComplete)
+        ) ++ Seq(
+          "identifierOutcomes" -> JsObject((outcome.identifierOutcomes.map {
+              case (identifier, identifierOutcome) => {
+                identifier -> Json.toJson(identifierOutcome)
               }
-              case _ => Seq.empty
-            }))
+          }).toSeq)
+        ) ++ outcome.script.map(s => Seq("script" -> JsString(s))).getOrElse(Seq())
+      )
     }
   }
 

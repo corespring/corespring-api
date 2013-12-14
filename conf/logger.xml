@@ -32,7 +32,7 @@
     <logger name="utils" level="DEBUG"/>
     <logger name="basiclti.controllers" level="DEBUG"/>
     <logger name="s3-play-plugin" level="WARN"/>
-    <logger name="memcached" level="DEBUG"/>
+    <logger name="memcached" level="ERROR"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

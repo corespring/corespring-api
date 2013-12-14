@@ -7,23 +7,25 @@ import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qti.models.responses.{ ResponseAggregate, ArrayResponse, StringResponse }
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsSuccess
+import org.corespring.player.accessControl.cookies.PlayerCookieReader
+import org.corespring.qti.models.responses.ArrayResponse
+import org.corespring.qti.models.responses.ResponseAggregate
+import org.corespring.qti.models.responses.StringResponse
 import play.api.libs.json.Json._
-import play.api.libs.json.{ JsError, JsValue }
+import play.api.libs.json._
 import play.api.mvc.AnyContent
 import scala.Left
 import scala.Right
 import scala.Some
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 
 /**
  * API for managing item sessions
  */
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi {
+
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi with PlayerCookieReader {
 
   def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
@@ -42,7 +44,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
     sessionIds.foreach {
       p =>
         val oid = new ObjectId(p)
-        itemSession.get(oid) match {
+        itemSession.get(oid)(false) match {
           case Some(session) => {
             session.responses.foreach {
               resp =>
@@ -78,21 +80,34 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
-  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, action: Option[String]) = action match {
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
-    case _ => processResponse(itemId, sessionId)
+    case _ => processResponse(itemId, sessionId)(role)
+  }
+
+  def reopen(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction{ request =>
+    findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
+      case Left(error) => BadRequest(toJson(error))
+      case Right(session) => {
+        itemSession.reopen(session).map{ update => Ok(toJson(update)) }.getOrElse{
+          BadRequest(toJson(ApiError.ReopenItemSessionFailed))
+        }
+      }
+    }
   }
 
   /**
    * @param sessionId
    * @return
    */
-  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String) = ApiAction {
     request =>
+      implicit val isInstructor = role == "instructor"
       itemSession.get(sessionId) match {
         case Some(session) => {
           if (Content.isAuthorized(request.ctx.organization, session.itemId, Permission.Read)) {
+            if (isInstructor) session.settings = session.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
             Ok(toJson(session))
           } else {
             Unauthorized(toJson(ApiError.UnauthorizedItemSession))
@@ -213,9 +228,9 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role:String) = ApiAction {
     request =>
-
+      implicit val isInstructor = role == "instructor"
       logger.debug("[processResponse]: " + sessionId)
 
       itemSession.findOneById(sessionId) match {
@@ -238,6 +253,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                         case Right(xmlWithCsFeedbackIds) => {
                           itemSession.process(dbSession, xmlWithCsFeedbackIds,isAttempt) match {
                             case Right(newSession) => {
+                              if (isInstructor) newSession.settings = newSession.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
                               val json = toJson(newSession)
                               logger.debug("[processResponse] successful")
                               Ok(json)

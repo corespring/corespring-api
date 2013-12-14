@@ -1,4 +1,4 @@
-function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge) {
+function QtiAppController($scope, $timeout, $location, AssessmentSessionService, Config, MessageBridge, Logger) {
 
 
   $scope.onMessageReceived = function (e) {
@@ -39,7 +39,9 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
     var params = {
       itemId: Config.itemId,
-      sessionId: Config.sessionId};
+      sessionId: Config.sessionId,
+      role: Config.role
+    };
 
     if (Config.token) {
       params.access_token = Config.token;
@@ -65,7 +67,8 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
       var params = {
         itemId: itemSession.itemId,
-        sessionId: itemSession.id
+        sessionId: itemSession.id,
+        role: Config.role
       };
 
       AssessmentSessionService.save(params, itemSession, function (data) {
@@ -76,7 +79,7 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
           }
         },
         function (error) {
-          //console.warn(JSON.stringify(error));
+          //onError logs error
           onError(error);
         });
 
@@ -148,5 +151,5 @@ function QtiAppController($scope, $timeout, $location, AssessmentSessionService,
 
 }
 
-QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config', 'MessageBridge'];
+QtiAppController.$inject = ['$scope', '$timeout', '$location', 'AssessmentSessionService', 'Config', 'MessageBridge', 'Logger'];
 

@@ -37,10 +37,10 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderItem(p)
   }
 
-  def render(sessionId: ObjectId) = {
-    DefaultItemSession.get(sessionId) match {
+  def render(sessionId: ObjectId, role:String) = {
+    DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
-        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render)
+        val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render, role = role)
         renderItem(p)
       }
       case None => Action(NotFound("not found"))
@@ -53,7 +53,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   }
 
   def administerSession(sessionId: ObjectId) = {
-    DefaultItemSession.get(sessionId) match {
+    DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Administer)
         renderItem(p)
@@ -101,6 +101,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderingMode: RenderingMode = Web,
     sessionId: Option[ObjectId] = None,
     assessmentId: Option[ObjectId] = None,
+    role: String = "student",
     templateFn: PlayerParams => Html = defaultTemplate,
     assetsLoader: AssetsLoader = AssetsLoaderImpl) {
 
@@ -108,7 +109,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       itemId = Some(itemId),
       sessionId = sessionId,
       assessmentId = assessmentId,
-      mode = Some(sessionMode))
+      mode = Some(sessionMode),
+      role = Some(role))
 
     def toPlayerParams(xml: String, qtiKeys: QtiKeys): PlayerParams = {
 
@@ -116,6 +118,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         xml,
         Some(itemId.toString),
         sessionId.map(_.toString),
+        role,
         enablePreview,
         qtiKeys,
         renderingMode,

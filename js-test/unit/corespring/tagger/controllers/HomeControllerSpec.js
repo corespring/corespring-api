@@ -64,7 +64,7 @@ describe('HomeController', function () {
     }
 
     try {
-      ctrl = $controller(HomeController, {$scope: scope});
+      ctrl = $controller(HomeController, {$scope: scope,Logger:{}});
     } catch (e) {
       throw("Error with the controller: " + e);
     }

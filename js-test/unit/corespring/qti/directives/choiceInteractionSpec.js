@@ -48,7 +48,7 @@ describe('qtiDirectives.choiceinteraction', function () {
                 var interaction = getCheckboxInteraction();
                 expect(interaction.scope).not.toBe(null);
                 var element = interaction.element;
-                expect(element.find('[simplechoice]').length).toBe(2);
+                expect(element.find('.simple-choice-inner').length).toBe(2);
                 expect(element.find('input').attr('type')).toBe('checkbox');
             });
 
@@ -56,7 +56,7 @@ describe('qtiDirectives.choiceinteraction', function () {
                 var interaction = getRadioInteraction();
                 expect(interaction.scope).not.toBe(null);
                 var element = interaction.element;
-                expect(element.find('[simplechoice]').length).toBe(2);
+                expect(element.find('.simple-choice-inner').length).toBe(2);
                 expect(element.find('input').attr('type')).toBe('radio');
             });
         });
@@ -81,7 +81,6 @@ describe('qtiDirectives.choiceinteraction', function () {
                 expect(interaction.scope.chosenItem).toEqual(["a"]);
                 expect(interaction.scope.controller.findItemByKey("question").value).toEqual(["a"]);
             });
-
 
             it('watches showNoResponseFeedback', function () {
                 var interaction = getRadioInteraction();
@@ -115,8 +114,9 @@ describe('qtiDirectives.choiceinteraction', function () {
             '</choiceInteraction>'].join("\n");
 
             var r = getInteraction(node);
-            return { scope: r.scope.$$childHead, element:  r.element.find("[simpleChoice]") };
+            return { scope: r.scope.$$childHead, element:  r.element.find(".simple-choice-inner") };
         };
+
 
         it('inits', function () {
             var interaction = getSimpleChoiceInteraction();

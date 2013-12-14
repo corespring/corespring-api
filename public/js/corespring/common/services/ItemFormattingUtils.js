@@ -144,7 +144,7 @@ angular.module('corespring-utils')
         var out = [];
 
         if (standards.length == 1 && standards[0].standard) {
-          return standards[0].standard;
+          return "<span>" + standards[0].standard + "</span>";
         }
 
         for (var i = 0; i < standards.length; i++) {
@@ -157,7 +157,8 @@ angular.module('corespring-utils')
           var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
           out.push(standards[i].dotNotation + ": " + standardLabel);
         }
-        return out.join(", ");
+
+        return "<span>" + out.join(", ") + "</span>";
       },
 
       showItemType: function (item) {
