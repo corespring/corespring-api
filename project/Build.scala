@@ -1,25 +1,20 @@
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import play.Project._
 import sbt.Keys._
 import sbt._
+import play.Project._
 import MongoDbSeederPlugin._
 
-/**
- * Note: We are getting cross-versioning errors - they don't have an impact on the build
- * and will be picked up when we migrate to a newer version of play. So the choice is to ignore them for now.
- * @see: https://groups.google.com/forum/#!topic/play-framework-dev/vXbkCEvJrkQ
- */
 object Build extends sbt.Build {
 
   import Dependencies._
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.2"
+  val ScalaVersion = "2.10.3"
   val org = "org.corespring"
 
-  val forkInTests = true
+  val forkInTests = false
 
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
@@ -62,20 +57,25 @@ object Build extends sbt.Build {
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers").settings(
+    scalaVersion := ScalaVersion,
     libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay)).settings(disableDocsSettings: _*)
 
   val assets = builders.lib("assets")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", playS3, assetsLoader, corespringCommonUtils),
+      libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils),
       credentials += cred)
     .dependsOn(apiUtils)
     .settings(disableDocsSettings: _*)
+
+
+  val qti = builders.lib("qti").settings(
+    libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos)
+  )
 
   /** Core data model */
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
       salatPlay,
-      corespringQti,
       corespringCommonUtils,
       salatVersioningDao,
       specs2 % "test",
@@ -88,7 +88,7 @@ object Build extends sbt.Build {
       scalaFaker),
     Keys.fork in Test := forkInTests,
     parallelExecution.in(Test) := false,
-    credentials += cred).dependsOn(assets, testLib % "test->compile").settings(disableDocsSettings: _*)
+    credentials += cred).dependsOn(assets, testLib % "test->compile", qti).settings(disableDocsSettings: _*)
 
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
@@ -148,11 +148,10 @@ object Build extends sbt.Build {
 
   val v1Player = builders.web("v1-player")
     .settings(
-      libraryDependencies ++= Seq(corespringQti),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports
     )
-    .dependsOn(playerLib, v1Api, apiUtils, testLib % "test->compile", core, commonViews)
+    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core, commonViews)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
@@ -167,6 +166,7 @@ object Build extends sbt.Build {
     Keys.fork.in(Test) := forkInTests).dependsOn(commonViews, core % "compile->compile;test->test", playerLib, testLib % "test->compile")
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
+
   val main = play.Project(appName, appVersion, Dependencies.all)
     .settings(
       scalaVersion := ScalaVersion,
@@ -178,8 +178,12 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
-    ).settings(MongoDbSeederPlugin.newSettings ++ Seq(testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    )
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
+    .settings(disableDocsSettings: _*)
     .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
-    .aggregate(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging).settings(disableDocsSettings: _*)
+    .aggregate(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
 
+    addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

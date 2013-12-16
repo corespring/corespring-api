@@ -11,12 +11,15 @@ import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl,
 import play.api._
 import play.api.mvc.Results._
 import play.api.mvc._
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
 
 object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 
   private lazy val componentLoader : ComponentLoader = {
+    import org.corespring.lti.web.controllers.routes.AssignmentLauncher
     val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
     out.reload
     out
@@ -44,25 +47,16 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     if (logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
-    InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+
+    Future { InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable)) }
   }
 
-  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Result = {
-    val result = super.onHandlerNotFound(request)
+  private def applyFilter(f : Future[SimpleResult]) : Future[SimpleResult] = f.map( _.withHeaders(Headers.AccessControlAllowEverything))
 
-    result match {
-      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
-      case _ => result
-    }
-  }
+  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Future[SimpleResult] = applyFilter(super.onHandlerNotFound(request))
 
-  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): play.api.mvc.Result = {
-    val result = super.onBadRequest(request, error)
-    result match {
-      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
-      case _ => result
-    }
-  }
+  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
+
 
   override def onStart(app: Application): Unit = {
 

@@ -1,8 +1,11 @@
 package filters
 
 import play.api.mvc.{ RequestHeader, EssentialAction, EssentialFilter }
+import scala.concurrent.ExecutionContext
 
 object AccessControlFilter extends EssentialFilter {
+
+  import ExecutionContext.Implicits.global
 
   def apply(next: EssentialAction) = new EssentialAction {
 

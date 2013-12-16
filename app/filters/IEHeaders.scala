@@ -1,8 +1,11 @@
 package filters
 
 import play.api.mvc.{ EssentialFilter, RequestHeader, EssentialAction }
+import scala.concurrent.ExecutionContext
 
 object IEHeaders extends EssentialFilter {
+
+  import ExecutionContext.Implicits.global
 
   /**
    * Note: For Any content hosted in an iframe to support IE we need to add some p3p tags

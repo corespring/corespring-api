@@ -77,7 +77,7 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
 
   private def Binary(data: Array[Byte], length: Option[Long] = None, contentType: String = "application/octet-stream") = {
     val e = Enumerator(data)
-    SimpleResult[Array[Byte]](header = ResponseHeader(
+    SimpleResult(header = ResponseHeader(
       OK,
       Map(CONTENT_TYPE -> contentType) ++ length.map(length =>
         Map(CONTENT_LENGTH -> (length.toString))).getOrElse(Map.empty)),

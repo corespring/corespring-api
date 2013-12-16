@@ -1,8 +1,11 @@
 package filters
 
-import play.api.mvc.{ EssentialFilter, SimpleResult, RequestHeader, EssentialAction }
+import play.api.mvc.{ EssentialFilter, RequestHeader, EssentialAction }
+import scala.concurrent.ExecutionContext
 
 object AjaxFilter extends EssentialFilter {
+
+  import ExecutionContext.Implicits.global
 
   def apply(next: EssentialAction) = new EssentialAction {
 

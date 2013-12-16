@@ -1,20 +1,18 @@
 package common.controllers
 
-import play.api.mvc.{ PlainResult, Session, Action, Controller }
-import web.controllers.Main
 import common.controllers.session.SessionHandler
+import play.api.mvc.{ Session, Action, Controller }
+import web.controllers.Main
+import scala.concurrent.ExecutionContext
 
 class UserSession(handlers: SessionHandler*) extends Controller {
 
-  def logout = Action {
+  import ExecutionContext.Implicits.global
+
+  def logout = Action.async {
     request =>
       val newSession = handlers.foldRight(request.session)((handler: SessionHandler, acc: Session) => handler.logout(acc))
-      val result = securesocial.controllers.LoginPage.logout(request)
-      if (result.isInstanceOf[PlainResult]) {
-        result.asInstanceOf[PlainResult].withSession(newSession)
-      } else {
-        result
-      }
+      securesocial.controllers.LoginPage.logout(request).transform(r => r.withSession(newSession), e => e)
   }
 }
 

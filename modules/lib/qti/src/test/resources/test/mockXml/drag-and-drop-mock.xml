@@ -1,0 +1,41 @@
+<assessmentItem>
+    <responseDeclaration identifier="alphabet1" cardinality="targeted" baseType="identifier">
+        <correctResponse>
+            <value identifier="target1">
+                <value>apple</value>
+                <value>pear</value>
+            </value>
+            <value identifier="target2">
+                <value>cow</value>
+            </value>
+            <value identifier="target3">
+                <value>car</value>
+                <value>bus</value>
+            </value>
+            <value identifier="target4">
+                <value>apple</value>
+                <value>pear</value>
+            </value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+        <dragAndDropInteraction responseIdentifier="alphabet1">
+            <table>
+            <draggableChoice identifier="apple" copyOnDrag="true">Apple</draggableChoice>
+            <draggableChoice identifier="pear" placeholder-class="placeholder">Pear</draggableChoice>
+            <draggableChoice identifier="walnut">Walnut</draggableChoice>
+            <draggableChoice identifier="car">Car</draggableChoice>
+            <draggableChoice identifier="cow">Cow</draggableChoice>
+            <draggableChoice identifier="bus">Bus</draggableChoice>
+            </table>
+            <landingPlace cardinality="ordered" class="inline" identifier="target1"></landingPlace>
+            <landingPlace cardinality="multiple" class="inline" identifier="target2"></landingPlace>
+            <landingPlace cardinality="single" class="inline" identifier="target3"></landingPlace>
+            <landingPlace cardinality="ordered" class="inline" identifier="target4"></landingPlace>
+
+        </dragAndDropInteraction>
+
+    </itemBody>
+</assessmentItem>
+

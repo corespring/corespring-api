@@ -6,9 +6,8 @@ import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.mvc.Results._
-import play.api.mvc.{Result, AnyContent, Request}
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.mvc.{SimpleResult, AnyContent, Request}
+import scala.concurrent.{ExecutionContext, Future}
 
 object MockImpl extends ValidateQuizIdAndOrgId[FakeRequest[AnyContent]] {
   def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[FakeRequest[AnyContent]] = Some(r.asInstanceOf[FakeRequest[AnyContent]])
@@ -20,9 +19,12 @@ class ValidateQuizIdAndOrgIdTest extends Specification {
 
   "validate quiz id and org id" should {
 
-    def run(keys: (String, String)*): Result = {
+    def run(keys: (String, String)*): Future[SimpleResult] = {
+
+      import ExecutionContext.Implicits.global
+
       def mockQuery(quizId: String, orgId: String): Boolean = true
-      def mockBlock(request: FakeRequest[AnyContent]): Result = Ok("hello")
+      def mockBlock(request: FakeRequest[AnyContent]): Future[SimpleResult] = Future(Ok("hello"))
       val q: MockImpl.OrgIdAndQuizIdAreValid = mockQuery
       MockImpl.ValidatedAction(q)(mockBlock)(FakeRequest().withSession(keys: _*))
     }

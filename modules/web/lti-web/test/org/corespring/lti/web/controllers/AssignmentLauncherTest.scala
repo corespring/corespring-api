@@ -13,9 +13,13 @@ import org.specs2.mutable._
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{WithApplication, FakeHeaders}
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import scala.concurrent.Future
 
 
-class AssignmentLauncherTest extends Specification /*extends BaseTest*/ {
+class AssignmentLauncherTest extends Specification {
 
   case class FakeRequestWithHost[A](
                                      method: String,
@@ -50,7 +54,7 @@ class AssignmentLauncherTest extends Specification /*extends BaseTest*/ {
    * @param params - additional params to send
    * @return
    */
-  def callWithApiClient(apiClient: ApiClient, params: (String, String)*): Result = {
+  def callWithApiClient(apiClient: ApiClient, params: (String, String)*): Future[SimpleResult] = {
 
     val defaultParams: Map[String, String] = Map(
       AssignmentLauncher.LtiKeys.ConsumerKey -> apiClient.clientId.toString,

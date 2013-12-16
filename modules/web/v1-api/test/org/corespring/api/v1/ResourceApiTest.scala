@@ -17,6 +17,7 @@ import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeRequest, FakeHeaders }
+import scala.concurrent.{ExecutionContext, Future}
 
 class ResourceApiTest extends BaseTest with PackageLogging {
 
@@ -52,7 +53,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
   }
   "resource api" should {
 
-    def makeFileRequest(file: VirtualFile, action: Action[AnyContent]): Result = {
+    def makeFileRequest(file: VirtualFile, action: Action[AnyContent]): Future[SimpleResult] = {
       val request = tokenFakeRequest("blah", "blah", FakeHeaders(), AnyContentAsJson(Json.toJson(file)))
       action(request)
     }
@@ -242,8 +243,9 @@ class ResourceApiTest extends BaseTest with PackageLogging {
           FakeHeaders(Seq("Content" -> Seq("application/octet-stream"), CONTENT_LENGTH -> Seq(byteArray.length.toString))),
           byteArray))
 
-        import scala.concurrent.duration._
-        val result: Result = scala.concurrent.Await.result(iteratee.run, Duration(2, TimeUnit.SECONDS))
+        import ExecutionContext.Implicits.global
+
+        val result: Future[SimpleResult] = iteratee.run.transform(r => r.asInstanceOf[SimpleResult], e => e)
 
         logger.debug(s"result: $result")
         logger.debug(contentAsString(result))

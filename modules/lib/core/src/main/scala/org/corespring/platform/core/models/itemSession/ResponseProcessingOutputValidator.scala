@@ -75,19 +75,19 @@ object ResponseProcessingOutputValidator {
               case JsBoolean(_) => {
                 (jsObject \ "isCorrect") match {
                   case JsBoolean(_) => None
-                  case JsUndefined(_) =>
+                  case JsUndefined() =>
                     Some(InternalError(s"""isCorrect is required in Javascript response object$identifierString"""))
                   case _ =>
                     Some(InternalError(s"""isCorrect is required to be a JsBoolean object$identifierString"""))
                 }
               }
-              case JsUndefined(_) =>
+              case JsUndefined() =>
                 Some(InternalError(s"""isComplete is required in Javascript response object$identifierString"""))
               case _ =>
                 Some(InternalError(s"""isComplete is required to be a JsBoolean object$identifierString"""))
             }
           }
-          case JsUndefined(_) =>
+          case JsUndefined() =>
             Some(InternalError(s"""score is required in Javascript response object$identifierString"""))
           case _ => Some(InternalError(s"""score is required to be a JsNumber object$identifierString"""))
         }

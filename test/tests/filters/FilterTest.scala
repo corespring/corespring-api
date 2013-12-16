@@ -1,14 +1,12 @@
 package tests.filters
 
-import play.api.test.FakeRequest
-import scala.concurrent.{Await, Future}
-import play.api.mvc._
-import scala.concurrent.duration._
-import play.api.mvc.Results._
-import play.api.test.FakeHeaders
-import play.api.mvc.SimpleResult
-import scala.Tuple2
 import org.specs2.mutable.Specification
+import play.api.mvc.Results._
+import play.api.mvc._
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 abstract class FilterTest(filter: EssentialFilter) extends Specification {
 
@@ -20,28 +18,33 @@ abstract class FilterTest(filter: EssentialFilter) extends Specification {
     }
   }
 
-  def givenRequestHeader(requestHeader: Tuple2[String, String]) = givenRequestHeaders(requestHeader)
+  def givenRequestHeader(requestHeader: (String, String)) = givenRequestHeaders(requestHeader)
 
   def givenNoRequestHeaders = givenRequestHeaders()
 
-  def givenRequestHeaders(requestHeaders: Tuple2[String, String]*) = {
+  def givenRequestHeaders(requestHeaders: (String, String)*) = {
     val request = FakeRequest("", "/", FakeHeaders(), "").withHeaders(requestHeaders : _*)
     val result = filter(okAction)(request)
-    val future: Future[Result] = result.run
-    Await.result(future, timeout).asInstanceOf[SimpleResult[String]]
+    val future: Future[SimpleResult] = result.run
+    future
   }
 
-  protected class ResultWithHeaderChecking(response: PlainResult) {
+  protected class ResultWithHeaderChecking(futureResponse: Future[SimpleResult]) {
 
-    def shouldHaveResponseHeader(responseHeader: Tuple2[String, String]) = shouldHaveResponseHeaders(responseHeader)
+    import akka.util._
+    implicit val timeout : Timeout = Timeout(1000)
 
-    def shouldHaveResponseHeaders(responseHeaders: Tuple2[String, String]*) = {
+    private lazy val  response = play.api.test.Helpers.await(futureResponse)
+
+    def shouldHaveResponseHeader(responseHeader: (String, String)) = shouldHaveResponseHeaders(responseHeader)
+
+    def shouldHaveResponseHeaders(responseHeaders: (String, String)*) = {
       responseHeaders.map{ responseHeader =>
         response.header.headers.get(responseHeader._1) match {
-          case Some(string) => string == responseHeader._2
-          case None => "" == responseHeader._2
-        }
-      }.contains(false) === false
+            case Some(string) => string == responseHeader._2
+            case None => "" == responseHeader._2
+          }
+        }.contains(false) === false
     }
 
     def shouldNotHaveResponseHeader(responseHeader: String) = {
@@ -49,6 +52,6 @@ abstract class FilterTest(filter: EssentialFilter) extends Specification {
     }
   }
 
-  implicit def resultWithHeaderChecking(response: PlainResult) = new ResultWithHeaderChecking(response)
+  implicit def resultWithHeaderChecking(response: Future[SimpleResult]) = new ResultWithHeaderChecking(response)
 
 }

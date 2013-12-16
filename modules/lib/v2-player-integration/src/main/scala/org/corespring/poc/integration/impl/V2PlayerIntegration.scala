@@ -60,7 +60,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
       out.getOrElse(throw new RuntimeException("No amazon key/secret"))
     }
 
-    def loadAsset(id: String, file: String)(request: Request[AnyContent]): Result = {
+    def loadAsset(id: String, file: String)(request: Request[AnyContent]): SimpleResult = {
       playS3.download(bucket, s"$id/$file", Some(request.headers))
     }
 

@@ -17,13 +17,20 @@ import play.api.libs.json.Json._
 import play.api.libs.oauth.ConsumerKey
 import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
-import play.api.libs.ws.WS
+import play.api.libs.ws.{Response, WS}
 import play.api.mvc._
 import scala.Left
 import scala.Right
 import scala.Some
 import scala.concurrent.Future
 import scalaz.Scalaz._
+import scala.concurrent.{ExecutionContext, Await, Future}
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
+import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
+import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 
 /**
  * Handles the launching of corespring items via the LTI 1.1 launch specification.
@@ -240,23 +247,29 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       BadRequest(msg)
     }
     case Right(session) => {
+
       auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
         request =>
           import scalaz._
 
-          val result: Validation[String, AsyncResult] = for {
+          val result: Validation[String, Future[SimpleResult]] = for {
             q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
             p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
             orgId <- q.orgId.toSuccess("Quiz has no orgId")
             apiClient <- ApiClient.findOneByOrgId(orgId).toSuccess("Can't find ApiClient for org")
           } yield sendScore(session, p, apiClient)
 
+          import ExecutionContext.Implicits.global
+
           result match {
             case Failure(msg) => {
               this.logger.warn("Error processing response with source id: %s: %s".format(resultSourcedId, msg))
-              BadRequest(msg)
+              Future(BadRequest(msg))
             }
-            case Success(result) => result
+            case Success(result) => {
+              result
+            }
+
           }
       }
     }
@@ -267,11 +280,11 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
    * @see https://canvas.instructure.com/doc/api/file.assignment_tools.html
    * @return
    */
-  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient): AsyncResult = {
+  private def sendScore(session: ItemSession, participant: LtiParticipant, client: ApiClient): Future[SimpleResult] = {
 
     import play.api.libs.concurrent.Execution.Implicits._
 
-    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) = {
+    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) : Future[Response] = {
       logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
       WS.url(participant.gradePassbackUrl)
         .sign(
@@ -288,30 +301,27 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
     if (emptyOrNull(participant.gradePassbackUrl)) {
       logger.warn("Not sending passback for assignment: %s".format(participant.resultSourcedId))
-      val futureResult: Future[Result] = Future {
+      val futureResult: Future[SimpleResult] = Future {
         Ok(toJson(Map("returnUrl" -> participant.onFinishedUrl)))
       }
-      AsyncResult(futureResult)
-
+      futureResult
     } else {
+
+      val response : Future[Response] = sendResultsToPassback(consumer, score)
+
       import org.corespring.lti.web.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
-      Async {
-        sendResultsToPassback(consumer, score)
-          .transform({
-            response =>
-              {
-                val returnUrl = response.body match {
-                  case e: String if e.contains("Invalid authorization header") => AssignmentLauncherRoutes.error("Unauthorized").url
-                  case e: String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") => AssignmentLauncherRoutes.error("Unsupported").url
-                  case _ => participant.onFinishedUrl
-                }
-                Ok(toJson(Map("returnUrl" -> returnUrl)))
-              }
-          }, {
-            throwable =>
-              throw new RuntimeException(throwable.getMessage)
-          })
+
+      def toResult(r:Response): SimpleResult = {
+        val returnUrl = r.body match {
+          case e: String if e.contains("Invalid authorization header") => AssignmentLauncherRoutes.error("Unauthorized").url
+          case e: String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") => AssignmentLauncherRoutes.error("Unsupported").url
+          case _ => participant.onFinishedUrl
+        }
+        Ok(toJson(Map("returnUrl" -> returnUrl)))
       }
+
+      def toError(e:Throwable) : Throwable = { throw new RuntimeException(e.getMessage) }
+      response.transform(toResult, toError)
     }
   }
 

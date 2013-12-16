@@ -1,6 +1,6 @@
 package tests.helpers
 
-import org.specs2.mutable.After
+import org.specs2.mutable.BeforeAfter
 import tests.helpers.models._
 import org.corespring.platform.core.models.Organization
 import org.corespring.test.helpers.models._
@@ -18,7 +18,7 @@ import org.corespring.test.helpers.models._
  *   }
  *
  */
-trait FixtureData extends After {
+trait FixtureData extends BeforeAfter {
 
   /*
    * TODO: Obviously these are all evaluated by the after method... need to figure out how to not instantiate them if we
@@ -32,7 +32,12 @@ trait FixtureData extends After {
   val collectionItemsCount = 3
   val itemIds = 1.to(collectionItemsCount).map(i => ItemHelper.create(collectionId))
 
-  def after = {
+  def before : Unit = {
+    println(s"[FixtureData] org: $organizationId, collection: $collectionId, user: ${user.id}, token: $accessToken")
+  }
+
+  def after : Unit = {
+    println(s"[FixtureData] deleting: org: $organizationId, collection: $collectionId, user: ${user.id}, token: $accessToken")
     OrganizationHelper.delete(organizationId)
     CollectionHelper.delete(collectionId)
     UserHelper.delete(user.id)
