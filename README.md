@@ -2,6 +2,11 @@
 
 This project contains the api rest layer and web ui for administering corespring items.
 
+### Prerequisites
+
+* A working ssh key for github (info)[https://help.github.com/articles/generating-ssh-keys]
+
+
 ### Installation
 
 Before you do *anything* please run the following to install the git pre-commit hook:
