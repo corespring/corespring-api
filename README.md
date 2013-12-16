@@ -4,7 +4,7 @@ This project contains the api rest layer and web ui for administering corespring
 
 ### Prerequisites
 
-* A working ssh key for github [info](https://help.github.com/articles/generating-ssh-keys)
+* A working ssh key for github: [more info](https://help.github.com/articles/generating-ssh-keys)
 
 
 ### Installation
