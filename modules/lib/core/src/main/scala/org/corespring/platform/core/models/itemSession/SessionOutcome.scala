@@ -167,7 +167,7 @@ object SessionOutcome extends ClassLogging {
     def writes(outcome: SessionOutcome): JsObject = {
       JsObject(
         Seq(
-          "score" -> JsNumber(outcome.score),
+          "score" -> JsNumber(if (outcome.score.isNaN()) 0.0 else outcome.score),
           "isCorrect" -> JsBoolean(outcome.isCorrect),
           "isComplete" -> JsBoolean(outcome.isComplete)
         ) ++ Seq(
