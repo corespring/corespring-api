@@ -53,7 +53,7 @@
         </choiceInteraction>
 
 
-        <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0" choiceStyle="rightAlign">
+        <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
             <prompt>Which colors are in a rainbow?</prompt>
             <simpleChoice identifier='blue'>Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue
                 <feedbackInline csFeedbackId='blue' identifier='blue' showHide='show'>Blue is a color in the rainbow
