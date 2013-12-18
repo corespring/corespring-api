@@ -28,7 +28,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
 
-                var feedbackContainer = "<div class='feedback-container'>";
+                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>";
                 if (!feedbackNodes) {
                     return returnContainerIfEmpty ? feedbackContainer + "</div>" : "";
                 }
@@ -74,17 +74,16 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                     '</div>'
               ]
 
-                :
+              :
 
-                ['<div class="simple-choice-inner">',
-                    '  <div class="choiceInput">',
-                    '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
-                    '<div class="simple-choice-content {{choiceStyle}}">'+nodeWithFeedbackRemoved+'</div>',
-                    createFeedbackContainerDiv(tElement.html()),
-                    '</div>'
-                ]
+              ['<div class="simple-choice-inner   ">',
+                  '  <div class="choiceInput">',
+                  '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
+                  nodeWithFeedbackRemoved,
+                  '</div>',
+                  createFeedbackContainerDiv(tElement.html()),
 
-                ;
+              ];
 
             var template = divs.join("\n");
 
@@ -197,6 +196,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                             className = isCorrect ? 'correct-response' : 'incorrect-response';
 
                         element.addClass(isHorizontal ? (className + "-horizontal") : className);
+                        localScope.correctClass = className;
                     }
                 });
 
