@@ -76,13 +76,12 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
 
               :
 
-              ['<div class="simple-choice-inner   ">',
+              ['<div class="simple-choice-inner">',
                   '  <div class="choiceInput">',
                   '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
                   nodeWithFeedbackRemoved,
                   '</div>',
-                  createFeedbackContainerDiv(tElement.html()),
-
+                  createFeedbackContainerDiv(tElement.html())
               ];
 
             var template = divs.join("\n");
