@@ -33,14 +33,14 @@
 
     <itemBody>
 
-        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1">
+        <choiceInteraction responseIdentifier="mexicanPresident" shuffle="false" maxChoices="1" choiceStyle="rightAlign">
             <prompt>Who is the President of Mexico?</prompt>
             <simpleChoice identifier='obama'>Barack Obama
                 <feedbackInline csFeedbackId='obama' identifier='obama' showHide='show'>Incorrect, Barack Obama is
                     President of the USA
                 </feedbackInline>
             </simpleChoice>
-            <simpleChoice identifier='cameron'>James Cameron
+            <simpleChoice identifier='cameron'>James Cameron In The Zone
                 <feedbackInline csFeedbackId='cameron' identifier='cameron' showHide='show'>Incorrect, James Cameron is
                     Prime Minister of the UK
                 </feedbackInline>
@@ -55,7 +55,7 @@
 
         <choiceInteraction responseIdentifier="rainbowColors" shuffle="false" maxChoices="0">
             <prompt>Which colors are in a rainbow?</prompt>
-            <simpleChoice identifier='blue'>Blue
+            <simpleChoice identifier='blue'>Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue Blue
                 <feedbackInline csFeedbackId='blue' identifier='blue' showHide='show'>Blue is a color in the rainbow
                 </feedbackInline>
             </simpleChoice>

@@ -2,6 +2,11 @@
 
 This project contains the api rest layer and web ui for administering corespring items.
 
+### Prerequisites
+
+* A working ssh key for github: [more info](https://help.github.com/articles/generating-ssh-keys)
+
+
 ### Installation
 
 Before you do *anything* please run the following to install the git pre-commit hook:
@@ -18,7 +23,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install play 2.0.4
+* Install [play 2.1.3](http://www.playframework.com/download)
 * For running tests install phantomjs
 
 ### SBT Configuration

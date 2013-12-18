@@ -28,7 +28,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
 
-                var feedbackContainer = "<div class='feedback-container'>";
+                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>";
                 if (!feedbackNodes) {
                     return returnContainerIfEmpty ? feedbackContainer + "</div>" : "";
                 }
@@ -67,29 +67,28 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
 
             var divs = isHorizontal ? [
                     '<div class="simple-choice-inner-horizontal" ng-class="{noResponse: noResponse}">',
-                    '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved + '</div>',
-                    '   <div ng-class="{noResponse: noResponse}"><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="' + modelName + '" value="{{value}}"></input></div>',
+                    '   <div class="choice-content-horizontal" ng-class="{noResponse: noResponse}"> ' + nodeWithFeedbackRemoved,
+                    '   <div><input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted" ng-model="' + modelName + '" value="{{value}}"></input></div>',
                     '</div>',
-                    createFeedbackContainerDiv(tElement.html(), true)
-                ]
+                    createFeedbackContainerDiv(tElement.html(), true),
+                    '</div>'
+              ]
 
-                    :
+              :
 
-                    ['<div class="simple-choice-inner">',
-                        '  <div class="choiceInput">',
-                        '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
-                        '  <div class="choice-content"> ' + nodeWithFeedbackRemoved + '</div>',
-                        '</div>',
-                        createFeedbackContainerDiv(tElement.html())
-                    ]
-
-                ;
+              ['<div class="simple-choice-inner">',
+                  '  <div class="choiceInput">',
+                  '    <input type="' + inputType + '" ng-click="onClick()" ng-disabled="formSubmitted"  ng-model="' + modelName + '" value="{{value}}"></input></div>',
+                  nodeWithFeedbackRemoved,
+                  '</div>',
+                  createFeedbackContainerDiv(tElement.html())
+              ];
 
             var template = divs.join("\n");
 
 
             // now can modify DOM
-            tElement.html(template);
+            tElement.replaceWith(template);
 
             // return link function
             return function (localScope, element, attrs, choiceInteractionController) {
@@ -196,6 +195,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
                             className = isCorrect ? 'correct-response' : 'incorrect-response';
 
                         element.addClass(isHorizontal ? (className + "-horizontal") : className);
+                        localScope.correctClass = className;
                     }
                 });
 
