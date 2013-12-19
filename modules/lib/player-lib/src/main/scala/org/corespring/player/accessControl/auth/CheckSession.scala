@@ -7,9 +7,11 @@ import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import play.api.mvc.Results._
 import play.api.mvc._
+import scala.concurrent.{ExecutionContext, Future}
+
 
 /**
  * An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
@@ -20,35 +22,36 @@ import play.api.mvc._
  */
 abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
 
-  def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
+  import ExecutionContext.Implicits.global
+
+  override def ValidatedAction(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] =
     ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(ra)(block)
 
-  def ValidatedAction(p: BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Result): Action[AnyContent] =
-    Action {
+  override def ValidatedAction(p: BodyParser[AnyContent])(ra: RequestedAccess)(block: (TokenizedRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] =
+    Action.async {
       request =>
-        val options = renderOptions(request)
 
         /** Once access has been granted invoke the block and pass in a TokenizedRequest */
-        def invokeBlock: Result = orgIdFromCookie(request) match {
+        def invokeBlock: Future[SimpleResult] = orgIdFromCookie(request) match {
           case Some(orgId) => {
             AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
               case Some(token) => block(TokenizedRequest(token.tokenId, request))
-              case _ => BadRequest("Can't find access token for Org")
+              case _ => Future(BadRequest("Can't find access token for Org"))
             }
           }
-          case _ => BadRequest("Can't find org id")
+          case _ => Future(BadRequest("no org id"))
         }
+
+        val options = renderOptions(request)
 
         options.map {
           o =>
             grantAccess(activeMode(request), ra, o) match {
               case Right(true) => invokeBlock
-              //TODO: ApiError dependency?
-              case Right(false) => Unauthorized(Json.toJson("you can't access the items"))
-              case Left(e) => Unauthorized(Json.toJson(e.clientOutput))
+              case Right(false) => Future(Unauthorized(Json.obj( "error" -> JsString("you can't access the items"))))
+              case Left(e) => Future(Unauthorized(Json.toJson(e.clientOutput)))
             }
-        }.getOrElse(BadRequest("Couldn't find options"))
-
+        }.getOrElse(Future(Unauthorized(Json.obj("error" -> JsString("no render options")))))
     }
 
   /**

@@ -38,7 +38,9 @@ class ItemFilesTest extends Specification with Mockito {
       itemFiles.cloneStoredFiles(item) match {
         case Success(updatedItem) => {
           val file: StoredFile = updatedItem.data.get.files(0).asInstanceOf[StoredFile]
+          //true === true
           file.storageKey === StoredFile.storageKey(newId, resource, file.name)
+          //success
         }
         case _ => failure("error")
       }
@@ -68,7 +70,7 @@ class ItemFilesTest extends Specification with Mockito {
       val item: Item = Item(id = newId, data = Some(resource))
 
       mockFiles.cloneStoredFiles(item) match {
-        case Success(updatedItem) => failure("should fail")
+        case Success(updatedItem) => failure("error")
         case Failure(cloneFileResults) => {
           cloneFileResults.length === 2
           cloneFileResults(0).file.name === "img.png"

@@ -22,8 +22,30 @@ import play.api.libs.json.JsSuccess
 import scala.Some
 import play.api.libs.json.JsObject
 import tests.helpers.models.{CollectionHelper, ItemHelper}
+import scala.concurrent.Future
+import org.specs2.mutable.Specification
+
+
+/**
+ * Putting the fixture generating test into its own test class
+ * Going forward we should be using generated data for individual tests
+ */
+class NewItemApiTest extends BaseTest{
+  "list items in a collection" in new FixtureData {
+    println(s"[Test] collection: $collectionId, token: $accessToken")
+    //TODO: Don't use magic strings for the routes - call the controller directly
+    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/items?access_token=$accessToken")
+    val Some(result) = route(fakeRequest)
+    assertResult(result)
+    val items = parsed[List[JsValue]](result)
+    items.size must beEqualTo(itemIds.length)
+  }
+}
+
 
 class ItemApiTest extends BaseTest with Mockito {
+
+  sequential
 
   val mockS3service = mock[CorespringS3Service]
 
@@ -31,14 +53,14 @@ class ItemApiTest extends BaseTest with Mockito {
 
   val DefaultPageSize = 50
 
-  def assertBasics(result: Result): List[org.specs2.execute.Result] = {
+  def assertBasics(result: Future[SimpleResult]): List[org.specs2.execute.Result] = {
     List(
       status(result) === OK,
       charset(result) === Some("utf-8"),
       contentType(result) === Some("application/json"))
   }
 
-  def assertResult(result: Result, count: Int): org.specs2.execute.Result = {
+  def assertResult(result: Future[SimpleResult], count: Int): org.specs2.execute.Result = {
     forall(assertBasics(result))(r =>
       r.isSuccess === true
     )
@@ -49,7 +71,7 @@ class ItemApiTest extends BaseTest with Mockito {
     items.size === count
   }
 
-  def assertSingleResult(result: Result, block: JsValue => org.specs2.execute.Result) = {
+  def assertSingleResult(result: Future[SimpleResult], block: JsValue => org.specs2.execute.Result) = {
     forall(assertBasics(result))(r =>
       r.isSuccess === true
     )
@@ -72,14 +94,6 @@ class ItemApiTest extends BaseTest with Mockito {
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(List(ItemHelper.publicCount, DefaultPageSize).min)
   }
-    // TODO: get fixture data working and then uncomment this
-//  "list items in a collection" in new FixtureData {
-//    val fakeRequest = FakeRequest(GET, s"""/api/v1/collections/$collectionId/items?access_token=$accessToken""")
-//    val Some(result) = route(fakeRequest)
-//    assertResult(result)
-//    val items = parsed[List[JsValue]](result)
-//    items.size must beEqualTo(itemIds.length)
-//  }
 
   "list all items skipping 3" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&sk=3".format(token))
@@ -88,6 +102,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(List(ItemHelper.publicCount - 3, DefaultPageSize).min)
   }
+
   "list items limiting result to 2" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/items?access_token=%s&l=2".format(token))
     val Some(result) = route(fakeRequest)

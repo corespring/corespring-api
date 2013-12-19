@@ -1,10 +1,17 @@
 package tests.models
 
+import com.mongodb.util.JSONParseException
 import org.corespring.test.BaseTest
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
+import play.api.libs.json._
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.libs.json.{JsObject, JsString, JsArray, Json}
+import scala.Some
+import org.specs2.execute.Result
+import org.specs2.matcher.MatchResult
 
 
 class ItemQueryTest extends BaseTest{
@@ -224,18 +231,32 @@ class ItemQueryTest extends BaseTest{
     }
     jsonSuccess must beTrue
   }
+
+  private def validJson(s: String): Option[JsValue] = try {
+    Some(Json.parse(s))
+  } catch {
+    case e: JSONParseException => None
+  }
+
+
+  private def listQuery(s:String) : MatchResult[Any] = {
+    val query = validJson(s)
+    query.map{ q =>
+      val call:Call = api.v1.routes.ItemApi.list(q = Some(Json.stringify(q)))
+      val request = FakeRequest(call.method,call.url+"&access_token="+token)
+      val result = route(request).get
+      status(result) === BAD_REQUEST
+    }.getOrElse(failure("bad query"))
+  }
+
   "filtering by supportingMaterials results in error" in {
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{supportingMaterials.name:meh}"))
-    val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = route(request).get
-    status(result) must equalTo(BAD_REQUEST)
-  }
+    listQuery("{supportingMaterials.name:meh}")
+  }.pendingUntilFixed("this is failing, because the json is invalid, not because the query is bad, so the assertion is wrong")
+
   "filtering by data results in error" in {
-    val call:Call = api.v1.routes.ItemApi.list(q = Some("{data.name:meh}"))
-    val request = FakeRequest(call.method,call.url+"&access_token="+token)
-    val result = route(request).get
-    status(result) must equalTo(BAD_REQUEST)
-  }
+    listQuery("{data.name:meh}")
+  }.pendingUntilFixed("this is failing, because the json is invalid, not because the query is bad, so the assertion is wrong")
+
   "filter items based on a set of subjects using $in" in {
     val category1 = "Mathematics"
     val category2 = "English Language Arts"
@@ -420,7 +441,9 @@ class ItemQueryTest extends BaseTest{
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
-    val json = Json.parse(contentAsString(result))
+    val contents = contentAsString(result)
+    println(s"contents: $contents")
+    val json = Json.parse(contents)
     val jsonSuccess = json match {
       case JsArray(jsobjects) => {
         jsobjects.size must beGreaterThanOrEqualTo(1)

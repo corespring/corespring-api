@@ -82,8 +82,8 @@ trait Searchable {
         val parsedobjResult: Either[SearchCancelled, BasicDBObject] = try {
           Right(JSON.parse(strquery).asInstanceOf[BasicDBObject])
         } catch {
-          case e: JSONParseException => Left(SearchCancelled(Some(InternalError("could not parse search string"))))
-          case e: ClassCastException => Left(SearchCancelled(Some(InternalError("could not parse search string"))))
+          case e: JSONParseException => Left(SearchCancelled(Some(InternalError(s"could not parse search string: ${e.getMessage}"))))
+          case e: ClassCastException => Left(SearchCancelled(Some(InternalError(s"could not parse search string: ${e.getMessage}"))))
         }
         parsedobjResult match {
           case Right(parsedobj) => toSearchObj(parsedobj, optInitSearch, parseFields)

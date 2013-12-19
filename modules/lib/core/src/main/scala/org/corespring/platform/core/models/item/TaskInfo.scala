@@ -76,7 +76,7 @@ object TaskInfo extends ValueGetter {
             case JsObject(fields) => Right(fields.foldRight[Map[String, String]](Map())((field, acc) => {
               acc + (field._1 -> field._2.toString())
             }))
-            case JsUndefined(_) => Right(Map[String, String]())
+            case JsUndefined() => Right(Map[String, String]())
             case _ => Left(JsError(__ \ metadataKey, ValidationError("incorrect format", "props must be a JSON object")))
           })
           import collection.JavaConversions._
@@ -89,7 +89,7 @@ object TaskInfo extends ValueGetter {
           case Left(jserror) => jserror
         }
       }
-      case JsUndefined(_) => JsSuccess(Map())
+      case JsUndefined() => JsSuccess(Map())
       case _ => JsError(__ \ Keys.extended, ValidationError("incorrect format", "json for extended property was not a JSON object"))
     }
   })

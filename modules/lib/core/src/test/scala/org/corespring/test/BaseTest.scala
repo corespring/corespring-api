@@ -10,6 +10,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 import scala.Some
+import scala.concurrent.Future
 
 trait BaseTest extends Specification {
 
@@ -26,13 +27,13 @@ trait BaseTest extends Specification {
   /**
    * Decorate play.api.mvc.Result with some helper methods
    */
-  class ResultHelper(result: Result) {
+  class ResultHelper(result: Future[SimpleResult]) {
     def \(key: String): String = (Json.parse(contentAsString(result)) \ key).as[String]
 
     def body: String = contentAsString(result).toString
   }
 
-  implicit def resultToResultHelper(result: Result) = new ResultHelper(result)
+  implicit def resultToResultHelper(result: Future[SimpleResult]) = new ResultHelper(result)
 
   def tokenize(url: String, tkn: String = token): String = if(url.contains("?")) url+"&access_token="+tkn else url + "?access_token=" + tkn
 
@@ -62,10 +63,10 @@ trait BaseTest extends Specification {
   def versionedId(oid: String, v: Int = 0): VersionedId[ObjectId] = VersionedId(new ObjectId(oid), Some(v))
 
   // TODO: Something's wrong with this, but when it works it will be a useful shorthand
-  def doRequest(httpVerb: String, url: String, jsonObject: Map[String, String]): Option[Result] =
+  def doRequest(httpVerb: String, url: String, jsonObject: Map[String, String]): Option[Future[SimpleResult]] =
     doRequest(httpVerb, url, Some(jsonObject))
 
-  def doRequest(httpVerb: String, url: String, jsonObject: Option[Map[String, String]] = None): Option[Result] = {
+  def doRequest(httpVerb: String, url: String, jsonObject: Option[Map[String, String]] = None): Option[Future[SimpleResult]] = {
     import play.api.test.Helpers._
     require(Set(GET, PUT, POST, DELETE).contains(httpVerb))
 
@@ -93,12 +94,12 @@ trait BaseTest extends Specification {
     })
   }
 
-  def parsed[A](result: Result)(implicit reads: Reads[A]) = Json.fromJson[A](Json.parse(contentAsString(result))) match {
+  def parsed[A](result: Future[SimpleResult])(implicit reads: Reads[A]) = Json.fromJson[A](Json.parse(contentAsString(result))) match {
     case JsSuccess(data, _) => data
     case _ => throw new RuntimeException("Couldn't parse json")
   }
 
-  def assertResult(result: Result,
+  def assertResult(result: Future[SimpleResult],
     expectedStatus: Int = OK,
     expectedCharset: Option[String] = Some("utf-8"),
     expectedContentType: Option[String] = Some("application/json")): org.specs2.execute.Result = {
