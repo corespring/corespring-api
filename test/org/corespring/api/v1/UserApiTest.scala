@@ -15,6 +15,7 @@ object UserApiTest extends BaseTest {
   val userId = "511293b6ef0e8fd55d57ad00"
 
   import org.corespring.api.v1.UserApi
+
   "list all visible users" in {
     val fakeRequest = FakeRequest("", "?access_token=%s".format(token))
     val result = UserApi.list(None,None,"false", 0, 50, None)(fakeRequest)

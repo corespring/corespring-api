@@ -21,12 +21,12 @@ class S3DeployerTest extends Specification {
   sequential
 
   lazy val client: AmazonS3Client = new AmazonS3Client(new AWSCredentials {
-    def getAWSAccessKeyId: String = ConfigFactory.load().getString("AMAZON_ACCESS_KEY")
+    def getAWSAccessKeyId: String = Play.current.configuration.getString("AMAZON_ACCESS_KEY").getOrElse("?")
 
-    def getAWSSecretKey: String = ConfigFactory.load().getString("AMAZON_ACCESS_SECRET")
+    def getAWSSecretKey: String = Play.current.configuration.getString("AMAZON_ACCESS_SECRET").getOrElse("?")
   })
 
-  val bucket = ConfigFactory.load().getString("AMAZON_TEST_BUCKET")
+  val bucket = Play.current.configuration.getString("AMAZON_TEST_BUCKET").getOrElse("?")
 
   "s3 deployer" should {
 

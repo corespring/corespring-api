@@ -1,60 +1,48 @@
 package org.corespring.clientlogging
 
-import org.specs2.specification._
-import play.api.libs.json.{JsString, JsObject}
-import play.api.mvc.AnyContentAsJson
+import org.corespring.test.BaseTest
+import org.specs2.matcher.{Expectable, Matcher}
+import play.api.libs.json.{Json, JsString, JsObject}
+import play.api.mvc.{SimpleResult, AnyContentAsJson}
 import play.api.test.Helpers._
 import play.api.test._
-import org.corespring.test.BaseTest
+import scala.concurrent.Future
 
 class ClientLoggerTest extends BaseTest{
 
-  def succeedWithMessage(logType:String) = {
-    val json = JsObject(Seq("message" -> JsString("blergl mergl")))
-    val request = FakeRequest("POST", s"/logger/$logType", FakeHeaders(), AnyContentAsJson(json))
-    println(request)
-    val result = route(request).get
-    status(result) must beEqualTo(OK)
+
+  case class returnResult(expectedStatus: Int) extends Matcher[(String, JsObject)] {
+    def apply[S <: (String, JsObject)](s: Expectable[S]) = {
+      val (logType : String, json : JsObject) = s.value
+      val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json))
+      val a = ClientLogger.submitLog(logType)
+      val out = a(request)
+      val callResult: Future[SimpleResult] = out
+      val actualStatus = status(callResult)
+      val body = contentAsString(callResult)
+      val msg = s"$logType -> ${Json.stringify(json)} // $actualStatus <-> $expectedStatus: $body"
+      result(actualStatus == expectedStatus, msg, msg, s)
+    }
   }
 
-  def succeedWithMessageAndStackTrace(logType:String) = {
-    val json = JsObject(Seq("message" -> JsString("blergl mergl"), "stacktrace" -> JsString("more mergl")))
-    val request = FakeRequest("POST", s"/logger/$logType", FakeHeaders(), AnyContentAsJson(json))
-    val result = route(request).get
-    status(result) must beEqualTo(OK)
-  }
+  val msg = Json.obj("message" -> JsString("message"))
+  val stackTrace = Json.obj("stacktrace" -> JsString("stacktrace"))
 
-  def failWithoutMessage(logType:String) = {
-    val request = FakeRequest("POST", s"/logger/$logType", FakeHeaders(), AnyContentAsJson(JsObject(Seq())))
-    val result = route(request).get
-    status(result) must beEqualTo(BAD_REQUEST)
-  }
+  "logging" should {
+    "work" in {
 
-  def mainTest(logType:String):Fragments = {
-    s"submitting a log entry type $logType" should {
-      "succeed with message" in {
-        succeedWithMessage(logType)
-      }
-      "succeed with message and stacktrace" in {
-        succeedWithMessageAndStackTrace(logType)
-      }
-      "fail without message" in {
-        failWithoutMessage(logType)
+      val out: Seq[(String, JsObject, Int)] = for {
+        t <- Seq("fatal", "error", "warn", "debug", "info")
+        json <- Seq(msg, msg ++ stackTrace)
+      } yield (t, json, OK)
+
+      forall(out) {
+        t =>
+          val (logType, json, status) = t
+          (logType, json) must returnResult(status)
       }
     }
   }
-  mainTest("fatal")
-  mainTest("error")
-  mainTest("warn")
-  mainTest("debug")
-  mainTest("info")
-  "submitting a log entry of any other type" should {
-    "result in error" in {
-      val json = JsObject(Seq("message" -> JsString("blergl mergl")))
-      val call = org.corespring.clientlogging.routes.ClientLogger.submitLog("meh")
-      val request = FakeRequest(call.method, call.url, FakeHeaders(), AnyContentAsJson(json))
-      val result = route(request).get
-      status(result) must beEqualTo(BAD_REQUEST)
-    }
-  }
+
+  /*mainTest("bad-log-type", BAD_REQUEST)*/
 }

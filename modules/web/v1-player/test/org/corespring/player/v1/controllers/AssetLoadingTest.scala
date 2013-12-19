@@ -1,7 +1,7 @@
 package org.corespring.player.v1.controllers
 
 import org.corespring.common.encryption.NullCrypto
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceImpl}
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import org.corespring.test.PlaySingleton
@@ -11,8 +11,9 @@ import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
+import org.specs2.mock.Mockito
 
-class AssetLoadingTest extends Specification {
+class AssetLoadingTest extends Specification with Mockito{
 
   PlaySingleton.start()
 
@@ -22,7 +23,9 @@ class AssetLoadingTest extends Specification {
 
   import play.api.mvc.Results.BadRequest
 
-  val loader = new AssetLoading(NullCrypto, mockTemplate, ItemServiceImpl, (msg:String) => BadRequest(msg))
+  val mockItemService = mock[ItemService]
+
+  val loader = new AssetLoading(NullCrypto, mockTemplate, mockItemService, (msg:String) => BadRequest(msg))
   "asset loading" should {
     "load the js and set the cookies " in {
       val options : RenderOptions = RenderOptions(expires = 0, mode = RequestedAccess.Mode.Preview)
