@@ -14,14 +14,15 @@ import scala.Some
 object UserApiTest extends BaseTest {
   val userId = "511293b6ef0e8fd55d57ad00"
 
+  import org.corespring.api.v1.UserApi
   "list all visible users" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s".format(token))
-    val Some(result) = route(fakeRequest)
+    val fakeRequest = FakeRequest("", "?access_token=%s".format(token))
+    val result = UserApi.list(None,None,"false", 0, 50, None)(fakeRequest)
     assertResult(result)
     val users = parsed[List[JsValue]](result)
     users must have size 3
   }
-
+  /*
 
   "list all visible users skipping the first result" in {
     val fakeRequest = FakeRequest(GET, "/api/v1/users?access_token=%s&sk=1".format(token))
@@ -71,7 +72,8 @@ object UserApiTest extends BaseTest {
     (user \ "userName").as[String] must beEqualTo("test_user")
 
   }
-
+  */
+  /*
   "create, update and delete a user" in {
     val name = "john"
     val fullName = "John Doe"
@@ -123,4 +125,5 @@ object UserApiTest extends BaseTest {
       case None => failure("failed to update user")
     }
   }
-}
+    */
+  }

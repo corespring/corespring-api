@@ -1,9 +1,8 @@
-package tests.helpers
+package org.corespring.test.helpers
 
-import org.specs2.mutable.BeforeAfter
-import tests.helpers.models._
 import org.corespring.platform.core.models.Organization
 import org.corespring.test.helpers.models._
+import org.specs2.mutable.BeforeAfter
 
 /*
  * Including this trait in the context of a mutable.Specification "in" block will make available all the fixture data.

@@ -22,7 +22,6 @@ import play.api.test.Helpers._
 import scala.Left
 import scala.Right
 import scala.Some
-import api.ApiError
 import scala.concurrent.Future
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {

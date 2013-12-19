@@ -2,6 +2,7 @@ package org.corespring.player.v1.views.qti
 
 import org.specs2.mutable.Specification
 import org.corespring.player.v1.views.qti.models.{QtiJsAsset, QtiAssetsConfig}
+import org.corespring.qti.models.RenderingMode
 
 
 class QtiAssetsTest extends Specification {

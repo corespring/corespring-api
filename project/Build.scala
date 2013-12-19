@@ -123,7 +123,7 @@ object Build extends sbt.Build {
     buildInfoTask,
     (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
     libraryDependencies ++= Seq(playJson % "test")
-  ).dependsOn(core).settings(disableDocsSettings: _*)
+  ).dependsOn(core % "compile->compile;test->test").settings(disableDocsSettings: _*)
 
   /**client logging*/
   val clientLogging = builders.web("client-logging").settings(
@@ -139,8 +139,11 @@ object Build extends sbt.Build {
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
-    routesImport ++= customImports
-  ).dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+    routesImport ++= customImports,
+    Keys.fork.in(Test) := forkInTests
+  )
+  .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+  .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
   object TemplateImports{
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -151,12 +154,12 @@ object Build extends sbt.Build {
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports
     )
-    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core, commonViews)
+    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->test;compile->compile", commonViews)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports
-  ).dependsOn(core, ltiLib, playerLib, v1Player)
+  ).dependsOn(core % "test->test;compile->compile", ltiLib, playerLib, v1Player)
 
   /** The public play module */
   val public = builders.web("public").settings(

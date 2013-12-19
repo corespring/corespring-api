@@ -7,6 +7,8 @@ import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.mvc.Results._
 import play.api.mvc.{SimpleResult, AnyContent, Request}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import scala.concurrent.{ExecutionContext, Future}
 
 object MockImpl extends ValidateQuizIdAndOrgId[FakeRequest[AnyContent]] {

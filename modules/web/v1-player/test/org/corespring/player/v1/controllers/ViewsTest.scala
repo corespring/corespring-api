@@ -8,9 +8,9 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
-import org.corespring.player.v1.controllers.controllers.TestBuilder
+import org.corespring.player.accessControl.models.RequestedAccess.Mode._
+import org.corespring.player.v1.controllers.controllers.{TestIds, TestBuilder}
 import org.corespring.test.PlaySingleton
-import org.specs2.execute.{Result => SpecsResult}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -22,23 +22,29 @@ import utils.MockXml
 
 class ViewsTest extends Specification with Mockito {
 
+  import TestIds._
 
   PlaySingleton.start()
 
+  import org.corespring.platform.core.models.item.{Item => ModelItem}
   val mockService = new ItemService{
-    def cloneItem(item: Item): Option[Item] = ???
+    def cloneItem(item: ModelItem): Option[ModelItem] = ???
+
+    def save(i: ModelItem, createNewVersion: Boolean): Unit = ???
+
+    def insert(i: ModelItem): Option[VersionedId[ObjectId]] = ???
+
+    def sessionCount(item: ModelItem): Long = ???
+
     def findFieldsById(id: VersionedId[ObjectId], fields: DBObject): Option[DBObject] = ???
     def currentVersion(id: VersionedId[ObjectId]): Option[Int] = ???
     def countItems(query: DBObject, fields: Option[String]): Int = ???
-    def find(query: DBObject, fields: DBObject): SalatMongoCursor[Item] = ???
-    def findOneById(id: VersionedId[ObjectId]): Option[Item] = ???
-    def findOne(query: DBObject): Option[Item] = ???
-    def save(i: Item, createNewVersion: Boolean) {}
+    def find(query: DBObject, fields: DBObject): SalatMongoCursor[ModelItem] = ???
+    def findOneById(id: VersionedId[ObjectId]): Option[ModelItem] = ???
+    def findOne(query: DBObject): Option[ModelItem] = ???
     def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean) {}
-    def insert(i: Item): Option[VersionedId[ObjectId]] = ???
-    def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = ???
+    def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[ModelItem] = ???
     def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = Some( MockXml.AllItems )
-    def sessionCount(item: Item): Long = ???
   }
 
   val quizService = new QuizService{

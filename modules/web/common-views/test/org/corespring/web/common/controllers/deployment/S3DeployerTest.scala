@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client}
 import com.ee.assets.deployment.ContentInfo
 import com.typesafe.config.ConfigFactory
 import java.io._
-import org.corespring.common.utils.string
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.{Before, Specification}
 import play.api.Play
@@ -91,7 +90,7 @@ class RemoveFileBefore(val client: AmazonS3, val bucket: String, val path: Strin
     } catch {
       case e: Throwable => {
         client.createBucket(bucket)
-        val text = S3Deployer.policyTemplate(bucket), string.replaceKey(Map("bucket" -> bucket)), string.DollarRegex)
+        val text = S3Deployer.policyTemplate(bucket)
         val request = new SetBucketPolicyRequest(bucket, text)
         client.setBucketPolicy(request)
       }

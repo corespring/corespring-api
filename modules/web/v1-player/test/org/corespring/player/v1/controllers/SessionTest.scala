@@ -2,25 +2,17 @@
 package org.corespring.player.v1.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, PreviewItemSessionCompanion, ItemSessionCompanion, ItemSession}
+import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
+import org.corespring.player.accessControl.models.RequestedAccess.Mode._
 import org.corespring.player.v1.controllers.controllers.{TestBuilder, TestIds}
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.test.Helpers._
-import play.api.test.{FakeRequest, FakeHeaders}
-import org.corespring.player.accessControl.models.RequestedAccess.Mode._
-import org.corespring.player.accessControl.models.RequestedAccess
-import RequestedAccess.Mode._
-import player.controllers.Session
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
-import org.corespring.test.PlaySingleton
-import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import scala.concurrent.Future
 
 class SessionTest extends Specification with PlayerCookieWriter {

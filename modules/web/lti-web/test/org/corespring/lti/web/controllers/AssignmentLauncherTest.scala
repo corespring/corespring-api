@@ -130,8 +130,8 @@ class AssignmentLauncherTest extends Specification {
     }
 
     "launching as a student returns a redirect to the player if the teacher has configured an item id" in new WithApplication {
-      val org = getOrg
-      val apiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> org.id)).get
+      val newOrg = getOrg
+      val apiClient = ApiClient.findOne(MongoDBObject(ApiClient.orgId -> newOrg.id)).get
       val config = configureLaunchConfig("1", VersionedId(new ObjectId(), Some(0)), apiClient)
       val expectedRedirectCall = org.corespring.lti.web.controllers.routes.AssignmentPlayer.run(config.id, "1")
 

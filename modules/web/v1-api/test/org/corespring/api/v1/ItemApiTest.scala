@@ -9,19 +9,18 @@ import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
+import org.corespring.test.helpers.models.ItemHelper
 import org.specs2.mock.Mockito
+import play.api.libs.json.JsObject
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
-import scala.xml._
-import org.corespring.test.helpers.models.ItemHelper
-import play.api.libs.json.JsObject
-import tests.helpers.models.{CollectionHelper, ItemHelper}
 import scala.concurrent.Future
-import org.specs2.mutable.Specification
+import scala.xml._
+import org.corespring.test.helpers.FixtureData
 
 
 /**
