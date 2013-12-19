@@ -27,8 +27,9 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
   };
 
   var wrapChoiceContents = function(choices) {
+
     for (var i = 0; i < choices.length; i++) {
-      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)([\s\S]*)(<\/:*simplechoice>)/gmi, "$1<div class='choice-label'>$2</div>$3");
+      choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)([\s\S]*)(<\/:*simplechoice>)/gmi, "$1<div class='choice-label {{choiceStyle}}'>$2</div>$3");
     }
   };
 
