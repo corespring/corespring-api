@@ -10,7 +10,7 @@
 
 .choice-table {
   display: table;
-  border-collapse: collapse;
+  border-collapse: separate;
 }
 
 .choice-prompt {
@@ -39,7 +39,7 @@
 .simple-choice-inner {
   margin: 0 0 5px 20px;
   display: table-row;
-  line-height: 15px;
+  line-height: 25px;
 }
 
 .simple-choice-inner-horizontal {
@@ -51,21 +51,36 @@
   vertical-align: top;
 }
 
-.incorrect-response .simple-choice-content,
-.correct-response .simple-choice-content,
-.received-response .simple-choice-content {
-  border: 2px solid #f8a31a;
-  border-radius: 6px;
-  margin-bottom: 5px;
-  padding: 10px;
-  width: 100%;
-}
 
-.correct-response .simple-choice-content {
+.correct-response .letter {
   border: 2px solid #80b312;
+  border-right: none;
+  border-radius: 6px 0px 0px 6px;
+  padding: 5px;
 }
 
-.received-response .simple-choice-content {
+.correct-response .choice-label {
+  border: 2px solid #80b312;
+  border-left: none;
+  border-radius: 0px 6px 6px 0px;
+  padding: 5px;
+}
+
+.incorrect-response .letter {
+  border: 2px solid #F8A31A;
+  border-right: none;
+  border-radius: 6px 0px 0px 6px;
+  padding: 5px;
+}
+
+.incorrect-response .choice-label {
+  border: 2px solid #F8A31A;
+  border-left: none;
+  border-radius: 0px 6px 6px 0px;
+  padding: 5px;
+}
+
+.received-response .choice-label {
   border: 2px solid #00ACCE;
 }
 
@@ -81,6 +96,11 @@
   margin: 0 0 15px;
 }
 
+.feedback-container {
+  display: none;
+  padding-left: 10px;
+}
+
 .correct-response-horizontal .feedback-container,
 .incorrect-response-horizontal .feedback-container,
 .received-response-horizontal .feedback-container {
@@ -90,6 +110,15 @@
   width: 26px;
   margin: 0 auto;
 }
+
+.correct-response + .feedback-container,
+.incorrect-response + .feedback-container,
+.received-response + .feedback-container {
+  height: 42px;
+  margin-left: 20px;
+  display: block;
+}
+
 
 .correct-response-horizontal .feedback-container {
   background: url("/assets/images/correct-icon.png") no-repeat 0 0;
@@ -101,11 +130,11 @@
   display: none;
 }
 
-.incorrect-response [feedbackinline] {
+.incorrect-response + .feedback-container [feedbackinline] {
   background: url(/assets/images/wrong-icon.png) no-repeat 0 50%;
 }
 
-.correct-response [feedbackinline] {
+.correct-response + .feedback-container [feedbackinline] {
   background: url(/assets/images/correct-icon.png) no-repeat 0 50%;
 }
 
@@ -114,6 +143,13 @@
   color: #333;
   padding-left: 10px;
   font-size: 12px;
+  float: none !important;
+  position: absolute;
+  height: 40px;
+}
+
+[feedbackinline] span {
+  padding-top: 15px;
 }
 
 .incorrect-response [feedbackinline],
@@ -141,20 +177,20 @@
 
 .letter {
   padding-right: 10px;
-  display: inline-block;
+  display: table-cell;
   vertical-align: baseline;
 }
 
 .choice-label {
-  text-align: right;
-  display: inline-block;
+  display: table-cell;
   vertical-align: baseline;
 }
 
-.rightAlign .choice-label {
-  float: right;
+.choice-label.rightAlign {
+  text-align: right;
 }
 
 .choiceInput {
   padding-left: 3px;
 }
+

@@ -7,6 +7,7 @@ import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
 import scalaz.{Failure, Success}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.error.InternalError
+import play.api.libs.json._
 
 class SessionOutcomeTest extends Specification {
 
@@ -563,6 +564,39 @@ class SessionOutcomeTest extends Specification {
     SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
       case Success(sessionOutcome: SessionOutcome) => {
         println(sessionOutcome)
+        success
+      }
+      case _ => failure
+    }
+  }
+
+
+  "serializing outcome of extended text entry to JSON works" in {
+
+    // Fix for: https://www.pivotaltracker.com/story/show/62473588
+
+
+    val qtiItem = QtiItem(
+      <asssessmentItem>
+        <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="string"/>
+        <itemBody>
+          <extendedTextInteraction responseIdentifier="RESPONSE" expectedLines="5"/>
+        </itemBody>
+      </asssessmentItem>
+    )
+
+    val session = ItemSession(
+      itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
+      responses = Seq(StringResponse(id = "RESPONSE", responseValue = "blabla")),
+      attempts = 1)
+
+    SessionOutcome.processSessionOutcome(session, qtiItem, false) match {
+      case Success(sessionOutcome: SessionOutcome) => {
+        try {
+          Json.toJson(sessionOutcome)
+        } catch {
+          case _ : Throwable => failure("exception was thrown when tried to serialize to outcome object")
+        }
         success
       }
       case _ => failure
