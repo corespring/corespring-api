@@ -12,11 +12,11 @@ POST    /encrypt-options                            org.corespring.player.v1.con
 GET    /item/:itemId/preview                        org.corespring.player.v1.controllers.Views.preview(itemId:VersionedId[ObjectId])
 GET    /item/:itemId/administer                     org.corespring.player.v1.controllers.Views.administerItem(itemId:VersionedId[ObjectId])
 GET    /item/:itemId/profile                        org.corespring.player.v1.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
-GET    /item/:itemId/*filename                      org.corespring.player.v1.controllers.AssetLoading.getDataFile(itemId, filename)
+GET    /item/:itemId/*filename                      org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFile(itemId, filename)
 
 GET    /session/:sessionId/render                   org.corespring.player.v1.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
 GET    /session/:sessionId/administer               org.corespring.player.v1.controllers.Views.administerSession(sessionId:ObjectId)
-GET    /session/:sessionId/*filename                org.corespring.player.v1.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
+GET    /session/:sessionId/*filename                org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 GET    /aggregate/:assessmentId/:itemId/run         org.corespring.player.v1.controllers.Views.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
-GET    /aggregate/:assessmentId/:itemId/*filename   org.corespring.player.v1.controllers.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)
+GET    /aggregate/:assessmentId/:itemId/*filename   org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)

@@ -1,4 +1,4 @@
-package org.corespring.player.v1.controllers
+package org.corespring.player.v1.controllers.launcher
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.{AESCrypto, Crypto}

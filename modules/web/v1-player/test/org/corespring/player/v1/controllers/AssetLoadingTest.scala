@@ -12,6 +12,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import org.specs2.mock.Mockito
+import org.corespring.player.v1.controllers.launcher.AssetLoading
 
 class AssetLoadingTest extends Specification with Mockito{
 
