@@ -6,20 +6,25 @@ import org.bson.types.ObjectId
 import org.corespring.lti.models.{LtiQuestion, LtiQuiz, LtiOAuthConsumer, LtiData}
 import org.corespring.lti.web.controllers
 import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.PlaySingleton
 import org.specs2.mutable._
 import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{WithApplication, FakeHeaders}
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 import scala.concurrent.Future
 
 
 class AssignmentLauncherTest extends Specification {
+
+  sequential
+
+  PlaySingleton.start()
 
   case class FakeRequestWithHost[A](
                                      method: String,

@@ -31,8 +31,8 @@ class NewItemApiTest extends BaseTest{
   "list items in a collection" in new FixtureData {
     println(s"[Test] collection: $collectionId, token: $accessToken")
     //TODO: Don't use magic strings for the routes - call the controller directly
-    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/items?access_token=$accessToken")
-    val Some(result) = route(fakeRequest)
+    val fakeRequest = FakeRequest("", s"?access_token=$accessToken")
+    val result = ItemApi.listWithColl(collectionId, None, None, "false", 0, 50, None)(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(itemIds.length)

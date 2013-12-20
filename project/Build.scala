@@ -136,13 +136,12 @@ object Build extends sbt.Build {
   ).dependsOn(core)
 
   val ltiLib = builders.lib("lti")
-    .dependsOn(apiUtils, core % "test->compile;test->test")
+    .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
-    routesImport ++= customImports,
-    Keys.fork.in(Test) := forkInTests
+    routesImport ++= customImports
   )
   .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
   .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
@@ -182,7 +181,7 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
     .aggregate(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
 
     addCommandAlias("gen-idea-project", ";update-classifiers;idea")

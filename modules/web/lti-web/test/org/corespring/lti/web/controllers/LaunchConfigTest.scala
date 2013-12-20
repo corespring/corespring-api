@@ -77,17 +77,11 @@ class LaunchConfigTest extends Specification{
       val c = getMockConfig
       val newOrg = new Organization(id = new ObjectId(), name = "some new org")
       val copiedConfig = c.copy(orgId = Some(newOrg.id), question = LtiQuestion(Some(VersionedId(new ObjectId())), ItemSessionSettings()))
-
-      val call = Routes.update(copiedConfig.id)
       val jsValue = toJson(copiedConfig)
-      val request = FakeRequest(call.method, call.url, FakeHeaders(), AnyContentAsJson(jsValue))
-
-      route(addSessionInfo(copiedConfig,request)) match {
-        case Some(r) => {
-          status(r) === BAD_REQUEST
-        }
-        case _ => failure("expected a bad request")
-      }
+      val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(jsValue))
+      val requestWithSession = addSessionInfo(copiedConfig, request)
+      val result = LtiQuizzes.update(copiedConfig.id)(requestWithSession)
+      status(result) === BAD_REQUEST
     }
   }
 }
