@@ -58,19 +58,12 @@ GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormP
 ## Player version routing
 #GET    /player/:playerVersion/:entity/:id/*rest
 
-
-
-# New Player Rendering
-GET    /player.js                                   org.corespring.player.v1.controllers.launcher.AssetLoading.itemPlayerJavascript
-GET    /tagger-player.js                            org.corespring.player.v1.controllers.launcher.AssetLoading.noSessionPlayerJavascript
-GET    /profile.js                                  org.corespring.player.v1.controllers.launcher.AssetLoading.itemProfileJavascript
-
 ## Dev endpoints...
 GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
-GET    /dev/tools/player/item/:itemId/*filename                      org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFile(itemId, filename)
+GET    /dev/tools/player/item/:itemId/*filename                      dev.tools.controllers.AssetLoading.getDataFile(itemId, filename)
 
 GET    /dev/tools/player/session/:sessionId/render                   dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
-GET    /dev/tools/player/session/:sessionId/*filename                org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileBySessionId(sessionId, filename)
+GET    /dev/tools/player/session/:sessionId/*filename                dev.tools.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 
 # Web tier

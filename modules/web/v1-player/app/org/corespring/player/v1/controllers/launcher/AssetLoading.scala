@@ -18,6 +18,21 @@ import scalaz.{Success, Failure, Validation}
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result) extends Controller with AssetResource with PlayerCookieWriter {
 
+  object ErrorMessages {
+
+    def apiClientNotFound(id: String) = "Can't find api client with id: " + id
+    def queryParamNotFound(key: String, queryString: Map[String, Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
+    val InvalidObjectId = "Invalid ObjectId"
+    def badJsonString(s: String, e: Throwable) = escape("Can't parse string into json: " + s)
+    def cantConvertJsonToRenderOptions(s: String) = escape("Can't convert json to options: " + s)
+
+    private def escape(s: String): String = {
+      val escaped = s.replace("\"", "\\\\\"")
+      logger.debug("escaped: " + escaped)
+      escaped
+    }
+  }
+
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
       createJsTokens(ro, req) + ("mode" -> "preview")
@@ -36,7 +51,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
    * This is used for scenarios where the user is already authenticated and has an appropriate session cookie
    */
   def noSessionPlayerJavascript = Action { request =>
-    val preppedJs = AssetLoading.createJsFromTemplate(playerTemplate, Map("mode" -> "preview", "baseUrl" -> getBaseUrl(request)))
+    val preppedJs = AssetLoadingDefaults.createJsFromTemplate(playerTemplate, Map("mode" -> "preview", "baseUrl" -> getBaseUrl(request)))
     Ok(preppedJs)
       .as("text/javascript")
   }
@@ -60,7 +75,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
         implicit client =>
           withOptions(errorHandler) {
             options =>
-              val preppedJs = AssetLoading.createJsFromTemplate(template, tokenFn(options, request))
+              val preppedJs = AssetLoadingDefaults.createJsFromTemplate(template, tokenFn(options, request))
               val newSession = sumSession(request.session, playerCookies(client.orgId, options): _*)
               Ok(preppedJs)
                 .as("text/javascript")
@@ -130,6 +145,8 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
 
 object AssetLoadingDefaults {
 
+  def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
+
   object Templates {
 
     import play.api.Play.current
@@ -144,29 +161,14 @@ object AssetLoadingDefaults {
     import play.api.mvc.Results.Ok
 
     def handleError(msg: String): Result = {
-      val out = AssetLoading.createJsFromTemplate(Templates.errorPlayer, Map("playerError" -> msg))
+      val out = AssetLoadingDefaults.createJsFromTemplate(Templates.errorPlayer, Map("playerError" -> msg))
       Ok(out).as("text/javascript")
     }
   }
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError) {
+class AssetLoadingMain extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError)
 
-  def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
+object AssetLoading extends AssetLoadingMain
 
-  object ErrorMessages {
-
-    def apiClientNotFound(id: String) = "Can't find api client with id: " + id
-    def queryParamNotFound(key: String, queryString: Map[String, Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
-    val InvalidObjectId = "Invalid ObjectId"
-    def badJsonString(s: String, e: Throwable) = escape("Can't parse string into json: " + s)
-    def cantConvertJsonToRenderOptions(s: String) = escape("Can't convert json to options: " + s)
-
-    private def escape(s: String): String = {
-      val escaped = s.replace("\"", "\\\\\"")
-      logger.debug("escaped: " + escaped)
-      escaped
-    }
-  }
-}
 

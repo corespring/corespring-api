@@ -20,3 +20,7 @@ GET    /session/:sessionId/*filename                org.corespring.player.v1.con
 
 GET    /aggregate/:assessmentId/:itemId/run         org.corespring.player.v1.controllers.Views.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
 GET    /aggregate/:assessmentId/:itemId/*filename   org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)
+
+GET    /player.js                                   org.corespring.player.v1.controllers.launcher.AssetLoading.itemPlayerJavascript
+GET    /tagger-player.js                            org.corespring.player.v1.controllers.launcher.AssetLoading.noSessionPlayerJavascript
+GET    /profile.js                                  org.corespring.player.v1.controllers.launcher.AssetLoading.itemProfileJavascript

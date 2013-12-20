@@ -1,4 +1,4 @@
-@(quizId: ObjectId, selectionDirective: String, returnUrl: String)
+@(quizId: ObjectId, selectionDirective: String, returnUrl: String)(implicit assetsLoader:org.corespring.web.common.controllers.deployment.AssetsLoader = org.corespring.web.common.controllers.deployment.AssetsLoaderImpl)
 
 @import org.bson.types.ObjectId
 <!doctype html>
@@ -12,8 +12,10 @@
     @org.corespring.web.common.views.html.head.fieldValues()
     @org.corespring.web.common.views.html.head.corespringNgComponents()
 
-    <!-- TODO: Re add dependencies for LTI -->
-    <!-- org.corespring.web.common.views.html.head.taggerApp() -->
+    @assetsLoader.tagger
+
+    <script type="text/javascript" src="@org.corespring.player.v1.controllers.launcher.routes.AssetLoading.noSessionPlayerJavascript"></script>
+
 
     <script type="text/javascript" src="/assets/js/vendor/spin/spin.min.js"></script>
 
@@ -22,7 +24,6 @@
 
     <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
 
-    <script type="text/javascript" src="/player.js"></script>
     <script type="text/javascript" src="/lti/routes.js"></script>
     <script type="text/javascript" src="/player/item/routes.js"></script>
     <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/MainController.js"></script>
