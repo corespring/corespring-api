@@ -167,7 +167,7 @@ object Build extends sbt.Build {
   val public = builders.web("public").settings(
     libraryDependencies ++= Seq(playFramework, securesocial),
     routesImport ++= customImports)
-    .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, testLib % "test->compile")
+    .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, v1Player, testLib % "test->compile")
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
 
