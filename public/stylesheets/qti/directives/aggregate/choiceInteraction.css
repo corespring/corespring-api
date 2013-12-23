@@ -1,0 +1,32 @@
+.choice-interaction {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-left: 20px;
+}
+.choice-prompt {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.simple-choice {
+  font-size: 18px;
+}
+.simple-choice input {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.simplechoice-inner{
+  margin:0 0 5px 20px;
+}
+.choiceInput,
+.choice-content{
+  display:table-cell;
+  vertical-align:middle;
+  color:#4d4d4f;
+  font-size:14px;
+}
+.choiceInput{
+  padding-left: 3px;
+}
+
