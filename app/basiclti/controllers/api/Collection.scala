@@ -13,7 +13,7 @@ class Collection(auth: ValidateQuizIdAndOrgId[TokenizedRequest[AnyContent]]) ext
   import api.v1.{ CollectionApi => Api }
 
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) =
-    auth.ValidatedAction((quizId, orgId) => true) { r: TokenizedRequest[AnyContent] =>
+    auth.ValidatedAction((quizId : String, orgId : String) => true) { r: TokenizedRequest[AnyContent] =>
       Api.list(q, f, c, sk, l, sort)(r)
     }
 }

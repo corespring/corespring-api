@@ -25,6 +25,7 @@ import scala.Left
 import scala.Right
 import scala.Some
 import api.ApiError
+import scala.concurrent.Future
 
 class ItemSessionApiTest extends BaseTest with RequestCalling {
 
@@ -307,7 +308,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
     matchSettingsAndSessionData(route(request).get,showCorrectResponses)
   }
 
-  def matchSettingsAndSessionData(result:Result, showCorrectResponses:Boolean) = {
+  def matchSettingsAndSessionData(result:Future[SimpleResult], showCorrectResponses:Boolean) = {
     val jsItemSession = Json.parse(contentAsString(result))
     val itemSession = Json.fromJson[ItemSession](jsItemSession).get
     DefaultItemSession.remove(itemSession)

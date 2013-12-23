@@ -10,8 +10,11 @@ import play.api.mvc._
 import scala.Left
 import scala.Right
 import scala.Some
+import scala.concurrent.{ExecutionContext, Future}
 
 class LtiQuizzes(auth: ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends Controller {
+
+  import ExecutionContext.Implicits.global
 
   /** Prevent the block from executing if the cookie id doesn't match the request id */
   private def quizIdMatches(requestQuizId: ObjectId)(quizId: String, orgId: String): Boolean = {
@@ -25,16 +28,16 @@ class LtiQuizzes(auth: ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends C
 
   def get(id: ObjectId) = auth.ValidatedAction(quizIdMatches(id)_) {
     request =>
-      models.LtiQuiz.findOneById(id) match {
+      Future( models.LtiQuiz.findOneById(id) match {
         case Some(c) => Ok(toJson(c))
         case _ => NotFound("Can't find launch config with that id")
-      }
+      })
   }
 
   def update(id: ObjectId) = auth.ValidatedAction(quizIdMatches(id)_) {
     request =>
 
-      quiz(request) match {
+      Future(quiz(request) match {
         case Some(cfg) if (id != cfg.id) => BadRequest("the json id doesn't match the url id")
         case Some(cfg) => {
           models.LtiQuiz.update(cfg, request.orgId) match {
@@ -43,7 +46,7 @@ class LtiQuizzes(auth: ValidateQuizIdAndOrgId[OrgRequest[AnyContent]]) extends C
           }
         }
         case _ => BadRequest("Invalid json provided")
-      }
+      })
   }
 
   private def quiz(request: Request[AnyContent]): Option[LtiQuiz] = {

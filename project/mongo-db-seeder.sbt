@@ -1,7 +1,5 @@
-resolvers += "corespring snapshot repo" at "http://repository.corespring.org/artifactory/ivy-snapshots"
+resolvers ++= Seq( "cs snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots", "cs releases" at "http://repository.corespring.org/artifactory/ivy-releases")
 
-credentials ++= Seq(
-  Credentials(Path.userHome / ".ivy2/.credentials")
-)
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
-addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.6-ae58487")
+addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.7-45bb3dc")

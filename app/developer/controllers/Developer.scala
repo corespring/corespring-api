@@ -12,16 +12,19 @@ import scala.Right
 import scala._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-import securesocial.core.{ IdentityId, SecureSocial }
+import securesocial.core.{SecuredRequest, IdentityId, SecureSocial}
 import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.platform.core.models.auth.{ Permission, ApiClient }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * TODO: remove magic strings
  */
 object Developer extends Controller with BaseApi with SecureSocial with PackageLogging {
+
+  import ExecutionContext.Implicits.global
 
   def at(path: String, file: String) = Assets.at(path, file)
 
@@ -40,15 +43,15 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
     }
   }
 
-  def home = Action {
+  def home = Action.async {
     implicit request =>
 
-      val defaultView = at("/public/developer", "index.html")(request)
+      val defaultView : Future[SimpleResult] = at("/public/developer", "index.html")(request)
 
-      userFromRequest(request).map {
-        u =>
-          if (u.hasRegisteredOrg) defaultView else Redirect(DeveloperRoutes.createOrganizationForm().url)
-      }.getOrElse(defaultView)
+     userFromRequest(request)
+        .filterNot( _.hasRegisteredOrg )
+        .map( u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
+        .getOrElse(defaultView)
   }
 
   def login = Action {
@@ -57,7 +60,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   }
 
   def isLoggedIn = SecuredAction(ajaxCall = true) {
-    request =>
+    request : SecuredRequest[AnyContent] =>
 
       def json(isLoggedIn: Boolean, username: Option[String] = None) = JsObject(Seq("isLoggedIn" -> JsBoolean(isLoggedIn)) ++ username.map("username" -> JsString(_)))
       val userId: IdentityId = request.user.identityId
@@ -106,7 +109,7 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   }
 
   def createOrganization = SecuredAction(false) {
-    request =>
+    request : SecuredRequest[AnyContent] =>
 
       def makeOrg(json: JsValue): Option[Organization] = (json \ "name").asOpt[String].map {
         n =>
@@ -162,18 +165,16 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
       }
   }
 
-  def handleStartSignUp = Action {
+  def handleStartSignUp = Action.async {
     implicit request =>
       val action = securesocial.controllers.Registration.handleStartSignUp(request)
-      action match {
-        case BadRequest => action
-        case _ => Ok(developer.views.html.registerDone())
-      }
+        action.transform({ r => r match {
+          case BadRequest => action
+          case _ => Ok(developer.views.html.registerDone())
+        }}, e => e)
+       action
   }
 
-  def handleSignUp(token: String) = Action {
-    request =>
-      MyRegistration.handleSignUp(token)(request)
-  }
+  def handleSignUp(token: String) = Action.async { request => MyRegistration.handleSignUp(token)(request) }
 }
 
