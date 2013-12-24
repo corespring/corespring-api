@@ -45,8 +45,8 @@ object Builder {
       val launchData = Seq(
         "itemId" -> JsString(item.id.toString),
         "templates" -> JsObject(Seq(
-          "item" -> JsString(config.corespringDomain + "/scorm-player/item/:itemId/run"),
-          "session" -> JsString(config.corespringDomain + "/scorm-player/session/:sessionId/run"))))
+          "item" -> JsString(config.corespringDomain + "/scorm/player/item/:itemId/run"),
+          "session" -> JsString(config.corespringDomain + "/scorm/player/session/:sessionId/run"))))
 
       val dataString = Json.prettyPrint(JsObject(launchData))
       Unparsed(dataString)

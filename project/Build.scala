@@ -174,6 +174,9 @@ object Build extends sbt.Build {
     .settings()
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
+  val scormWeb = builders.web("scorm-web").settings(
+    routesImport ++= customImports
+  ).dependsOn(core, scormLib, v1Player)
 
   val main = builders.web(appName, Some(file(".")))
     .settings(
@@ -191,8 +194,8 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .dependsOn(reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
-    .aggregate(reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
 
     addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

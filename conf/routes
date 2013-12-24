@@ -21,8 +21,6 @@ GET     /developer/org/:orgid       developer.controllers.Developer.getOrganizat
 GET     /developer/home             developer.controllers.Developer.home
 GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
 
-
-
 #
 # Auth endpoints
 #
@@ -36,21 +34,10 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 ->     /player                v1Player.Routes
 ->     /lti                   lti.Routes
 ->     /reports               reports.Routes
+->     /scorm                 scorm.Routes
 
 GET    /client/components/*file  controllers.Assets.at(path = "/container-client/bower_components", file)
 GET    /client/*file             controllers.Assets.at(path = "/container-client", file)
-
-
-#
-# V1 API
-#
-
-
-GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
-GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
-GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
-GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
 
 
 # New Player
@@ -81,15 +68,6 @@ GET    /web/javascripts/routes                             web.controllers.ShowR
 GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-
-
-# Reporting
-#GET    /reports                                     reporting.controllers.Reports.index
-#GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
-#GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
-#GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
-#GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
-#GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
 
 
 #
