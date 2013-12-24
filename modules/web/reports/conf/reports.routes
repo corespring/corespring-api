@@ -1,0 +1,6 @@
+GET    /                                    org.corespring.reporting.controllers.Reports.index
+GET    /:collection/:queryType.csv          org.corespring.reporting.controllers.Reports.getCsv(collection,queryType)
+GET    /standard-item-report.csv            org.corespring.reporting.controllers.Reports.getStandardItemReport
+GET    /primary-subject-item-report.csv     org.corespring.reporting.controllers.Reports.getPrimarySubjectItemReport
+GET    /contributor-item-report.csv         org.corespring.reporting.controllers.Reports.getContributorReport
+GET    /collection-item-report.csv          org.corespring.reporting.controllers.Reports.getCollectionReport

@@ -170,6 +170,10 @@ object Build extends sbt.Build {
     .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, v1Player, testLib % "test->compile")
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
+  val reports = builders.web("reports")
+    .settings()
+    .dependsOn(commonViews, core % "compile->compile;test->test")
+
 
   val main = builders.web(appName, Some(file(".")))
     .settings(
@@ -187,8 +191,8 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
-    .aggregate(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
+    .dependsOn(reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .aggregate(reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
 
     addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

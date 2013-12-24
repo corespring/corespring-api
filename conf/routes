@@ -35,7 +35,7 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 ->     /logger                clientlogging.Routes
 ->     /player                v1Player.Routes
 ->     /lti                   lti.Routes
-
+->     /reports               reports.Routes
 
 GET    /client/components/*file  controllers.Assets.at(path = "/container-client/bower_components", file)
 GET    /client/*file             controllers.Assets.at(path = "/container-client", file)
@@ -84,12 +84,12 @@ GET    /web/print-resource/:itemId/data/main                web.controllers.Show
 
 
 # Reporting
-GET    /reports                                     reporting.controllers.Reports.index
-GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
-GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
-GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
-GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
-GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+#GET    /reports                                     reporting.controllers.Reports.index
+#GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
+#GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
+#GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
+#GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
+#GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
 
 
 #

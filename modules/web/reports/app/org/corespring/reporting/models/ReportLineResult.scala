@@ -1,4 +1,4 @@
-package reporting.models
+package org.corespring.reporting.models
 
 object ReportLineResult {
 

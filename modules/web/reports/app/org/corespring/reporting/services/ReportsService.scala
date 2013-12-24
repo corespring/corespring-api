@@ -1,15 +1,15 @@
-package reporting.services
+package org.corespring.reporting.services
 
-import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.Implicits._
+import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
-import reporting.models.ReportLineResult.{ KeyCount, LineResult }
-import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
-
-import org.corespring.platform.core.models.ContentCollection
 import org.corespring.common.utils.string
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.reporting.models.ReportLineResult
+import org.corespring.reporting.models.ReportLineResult.{KeyCount, LineResult}
+
 
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
@@ -60,24 +60,14 @@ class ReportsService(ItemCollection: MongoCollection,
       case _ => collectionIdToName(collectionId)
     }
 
-    if (queryType.toLowerCase == "collectionid") {
-      List((collectionName + ": " + queryType, "Total")) ::: inlineResult.map((dbo: Any) => {
-        dbo match {
-          case foundDbo: DBObject => {
-            println(foundDbo.get("_id").toString)
-            (collectionIdToName(foundDbo.get("_id").toString), foundDbo.get("value").toString)
-          }
-        }
-      }).toList
+    val loadValues : PartialFunction[DBObject,(String, String)] = if (queryType.toLowerCase == "collectionid") {
+      case o:DBObject => (collectionIdToName(o.get("_id").toString), o.get("value").toString)
     } else {
-      List((collectionName + ": " + queryType, "Total")) ::: inlineResult.map((dbo: Any) => {
-        dbo match {
-          case foundDbo: DBObject => {
-            (foundDbo.get("_id").toString, foundDbo.get("value").toString)
-          }
-        }
-      }).toList
+      case foundDbo: DBObject =>  (foundDbo.get("_id").toString, foundDbo.get("value").toString)
     }
+
+    val values = inlineResult.toList.map(loadValues)
+    List((collectionName + ": " + queryType, "Total")) ::: values
   }
 
   def populateHeaders {
@@ -194,10 +184,6 @@ class ReportsService(ItemCollection: MongoCollection,
   /**
    * Run the map reduce for the given property and with the given query, then place the counts for each value into
    * the KeyCount that matches the item.
-   * @param keyCounts
-   * @param property
-   * @param query
-   * @param mapTemplateFn
    */
   private def runMapReduceForProperty(keyCounts: List[KeyCount],
     property: String,
@@ -273,10 +259,6 @@ class ReportsService(ItemCollection: MongoCollection,
 
   /**
    * Build a single line of counts for the given query.
-   * @param query
-   * @param total
-   * @param key
-   * @return
    */
   def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String): LineResult = {
 

@@ -1,9 +1,9 @@
-package reporting.controllers
+package org.corespring.reporting.controllers
 
-import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
-import reporting.services.ReportsService
-import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.core.controllers.auth.BaseApi
+import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.reporting.services.ReportsService
 
 object Reports extends BaseApi {
 
@@ -16,7 +16,7 @@ object Reports extends BaseApi {
   def index = ApiAction {
     request =>
       val availableCollections = service.getCollections
-      Ok(reporting.views.html.index(availableCollections))
+      Ok(org.corespring.reporting.views.html.index(availableCollections))
   }
 
   def getCsv(collection: String, queryType: String) = ApiAction {
