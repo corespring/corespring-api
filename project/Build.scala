@@ -176,9 +176,15 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       (test in Test) <<= (test in Test).map(Commands.runJsTests),
-      libraryDependencies ++= Dependencies.all
-    )
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+      libraryDependencies ++= Dependencies.all,
+      templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
+      resolvers ++= Dependencies.Resolvers.all,
+      credentials += cred,
+      Keys.fork.in(Test) := forkInTests,
+      scalacOptions ++= Seq("-feature", "-deprecation"),
+      (test in Test) <<= (test in Test).map(Commands.runJsTests)
+     )
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .dependsOn(public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )

@@ -36,7 +36,7 @@ class NewItemApiTest extends BaseTest{
     assertResult(result)
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(itemIds.length)
-  }
+  }//.pendingUntilFixed("The fixture data isn't always ready for the spec body")
 }
 
 
