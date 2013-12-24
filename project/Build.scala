@@ -182,7 +182,6 @@ object Build extends sbt.Build {
     .settings(
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      (test in Test) <<= (test in Test).map(Commands.runJsTests),
       libraryDependencies ++= Dependencies.all,
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
