@@ -12,6 +12,35 @@
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
 
+    <style type="text/css">
+        .loading .refresh {
+            display: none;
+        }
+
+        .indicator {
+            display: none;
+        }
+
+        .main-reports {
+            list-style-type: none;
+            margin: 0;
+        }
+
+        .main-reports a {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .loading .indicator {
+            display: inline-block;
+            vertical-align: middle;
+            background: url('/assets/images/ajax-loader.gif') no-repeat center center;
+            background-size: 12px 12px;
+            height: 12px;
+            width: 12px;
+        }
+    </style>
+
     <script type="text/javascript">
 
         function updateLinks( collectionName ){
@@ -32,7 +61,52 @@
                 var newLink = $("#collectionSelect").val();
                 updateLinks(newLink);
             });
+
             updateLinks($("#collectionSelect").val());
+
+            function pollReport(href, li) {
+                $.ajax({
+                    method: 'GET',
+                    url: href,
+                    success: function(data, textStatus, xhr) {
+                        if (xhr.status == 202) {
+                            setTimeout(function() {
+                                pollReport(href, li);
+                            }, 5000);
+                        } else {
+                            $(li).toggleClass('loading');
+                        }
+                    },
+                    error: function() {
+                        alert("There was an error refreshing the report");
+                        $(li).toggleClass('loading');
+                    }
+                });
+            }
+
+            $('.refresh').on('click', function() {
+                var url = $(this).attr('href');
+                var li = $(this).closest('li');
+
+                $(li).toggleClass('loading');
+                $.ajax({
+                    method: 'GET',
+                    url: url,
+                    success: function(data, textStatus, xhr) {
+                        if (xhr.status == 202) {
+                            pollReport(url + "/status", li);
+                        } else {
+                            $(li).toggleClass('loading');
+                        }
+                    },
+                    error: function() {
+                        alert("There was an error refreshing the report");
+                        $(li).toggleClass('loading');
+                    }
+                })
+                return false;
+            });
+
         });
     </script>
 </head>
@@ -41,20 +115,35 @@
 @web.views.html.mainNav()
 
 <div class="container" style="position:relative; top: 100px;">
-    <h1>Main Reports</h1>
-    <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>
-    <br/>
-    <a href="/reports/standard-item-report.csv">Standard Report</a>
-    <br/>
-    <a href="/reports/contributor-item-report.csv">Contributor Report</a>
-    <br/>
-    <a href="/reports/collection-item-report.csv">Collection Report</a>
-    <br/>
+    <h2>Main Reports</h2>
+    <p>Main reports take a while to generate, so are generated automatically every 24 hours. If you require an immediate up-to-date version of the report, click the refresh button.</p>
+    <ul class="main-reports">
+        <li>
+            <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>&nbsp;
+            <span class="refresh">[<a href="/reports/refresh/primarySubject" class="refresh">refresh</a>]</span>
+            <div class="indicator"/>
+        </li>
+        <li>
+            <a href="/reports/standard-item-report.csv">Standard Report</a>&nbsp;
+            <span class="refresh">[<a href="/reports/refresh/standards" class="refresh">refresh</a>]</span>
+            <div class="indicator"/>
+        </li>
+        <li>
+            <a href="/reports/contributor-item-report.csv">Contributor Report</a>&nbsp;
+            <span class="refresh">[<a href="/reports/refresh/contributor" class="refresh">refresh</a>]</span>
+            <div class="indicator"/>
+        </li>
+        <li>
+            <a href="/reports/collection-item-report.csv">Collection Report</a>&nbsp;
+            <span class="refresh">[<a href="/reports/refresh/collection" class="refresh">refresh</a>]</span>
+            <div class="indicator"/>
+        </li>
+    </ul>
 
     <br/>
     <br/>
 
-    <h1>Item Totals</h1>
+    <h2>Item Totals</h2>
     <select id="collectionSelect">
         <option value="all">All</option>
         @collections.map{ c =>

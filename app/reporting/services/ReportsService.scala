@@ -8,8 +8,9 @@ import reporting.models.ReportLineResult.{ KeyCount, LineResult }
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.{Standard, Subject, ContentCollection}
 import org.corespring.common.utils.string
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
@@ -100,8 +101,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildPrimarySubjectReport: String = {
-
+  val buildPrimarySubjectReport: (() => String) = () => {
     populateHeaders
 
     val lineResults: List[LineResult] = SubjectCollection.map((dbo: DBObject) => {
@@ -124,7 +124,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
-  def buildStandardsReport: String = {
+  val buildStandardsReport: (() => String) = () => {
 
     populateHeaders
 
@@ -147,7 +147,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a contributor and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildContributorReport: String = {
+  val buildContributorReport: (() => String) = () => {
 
     populateHeaders
 
@@ -170,8 +170,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a collectionId and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildCollectionReport: String = {
-
+  val buildCollectionReport: (() => String) = () => {
     populateHeaders
 
     val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
@@ -308,3 +307,6 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
 }
+
+object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
+  ContentCollection.collection, Standard.collection)
