@@ -13,7 +13,7 @@
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
 
     <style type="text/css">
-        .loading .refresh {
+        .loading .generate {
             display: none;
         }
 
@@ -78,13 +78,13 @@
                         }
                     },
                     error: function() {
-                        alert("There was an error refreshing the report");
+                        alert("There was an error generating the report");
                         $(li).toggleClass('loading');
                     }
                 });
             }
 
-            $('.refresh').on('click', function() {
+            $('.generate').on('click', function() {
                 var url = $(this).attr('href');
                 var li = $(this).closest('li');
 
@@ -94,13 +94,13 @@
                     url: url,
                     success: function(data, textStatus, xhr) {
                         if (xhr.status == 202) {
-                            pollReport(url + "/status", li);
+                            pollReport(url.replace('generate', 'status'), li);
                         } else {
                             $(li).toggleClass('loading');
                         }
                     },
                     error: function() {
-                        alert("There was an error refreshing the report");
+                        alert("There was an error generating the report");
                         $(li).toggleClass('loading');
                     }
                 })
@@ -116,26 +116,26 @@
 
 <div class="container" style="position:relative; top: 100px;">
     <h2>Main Reports</h2>
-    <p>Main reports take a while to generate, so are generated automatically every 24 hours. If you require an immediate up-to-date version of the report, click the refresh button.</p>
+    <p>Main reports take a while to generate, so are generated automatically every 24 hours. If you require an immediate up-to-date version of the report, click the generate button.</p>
     <ul class="main-reports">
         <li>
             <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>&nbsp;
-            <span class="refresh">[<a href="/reports/refresh/primarySubject" class="refresh">refresh</a>]</span>
+            [<a href="/reports/primarySubject/generate" class="generate">generate</a>]
             <div class="indicator"/>
         </li>
         <li>
             <a href="/reports/standard-item-report.csv">Standard Report</a>&nbsp;
-            <span class="refresh">[<a href="/reports/refresh/standards" class="refresh">refresh</a>]</span>
+            [<a href="/reports/standards/generate" class="generate">generate</a>]
             <div class="indicator"/>
         </li>
         <li>
             <a href="/reports/contributor-item-report.csv">Contributor Report</a>&nbsp;
-            <span class="refresh">[<a href="/reports/refresh/contributor" class="refresh">refresh</a>]</span>
+            [<a href="/reports/contributor/generate" class="generate">generate</a>]
             <div class="indicator"/>
         </li>
         <li>
             <a href="/reports/collection-item-report.csv">Collection Report</a>&nbsp;
-            <span class="refresh">[<a href="/reports/refresh/collection" class="refresh">refresh</a>]</span>
+            [<a href="/reports/collection/generate" class="generate">generate</a>]
             <div class="indicator"/>
         </li>
     </ul>

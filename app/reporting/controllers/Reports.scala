@@ -1,18 +1,11 @@
 package reporting.controllers
 
 import controllers.auth.BaseApi
-import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
-import reporting.services.ReportsService
-import org.corespring.platform.core.services.item.ItemServiceImpl
-import actors.reporting.ReportActor
-import play.api.mvc.{SimpleResult, Action}
-import actors.reporting.ReportActor.ReportKeys
+import reporting.services.{ReportGenerator, ReportsService}
+import play.api.mvc.SimpleResult
+import reporting.services.ReportGenerator.ReportKeys
 
-object Reports extends BaseApi {
-
-  private val service = ReportsService
-  private val actor = ReportActor
-
+class Reports(service: ReportsService, generator: ReportGenerator) extends BaseApi {
 
   def index = ApiAction {
     request =>
@@ -20,15 +13,15 @@ object Reports extends BaseApi {
       Ok(reporting.views.html.index(availableCollections))
   }
 
-  def refresh(reportKey: String) = ApiAction { request =>
-    actor.generateReport(reportKey)
+  def generate(reportKey: String) = ApiAction { request =>
+    generator.generateReport(reportKey)
     getStatus(reportKey)
   }
 
-  def refreshStatus(reportKey: String) = ApiAction { request => getStatus(reportKey) }
+  def status(reportKey: String) = ApiAction { request => getStatus(reportKey) }
 
   private def getStatus(reportKey: String) = {
-    actor.getReport(reportKey) match {
+    generator.getReport(reportKey) match {
       case Some(report) => Ok("")
       case _ => Accepted("")
     }
@@ -51,9 +44,11 @@ object Reports extends BaseApi {
   def getContributorReport = ApiAction(request => getReport(ReportKeys.contributor))
   def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
 
-  private def getReport(reportKey: String): SimpleResult = actor.getReport(reportKey) match {
+  private def getReport(reportKey: String): SimpleResult = generator.getReport(reportKey) match {
     case Some(string) => Ok(string).withHeaders(("Content-type", "text/csv"))
     case _ => InternalServerError("There was an error generating this report. Please check the logs.")
   }
 
 }
+
+object Reports extends Reports(ReportsService, ReportGenerator)

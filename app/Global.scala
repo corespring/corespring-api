@@ -112,7 +112,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
 
     Logger.info("Scheduling the reporting daemon")
 
-    val reportingActor = Akka.system(app).actorOf(Props(ReportActor))
+    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportsService))
     Akka.system(app).scheduler.schedule(0 seconds, 24 hours, reportingActor, "reportingDaemon")
   }
 
