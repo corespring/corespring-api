@@ -151,7 +151,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
     populateHeaders
 
-    val mapFn: JSFunction = interpolate(JSFunctions.SimplePropertyMapFnTemplate, Map("property" -> "contributorDetails.contributor"))
+    val mapFn: JSFunction = JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.contributor")
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput)
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
@@ -195,16 +195,12 @@ class ReportsService(ItemCollection: MongoCollection,
    * Run the map reduce for the given property and with the given query, then place the counts for each value into
    * the KeyCount that matches the item.
    * @param keyCounts
-   * @param property
    * @param query
-   * @param mapTemplateFn
    */
   private def runMapReduceForProperty(keyCounts: List[KeyCount],
-    property: String,
     query: BasicDBObject,
-    mapTemplateFn: JSFunction = JSFunctions.SimplePropertyMapFnTemplate) {
+    mapFn: JSFunction) {
 
-    val mapFn: JSFunction = interpolate(mapTemplateFn, Map("property" -> property))
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
     val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
@@ -245,30 +241,33 @@ class ReportsService(ItemCollection: MongoCollection,
 
   object JSFunctions {
 
-    val SimplePropertyMapFnTemplate: JSFunction = """function m() {
-                                          try {
-                                          if( this.${property} ){
-                                            emit(this.${property}, 1);
-                                          }
-                                          } catch (e) {
-                                          }
-                                        };"""
+    def SimplePropertyMapFnTemplate(property: String): JSFunction =
+      s"""function m() {
+        try {
+          if (this.$property) {
+            emit(this.$property, 1);
+          }
+        } catch (e) {
+        }
+      };"""
 
-    val ArrayPropertyMapTemplateFn: JSFunction = """function m(){
-                                          if( this.${property} ){
-                                            for(var i = 0; i < this.${property}.length; i++ ){
-                                              emit(this.${property}[i], 1);
-                                            }
-                                          }
-  }"""
+    def ArrayPropertyMapTemplateFn(property: String): JSFunction =
+      s"""function m() {
+        if (this.$property) {
+          for (var i = 0; i < this.$property.length; i++) {
+            emit(this.${property}[i], 1);
+          }
+        }
+      }"""
 
-    val ReduceFn: JSFunction = """function r(key, values) {
-                                       var count = 0;
-                                        for (index in values) {
-                                          count += values[index];
-                                        }
-                                        return count;
-                                      }"""
+    val ReduceFn: JSFunction =
+      """function r(key, values) {
+        var count = 0;
+        for (index in values) {
+          count += values[index];
+        }
+        return count;
+      }"""
   }
 
   /**
@@ -281,19 +280,19 @@ class ReportsService(ItemCollection: MongoCollection,
   def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String): LineResult = {
 
     val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.ItemTypes)
-    runMapReduceForProperty(itemTypeKeyCounts, "taskInfo.itemType", query)
+    runMapReduceForProperty(itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
 
     val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.GradeLevel)
-    runMapReduceForProperty(gradeLevelKeyCounts, "taskInfo.gradeLevel", query, JSFunctions.ArrayPropertyMapTemplateFn)
+    runMapReduceForProperty(gradeLevelKeyCounts, query, JSFunctions.ArrayPropertyMapTemplateFn("taskInfo.gradeLevel"))
 
     val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.PriorUse)
-    runMapReduceForProperty(priorUseKeyCounts, "priorUse", query)
+    runMapReduceForProperty(priorUseKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("priorUse"))
 
     val credentialsKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.Credentials)
-    runMapReduceForProperty(credentialsKeyCount, "contributorDetails.credentials", query)
+    runMapReduceForProperty(credentialsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.credentials"))
 
     val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.LicenseType)
-    runMapReduceForProperty(licenseTypeKeyCount, "contributorDetails.licenseType", query)
+    runMapReduceForProperty(licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
 
     new LineResult(key,
       total,
