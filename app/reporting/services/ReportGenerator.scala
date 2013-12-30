@@ -12,7 +12,7 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.primarySubject -> reportsService.buildPrimarySubjectReport _,
     ReportKeys.standards -> reportsService.buildStandardsReport _,
     ReportKeys.contributor -> reportsService.buildContributorReport _,
-    ReportKeys.collection -> (() => { "" })
+    ReportKeys.collection -> reportsService.buildCollectionReport _
   )
 
   /**

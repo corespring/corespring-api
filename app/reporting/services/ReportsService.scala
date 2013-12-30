@@ -217,7 +217,11 @@ class ReportsService(ItemCollection: MongoCollection,
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
-    val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
+    val inlineResult: MapReduceInlineResult = result match {
+      case result: MapReduceInlineResult => result
+      case error: MapReduceError =>
+        throw new RuntimeException(s"There was an error in the map-reduce operation:\n${error.toString}")
+    }
 
     /**
      * Put the value into the corresponding KeyCount holder.
@@ -265,14 +269,18 @@ class ReportsService(ItemCollection: MongoCollection,
         }
       };"""
 
-    def ArrayPropertyMapTemplateFn(property: String): JSFunction =
+    def ArrayPropertyMapTemplateFn(property: String): JSFunction = {
+      val fieldCheck =
+        property.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
+          acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
       s"""function m() {
-        if (this.$property) {
+        if ($fieldCheck && (Object.prototype.toString.call(this.$property) === '[object Array]')) {
           for (var i = 0; i < this.$property.length; i++) {
             emit(this.${property}[i], 1);
           }
         }
       }"""
+    }
 
     val ReduceFn: JSFunction =
       """function r(key, values) {
