@@ -4,21 +4,18 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.Implicits._
 import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
-import reporting.models.ReportLineResult.{ KeyCount, LineResult }
+import reporting.models.ReportLineResult.KeyCount
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
 import org.corespring.platform.core.models.{Standard, Subject, ContentCollection}
 import org.corespring.common.utils.string
 import org.corespring.platform.core.services.item.ItemServiceImpl
-import scala.concurrent._
 import reporting.models.ReportLineResult.LineResult
 import scala.Some
-import play.Logger
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
-  ContentCollection.collection, Standard.collection) {
-}
+  ContentCollection.collection, Standard.collection)
 
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
