@@ -8,7 +8,7 @@ import reporting.services.ReportGenerator.ReportKeys
 
 class ReportGenerator(reportsService: ReportsService) {
 
-  val generatorFunctions: Map[String, () => String] = Map(
+  val generatorFunctions = Map(
     ReportKeys.primarySubject -> reportsService.buildPrimarySubjectReport _,
     ReportKeys.standards -> reportsService.buildStandardsReport _,
     ReportKeys.contributor -> reportsService.buildContributorReport _,
