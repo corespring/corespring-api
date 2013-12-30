@@ -269,14 +269,18 @@ class ReportsService(ItemCollection: MongoCollection,
         }
       };"""
 
-    def ArrayPropertyMapTemplateFn(property: String): JSFunction =
+    def ArrayPropertyMapTemplateFn(property: String): JSFunction = {
+      val fieldCheck =
+        property.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
+          acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
       s"""function m() {
-        if (this.$property) {
+        if ($fieldCheck && (Object.prototype.toString.call(this.$property) === '[object Array]')) {
           for (var i = 0; i < this.$property.length; i++) {
             emit(this.${property}[i], 1);
           }
         }
       }"""
+    }
 
     val ReduceFn: JSFunction =
       """function r(key, values) {
