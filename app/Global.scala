@@ -6,11 +6,12 @@ import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
+import org.joda.time.{DateMidnight, DateTime}
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import reporting.services.ReportsService
+import reporting.services.{ReportGenerator, ReportsService}
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -88,6 +89,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
         }
         seedStaticData()
         seedDemoData()
+        initializeReports
         reportingDaemon(app)
       }
     }
@@ -107,13 +109,16 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
+  private def minutesUntilMidnight =
+    new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1 - new DateTime().getMinuteOfDay
+
   private def reportingDaemon(app: Application) = {
     implicit val postfixOps = scala.language.postfixOps
 
     Logger.info("Scheduling the reporting daemon")
 
     val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportsService))
-    Akka.system(app).scheduler.schedule(0 seconds, 24 hours, reportingActor, "reportingDaemon")
+    Akka.system(app).scheduler.schedule(minutesUntilMidnight minutes, 24 hours, reportingActor, "reportingDaemon")
   }
 
   /**
@@ -127,6 +132,10 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
+  }
+
+  private def initializeReports() {
+    ReportGenerator.generateAllReports
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */
