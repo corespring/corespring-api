@@ -117,6 +117,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
 
 
   private def reportingDaemon(app: Application) = {
+    import scala.language.postfixOps
 
     Logger.info("Scheduling the reporting daemon")
 

@@ -18,7 +18,7 @@ class ReportGenerator(reportsService: ReportsService) {
   /**
    * Triggers generation of all reports
    */
-  def generateAllReports = generatorFunctions.foreach { case (key, _) => generateReport(key) }
+  def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
   def getReport(reportKey: String): Option[String] = Option(Cache.get(reportKey)) match {
     case Some(report: String) => Some(report)
@@ -29,7 +29,7 @@ class ReportGenerator(reportsService: ReportsService) {
    * Creates a report using the provided parameter-less function and adds results to cache. Logs to Logger.info,
    * Logger.error on completion.
    */
-  def generateReport(reportKey: String) = {
+  def generateReport(reportKey: String): Future[Option[String]] = {
 
     import ExecutionContext.Implicits.global
 
@@ -40,15 +40,21 @@ class ReportGenerator(reportsService: ReportsService) {
       try {
         generatorFunctions.get(reportKey) match {
           case Some(generator: (() => String)) => {
-            Cache.set(reportKey, generator())
+            val report = generator()
+            Cache.set(reportKey, report)
             Logger.info(s"Generated $reportKey report")
+            Some(report)
           }
-          case _ => Logger.warn(s"Cannot process unknown report $reportKey")
+          case _ => {
+            Logger.warn(s"Cannot process unknown report $reportKey")
+            None
+          }
         }
       } catch {
         case e: Exception => {
           Logger.error(s"There was an error generating the $reportKey report")
           e.printStackTrace
+          None
         }
       }
     }
