@@ -21,6 +21,7 @@ class ReportGeneratorTest extends Specification with Mockito {
       reportGenerator.generateAllReports.foreach(Await.ready(_, Duration(1000, MILLISECONDS)))
       there was one(reportsService).buildPrimarySubjectReport
       there was one(reportsService).buildStandardsReport
+      there was one(reportsService).buildCollectionReport
       there was one(reportsService).buildContributorReport
     }
 
@@ -42,7 +43,8 @@ class ReportGeneratorTest extends Specification with Mockito {
     }
 
     "call generator function for collection" in {
-      pending
+      Await.ready(reportGenerator.generateReport(ReportKeys.collection), Duration(1000, MILLISECONDS))
+      there was one(reportsService).buildCollectionReport
     }
 
     "call generator function for contributor" in {
