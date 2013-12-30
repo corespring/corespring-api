@@ -105,7 +105,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
-  val buildPrimarySubjectReport = { () =>
+  def buildPrimarySubjectReport() = {
     populateHeaders
 
     val lineResults: List[LineResult] = SubjectCollection.map((dbo: DBObject) => {
@@ -128,7 +128,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
-  val buildStandardsReport = { () =>
+  def buildStandardsReport() = {
 
     populateHeaders
 
@@ -151,7 +151,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a contributor and the columns are counts of a specific set of item properties.
    * @return
    */
-  val buildContributorReport = { () =>
+  def buildContributorReport() = {
 
     populateHeaders
 
@@ -174,7 +174,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a collectionId and the columns are counts of a specific set of item properties.
    * @return
    */
-  val buildCollectionReport = { () =>
+  def buildCollectionReport() = {
     populateHeaders
 
     val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
