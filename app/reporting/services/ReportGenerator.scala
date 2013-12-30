@@ -22,7 +22,7 @@ class ReportGenerator(reportsService: ReportsService) {
 
   def getReport(reportKey: String): Option[String] = Option(Cache.get(reportKey)) match {
     case Some(report: String) => Some(report)
-    case None => None
+    case _ => None
   }
 
   /**

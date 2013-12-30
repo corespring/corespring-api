@@ -110,13 +110,13 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
   }
 
   private def timeLeftUntilMidnight = {
+    implicit val postfixOps = scala.language.postfixOps
     (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
       - new DateTime().getMinuteOfDay) minutes
   }
 
 
   private def reportingDaemon(app: Application) = {
-    implicit val postfixOps = scala.language.postfixOps
 
     Logger.info("Scheduling the reporting daemon")
 
