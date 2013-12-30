@@ -217,7 +217,11 @@ class ReportsService(ItemCollection: MongoCollection,
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
-    val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
+    val inlineResult: MapReduceInlineResult = result match {
+      case result: MapReduceInlineResult => result
+      case error: MapReduceError =>
+        throw new RuntimeException(s"There was an error in the map-reduce operation:\n${error.toString}")
+    }
 
     /**
      * Put the value into the corresponding KeyCount holder.
