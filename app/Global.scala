@@ -109,8 +109,11 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
-  private def minutesUntilMidnight =
-    new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1 - new DateTime().getMinuteOfDay
+  private def timeLeftUntilMidnight = {
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
+      - new DateTime().getMinuteOfDay) minutes
+  }
+
 
   private def reportingDaemon(app: Application) = {
     implicit val postfixOps = scala.language.postfixOps
@@ -118,7 +121,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     Logger.info("Scheduling the reporting daemon")
 
     val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportsService))
-    Akka.system(app).scheduler.schedule(minutesUntilMidnight minutes, 24 hours, reportingActor, "reportingDaemon")
+    Akka.system(app).scheduler.schedule(timeLeftUntilMidnight, 24 hours, reportingActor, "reportingDaemon")
   }
 
   /**
