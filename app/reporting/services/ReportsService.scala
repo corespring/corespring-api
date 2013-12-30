@@ -8,17 +8,22 @@ import reporting.models.ReportLineResult.{ KeyCount, LineResult }
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.{Standard, Subject, ContentCollection}
 import org.corespring.common.utils.string
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import scala.concurrent._
+import reporting.models.ReportLineResult.LineResult
+import scala.Some
+import play.Logger
+
+object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
+  ContentCollection.collection, Standard.collection) {
+}
 
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
   CollectionsCollection: MongoCollection,
   StandardCollection: MongoCollection) {
-
-  def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
-    c => (c.name.toString, c.id.toString)
-  }
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
@@ -100,8 +105,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is for a primary subject and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildPrimarySubjectReport: String = {
-
+  def buildPrimarySubjectReport() = {
     populateHeaders
 
     val lineResults: List[LineResult] = SubjectCollection.map((dbo: DBObject) => {
@@ -124,7 +128,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
-  def buildStandardsReport: String = {
+  def buildStandardsReport() = {
 
     populateHeaders
 
@@ -147,7 +151,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a contributor and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildContributorReport: String = {
+  def buildContributorReport() = {
 
     populateHeaders
 
@@ -170,8 +174,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * Build a csv where each line is a collectionId and the columns are counts of a specific set of item properties.
    * @return
    */
-  def buildCollectionReport: String = {
-
+  def buildCollectionReport() = {
     populateHeaders
 
     val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
@@ -189,6 +192,17 @@ class ReportsService(ItemCollection: MongoCollection,
       case 0 => new LineResult(finalKey)
       case c: Long if c > 0 => buildLineResultFromQuery(query, c.toInt, finalKey)
     }
+  }
+
+  /**
+   * Cached data for all reports.
+   *
+   * TODO: These should be written to the filesystem if they start to take up too much memory.
+   */
+  private var reportCache = Map.empty[String, String]
+
+  def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
+    c => (c.name.toString, c.id.toString)
   }
 
   /**
@@ -308,3 +322,4 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
 }
+

@@ -218,6 +218,8 @@ GET     /lti/api/collections                    basiclti.controllers.api.Collect
 GET     /lti/routes.js                          basiclti.controllers.JsRoutes.index
 # Reporting
 GET    /reports                                     reporting.controllers.Reports.index
+GET    /reports/:reportKey/generate                 reporting.controllers.Reports.generate(reportKey: String)
+GET    /reports/:reportKey/status                   reporting.controllers.Reports.status(reportKey: String)
 GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
 GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
 GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
