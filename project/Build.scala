@@ -92,14 +92,6 @@ object Build extends sbt.Build {
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti)
 
-  val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
-    libraryDependencies ++= Seq(
-      containerClientWeb,
-      componentLoader,
-      componentModel,
-      mongoJsonService)
-  ).dependsOn(core % "test->test;compile->compile")
-
   val playerLib = builders.lib("player-lib")
     .settings(
       libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
@@ -193,8 +185,8 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
-    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, clientLogging)
 
     addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

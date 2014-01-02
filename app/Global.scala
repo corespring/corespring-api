@@ -1,14 +1,10 @@
 import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
-import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
-import org.corespring.poc.integration.ControllerInstanceResolver
-import org.corespring.poc.integration.impl.V2PlayerIntegration
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.DateTime
@@ -20,17 +16,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with ClassLogging {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
-
-  private lazy val componentLoader : ComponentLoader = {
-    val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
-    out.reload
-    out
-  }
-
-  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all, current.configuration, SeedDb.salatDb()).controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {

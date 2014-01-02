@@ -4,13 +4,6 @@ object Dependencies {
 
   val playVersion = "2.2.1"
 
-  //POC
-  val containerVersion = "0.0.2"
-  val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
-  val componentModel = "org.corespring" %% "component-model" % containerVersion
-  val componentLoader = "org.corespring" %% "component-loader" % containerVersion
-  val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
-
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.2-SNAPSHOT")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
@@ -69,10 +62,7 @@ object Dependencies {
     salatPlay,
     securesocial,
     scalaz,
-    closureCompiler,
-    containerClientWeb,
-    componentLoader,
-    componentModel
+    closureCompiler
   )
 
   object Resolvers {
