@@ -70,8 +70,8 @@ object ItemSearch extends Searchable {
     })
   }
 
-  private def preParseSubjects(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
-    val primarySubjectQuery = dbquery.foldRight[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject()))((field, result) => {
+  private def preParseSubjects(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+    val primarySubjectQuery = dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => field._1 match {
           case key if key == primarySubject + "." + Subject.Subject =>
@@ -85,13 +85,13 @@ object ItemSearch extends Searchable {
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty) {
         val subjects = Subject.find(searchobj).toSeq.map(_.id)
-        if (subjects.size > 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> MongoDBObject("$in" -> subjects)))
-        else if (subjects.size == 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> subjects.head))
+        if (subjects.size > 1) Right(DBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> DBObject("$in" -> subjects)))
+        else if (subjects.size == 1) Right(DBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.primary -> subjects.head))
         else Left(SearchCancelled(None))
-      } else Right(MongoDBObject())
+      } else Right(DBObject())
       case Left(sc) => Left(sc)
     }
-    val relatedSubjectQuery = dbquery.foldRight[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject()))((field, result) => {
+    val relatedSubjectQuery = dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => field._1 match {
           case key if key == relatedSubject + "." + Subject.Subject =>
@@ -105,10 +105,10 @@ object ItemSearch extends Searchable {
     }) match {
       case Right(searchobj) => if (searchobj.nonEmpty) {
         val subjects: Seq[ObjectId] = Subject.find(searchobj).toSeq.map(_.id)
-        if (subjects.size > 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> MongoDBObject("$in" -> subjects)))
-        else if (subjects.size == 1) Right(MongoDBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> subjects.head))
+        if (subjects.size > 1) Right(DBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> DBObject("$in" -> subjects)))
+        else if (subjects.size == 1) Right(DBObject(taskInfo + "." + TaskInfo.Keys.subjects + "." + Subjects.Keys.related -> subjects.head))
         else Left(SearchCancelled(None))
-      } else Right(MongoDBObject())
+      } else Right(DBObject())
       case Left(sc) => Left(sc)
     }
     primarySubjectQuery match {
@@ -120,8 +120,8 @@ object ItemSearch extends Searchable {
     }
   }
 
-  private def preParseStandards(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
-    dbquery.foldRight[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject()))((field, result) => {
+  private def preParseStandards(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+    dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => field._1 match {
           case key if key == standards + "." + Standard.DotNotation => formatQuery(Standard.DotNotation, field._2, searchobj)
@@ -137,19 +137,19 @@ object ItemSearch extends Searchable {
       case Right(searchobj) => if (searchobj.nonEmpty) {
         val standards: Seq[String] = Standard.find(searchobj).toSeq.map(_.dotNotation).flatten
         if (standards.nonEmpty) {
-          if (standards.size == 1) Right(MongoDBObject(Item.Keys.standards -> standards.head))
-          else Right(MongoDBObject(Item.Keys.standards -> MongoDBObject("$in" -> standards)))
+          if (standards.size == 1) Right(DBObject(Item.Keys.standards -> standards.head))
+          else Right(DBObject(Item.Keys.standards -> DBObject("$in" -> standards)))
         } else Left(SearchCancelled(None))
-      } else Right(MongoDBObject())
+      } else Right(DBObject())
       case Left(sc) => Left(sc)
     }
   }
-  override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[MongoDBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
+  override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {
         case Right(query2) => {
-          val initSearch = query1 ++ query2.asDBObject ++ optInitSearch.getOrElse[MongoDBObject](MongoDBObject()).asDBObject
-          dbquery.foldRight[Either[SearchCancelled, MongoDBObject]](Right(initSearch))((field, result) => result match {
+          val initSearch = query1 ++ query2.asDBObject ++ optInitSearch.getOrElse[DBObject](DBObject()).asDBObject
+          dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(initSearch))((field, result) => result match {
             case Right(searchobj) => {
               field._1 match {
                 case key if key == workflow + "." + Workflow.setup => formatQuery(key, field._2, searchobj)
@@ -199,10 +199,10 @@ object ItemSearch extends Searchable {
     }
   }
 
-  override protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, MongoDBObject] = {
-    def formatSortField(key: String, value: AnyRef): Either[InternalError, MongoDBObject] = {
+  override protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, DBObject] = {
+    def formatSortField(key: String, value: AnyRef): Either[InternalError, DBObject] = {
       value match {
-        case intval: java.lang.Integer => Right(MongoDBObject(key -> value))
+        case intval: java.lang.Integer => Right(DBObject(key -> value))
         case _ => Left(InternalError("sort value not a number"))
       }
     }

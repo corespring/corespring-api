@@ -1,7 +1,5 @@
 package web.controllers
 
-import common.controllers.{ AssetResourceBase, QtiResource }
-import controllers.auth.BaseApi
 import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
@@ -9,12 +7,15 @@ import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
-import player.controllers.QtiRenderer
-import player.views.models.{ QtiKeys, PlayerParams }
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{ Success, Failure }
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams}
+import org.corespring.player.v1.controllers.QtiRenderer
+import org.corespring.platform.core.controllers.{QtiResource, AssetResourceBase}
+import org.corespring.common.mongo.ObjectIdParser
+import org.corespring.platform.core.controllers.auth.BaseApi
 
 object ShowResource
   extends BaseApi
@@ -78,7 +79,7 @@ object ShowResource
               val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
               val finalXml = prepareQti(xmlData, renderMode)
               val params: PlayerParams = PlayerParams(finalXml, itemId = Some(item.id.toString()), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
-              Ok(player.views.html.Player(params))
+              Ok(org.corespring.player.v1.views.html.Player(params))
             }
             case None => NotFound("Can't find item")
           }

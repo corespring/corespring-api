@@ -5,15 +5,15 @@ import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
+import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
-import org.joda.time.{DateMidnight, DateTime}
+import org.joda.time.DateTime
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import reporting.services.{ReportGenerator, ReportsService}
-import scala.concurrent.{ExecutionContext, Future}
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ClassLogging {
@@ -146,10 +146,6 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
   private def seedStaticData() {
     emptyStaticData()
     seedData("conf/seed-data/static")
-  }
-
-  private def seedTestData() {
-    //seedData("conf/seed-data/test")
   }
 
   private def seedDevData() {

@@ -9,12 +9,12 @@ import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.player.v1.controllers.Views
+import org.corespring.player.v1.views.models.PlayerParams
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.templates.Html
 import play.api.{Mode, Play}
-import player.controllers.Views
-import player.views.models.PlayerParams
 import scala.Some
 import scala.concurrent.{ExecutionContext, Future}
 

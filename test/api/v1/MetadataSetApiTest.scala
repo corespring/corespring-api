@@ -11,6 +11,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsJson, AnyContent, AnyContentAsEmpty}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
+import org.corespring.api.v1.MetadataSetApi
 
 class MetadataSetApiTest extends Specification with Mockito {
 

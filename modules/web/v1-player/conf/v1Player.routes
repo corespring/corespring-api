@@ -1,0 +1,26 @@
+POST   /api/:itemId/session                         org.corespring.player.v1.controllers.Session.create(itemId:VersionedId[ObjectId])
+GET    /api/:itemId/session/:sessionId              org.corespring.player.v1.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
+PUT    /api/:itemId/session/:sessionId              org.corespring.player.v1.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
+POST   /api/:itemId/session/:quizId/aggregate       org.corespring.player.v1.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
+GET    /routes.js                                   org.corespring.player.v1.controllers.Session.jsRoutes
+GET    /api/:itemId/details                         org.corespring.player.v1.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
+## JS Routes
+GET    /item/routes.js                              org.corespring.player.v1.controllers.Item.jsRoutes
+## Encrypt
+POST    /encrypt-options                            org.corespring.player.v1.controllers.Encrypter.encryptOptions
+## Views
+GET    /item/:itemId/preview                        org.corespring.player.v1.controllers.Views.preview(itemId:VersionedId[ObjectId])
+GET    /item/:itemId/administer                     org.corespring.player.v1.controllers.Views.administerItem(itemId:VersionedId[ObjectId])
+GET    /item/:itemId/profile                        org.corespring.player.v1.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
+GET    /item/:itemId/*filename                      org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFile(itemId, filename)
+
+GET    /session/:sessionId/render                   org.corespring.player.v1.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
+GET    /session/:sessionId/administer               org.corespring.player.v1.controllers.Views.administerSession(sessionId:ObjectId)
+GET    /session/:sessionId/*filename                org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileBySessionId(sessionId, filename)
+
+GET    /aggregate/:assessmentId/:itemId/run         org.corespring.player.v1.controllers.Views.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
+GET    /aggregate/:assessmentId/:itemId/*filename   org.corespring.player.v1.controllers.launcher.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)
+
+GET    /player.js                                   org.corespring.player.v1.controllers.launcher.AssetLoading.itemPlayerJavascript
+GET    /tagger-player.js                            org.corespring.player.v1.controllers.launcher.AssetLoading.noSessionPlayerJavascript
+GET    /profile.js                                  org.corespring.player.v1.controllers.launcher.AssetLoading.itemProfileJavascript

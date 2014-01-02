@@ -1,0 +1,128 @@
+package org.corespring.api.v1
+
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.quiz.basic.{Participant, Quiz}
+import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.test.PlaySingleton
+import org.corespring.test.utils.RequestCalling
+import org.joda.time.DateTime
+import org.specs2.mutable.Specification
+import play.api.libs.json.{JsSuccess, Json}
+import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import play.mvc.Call
+
+class QuizApiTest extends Specification with RequestCalling {
+
+  PlaySingleton.start()
+
+  val orgId = new ObjectId("51114b307fc1eaa866444648")
+  val authorId = "fd707fc3c"
+
+  val Api = QuizApi
+  val QuizRoutes = org.corespring.api.v1.routes.QuizApi
+
+  "QuizApi" should {
+    "get" in {
+      val q = createQuiz()
+      val requestedQuiz = invokeCall[Quiz](Api.get(q.id), AnyContentAsEmpty)
+      requestedQuiz.id === q.id
+    }
+
+    "get multiple" in {
+      val quizOne = createQuiz()
+      val quizTwo = createQuiz()
+      val ids = List(quizOne, quizTwo).map(_.id.toString).mkString(",")
+      val multiple = invokeCall[List[Quiz]](Api.getMultiple(ids), AnyContentAsEmpty)
+      multiple.length === 2
+    }
+
+    "get multiple and filters if the org isn't applicable" in {
+      val quizOne = createQuiz()
+      val quizTwo = createQuiz()
+      val quizThree = Quiz(orgId = Some(new ObjectId("51114b307fc1eaa866444649")))
+      QuizService.create(quizThree)
+      val ids = List(quizOne, quizTwo, quizThree).map(_.id.toString).mkString(",")
+      val multiple = invokeCall[List[Quiz]](Api.getMultiple(ids), AnyContentAsEmpty)
+      multiple.length === 2
+    }
+
+    "get by author" in {
+      QuizService.findByAuthor(authorId).length === 1
+    }
+
+    "create" in {
+      val q = createQuiz(Map("course" -> "some course"))
+      val quiz = q.copy(participants = Seq(
+        Participant(
+          externalUid = "ed",
+          answers = Seq()
+        )
+      ))
+      val json = AnyContentAsJson(Json.toJson(quiz))
+      val createdQuiz = invokeCall[Quiz](Api.create(), json)
+      createdQuiz.metadata.get("course") === Some("some course")
+      createdQuiz.participants.length === 1
+      createdQuiz.starts.isDefined must beTrue
+      createdQuiz.ends.isDefined must beTrue
+    }
+
+    "update" in {
+      val q = createQuiz(Map("course" -> "some course"))
+      val update = q.copy(metadata = Map("course" -> "some updated course"))
+      val json = AnyContentAsJson(Json.toJson(update))
+      val updatedQuiz = invokeCall[Quiz](Api.update(q.id), json)
+      updatedQuiz.metadata.get("course") === Some("some updated course")
+    }
+
+    def createQuiz(metadata: Map[String, String] = Map()): Quiz = {
+      val q = Quiz(orgId = Some(orgId), metadata = metadata, starts = Some(new DateTime()), ends = Some(new DateTime()))
+      QuizService.create(q)
+      q
+    }
+
+    "delete" in {
+      val q = createQuiz(Map("course" -> "some course"))
+
+      val call: Call = QuizRoutes.delete(q.id)
+      route(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
+        case Some(result) => {
+          status(result) === OK
+          QuizService.findOneById(q.id) === None
+        }
+        case _ => failure("Error deleting")
+      }
+    }
+
+    "add participant" in {
+      val q = createQuiz()
+      val json = AnyContentAsJson(Json.toJson(Map("ids" -> Json.toJson(Seq("50c9f79db519c8996618447d", "50be107ae4b954fe2326ab72", "50ba1c504eda5d94372233c7")))))
+      val updatedQuiz = invokeCall[Quiz](Api.addParticipants(q.id), json)
+      updatedQuiz.participants.length shouldEqual 3
+    }
+
+    "list" in {
+
+      QuizService.removeAll()
+      createQuiz()
+      createQuiz()
+      createQuiz()
+
+      val call: Call = QuizRoutes.list()
+      route(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
+        case Some(result) => {
+          status(result) === OK
+          val json = Json.parse(contentAsString(result))
+          Json.fromJson[List[Quiz]](json) match {
+            case JsSuccess(quizzes, _) => {
+              quizzes.length === 3
+            }
+            case _ => failure("Couldn't parse json")
+          }
+        }
+        case _ => failure("Error deleting")
+      }
+    }
+  }
+}

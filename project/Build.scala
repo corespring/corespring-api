@@ -42,7 +42,16 @@ object Build extends sbt.Build {
     }
   }
 
-  val builders = new Builders(appName, org, appVersion, ScalaVersion)
+  val sharedSettings = Seq(
+    scalaVersion := ScalaVersion,
+    parallelExecution.in(Test) := false,
+    resolvers ++= Dependencies.Resolvers.all,
+    credentials += cred,
+    Keys.fork.in(Test) := forkInTests,
+    scalacOptions ++= Seq("-feature", "-deprecation")
+  ) ++ disableDocsSettings
+
+  val builders = new Builders(appName, org, appVersion, ScalaVersion, sharedSettings)
 
   val customImports = Seq(
     "scala.language.reflectiveCalls",
@@ -51,26 +60,21 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
-  val apiUtils = builders.lib("api-utils").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
-    Keys.fork in Test := forkInTests).settings(disableDocsSettings: _*)
+  val apiUtils = builders.lib("api-utils")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
+      Keys.fork in Test := forkInTests
+    )
 
   /** Any shared test helpers in here */
-  val testLib = builders.testLib("test-helpers").settings(
-    scalaVersion := ScalaVersion,
-    libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay)).settings(disableDocsSettings: _*)
+  val testLib = builders.testLib("test-helpers")
+    .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
 
   val assets = builders.lib("assets")
-    .settings(
-      libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils),
-      credentials += cred)
+    .settings( libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
-    .settings(disableDocsSettings: _*)
 
-
-  val qti = builders.lib("qti").settings(
-    libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos)
-  )
+  val qti = builders.lib("qti").settings(libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
 
   /** Core data model */
   val core = builders.lib("core").settings(
@@ -85,10 +89,8 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       playTest % "test",
-      scalaFaker),
-    Keys.fork in Test := forkInTests,
-    parallelExecution.in(Test) := false,
-    credentials += cred).dependsOn(assets, testLib % "test->compile", qti).settings(disableDocsSettings: _*)
+      scalaFaker))
+    .dependsOn(assets, testLib % "test->compile", qti)
 
   val playerLib = builders.lib("player-lib")
     .settings(
@@ -115,27 +117,64 @@ object Build extends sbt.Build {
     buildInfoTask,
     (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
     libraryDependencies ++= Seq(playJson % "test")
-  ).dependsOn(core).settings(disableDocsSettings: _*)
+  ).dependsOn(core % "compile->compile;test->test")
 
-  /**client logging*/
   val clientLogging = builders.web("client-logging").settings(
     libraryDependencies ++= Seq(playFramework, scalaz)
-  ).dependsOn(apiUtils)
+  ).dependsOn(apiUtils,  core % "test->test" )
 
+  val scormLib = builders.lib("scorm").settings(
+    libraryDependencies ++= Seq(playFramework)
+  ).dependsOn(core)
 
-  /** The public play module */
+  val ltiLib = builders.lib("lti")
+    .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
+
+  val v1Api = builders.web("v1-api").settings(
+    libraryDependencies ++= Seq(casbah),
+    templatesImport ++= TemplateImports.Ids,
+    routesImport ++= customImports
+  )
+  .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+  .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+
+  object TemplateImports{
+    val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
+  }
+
+  val v1Player = builders.web("v1-player")
+    .settings(
+      templatesImport ++= TemplateImports.Ids,
+      routesImport ++= customImports
+    )
+    .aggregate(qti, playerLib, v1Api, apiUtils, testLib ,core, commonViews)
+    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
+
+  val ltiWeb = builders.web("lti-web").settings(
+    templatesImport ++= TemplateImports.Ids,
+    routesImport ++= customImports)
+    .aggregate(core, ltiLib, playerLib, v1Player)
+    .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test" )
+
   val public = builders.web("public").settings(
     libraryDependencies ++= Seq(playFramework, securesocial),
-    routesImport ++= customImports,
-    parallelExecution.in(Test) := false,
-    Keys.fork.in(Test) := forkInTests).dependsOn(commonViews, core % "compile->compile;test->test", playerLib, testLib % "test->compile")
+    routesImport ++= customImports)
+    .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, v1Player, testLib % "test->compile")
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
-  val main = play.Project(appName, appVersion, Dependencies.all)
+  val reports = builders.web("reports")
+    .settings()
+    .dependsOn(commonViews, core % "compile->compile;test->test")
+
+  val scormWeb = builders.web("scorm-web").settings(
+    routesImport ++= customImports
+  ).dependsOn(core, scormLib, v1Player)
+
+  val main = builders.web(appName, Some(file(".")))
     .settings(
-      scalaVersion := ScalaVersion,
-      parallelExecution.in(Test) := false,
       routesImport ++= customImports,
+      templatesImport ++= TemplateImports.Ids,
+      libraryDependencies ++= Dependencies.all,
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
@@ -145,8 +184,9 @@ object Build extends sbt.Build {
      )
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
-    .dependsOn(public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
-    .aggregate(public, playerLib, core, apiUtils, commonViews, testLib, clientLogging)
     .settings(disableDocsSettings: _*)
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, clientLogging)
 
+    addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

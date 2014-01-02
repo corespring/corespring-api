@@ -2,7 +2,7 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceImpl}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._

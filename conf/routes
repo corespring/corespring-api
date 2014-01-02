@@ -21,161 +21,35 @@ GET     /developer/org/:orgid       developer.controllers.Developer.getOrganizat
 GET     /developer/home             developer.controllers.Developer.home
 GET     /developer/*file            developer.controllers.Developer.at(path="/public/developer", file)
 
-
-
 #
 # Auth endpoints
 #
-POST    /auth/register                          controllers.auth.AuthController.register
-POST    /auth/access_token                      controllers.auth.AuthController.getAccessToken
+POST    /auth/register                          org.corespring.platform.core.controllers.auth.AuthController.register
+POST    /auth/access_token                      org.corespring.platform.core.controllers.auth.AuthController.getAccessToken
 
 ->     /                      public.Routes
+->     /api/v1                v1Api.Routes
+->     /logger                clientlogging.Routes
+->     /player                v1Player.Routes
+->     /lti                   lti.Routes
+->     /reports               reports.Routes
+->     /scorm                 scorm.Routes
 
-->     /logger/                clientlogging.Routes
-
-#
-# V1 API
-#
-
-# Organizations
-GET     /api/v1/organizations                   api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
-GET     /api/v1/organizations/children          api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
-GET     /api/v1/organizations/default           api.v1.OrganizationApi.getDefaultOrganization
-GET     /api/v1/organizations/:id               api.v1.OrganizationApi.getOrganization(id: ObjectId)
-PUT     /api/v1/organizations/:id               api.v1.OrganizationApi.updateOrganization(id: ObjectId)
-DELETE  /api/v1/organizations/:id               api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
-GET     /api/v1/organizations/:id/tree          api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
-GET     /api/v1/organizations/:id/children      api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
-
-# Collections
-GET     /api/v1/collections                     api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /api/v1/collections/:id                 api.v1.CollectionApi.getCollection(id: ObjectId)
-GET     /api/v1/organizations/:orgId/collections    api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-POST    /api/v1/collections                     api.v1.CollectionApi.createCollection
-PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
-DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
-GET     /api/v1/collections/:ids/fieldValues/:field  api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
-
-# Users
-GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
-POST    /api/v1/users                           api.v1.UserApi.createUser
-PUT     /api/v1/users/:id                       api.v1.UserApi.updateUser(id: ObjectId)
-DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: ObjectId)
-GET     /api/v1/organizations/:orgId/users      api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
-
-# Items API
-GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /api/v1/items/query                     api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /api/v1/contributors                    api.v1.ContributorApi.getContributorsList()
-GET     /api/v1/items/:id                       api.v1.ItemApi.get(id: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
-GET     /api/v1/collections/:collId/items       api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-DELETE  /api/v1/items/:id                       api.v1.ItemApi.delete(id: VersionedId[ObjectId])
-GET     /api/v1/items/:id/detail                api.v1.ItemApi.getDetail(id: VersionedId[ObjectId])
-POST    /api/v1/items                           api.v1.ItemApi.create
-PUT     /api/v1/items/:id                       api.v1.ItemApi.update(id: VersionedId[ObjectId])
-POST    /api/v1/items/:id                       api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
-PUT     /api/v1/items/:id/extended/:property    api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
-GET     /api/v1/items/:id/extended/:property    api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
-
-GET     /api/v1/metadata/item/:id               api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
-
-GET     /api/v1/metadata-sets                   api.v1.MetadataSetApi.list
-GET     /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.get(id:ObjectId)
-POST    /api/v1/metadata-sets                   api.v1.MetadataSetApi.create
-PUT     /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.update(id:ObjectId)
-DELETE  /api/v1/metadata-sets/:id               api.v1.MetadataSetApi.delete(id:ObjectId)
-
-# Exporter api
-GET     /api/v1/items/multiple/scorm-2004.zip       api.v1.ExporterApi.multiItemScorm2004(ids:String)
-GET     /api/v1/items/multiple/item_launch.imscc    api.v1.ExporterApi.multiItemLti(ids:String)
-
-# Resource api
-GET     /api/v1/items/:itemId/materials          api.v1.ResourceApi.getSupportingMaterials(itemId:String)
-POST    /api/v1/items/:itemId/materials          api.v1.ResourceApi.createSupportingMaterial(itemId:String)
-POST    /api/v1/items/:itemId/materialsWithFile/:name/:filename          api.v1.ResourceApi.createSupportingMaterialWithFile(itemId:String, name, filename )
-DELETE  /api/v1/items/:itemId/materials/:resourceName          api.v1.ResourceApi.deleteSupportingMaterial(itemId:String, resourceName : String)
-POST    /api/v1/items/:itemId/materials/:resourceName   api.v1.ResourceApi.createSupportingMaterialFile(itemId:String, resourceName : String)
-PUT     /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.ResourceApi.updateSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
-POST    /api/v1/items/:itemId/materials/:resourceName/:filename/upload   api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
-DELETE  /api/v1/items/:itemId/materials/:resourceName/:filename   api.v1.ResourceApi.deleteSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
-
-POST    /api/v1/items/:itemId/data         api.v1.ResourceApi.createDataFile(itemId:String)
-PUT     /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.updateDataFile(itemId:String, filename:String, force:Boolean ?= false)
-POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
-DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
-
-# Field Values API
-GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
-GET     /api/v1/field_values/multiple        api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
-GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
-GET     /api/v1/field_values/contributor/:contributor   api.v1.FieldValuesApi.getFieldValuesByContributor(contributor: String)
-GET     /api/v1/field_values/collection/:collectionId   api.v1.FieldValuesApi.getFieldValuesByCollection(collectionId: ObjectId)
-
-# Item Session API
-
-POST    /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
-GET     /api/v1/items/:itemId/sessions                         api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
-GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
-PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
-PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
-
-GET     /api/v1/quizzes/author/:authorId                       api.v1.QuizApi.getByAuthor(authorId: String)
-PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
-GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
-GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
-POST    /api/v1/quizzes/:quizId/:itemId/aggregate           api.v1.ItemSessionApi.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
-PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
-DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
-PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipants(quizId:ObjectId)
-POST    /api/v1/quizzes                             api.v1.QuizApi.create()
-GET     /api/v1/quizzes                             api.v1.QuizApi.list()
-
-GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
-GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
-GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
-GET    /scorm-player/session/:sessionId/render          scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
-GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)
+GET    /client/components/*file  controllers.Assets.at(path = "/container-client/bower_components", file)
+GET    /client/*file             controllers.Assets.at(path = "/container-client", file)
 
 
 # New Player
-## REST calls
-POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
-GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
-PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
-POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
-GET    /player/routes.js                                   player.controllers.Session.jsRoutes
-GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
-## JS Routes
-GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
-## Encrypt
-POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
-## Views
-GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:VersionedId[ObjectId])
-GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:VersionedId[ObjectId])
-GET    /player/item/:itemId/profile                        player.controllers.Views.profile(itemId:VersionedId[ObjectId], tab:String ?= "")
-GET    /player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
 
-GET    /player/session/:sessionId/render                   player.controllers.Views.render(sessionId:ObjectId, role:String ?= "student")
-GET    /player/session/:sessionId/administer               player.controllers.Views.administerSession(sessionId:ObjectId)
-GET    /player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
-
-GET    /player/aggregate/:assessmentId/:itemId/run         player.controllers.Views.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
-GET    /player/aggregate/:assessmentId/:itemId/*filename   player.controllers.AssetLoading.getDataFileForAssessment(assessmentId:String,itemId:String, filename)
-
-
-# New Player Rendering
-GET    /player.js                                   player.controllers.AssetLoading.itemPlayerJavascript
-GET    /tagger-player.js                            player.controllers.AssetLoading.noSessionPlayerJavascript
-GET    /profile.js                                  player.controllers.AssetLoading.itemProfileJavascript
+## Player version routing
+#GET    /player/:playerVersion/:entity/:id/*rest
 
 ## Dev endpoints...
 GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
-GET    /dev/tools/player/item/:itemId/*filename                      player.controllers.AssetLoading.getDataFile(itemId, filename)
+GET    /dev/tools/player/item/:itemId/*filename                      dev.tools.controllers.AssetLoading.getDataFile(itemId, filename)
 
 GET    /dev/tools/player/session/:sessionId/render                   dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
-GET    /dev/tools/player/session/:sessionId/*filename                player.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
+GET    /dev/tools/player/session/:sessionId/*filename                dev.tools.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 
 # Web tier
@@ -193,39 +67,6 @@ GET    /web/javascripts/routes                             web.controllers.ShowR
 GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-
-#
-# BasicLTI
-#
-GET     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.get(id:ObjectId)
-PUT     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.update(id:ObjectId)
-GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
-POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
-POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback
-GET     /lti/dev/clear-grade-passback           basiclti.controllers.dev.TestHarness.clearGradePassback
-GET     /lti/dev/inspect-grade-passback         basiclti.controllers.dev.TestHarness.inspectGradePassback
-GET     /lti/item-chooser.xml                   basiclti.controllers.AssignmentLauncher.xmlConfiguration
-POST    /lti/assignment/launch                  basiclti.controllers.AssignmentLauncher.launch()
-GET     /lti/assignment/error                   basiclti.controllers.AssignmentLauncher.error(cause:String)
-GET     /lti/assignment/:configId/:resultSourcedId/process   basiclti.controllers.AssignmentLauncher.process(configId:ObjectId,resultSourcedId:String)
-GET     /lti/assignment/:configId/:resultSourcedId/run       basiclti.controllers.AssignmentPlayer.run(configId:ObjectId,resultSourcedId:String)
-GET     /lti/assignment/:configId/:resultSourcedId/:filename basiclti.controllers.AssignmentPlayer.getDataFileForAssignment(configId:ObjectId, resultSourcedId:String, filename:String)
-GET     /lti/chooser/partials/main              basiclti.controllers.Partials.main
-GET     /lti/chooser/partials/browse            basiclti.controllers.Partials.browse
-GET     /lti/chooser/partials/view              basiclti.controllers.Partials.view
-GET     /lti/api/items                          basiclti.controllers.api.Item.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /lti/api/collections                    basiclti.controllers.api.Collection.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /lti/routes.js                          basiclti.controllers.JsRoutes.index
-# Reporting
-GET    /reports                                     reporting.controllers.Reports.index
-GET    /reports/:reportKey/generate                 reporting.controllers.Reports.generate(reportKey: String)
-GET    /reports/:reportKey/status                   reporting.controllers.Reports.status(reportKey: String)
-GET    /reports/:collection/:queryType.csv          reporting.controllers.Reports.getCsv(collection,queryType)
-GET    /reports/standard-item-report.csv            reporting.controllers.Reports.getStandardItemReport
-GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
-GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
-GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
-
 
 #
 # SecureSocial routes
