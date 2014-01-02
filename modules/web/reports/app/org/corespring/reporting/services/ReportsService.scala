@@ -6,15 +6,18 @@ import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.utils.string
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
+import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.reporting.models.ReportLineResult
 import org.corespring.reporting.models.ReportLineResult.{KeyCount, LineResult}
 
+object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
+  ContentCollection.collection, Standard.collection)
 
 class ReportsService(ItemCollection: MongoCollection,
-  SubjectCollection: MongoCollection,
-  CollectionsCollection: MongoCollection,
-  StandardCollection: MongoCollection) {
+                     SubjectCollection: MongoCollection,
+                     CollectionsCollection: MongoCollection,
+                     StandardCollection: MongoCollection) {
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)

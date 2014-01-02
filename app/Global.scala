@@ -1,3 +1,5 @@
+import actors.reporting.ReportActor
+import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
@@ -7,19 +9,22 @@ import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.poc.integration.impl.V2PlayerIntegration
+import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
+import org.joda.time.DateTime
 import play.api._
+import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.concurrent.{ExecutionContext, Future}
-import ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 
   private lazy val componentLoader : ComponentLoader = {
-    import org.corespring.lti.web.controllers.routes.AssignmentLauncher
     val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
     out.reload
     out
@@ -96,6 +101,8 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
         }
         seedStaticData()
         seedDemoData()
+        initializeReports
+        reportingDaemon(app)
       }
     }
 
@@ -114,6 +121,22 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
+  private def timeLeftUntilMidnight = {
+    implicit val postfixOps = scala.language.postfixOps
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
+      - new DateTime().getMinuteOfDay) minutes
+  }
+
+
+  private def reportingDaemon(app: Application) = {
+    import scala.language.postfixOps
+
+    Logger.info("Scheduling the reporting daemon")
+
+    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
+    Akka.system(app).scheduler.schedule(timeLeftUntilMidnight, 24 hours, reportingActor, "reportingDaemon")
+  }
+
   /**
    * Add demo data models to the the db to allow end users to be able to
    * view the content as a demo.
@@ -125,6 +148,10 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
+  }
+
+  private def initializeReports() {
+    ReportGenerator.generateAllReports
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */

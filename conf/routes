@@ -69,7 +69,6 @@ GET    /web/show-resource/:itemId/:resourceName/main        web.controllers.Show
 GET    /web/show-resource/:itemId/:resourceName/:filename  web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET    /web/print-resource/:itemId/data/main                web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
 
-
 #
 # SecureSocial routes
 #
