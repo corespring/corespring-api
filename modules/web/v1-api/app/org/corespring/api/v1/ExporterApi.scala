@@ -26,6 +26,8 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
    * Build a multi item scorm .zip
    * @param ids - comma delimited list of ids
    */
+  //TODO: scorm export should be a part of the scorm Module
+  //See: https://www.pivotaltracker.com/s/projects/880382
   def multiItemScorm2004(ids: String) = ApiActionRead {
     request =>
 
@@ -49,8 +51,9 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
 
   def multiItemLti(ids: String) = ApiActionRead {
     request =>
-      //TODO: Plug in the lti run path
-      val url = "org.corespring.lti.web.controllers.routes.AssignmentLauncher.launch().url"
+      //TODO: Lti export should be a part of the LTI Module
+      //See: https://www.pivotaltracker.com/s/projects/880382
+      val url = "/lti/assignment/launch"
       binaryResultFromIds(ids, request.ctx.organization, (i) => new CCExporter(url).packageItems(i.map(_.id.toString), BaseUrl(request)))
   }
 
