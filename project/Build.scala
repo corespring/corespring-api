@@ -150,6 +150,7 @@ object Build extends sbt.Build {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
 
+
   val v1Player = builders.web("v1-player")
     .settings(
       templatesImport ++= TemplateImports.Ids,
