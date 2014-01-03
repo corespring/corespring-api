@@ -20,9 +20,6 @@ object QtiTransformer {
 
     val html = (transformedHtml(0) \ "itemBody")(0)
 
-    println(transformedHtml)
-    println(Json.prettyPrint(JsObject(components.toSeq)))
-
     (html, JsObject(components.toSeq))
   }
 }

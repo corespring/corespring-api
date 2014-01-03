@@ -31,14 +31,6 @@ trait PlayerHooksImpl extends PlayerHooks {
 
     private def load(sessionId:String)(block : PlayerRequest[AnyContent] => Result) : Action[AnyContent] = Action{ request =>
 
-      println(sessionId)
-      println(sessionId)
-      println(sessionId)
-      println(sessionId)
-      println(sessionId)
-      println(sessionId)
-      println(sessionId)
-
       val s : Validation[String, (Item,JsValue)] = for{
 
         oid <- maybeOid(sessionId).toSuccess("Invalid object id")

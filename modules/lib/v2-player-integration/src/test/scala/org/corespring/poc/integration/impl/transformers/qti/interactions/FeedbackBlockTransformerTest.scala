@@ -75,7 +75,6 @@ class FeedbackBlockTransformerTest extends Specification {
     }
 
     "replace all <feedbackBlock/>s with a single <corespring-feedback-block/> in document" in {
-      println(output)
       (output \ "feedbackBlock").toSeq.length must be equalTo 0
       (output \\ "corespring-feedback-block").toSeq match {
         case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
