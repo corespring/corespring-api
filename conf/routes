@@ -28,10 +28,12 @@ POST    /auth/register                          org.corespring.platform.core.con
 POST    /auth/access_token                      org.corespring.platform.core.controllers.auth.AuthController.getAccessToken
 
 ->     /                      public.Routes
-->     /v2-player             playerWeb.Routes
 ->     /api/v1                v1Api.Routes
 ->     /logger                clientlogging.Routes
 ->     /player                v1Player.Routes
+# Note: You can't assign the same routes file to different paths as the object will get overwritten
+# ->     /v1/player             v1Player.Routes
+->     /v2/player             playerWeb.Routes
 ->     /lti                   lti.Routes
 ->     /reports               reports.Routes
 ->     /scorm                 scorm.Routes

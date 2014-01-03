@@ -49,8 +49,9 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
 
   def multiItemLti(ids: String) = ApiActionRead {
     request =>
-      //TODO: Plug in the lti run path
-      val url = "org.corespring.lti.web.controllers.routes.AssignmentLauncher.launch().url"
+      //TODO: Lti export should be a part of the LTI Module
+      //See: https://www.pivotaltracker.com/s/projects/880382
+      val url = "/lti/assignment/launch"
       binaryResultFromIds(ids, request.ctx.organization, (i) => new CCExporter(url).packageItems(i.map(_.id.toString), BaseUrl(request)))
   }
 
