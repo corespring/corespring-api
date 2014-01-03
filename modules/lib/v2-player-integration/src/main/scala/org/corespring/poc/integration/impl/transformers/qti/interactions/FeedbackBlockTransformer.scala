@@ -10,9 +10,12 @@ import play.api.libs.json.JsString
 
 class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
 
+  var feedbackNodes = mutable.Map[String, Node]()
+
   private def feedback(n: Node, identifier: String) = {
     val feedbackBlocks = (n \\ "feedbackBlock")
       .filter(n => (n \ "@outcomeIdentifier").toString == s"responses.$identifier.value")
+    feedbackNodes.put(identifier, feedbackBlocks.head)
     Json.obj(
       "componentType" -> "corespring-feedback-block",
       "target" -> Json.obj("id" -> identifier),
@@ -43,16 +46,14 @@ class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti
 
   val outcomeIdentifier = "responses.(.+?).value".r
   var renderedIds = mutable.Set[String]()
+  var counter = 0
 
   override def transform(node: Node): Seq[Node] = {
     node match {
       case e: Elem if e.label == "feedbackBlock" => {
         (e \ "@outcomeIdentifier").text match {
-          case outcomeIdentifier(id) if renderedIds.contains(id) => e
-          case outcomeIdentifier(id) => {
-            renderedIds += id
-            <corespring-feedback-block id={id}/>
-          }
+          case outcomeIdentifier(id) if !feedbackNodes.values.toSeq.contains(e) => Seq.empty
+          case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}/>
           case _ => throw new IllegalArgumentException("Feedback block did not match a valid outcomeIdentifier")
         }
       }

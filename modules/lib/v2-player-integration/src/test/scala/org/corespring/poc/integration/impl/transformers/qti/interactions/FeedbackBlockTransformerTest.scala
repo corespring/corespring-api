@@ -25,8 +25,7 @@ class FeedbackBlockTransformerTest extends Specification {
         correctResponses.map(response =>
           <feedbackBlock outcomeIdentifier={s"responses.$identifier.value"} identifier={response}>
             <div class="feedback-block-correct">{correctFeedback}</div>
-          </feedbackBlock>
-        )
+          </feedbackBlock>)
         }
         <feedbackBlock outcomeIdentifier={s"responses.$identifier.value"} incorrectResponse="true">
           <div class="feedback-block-incorrect">{incorrectFeedback}</div>
@@ -48,7 +47,7 @@ class FeedbackBlockTransformerTest extends Specification {
     )
 
     val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    new RuleTransformer(new FeedbackBlockTransformer(componentsJson, input)).transform(input)
+    val output = new RuleTransformer(new FeedbackBlockTransformer(componentsJson, input)).transform(input)
 
     val feedbackResult = componentsJson.get(feedbackIdentifier)
       .getOrElse(throw new RuntimeException("No feedback component for $identifier"))
@@ -73,6 +72,18 @@ class FeedbackBlockTransformerTest extends Specification {
     "return incorrect feedback" in {
       (feedbackResult \ "feedback" \ "incorrect").as[JsObject].keys.contains("*") must beTrue
       (feedbackResult \ "feedback" \ "incorrect").as[JsObject].value("*").as[String] must be equalTo incorrectFeedback
+    }
+
+    "replace all <feedbackBlock/>s with a single <corespring-feedback-block/> in document" in {
+      println(output)
+      (output \ "feedbackBlock").toSeq.length must be equalTo 0
+      (output \\ "corespring-feedback-block").toSeq match {
+        case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
+        case seq => {
+          seq.length must be equalTo 1
+          (seq.head \\ "@id").text must be equalTo feedbackIdentifier
+        }
+      }
     }
 
   }
