@@ -35,7 +35,7 @@ trait PlayerHooksImpl extends PlayerHooks {
 
         oid <- maybeOid(sessionId).toSuccess("Invalid object id")
         session <- sessionService.load(oid.toString).toSuccess("Session Not found")
-        vId <- versionedId( session \ "itemId").toSuccess("Can't find item")
+        vId <- versionedId( session \ "itemId").toSuccess("Can't parse item id")
         item <- itemService.findOneById(vId).toSuccess("Can't find item")
       } yield (item,session)
 
