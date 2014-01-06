@@ -44,7 +44,7 @@ class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti
     componentJson.put(s"${id}_feedback", feedback(qti, id))
   })
 
-  val outcomeIdentifier = "responses.(.+?).value".r
+  val outcomeIdentifier = """responses\.(.+?)\..*""".r
   var renderedIds = mutable.Set[String]()
   var counter = 0
 
@@ -54,7 +54,7 @@ class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti
         (e \ "@outcomeIdentifier").text match {
           case outcomeIdentifier(id) if !feedbackNodes.contains(e) => Seq.empty
           case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}/>
-          case _ => throw new IllegalArgumentException("Feedback block did not match a valid outcomeIdentifier")
+          case _ => { println(e); Seq.empty }
         }
       }
       case _ => node
