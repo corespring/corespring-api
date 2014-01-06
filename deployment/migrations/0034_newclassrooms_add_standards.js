@@ -23,6 +23,12 @@ function up() {
     }
 
     newClassroomsContent.forEach(function(content) {
+
+        if(!content.taskInfo || !content.taskInfo.extended){
+            print("missing taskInfo.extended: " + content._id.toString());
+            return;
+        }
+
         var skillNumber = content.taskInfo.extended.new_classrooms.skillNumber;
         var standards = getStandardsForSkillNumber(skillNumber);
         if (standards.length > 0) {
