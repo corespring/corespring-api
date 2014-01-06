@@ -31,7 +31,7 @@ object Dependencies {
   // TODO: temporary solution: taking out yui which is used for css minification as it breaks
   // dependencies for corespring-qti. This needs to be sorted out properly!
 
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.4")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.10.5")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
 
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
