@@ -25,7 +25,8 @@ function up() {
     newClassroomsContent.forEach(function(content) {
 
         if(!content.taskInfo || !content.taskInfo.extended){
-            print("missing taskInfo.extended: " + content._id.toString());
+            print("missing taskInfo.extended: ");
+            printjson(content._id);
             return;
         }
 
