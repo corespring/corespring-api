@@ -11,11 +11,12 @@ import scala.Right
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
-import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.{SimpleResult, AnyContentAsFormUrlEncoded}
 import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
 import org.corespring.common.encryption.ShaHash
 import org.corespring.test.{TestModelHelpers, BaseTest}
+import scala.concurrent.Future
 
 class AuthControllerTest extends BaseTest with TestModelHelpers {
 
@@ -64,18 +65,18 @@ class AuthControllerTest extends BaseTest with TestModelHelpers {
       .withFormUrlEncodedBody(OAuthConstants.Organization -> orgId.toString)
   }
 
-  def removeApiClient(result: play.api.mvc.Result) {
+  def removeApiClient(result: Future[SimpleResult]) {
     val (id, secret) = idAndSecret(result)
     ApiClient.remove(MongoDBObject(ApiClient.clientId -> id, ApiClient.clientSecret -> secret))
   }
 
-  def removeToken(result: play.api.mvc.Result) {
+  def removeToken(result: Future[SimpleResult]) {
     val json = Json.parse(contentAsString(result))
     val token = (json \ OAuthConstants.AccessToken).as[String]
     AccessToken.removeToken(token)
   }
 
-  def idAndSecret(result: play.api.mvc.Result): (String, String) = {
+  def idAndSecret(result: Future[SimpleResult]): (String, String) = {
     val json = Json.parse(contentAsString(result))
     val id = (json \ OAuthConstants.ClientId).as[String]
     val secret = (json \ OAuthConstants.ClientSecret).as[String]

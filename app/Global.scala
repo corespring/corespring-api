@@ -1,12 +1,20 @@
+import actors.reporting.ReportActor
+import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
+import org.joda.time.{DateMidnight, DateTime}
 import play.api._
+import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
+import reporting.services.{ReportGenerator, ReportsService}
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ClassLogging {
 
@@ -32,25 +40,16 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     if (logger.isDebugEnabled) {
       throwable.printStackTrace()
     }
-    InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+
+    Future { InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable)) }
   }
 
-  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Result = {
-    val result = super.onHandlerNotFound(request)
+  private def applyFilter(f : Future[SimpleResult]) : Future[SimpleResult] = f.map( _.withHeaders(Headers.AccessControlAllowEverything))
 
-    result match {
-      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
-      case _ => result
-    }
-  }
+  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Future[SimpleResult] = applyFilter(super.onHandlerNotFound(request))
 
-  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): play.api.mvc.Result = {
-    val result = super.onBadRequest(request, error)
-    result match {
-      case s: SimpleResult[_] => s.withHeaders(Headers.AccessControlAllowEverything)
-      case _ => result
-    }
-  }
+  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
+
 
   override def onStart(app: Application): Unit = {
 
@@ -90,6 +89,8 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
         }
         seedStaticData()
         seedDemoData()
+        initializeReports
+        reportingDaemon(app)
       }
     }
 
@@ -108,6 +109,22 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
+  private def timeLeftUntilMidnight = {
+    implicit val postfixOps = scala.language.postfixOps
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
+      - new DateTime().getMinuteOfDay) minutes
+  }
+
+
+  private def reportingDaemon(app: Application) = {
+    import scala.language.postfixOps
+
+    Logger.info("Scheduling the reporting daemon")
+
+    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
+    Akka.system(app).scheduler.schedule(timeLeftUntilMidnight, 24 hours, reportingActor, "reportingDaemon")
+  }
+
   /**
    * Add demo data models to the the db to allow end users to be able to
    * view the content as a demo.
@@ -119,6 +136,10 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
+  }
+
+  private def initializeReports() {
+    ReportGenerator.generateAllReports
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */

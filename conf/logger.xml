@@ -18,7 +18,7 @@
     <logger name="Global" level="DEBUG"/>
     <logger name="application" level="INFO"/>
     <logger name="api.v1" level="INFO"/>
-    <logger name="developer" level="DEBUG"/>
+    <logger name="developer" level="INFO"/>
     <logger name="controllers" level="DEBUG"/>
     <logger name="qti" level="DEBUG"/>
     <logger name="models" level="DEBUG"/>

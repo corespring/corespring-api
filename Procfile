@@ -1,2 +1,1 @@
-web: target/start -Dhttp.port=${PORT} ${JAVA_OPTS} -Dlogger.file=${ENV_LOGGER}
-worker: java ${JAVA_OPTS} -cp "target/staged/*" scheduler.RabbitMQ
+web: target/universal/stage/bin/corespring -Dhttp.port=${PORT} -Dlogger.file=${ENV_LOGGER}
