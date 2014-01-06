@@ -475,7 +475,7 @@ function up() {
 
         if(!content.taskInfo || !content.taskInfo.extended){
             print("missing taskInfo.extended:");
-            printjson(content._id));
+            printjson(content._id);
             return;
         }
 
