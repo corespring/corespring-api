@@ -1,7 +1,7 @@
 package org.corespring.poc.integration.impl.transformers.qti
 
-import org.corespring.poc.integration.impl.transformers.qti.interactions.{FeedbackBlockTransformer, TextEntryInteractionTransformer, ChoiceInteractionTransformer}
-import play.api.libs.json.{Json, JsObject, JsValue}
+import org.corespring.poc.integration.impl.transformers.qti.interactions._
+import play.api.libs.json._
 import scala.collection.mutable
 import scala.xml.transform.RuleTransformer
 import scala.xml.{Node, Elem}
@@ -15,6 +15,7 @@ object QtiTransformer {
     val transformedHtml = new RuleTransformer(
       new ChoiceInteractionTransformer(components, qti),
       new TextEntryInteractionTransformer(components, qti),
+      new DragAndDropInteractionTransformer(components, qti),
       new FeedbackBlockTransformer(components, qti)
     ).transform(qti)
 
