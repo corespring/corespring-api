@@ -6,6 +6,9 @@ import play.api.libs.json._
 import play.api.libs.json.JsObject
 import scala.Some
 import scala.collection.mutable
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import scala.Some
 
 class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
 
@@ -13,9 +16,10 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
 
   object AnswerAreaTransformer extends RewriteRule {
 
-    def landingPlace(node: Node): Node = {
-      val identifier = (node \ "@identiifer").text
-      <span landing-place="landing-place" style="display: inline;" identifier={identifier} />
+    private def landingPlace(elem: Elem): Node = {
+      elem.copy(label = "span",
+        attributes = (new UnprefixedAttribute("landing-place", "landing-place", elem.attributes.toSeq.head)
+          ++ elem.attributes).fold(Null)((soFar, attr) => soFar append attr))
     }
 
     override def transform(node: Node): Seq[Node] = node match {
@@ -48,7 +52,10 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
           "correctResponse" -> JsObject(correctResponses),
           "model" -> Json.obj(
             "choices" -> choices,
-            "prompt" -> (node \ "prompt").head.child.mkString,
+            "prompt" -> ((node \ "prompt") match {
+              case seq: Seq[Node] if seq.isEmpty => ""
+              case seq: Seq[Node] => seq.head.child.mkString
+            }),
             "answerArea" -> new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head).head.child.mkString,
             "config" -> Json.obj(
               "shuffle" -> true,
