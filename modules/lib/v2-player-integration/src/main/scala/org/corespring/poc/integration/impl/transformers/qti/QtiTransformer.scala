@@ -17,6 +17,7 @@ object QtiTransformer {
       new TextEntryInteractionTransformer(components, qti),
       new DragAndDropInteractionTransformer(components, qti),
       new OrderInteractionTransformer(components, qti),
+      FoldableInteractionTransformer,
       new FeedbackBlockTransformer(components, qti)
     ).transform(qti)
 
