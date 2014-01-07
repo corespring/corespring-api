@@ -12,7 +12,7 @@ object Dependencies {
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.2-SNAPSHOT")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.2")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
@@ -37,7 +37,7 @@ object Dependencies {
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
   val playS3 = "org.corespring" %% "play-s3" % "0.2-35dbed6"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
-  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-dfb50a3-SNAPSHOT"
+  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.0"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"

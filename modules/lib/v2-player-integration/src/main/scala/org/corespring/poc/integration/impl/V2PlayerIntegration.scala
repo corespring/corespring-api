@@ -1,5 +1,6 @@
 package org.corespring.poc.integration.impl
 
+import _root_.securesocial.core.{SecureSocial, Identity}
 import com.mongodb.casbah.MongoDB
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
@@ -11,7 +12,7 @@ import org.corespring.container.components.outcome.{DefaultScoreProcessor, Score
 import org.corespring.container.components.response.{OutcomeProcessorImpl, OutcomeProcessor}
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
+import org.corespring.platform.core.models.itemSession.{DefaultItemSession, PreviewItemSessionCompanion}
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
@@ -20,6 +21,10 @@ import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import scala.Some
+import org.corespring.poc.integration.impl.actionBuilders.{AuthenticatedSessionBuilderImpl, AuthenticatedSessionBuilder}
+import org.corespring.platform.core.services.UserServiceImpl
+import org.corespring.poc.integration.impl.securesocial.SecureSocialService
+import org.corespring.platform.core.models.Organization
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : MongoDB) {
 
@@ -112,5 +117,13 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db : 
 
     def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
 
+    def auth: AuthenticatedSessionBuilder = new AuthenticatedSessionBuilderImpl(
+      ItemServiceImpl,
+      Organization,
+      DefaultItemSession,
+      UserServiceImpl,
+      new SecureSocialService {
+      def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
+    })
   }
 }

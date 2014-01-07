@@ -116,11 +116,17 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
     }
   }
 
+  override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission) : Boolean = {
+    hasCollRef(orgId, ContentCollRef(collectionId, permission.value))
+  }
+
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
     findOne(MongoDBObject("_id" -> orgId,
       contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
+
+
   def removeCollection(orgId: ObjectId, collId: ObjectId): Either[InternalError, Unit] = {
     findOneById(orgId) match {
       case Some(org) => {
@@ -144,6 +150,8 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       }
     })
   }
+
+
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
@@ -159,6 +167,8 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
     }
   }
+
+
   def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
     if (collections.isEmpty) {

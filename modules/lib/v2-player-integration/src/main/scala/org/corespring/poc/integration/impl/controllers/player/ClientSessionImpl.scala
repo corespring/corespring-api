@@ -12,6 +12,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.poc.integration.impl.actionBuilders.AuthenticatedSessionBuilder
 
 trait ClientSessionImpl extends Session{
 
@@ -20,6 +21,8 @@ trait ClientSessionImpl extends Session{
   def sessionService: MongoService
 
   def transformItem: Item => JsValue
+
+  def auth : AuthenticatedSessionBuilder
 
   def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
@@ -62,11 +65,14 @@ trait ClientSessionImpl extends Session{
         }
     }
 
-    def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+    def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id){ request =>
+      handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
+    }
+    /*Action {
       request =>
         //TODO: Add secure mode
         handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
-    }
+    }*/
 
     def load(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
 
