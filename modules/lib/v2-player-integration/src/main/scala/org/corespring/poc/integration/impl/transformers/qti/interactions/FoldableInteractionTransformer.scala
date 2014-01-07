@@ -1,12 +1,10 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
 
-/**
- * Created with IntelliJ IDEA.
- * User: bburton
- * Date: 1/8/14
- * Time: 9:19 AM
- * To change this template use File | Settings | File Templates.
- */
-class FoldableInteractionTransformer {
+import scala.xml.Elem
+
+object FoldableInteractionTransformer extends NodeReplacementTransformer {
+
+  def labelToReplace: String = "foldable"
+  def replacementNode: Elem = <div corespring-foldable="corespring-foldable"/>
 
 }
