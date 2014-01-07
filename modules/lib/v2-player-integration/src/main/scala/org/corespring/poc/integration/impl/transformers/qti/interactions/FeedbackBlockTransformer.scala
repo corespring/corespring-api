@@ -1,5 +1,4 @@
 package org.corespring.poc.integration.impl.transformers.qti.interactions
-
 import scala.xml.transform.RewriteRule
 import scala.xml.{Elem, Node}
 import play.api.libs.json.{JsString, Json, JsObject}
@@ -9,6 +8,8 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 
 class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
+
+  val outcomeIdentifier = """responses\.(.+?)\..*""".r
 
   var feedbackNodes = mutable.Seq[Node]()
 
@@ -44,17 +45,13 @@ class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti
     componentJson.put(s"${id}_feedback", feedback(qti, id))
   })
 
-  val outcomeIdentifier = """responses\.(.+?)\..*""".r
-  var renderedIds = mutable.Set[String]()
-  var counter = 0
-
   override def transform(node: Node): Seq[Node] = {
     node match {
       case e: Elem if e.label == "feedbackBlock" => {
         (e \ "@outcomeIdentifier").text match {
           case outcomeIdentifier(id) if !feedbackNodes.contains(e) => Seq.empty
           case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}/>
-          case _ => { println(e); Seq.empty }
+          case _ => Seq.empty
         }
       }
       case _ => node
