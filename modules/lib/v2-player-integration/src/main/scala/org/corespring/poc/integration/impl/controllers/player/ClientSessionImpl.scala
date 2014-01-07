@@ -12,7 +12,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.poc.integration.impl.actionBuilders.AuthenticatedSessionBuilder
+import org.corespring.poc.integration.impl.actionBuilders.AuthenticatedSessionActions
 
 trait ClientSessionImpl extends Session{
 
@@ -22,7 +22,7 @@ trait ClientSessionImpl extends Session{
 
   def transformItem: Item => JsValue
 
-  def auth : AuthenticatedSessionBuilder
+  def auth : AuthenticatedSessionActions
 
   def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
