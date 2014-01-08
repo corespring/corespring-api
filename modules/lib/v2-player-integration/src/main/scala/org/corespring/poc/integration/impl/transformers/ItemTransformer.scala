@@ -3,7 +3,7 @@ package org.corespring.poc.integration.impl.transformers
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.VirtualFile
 import org.corespring.poc.integration.impl.transformers.qti.QtiTransformer
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 
 object ItemTransformer {
 
@@ -16,6 +16,12 @@ object ItemTransformer {
       "metadata" -> Json.obj(
         "title" -> JsString(item.taskInfo.map(_.title.getOrElse("?")).getOrElse("?"))
       ),
+      "files" -> (item.data match {
+        case Some(data) => data.files
+          .filter(f => f.name != "qti.xml")
+          .map(f => Json.obj("name" -> f.name, "contentType" -> f.contentType))
+        case _ => Seq.empty[JsObject]
+      }),
       "xhtml" -> JsString( xhtml.toString ),
       "components" -> components
     )

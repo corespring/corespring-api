@@ -7,8 +7,6 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.container.client.controllers._
 import org.corespring.container.components.model.Component
-import org.corespring.container.components.model.Library
-import org.corespring.container.components.model.UiComponent
 import org.corespring.container.components.outcome.{DefaultScoreProcessor, ScoreProcessor}
 import org.corespring.container.components.processing.PlayerItemPreProcessorImpl
 import org.corespring.container.components.response.{OutcomeProcessorImpl, OutcomeProcessor}
@@ -25,11 +23,16 @@ import org.corespring.poc.integration.impl.securesocial.SecureSocialService
 import org.corespring.poc.integration.impl.transformers.ItemTransformer
 import play.api.Configuration
 import play.api.libs.json.JsValue
-import play.api.mvc.SimpleResult
 import play.api.mvc._
-import scala.Some
+import scala.concurrent.Await
+import play.api.mvc.SimpleResult
+import org.corespring.container.components.model.UiComponent
+import org.corespring.container.components.model.Library
+import org.corespring.common.config.AppConfig
+import org.corespring.platform.core.controllers.AssetResource
+import scala.concurrent.duration._
 
-class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) {
+class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) extends AssetResource {
 
   private lazy val secureSocialServiceWrapper = new SecureSocialService {
     def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
@@ -38,6 +41,8 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
   def rootUiComponents = comps.filter(_.isInstanceOf[UiComponent]).map(_.asInstanceOf[UiComponent])
 
   def rootLibs = comps.filter(_.isInstanceOf[Library]).map(_.asInstanceOf[Library])
+
+  def itemService: ItemService = ItemServiceImpl
 
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
 
@@ -72,22 +77,14 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   private lazy val assets = new Assets {
 
-    private lazy val key = config.getString("amazon.s3.key")
-    private lazy val secret = config.getString("amazon.s3.secret")
-    private lazy val bucket = config.getString("amazon.s3.bucket").getOrElse(throw new RuntimeException("No bucket specified"))
+    private lazy val key = AppConfig.amazonKey
+    private lazy val secret = AppConfig.amazonSecret
+    private lazy val bucket = AppConfig.assetsBucket
 
-    lazy val playS3 = {
-      val out = for {
-        k <- key
-        s <- secret
-      } yield {
-        new ConcreteS3Service(k, s)
-      }
-      out.getOrElse(throw new RuntimeException("No amazon key/secret"))
-    }
+    lazy val playS3 = new ConcreteS3Service(key, secret)
 
     def loadAsset(id: String, file: String)(request: Request[AnyContent]): SimpleResult = {
-      playS3.download(bucket, s"$id/$file", Some(request.headers))
+      Await.result(getDataFile(id, file)(request), Duration(3000, SECONDS))
     }
 
     //TODO: Need to look at a way of pre-validating before we upload - look at the predicate?
@@ -146,4 +143,5 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
     def itemPreProcessor: PlayerItemPreProcessor = new PlayerItemPreProcessorImpl(rootUiComponents, rootLibs)
   }
+
 }
