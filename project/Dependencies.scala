@@ -89,8 +89,7 @@ object Dependencies {
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
-    val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
+    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
 
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
@@ -103,7 +102,7 @@ object Dependencies {
       sbtPluginReleases,
       edeustaceReleases,
       edeustaceSnapshots,
-      justWroteSnapshots,
+      justWrote,
       localRepo)
   }
 
