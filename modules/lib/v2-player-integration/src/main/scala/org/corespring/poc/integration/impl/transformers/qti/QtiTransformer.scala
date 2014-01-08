@@ -4,9 +4,9 @@ import org.corespring.poc.integration.impl.transformers.qti.interactions._
 import play.api.libs.json._
 import scala.collection.mutable
 import scala.xml.transform.RuleTransformer
-import scala.xml.{Node, Elem}
+import scala.xml._
 
-object QtiTransformer {
+object QtiTransformer extends XMLNamespaceClearer {
 
   def transform(qti:Elem) : (Node,JsValue) = {
 
@@ -18,11 +18,10 @@ object QtiTransformer {
       new DragAndDropInteractionTransformer(components, qti),
       new OrderInteractionTransformer(components, qti),
       FoldableInteractionTransformer,
-      CoverflowInteractionTransformer,
-      new FeedbackBlockTransformer(components, qti)
+      CoverflowInteractionTransformer
     ).transform(qti)
 
-    val html = (transformedHtml(0) \ "itemBody")(0)
+    val html = clearNamespace((transformedHtml(0) \ "itemBody")(0))
 
     (html, JsObject(components.toSeq))
   }

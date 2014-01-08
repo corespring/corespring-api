@@ -10,7 +10,9 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import scala.Some
 
-class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
+class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
+  extends RewriteRule
+  with XMLNamespaceClearer {
 
   var dragAndDropNodes = mutable.Seq[Node]()
 
@@ -43,7 +45,7 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
         val choices = JsArray((node \\ "draggableChoice").map(n =>
           Json.obj(
             "id" -> (n \ "@identifier").text,
-            "content" -> n.child.mkString
+            "content" -> n.child.map(clearNamespace).mkString
           )
         ))
 
@@ -54,9 +56,11 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
             "choices" -> choices,
             "prompt" -> ((node \ "prompt") match {
               case seq: Seq[Node] if seq.isEmpty => ""
-              case seq: Seq[Node] => seq.head.child.mkString
+              case seq: Seq[Node] => seq.head.child.map(clearNamespace).mkString
             }),
-            "answerArea" -> new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head).head.child.mkString,
+            "answerArea" ->
+              new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
+                .head.child.map(clearNamespace).mkString,
             "config" -> Json.obj(
               "shuffle" -> true,
               "expandHorizontal" -> false
