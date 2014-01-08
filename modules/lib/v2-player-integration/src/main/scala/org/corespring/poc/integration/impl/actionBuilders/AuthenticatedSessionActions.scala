@@ -13,6 +13,8 @@ import play.api.mvc.{Action, Request, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
 import securesocial.core.Identity
+import org.corespring.mongo.json.services.MongoService
+import play.api.libs.json.JsValue
 
 trait AuthenticatedSessionActions {
   def read(id: String)(block: Request[AnyContent] => Result): Action[AnyContent]
@@ -34,7 +36,7 @@ trait AuthenticatedSessionActions {
 class AuthenticatedSessionActionsImpl(
                                        val itemService : ItemService,
                                        val orgService : OrganizationService,
-                                       val sessionService : ItemSessionCompanion,
+                                       val sessionService : MongoService,
                                        val userService: UserService,
                                        val secureSocialService: SecureSocialService)
   extends AuthenticatedSessionActions with OrgToItemAccessControl {
@@ -62,11 +64,14 @@ class AuthenticatedSessionActionsImpl(
   override def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
 
+      def getItemId(session:JsValue) : Option[VersionedId[ObjectId]] =  (session \ "itemId").asOpt[String].map( VersionedId(_)).flatten
+
       val validationResult: Validation[String, Boolean] = for {
         u <- secureSocialService.currentUser(request).toSuccess("No user")
         o <- getUserOrg(u).toSuccess(s"No user org found for: ${u.identityId.userId}")
-        session <- sessionService.findOneById(new ObjectId(sessionId)).toSuccess(s"Can't find session with id $sessionId")
-        canAccess <- orgCanAccessItem(Permission.Read,o, session.itemId)
+        session <- sessionService.load(sessionId).toSuccess(s"Can't find session with id $sessionId")
+        itemId <- getItemId( session ).toSuccess("Can't find or parse item Id" )
+        canAccess <- orgCanAccessItem(Permission.Read,o, itemId)
       } yield {
         canAccess
       }

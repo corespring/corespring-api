@@ -1,6 +1,7 @@
 package org.corespring.poc.integration.impl.controllers.player
 
 import org.bson.types.ObjectId
+import org.corespring.common.log.PackageLogging
 import org.corespring.container.client.actions.{SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.PlayerHooks
 import org.corespring.mongo.json.services.MongoService
@@ -13,7 +14,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
 
-trait PlayerHooksImpl extends PlayerHooks {
+trait PlayerHooksImpl extends PlayerHooks with PackageLogging{
 
   def sessionService: MongoService
 
@@ -81,7 +82,10 @@ trait PlayerHooksImpl extends PlayerHooks {
           case Success(sessionId) => block(SessionIdRequest(sessionId.toString, request))
           case Failure(msg) => BadRequest(msg)
         }
-    }((r, msg) => Redirect("/login"))
+    }{ (r, msg) =>
+      logger.warn(s"create session failed: $msg")
+      Redirect("/login")
+    }
 
   }
 }

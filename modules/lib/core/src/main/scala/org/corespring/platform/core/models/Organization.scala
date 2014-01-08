@@ -116,8 +116,25 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
     }
   }
 
+    /**
+     * TODO: I'm duplicating hasCollRef, but adjusting the query so that it checks that the stored permission pval is gte than the
+     * requested pval.
+     * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
+     * @see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
+     */
   override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission) : Boolean = {
-    hasCollRef(orgId, ContentCollRef(collectionId, permission.value))
+    val query = MongoDBObject(
+      "_id" -> orgId,
+      contentcolls ->
+        MongoDBObject(
+          "$elemMatch" ->
+            MongoDBObject(
+              ContentCollRef.collectionId -> collectionId,
+              ContentCollRef.pval -> MongoDBObject( "$gte" -> permission.value)
+            )
+        )
+    )
+    count(query) > 0
   }
 
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {

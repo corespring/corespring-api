@@ -55,24 +55,36 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   }
 
   $scope.refreshPreview = function () {
-    com.corespring.players.ItemPlayer("#item-preview-target", {
-        mode : "preview",
-        itemId : $scope.itemData.id,
-        height: "100%"}
-    );
+    throw new Error("deprecated");
   };
 
-  $scope.togglePreview = function () {
-    $scope.previewVisible = !$scope.previewVisible;
-    $scope.$broadcast("panelOpen");
-
-    var player = new com.corespring.players.ItemPlayer("#item-preview-target", {
+  $scope.launchV1Player = function(){
+    new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
       height: "100%",
       omitSubmitButton: false
       }
     );
+  };
+
+  $scope.launchV2Player = function(){
+
+    var server = ($location.search()['server'] || "localhost:9000");
+
+    var options = {
+      mode: "gather",
+      itemId : $scope.itemData.id,
+      evaluate: $scope.modeSettings,
+      corespringUrl: "http://" + server
+    };
+
+    $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
+  };
+
+  $scope.togglePreview = function () {
+    $scope.previewVisible = !$scope.previewVisible;
+    $scope.$broadcast("panelOpen");
   };
 
   $scope.$watch("previewVisible", function (newValue) {

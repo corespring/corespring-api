@@ -39,6 +39,9 @@ trait OrgToItemAccessControl {
     o
   }
 
-  private def getUserOrg(id: Identity): Option[UserOrg] = userService.getUser(id.identityId.userId, id.identityId.providerId).map(_.org)
+  private def getUserOrg(id: Identity): Option[UserOrg] = {
+    val user = userService.getUser(id.identityId.userId, id.identityId.providerId)
+    user.map(_.org)
+  }
 
 }

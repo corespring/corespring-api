@@ -34,6 +34,7 @@
     <logger name="memcached" level="ERROR"/>
     <logger name="components.response" level="DEBUG"/>
     <logger name="poc" level="DEBUG"/>
+    <logger name="org.corespring.platform.core.models" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

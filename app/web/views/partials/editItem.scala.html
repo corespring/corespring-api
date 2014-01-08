@@ -210,12 +210,20 @@
 
     <div class="preview" ng-class="previewClassName">
         <div class="inner">
+
+            <div class="well">
+                <ul>
+                    <li><a ng-click="launchV1Player()">V1 Player</a></li>
+                    <li><a ng-click="launchV2Player()">V2 Player</a></li>
+                </ul>
+                <div class="preview-container" id="item-preview-target"></div>
+            </div>
+            <!--
             <a ng-click="refreshPreview()">Refresh</a>
                 &nbsp;&nbsp;
             <a href="{{fullPreviewUrl}}" target="_blank">Preview in new window</a>
 
-            <div class="preview-container" id="item-preview-target">
-            </div>
+            -->
         </div>
     </div>
 

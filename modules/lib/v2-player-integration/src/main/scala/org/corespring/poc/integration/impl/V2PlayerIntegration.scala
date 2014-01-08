@@ -2,6 +2,7 @@ package org.corespring.poc.integration.impl
 
 import _root_.securesocial.core.{SecureSocial, Identity}
 import com.mongodb.casbah.MongoDB
+import components.processing.PlayerItemPreProcessor
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.container.client.controllers._
@@ -9,11 +10,12 @@ import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.Library
 import org.corespring.container.components.model.UiComponent
 import org.corespring.container.components.outcome.{DefaultScoreProcessor, ScoreProcessor}
+import org.corespring.container.components.processing.PlayerItemPreProcessorImpl
 import org.corespring.container.components.response.{OutcomeProcessorImpl, OutcomeProcessor}
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, PreviewItemSessionCompanion}
+import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.UserServiceImpl
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
 import org.corespring.poc.integration.impl.actionBuilders.{AuthenticatedSessionActionsImpl, AuthenticatedSessionActions}
@@ -23,14 +25,9 @@ import org.corespring.poc.integration.impl.securesocial.SecureSocialService
 import org.corespring.poc.integration.impl.transformers.ItemTransformer
 import play.api.Configuration
 import play.api.libs.json.JsValue
+import play.api.mvc.SimpleResult
 import play.api.mvc._
 import scala.Some
-import scala.Some
-import play.api.mvc.SimpleResult
-import org.corespring.container.components.model.UiComponent
-import org.corespring.container.components.model.Library
-import components.processing.PlayerItemPreProcessor
-import org.corespring.container.components.processing.PlayerItemPreProcessorImpl
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) {
 
@@ -44,12 +41,20 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
 
-  private lazy val playerLauncher : PlayerLauncher = new PlayerLauncher{
+  private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher {
     //TODO: - plugin in secure mode
     def isSecure(r: Request[AnyContent]): Boolean = false
   }
 
   private lazy val rootSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  private lazy val authenticatedSessionActions = new AuthenticatedSessionActionsImpl(
+    ItemServiceImpl,
+    Organization,
+    rootSessionService,
+    UserServiceImpl,
+    secureSocialServiceWrapper)
+
 
   private lazy val icons = new Icons {
     def loadedComponents: Seq[Component] = comps
@@ -103,12 +108,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
     def transformItem = ItemTransformer.transformToV2Json
 
-    def auth: AuthenticatedSessionActions = new AuthenticatedSessionActionsImpl(
-      ItemServiceImpl,
-      Organization,
-      DefaultItemSession,
-      UserServiceImpl,
-      secureSocialServiceWrapper)
+    def auth: AuthenticatedSessionActions = authenticatedSessionActions
   }
 
   private lazy val editorHooks = new EditorHooksImpl {
@@ -142,12 +142,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
     def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
 
-    def auth: AuthenticatedSessionActions = new AuthenticatedSessionActionsImpl(
-      ItemServiceImpl,
-      Organization,
-      DefaultItemSession,
-      UserServiceImpl,
-      secureSocialServiceWrapper)
+    def auth: AuthenticatedSessionActions = authenticatedSessionActions
 
     def itemPreProcessor: PlayerItemPreProcessor = new PlayerItemPreProcessorImpl(rootUiComponents, rootLibs)
   }
