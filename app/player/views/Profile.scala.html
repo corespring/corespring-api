@@ -1,4 +1,4 @@
-@(isPrintMode:Boolean, tab:String)(params: player.views.models.PlayerParams)
+@(isPrintMode:Boolean, tab:String, selectedTab:String)(params: player.views.models.PlayerParams)
 
 @assessmentPage() = @{
   if(isPrintMode) "student-assessment-page" else "assessment-page"
@@ -19,7 +19,7 @@
         <script src="/assets/js/corespring/common/services/Item.js"></script>
         <script src="/assets/js/corespring/ProfileController.js"></script>
 
-        @player.views.html.partials.angularConfig(params, ("tab" -> tab))
+        @player.views.html.partials.angularConfig(params, "tab" -> tab, "selectedTab" -> selectedTab)
 
         <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
 

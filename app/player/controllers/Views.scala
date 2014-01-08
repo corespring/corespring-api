@@ -79,7 +79,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     }
   }
 
-  def profile(itemId: VersionedId[ObjectId], tab: String) = {
+  def profile(itemId: VersionedId[ObjectId], tab: String, selectedTab: String) = {
 
     def isPrintMode: Boolean = tab != ""
 
@@ -87,7 +87,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
       itemId = itemId,
       sessionMode = RequestedAccess.Mode.Preview,
       renderingMode = if (isPrintMode) Printing else Web,
-      templateFn = player.views.html.Profile(isPrintMode, tab))
+      templateFn = player.views.html.Profile(isPrintMode, tab, selectedTab))
 
     renderItem(p)
   }

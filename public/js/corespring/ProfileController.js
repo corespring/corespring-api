@@ -43,6 +43,7 @@ function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUt
   };
 
   $scope.changePanel = function (panelName) {
+    console.log(panelName);
     $scope.currentSm = null;
     $scope.currentPanel = panelName;
     if (panelName == 'item') {
@@ -88,6 +89,10 @@ function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUt
     case 'item':
       $scope.currentPanel = "item";
       break;
+  }
+
+  if (Config.selectedTab && Config.selectedTab == 'preview') {
+    $scope.changePanel('item');
   }
 }
 
