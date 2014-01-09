@@ -18,16 +18,16 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.UserServiceImpl
 import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
-import org.corespring.poc.integration.impl.actionBuilders.{AuthenticatedSessionActionsImpl, AuthenticatedSessionActions}
+import org.corespring.poc.integration.impl.actionBuilders.{AuthenticatedSessionActionsImpl2, AuthenticatedSessionActions}
 import org.corespring.poc.integration.impl.controllers.editor.{ClientItemImpl, EditorHooksImpl}
 import org.corespring.poc.integration.impl.controllers.player.{ClientSessionImpl, PlayerHooksImpl}
 import org.corespring.poc.integration.impl.securesocial.SecureSocialService
 import org.corespring.poc.integration.impl.transformers.ItemTransformer
 import play.api.Configuration
 import play.api.libs.json.JsValue
-import play.api.mvc.SimpleResult
 import play.api.mvc._
 import scala.Some
+import org.corespring.poc.integration.impl.actionBuilders.access.{PermissionsInCookieDecider, SecureSocialAccessDecider}
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) {
 
@@ -48,12 +48,17 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   private lazy val rootSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private lazy val authenticatedSessionActions = new AuthenticatedSessionActionsImpl(
-    ItemServiceImpl,
-    Organization,
-    rootSessionService,
+  private lazy val secureSocialAccessDecider = new SecureSocialAccessDecider(
+    secureSocialServiceWrapper,
     UserServiceImpl,
-    secureSocialServiceWrapper)
+    rootSessionService,
+    ItemServiceImpl,
+    Organization
+  )
+
+  private lazy val anonymousUserWithPermissionsDecider = new PermissionsInCookieDecider()
+
+  private lazy val authenticatedSessionActions = new AuthenticatedSessionActionsImpl2(secureSocialAccessDecider)
 
 
   private lazy val icons = new Icons {

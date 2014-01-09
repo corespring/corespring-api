@@ -26,7 +26,15 @@ trait PlayerCookieWriter {
   }
 }
 
-trait PlayerCookieReader {
+trait BasePlayerCookieReader[MODE, OPTIONS] {
+  def activeMode[A](request: Request[A]): Option[MODE]
+
+  def renderOptions[A](request: Request[A]): Option[OPTIONS]
+
+  def orgIdFromCookie[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ORG_ID)
+}
+
+trait PlayerCookieReader extends BasePlayerCookieReader[RequestedAccess.Mode.Mode, RenderOptions]{
   def activeMode[A](request: Request[A]): Option[RequestedAccess.Mode.Mode] = request.session.get(PlayerCookieKeys.ACTIVE_MODE).map {
     k => RequestedAccess.Mode.withName(k)
   }

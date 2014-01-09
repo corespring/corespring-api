@@ -92,19 +92,20 @@ object Build extends sbt.Build {
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti)
 
+  val playerLib = builders.lib("player-lib")
+    .settings(
+      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
+    .dependsOn(core)
+    .settings(disableDocsSettings: _*)
+
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
       containerClientWeb,
       componentLoader,
       componentModel,
       mongoJsonService)
-  ).dependsOn(core % "test->test;compile->compile")
+  ).dependsOn(core % "test->test;compile->compile", playerLib)
 
-  val playerLib = builders.lib("player-lib")
-    .settings(
-      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
-    .dependsOn(core)
-    .settings(disableDocsSettings: _*)
 
 
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")

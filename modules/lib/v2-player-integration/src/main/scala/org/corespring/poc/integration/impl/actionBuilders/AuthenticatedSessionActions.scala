@@ -1,20 +1,8 @@
 package org.corespring.poc.integration.impl.actionBuilders
 
-import org.bson.types.ObjectId
-import org.corespring.platform.core.models.UserOrg
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.itemSession.ItemSessionCompanion
-import org.corespring.platform.core.services.UserService
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.poc.integration.impl.securesocial.SecureSocialService
+import org.corespring.poc.integration.impl.actionBuilders.access.{AccessResult, AccessDecider}
+import play.api.mvc.Results._
 import play.api.mvc.{Action, Request, Result, AnyContent}
-import scalaz.Scalaz._
-import scalaz._
-import securesocial.core.Identity
-import org.corespring.mongo.json.services.MongoService
-import play.api.libs.json.JsValue
 
 trait AuthenticatedSessionActions {
   def read(id: String)(block: Request[AnyContent] => Result): Action[AnyContent]
@@ -33,55 +21,36 @@ trait AuthenticatedSessionActions {
 }
 
 
-class AuthenticatedSessionActionsImpl(
-                                       val itemService : ItemService,
-                                       val orgService : OrganizationService,
-                                       val sessionService : MongoService,
-                                       val userService: UserService,
-                                       val secureSocialService: SecureSocialService)
-  extends AuthenticatedSessionActions with OrgToItemAccessControl {
+class AuthenticatedSessionActionsImpl2(deciders: AccessDecider*) extends AuthenticatedSessionActions {
 
-  import play.api.mvc.Results._
-
-  override def createSessionHandleNotAuthorized(id: String)(authorized: (Request[AnyContent]) => Result)(notAuthorized: (Request[AnyContent], String) => Result): Action[AnyContent] = Action {
+  def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
 
-      val result = for {
-        uo <- userOrgFromRequest(request).toSuccess("Can't load user session in request")
-        vid <- VersionedId(id).toSuccess(s"Can't parse id: $id")
-        canAccess <- orgCanAccessItem(Permission.Read, uo, vid)
-      } yield {
-        canAccess
+      val results: Seq[AccessResult] = deciders.map {
+        d => d.accessForSessionId(sessionId, request)
       }
 
-      result match {
-        case Success(true) => authorized(request)
-        case Success(false) => notAuthorized(request, "An unknown authorization error occured")
-        case Failure(msg) => notAuthorized(request, msg)
+      if (results.exists(_.allowed)) {
+        block(request)
+      } else {
+        Unauthorized(results.map(_.msgs).flatten.mkString("\n"))
       }
   }
 
-  override def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
+  /**
+   * Optionally call create session and pass in a handler for not authorized
+   */
+  def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(notAuthorized: (Request[AnyContent], String) => Result): Action[AnyContent] = Action {
     request =>
 
-      def getItemId(session:JsValue) : Option[VersionedId[ObjectId]] =  (session \ "itemId").asOpt[String].map( VersionedId(_)).flatten
-
-      val validationResult: Validation[String, Boolean] = for {
-        u <- secureSocialService.currentUser(request).toSuccess("No user")
-        o <- getUserOrg(u).toSuccess(s"No user org found for: ${u.identityId.userId}")
-        session <- sessionService.load(sessionId).toSuccess(s"Can't find session with id $sessionId")
-        itemId <- getItemId( session ).toSuccess("Can't find or parse item Id" )
-        canAccess <- orgCanAccessItem(Permission.Read,o, itemId)
-      } yield {
-        canAccess
+      val results: Seq[AccessResult] = deciders.map {
+        d => d.accessForSessionId(itemId, request)
       }
 
-      validationResult match {
-        case Success(hasAccess) => if(hasAccess) block(request) else Unauthorized("Access denied")
-        case Failure(e) => Unauthorized(e)
+      if (results.exists(_.allowed)) {
+        authorized(request)
+      } else {
+        notAuthorized(request, results.map(_.msgs).flatten.mkString("\n"))
       }
   }
-
-  private def getUserOrg(id: Identity): Option[UserOrg] = userService.getUser(id.identityId.userId, id.identityId.providerId).map(_.org)
-
 }
