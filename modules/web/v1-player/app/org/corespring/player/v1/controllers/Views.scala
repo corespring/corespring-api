@@ -19,6 +19,8 @@ import play.api.templates.Html
 import scala.Some
 import scala.concurrent.Future
 import scala.xml.Elem
+import org.corespring.platform.core.services.{UserServiceImpl, UserService}
+import org.corespring.platform.core.models.User
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
   extends BaseApi
