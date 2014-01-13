@@ -7,7 +7,7 @@ import com.mongodb.{ BasicDBObject, DBObject }
 import com.novus.salat._
 import dao.SalatMongoCursor
 import org.bson.types.ObjectId
-import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
+import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.files.{ CloneFileResult, ItemFiles }
@@ -24,7 +24,7 @@ import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
 
-class ItemServiceImpl(
+class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item])
@@ -140,5 +140,5 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
 
 }
 
-object ItemServiceImpl extends ItemServiceImpl(CorespringS3ServiceImpl, DefaultItemSession, ItemVersioningDao)
+object ItemServiceWired extends ItemServiceWired(CorespringS3ServiceExtended, DefaultItemSession, ItemVersioningDao)
 

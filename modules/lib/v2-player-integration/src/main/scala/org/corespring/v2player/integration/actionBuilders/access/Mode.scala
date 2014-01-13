@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.actionBuilders.access
+package org.corespring.v2player.integration.actionBuilders.access
 
 object Mode extends Enumeration {
   type Mode = Value

@@ -9,7 +9,7 @@ import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.{ Subject, Standard }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import play.api.Logger
 import play.api.Play.current
 import play.api.cache.Cache
@@ -218,7 +218,7 @@ object FieldValuesApi extends BaseApi {
       output = MapReduceInlineOutput
     )
 
-    ItemServiceImpl.collection.mapReduce(cmd) match {
+    ItemServiceWired.collection.mapReduce(cmd) match {
       case result: MapReduceInlineResult => {
         val fieldValueMap = result.foldLeft(Map.empty[String, Seq[String]])((acc, obj) => obj match {
           case dbo: DBObject => {

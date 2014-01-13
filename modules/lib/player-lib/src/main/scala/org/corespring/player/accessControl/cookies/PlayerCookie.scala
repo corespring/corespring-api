@@ -1,7 +1,7 @@
 package org.corespring.player.accessControl.cookies
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.services.{UserServiceImpl, UserService}
+import org.corespring.platform.core.services.{UserServiceWired, UserService}
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 import play.api.libs.json.{Writes, Json}
@@ -45,7 +45,7 @@ trait BasePlayerCookieWriter[MODE, OPTIONS] {
 }
 
 trait PlayerCookieWriter extends BasePlayerCookieWriter[RequestedAccess.Mode.Mode, RenderOptions]{
-  def userService: UserService = UserServiceImpl
+  def userService: UserService = UserServiceWired
 }
 
 

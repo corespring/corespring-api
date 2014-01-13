@@ -4,7 +4,7 @@ import play.api.mvc.Controller
 import play.api.{Logger, GlobalSettings}
 import scala.collection._
 
-trait ControllerInstanceResolver extends GlobalSettings {
+trait ControllerInstanceResolver { self : GlobalSettings =>
 
   private val mappedTypes : mutable.Map[String, Controller] = new mutable.HashMap()
 

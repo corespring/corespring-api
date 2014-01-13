@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.controllers.editor
+package org.corespring.v2player.integration.controllers.editor
 
 import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Item
@@ -10,7 +10,7 @@ import play.api.libs.json.JsValue
 import org.corespring.container.client.actions.SaveItemRequest
 import org.corespring.container.client.actions.ItemRequest
 
-trait ClientItemImpl extends Item {
+trait ItemWithBuilder extends Item {
 
   def itemService : ItemService
 

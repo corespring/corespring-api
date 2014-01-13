@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.controllers.player
+package org.corespring.v2player.integration.controllers.player
 
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
@@ -8,13 +8,13 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.poc.integration.impl.actionBuilders.AuthenticatedSessionActions
+import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
 import play.api.libs.json.{Json, JsString, JsValue}
 import play.api.mvc.{Action, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
 
-trait PlayerHooksImpl extends PlayerHooks with PackageLogging{
+trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging{
 
   def sessionService: MongoService
 
@@ -82,9 +82,9 @@ trait PlayerHooksImpl extends PlayerHooks with PackageLogging{
           case Success(sessionId) => block(SessionIdRequest(sessionId.toString, request))
           case Failure(msg) => BadRequest(msg)
         }
-    }{ (r, msg) =>
+    }{ (r, code, msg) =>
       logger.warn(s"create session failed: $msg")
-      Redirect("/login")
+      if(code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
     }
 
   }

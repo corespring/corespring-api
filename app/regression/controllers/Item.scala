@@ -4,7 +4,7 @@ import java.util.NoSuchElementException
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
@@ -73,4 +73,4 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess], override val it
 
 }
 
-object Item extends Item(CheckSessionAccess, ItemServiceImpl, DefaultItemSession)
+object Item extends Item(CheckSessionAccess, ItemServiceWired, DefaultItemSession)

@@ -1,8 +1,8 @@
-package org.corespring.poc.integration.impl.transformers
+package org.corespring.v2player.integration.transformers
 
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.VirtualFile
-import org.corespring.poc.integration.impl.transformers.qti.QtiTransformer
+import org.corespring.v2player.integration.transformers.qti.QtiTransformer
 import play.api.libs.json.{JsString, JsValue, Json}
 
 object ItemTransformer {

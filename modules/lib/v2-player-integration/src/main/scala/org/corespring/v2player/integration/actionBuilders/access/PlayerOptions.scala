@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.actionBuilders.access
+package org.corespring.v2player.integration.actionBuilders.access
 
 case class PlayerOptions(itemId: String, sessionId: String)
 

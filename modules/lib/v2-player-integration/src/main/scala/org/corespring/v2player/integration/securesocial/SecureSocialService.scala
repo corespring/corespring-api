@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.securesocial
+package org.corespring.v2player.integration.securesocial
 
 import play.api.mvc.{Request, AnyContent}
 import securesocial.core.Identity

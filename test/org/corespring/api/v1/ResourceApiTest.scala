@@ -6,7 +6,7 @@ import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, Resource }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import org.corespring.test.utils.mocks.MockS3Service
@@ -27,11 +27,11 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
   lazy val itemId: VersionedId[ObjectId] = VersionedId(ObjectId.get, None)
 
-  val resourceApi: ResourceApi = new ResourceApi(new MockS3Service(), ItemServiceImpl)
+  val resourceApi: ResourceApi = new ResourceApi(new MockS3Service(), ItemServiceWired)
 
   def testItem: Item = {
 
-    ItemServiceImpl.findOneById(itemId).getOrElse {
+    ItemServiceWired.findOneById(itemId).getOrElse {
 
       logger.debug("[testItem] Can't find item - create it")
       val item = Item(
@@ -40,7 +40,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
         supportingMaterials = Seq(
           Resource("Rubric", files = Seq(VirtualFile("Rubric", "text/html", true, "<html/>")))),
         data = Some(Resource("data", files = Seq(VirtualFile("qti.xml", "text/xml", true, "<root/>")))))
-      ItemServiceImpl.save(item)
+      ItemServiceWired.save(item)
       item
     }
   }
@@ -120,7 +120,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       val create = resourceApi.createDataFile(noSessionItem)
       val file = VirtualFile("data.txt", "text/txt", isMain = false, content = "f0")
       val update = resourceApi.updateDataFile(noSessionItem, "data.txt", true)
-      assertUpdate(create, update, file, (_ => ItemServiceImpl.findOneById(VersionedId(new ObjectId(noSessionItem))).get.data.get))
+      assertUpdate(create, update, file, (_ => ItemServiceWired.findOneById(VersionedId(new ObjectId(noSessionItem))).get.data.get))
     }
 
     def assertUpdate(create: Action[AnyContent], update: Action[AnyContent], file: VirtualFile, resourceFn: (Unit => Resource)) = {
@@ -155,7 +155,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
 
       status(result) === OK
 
-      val item: Item = ItemServiceImpl.findOneById(testItem.id).get
+      val item: Item = ItemServiceWired.findOneById(testItem.id).get
 
       item.supportingMaterials.find(_.name == "Rubric") match {
         case Some(r) => {

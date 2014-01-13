@@ -13,7 +13,7 @@ import scala.Left
 import scala.Right
 import scala.Some
 import scalaz.{ Failure, Success, Validation }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.common.log.ClassLogging
 import com.novus.salat._
 import com.novus.salat.dao._
@@ -23,7 +23,7 @@ import se.radley.plugin.salat._
  * A ContentCollection
  */
 case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()) {
-  lazy val itemCount: Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
+  lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {

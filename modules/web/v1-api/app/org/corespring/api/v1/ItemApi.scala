@@ -5,7 +5,7 @@ import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
+import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
 import org.corespring.platform.core.models._
@@ -18,7 +18,7 @@ import org.corespring.platform.core.models.mongoContext.context
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -469,5 +469,5 @@ object dependencies {
   }
 }
 
-object ItemApi extends ItemApi(CorespringS3ServiceImpl, ItemServiceImpl, dependencies.metadataSetService)
+object ItemApi extends ItemApi(CorespringS3ServiceExtended, ItemServiceWired, dependencies.metadataSetService)
 

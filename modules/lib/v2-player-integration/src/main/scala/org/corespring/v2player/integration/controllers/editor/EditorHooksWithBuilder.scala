@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.controllers.editor
+package org.corespring.v2player.integration.controllers.editor
 
 import org.corespring.container.client.actions.{EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.EditorHooks
@@ -10,7 +10,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scalaz.Scalaz._
 import scalaz._
 
-trait EditorHooksImpl extends EditorHooks {
+trait EditorHooksWithBuilder extends EditorHooks {
 
   def itemService: ItemService
 

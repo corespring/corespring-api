@@ -155,7 +155,7 @@ trait QuestionLike {
 }
 
 object Question extends QuestionLike with ItemServiceClient {
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 }
 
 case class Quiz(orgId: Option[ObjectId] = None,

@@ -1,7 +1,7 @@
 package org.corespring.player.v1.controllers
 
 import org.corespring.common.encryption.NullCrypto
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceImpl}
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import org.corespring.test.PlaySingleton

@@ -2,7 +2,7 @@ package org.corespring.web.common.controllers
 
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
-import org.corespring.assets.CorespringS3ServiceImpl
+import org.corespring.assets.CorespringS3ServiceExtended
 import play.api.Play
 import play.api.Play.current
 import org.corespring.web.common.views.helpers.Defaults
@@ -14,7 +14,7 @@ package object deployment {
   lazy val loader: Loader = new Loader(if (isProd) Some(s3Deployer) else None, Play.mode, current.configuration)
   lazy val localLoader: Loader = new Loader(None, Play.mode, current.configuration)
 
-  lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceImpl.getClient), bucketName, releaseRoot)
+  lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)
 
   val bucketName: String = {
     val publicAssets = "corespring-public-assets"

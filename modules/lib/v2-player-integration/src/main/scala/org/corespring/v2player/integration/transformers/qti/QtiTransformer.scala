@@ -1,6 +1,6 @@
-package org.corespring.poc.integration.impl.transformers.qti
+package org.corespring.v2player.integration.transformers.qti
 
-import org.corespring.poc.integration.impl.transformers.qti.interactions.ChoiceInteractionTransformer
+import org.corespring.v2player.integration.transformers.qti.interactions.ChoiceInteractionTransformer
 import play.api.libs.json.{JsObject, JsValue}
 import scala.collection.mutable
 import scala.xml.transform.RuleTransformer

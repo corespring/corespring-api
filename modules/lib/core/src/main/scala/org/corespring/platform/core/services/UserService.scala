@@ -6,6 +6,6 @@ trait UserService {
   def getUser(username:String, provider: String) : Option[User]
 }
 
-object UserServiceImpl extends UserService{
+object UserServiceWired extends UserService{
   def getUser(username: String, provider: String): Option[User] = User.getUser(username, provider)
 }

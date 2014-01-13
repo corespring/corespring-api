@@ -1,11 +1,11 @@
-package org.corespring.poc.integration.impl.actionBuilders
+package org.corespring.v2player.integration.actionBuilders
 
 import play.api.mvc.{Action, Request, Result, AnyContent}
 
 trait AuthenticatedSessionActions {
   def read(sessionId: String)(block: Request[AnyContent] => Result): Action[AnyContent]
 
-  def defaultNotAuthorized(request: Request[AnyContent], msg: String): Result = {
+  def defaultNotAuthorized(request: Request[AnyContent], code:Int, msg: String): Result = {
     import play.api.mvc.Results._
     Unauthorized(msg)
   }
@@ -15,7 +15,7 @@ trait AuthenticatedSessionActions {
   /**
    * Optionally call create session and pass in a handler for not authorized
    */
-  def createSessionHandleNotAuthorized(id: String)(authorized: (Request[AnyContent]) => Result)(notAuthorized: (Request[AnyContent], String) => Result): Action[AnyContent]
+  def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent]
 }
 
 

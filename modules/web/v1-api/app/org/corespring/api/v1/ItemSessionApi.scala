@@ -6,7 +6,7 @@ import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
@@ -276,4 +276,4 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
   }
 }
 
-object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceImpl, QuizService)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceWired, QuizService)

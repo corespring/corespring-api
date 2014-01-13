@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.controllers.player
+package org.corespring.v2player.integration.controllers.player
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.actions._
@@ -12,9 +12,9 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.poc.integration.impl.actionBuilders.AuthenticatedSessionActions
+import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
 
-trait ClientSessionImpl extends Session{
+trait ClientSessionWithBuilder extends Session{
 
   def itemService: ItemService
 

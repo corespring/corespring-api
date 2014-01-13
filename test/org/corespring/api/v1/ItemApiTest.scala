@@ -6,7 +6,7 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import org.corespring.test.helpers.FixtureData
@@ -239,13 +239,13 @@ class ItemApiTest extends BaseTest with Mockito {
   "delete moves item to the archived collection" in {
 
     val item = Item(collectionId = TEST_COLLECTION_ID)
-    ItemServiceImpl.save(item)
+    ItemServiceWired.save(item)
     val deleteItemCall = ItemRoutes.delete(item.id)
 
     route(tokenFakeRequest(deleteItemCall.method, deleteItemCall.url, FakeHeaders())) match {
       case Some(deleteResult) => {
         status(deleteResult) === OK
-        ItemServiceImpl.findOneById(item.id) match {
+        ItemServiceWired.findOneById(item.id) match {
           case Some(deletedItem) => deletedItem.collectionId === ContentCollection.archiveCollId.toString
           case _ => failure("couldn't find deleted item")
         }
@@ -266,12 +266,12 @@ class ItemApiTest extends BaseTest with Mockito {
      * NOTE: test data loaded to db may be missing this if it is loaded statically. Could load a the test composite item
      * (50083ba9e4b071cb5ef79101) and save it. Other tests might fail if these csFeedbackId attrs are not present
      */
-    var jsitem = Json.toJson(ItemServiceImpl.findOneById(VersionedId(new ObjectId("511156d38604c9f77da9739d")))).asInstanceOf[JsObject]
+    var jsitem = Json.toJson(ItemServiceWired.findOneById(VersionedId(new ObjectId("511156d38604c9f77da9739d")))).asInstanceOf[JsObject]
     jsitem = JsObject(jsitem.fields.filter(field => field._1 != "id" && field._1 != "collectionId"))
     val fakeRequest = FakeRequest(PUT, "/api/v1/items/511156d38604c9f77da9739d?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(jsitem))
     val result = route(fakeRequest).get
     status(result) must equalTo(OK)
-    val resource: Resource = ItemServiceImpl.findOneById(VersionedId(new ObjectId("511156d38604c9f77da9739d"))).get.data.get
+    val resource: Resource = ItemServiceWired.findOneById(VersionedId(new ObjectId("511156d38604c9f77da9739d"))).get.data.get
     val qtiXml: Option[String] = resource.files.find(file => file.isMain).map(file => file.asInstanceOf[VirtualFile].content)
     qtiXml must beSome[String]
     val hasCsFeedbackIds: Boolean = qtiXml.map(qti =>
@@ -309,7 +309,7 @@ class ItemApiTest extends BaseTest with Mockito {
   }
 
   "clone item" in {
-    val itemApi = new ItemApi(mockS3service, ItemServiceImpl, dependencies.metadataSetService)
+    val itemApi = new ItemApi(mockS3service, ItemServiceWired, dependencies.metadataSetService)
     val id = "511154e48604c9f77da9739b"
     val fakeRequest = FakeRequest(POST, "/api/v1/items/%s?access_token=%s".format(id, token))
     val result = itemApi.cloneItem(VersionedId(new ObjectId(id)))(fakeRequest)
