@@ -15,7 +15,7 @@ class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
         val responses = (responseDeclaration \ "correctResponse" \\ "value").map(_.text)
         Json.obj(
           "componentType" -> "corespring-ordering",
-          "correctResponses" -> responses,
+          "correctResponse" -> responses,
           "model" -> Json.obj(
             "prompt" -> ((node \ "prompt") match {
               case seq: Seq[Node] if seq.isEmpty => ""

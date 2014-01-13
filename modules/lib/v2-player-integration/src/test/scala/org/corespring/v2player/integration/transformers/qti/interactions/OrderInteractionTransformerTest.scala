@@ -55,7 +55,7 @@ class OrderInteractionTransformerTest extends Specification {
     }
 
     "return the correct response" in {
-      ((interactionResult \ "correctResponses").as[Seq[String]] zip responses).map{ case (a, b) => a must be equalTo b }
+      ((interactionResult \ "correctResponse").as[Seq[String]] zip responses).map{ case (a, b) => a must be equalTo b }
     }
 
     "return the choices" in {
