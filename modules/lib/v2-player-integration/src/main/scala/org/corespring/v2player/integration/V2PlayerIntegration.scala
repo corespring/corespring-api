@@ -46,7 +46,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   def rootLibs = comps.filter(_.isInstanceOf[Library]).map(_.asInstanceOf[Library])
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
 
