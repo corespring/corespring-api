@@ -173,7 +173,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
         itemService,
         orgService
       ) {
-        def hasPermissions(sessionId: String, options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
+        def hasPermissions(itemId: String, sessionId: Option[String], options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
       }
 
     }

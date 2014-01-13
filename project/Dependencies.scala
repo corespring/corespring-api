@@ -4,7 +4,7 @@ object Dependencies {
 
   val playVersion = "2.2.1"
 
-  //POC
+  //V2 Player
   val containerVersion = "0.2.1-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion

@@ -32,7 +32,6 @@ object CheckUserAndPermissions {
 
     def cantFindById(name: String, id: String) = (NOT_FOUND, s"Can't find $name with id $id")
   }
-
 }
 
 abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
@@ -47,13 +46,61 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
   import scalaz.Scalaz._
   import scalaz._
 
-  private def userFromSession(request: Request[AnyContent]): Option[User] = {
+  def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = userFromSession(request).map(
+    u =>
+      (u.org.orgId, PlayerOptions.ANYTHING)
+  ) orElse anonymousUser(request)
 
-    for {
+
+  def hasPermissions(itemId:String, sessionId: Option[String], options: PlayerOptions): Validation[String, Boolean]
+
+  private def hasPermissionForSession(id:String, options : PlayerOptions) : Validation[String,Boolean] = { for{
+      s <- sessionService.load(id)
+      itemId <- (s \ "itemId").asOpt[String]
+    } yield hasPermissions( itemId, Some(id), options)
+  }.getOrElse(Failure("Can't find session or itemId"))
+
+  def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+      checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, _)) match {
+        case Success(true) => block(request)
+        case Success(false) => Unauthorized("Authentication failed")
+        case Failure(error) => Status(error._1)(error._2)
+      }
+  }
+
+  def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent] = Action {
+    request =>
+      checkAccess(request, orgCanAccessItem(itemId, _), hasPermissions(itemId, None, _)) match {
+        case Success(true) => authorized(request)
+        case Success(false) => failed(request, BAD_REQUEST, "Didn't work")
+        case Failure(error) => failed(request, error._1, error._2)
+      }
+  }
+
+  private def anonymousUser(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = for {
+    orgId <- orgIdFromCookie(request)
+    options <- renderOptions(request)
+  } yield (new ObjectId(orgId), options)
+
+  private def checkAccess(
+                           request: Request[AnyContent],
+                           getOrgAccess: ObjectId => Validation[(Int, String), Boolean],
+                           getPermissions: (PlayerOptions) => Validation[String,Boolean]) = {
+    getOrgIdAndOptions(request).map {
+      t: (ObjectId, PlayerOptions) =>
+        val (orgId, options) = t
+        for {
+          orgAccess <- getOrgAccess(orgId)
+          permissionAccess <- getPermissions(options).leftMap(msg => (UNAUTHORIZED, msg))
+        } yield permissionAccess
+    }.getOrElse(Failure(Errors.default))
+  }
+
+  private def userFromSession(request: Request[AnyContent]): Option[User] = for {
       ssUser <- secureSocialService.currentUser(request)
       dbUser <- userService.getUser(ssUser.identityId.userId, ssUser.identityId.providerId)
     } yield dbUser
-  }
 
   private def orgCanAccessSession(sessionId: String, orgId: ObjectId): Validation[(Int, String), Boolean] = for {
     session <- sessionService.load(sessionId).toSuccess(Errors.cantLoadSession(sessionId))
@@ -73,44 +120,4 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
     } yield canAccess
   }
 
-  def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = userFromSession(request).map(
-    u =>
-      (u.org.orgId, PlayerOptions.ANYTHING)
-  ) orElse anonymousUser(request)
-
-  private def anonymousUser(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = for {
-    orgId <- orgIdFromCookie(request)
-    options <- renderOptions(request)
-  } yield (new ObjectId(orgId), options)
-
-  def hasPermissions(sessionId: String, options: PlayerOptions): Validation[String, Boolean]
-
-  def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
-    request =>
-      checkAccess(sessionId, request, orgCanAccessSession _) match {
-        case Success(true) => block(request)
-        case Success(false) => Unauthorized("Authentication failed")
-        case Failure(error) => Status(error._1)(error._2)
-      }
-  }
-
-  def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent] = Action {
-    request =>
-      checkAccess(itemId, request, orgCanAccessItem _) match {
-        case Success(true) => authorized(request)
-        case Success(false) => failed(request, BAD_REQUEST, "Didn't work")
-        case Failure(error) => failed(request, error._1, error._2)
-      }
-  }
-
-  private def checkAccess(sessionId: String, request: Request[AnyContent], getOrgAccess: (String, ObjectId) => Validation[(Int, String), Boolean]) = {
-    getOrgIdAndOptions(request).map {
-      t: (ObjectId, PlayerOptions) =>
-        val (orgId, options) = t
-        for {
-          orgAccess <- getOrgAccess(sessionId, orgId)
-          permissionAccess <- hasPermissions(sessionId, options).leftMap(msg => (UNAUTHORIZED, msg))
-        } yield permissionAccess
-    }.getOrElse(Failure(Errors.default))
-  }
 }

@@ -4,6 +4,7 @@ import _root_.securesocial.core.{SecureSocial, Identity}
 import com.mongodb.casbah.MongoDB
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.container.client.actions.{PlayerJsRequest, PlayerLauncherActionBuilder}
 import org.corespring.container.client.controllers._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.Library
@@ -20,6 +21,7 @@ import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompani
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.actionBuilders.{AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions}
 import org.corespring.v2player.integration.controllers.editor.{ItemWithBuilder, EditorHooksWithBuilder}
 import org.corespring.v2player.integration.controllers.player.{ClientSessionWithBuilder, PlayerHooksWithBuilder}
@@ -29,8 +31,8 @@ import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import scala.Some
-import scalaz.{Success, Validation}
-import org.corespring.container.client.actions.{PlayerJsRequest, PlayerLauncherActionBuilder}
+import scalaz.{Failure, Success, Validation}
+
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) {
 
@@ -48,7 +50,9 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
     def builder: PlayerLauncherActionBuilder[AnyContent] = new PlayerLauncherActionBuilder[AnyContent] {
       //TODO: - handle decryption/secure mode etc.
-      def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action{request => block(new PlayerJsRequest(true, request))}
+      def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+        request => block(new PlayerJsRequest(true, request))
+      }
     }
   }
 
@@ -61,9 +65,14 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
     ItemServiceWired,
     Organization
   ) {
-    def hasPermissions(sessionId: String, options: PlayerOptions): Validation[String, Boolean] = Success(true)
-  }
 
+    val permissionGranter = new SimpleWildcardChecker()
+
+    override def hasPermissions(itemId: String, sessionId: Option[String], options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, options) match {
+      case Left(error) => Failure(error)
+      case Right(allowed) => Success(true)
+    }
+  }
 
   private lazy val icons = new Icons {
     def loadedComponents: Seq[Component] = comps
@@ -74,7 +83,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
     protected def name: String = "rig"
 
-    def loadedComponents: Seq[Component] =  comps
+    def loadedComponents: Seq[Component] = comps
   }
 
   private lazy val libs = new ComponentsFileController {

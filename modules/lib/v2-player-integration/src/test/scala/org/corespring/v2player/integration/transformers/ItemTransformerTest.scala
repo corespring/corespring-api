@@ -1,7 +1,8 @@
 package org.corespring.v2player.integration.transformers
-import org.specs2.mutable.Specification
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
+
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
+import org.corespring.platform.core.models.item.{TaskInfo, Item}
+import org.specs2.mutable.Specification
 import play.api.libs.json.JsObject
 
 class ItemTransformerTest extends Specification{
