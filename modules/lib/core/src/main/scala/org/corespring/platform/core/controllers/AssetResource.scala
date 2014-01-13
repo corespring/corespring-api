@@ -1,7 +1,7 @@
 package org.corespring.platform.core.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.assets.{ S3ServiceClient, CorespringS3ServiceImpl, CorespringS3Service }
+import org.corespring.assets.{ S3ServiceClient, CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.mongo.ObjectIdParser
@@ -29,7 +29,7 @@ object AssetResource {
 
 trait AssetResource extends AssetResourceBase {
   final def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(renderBaseFile(f))
-  def s3Service: CorespringS3Service = CorespringS3ServiceImpl
+  def s3Service: CorespringS3Service = CorespringS3ServiceExtended
 }
 
 trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemServiceClient with PackageLogging {

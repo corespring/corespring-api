@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{ Item, ContentType }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 
 case class ItemView(item: Item, searchFields: Option[SearchFields])
 
@@ -50,7 +50,7 @@ object ItemView {
         Some((collectionId -> JsString(item.collectionId))),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item))))
+        Some("sessionCount" -> JsNumber(ItemServiceWired.sessionCount(item))))
 
       def makeJsString(tuple: (String, Option[String])) = {
         val (key, value) = tuple

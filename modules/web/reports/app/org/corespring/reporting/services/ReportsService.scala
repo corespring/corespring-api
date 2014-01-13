@@ -7,11 +7,11 @@ import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.utils.string
 import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.reporting.models.ReportLineResult
 import org.corespring.reporting.models.ReportLineResult.{KeyCount, LineResult}
 
-object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
+object ReportsService extends ReportsService(ItemServiceWired.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
 
 class ReportsService(ItemCollection: MongoCollection,

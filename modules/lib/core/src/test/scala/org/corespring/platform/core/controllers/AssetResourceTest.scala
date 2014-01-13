@@ -3,7 +3,7 @@ package org.corespring.platform.core.controllers
 import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.BaseFile
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -19,7 +19,7 @@ class AssetResourceTest extends Specification with Mockito{
   PlaySingleton.start()
 
   val resource = new AssetResourceBase {
-    def itemService : ItemService = ItemServiceImpl
+    def itemService : ItemService = ItemServiceWired
     def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(Action(Ok(f.toString)))
     def s3Service: CorespringS3Service = mock[CorespringS3Service]
   }

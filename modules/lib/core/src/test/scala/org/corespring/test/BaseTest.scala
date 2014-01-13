@@ -2,7 +2,7 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceImpl}
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
@@ -18,7 +18,7 @@ trait BaseTest extends Specification {
   // From standard fixture data
   val token = "test_token"
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 
   def fakeRequest(content: AnyContent = AnyContentAsEmpty): FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
@@ -52,7 +52,7 @@ trait BaseTest extends Specification {
    */
   def item(id: String): Item = {
 
-    ItemServiceImpl.findOneById(VersionedId(new ObjectId(id))) match {
+    ItemServiceWired.findOneById(VersionedId(new ObjectId(id))) match {
       case Some(item) => {
         item
       }

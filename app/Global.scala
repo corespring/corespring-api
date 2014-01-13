@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
 import org.corespring.poc.integration.ControllerInstanceResolver
-import org.corespring.poc.integration.impl.V2PlayerIntegration
+import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.DateTime
@@ -20,7 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with ClassLogging {
+object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with GlobalSettings with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 

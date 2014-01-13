@@ -5,6 +5,7 @@ import scala.xml.{XML, Node}
 import scala.collection.mutable
 import play.api.libs.json.JsObject
 import scala.xml.transform.RuleTransformer
+import org.corespring.v2player.integration.transformers.qti.interactions.DragAndDropInteractionTransformer
 
 
 class DragAndDropInteractionTransformerTest extends Specification {

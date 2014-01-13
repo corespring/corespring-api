@@ -9,7 +9,7 @@ import org.corespring.platform.core.encryption.{EncryptionFailure, EncryptionSuc
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RenderOptions
 import org.corespring.scorm.export.ScormExporter
@@ -86,4 +86,4 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
   }
 }
 
-object ExporterApi extends ExporterApi(AESCrypto, ItemServiceImpl)
+object ExporterApi extends ExporterApi(AESCrypto, ItemServiceWired)

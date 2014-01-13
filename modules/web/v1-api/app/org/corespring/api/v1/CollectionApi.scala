@@ -11,7 +11,7 @@ import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import play.api.libs.json._
 import play.api.mvc.Result
 import scala.Some
@@ -73,7 +73,7 @@ object CollectionApi extends BaseApi {
           output = MapReduceInlineOutput
         )
 
-        ItemServiceImpl.collection.mapReduce(cmd) match {
+        ItemServiceWired.collection.mapReduce(cmd) match {
           case result: MapReduceInlineResult => {
             val fieldValueMap = result.map(_ match {
               case dbo: DBObject => {

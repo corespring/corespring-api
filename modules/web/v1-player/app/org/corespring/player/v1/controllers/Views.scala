@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.QtiResource
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemServiceClient, ItemService }
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
@@ -19,6 +19,8 @@ import play.api.templates.Html
 import scala.Some
 import scala.concurrent.Future
 import scala.xml.Elem
+import org.corespring.platform.core.services.{UserServiceWired, UserService}
+import org.corespring.platform.core.models.User
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
   extends BaseApi
@@ -164,4 +166,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
 }
 
-object Views extends Views(CheckSessionAccess, ItemServiceImpl, QuizService)
+object Views extends Views(CheckSessionAccess, ItemServiceWired, QuizService)

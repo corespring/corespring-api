@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.lti.models.LtiQuiz
 import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.CheckSessionAccess
 import org.corespring.player.accessControl.models.RequestedAccess
@@ -12,7 +12,7 @@ import play.api.mvc.Action
 import org.corespring.player.v1.controllers.Views
 import org.corespring.player.v1.views.models.PlayerParams
 
-object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizService) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceWired, QuizService) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {

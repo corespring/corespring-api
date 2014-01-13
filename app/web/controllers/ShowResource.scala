@@ -1,6 +1,6 @@
 package web.controllers
 
-import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
+import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
 import org.corespring.platform.core.models.item.{ Item, Content }
@@ -10,7 +10,7 @@ import play.api.mvc._
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{ Success, Failure }
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemServiceClient, ItemService }
 import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams}
 import org.corespring.player.v1.controllers.QtiRenderer
 import org.corespring.platform.core.controllers.{QtiResource, AssetResourceBase}
@@ -25,9 +25,9 @@ object ShowResource
   with AssetResourceBase
   with QtiRenderer {
 
-  def s3Service: CorespringS3Service = CorespringS3ServiceImpl
+  def s3Service: CorespringS3Service = CorespringS3ServiceExtended
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 
   def javascriptRoutes = Action {
     implicit request =>

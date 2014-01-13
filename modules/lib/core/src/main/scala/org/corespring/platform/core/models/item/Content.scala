@@ -7,7 +7,7 @@ import org.corespring.platform.core.models.ContentCollection
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 
 trait Content {
   var id: VersionedId[ObjectId]
@@ -46,7 +46,7 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
   }
 }
 
-object Content extends ContentHelper(ItemServiceImpl)
+object Content extends ContentHelper(ItemServiceWired)
 
 object ContentType {
   val item = "item"

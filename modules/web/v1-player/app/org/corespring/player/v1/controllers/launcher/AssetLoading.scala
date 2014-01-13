@@ -6,7 +6,7 @@ import org.corespring.common.url.BaseUrl
 import org.corespring.common.utils.string
 import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.services.item.{ItemServiceImpl, ItemService}
+import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.RenderOptions
 import play.api.Play
@@ -167,7 +167,7 @@ object AssetLoadingDefaults {
   }
 }
 
-class AssetLoadingMain extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError)
+class AssetLoadingMain extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceWired, AssetLoadingDefaults.ErrorHandler.handleError)
 
 object AssetLoading extends AssetLoadingMain
 

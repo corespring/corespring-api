@@ -3,7 +3,7 @@ package org.corespring.api.v1
 import java.io.{FileOutputStream, File}
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import org.specs2.execute.Result
@@ -46,7 +46,7 @@ class ExporterApiTest extends BaseTest {
   private def assertManifest(path:String, id : String) : Result = {
     val manifest = scala.xml.XML.loadFile(path)
 
-    ItemServiceImpl.findOneById( VersionedId(new ObjectId(id)) ).map{
+    ItemServiceWired.findOneById( VersionedId(new ObjectId(id)) ).map{
       i : Item =>
         val identifier = (manifest \ "resources" \ "resource" \ "@identifier").text
         identifier ===  i.id.toString()
