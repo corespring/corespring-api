@@ -21,7 +21,12 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
     private def landingPlace(elem: Elem): Node = {
       elem.copy(label = "span",
         attributes = (new UnprefixedAttribute("landing-place", "landing-place", elem.attributes.toSeq.head)
-          ++ elem.attributes).fold(Null)((soFar, attr) => soFar append attr))
+          ++ elem.attributes).fold(Null)((soFar, attr) => {
+          attr.key match {
+            case "identifier" => soFar append new UnprefixedAttribute("id", attr.value, soFar.tail.last)
+            case _ => soFar append attr
+          }
+        }))
     }
 
     override def transform(node: Node): Seq[Node] = node match {
