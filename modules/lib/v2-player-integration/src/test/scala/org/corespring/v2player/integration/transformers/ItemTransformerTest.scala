@@ -1,4 +1,5 @@
 package org.corespring.v2player.integration.transformers
+
 import org.specs2.mutable.Specification
 import org.corespring.platform.core.models.item.{TaskInfo, Item}
 import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}

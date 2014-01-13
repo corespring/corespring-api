@@ -1,4 +1,4 @@
-package org.corespring.poc.integration.impl.transformers.qti.interactions
+package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
 import scala.xml.Node
