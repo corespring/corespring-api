@@ -40,6 +40,11 @@ class ItemTransformerTest extends Specification{
                  name = "qti.xml",
                  contentType = "text/xml",
                  content = qti.toString
+              ),
+              VirtualFile(
+                name = "kittens.jpeg",
+                contentType = "image/jpeg",
+                content = ""
               )
             )
           )
@@ -47,10 +52,14 @@ class ItemTransformerTest extends Specification{
       )
 
       val json = ItemTransformer.transformToV2Json(item)
+      val imageJson = (json \ "files").as[Seq[JsObject]].head
 
       (json \ "metadata" \ "title").as[String] === "item one"
-
       (json \ "components" \ "Q_01").asOpt[JsObject] must beSome[JsObject]
+      (json \ "files").as[Seq[JsObject]].map(f => (f \ "name").as[String]).contains("qti.xml") must beFalse
+
+      (imageJson \ "name").as[String] must be equalTo "kittens.jpeg"
+      (imageJson \ "contentType").as[String] must be equalTo "image/jpeg"
     }
   }
 

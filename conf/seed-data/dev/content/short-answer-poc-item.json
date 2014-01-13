@@ -1,7 +1,7 @@
 {
     "_id": {
         "_id": {
-            "$oid": "5252c7c108738c6d85653725"
+            "$oid": "52c6d8f3eaa7a139d130514e"
         },
         "version": 0
     },
@@ -13,13 +13,13 @@
                 "name": "qti.xml",
                 "contentType": "text/xml",
                 "isMain": true,
-                "content": "$[interpolate{conf/qti-templates/poc-item.xml}]"
+                "content": "$[interpolate{conf/qti-templates/short-answer-poc-item.xml}]"
             }
         ]
     },
     "published": false,
     "collectionId": "5001b9b9e4b035d491c268c3",
     "taskInfo": {
-        "title": "poc item"
+        "title": "short answer poc item"
     }
 }
