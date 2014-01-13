@@ -7,8 +7,9 @@ import scala.collection.mutable
 import scala.xml.transform.RewriteRule
 import scala.xml.{Elem, Node}
 
-class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti : Node) extends RewriteRule {
-
+class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti : Node)
+  extends RewriteRule
+  with XMLNamespaceClearer {
 
   private val logger : Logger = Logger("poc.integration")
 
@@ -24,7 +25,7 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
           val out : Seq[JsValue] = (e \\ "simpleChoice").toSeq.map{ n : Node =>
             Json.obj(
               "label" -> JsString(n.text),
-              "value" -> JsString( (n \ "@identifier").text.trim )
+              "value" -> JsString((n \ "@identifier").text.trim)
             )
           }
           JsArray(out)
@@ -82,7 +83,7 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
                   "orientation" -> JsString( if( (e \ "@orientation").text == "vertical") "vertical" else "horizontal" ),
                   "singleChoice" -> JsBoolean( ( (e\ "@maxChoices").text == "1") )
                 ),
-                "prompt" -> (e \ "prompt").text.trim,
+                "prompt" -> (e \ "prompt").map(clearNamespace).text.trim,
                 "choices" -> choices
             ),
             "feedback" -> feedback,

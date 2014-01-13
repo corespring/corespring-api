@@ -59,6 +59,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
+
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
