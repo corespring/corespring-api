@@ -17,13 +17,27 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{JsString, Json, JsValue}
-import play.api.mvc.{Action, AnyContentAsEmpty, AnyContent, Request}
+import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
 import scalaz.Success
 import scalaz.Validation
 import securesocial.core._
 import org.corespring.platform.core.models.auth.Permission
+import play.api.test.FakeHeaders
+import securesocial.core.IdentityId
+import play.api.libs.json.JsString
+import scala.Some
+import scalaz.Success
+import scala.concurrent.Future
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys._
+import play.api.test.FakeHeaders
+import securesocial.core.IdentityId
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.mvc.SimpleResult
+import scalaz.Success
+import play.api.mvc.Cookie
 
 class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specification with Mockito {
 
@@ -47,64 +61,57 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
   "read" should {
     "when no user and permissions" should {
       s"return $UNAUTHORIZED " in new ActionsScope() {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.default)
+        actions.read("id")(handler)(fakeRequest) must returnCodeAndMessage(Errors.default)
+      }
+    }
+
+    def withMaybeUserAndRequest(u:Option[User], id: Option[Identity], r : Request[AnyContent]) = {
+      s"return $NOT_FOUND when session isn't found" in new ActionsScope(
+        u, id
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantLoadSession("id"))
+      }
+
+      s"return $BAD_REQUEST when the item id has a bad format" in new ActionsScope(
+        u, id,  Some(Json.obj("itemId" -> JsString("bad string")))
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantParseItemId)
+      }
+
+      s"return $NOT_FOUND when item id can't be found" in new ActionsScope(
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString)))
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantFindItemWithId(itemId))
+      }
+
+      s"return $NOT_FOUND when org id can't be found" in new ActionsScope(
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId)
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantFindOrgWithId(orgId))
+      }
+
+      s"return $UNAUTHORIZED when org can't access item" in new ActionsScope(
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId)
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.default)
+      }
+
+      s"return $OK when org can access item" in new ActionsScope(
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId), true, true
+      ) {
+        actions.read("id")(handler)(r) must returnCodeAndMessage((OK,"Worked"))
       }
     }
 
     "when has user" should {
+      withMaybeUserAndRequest(user("ed"), identity("ed"), fakeRequest)
+    }
 
-      s"return $NOT_FOUND when session isn't found" in new ActionsScope(
-        user("ed"),
-        identity("ed")
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.cantLoadSession("id"))
-      }
+    "when anonymous user" should {
 
-      s"return $BAD_REQUEST when the item id has a bad format" in new ActionsScope(
-        user("ed"),
-        identity("ed"),
-        Some(Json.obj("itemId" -> JsString("bad string")))
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.cantParseItemId)
-      }
-
-      s"return $NOT_FOUND when item id can't be found" in new ActionsScope(
-        user("ed"),
-        identity("ed"),
-        Some(Json.obj("itemId" -> JsString(itemId.toString)))
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.cantFindItemWithId(itemId))
-      }
-
-      s"return $NOT_FOUND when org id can't be found" in new ActionsScope(
-        user("ed"),
-        identity("ed"),
-        Some(Json.obj("itemId" -> JsString(itemId.toString))),
-        item(itemId)
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.cantFindOrgWithId(orgId))
-      }
-
-      s"return $UNAUTHORIZED when org can't access item" in new ActionsScope(
-        user("ed"),
-        identity("ed"),
-        Some(Json.obj("itemId" -> JsString(itemId.toString))),
-        item(itemId),
-        org(orgId)
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage(Errors.default)
-      }
-
-      s"return $OK when org can access item" in new ActionsScope(
-        user("ed"),
-        identity("ed"),
-        Some(Json.obj("itemId" -> JsString(itemId.toString))),
-        item(itemId),
-        org(orgId),
-        true
-      ) {
-        actions.read("id")(handler) must returnCodeAndMessage((OK,"Worked"))
-      }
+      val anonymousRequest = FakeRequest("","", FakeHeaders(), AnyContentAsEmpty)
+        .withSession((ORG_ID, orgId.toString), (RENDER_OPTIONS, "{}"))
+      withMaybeUserAndRequest(None, None, anonymousRequest)
     }
   }
 
@@ -124,15 +131,12 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
     Some(out)
   }
 
-  case class returnCodeAndMessage( expectedTuple : (Int,String)) extends Matcher[Action[AnyContent]] {
-    def apply[S <: Action[AnyContent]](s: Expectable[S]) = {
-      val act = s.value
+  case class returnCodeAndMessage( expectedTuple : (Int,String)) extends Matcher[Future[SimpleResult]] {
+    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
       val (expectedStatus, expectedMsg) = expectedTuple
-      val request = FakeRequest("", "", FakeHeaders(), AnyContentAsEmpty)
-      val out = act(request)
-      val statusMatches = status(out) == expectedStatus
-      val msgMatches = contentAsString(out) == expectedMsg
-      val specsMsg = s"$expectedStatus =? ${status(out)} || $expectedMsg =? ${contentAsString(out)}"
+      val statusMatches = status(s.value) == expectedStatus
+      val msgMatches = contentAsString(s.value) == expectedMsg
+      val specsMsg = s"$expectedStatus =? ${status(s.value)} || $expectedMsg =? ${contentAsString(s.value)}"
       result(statusMatches && msgMatches, specsMsg, specsMsg, s)
     }
   }
@@ -142,7 +146,8 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
                      session: Option[JsValue] = None,
                      item: Option[Item] = None,
                      org: Option[Organization] = None,
-                     orgCanAccess : Boolean = false) extends Scope {
+                     orgCanAccess : Boolean = false,
+                     userHasPermissions : Boolean = false) extends Scope {
 
     lazy val actions = {
       val userService = mock[UserService]
@@ -168,7 +173,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
         itemService,
         orgService
       ) {
-        def hasPermissions(sessionId: String, options: PlayerOptions): Validation[String, Boolean] = Success(true)
+        def hasPermissions(sessionId: String, options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
       }
 
     }
