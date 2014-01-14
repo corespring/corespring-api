@@ -18,6 +18,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       new TextEntryInteractionTransformer(components, qti),
       new DragAndDropInteractionTransformer(components, qti),
       new OrderInteractionTransformer(components, qti),
+      new PointInteractionTransformer(components, qti),
       FoldableInteractionTransformer,
       CoverflowInteractionTransformer
     ).transform(qti)
