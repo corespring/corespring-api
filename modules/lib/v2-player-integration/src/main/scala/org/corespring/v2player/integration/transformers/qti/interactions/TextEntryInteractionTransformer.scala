@@ -5,11 +5,12 @@ import scala.xml.{Elem, Node}
 import scala.collection.mutable
 import play.api.libs.json.{Json, JsObject}
 
-class TextEntryInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
+class TextEntryInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
+  extends RewriteRule
+  with InteractionTransformer {
 
-  private def component(n: Node, identifier: String) = {
-    val correctResponses = ((n \\ "responseDeclaration")
-      .filter(n => (n \ "@identifier").toString == identifier).head \ "correctResponse" \\ "value").map(_.text).toSet
+  private def component(node: Node, identifier: String) = {
+    val correctResponses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text).toSet
     Json.obj(
       "componentType" -> "corespring-text-entry",
       "correctResponse" -> (correctResponses.size match {
@@ -23,7 +24,7 @@ class TextEntryInteractionTransformer(componentJson: mutable.Map[String, JsObjec
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "textEntryInteraction" => {
       val responseIdentifier = (e \ "@responseIdentifier").text
-      componentJson.put(responseIdentifier, component(qti, responseIdentifier))
+      componentJson.put(responseIdentifier, component(node, responseIdentifier))
       <corespring-text-entry id={responseIdentifier}></corespring-text-entry>
     }
     case _ => node

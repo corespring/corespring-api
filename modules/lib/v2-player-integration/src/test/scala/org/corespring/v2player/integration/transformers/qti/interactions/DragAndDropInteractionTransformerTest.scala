@@ -3,18 +3,17 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import org.specs2.mutable.Specification
 import scala.xml.{XML, Node}
 import scala.collection.mutable
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsArray, Json, JsObject}
 import scala.xml.transform.RuleTransformer
-import org.corespring.v2player.integration.transformers.qti.interactions.DragAndDropInteractionTransformer
-
 
 class DragAndDropInteractionTransformerTest extends Specification {
 
   val identifier = "Q_01"
+  val feedbackValue = "Feedback!"
 
   def qti(responses: Map[String, String], correctResponses: Map[String, String]): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier}>
+      <responseDeclaration identifier={identifier} cardinality="targeted">
         <correctResponse>
           {
             correctResponses.map { case (key, value) => {
@@ -29,13 +28,15 @@ class DragAndDropInteractionTransformerTest extends Specification {
         <dragAndDropInteraction responseIdentifier={identifier}>
           {
             responses.map { case (key, value) => {
-              <draggableChoice identifier={key}>{XML.loadString(value)}</draggableChoice>
+              <draggableChoice identifier={key}>{XML.loadString(value)}
+                <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
+              </draggableChoice>
             } }
           }
           <answerArea>
             {
-              responses.keys.map(id => {
-                <landingPlace identifier={id} />
+              correctResponses.keys.map(id => {
+                <landingPlace identifier={id} cardinality="single" />
               })
             }
           </answerArea>
@@ -74,6 +75,15 @@ class DragAndDropInteractionTransformerTest extends Specification {
 
     "removes all <dragAndDropInteraction/> elements" in {
       output \\ "dragAndDropInteraction" must beEmpty
+    }
+
+    "return feedback" in {
+      val feedback = (interactionResult \ "feedback").as[JsArray].value.map(n => {
+        ((n \ "value").as[String] -> (n \ "feedback").as[String])
+      }).toMap
+
+      feedback.keys.toSeq diff responses.keys.toSeq must beEmpty
+      feedback.values.toSet.toSeq must be equalTo Seq(feedbackValue)
     }
 
   }

@@ -12,7 +12,7 @@ import scala.Some
 
 class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
   extends RewriteRule
-  with XMLNamespaceClearer {
+  with InteractionTransformer {
 
   var dragAndDropNodes = mutable.Seq[Node]()
 
@@ -39,43 +39,36 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
   def component(node: Node) = {
     dragAndDropNodes = dragAndDropNodes :+ node
 
-    val identifier = (node \\ "@responseIdentifier").text
-    (qti \\ "responseDeclaration").find(n => (n \ "@identifier").text == identifier) match {
-      case Some(responseDeclaration) => {
+    val correctResponses = (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
+      ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
+    })
 
-        val correctResponses = (responseDeclaration \ "correctResponse" \ "value").map(valueNode => {
-          ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
-        })
+    val choices = JsArray((node \\ "draggableChoice").map(n =>
+      Json.obj(
+        "id" -> (n \ "@identifier").text,
+        "content" -> n.child.map(clearNamespace).mkString
+      )
+    ))
 
-        val choices = JsArray((node \\ "draggableChoice").map(n =>
-          Json.obj(
-            "id" -> (n \ "@identifier").text,
-            "content" -> n.child.map(clearNamespace).mkString
-          )
-        ))
-
-        Json.obj(
-          "componentType" -> "corespring-drag-and-drop",
-          "correctResponse" -> JsObject(correctResponses),
-          "model" -> Json.obj(
-            "choices" -> choices,
-            "prompt" -> ((node \ "prompt") match {
-              case seq: Seq[Node] if seq.isEmpty => ""
-              case seq: Seq[Node] => seq.head.child.map(clearNamespace).mkString
-            }),
-            "answerArea" ->
-              new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
-                .head.child.map(clearNamespace).mkString,
-            "config" -> Json.obj(
-              "shuffle" -> true,
-              "expandHorizontal" -> false
-            )
-          )
+    Json.obj(
+      "componentType" -> "corespring-drag-and-drop",
+      "correctResponse" -> JsObject(correctResponses),
+      "model" -> Json.obj(
+        "choices" -> choices,
+        "prompt" -> ((node \ "prompt") match {
+          case seq: Seq[Node] if seq.isEmpty => ""
+          case seq: Seq[Node] => seq.head.child.map(clearNamespace).mkString
+        }),
+        "answerArea" ->
+          new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
+            .head.child.map(clearNamespace).mkString,
+        "config" -> Json.obj(
+          "shuffle" -> true,
+          "expandHorizontal" -> false
         )
-      }
-      case None =>
-        throw new IllegalStateException(s"Item did not contain a responseDeclaration for interaction $identifier")
-    }
+      ),
+      "feedback" -> feedback(node, qti)
+    )
   }
 
   (qti \\ "dragAndDropInteraction").foreach(node => {
