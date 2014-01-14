@@ -39,7 +39,6 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
   def component(node: Node) = {
     dragAndDropNodes = dragAndDropNodes :+ node
 
-    val identifier = (node \\ "@responseIdentifier").text
     val correctResponses = (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
       ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
     })
@@ -67,7 +66,8 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
           "shuffle" -> true,
           "expandHorizontal" -> false
         )
-      )
+      ),
+      "feedback" -> feedback(node, qti)
     )
   }
 

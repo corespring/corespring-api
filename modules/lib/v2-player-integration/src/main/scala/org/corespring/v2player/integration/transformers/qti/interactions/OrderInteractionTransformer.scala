@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import scala.xml.transform.RewriteRule
-import scala.xml.{Elem, Node}
+import scala.xml.{Text, Elem, Node}
 import scala.collection.mutable
 import play.api.libs.json.{JsBoolean, Json, JsObject}
 
@@ -10,9 +10,8 @@ class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
   with InteractionTransformer {
 
   def component(node: Node) = {
-    val identifier = (node \\ "@responseIdentifier").text
-
     val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
+
     Json.obj(
       "componentType" -> "corespring-ordering",
       "correctResponse" -> responses,
@@ -25,8 +24,12 @@ class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
           "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")
         ),
         "choices" -> (node \\ "simpleChoice")
-          .map(choice => Json.obj("label" -> choice.text, "value" -> (choice \\ "@identifier").text))
-      )
+          .map(choice =>
+            Json.obj(
+              "label" -> choice.child.filter(_.label != "feedbackInline").text.trim,
+              "value" -> (choice \ "@identifier").text))
+      ),
+      "feedback" -> feedback(node, qti)
     )
   }
 

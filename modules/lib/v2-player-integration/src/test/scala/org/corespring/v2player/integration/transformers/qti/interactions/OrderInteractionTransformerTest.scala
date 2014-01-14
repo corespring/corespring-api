@@ -3,7 +3,7 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.collection.mutable
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsArray, JsObject}
 import scala.xml.transform.RuleTransformer
 
 class OrderInteractionTransformerTest extends Specification {
@@ -11,6 +11,7 @@ class OrderInteractionTransformerTest extends Specification {
   val identifier = "Q_01"
   val shuffle = "true"
   val prompt = "This is my prompt!"
+  val feedbackValue = "Feedback!"
 
   def qti(correctResponse: Seq[String]): Node =
     <assessmentItem>
@@ -20,7 +21,13 @@ class OrderInteractionTransformerTest extends Specification {
       <itemBody>
         <orderInteraction responseIdentifier={identifier} shuffle={shuffle}>
           <prompt>{prompt}</prompt>
-          {correctResponse.map(r => <simpleChoice identifier={r} fixed="true">{r}</simpleChoice>)}
+          {
+            correctResponse.map(r =>
+              <simpleChoice identifier={r} fixed="true">{r}
+                <feedbackInline identifier={r}>{feedbackValue}</feedbackInline>
+              </simpleChoice>
+            )
+          }
         </orderInteraction>
       </itemBody>
     </assessmentItem>
@@ -62,6 +69,16 @@ class OrderInteractionTransformerTest extends Specification {
       choices.map(_ \ "label").map(_.as[String]) diff responses must beEmpty
       choices.map(_ \ "value").map(_.as[String]) diff responses must beEmpty
     }
+
+    "return feedback" in {
+      val feedback = (interactionResult \ "feedback").as[JsArray].value.map(n => {
+        ((n \ "value").as[String] -> (n \ "feedback").as[String])
+      }).toMap
+
+      feedback.keys.toSeq diff responses.toSeq must beEmpty
+      feedback.values.toSet.toSeq must be equalTo Seq(feedbackValue)
+    }
+
 
   }
 

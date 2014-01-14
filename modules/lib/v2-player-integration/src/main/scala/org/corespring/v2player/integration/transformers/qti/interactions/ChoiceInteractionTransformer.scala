@@ -31,32 +31,8 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
         JsArray(out)
       }
 
-      def feedback : JsArray = {
-
-        val choiceIds : Seq[Node] = (e \\ "simpleChoice").toSeq ++ (e \\ "inlineChoice").toSeq
-
-        val feedbackObjects : Seq[JsObject] = choiceIds.map{ (n:Node) =>
-
-          val id = (n \ "@identifier").text.trim
-
-          val fbInline = qtiItem.getFeedback(componentId, id)
-
-          fbInline.map{ fb =>
-            val content = if( fb.defaultFeedback ){
-              fb.defaultContent(qtiItem)
-            } else {
-              fb.content
-            }
-            Json.obj( "value" -> JsString(id), "feedback" -> JsString(content))
-          }
-        }.flatten
-        JsArray(feedbackObjects)
-      }
-
       def correctResponse : JsObject = {
-
         val values: Seq[Node] = (responseDeclaration(e, qti) \\ "value").toSeq
-
         val jsonValues: Seq[JsString] = values.map {
           (n: Node) => JsString(n.text.trim)
         }
@@ -77,7 +53,7 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
               "prompt" -> (e \ "prompt").map(clearNamespace).text.trim,
               "choices" -> choices
           ),
-          "feedback" -> feedback,
+          "feedback" -> feedback(node, qti),
           "correctResponse" -> correctResponse
         )
 
