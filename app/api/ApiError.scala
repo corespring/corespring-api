@@ -100,6 +100,7 @@ object ApiError {
   val DeleteCollection = ApiError(406, "An error occurred while trying to delete collection")
   val InvalidField = ApiError(407, "The provided field cannot be queried")
   val MapReduceError = ApiError(408, "There was an error querying the database")
+  val ShareItemsWithCollectionError = ApiError(409, "Error sharing items with a collection")
 
   // User API
   val UserRequiredFields = ApiError(500, "userName, fullName and email are required")

@@ -19,10 +19,35 @@ import play.api.libs.json.JsString
 import com.mongodb.casbah.map_reduce.MapReduceCommand
 import scala.Some
 import play.api.libs.json.JsNumber
-import com.novus.salat.dao.SalatMongoCursor
+import com.novus.salat.dao.{SalatInsertError, SalatMongoCursor}
 import scalaz.Success
 import play.api.libs.json.JsObject
 import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
+import play.api.libs.json.Json._
+import org.corespring.platform.core.models.search.SearchCancelled
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsUndefined
+import scalaz.Failure
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsNumber
+import scalaz.Success
+import play.api.libs.json.JsObject
+import com.mongodb.util.JSONParseException
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+import com.mongodb.casbah.commons.TypeImports.ObjectId
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
+import play.api.libs.json.JsArray
+import scalaz.Failure
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsNumber
+import scalaz.Success
+import org.corespring.platform.core.models.search.SearchCancelled
+import com.novus.salat.dao.SalatMongoCursor
+import play.api.libs.json.JsObject
 
 /**
  * The Collections API
@@ -154,7 +179,7 @@ object CollectionApi extends BaseApi {
             if (name.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionNameMissing))
             } else {
-              val collection = ContentCollection(id = newId, name = name.get)
+              val collection = ContentCollection(id = newId, name = name.get, ownerOrgId = request.ctx.organization.toString)
               ContentCollection.insertCollection(request.ctx.organization, collection, Permission.Write) match {
                 case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll, Permission.Write.value)))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
@@ -225,4 +250,52 @@ object CollectionApi extends BaseApi {
       case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }
+
+  /**
+   * Add items to the collection specified.
+   * receives list of items in json in request body
+   * @param collectionId
+   * @return
+   */
+  def shareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
+    request =>
+      request.body.asJson match {
+        case Some(json) => {
+          if ((json \ "items").asOpt[Array[String]].isEmpty) {
+            BadRequest(Json.toJson(ApiError.ShareItemsWithCollectionError(Some("no items could be found in request body json"))))
+          } else {
+            val itemIds = (json \ "items").as[Seq[String]]
+            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
+            ContentCollection.addItems(request.ctx.organization, versionedItemIds, collectionId) match {
+              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ShareItemsWithCollectionError(error.clientOutput)))
+            }
+          }
+        }
+        case _ => jsonExpected
+      }
+  }
+
+  /**
+   * Unshare items from the collection specified.
+   * receives list of items in json in request body
+   * @param collectionId
+   * @return
+   */
+  def unshareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
+    request =>
+      Ok(Json.toJson("TODO"))
+  }
+
+  /**
+   * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
+   * @param q - the query to select items to add to the collection
+   * @param collectionId  - collection to add the items to
+   * @return  - json with success or error response
+   */
+  def addFilteredItemsToCollection(q: Option[String], collectionId: String) = ApiActionWrite {  request =>
+    // get item id sequence and pass to ContentCollection.addItems
+    Ok(Json.toJson("TODO"))
+  }
+
 }

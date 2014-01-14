@@ -162,13 +162,13 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
   def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
     if (collections.isEmpty) {
-      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT), Permission.Write);
+      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId.toString() ), Permission.Write);
     } else {
       ContentCollection.findOne(
         MongoDBObject("_id" -> MongoDBObject("$in" -> collections), ContentCollection.name -> ContentCollection.DEFAULT)) match {
           case Some(default) => Right(default)
           case None =>
-            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT), Permission.Write);
+            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId.toString() ), Permission.Write);
         }
     }
   }

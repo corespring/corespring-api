@@ -8,12 +8,20 @@ import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import play.api.test._
 import scala._
+import org.specs2.mutable.BeforeAfter
+import org.specs2.specification.Step
+import tests.helpers.models._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.AnyContentAsJson
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.auth.Permission
 
 
 class CollectionApiTest extends BaseTest {
 
   val INITIAL_COLLECTION_SIZE : Int = 2
-
+  val orgId = "51114b307fc1eaa866444648"
   val routes = api.v1.routes.CollectionApi
 
 
@@ -111,6 +119,8 @@ class CollectionApiTest extends BaseTest {
     assertResult(createResult)
     val collection = parsed[JsValue](createResult)
     (collection \ "name").as[String] must beEqualTo(name)
+    (collection \ "ownerOrgId").as[String] must beEqualTo(orgId)
+
 
     // update
     val name2 = "a new name"
@@ -134,4 +144,78 @@ class CollectionApiTest extends BaseTest {
   }
 
 
+
+  "share items to a collection" in new CollectionSharingScope {
+    // share some existing items with a collection
+    val jsonBody = Map("items" -> collectionB1ItemIds.map(_.toString()))
+    val shareItemsReq =
+      FakeRequest(PUT, s"/api/v1/collections/$collectionA1/add-items?access_token=%s".format(accessTokenA),
+        FakeHeaders(),
+        AnyContentAsJson(Json.toJson(jsonBody)))
+
+    val shareItemsResult = CollectionApi.shareItemsWithCollection(collectionA1)(shareItemsReq)
+    assertResult(shareItemsResult)
+
+  }
+
+  "add filtered items to a collection" in {
+    // this is to support a user searching for a set of items, then adding that set of items to a collection
+    println("add filtered items to a collection")
+    pending
+  }
+
+
+
+
+}
+
+
+trait CollectionSharingScope extends BeforeAfter {
+
+  lazy val organizationA = OrganizationHelper.create("A")
+
+  lazy val collectionA1 = CollectionHelper.create(organizationA)
+  lazy val userA = UserHelper.create(organizationA)
+  lazy val accessTokenA = AccessTokenHelper.create(organizationA, userA.userName)
+
+  val collectionA1ItemIds = 1.to(3).map(i => ItemHelper.create(collectionA1))
+
+  lazy val organizationB = OrganizationHelper.create("B")
+  lazy val collectionB1 = CollectionHelper.create(organizationB)
+  lazy val collectionB2 = CollectionHelper.create(organizationB)
+  lazy val userB = UserHelper.create(organizationB)
+  lazy val accessTokenB = AccessTokenHelper.create(organizationB, userB.userName)
+
+  val collectionB1ItemIds = 1.to(3).map(i => ItemHelper.create(collectionB1))
+  val collectionB2ItemIds = 1.to(3).map(i => ItemHelper.create(collectionB2))
+
+
+  // give organization A access to collection B1
+  ContentCollection.addOrganizations(Seq((organizationA, Permission.Read)), collectionB1)
+
+
+
+  def before : Unit = {
+  }
+
+  def after : Unit = {
+    println(s"[CollectionSharingScope] deleting: fixture data")
+
+
+    AccessTokenHelper.delete(accessTokenA)
+    collectionA1ItemIds.foreach(ItemHelper.delete(_))
+    CollectionHelper.delete(collectionA1)
+    UserHelper.delete(userA.id)
+    OrganizationHelper.delete(organizationA)
+
+
+    AccessTokenHelper.delete(accessTokenB)
+    collectionB1ItemIds.foreach(ItemHelper.delete(_))
+    collectionB2ItemIds.foreach(ItemHelper.delete(_))
+    CollectionHelper.delete(collectionB1)
+    CollectionHelper.delete(collectionB2)
+    UserHelper.delete(userB.id)
+    OrganizationHelper.delete(organizationB)
+
+  }
 }

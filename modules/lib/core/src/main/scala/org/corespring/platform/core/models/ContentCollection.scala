@@ -18,17 +18,28 @@ import org.corespring.common.log.ClassLogging
 import com.novus.salat._
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
+import com.mongodb.casbah.Imports._
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.item.Item
 
 /**
  * A ContentCollection
+ * ownerOrgId is not a one-to-many with organization. Collections may be in multiple orgs, but they have one 'owner'
+ *
  */
-case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()) {
+case class ContentCollection(
+  var name: String = "",
+  var ownerOrgId: String = "",
+  var isPublic: Boolean = false,
+  var id: ObjectId = new ObjectId()) {
+
   lazy val itemCount: Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
   val name = "name"
   val isPublic = "isPublic"
+  val ownerOrgId = "ownerOrgId"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
@@ -157,6 +168,61 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     else Right(())
   }
 
+
+  /**
+   * Add items to the collection specified.
+   * - must ensure that the context org has write access to the collection
+   * - must ensure that the context org has read access to the items being added
+   *
+   * @param orgId
+   * @param items
+   * @param collId
+   * @return
+   */
+  def addItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    if (isAuthorized(orgId, collId, Permission.Write)) {
+      val oids = items.map(i => i.id)
+      val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+
+      // get a list of any items that were not authorized to be added
+      val itemsNotAuthorized = ItemServiceImpl.find(query).filterNot(item => {
+        // get the collections to test auth on (owner collection for item, and shared-in collections)
+        val collectionsToAuth = Seq(item.collectionId) ++ item.sharedInCollections
+        // does org have read access to any of these collections
+        val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
+        collectionsAuthorized.size > 0
+      })
+      if (itemsNotAuthorized.size <= 0) {
+        // add collection id to item.sharedinCollections unless the collection is the owner collection for item
+        val savedUnsavedItems = items.partition(item => {
+          try {
+            ItemServiceImpl.findOneById(item) match {
+              case Some(itemObj) if (collId.equals(itemObj)) => true
+              case _ =>
+                ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$addToSet" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)) ,false)
+                true
+            }
+          } catch {
+            case e: SalatDAOUpdateError => false
+        }
+        })
+        if (savedUnsavedItems._2.size > 0) {
+          logger.debug(s"[addItems] failed to add items: " + savedUnsavedItems._2.map(_.id + " ").toString)
+          Left(InternalError("failed to add items"))
+        } else {
+          logger.debug(s"[addItems] added items: " + savedUnsavedItems._1.map(_.id + " ").toString)
+          Right(savedUnsavedItems._1)
+        }
+
+      } else {
+        Left(InternalError("items failed auth: " + itemsNotAuthorized.map(_.id)))
+      }
+    } else {
+      Left(InternalError("organization does not have write permission on collection"))
+    }
+
+  }
+
   /**
    * does the given organization have access to the given collection with given permissions?
    * @param orgId
@@ -189,6 +255,7 @@ object CollectionExtraDetails {
     def writes(c: CollectionExtraDetails): JsValue = {
       JsObject(Seq(
         "name" -> JsString(c.coll.name),
+        "ownerOrgId" -> JsString(c.coll.ownerOrgId),
         "permission" -> JsString(Permission.toHumanReadable(c.access)),
         "itemCount" -> JsNumber(c.coll.itemCount),
         "isPublic" -> JsBoolean(c.coll.isPublic),

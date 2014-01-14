@@ -185,10 +185,13 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
         val jsBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
         itemList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
-          case Left(apiError) => BadRequest(toJson(apiError))
+          case Left(apiError) =>
+            BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
         }
-      } else Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+      } else {
+        Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+      }
   }
 
   def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {

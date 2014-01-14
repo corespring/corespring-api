@@ -55,6 +55,8 @@ POST    /api/v1/collections                     api.v1.CollectionApi.createColle
 PUT     /api/v1/collections/:id                 api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /api/v1/collections/:id                 api.v1.CollectionApi.deleteCollection(id: ObjectId)
 GET     /api/v1/collections/:ids/fieldValues/:field  api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
+PUT           /api/v1/collections/:id/add-items                                     api.v1.CollectionApi.shareItemsWithCollection(id: ObjectId)
+
 
 # Users
 GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
