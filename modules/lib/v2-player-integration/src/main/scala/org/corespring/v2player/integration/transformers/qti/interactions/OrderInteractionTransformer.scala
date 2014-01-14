@@ -5,34 +5,29 @@ import scala.xml.{Elem, Node}
 import scala.collection.mutable
 import play.api.libs.json.{JsBoolean, Json, JsObject}
 
-class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
+class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
+  extends RewriteRule
+  with InteractionTransformer {
 
   def component(node: Node) = {
     val identifier = (node \\ "@responseIdentifier").text
 
-    (qti \\ "responseDeclaration").find(n => (n \ "@identifier").text == identifier) match {
-      case Some(responseDeclaration) => {
-        val responses = (responseDeclaration \ "correctResponse" \\ "value").map(_.text)
-        Json.obj(
-          "componentType" -> "corespring-ordering",
-          "correctResponse" -> responses,
-          "model" -> Json.obj(
-            "prompt" -> ((node \ "prompt") match {
-              case seq: Seq[Node] if seq.isEmpty => ""
-              case seq: Seq[Node] => seq.head.child.mkString
-            }),
-            "config" -> Json.obj(
-              "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")
-            ),
-            "choices" -> (node \\ "simpleChoice")
-              .map(choice => Json.obj("label" -> choice.text, "value" -> (choice \\ "@identifier").text))
-          )
-        )
-      }
-      case None =>
-        throw new IllegalStateException(s"Item did not contain a responseDeclaration for interaction $identifier")
-    }
-
+    val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
+    Json.obj(
+      "componentType" -> "corespring-ordering",
+      "correctResponse" -> responses,
+      "model" -> Json.obj(
+        "prompt" -> ((node \ "prompt") match {
+          case seq: Seq[Node] if seq.isEmpty => ""
+          case seq: Seq[Node] => seq.head.child.mkString
+        }),
+        "config" -> Json.obj(
+          "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")
+        ),
+        "choices" -> (node \\ "simpleChoice")
+          .map(choice => Json.obj("label" -> choice.text, "value" -> (choice \\ "@identifier").text))
+      )
+    )
   }
 
   (qti \\ "orderInteraction").foreach(node => {

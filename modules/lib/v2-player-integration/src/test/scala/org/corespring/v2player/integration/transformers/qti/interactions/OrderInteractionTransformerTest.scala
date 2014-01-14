@@ -1,11 +1,10 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
-import scala.xml.{XML, Node}
+import scala.xml.Node
 import scala.collection.mutable
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.JsObject
 import scala.xml.transform.RuleTransformer
-import org.corespring.v2player.integration.transformers.qti.interactions.OrderInteractionTransformer
 
 class OrderInteractionTransformerTest extends Specification {
 
