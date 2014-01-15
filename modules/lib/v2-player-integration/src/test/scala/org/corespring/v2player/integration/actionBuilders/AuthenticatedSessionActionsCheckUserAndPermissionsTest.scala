@@ -10,7 +10,7 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
-import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.actionBuilders.access.{Mode, PlayerOptions}
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mock.Mockito
@@ -173,7 +173,8 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
         itemService,
         orgService
       ) {
-        def hasPermissions(itemId: String, sessionId: Option[String], options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
+
+        override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode.Mode, options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
       }
 
     }
