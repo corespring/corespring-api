@@ -39,6 +39,8 @@ import scalaz.Failure
 import scalaz.{Success, Validation}
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.common.encryption.{NullCrypto, AESCrypto}
 
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) extends AssetResource {
@@ -57,17 +59,34 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher {
 
-    def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(){
-      def encryptionEnabled : Boolean = {
-        Play.current.mode != Mode.Dev && config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+    def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder() {
+
+      override def getOrgIdAndOptions(request: Request[AnyContent]) = {
+        if (encryptionEnabled) {
+          super.getOrgIdAndOptions(request)
+        } else {
+          val opts : PlayerOptions = request.getQueryString("options")
+            .map(PlayerOptions.fromJson(_))
+            .flatten
+            .getOrElse(new PlayerOptions("*", "*", true, None, Some("*")))
+          Success(ObjectId.get, opts)
+        }
       }
 
-      def decrypt(s: String): Option[String] = if(encryptionEnabled){
-        Some(s)
-      } else Some(s)
+      def encryptionEnabled: Boolean = {
+        val enabled = Play.current.mode != Mode.Dev && !config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+        logger.debug(s"encryptionEnabled: $enabled")
+        enabled
+      }
 
-      def toOrgId(apiClientId: String): Option[ObjectId] = for{
-        oid <- if(ObjectId.isValid(apiClientId)) Some(new ObjectId(apiClientId)) else None
+      def decrypt(orgId: ObjectId, contents: String): Option[String] = for {
+        encrypter <- Some(if (encryptionEnabled) AESCrypto else NullCrypto)
+        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
+        out <- orgEncrypter.decrypt(contents)
+      } yield out
+
+      def toOrgId(apiClientId: String): Option[ObjectId] = for {
+        oid <- if (ObjectId.isValid(apiClientId)) Some(new ObjectId(apiClientId)) else None
         client <- ApiClient.findOneById(oid)
       } yield client.orgId
 
