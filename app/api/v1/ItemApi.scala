@@ -118,7 +118,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
+      val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
+      val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> collections))
+      val initSearch: MongoDBObject = MongoDBObject("$or" -> MongoDBList(collectionIdQry,sharedInCollectionsQry))
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),

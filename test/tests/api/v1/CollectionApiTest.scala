@@ -1,6 +1,6 @@
 package tests.api.v1
 
-import api.v1.CollectionApi
+import api.v1.{ItemApi, CollectionApi}
 import org.bson.types.ObjectId
 import org.corespring.test.BaseTest
 import play.api.libs.json.{JsNumber, Json, JsValue}
@@ -179,12 +179,32 @@ class CollectionApiTest extends BaseTest {
 
   "add filtered items to a collection" in {
     // this is to support a user searching for a set of items, then adding that set of items to a collection
-    println("add filtered items to a collection")
     pending
   }
 
+  "find/list items should include shared items" in new CollectionSharingScope {
+    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+      case Left(error) => failure
+      case Right(savedIds) =>
+        val findRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
+        val findResult = ItemApi.list(None,None,"10",0,10,None)(findRequest)
+        assertResult(findResult)
+        val foundItems = parsed[List[JsValue]](findResult)
+        foundItems.size must beEqualTo(6)
+
+        val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
+        val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,10,None)(listReq)
+        assertResult(listResult)
+        val itemsList = parsed[List[JsValue]](listResult)
+        itemsList.size must beEqualTo(6)
+    }
+
+  }
 
 
+  "delete collection should remove collection id from shared items" in {
+    pending
+  }
 
 }
 
