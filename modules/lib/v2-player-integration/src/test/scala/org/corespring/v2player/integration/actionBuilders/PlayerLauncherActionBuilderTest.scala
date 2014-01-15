@@ -13,38 +13,67 @@ import play.api.mvc.{SimpleResult, AnyContentAsEmpty, Result, AnyContent}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeHeaders}
 import scala.concurrent.Future
+import org.corespring.player.accessControl.models.RenderOptions
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
 class PlayerLauncherActionBuilderTest extends Specification with Mockito {
 
   PlaySingleton.start
 
-  case class scope(orgId:Option[ObjectId] = Some(ObjectId.get), decryptEnabled : Boolean = true)  extends Scope{
+  val mockOrgId = ObjectId.get
+
+  case class scope(orgId: Option[ObjectId] = Some(mockOrgId), decryptEnabled: Boolean = true) extends Scope {
     val builder = new PlayerLauncherActionBuilder {
       def toOrgId(s: String): Option[ObjectId] = orgId
 
       def userService: UserService = mock[UserService]
 
-      def decrypt(orgId: ObjectId, encrypted: String): Option[String] = if(decryptEnabled) Some(encrypted) else None
+      def decrypt(orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
     }
 
     def handler(r: PlayerJsRequest[AnyContent]): Result = Ok(s"${r.isSecure}")
 
-    def call(path:String) : Future[SimpleResult] = builder.playerJs(handler)(FakeRequest("", path, FakeHeaders(), AnyContentAsEmpty))
+    def call(path: String): Future[SimpleResult] = builder.playerJs(handler)(FakeRequest("", path, FakeHeaders(), AnyContentAsEmpty))
 
-    case class returnResult(expectedStatus: Int, body:String) extends Matcher[Future[SimpleResult]] {
-      def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
-        val actualStatus = status(s.value)
-        val actualBody = contentAsString(s.value)
-        result(actualStatus == expectedStatus && actualBody == body,
-          s"${actualStatus} matches $expectedStatus & $body",
-          s"[$actualStatus:$actualBody] does not match [$expectedStatus:$body]",
-          s)
+  }
+
+  case class returnResult(expectedStatus: Int, body: String) extends Matcher[Future[SimpleResult]] {
+    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
+      val actualStatus = status(s.value)
+      val actualBody = contentAsString(s.value)
+      result(actualStatus == expectedStatus && actualBody == body,
+        s"${actualStatus} matches $expectedStatus & $body",
+        s"[$actualStatus:$actualBody] does not match [$expectedStatus:$body]",
+        s)
+    }
+  }
+
+  case class haveCookies(cookies: (String, String)*) extends Matcher[Future[SimpleResult]] {
+    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
+      val actualSession = session(s.value)
+
+      val valueResults: Seq[(String, String)] = cookies.map {
+        kv =>
+          val valueResult = actualSession.get(kv._1).map {
+            v =>
+              if (v == kv._2) "equal" else "not equal"
+          }.getOrElse("not found")
+          (kv._1, valueResult)
       }
+
+      val badResults = valueResults.filterNot(kv => kv._2 == "equal")
+      val success = badResults.length == 0
+
+      result(success,
+        s"${cookies} matches ${valueResults.mkString(",")}",
+        s"${cookies} != ${actualSession.data}",
+        s)
     }
   }
 
   "PlayerLauncherActionBuilder" should {
     import PlayerLauncherActionBuilder.Errors._
+    import PlayerCookieKeys._
 
     "return an error if no apiClient" in new scope {
       call("player.js") must returnResult(BAD_REQUEST, noClientId)
@@ -67,11 +96,15 @@ class PlayerLauncherActionBuilderTest extends Specification with Mockito {
     }
 
     "return body if all is ok and secure" in new scope {
-      call("""player.js?apiClient={}&options={"itemId":"*","sessionId":"*","secure":true}""") must returnResult(OK, "true")
+      val opts = """{"itemId":"*","sessionId":"*","secure":true}"""
+      val path = s"""player.js?apiClient={}&options=$opts"""
+
+      call(path) must returnResult(OK, "true")
+      call(path) must haveCookies(ORG_ID -> mockOrgId.toString, RENDER_OPTIONS -> opts)
     }
 
     "return body if all is ok and not secure" in new scope {
-      call("""player.js?apiClient={}&options={"itemId":"*","sessionId":"*","secure":false}""") must returnResult(OK, "false")
+      call( """player.js?apiClient={}&options={"itemId":"*","sessionId":"*","secure":false}""") must returnResult(OK, "false")
     }
   }
 }
