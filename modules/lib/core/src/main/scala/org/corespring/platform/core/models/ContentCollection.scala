@@ -170,7 +170,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
 
   /**
-   * Add items to the collection specified.
+   * Share items to the collection specified.
    * - must ensure that the context org has write access to the collection
    * - must ensure that the context org has read access to the items being added
    *
@@ -179,7 +179,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @param collId
    * @return
    */
-  def addItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
     if (isAuthorized(orgId, collId, Permission.Write)) {
       val oids = items.map(i => i.id)
       val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
@@ -222,6 +222,43 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     }
 
   }
+
+  /**
+   * Unshare the specified items from the specified collections
+   *
+   * @param orgId
+   * @param items - sequence of items to be unshared from
+   * @param collIds - sequence of collections to have the items removed from
+   * @return
+   */
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    // make sure org has auth for all the collIds
+    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
+    if (authorizedCollIds.size != collIds.size) {
+      Left(InternalError("authorization failed on collection(s)"))
+    } else {
+      val failedItems = items.filterNot(item => {
+        try {
+          ItemServiceImpl.findOneById(item) match {
+            case _ =>
+              ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)) ,false)
+              true
+          }
+        } catch {
+          case e: SalatDAOUpdateError => false
+        }
+      })
+      if (failedItems.size > 0) {
+        Left(InternalError("failed to unshare collections for items: " + failedItems))
+      } else {
+        Right(items)
+      }
+    }
+
+  }
+
+
+
 
   /**
    * does the given organization have access to the given collection with given permissions?

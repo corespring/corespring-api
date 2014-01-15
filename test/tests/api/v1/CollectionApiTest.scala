@@ -149,12 +149,31 @@ class CollectionApiTest extends BaseTest {
     // share some existing items with a collection
     val jsonBody = Map("items" -> collectionB1ItemIds.map(_.toString()))
     val shareItemsReq =
-      FakeRequest(PUT, s"/api/v1/collections/$collectionA1/add-items?access_token=%s".format(accessTokenA),
+      FakeRequest(PUT, s"/api/v1/collections/$collectionA1/share-items?access_token=%s".format(accessTokenA),
         FakeHeaders(),
         AnyContentAsJson(Json.toJson(jsonBody)))
 
     val shareItemsResult = CollectionApi.shareItemsWithCollection(collectionA1)(shareItemsReq)
     assertResult(shareItemsResult)
+
+  }
+
+  "un-share items from a collection" in new CollectionSharingScope {
+    // share. then un-share some items
+    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+      case Left(error) => failure
+      case Right(savedIds) =>
+        val jsonBody = Map("items" -> collectionB1ItemIds.map(_.toString()))
+        val unShareItemsReq = FakeRequest(PUT, s"/api/v1/collections/$collectionA1/un-share-items?access_token=%s".format(accessTokenA),
+          FakeHeaders(),
+          AnyContentAsJson(Json.toJson(jsonBody)))
+        val unShareItemsResult = CollectionApi.unShareItemsWithCollection(collectionA1)(unShareItemsReq)
+        assertResult(unShareItemsResult)
+
+    }
+
+
+
 
   }
 

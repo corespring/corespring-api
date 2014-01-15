@@ -262,13 +262,13 @@ object CollectionApi extends BaseApi {
       request.body.asJson match {
         case Some(json) => {
           if ((json \ "items").asOpt[Array[String]].isEmpty) {
-            BadRequest(Json.toJson(ApiError.ShareItemsWithCollectionError(Some("no items could be found in request body json"))))
+            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
           } else {
             val itemIds = (json \ "items").as[Seq[String]]
             val versionedItemIds = itemIds.map(stringToVersionedId).flatten
-            ContentCollection.addItems(request.ctx.organization, versionedItemIds, collectionId) match {
+            ContentCollection.shareItems(request.ctx.organization, versionedItemIds, collectionId) match {
               case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.ShareItemsWithCollectionError(error.clientOutput)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
             }
           }
         }
@@ -282,9 +282,23 @@ object CollectionApi extends BaseApi {
    * @param collectionId
    * @return
    */
-  def unshareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
+  def unShareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
     request =>
-      Ok(Json.toJson("TODO"))
+      request.body.asJson match {
+        case Some(json) => {
+          if ((json \ "items").asOpt[Array[String]].isEmpty) {
+            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
+          } else {
+            val itemIds = (json \ "items").as[Seq[String]]
+            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
+            ContentCollection.unShareItems(request.ctx.organization, versionedItemIds, Seq(collectionId)) match {
+              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+            }
+          }
+        }
+        case _ => jsonExpected
+      }
   }
 
   /**
