@@ -3,7 +3,6 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.xml.transform.RuleTransformer
-import org.corespring.v2player.integration.transformers.qti.interactions.CoverflowInteractionTransformer
 
 class CoverflowInteractionTransformerTest extends Specification {
 
