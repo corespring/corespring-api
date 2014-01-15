@@ -54,7 +54,6 @@ object FieldValuesApiTest extends BaseTest {
       route(request) match {
         case Some(result) => {
           val json : JsValue = Json.parse(contentAsString(result))
-          println(json)
           ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0)  === true
           ((json \ "reviewsPassed").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
         }
