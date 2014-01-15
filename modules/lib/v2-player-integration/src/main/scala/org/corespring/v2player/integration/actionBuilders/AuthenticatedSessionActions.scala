@@ -10,12 +10,23 @@ trait AuthenticatedSessionActions {
     Unauthorized(msg)
   }
 
+  /**
+   * The client wants to create a session for the given item id.
+   * call authorized if authenticated
+   * @param id
+   * @param authorized
+   * @return
+   */
   def createSession(id: String)(authorized: (Request[AnyContent]) => Result): Action[AnyContent] = createSessionHandleNotAuthorized(id)(authorized)(defaultNotAuthorized)
 
   /**
-   * Optionally call create session and pass in a handler for not authorized
+   * The client wants to create a session for the given item id.
+   * call authorized if successful, failed if not
    */
   def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent]
+
+
+  def loadPlayerForSession(sessionId: String)(block : (Request[AnyContent] => Result)) : Action[AnyContent]
 }
 
 

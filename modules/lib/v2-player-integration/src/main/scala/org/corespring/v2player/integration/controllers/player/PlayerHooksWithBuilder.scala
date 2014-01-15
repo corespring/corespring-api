@@ -2,7 +2,7 @@ package org.corespring.v2player.integration.controllers.player
 
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.container.client.actions.{SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
+import org.corespring.container.client.actions.{PlayerHooksActionBuilder, SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
 import org.corespring.container.client.controllers.hooks.PlayerHooks
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
@@ -10,11 +10,18 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
 import play.api.libs.json.{Json, JsString, JsValue}
-import play.api.mvc.{Action, Result, AnyContent}
+import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz._
+import scala.concurrent.{Await, Future}
+import org.corespring.container.client.actions.PlayerRequest
+import scalaz.Failure
+import play.api.libs.json.JsString
+import scala.Some
+import org.corespring.container.client.actions.SessionIdRequest
+import scalaz.Success
 
-trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging{
+trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
 
   def sessionService: MongoService
 
@@ -29,7 +36,7 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging{
     case _ => None
   }
 
-  def builder: ClientHooksActionBuilder[AnyContent] = new ClientHooksActionBuilder[AnyContent] {
+  def builder: PlayerHooksActionBuilder[AnyContent] = new PlayerHooksActionBuilder[AnyContent] {
 
     private def maybeOid(s: String): Option[ObjectId] = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
@@ -82,10 +89,15 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging{
           case Success(sessionId) => block(SessionIdRequest(sessionId.toString, request))
           case Failure(msg) => BadRequest(msg)
         }
-    }{ (r, code, msg) =>
-      logger.warn(s"create session failed: $msg")
-      if(code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
+    } {
+      (r, code, msg) =>
+        logger.warn(s"create session failed: $msg")
+        if (code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
     }
 
+    def loadPlayerForSession(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = auth.loadPlayerForSession(sessionId){
+      request =>
+        block(request)
+    }
   }
 }

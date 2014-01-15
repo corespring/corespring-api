@@ -9,9 +9,11 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
-import org.corespring.v2player.integration.actionBuilders.access.{PlayerOptions, V2PlayerCookieReader}
+import org.corespring.v2player.integration.actionBuilders.access.{Mode, PlayerOptions, V2PlayerCookieReader}
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.{Action, Result, AnyContent, Request}
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 
 
 object CheckUserAndPermissions {
@@ -32,6 +34,7 @@ object CheckUserAndPermissions {
 
     def cantFindById(name: String, id: String) = (NOT_FOUND, s"Can't find $name with id $id")
   }
+
 }
 
 abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
@@ -52,17 +55,19 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
   ) orElse anonymousUser(request)
 
 
-  def hasPermissions(itemId:String, sessionId: Option[String], options: PlayerOptions): Validation[String, Boolean]
+  def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean]
 
-  private def hasPermissionForSession(id:String, options : PlayerOptions) : Validation[String,Boolean] = { for{
+  private def hasPermissionForSession(id: String, mode: Mode, options: PlayerOptions): Validation[String, Boolean] = {
+    for {
       s <- sessionService.load(id)
       itemId <- (s \ "itemId").asOpt[String]
-    } yield hasPermissions( itemId, Some(id), options)
+    } yield hasPermissions(itemId, Some(id), mode, options)
   }.getOrElse(Failure("Can't find session or itemId"))
 
   def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
-      checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, _)) match {
+      val mode = request.getQueryString("mode").map(_.toString).map(Mode.withName).getOrElse(Mode.view)
+      checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, mode, _)) match {
         case Success(true) => block(request)
         case Success(false) => Unauthorized("Authentication failed")
         case Failure(error) => Status(error._1)(error._2)
@@ -71,7 +76,7 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
 
   def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent] = Action {
     request =>
-      checkAccess(request, orgCanAccessItem(itemId, _), hasPermissions(itemId, None, _)) match {
+      checkAccess(request, orgCanAccessItem(itemId, _), hasPermissions(itemId, None, Mode.gather, _)) match {
         case Success(true) => authorized(request)
         case Success(false) => failed(request, BAD_REQUEST, "Didn't work")
         case Failure(error) => failed(request, error._1, error._2)
@@ -86,7 +91,7 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
   private def checkAccess(
                            request: Request[AnyContent],
                            getOrgAccess: ObjectId => Validation[(Int, String), Boolean],
-                           getPermissions: (PlayerOptions) => Validation[String,Boolean]) = {
+                           getPermissions: (PlayerOptions) => Validation[String, Boolean]) = {
     getOrgIdAndOptions(request).map {
       t: (ObjectId, PlayerOptions) =>
         val (orgId, options) = t
@@ -98,9 +103,9 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
   }
 
   private def userFromSession(request: Request[AnyContent]): Option[User] = for {
-      ssUser <- secureSocialService.currentUser(request)
-      dbUser <- userService.getUser(ssUser.identityId.userId, ssUser.identityId.providerId)
-    } yield dbUser
+    ssUser <- secureSocialService.currentUser(request)
+    dbUser <- userService.getUser(ssUser.identityId.userId, ssUser.identityId.providerId)
+  } yield dbUser
 
   private def orgCanAccessSession(sessionId: String, orgId: ObjectId): Validation[(Int, String), Boolean] = for {
     session <- sessionService.load(sessionId).toSuccess(Errors.cantLoadSession(sessionId))
@@ -120,4 +125,13 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
     } yield canAccess
   }
 
+  def loadPlayerForSession(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+      val mode = request.getQueryString("mode").map(_.toString).map(Mode.withName).getOrElse(Mode.view)
+      checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, mode, _)) match {
+        case Success(true) => block(request)
+        case Success(false) => Unauthorized("")
+        case Failure(tuple) => Status(tuple._1)(tuple._2)
+      }
+  }
 }
