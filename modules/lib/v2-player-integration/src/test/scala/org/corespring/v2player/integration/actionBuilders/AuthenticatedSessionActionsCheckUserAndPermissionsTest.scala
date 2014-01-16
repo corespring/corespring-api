@@ -49,7 +49,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
   val itemId = VersionedId(ObjectId.get.toString).get
   val collectionId = ObjectId.get
 
-  def returnFromTuple(t:(Int,String)) = (returnResult _).tupled(t)
+  def returnFromTuple(t:(Int,String)) = returnResult(t._1, t._2)
 
   "read" should {
     "when no user and permissions" should {
