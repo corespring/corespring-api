@@ -3,20 +3,24 @@ package org.corespring.v2player.integration.actionBuilders
 import org.bson.types.ObjectId
 import org.corespring.container.client.actions.PlayerJsRequest
 import org.corespring.platform.core.services.UserService
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.test.PlaySingleton
-import org.specs2.matcher.{Expectable, Matcher}
+import org.corespring.test.matchers.RequestMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.mvc.Results._
-import play.api.mvc.{SimpleResult, AnyContentAsEmpty, Result, AnyContent}
+import play.api.mvc._
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, FakeHeaders}
+import scala.Some
 import scala.concurrent.Future
-import org.corespring.player.accessControl.models.RenderOptions
-import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 
-class PlayerLauncherActionBuilderTest extends Specification with Mockito {
+class PlayerLauncherActionBuilderTest
+  extends Specification
+  with Mockito
+  with RequestMatchers {
 
   PlaySingleton.start
 
@@ -28,52 +32,17 @@ class PlayerLauncherActionBuilderTest extends Specification with Mockito {
 
       def userService: UserService = mock[UserService]
 
-      def decrypt(orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
+      def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
     }
 
     def handler(r: PlayerJsRequest[AnyContent]): Result = Ok(s"${r.isSecure}")
 
     def call(path: String): Future[SimpleResult] = builder.playerJs(handler)(FakeRequest("", path, FakeHeaders(), AnyContentAsEmpty))
-
-  }
-
-  case class returnResult(expectedStatus: Int, body: String) extends Matcher[Future[SimpleResult]] {
-    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
-      val actualStatus = status(s.value)
-      val actualBody = contentAsString(s.value)
-      result(actualStatus == expectedStatus && actualBody == body,
-        s"${actualStatus} matches $expectedStatus & $body",
-        s"[$actualStatus:$actualBody] does not match [$expectedStatus:$body]",
-        s)
-    }
-  }
-
-  case class haveCookies(cookies: (String, String)*) extends Matcher[Future[SimpleResult]] {
-    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
-      val actualSession = session(s.value)
-
-      val valueResults: Seq[(String, String)] = cookies.map {
-        kv =>
-          val valueResult = actualSession.get(kv._1).map {
-            v =>
-              if (v == kv._2) "equal" else "not equal"
-          }.getOrElse("not found")
-          (kv._1, valueResult)
-      }
-
-      val badResults = valueResults.filterNot(kv => kv._2 == "equal")
-      val success = badResults.length == 0
-
-      result(success,
-        s"${cookies} matches ${valueResults.mkString(",")}",
-        s"${cookies} != ${actualSession.data}",
-        s)
-    }
   }
 
   "PlayerLauncherActionBuilder" should {
-    import PlayerLauncherActionBuilder.Errors._
     import PlayerCookieKeys._
+    import PlayerLauncherActionBuilder.Errors._
 
     "return an error if no apiClient" in new scope {
       call("player.js") must returnResult(BAD_REQUEST, noClientId)

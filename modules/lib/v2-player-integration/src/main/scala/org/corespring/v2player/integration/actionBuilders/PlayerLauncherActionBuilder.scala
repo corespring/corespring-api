@@ -22,7 +22,7 @@ object PlayerLauncherActionBuilder{
 
 trait PlayerLauncherActionBuilder extends Builder[AnyContent] with V2PlayerCookieWriter {
 
-  def decrypt(orgId: ObjectId, encrypted: String): Option[String]
+  def decrypt(request:Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String]
 
   def toOrgId(orgId: String): Option[ObjectId]
 
@@ -31,7 +31,7 @@ trait PlayerLauncherActionBuilder extends Builder[AnyContent] with V2PlayerCooki
       apiClientId <- request.getQueryString("apiClient").toSuccess("You must specify 'apiClient'")
       encryptedOptions <- request.getQueryString("options").toSuccess("You must specify 'options'")
       orgId <- toOrgId(apiClientId).toSuccess("Error getting orgId")
-      decryptedOptions <- decrypt(orgId, encryptedOptions).toSuccess("Error decrypting")
+      decryptedOptions <- decrypt(request, orgId, encryptedOptions).toSuccess("Error decrypting")
       playerOptions <- PlayerOptions.fromJson(decryptedOptions).toSuccess("Error reading json")
     } yield (orgId, playerOptions)
   }
@@ -41,6 +41,9 @@ trait PlayerLauncherActionBuilder extends Builder[AnyContent] with V2PlayerCooki
     keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc +(kv._1, kv._2))
   }
 
+  /** Handle the request for the player js.
+    * Get the orgId and player options and add them to the player session if found.
+    */
   def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
       getOrgIdAndOptions(request) match {
