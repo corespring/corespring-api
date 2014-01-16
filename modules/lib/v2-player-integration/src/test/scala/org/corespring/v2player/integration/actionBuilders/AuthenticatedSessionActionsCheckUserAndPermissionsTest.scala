@@ -2,44 +2,36 @@ package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.{UserOrg, Organization, User}
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.player.accessControl.cookies.PlayerCookieKeys._
 import org.corespring.test.PlaySingleton
+import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
 import org.corespring.v2player.integration.actionBuilders.access.{Mode, PlayerOptions}
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsString, Json, JsValue}
+import play.api.libs.json.JsString
+import play.api.libs.json.{Json, JsValue}
 import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
+import scala.Some
 import scalaz.Success
 import scalaz.Validation
 import securesocial.core._
-import org.corespring.platform.core.models.auth.Permission
-import play.api.test.FakeHeaders
-import securesocial.core.IdentityId
-import play.api.libs.json.JsString
-import scala.Some
-import scalaz.Success
-import scala.concurrent.Future
-import org.corespring.player.accessControl.cookies.PlayerCookieKeys._
-import play.api.test.FakeHeaders
-import securesocial.core.IdentityId
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.mvc.SimpleResult
-import scalaz.Success
-import play.api.mvc.Cookie
 
-class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specification with Mockito {
+class AuthenticatedSessionActionsCheckUserAndPermissionsTest
+  extends Specification 
+  with Mockito 
+  with RequestMatchers{
 
   //TODO: There should be no need to have to init the play app when using a model
   //But at the moment the models are bound to a ModelCompanion object.
@@ -57,11 +49,12 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
   val itemId = VersionedId(ObjectId.get.toString).get
   val collectionId = ObjectId.get
 
+  def returnFromTuple(t:(Int,String)) = (returnResult _).tupled(t)
 
   "read" should {
     "when no user and permissions" should {
       s"return $UNAUTHORIZED " in new ActionsScope() {
-        actions.read("id")(handler)(fakeRequest) must returnCodeAndMessage(Errors.default)
+        actions.read("id")(handler)(fakeRequest) must returnFromTuple(Errors.default)
       }
     }
 
@@ -69,37 +62,37 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
       s"return $NOT_FOUND when session isn't found" in new ActionsScope(
         u, id
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantLoadSession("id"))
+        actions.read("id")(handler)(r) must returnFromTuple(Errors.cantLoadSession("id"))
       }
 
       s"return $BAD_REQUEST when the item id has a bad format" in new ActionsScope(
         u, id,  Some(Json.obj("itemId" -> JsString("bad string")))
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantParseItemId)
+        actions.read("id")(handler)(r) must returnFromTuple(Errors.cantParseItemId)
       }
 
       s"return $NOT_FOUND when item id can't be found" in new ActionsScope(
         u, id, Some(Json.obj("itemId" -> JsString(itemId.toString)))
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantFindItemWithId(itemId))
+        actions.read("id")(handler)(r) must returnFromTuple(Errors.cantFindItemWithId(itemId))
       }
 
       s"return $NOT_FOUND when org id can't be found" in new ActionsScope(
         u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId)
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.cantFindOrgWithId(orgId))
+        actions.read("id")(handler)(r) must returnFromTuple(Errors.cantFindOrgWithId(orgId))
       }
 
       s"return $UNAUTHORIZED when org can't access item" in new ActionsScope(
         u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId)
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage(Errors.default)
+        actions.read("id")(handler)(r) must returnFromTuple(Errors.default)
       }
 
       s"return $OK when org can access item" in new ActionsScope(
         u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId), true, true
       ) {
-        actions.read("id")(handler)(r) must returnCodeAndMessage((OK,"Worked"))
+        actions.read("id")(handler)(r) must returnFromTuple((OK,"Worked"))
       }
     }
 
@@ -131,15 +124,6 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest extends Specificati
     Some(out)
   }
 
-  case class returnCodeAndMessage( expectedTuple : (Int,String)) extends Matcher[Future[SimpleResult]] {
-    def apply[S <: Future[SimpleResult]](s: Expectable[S]) = {
-      val (expectedStatus, expectedMsg) = expectedTuple
-      val statusMatches = status(s.value) == expectedStatus
-      val msgMatches = contentAsString(s.value) == expectedMsg
-      val specsMsg = s"$expectedStatus =? ${status(s.value)} || $expectedMsg =? ${contentAsString(s.value)}"
-      result(statusMatches && msgMatches, specsMsg, specsMsg, s)
-    }
-  }
 
   class ActionsScope(user: Option[User] = None,
                      identity: Option[Identity] = None,
