@@ -89,6 +89,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   }
 
 
+
   private def itemList[A](
     q: Option[String],
     f: Option[String],
@@ -101,13 +102,11 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
-      val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> collections))
-      val initSearch: MongoDBObject = MongoDBObject("$or" -> MongoDBList(collectionIdQry,sharedInCollectionsQry))
+      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections)
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(collectionId -> parseCollectionIds(request)))) match {
+        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
         case Some(result) => result
         case None => Right(initSearch)
       }
@@ -142,6 +141,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
     }
   }
+
+
+
 
   private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
     if (!isLoggedIn && searchFields.dbfields.isEmpty) {
