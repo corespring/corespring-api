@@ -5,7 +5,7 @@ import com.mongodb.casbah.MongoDB
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.actions.{PlayerJsRequest}
+import org.corespring.common.encryption.{NullCrypto, AESCrypto}
 import org.corespring.container.client.controllers._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.Library
@@ -17,11 +17,13 @@ import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.container.components.response.rhino.{OutcomeProcessor => RhinoProcessor}
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.AssetResource
+import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
-import org.corespring.platform.core.services.{UserService, UserServiceWired}
 import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
+import org.corespring.platform.core.services.{UserService, UserServiceWired}
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
@@ -30,17 +32,13 @@ import org.corespring.v2player.integration.controllers.editor.{ItemWithBuilder, 
 import org.corespring.v2player.integration.controllers.player.{ClientSessionWithBuilder, PlayerHooksWithBuilder}
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{Mode, Play, Configuration}
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import play.api.{Mode, Play, Configuration}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalaz.Failure
 import scalaz.{Success, Validation}
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
-import org.corespring.platform.core.encryption.OrgEncrypter
-import org.corespring.common.encryption.{NullCrypto, AESCrypto}
 
 
 class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) extends AssetResource {
@@ -62,25 +60,32 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
     def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder() {
 
       override def getOrgIdAndOptions(request: Request[AnyContent]) = {
-        if (encryptionEnabled) {
+        if (encryptionEnabled(request)) {
           super.getOrgIdAndOptions(request)
         } else {
           val opts : PlayerOptions = request.getQueryString("options")
             .map(PlayerOptions.fromJson(_))
             .flatten
             .getOrElse(new PlayerOptions("*", "*", true, None, Some("*")))
-          Success(ObjectId.get, opts)
+          val orgId : ObjectId = request.getQueryString("apiClient").map(toOrgId).flatten.getOrElse(ObjectId.get)
+          Success(orgId, opts)
         }
       }
 
-      def encryptionEnabled: Boolean = {
-        val enabled = Play.current.mode != Mode.Dev && !config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+      def encryptionEnabled(r:Request[AnyContent]): Boolean = {
+        val acceptsFlag = Play.current.mode == Mode.Dev || config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+
+        val enabled = if(acceptsFlag){
+          val disable = r.getQueryString("skipDecryption").map( v => true).getOrElse(false)
+          !disable
+        } else  true
+
         logger.debug(s"encryptionEnabled: $enabled")
         enabled
       }
 
-      def decrypt(orgId: ObjectId, contents: String): Option[String] = for {
-        encrypter <- Some(if (encryptionEnabled) AESCrypto else NullCrypto)
+      def decrypt(request:Request[AnyContent], orgId: ObjectId, contents: String): Option[String] = for {
+        encrypter <- Some(if (encryptionEnabled(request)) AESCrypto else NullCrypto)
         orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
         out <- orgEncrypter.decrypt(contents)
       } yield out
