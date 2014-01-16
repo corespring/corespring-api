@@ -180,6 +180,14 @@ object Build extends sbt.Build {
     routesImport ++= customImports
   ).dependsOn(core, scormLib, v1Player)
 
+  lazy val integrationTestSettings = Seq(
+    scalaSource in IntegrationTest <<= baseDirectory / "it",
+    Keys.parallelExecution in IntegrationTest := false,
+    Keys.fork in IntegrationTest := false,
+    testOptions in IntegrationTest += Tests.Setup( () => println("Setup Integration Test yoohoo") ),
+    testOptions in IntegrationTest += Tests.Cleanup( () => println("Cleanup Integration Test yoohoo") )
+  )
+
   val main = builders.web(appName, Some(file(".")))
     .settings(
       routesImport ++= customImports,
@@ -195,8 +203,10 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib % "test->compile", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .configs( IntegrationTest )
+    .settings( Defaults.itSettings : _*)
+    .settings( integrationTestSettings : _* )
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
     .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
-
     addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
