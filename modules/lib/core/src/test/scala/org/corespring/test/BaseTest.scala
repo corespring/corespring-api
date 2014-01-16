@@ -12,7 +12,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 import scala.Some
 import scala.concurrent.Future
 
-trait BaseTest extends Specification {
+trait BaseTest extends Specification with Assertions {
 
   val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
   // From standard fixture data
@@ -93,19 +93,4 @@ trait BaseTest extends Specification {
       (file \ "content").toString
     })
   }
-
-  def parsed[A](result: Future[SimpleResult])(implicit reads: Reads[A]) = Json.fromJson[A](Json.parse(contentAsString(result))) match {
-    case JsSuccess(data, _) => data
-    case _ => throw new RuntimeException("Couldn't parse json")
-  }
-
-  def assertResult(result: Future[SimpleResult],
-    expectedStatus: Int = OK,
-    expectedCharset: Option[String] = Some("utf-8"),
-    expectedContentType: Option[String] = Some("application/json")): org.specs2.execute.Result = {
-    status(result) === expectedStatus
-    charset(result) === expectedCharset
-    contentType(result) === expectedContentType
-  }
-
 }
