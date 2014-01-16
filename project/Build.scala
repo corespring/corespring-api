@@ -18,9 +18,9 @@ object Build extends sbt.Build {
 
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
-    publishArtifact in (Compile, packageDoc) := false,
+    publishArtifact in(Compile, packageDoc) := false,
     // disable publishing the main sources jar
-    publishArtifact in (Compile, packageSrc) := false,
+    publishArtifact in(Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
   val cred = {
@@ -71,7 +71,7 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
 
   val assets = builders.lib("assets")
-    .settings( libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
+    .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
   val qti = builders.lib("qti").settings(libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
@@ -107,17 +107,16 @@ object Build extends sbt.Build {
   ).dependsOn(core % "test->test;compile->compile", playerLib)
 
 
-
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
 
   val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
     (base, n, v, s) =>
       s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
       val file = base / "buildInfo.properties"
-      val commitHash : String = Process("git rev-parse --short HEAD").!!.trim
-      val branch : String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
+      val commitHash: String = Process("git rev-parse --short HEAD").!!.trim
+      val branch: String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
       val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
-      val date =formatter.print(DateTime.now)
+      val date = formatter.print(DateTime.now)
       val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
       IO.write(file, contents)
   }
@@ -130,7 +129,7 @@ object Build extends sbt.Build {
 
   val clientLogging = builders.web("client-logging").settings(
     libraryDependencies ++= Seq(playFramework, scalaz)
-  ).dependsOn(apiUtils,  core % "test->test" )
+  ).dependsOn(apiUtils, core % "test->test")
 
   val scormLib = builders.lib("scorm").settings(
     libraryDependencies ++= Seq(playFramework)
@@ -144,10 +143,10 @@ object Build extends sbt.Build {
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports
   )
-  .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-  .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
-  object TemplateImports{
+  object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
 
@@ -157,14 +156,14 @@ object Build extends sbt.Build {
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports
     )
-    .aggregate(qti, playerLib, v1Api, apiUtils, testLib ,core, commonViews)
+    .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
     .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .aggregate(core, ltiLib, playerLib, v1Player)
-    .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test" )
+    .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test")
 
   val public = builders.web("public").settings(
     libraryDependencies ++= Seq(playFramework, securesocial),
@@ -184,8 +183,8 @@ object Build extends sbt.Build {
     scalaSource in IntegrationTest <<= baseDirectory / "it",
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
-    testOptions in IntegrationTest += Tests.Setup( () => println("Setup Integration Test yoohoo") ),
-    testOptions in IntegrationTest += Tests.Cleanup( () => println("Cleanup Integration Test yoohoo") )
+    testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
+    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test"))
   )
 
   val main = builders.web(appName, Some(file(".")))
@@ -199,14 +198,14 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests)
-     )
+    )
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
-    .configs( IntegrationTest )
-    .settings( Defaults.itSettings : _*)
-    .settings( integrationTestSettings : _* )
-    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, clientLogging % "compile->compile;test->test" )
+    .configs(IntegrationTest)
+    .settings(Defaults.itSettings: _*)
+    .settings(integrationTestSettings: _*)
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, clientLogging % "compile->compile;test->test")
     .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
-    addCommandAlias("gen-idea-project", ";update-classifiers;idea")
+  addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

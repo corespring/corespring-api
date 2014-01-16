@@ -91,8 +91,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
       } yield out
 
       def toOrgId(apiClientId: String): Option[ObjectId] = for {
-        oid <- if (ObjectId.isValid(apiClientId)) Some(new ObjectId(apiClientId)) else None
-        client <- ApiClient.findOneById(oid)
+        client <- ApiClient.findByKey(apiClientId)
       } yield client.orgId
 
       def userService: UserService = UserServiceWired

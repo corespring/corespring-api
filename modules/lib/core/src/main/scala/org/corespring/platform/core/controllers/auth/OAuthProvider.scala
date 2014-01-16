@@ -10,10 +10,21 @@ import org.joda.time.DateTime
 import play.api.Logger
 import scala.Some
 
+trait AuthTokenGenerating{
+  /**
+   * Generates a random token
+   *
+   * @return a token
+   */
+  def generateToken(keyLength : Int = AESCrypto.KEY_LENGTH) = {
+    BigInt.probablePrime(keyLength * 8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
+  }
+}
+
 /**
  * A OAuth provider
  */
-object OAuthProvider {
+object OAuthProvider extends AuthTokenGenerating{
 
   /**
    * Creates an ApiClient for an organization.  This allows organizations to receive API calls
@@ -28,7 +39,7 @@ object OAuthProvider {
         // check we got an existing org id
         Organization.findOneById(orgId) match {
           case Some(org) =>
-            val apiClient = ApiClient(orgId, new ObjectId(), generateToken)
+            val apiClient = ApiClient(orgId, new ObjectId(), generateToken())
             try {
               ApiClient.save(apiClient)
               Right(apiClient)
@@ -66,7 +77,7 @@ object OAuthProvider {
               val org = client.orgId
               AccessToken.find(org, scope).foreach(AccessToken.remove(_))
               val creationTime = DateTime.now()
-              val token = AccessToken(org, scope, generateToken, creationTime, creationTime.plusHours(24))
+              val token = AccessToken(org, scope, generateToken(), creationTime, creationTime.plusHours(24))
               AccessToken.insert(token) match {
                 case Some(_) => Right(token)
                 case None => Left(ApiError.OperationError)
@@ -95,12 +106,4 @@ object OAuthProvider {
     }
   }
 
-  /**
-   * Generates a random token
-   *
-   * @return a token
-   */
-  def generateToken = {
-    BigInt.probablePrime(AESCrypto.KEY_LENGTH * 8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
-  }
 }
