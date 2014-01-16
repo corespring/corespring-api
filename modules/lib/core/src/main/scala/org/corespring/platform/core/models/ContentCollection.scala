@@ -5,7 +5,7 @@ import com.novus.salat._
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.models.search.Searchable
+import org.corespring.platform.core.models.search.{SearchCancelled, ItemSearch, Searchable}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
@@ -21,6 +21,18 @@ import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.Item.Keys._
+import org.corespring.platform.core.models.search.SearchCancelled
+import com.novus.salat.dao.SalatInsertError
+import com.novus.salat.dao.SalatRemoveError
+import scalaz.Failure
+import play.api.libs.json.JsString
+import play.api.libs.json.JsBoolean
+import scala.Some
+import play.api.libs.json.JsNumber
+import com.novus.salat.dao.SalatDAOUpdateError
+import scalaz.Success
+import play.api.libs.json.JsObject
 
 /**
  * A ContentCollection
@@ -224,6 +236,32 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
   }
 
   /**
+   * Share the items returned by the query with the specified collection.
+   *
+   * @param orgId
+   * @param query
+   * @param collId
+   * @return
+   */
+  def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
+    val collectionsQuery = ItemServiceImpl.createDefaultCollectionsQuery(acessibleCollections)
+    val parsedQuery: Either[SearchCancelled, MongoDBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery) )
+
+    parsedQuery match {
+      case Right(searchQry) =>
+        val cursor = ItemServiceImpl.find(searchQry, MongoDBObject("_id" -> 1))
+        val ids = cursor.map(item => item.id)
+        shareItems(orgId,ids.toSeq, collId)
+      case Left(sc) => sc.error match {
+        case None => Right(Seq())
+        case Some(error) => Left(InternalError(error.clientOutput.getOrElse("error processing search")))
+      }
+    }
+  }
+
+
+    /**
    * Unshare the specified items from the specified collections
    *
    * @param orgId

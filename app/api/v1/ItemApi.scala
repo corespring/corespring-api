@@ -88,23 +88,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     toJson(itemViews)
   }
 
-  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
-    case dbo: BasicDBObject => dbo.toSeq.headOption match {
-      case Some((key, dblist)) => if (key == "$in") {
-        if (dblist.isInstanceOf[BasicDBList]) {
-          try {
-            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(request.ctx.organization, new ObjectId(coll.toString), Permission.Read)))
-              Right(value)
-            else Left(InternalError("attempted to access a collection that you are not authorized to"))
-          } catch {
-            case e: IllegalArgumentException => Left(InternalError("could not parse collectionId into an object id", e))
-          }
-        } else Left(InternalError("invalid value for collectionId key. could not cast to array"))
-      } else Left(InternalError("can only use $in special operator when querying on collectionId"))
-      case None => Left(InternalError("empty db object as value of collectionId key"))
-    }
-    case _ => Left(InternalError("invalid value for collectionId"))
-  }
 
   private def itemList[A](
     q: Option[String],

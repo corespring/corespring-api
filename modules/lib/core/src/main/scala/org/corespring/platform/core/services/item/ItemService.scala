@@ -6,6 +6,9 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import scala.xml.Elem
+import com.mongodb.casbah.Imports._
+import com.novus.salat.dao.SalatMongoCursor
+import org.corespring.platform.core.models.error
 
 trait ItemServiceClient {
   def itemService: ItemService
@@ -41,4 +44,7 @@ trait BaseItemService[ID] {
 
   def sessionCount(item: Item): Long
 
+  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId]): MongoDBObject
+
+  def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef]
 }

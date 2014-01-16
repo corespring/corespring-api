@@ -304,12 +304,26 @@ object CollectionApi extends BaseApi {
   /**
    * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
    * @param q - the query to select items to add to the collection
-   * @param collectionId  - collection to add the items to
+   * @param id  - collection to add the items to
    * @return  - json with success or error response
    */
-  def addFilteredItemsToCollection(q: Option[String], collectionId: String) = ApiActionWrite {  request =>
-    // get item id sequence and pass to ContentCollection.addItems
-    Ok(Json.toJson("TODO"))
+  def shareFilteredItemsWithCollection(id: ObjectId,q: Option[String]) = ApiActionWrite {  request =>
+    ContentCollection.findOneById(id) match {
+      case Some(coll) => if (ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+        if (q.isDefined) {
+          ContentCollection.shareItemsMatchingQuery(request.ctx.organization,q.get,id) match {
+            case Right(itemsAdded) => Ok(toJson(itemsAdded.size))
+            case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+          }
+        } else {
+          BadRequest(Json.toJson(ApiError.ItemSharingError(Some("q is required parameter"))))
+        }
+
+      } else {
+        Forbidden(Json.toJson(ApiError.ItemSharingError(Some("permission not granted"))))
+      }
+      case None => BadRequest(Json.toJson(ApiError.ItemSharingError(Some("collection not found"))))
+    }
   }
 
 }

@@ -16,6 +16,7 @@ import scala.Some
 import play.api.mvc.AnyContentAsJson
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
+import com.mongodb.casbah.commons.MongoDBObject
 
 
 class CollectionApiTest extends BaseTest {
@@ -177,9 +178,21 @@ class CollectionApiTest extends BaseTest {
 
   }
 
-  "add filtered items to a collection" in {
+  "add filtered items to a collection" in  new CollectionSharingScope {
     // this is to support a user searching for a set of items, then adding that set of items to a collection
-    pending
+    // share items in collection b1 that are published with collection a1...
+    val query = s""" {"published":true, "collectionId":{"$$in":["$collectionB1"]} } """
+    val addFilteredItemsReq = FakeRequest(GET, s"/api/v1/items?q=$query&access_token=%s".format(accessTokenA))
+    val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1,Some(query))(addFilteredItemsReq)
+    assertResult(shareItemsResult)
+    val response = parsed[JsNumber](shareItemsResult)
+    response.toString mustEqual  "3"
+    // check how many items are now available in a1. There should be 6: 3 owned by a1 and 3 shared with a1 from b1
+    val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
+    val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,10,None)(listReq)
+    assertResult(listResult)
+    val itemsList = parsed[List[JsValue]](listResult)
+    itemsList.size must beEqualTo(6)
   }
 
   "find/list items should include shared items" in new CollectionSharingScope {
@@ -190,7 +203,11 @@ class CollectionApiTest extends BaseTest {
         val findResult = ItemApi.list(None,None,"10",0,10,None)(findRequest)
         assertResult(findResult)
         val foundItems = parsed[List[JsValue]](findResult)
-        foundItems.size must beEqualTo(6)
+        val b1ItemsFound = foundItems.filter(jsonItem =>
+          collectionB1ItemIds.filter(
+            _.id.toString == jsonItem \ "id").size > 0
+        )
+        b1ItemsFound.size must beEqualTo(6)
 
         val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
         val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,10,None)(listReq)

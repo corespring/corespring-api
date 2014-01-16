@@ -23,6 +23,11 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import player.controllers.Views
 import scala.xml.Elem
 import utils.MockXml
+import com.mongodb.casbah.Imports._
+import play.api.test.FakeHeaders
+import scala.Some
+import com.novus.salat.dao.SalatMongoCursor
+import org.corespring.platform.core.models.error
 
 class ViewsTest extends Specification with Mockito {
 
@@ -44,6 +49,8 @@ class ViewsTest extends Specification with Mockito {
     def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = ???
     def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = Some( MockXml.AllItems )
     def sessionCount(item: Item): Long = ???
+    def createDefaultCollectionsQuery[A](collections: Seq[ObjectId]): MongoDBObject = ???
+    def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = ???
   }
 
   val quizService = new QuizService{
