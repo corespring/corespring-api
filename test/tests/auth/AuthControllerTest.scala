@@ -9,7 +9,7 @@ import play.api.mvc.{SimpleResult, AnyContentAsFormUrlEncoded}
 import org.corespring.platform.core.models.{User, Organization}
 import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
 import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.corespring.test.{SecureSocialHelpers, TestModelHelpers, BaseTest}
 import org.specs2.execute.Result
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
@@ -19,7 +19,9 @@ import play.api.test.Helpers._
 import scala.concurrent.Future
 
 //TODO: Move AuthController to its own module then this test with it.
-class AuthControllerTest extends BaseTest with TestModelHelpers {
+class AuthControllerTest extends BaseTest
+  with TestModelHelpers
+  with SecureSocialHelpers {
 
   val Routes = org.corespring.platform.core.controllers.auth.routes.AuthController
 
