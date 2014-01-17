@@ -12,10 +12,11 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
 import scala.concurrent.Future
+import org.slf4j.LoggerFactory
 
 class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
 
-  def logger = Logger("it.v2player")
+  override def logger = LoggerFactory.getLogger("it.v2player")
 
   val playerLauncher = org.corespring.container.client.controllers.routes.PlayerLauncher
   val playerHooks = org.corespring.container.client.controllers.hooks.routes.PlayerHooks

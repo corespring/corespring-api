@@ -11,6 +11,8 @@ import play.api.test.FakeRequest
 
 class LoadSessionTest extends ITSpec with TestModelHelpers{
 
+  override lazy val logger = org.slf4j.LoggerFactory.getLogger("it.loadSesson")
+
   "when I load a session" should {
 
     "it fails if there is no session cookie" in withSessionParams()

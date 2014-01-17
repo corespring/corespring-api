@@ -7,14 +7,16 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.controllers.auth.AuthController
 import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.corespring.test.{SecureSocialHelpers, TestModelHelpers, BaseTest}
 import org.specs2.mutable.After
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{AnyContentAsFormUrlEncoded, AnyContentAsJson}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class DeveloperTest extends BaseTest with TestModelHelpers with PackageLogging{
+class DeveloperTest extends BaseTest
+  with SecureSocialHelpers
+  with PackageLogging{
 
   sequential
 
