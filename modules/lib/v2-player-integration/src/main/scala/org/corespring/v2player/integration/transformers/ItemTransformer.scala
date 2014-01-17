@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.transformers
 
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.VirtualFile
+import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import org.corespring.v2player.integration.transformers.qti.QtiTransformer
 
@@ -10,7 +10,10 @@ object ItemTransformer {
 
   def transformToV2Json(item:Item) : JsValue = {
 
-    val qti = item.data.get.files.find(_.name == "qti.xml").getOrElse(throw new RuntimeException("No qti..")).asInstanceOf[VirtualFile].content
+    val qti = CDataHandler.addCDataTags(
+      item.data.get.files.find(_.name == "qti.xml")
+        .getOrElse(throw new RuntimeException("No qti.."))
+        .asInstanceOf[VirtualFile].content)
 
     val (xhtml, components) = QtiTransformer.transform(scala.xml.XML.loadString(qti))
     Json.obj(
