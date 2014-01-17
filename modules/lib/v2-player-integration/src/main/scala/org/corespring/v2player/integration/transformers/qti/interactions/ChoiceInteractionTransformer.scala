@@ -5,7 +5,7 @@ import play.api.Logger
 import play.api.libs.json._
 import scala.collection.mutable
 import scala.xml.transform.RewriteRule
-import scala.xml.{Elem, Node}
+import scala.xml.{Text, Elem, Node}
 
 class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
   extends RewriteRule
@@ -14,24 +14,25 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
   private val logger : Logger = Logger("poc.integration")
 
   override def transform(node: Node): Seq[Node] = node match {
-    case e: Elem if e.label == "choiceInteraction" => {
+    case e: Elem if Seq("choiceInteraction", "inlineChoiceInteraction").contains(e.label) => {
 
       val qtiItem = QtiItem(qti)
+
       val componentId = (e \ "@responseIdentifier").text.trim
 
       logger.debug( s"transform choiceInteraction: ${componentId}")
 
-      def choices : JsArray = {
-        val out : Seq[JsValue] = (e \\ "simpleChoice").toSeq.map{ n : Node =>
+      def choices: JsArray = {
+        val out : Seq[JsValue] = ((e \\ "simpleChoice").toSeq ++ (e \\ "inlineChoice")).map{ n: Node =>
           Json.obj(
-            "label" -> JsString(n.text),
-            "value" -> JsString((n \ "@identifier").text.trim)
+            "label" -> n.child.filter(_.isInstanceOf[Text]).mkString,
+            "value" -> (n \ "@identifier").text.trim
           )
         }
         JsArray(out)
       }
 
-      def correctResponse : JsObject = {
+      def correctResponse: JsObject = {
         val values: Seq[Node] = (responseDeclaration(e, qti) \\ "value").toSeq
         val jsonValues: Seq[JsString] = values.map {
           (n: Node) => JsString(n.text.trim)
@@ -43,7 +44,12 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
       val responseIdentifier = (e \ "@responseIdentifier").text
 
       val json = Json.obj(
-          "componentType" -> "corespring-multiple-choice",
+          "componentType" -> (e.label match {
+            case "choiceInteraction" => "corespring-multiple-choice"
+            case "inlineChoiceInteraction" => "corespring-inline-choice"
+            case _ => throw new IllegalStateException
+          })
+        ,
           "model" -> Json.obj(
               "config" -> Json.obj(
                 "shuffle" -> (e \ "@shuffle").text,
@@ -58,7 +64,12 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
         )
 
       componentJson.put(responseIdentifier, json)
-      <corespring-multiple-choice id={responseIdentifier}></corespring-multiple-choice>
+      e.label match {
+        case "choiceInteraction" => <corespring-multiple-choice id={responseIdentifier}></corespring-multiple-choice>
+        case "inlineChoiceInteraction" => <corespring-inline-choice id={responseIdentifier}></corespring-inline-choice>
+        case _ => throw new IllegalStateException
+      }
+
     }
     case other => other
   }
