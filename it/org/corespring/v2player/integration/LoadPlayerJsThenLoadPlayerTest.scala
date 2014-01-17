@@ -19,6 +19,8 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
   val playerLauncher = org.corespring.container.client.controllers.routes.PlayerLauncher
   val playerHooks = org.corespring.container.client.controllers.hooks.routes.PlayerHooks
 
+  val js = playerLauncher.playerJs()
+
   trait data extends BeforeAfter {
     val orgId = OrganizationHelper.create("org")
     val apiClient = ApiClientHelper.create(orgId)
@@ -26,15 +28,36 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     val itemId = ItemHelper.create(collectionId)
 
     def before: Any = {
-      logger.debug("data ready")
+      logger.debug(s"data ready: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
     }
 
     def after: Any = {
+      logger.trace(s"deleting db data..${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
       ApiClientHelper.delete(apiClient)
       OrganizationHelper.delete(orgId)
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
     }
+  }
+
+
+  def getResultFor[T](request: Request[T], expectedStatus: Int = OK)(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
+    val result: Option[Future[SimpleResult]] = route(request)
+    result.filter {
+      r => {
+        val s = status(r)
+        if (s != expectedStatus) {
+          logger.warn(s"${request.path} status: $s")
+          logger.warn(s"${request.path} content: ${contentAsString(r)}")
+        }
+        s == expectedStatus
+      }
+    }
+  }
+
+  def createSessionRequest(call: Call, c: Cookies): Request[AnyContentAsEmpty.type] = {
+    val req = FakeRequest(call.method, call.url)
+    req.withCookies(c.toSeq: _*)
   }
 
   /**
@@ -53,37 +76,18 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
                                addCookies: Boolean = true,
                                expectedLocation : Option[String] = None): SpecsResult = new loader(expectedStatus, addCookies, expectedLocation) {
 
-    val js = playerLauncher.playerJs()
     val createSession = playerHooks.createSessionForItem(itemId.toString)
 
     val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
     val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
     val url = s"${js.url}?apiClient=${apiClient.clientId}&options=$encrypted"
 
-    def getResultFor[T](request: Request[T], expectedStatus: Int = OK)(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
-      val result: Option[Future[SimpleResult]] = route(request)
-      result.filter {
-        r => {
-          val s = status(r)
-          if (s != expectedStatus) {
-            logger.debug(s"status: $s")
-            logger.debug(s"content: ${contentAsString(r)}")
-          }
-          s == expectedStatus
-        }
-      }
-    }
 
-    def createSessionRequest(c: Cookies): Request[AnyContentAsEmpty.type] = {
-      val req = FakeRequest(createSession.method, createSession.url)
-
-      if (addCookies) req.withCookies(c.toSeq: _*) else req
-    }
 
     val out = for {
       jsResult <- getResultFor(FakeRequest(js.method, url))
-      cookies <- Some(cookies(jsResult))
-      createSessionResult <- getResultFor(createSessionRequest(cookies), SEE_OTHER)
+      cookies <- if(addCookies) Some(cookies(jsResult)) else Some(Cookies(None))
+      createSessionResult <- getResultFor(createSessionRequest(createSession,cookies), SEE_OTHER)
     } yield createSessionResult
 
     out match {
@@ -101,6 +105,34 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     }
   }
 
+  def loadJsThenCreateSessionThenLoadPlayer: SpecsResult = new data {
+    val createSession = playerHooks.createSessionForItem(itemId.toString)
+
+    def loadPlayer(result: Future[SimpleResult], cookies: Cookies) : Option[FakeRequest[AnyContentAsEmpty.type]] = {
+      header("Location", result).map( l => {
+        logger.debug(s"loadPlayer location is: $l")
+        FakeRequest(GET,l).withCookies(cookies.toSeq : _*)
+      })
+    }
+
+    val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
+    val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
+    val url = s"${js.url}?apiClient=${apiClient.clientId}&options=$encrypted"
+
+    val out = for {
+      jsResult <- getResultFor(FakeRequest(js.method, url))
+      cookies <- Some(cookies(jsResult))
+      createSessionResult <- getResultFor(createSessionRequest(createSession, cookies), SEE_OTHER)
+      playerRequest <- loadPlayer(createSessionResult, cookies)
+      loadPlayerResult <- getResultFor(playerRequest)
+    } yield createSessionResult
+
+    out match {
+      case Some(result) => success
+      case _ => failure
+    }
+  }
+
 
   "when I load the player js with orgId and options" should {
 
@@ -111,5 +143,6 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
         expectedLocation = Some("/login"))
 
     "allow me to create a session" in loadJsThenCreateSession()
+    "allow me to create a session and load player" in loadJsThenCreateSessionThenLoadPlayer
   }
 }
