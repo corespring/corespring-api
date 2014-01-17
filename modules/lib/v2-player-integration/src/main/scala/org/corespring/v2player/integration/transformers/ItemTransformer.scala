@@ -10,9 +10,14 @@ object ItemTransformer {
 
   def transformToV2Json(item:Item) : JsValue = {
 
-    val qti = item.data.get.files.find(_.name == "qti.xml").getOrElse(throw new RuntimeException("No qti..")).asInstanceOf[VirtualFile].content
+    val qti = for{
+      data <- item.data
+      qti <- data.files.find(_.name == "qti.xml")
+    } yield qti.asInstanceOf[VirtualFile]
 
-    val (xhtml, components) = QtiTransformer.transform(scala.xml.XML.loadString(qti))
+    require(qti.isDefined, s"item: ${item.id} has no qti xml")
+
+    val (xhtml, components) = QtiTransformer.transform(scala.xml.XML.loadString(qti.get.content))
     Json.obj(
       "metadata" -> Json.obj(
         "title" -> JsString(item.taskInfo.map(_.title.getOrElse("?")).getOrElse("?"))

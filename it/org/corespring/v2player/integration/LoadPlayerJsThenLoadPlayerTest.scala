@@ -2,17 +2,16 @@ package org.corespring.v2player.integration
 
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.ITSpec
-import org.corespring.test.helpers.models.{CollectionHelper, ItemHelper, OrganizationHelper, ApiClientHelper}
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.scopes.data
 import org.specs2.execute.{Result => SpecsResult}
-import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.Writeable
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
 import scala.concurrent.Future
-import org.corespring.platform.core.models.auth.ApiClient
 
 class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
 
@@ -34,25 +33,6 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
 
     "allow me to create a session" in loadJsThenCreateSession()
     "allow me to create a session and load player" in loadJsThenCreateSessionThenLoadPlayer
-  }
-
-  trait data extends BeforeAfter {
-    val orgId = OrganizationHelper.create("org")
-    val apiClient = ApiClientHelper.create(orgId)
-    val collectionId = CollectionHelper.create(orgId)
-    val itemId = ItemHelper.create(collectionId)
-
-    def before: Any = {
-      logger.debug(s"data ready: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
-    }
-
-    def after: Any = {
-      logger.trace(s"deleting db data..${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
-      ApiClientHelper.delete(apiClient)
-      OrganizationHelper.delete(orgId)
-      CollectionHelper.delete(collectionId)
-      ItemHelper.delete(itemId)
-    }
   }
 
   /**

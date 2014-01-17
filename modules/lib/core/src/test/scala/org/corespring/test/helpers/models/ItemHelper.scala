@@ -6,12 +6,18 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import scala.Some
+import org.corespring.platform.core.models.item.resource.{Resource, VirtualFile}
 
 object ItemHelper {
 
   // It would be great if this could return the item id
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
-    ItemServiceWired.insert(Item(collectionId = collectionId.toString())) match {
+
+    val qti = VirtualFile("qti.xml", "text/xml", true, "<assessmentItem><itemBody></itemBody></assessmentItem>")
+    val data : Resource = Resource( name = "data", files = Seq(qti))
+    val item = Item(collectionId = collectionId.toString, data = Some(data))
+
+    ItemServiceWired.insert(item) match {
       case Some(versionedId) => versionedId
       case _ => throw new Exception("Error creating item")
     }
