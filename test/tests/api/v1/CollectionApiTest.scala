@@ -17,6 +17,7 @@ import play.api.mvc.AnyContentAsJson
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.core.services.item.ItemServiceImpl
 
 
 class CollectionApiTest extends BaseTest {
@@ -221,8 +222,21 @@ class CollectionApiTest extends BaseTest {
   }
 
 
-  "delete collection should remove collection id from shared items" in {
-    pending
+  "delete collection should remove collection id from shared items" in new CollectionSharingScope {
+    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+      case Left(error) => failure
+      case Right(savedIds) =>
+        // now delete collection a1 and make sure that collectionB1 items don't still have a refernce to it
+        ContentCollection.delete(collectionA1)
+        val oids = collectionB1ItemIds.map(i => i.id)
+        val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+        val sharedCollfound = ItemServiceImpl.find(query).filter(item => {
+          item.sharedInCollections.contains(collectionA1)
+        })
+        sharedCollfound.size must beEqualTo(0)
+
+    }
+
   }
 
 }

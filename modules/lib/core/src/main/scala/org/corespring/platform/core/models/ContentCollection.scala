@@ -108,17 +108,25 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     //todo: roll backs after detecting error in organization update
     try {
       ContentCollection.removeById(collId)
-      Organization.find(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collectionId -> collId)).foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
+      Organization.find(
+        MongoDBObject(
+          Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
+        .foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
         if (result.isSuccess) {
           org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
           try {
             Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
+            val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
+            ItemServiceImpl.find(query).foreach(item => {
+              ItemServiceImpl.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+            })
             Success(())
           } catch {
             case e: SalatDAOUpdateError => Failure(InternalError(e.getMessage))
           }
         } else result
       })
+
     } catch {
       case e: SalatDAOUpdateError => Failure(InternalError("failed to transfer collection to archive", e))
       case e: SalatRemoveError => Failure(InternalError(e.getMessage))
