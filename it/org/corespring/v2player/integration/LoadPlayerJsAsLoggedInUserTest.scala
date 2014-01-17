@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.scopes
+package org.corespring.v2player.integration
 
 import org.corespring.it.ITSpec
 import org.corespring.test.SecureSocialHelpers
