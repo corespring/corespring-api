@@ -1,12 +1,12 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.xml.transform.RewriteRule
-import scala.xml.{Elem, Node}
-import play.api.libs.json.{JsString, Json, JsObject}
-import scala.collection.mutable
-import scala.Predef._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import play.api.libs.json.Json
+import scala.Predef._
+import scala.collection.mutable
+import scala.xml.transform.RewriteRule
+import scala.xml.{Elem, Node}
 
 class FeedbackBlockTransformer(componentJson: mutable.Map[String, JsObject], qti: Node) extends RewriteRule {
 
