@@ -57,34 +57,36 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
 
   private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher {
 
-    def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder() {
+    def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(
+      secureSocialService,
+      UserServiceWired) {
 
       override def getOrgIdAndOptions(request: Request[AnyContent]) = {
         if (encryptionEnabled(request)) {
           super.getOrgIdAndOptions(request)
         } else {
-          val opts : PlayerOptions = request.getQueryString("options")
+          val opts: PlayerOptions = request.getQueryString("options")
             .map(PlayerOptions.fromJson(_))
             .flatten
             .getOrElse(new PlayerOptions("*", "*", true, None, Some("*")))
-          val orgId : ObjectId = request.getQueryString("apiClient").map(toOrgId).flatten.getOrElse(ObjectId.get)
+          val orgId: ObjectId = request.getQueryString("apiClient").map(toOrgId).flatten.getOrElse(ObjectId.get)
           Success(orgId, opts)
         }
       }
 
-      def encryptionEnabled(r:Request[AnyContent]): Boolean = {
+      def encryptionEnabled(r: Request[AnyContent]): Boolean = {
         val acceptsFlag = Play.current.mode == Mode.Dev || config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
 
-        val enabled = if(acceptsFlag){
-          val disable = r.getQueryString("skipDecryption").map( v => true).getOrElse(false)
+        val enabled = if (acceptsFlag) {
+          val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
           !disable
-        } else  true
+        } else true
 
         logger.debug(s"encryptionEnabled: $enabled")
         enabled
       }
 
-      def decrypt(request:Request[AnyContent], orgId: ObjectId, contents: String): Option[String] = for {
+      def decrypt(request: Request[AnyContent], orgId: ObjectId, contents: String): Option[String] = for {
         encrypter <- Some(if (encryptionEnabled(request)) AESCrypto else NullCrypto)
         orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
         out <- orgEncrypter.decrypt(contents)
@@ -94,7 +96,6 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
         client <- ApiClient.findByKey(apiClientId)
       } yield client.orgId
 
-      def userService: UserService = UserServiceWired
     }
   }
 

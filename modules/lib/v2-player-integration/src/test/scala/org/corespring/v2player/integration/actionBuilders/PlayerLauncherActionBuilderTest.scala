@@ -16,6 +16,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
 import scala.concurrent.Future
+import org.corespring.v2player.integration.securesocial.SecureSocialService
 
 class PlayerLauncherActionBuilderTest
   extends Specification
@@ -26,11 +27,15 @@ class PlayerLauncherActionBuilderTest
 
   val mockOrgId = ObjectId.get
 
-  case class scope(orgId: Option[ObjectId] = Some(mockOrgId), decryptEnabled: Boolean = true) extends Scope {
-    val builder = new PlayerLauncherActionBuilder {
-      def toOrgId(s: String): Option[ObjectId] = orgId
+  def mockSecureSocial = {
+    val out = mock[SecureSocialService]
+    out.currentUser(any[Request[AnyContent]]) returns None
+    out
+  }
 
-      def userService: UserService = mock[UserService]
+  case class scope(orgId: Option[ObjectId] = Some(mockOrgId), decryptEnabled: Boolean = true) extends Scope {
+    val builder = new PlayerLauncherActionBuilder(mockSecureSocial, mock[UserService]) {
+      def toOrgId(s: String): Option[ObjectId] = orgId
 
       def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
     }

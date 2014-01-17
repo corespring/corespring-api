@@ -39,13 +39,14 @@ object CheckUserAndPermissions {
 }
 
 abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
-                                                                   secureSocialService: SecureSocialService,
-                                                                   userService: UserService,
+                                                                   val secureSocialService: SecureSocialService,
+                                                                   val userService: UserService,
                                                                    sessionService: MongoService,
                                                                    itemService: ItemService,
                                                                    orgService: OrganizationService)
   extends AuthenticatedSessionActions
   with V2PlayerCookieReader
+  with UserSession
   with ClassLogging{
 
   import play.api.http.Status._
@@ -129,11 +130,6 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
       }.getOrElse(Failure(Errors.default))
     }
   }
-
-  private def userFromSession(request: Request[AnyContent]): Option[User] = for {
-    ssUser <- secureSocialService.currentUser(request)
-    dbUser <- userService.getUser(ssUser.identityId.userId, ssUser.identityId.providerId)
-  } yield dbUser
 
   private def orgCanAccessSession(sessionId: String, orgId: ObjectId): Validation[(Int, String), Boolean] = for {
     session <- sessionService.load(sessionId).toSuccess(Errors.cantLoadSession(sessionId))
