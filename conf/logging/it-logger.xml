@@ -16,7 +16,7 @@
     <logger name="it" level="TRACE"/>
     <logger name="org.corespring.player.accessControl.cookies" level="TRACE"/>
     <logger name="org.corespring.v2player" level="TRACE"/>
-    <logger name="AuthenticatedSessionActionsCheckUserAndPermissions" level="TRACE"/>
+    <logger name="AuthenticatedSessionActionsCheckUserAndPermissions" level="INFO"/>
 
     <root level="OFF">
         <appender-ref ref="STDOUT" />

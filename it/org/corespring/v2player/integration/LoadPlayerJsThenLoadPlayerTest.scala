@@ -40,17 +40,18 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     }
   }
 
-
-  def getResultFor[T](request: Request[T], expectedStatus: Int = OK)(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
+  def getResultFor[T](request: Request[T])(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
     val result: Option[Future[SimpleResult]] = route(request)
     result.filter {
       r => {
         val s = status(r)
-        if (s != expectedStatus) {
+        def okStatus = s == SEE_OTHER || s == OK
+
+        if (!okStatus) {
           logger.warn(s"${request.path} status: $s")
           logger.warn(s"${request.path} content: ${contentAsString(r)}")
         }
-        s == expectedStatus
+        okStatus
       }
     }
   }
@@ -59,6 +60,15 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     val req = FakeRequest(call.method, call.url)
     req.withCookies(c.toSeq: _*)
   }
+
+  def createSessionResult(url:String, addCookies:Boolean, createSession:Call) = {
+    for {
+      jsResult <- getResultFor(FakeRequest(GET, url))
+      cookies <- if(addCookies) Some(cookies(jsResult)) else Some(Cookies(None))
+      createSessionResult <- getResultFor(createSessionRequest(createSession,cookies))
+    } yield (createSessionResult,cookies)
+  }
+
 
   /**
    * Wrap data up with the vals we need
@@ -81,23 +91,13 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
     val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
     val url = s"${js.url}?apiClient=${apiClient.clientId}&options=$encrypted"
+    val resultAndCookies = createSessionResult(url, addCookies, createSession)
 
-
-
-    val out = for {
-      jsResult <- getResultFor(FakeRequest(js.method, url))
-      cookies <- if(addCookies) Some(cookies(jsResult)) else Some(Cookies(None))
-      createSessionResult <- getResultFor(createSessionRequest(createSession,cookies), SEE_OTHER)
-    } yield createSessionResult
-
-    out match {
+    resultAndCookies.map(_._1) match {
       case Some(r) => {
         Logger.debug(contentAsString(r))
-        logger.debug(s"add cookies $addCookies")
         status(r) === expectedStatus
         if(expectedStatus == SEE_OTHER && expectedLocation.isDefined){
-          logger.debug(s">> Location: ${headers(r).get("Location")}")
-
           headers(r).get("Location").get === expectedLocation.get
         }
       }
@@ -120,12 +120,10 @@ class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
     val url = s"${js.url}?apiClient=${apiClient.clientId}&options=$encrypted"
 
     val out = for {
-      jsResult <- getResultFor(FakeRequest(js.method, url))
-      cookies <- Some(cookies(jsResult))
-      createSessionResult <- getResultFor(createSessionRequest(createSession, cookies), SEE_OTHER)
-      playerRequest <- loadPlayer(createSessionResult, cookies)
+      result <- createSessionResult(url,true,createSession)//getResultFor(createSessionRequest(createSession, cookies))
+      playerRequest <- loadPlayer(result._1, result._2)
       loadPlayerResult <- getResultFor(playerRequest)
-    } yield createSessionResult
+    } yield loadPlayerResult
 
     out match {
       case Some(result) => success
