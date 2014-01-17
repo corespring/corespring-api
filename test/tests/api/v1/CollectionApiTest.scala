@@ -200,20 +200,22 @@ class CollectionApiTest extends BaseTest {
       case Left(error) => failure
       case Right(savedIds) =>
         val findRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
-        val findResult = ItemApi.list(None,None,"10",0,10,None)(findRequest)
+        val findResult = ItemApi.list(None,None,"10",0,200,None)(findRequest)
         assertResult(findResult)
+        // result should contain the b1 items
+        val b1ItemsIdStrings = collectionB1ItemIds.map(_.id.toString)
         val foundItems = parsed[List[JsValue]](findResult)
-        val b1ItemsFound = foundItems.filter(jsonItem =>
-          collectionB1ItemIds.filter(
-            _.id.toString == jsonItem \ "id").size > 0
-        )
-        b1ItemsFound.size must beEqualTo(6)
+        val foundItemIdStrings = foundItems.map(jsVal => ((jsVal \ "id").as[String]).split(":")(0))
+        val itemsFound = b1ItemsIdStrings.filter(foundItemIdStrings.contains(_))
+        itemsFound.size must beEqualTo(3)
 
         val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
-        val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,10,None)(listReq)
+        val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,200,None)(listReq)
         assertResult(listResult)
         val itemsList = parsed[List[JsValue]](listResult)
-        itemsList.size must beEqualTo(6)
+        val listItemIdStrings = foundItems.map(jsVal => ((jsVal \ "id").as[String]).split(":")(0))
+        val listItemsFound = b1ItemsIdStrings.filter(listItemIdStrings.contains(_))
+        listItemsFound.size must beEqualTo(3)
     }
 
   }
