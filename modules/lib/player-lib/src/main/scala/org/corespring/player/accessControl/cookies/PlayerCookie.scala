@@ -6,8 +6,11 @@ import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 import play.api.libs.json.{Writes, Json}
 import play.api.mvc.{ Session, Request }
+import play.api.Logger
 
 trait BasePlayerCookieReader[MODE, OPTIONS] {
+
+  private lazy val logger = Logger("org.corespring.player.accessControl.cookies.CookieReader")
 
   import PlayerCookieKeys._
 
@@ -17,9 +20,17 @@ trait BasePlayerCookieReader[MODE, OPTIONS] {
 
   def activeMode[A](request: Request[A]): Option[MODE] = request.session.get(ACTIVE_MODE).map(toMode(_))
 
-  def renderOptions[A](request: Request[A]): Option[OPTIONS] = request.session.get(RENDER_OPTIONS).map(toOptions(_))
+  def renderOptions[A](request: Request[A]): Option[OPTIONS] = {
+    val out = request.session.get(RENDER_OPTIONS).map(toOptions(_))
+    logger.trace(s"renderOptions: $out")
+    out
+  }
 
-  def orgIdFromCookie[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ORG_ID)
+  def orgIdFromCookie[A](request: Request[A]): Option[String] = {
+    val out = request.session.get(PlayerCookieKeys.ORG_ID)
+    logger.debug(s"orgId: $out")
+    out
+  }
 }
 
 trait BasePlayerCookieWriter[MODE, OPTIONS] {

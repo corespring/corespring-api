@@ -14,6 +14,7 @@ import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.{Action, Result, AnyContent, Request}
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.common.log.{ClassLogging, PackageLogging}
 
 
 object CheckUserAndPermissions {
@@ -42,27 +43,43 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
                                                                    userService: UserService,
                                                                    sessionService: MongoService,
                                                                    itemService: ItemService,
-                                                                   orgService: OrganizationService) extends AuthenticatedSessionActions with V2PlayerCookieReader {
+                                                                   orgService: OrganizationService)
+  extends AuthenticatedSessionActions
+  with V2PlayerCookieReader
+  with ClassLogging{
 
   import play.api.http.Status._
   import play.api.mvc.Results._
   import scalaz.Scalaz._
   import scalaz._
 
+  override def loggerName = "AuthenticatedSessionActionsCheckUserAndPermissions"
   def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = userFromSession(request).map(
-    u =>
+    u =>{
+      println("getOrgIdAndOptions...." + loggerName)
+      logger.trace(s"return logged in user: ${u.id}")
       (u.org.orgId, PlayerOptions.ANYTHING)
+    }
   ) orElse anonymousUser(request)
 
 
   def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean]
 
   private def hasPermissionForSession(id: String, mode: Mode, options: PlayerOptions): Validation[String, Boolean] = {
-    for {
-      s <- sessionService.load(id)
-      itemId <- (s \ "itemId").asOpt[String]
-    } yield hasPermissions(itemId, Some(id), mode, options)
-  }.getOrElse(Failure("Can't find session or itemId"))
+    val out : Validation[String,Boolean] = for {
+      s <- sessionService.load(id).toSuccess(s"Can't load session with id: $id")
+      itemId <- (s \ "itemId").asOpt[String].toSuccess(s"No item id defined for session $id")
+    } yield {
+      val b : Boolean = hasPermissions(itemId, Some(id), mode, options) match {
+        case Success(b) => true
+        case Failure(msg) => {
+          logger.warn(msg)
+          false
+      }}
+      b
+    }
+    out
+  }
 
   def read(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
@@ -76,6 +93,7 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
 
   def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent] = Action {
     request =>
+      logger.trace(s"createSessionHandleNotAuthorized: $itemId")
       checkAccess(request, orgCanAccessItem(itemId, _), hasPermissions(itemId, None, Mode.gather, _)) match {
         case Success(true) => authorized(request)
         case Success(false) => failed(request, BAD_REQUEST, "Didn't work")
@@ -83,23 +101,33 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
       }
   }
 
-  private def anonymousUser(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = for {
-    orgId <- orgIdFromCookie(request)
-    options <- renderOptions(request)
-  } yield (new ObjectId(orgId), options)
+  private def anonymousUser(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = {
+    logger.trace(s"anonymous user? ${request.session}")
+    for {
+      orgId <- orgIdFromCookie(request)
+      options <- renderOptions(request)
+    } yield {
+      logger.trace("return anonymous user")
+      (new ObjectId(orgId), options)
+    }
+  }
 
   private def checkAccess(
                            request: Request[AnyContent],
                            getOrgAccess: ObjectId => Validation[(Int, String), Boolean],
                            getPermissions: (PlayerOptions) => Validation[String, Boolean]) = {
-    getOrgIdAndOptions(request).map {
-      t: (ObjectId, PlayerOptions) =>
-        val (orgId, options) = t
-        for {
-          orgAccess <- getOrgAccess(orgId)
-          permissionAccess <- getPermissions(options).leftMap(msg => (UNAUTHORIZED, msg))
-        } yield permissionAccess
-    }.getOrElse(Failure(Errors.default))
+    {
+      logger.trace(s"checkAccess: ${request.path}")
+      getOrgIdAndOptions(request).map {
+        t: (ObjectId, PlayerOptions) =>
+          logger.debug(s"checkAccess (orgId,options): $t}")
+          val (orgId, options) = t
+          for {
+            orgAccess <- getOrgAccess(orgId)
+            permissionAccess <- getPermissions(options).leftMap(msg => (UNAUTHORIZED, msg))
+          } yield permissionAccess
+      }.getOrElse(Failure(Errors.default))
+    }
   }
 
   private def userFromSession(request: Request[AnyContent]): Option[User] = for {
@@ -122,16 +150,29 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
       item <- itemService.findOneById(vid).toSuccess(Errors.cantFindItemWithId(vid))
       org <- orgService.findOneById(orgId).toSuccess(Errors.cantFindOrgWithId(orgId))
       canAccess <- if (canAccess(item.collectionId)) Success(true) else Failure(Errors.default)
-    } yield canAccess
+    } yield {
+      logger.trace(s"orgCanAccessItem: $canAccess")
+      canAccess
+    }
   }
 
   def loadPlayerForSession(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
       val mode = request.getQueryString("mode").map(_.toString).map(Mode.withName).getOrElse(Mode.view)
+      logger.debug(s"loadPlayerForSession $sessionId")
       checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, mode, _)) match {
-        case Success(true) => block(request)
-        case Success(false) => Unauthorized("")
-        case Failure(tuple) => Status(tuple._1)(tuple._2)
+        case Success(true) => {
+          logger.trace(s"loadPlayerForSession success")
+          block(request)
+        }
+        case Success(false) => {
+          logger.trace(s"loadPlayerForSession failure")
+          Unauthorized("")
+        }
+        case Failure(tuple) => {
+          logger.trace(s"loadPlayerForSession failure: $tuple")
+          Status(tuple._1)(tuple._2)
+        }
       }
   }
 }
