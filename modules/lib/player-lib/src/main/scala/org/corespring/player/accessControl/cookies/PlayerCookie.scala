@@ -10,8 +10,6 @@ import play.api.Logger
 
 trait BasePlayerCookieReader[MODE, OPTIONS] {
 
-  private lazy val logger = Logger("org.corespring.player.accessControl.cookies.CookieReader")
-
   import PlayerCookieKeys._
 
   def toMode(s:String) : MODE
@@ -22,13 +20,11 @@ trait BasePlayerCookieReader[MODE, OPTIONS] {
 
   def renderOptions[A](request: Request[A]): Option[OPTIONS] = {
     val out = request.session.get(RENDER_OPTIONS).map(toOptions(_))
-    logger.trace(s"renderOptions: $out")
     out
   }
 
   def orgIdFromCookie[A](request: Request[A]): Option[String] = {
     val out = request.session.get(PlayerCookieKeys.ORG_ID)
-    logger.debug(s"orgId: $out")
     out
   }
 }
