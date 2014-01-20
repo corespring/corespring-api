@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration
 
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.it.ITSpec
+import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.scopes.data
@@ -14,7 +14,7 @@ import play.api.test.FakeRequest
 import scala.concurrent.Future
 import org.slf4j.LoggerFactory
 
-class LoadPlayerJsThenLoadPlayerTest extends ITSpec {
+class LoadPlayerJsThenLoadPlayerTest extends IntegrationSpecification {
 
   override def logger = LoggerFactory.getLogger("it.v2player")
 

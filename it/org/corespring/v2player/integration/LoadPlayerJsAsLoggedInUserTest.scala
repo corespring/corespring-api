@@ -1,12 +1,12 @@
 package org.corespring.v2player.integration
 
-import org.corespring.it.ITSpec
+import org.corespring.it.IntegrationSpecification
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.{OrganizationHelper, UserHelper}
 import org.specs2.mutable.BeforeAfter
 import play.api.test.FakeRequest
 
-class LoadPlayerJsAsLoggedInUserTest extends ITSpec
+class LoadPlayerJsAsLoggedInUserTest extends IntegrationSpecification
   with SecureSocialHelpers{
 
   "when I'm a logged in user loading the player js" should {

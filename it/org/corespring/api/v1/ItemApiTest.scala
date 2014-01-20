@@ -1,12 +1,12 @@
 package org.corespring.api.v1
 
-import org.corespring.it.ITSpec
+import org.corespring.it.IntegrationSpecification
 import org.corespring.test.Assertions
 import org.corespring.test.helpers.FixtureData
 import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 
-class ItemApiTest extends ITSpec with Assertions{
+class ItemApiTest extends IntegrationSpecification with Assertions{
 
 
   "list items in a collection" in new FixtureData {

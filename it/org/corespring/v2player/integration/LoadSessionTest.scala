@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration
 
 import org.bson.types.ObjectId
-import org.corespring.it.ITSpec
+import org.corespring.it.IntegrationSpecification
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.test.TestModelHelpers
 import org.corespring.v2player.integration.actionBuilders.access.{V2PlayerCookieKeys, PlayerOptions}
@@ -9,7 +9,7 @@ import org.corespring.v2player.integration.scopes.sessionData
 import org.specs2.specification.Example
 import play.api.test.FakeRequest
 
-class LoadSessionTest extends ITSpec with TestModelHelpers{
+class LoadSessionTest extends IntegrationSpecification with TestModelHelpers{
 
   override lazy val logger = org.slf4j.LoggerFactory.getLogger("it.loadSesson")
 
