@@ -15,20 +15,19 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.json.ItemView
-import org.corespring.platform.core.models.metadata.MetadataSet
 import org.corespring.platform.core.models.mongoContext.context
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
+import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{ Result, Action, AnyContent }
 import scalaz.Scalaz._
-import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
 import scalaz._
-import org.corespring.platform.core.services.organization.OrganizationService
 
 /**
  * Items API
@@ -358,7 +357,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
   }
   def updateMetadata(id: VersionedId[ObjectId], property: String) = ApiAction { request =>
-    import scala.collection.mutable.Map
     import collection.JavaConversions._
     service.findOneById(id) match {
       case Some(item) => {

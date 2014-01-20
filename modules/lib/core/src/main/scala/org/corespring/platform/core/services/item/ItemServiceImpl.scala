@@ -1,38 +1,34 @@
 package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah
-import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.{ BasicDBObject, DBObject }
 import com.novus.salat._
-import dao.SalatMongoCursor
-import org.bson.types.ObjectId
+import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.files.{ CloneFileResult, ItemFiles }
+import org.corespring.platform.core.files.CloneFileResult
+import org.corespring.platform.core.files.ItemFiles
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
+import org.corespring.platform.core.models.{ContentCollection, error}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Application
 import play.api.PlayException
+import scala.Some
 import scala.xml.Elem
+import scalaz.Failure
+import scalaz.Success
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
-import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.item.Item.Keys._
-import scalaz.Failure
-import scala.Some
-import com.novus.salat.dao.SalatMongoCursor
-import scalaz.Success
-import org.corespring.platform.core.files.CloneFileResult
-import org.corespring.platform.core.models.{ContentCollection, error}
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
 
 class ItemServiceImpl(
   val s3service: CorespringS3Service,

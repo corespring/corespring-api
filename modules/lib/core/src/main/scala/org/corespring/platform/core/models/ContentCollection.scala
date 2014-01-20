@@ -1,38 +1,27 @@
 package org.corespring.platform.core.models
 
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
-import org.bson.types.ObjectId
+import com.novus.salat.dao._
+import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.models.search.{SearchCancelled, ItemSearch, Searchable}
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.search.{ItemSearch, Searchable}
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.Left
 import scala.Right
 import scala.Some
-import scalaz.{ Failure, Success, Validation }
-import org.corespring.platform.core.services.item.ItemServiceImpl
-import org.corespring.common.log.ClassLogging
-import com.novus.salat._
-import com.novus.salat.dao._
-import se.radley.plugin.salat._
-import com.mongodb.casbah.Imports._
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.search.SearchCancelled
-import com.novus.salat.dao.SalatInsertError
-import com.novus.salat.dao.SalatRemoveError
 import scalaz.Failure
-import play.api.libs.json.JsString
-import play.api.libs.json.JsBoolean
-import scala.Some
-import play.api.libs.json.JsNumber
-import com.novus.salat.dao.SalatDAOUpdateError
 import scalaz.Success
-import play.api.libs.json.JsObject
+import scalaz.Validation
+import se.radley.plugin.salat._
 
 /**
  * A ContentCollection

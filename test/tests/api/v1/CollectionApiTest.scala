@@ -1,23 +1,21 @@
 package tests.api.v1
 
 import api.v1.{ItemApi, CollectionApi}
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.test.BaseTest
-import play.api.libs.json.{JsNumber, Json, JsValue}
-import play.api.mvc.AnyContentAsJson
-import play.api.test.Helpers._
-import play.api.test._
-import scala._
-import org.specs2.mutable.BeforeAfter
-import org.specs2.specification.Step
-import tests.helpers.models._
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.mvc.AnyContentAsJson
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
-import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.test.BaseTest
+import org.specs2.mutable.BeforeAfter
+import play.api.libs.json.{JsNumber, Json, JsValue}
+import play.api.mvc.AnyContentAsJson
+import play.api.test.FakeHeaders
+import play.api.test.Helpers._
+import play.api.test._
+import scala.Some
+import scala._
+import tests.helpers.models._
 
 
 class CollectionApiTest extends BaseTest {
