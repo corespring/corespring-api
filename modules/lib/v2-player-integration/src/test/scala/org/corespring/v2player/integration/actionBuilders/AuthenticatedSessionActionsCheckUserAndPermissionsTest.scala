@@ -9,11 +9,10 @@ import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.player.accessControl.cookies.PlayerCookieKeys._
 import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
-import org.corespring.v2player.integration.actionBuilders.access.{Mode, PlayerOptions}
+import org.corespring.v2player.integration.actionBuilders.access.{V2PlayerCookieKeys, Mode, PlayerOptions}
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -103,7 +102,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
     "when anonymous user" should {
 
       val anonymousRequest = FakeRequest("","", FakeHeaders(), AnyContentAsEmpty)
-        .withSession((ORG_ID, orgId.toString), (RENDER_OPTIONS, "{}"))
+        .withSession((V2PlayerCookieKeys.orgId, orgId.toString), (V2PlayerCookieKeys.renderOptions, "{}"))
       withMaybeUserAndRequest(None, None, anonymousRequest)
     }
   }

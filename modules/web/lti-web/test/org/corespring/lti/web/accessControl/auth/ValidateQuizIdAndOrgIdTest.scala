@@ -34,9 +34,9 @@ class ValidateQuizIdAndOrgIdTest extends Specification {
     def oid(): String = new ObjectId().toString
 
     "fail for nothing" in status(run()) === UNAUTHORIZED
-    "fail for no quiz id" in status(run(PlayerCookieKeys.ORG_ID -> oid)) === UNAUTHORIZED
+    "fail for no quiz id" in status(run(PlayerCookieKeys.orgId -> oid)) === UNAUTHORIZED
     "fail for no org id" in status(run(LtiCookieKeys.QUIZ_ID -> oid)) === UNAUTHORIZED
-    "ok for quiz id and org id" in status(run(LtiCookieKeys.QUIZ_ID -> oid, PlayerCookieKeys.ORG_ID -> oid)) === OK
+    "ok for quiz id and org id" in status(run(LtiCookieKeys.QUIZ_ID -> oid, PlayerCookieKeys.orgId -> oid)) === OK
 
   }
 }

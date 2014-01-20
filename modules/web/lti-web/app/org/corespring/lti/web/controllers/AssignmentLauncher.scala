@@ -103,10 +103,10 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
               def buildSession(s: Session, mode: String): Session = {
 
                 s +
-                  (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(RenderOptions.ANYTHING).toString) +
+                  (PlayerCookieKeys.renderOptions -> Json.toJson(RenderOptions.ANYTHING).toString) +
                   (LtiCookieKeys.QUIZ_ID -> quiz.id.toString) +
-                  (PlayerCookieKeys.ORG_ID -> org.id.toString) +
-                  (PlayerCookieKeys.ACTIVE_MODE -> mode)
+                  (PlayerCookieKeys.orgId -> org.id.toString) +
+                  (PlayerCookieKeys.activeMode -> mode)
               }
 
               def isInstructor = data.roles.exists(_ == LtiKeys.Instructor)

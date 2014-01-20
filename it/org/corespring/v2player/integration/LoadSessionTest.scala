@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.ITSpec
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.test.TestModelHelpers
-import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.actionBuilders.access.{V2PlayerCookieKeys, PlayerOptions}
 import org.corespring.v2player.integration.scopes.sessionData
 import org.specs2.specification.Example
 import play.api.test.FakeRequest
@@ -19,8 +19,8 @@ class LoadSessionTest extends ITSpec with TestModelHelpers{
     "it succeeds if there is an anonymous user session cookie" in withSessionParams(OK, (orgId) => {
       import play.api.libs.json.Json._
       Seq(
-      PlayerCookieKeys.ORG_ID -> orgId.toString,
-      PlayerCookieKeys.RENDER_OPTIONS -> stringify(toJson(PlayerOptions.ANYTHING))
+      V2PlayerCookieKeys.orgId -> orgId.toString,
+      V2PlayerCookieKeys.renderOptions -> stringify(toJson(PlayerOptions.ANYTHING))
     )})
   }
 

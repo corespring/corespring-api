@@ -64,7 +64,7 @@ class ViewsTest extends Specification with Mockito {
   class BeRightMode(m:Mode) extends Matcher[Action[AnyContent]]{
     def apply[S <: Action[AnyContent]](s:Expectable[S]) = {
       val httpResult = s.value(FakeRequest("", "", FakeHeaders(), AnyContentAsEmpty))
-      val modeString = session(httpResult).get(PlayerCookieKeys.ACTIVE_MODE)
+      val modeString = session(httpResult).get(PlayerCookieKeys.activeMode)
 
       val isOk = status(httpResult) == OK
 

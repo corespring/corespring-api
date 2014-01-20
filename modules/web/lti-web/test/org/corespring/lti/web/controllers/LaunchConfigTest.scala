@@ -46,7 +46,7 @@ class LaunchConfigTest extends Specification{
   private def addSessionInfo[A](quiz: LtiQuiz, r: FakeRequest[A]): FakeRequest[A] = {
     r.withSession(
       (LtiCookieKeys.QUIZ_ID -> quiz.id.toString),
-      (PlayerCookieKeys.ORG_ID -> quiz.orgId.get.toString)
+      (PlayerCookieKeys.orgId -> quiz.orgId.get.toString)
     )
   }
 

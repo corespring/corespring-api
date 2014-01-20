@@ -8,23 +8,29 @@ import play.api.libs.json.{Writes, Json}
 import play.api.mvc.{ Session, Request }
 import play.api.Logger
 
+trait CookieKeys {
+  def renderOptions:String
+  def orgId:String
+  def activeMode:String
+}
+
 trait BasePlayerCookieReader[MODE, OPTIONS] {
 
-  import PlayerCookieKeys._
+  def keys : CookieKeys
 
   def toMode(s:String) : MODE
 
   def toOptions(json:String) : OPTIONS
 
-  def activeMode[A](request: Request[A]): Option[MODE] = request.session.get(ACTIVE_MODE).map(toMode(_))
+  def activeMode[A](request: Request[A]): Option[MODE] = request.session.get(keys.activeMode).map(toMode(_))
 
   def renderOptions[A](request: Request[A]): Option[OPTIONS] = {
-    val out = request.session.get(RENDER_OPTIONS).map(toOptions(_))
+    val out = request.session.get(keys.renderOptions).map(toOptions(_))
     out
   }
 
   def orgIdFromCookie[A](request: Request[A]): Option[String] = {
-    val out = request.session.get(PlayerCookieKeys.ORG_ID)
+    val out = request.session.get(keys.orgId)
     out
   }
 }
@@ -32,6 +38,8 @@ trait BasePlayerCookieReader[MODE, OPTIONS] {
 trait BasePlayerCookieWriter[MODE, OPTIONS] {
 
   def userService : UserService
+
+  def keys : CookieKeys
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   def sumSession(s: Session, keyValues: (String, String)*): Session = {
@@ -44,19 +52,21 @@ trait BasePlayerCookieWriter[MODE, OPTIONS] {
   }.getOrElse(Seq())
 
   def playerCookies(orgId: ObjectId, options: Option[OPTIONS])(implicit writes : Writes[OPTIONS]): Seq[(String, String)] = Seq(
-    PlayerCookieKeys.ORG_ID -> orgId.toString) ++ options.map { ro => (PlayerCookieKeys.RENDER_OPTIONS -> writes.writes(ro).toString) }
+    keys.orgId -> orgId.toString) ++ options.map { ro => (keys.renderOptions -> writes.writes(ro).toString) }
 
   def activeModeCookie[A](mode: MODE)(implicit request: Request[A]): (String, String) = {
-    (PlayerCookieKeys.ACTIVE_MODE -> mode.toString)
+    (keys.activeMode -> mode.toString)
   }
 }
 
 trait PlayerCookieWriter extends BasePlayerCookieWriter[RequestedAccess.Mode.Mode, RenderOptions]{
   def userService: UserService = UserServiceWired
+  def keys = PlayerCookieKeys
 }
 
 
 trait PlayerCookieReader extends BasePlayerCookieReader[RequestedAccess.Mode.Mode, RenderOptions]{
   def toMode(s: String): Mode.Mode = Mode.withName(s)
   def toOptions(json: String): RenderOptions = Json.parse(json).as[RenderOptions]
+  def keys = PlayerCookieKeys
 }

@@ -33,8 +33,8 @@ class AssetLoadingTest extends Specification with Mockito{
       val optionsString = Json.toJson(options).toString()
       val result = loader.itemPlayerJavascript(FakeRequest("", "blah?apiClientId="+apiClientId+"&options="+optionsString, FakeHeaders(), AnyContentAsEmpty))
       status(result) === OK
-      session(result).get(PlayerCookieKeys.ORG_ID) === Some("51114b307fc1eaa866444648")
-      session(result).get(PlayerCookieKeys.RENDER_OPTIONS) === Some(optionsString)
+      session(result).get(PlayerCookieKeys.orgId) === Some("51114b307fc1eaa866444648")
+      session(result).get(PlayerCookieKeys.renderOptions) === Some(optionsString)
       contentAsString(result) === "preview"
     }
 

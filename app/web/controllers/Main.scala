@@ -17,7 +17,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
   def logout(s: Session): Session = {
     s -
-      PlayerCookieKeys.RENDER_OPTIONS -
+      PlayerCookieKeys.renderOptions -
       UserKey -
       ProviderKey
   }

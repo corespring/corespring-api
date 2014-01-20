@@ -17,6 +17,7 @@ import play.api.test.Helpers._
 import scala.Some
 import scala.concurrent.Future
 import org.corespring.v2player.integration.securesocial.SecureSocialService
+import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieKeys
 
 class PlayerLauncherActionBuilderTest
   extends Specification
@@ -74,7 +75,7 @@ class PlayerLauncherActionBuilderTest
       val path = s"""player.js?apiClient={}&options=$opts"""
 
       call(path) must returnResult(OK, "true")
-      call(path) must haveCookies(ORG_ID -> mockOrgId.toString, RENDER_OPTIONS -> opts)
+      call(path) must haveCookies(V2PlayerCookieKeys.orgId -> mockOrgId.toString, V2PlayerCookieKeys.renderOptions -> opts)
     }
 
     "return body if all is ok and not secure" in new scope {
