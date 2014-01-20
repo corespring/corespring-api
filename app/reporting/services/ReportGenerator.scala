@@ -5,6 +5,8 @@ import scala.Some
 import play.Logger
 import play.cache.Cache
 import reporting.services.ReportGenerator.ReportKeys
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 class ReportGenerator(reportsService: ReportsService) {
 
@@ -20,9 +22,16 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
-  def getReport(reportKey: String): Option[String] = Option(Cache.get(reportKey)) match {
-    case Some(report: String) => Some(report)
+  def getReport(reportKey: String): Option[(DateTime, String)] = Option(Cache.get(reportKey)) match {
+    case Some((date: DateTime, report: String)) => Some(date, report)
     case _ => None
+  }
+
+  def timestamps: Map[String, String] = {
+    ReportKeys.keys.map(key => (key, (getReport(key) match {
+      case Some((date: DateTime, _)) => date.toString("MM/dd/YYYY hh:mm aa")
+      case _ => "--"
+    }))).toMap
   }
 
   /**
@@ -41,7 +50,7 @@ class ReportGenerator(reportsService: ReportsService) {
         generatorFunctions.get(reportKey) match {
           case Some(generator: (() => String)) => {
             val report = generator()
-            Cache.set(reportKey, report)
+            Cache.set(reportKey, (new DateTime, report))
             Logger.info(s"Generated $reportKey report")
             Some(report)
           }
@@ -69,6 +78,8 @@ object ReportGenerator extends ReportGenerator(ReportsService) {
     val standards = "standards"
     val collection = "collection"
     val contributor = "contributor"
+
+    val keys = Seq(primarySubject, standards, collection, contributor)
   }
 
 }

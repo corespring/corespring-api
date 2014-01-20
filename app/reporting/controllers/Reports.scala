@@ -10,7 +10,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def index = ApiAction {
     request =>
       val availableCollections = service.getCollections
-      Ok(reporting.views.html.index(availableCollections))
+      Ok(reporting.views.html.index(availableCollections, generator.timestamps))
   }
 
   def generate(reportKey: String) = ApiAction { request =>
@@ -45,7 +45,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
 
   private def getReport(reportKey: String): SimpleResult = generator.getReport(reportKey) match {
-    case Some(string) => Ok(string).withHeaders(("Content-type", "text/csv"))
+    case Some((date, string)) => Ok(string).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=$reportKey.csv"))
     case _ => InternalServerError("There was an error generating this report. Please check the logs.")
   }
 

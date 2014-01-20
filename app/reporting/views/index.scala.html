@@ -1,4 +1,5 @@
-@(collections : List[(String,String)])
+
+@(collections : List[(String,String)], timestamps: Map[String, String])
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
@@ -26,18 +27,43 @@
             margin: 0;
         }
 
-        .main-reports a {
-            display: inline-block;
-            vertical-align: middle;
+        .main-reports .name {
+            width: 295px;
         }
 
-        .loading .indicator {
+        .main-reports .date {
+            width: 150px;
+        }
+
+        .main-reports thead {
+            font-weight: bold;
+        }
+
+        .main-reports tr {
+            margin: 20px 0;
+        }
+
+        .main-reports a {
             display: inline-block;
-            vertical-align: middle;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .main-reports span {
+            display: block;
+        }
+
+        .main-reports .loading a {
+            display: none;
+        }
+
+        .main-reports .loading .indicator {
+            display: inline-block;
             background: url('/assets/images/ajax-loader.gif') no-repeat center center;
-            background-size: 12px 12px;
-            height: 12px;
-            width: 12px;
+            background-size: 32px 32px;
+            height: 32px;
+            width: 32px;
+            margin: 16px;
         }
     </style>
 
@@ -86,24 +112,25 @@
 
             $('.generate').on('click', function() {
                 var url = $(this).attr('href');
-                var li = $(this).closest('li');
+                var td = $(this).closest('td');
 
-                $(li).toggleClass('loading');
+                $(td).toggleClass('loading');
+
                 $.ajax({
                     method: 'GET',
                     url: url,
                     success: function(data, textStatus, xhr) {
                         if (xhr.status == 202) {
-                            pollReport(url.replace('generate', 'status'), li);
+                            pollReport(url.replace('generate', 'status'), td);
                         } else {
-                            $(li).toggleClass('loading');
+                            $(td).toggleClass('loading');
                         }
                     },
                     error: function() {
                         alert("There was an error generating the report");
-                        $(li).toggleClass('loading');
+                        $(td).toggleClass('loading');
                     }
-                })
+                });
                 return false;
             });
 
@@ -117,28 +144,80 @@
 <div class="container" style="position:relative; top: 100px;">
     <h2>Main Reports</h2>
     <p>Main reports take a while to generate, so are generated automatically every 24 hours. If you require an immediate up-to-date version of the report, click the generate button.</p>
-    <ul class="main-reports">
-        <li>
-            <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>&nbsp;
-            [<a href="/reports/primarySubject/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/standard-item-report.csv">Standard Report</a>&nbsp;
-            [<a href="/reports/standards/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/contributor-item-report.csv">Contributor Report</a>&nbsp;
-            [<a href="/reports/contributor/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/collection-item-report.csv">Collection Report</a>&nbsp;
-            [<a href="/reports/collection/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-    </ul>
+    <table class="main-reports">
+        <thead>
+            <tr>
+                <td class="name">Report Name</td>
+                <td colspan="3">Date Created</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="name">Primary Subject Report</td>
+                <td class="date">@timestamps.get("primarySubject").getOrElse("--")</td>
+                <td>
+                    <a class="generate" href="/reports/primarySubject/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td><a href="/reports/primary-subject-item-report.csv">
+                    <img src="assets/images/download.png" />
+                    <span>Download</span>
+                </a></td>
+            </tr>
+            <tr>
+                <td class="name">Standard Report</td>
+                <td class="date">@timestamps.get("standards").getOrElse("--")</td>
+                <td>
+                    <a class="generate" href="/reports/standards/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td><a href="/reports/standard-item-report.csv">
+                    <img src="assets/images/download.png" />
+                    <span>Download</span>
+                </a></td>
+            </tr>
+            <tr>
+                <td class="name">Contributor Report</td>
+                <td class="date">@timestamps.get("contributor").getOrElse("--")</td>
+                <td>
+                    <a class="generate" href="/reports/contributor/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td>
+                    <a href="/reports/contributor-item-report.csv">
+                        <img src="assets/images/download.png" />
+                        <span>Download</span>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td class="name">Collection Report</td>
+                <td class="date">@timestamps.get("collection").getOrElse("--")</td>
+                <td>
+                    <a class="generate" href="/reports/collection/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td>
+                    <a href="/reports/collection-item-report.csv">
+                        <img src="assets/images/download.png" />
+                        <span>Download</span>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <br/>
     <br/>
