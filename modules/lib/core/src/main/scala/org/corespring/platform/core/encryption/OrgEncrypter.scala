@@ -3,8 +3,9 @@ package org.corespring.platform.core.encryption
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
 import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.common.log.PackageLogging
 
-class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) {
+class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
 
   def encrypt(s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
     client =>
@@ -18,6 +19,9 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) {
 
   def decrypt(s: String): Option[String] = ApiClient.findOneByOrgId(orgId).map {
     client =>
-      encrypter.decrypt(s, client.clientSecret)
+      logger.debug(s"decrypt: $s with secret: ${client.clientSecret}")
+      val out = encrypter.decrypt(s, client.clientSecret)
+      logger.debug(s"result: $out")
+      out
   }
 }

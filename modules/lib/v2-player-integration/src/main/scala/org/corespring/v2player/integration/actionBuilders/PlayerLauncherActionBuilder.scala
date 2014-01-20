@@ -68,7 +68,7 @@ abstract class PlayerLauncherActionBuilder(
           val newSession = sumSession(request.session, playerCookies(orgId, Some(opts)): _*)
           block(new PlayerJsRequest(opts.secure, request)).withSession(newSession)
         }
-        case Failure(msg) => BadRequest(msg)
+        case Failure(msg) => block(new PlayerJsRequest(false, request, Seq(msg)))
       }
   }
 }

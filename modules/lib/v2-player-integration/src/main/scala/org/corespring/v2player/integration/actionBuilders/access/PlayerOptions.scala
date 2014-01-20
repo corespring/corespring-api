@@ -26,10 +26,16 @@ object PlayerOptions {
   def fromJson(s: String) = try {
     optionsFormat.reads(Json.parse(s)) match {
       case JsSuccess(o, _) => Some(o)
-      case JsError(errs) => None
+      case JsError(errs) => {
+        println(errs)
+        None
+      }
     }
   } catch {
-    case e: Throwable => None
+    case e: Throwable => {
+      println(e.getMessage)
+      None
+    }
   }
 
   implicit val optionsFormat = Json.format[PlayerOptions]

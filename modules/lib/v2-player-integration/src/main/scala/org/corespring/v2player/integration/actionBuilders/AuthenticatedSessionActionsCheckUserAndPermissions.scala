@@ -54,7 +54,8 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
   import scalaz.Scalaz._
   import scalaz._
 
-  override def loggerName = "AuthenticatedSessionActionsCheckUserAndPermissions"
+  override def loggerName = "org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActionsCheckUserAndPermissions"
+
   def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = userFromSession(request).map(
     u =>{
       println("getOrgIdAndOptions...." + loggerName)

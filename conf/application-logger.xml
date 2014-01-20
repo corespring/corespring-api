@@ -13,6 +13,7 @@
         </encoder>
     </appender>
 
+    <!--
     <logger name="ContentCollection" level="DEBUG"/>
     <logger name="play" level="INFO"/>
     <logger name="Global" level="DEBUG"/>
@@ -35,6 +36,10 @@
     <logger name="components.response" level="DEBUG"/>
     <logger name="poc" level="DEBUG"/>
     <logger name="org.corespring.platform.core.models" level="DEBUG"/>
+    -->
+
+    <logger name="org.corespring.platform.core.encryption" level="DEBUG"/>
+    <logger name="org.corespring.v2player" level="TRACE"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

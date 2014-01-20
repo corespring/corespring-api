@@ -270,6 +270,7 @@ object Organization extends OrganizationImpl {
 }
 
 case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
+
 object ContentCollRef {
   val pval: String = "pval"
   val collectionId: String = "collectionId"
