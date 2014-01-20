@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.transformers
 
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.VirtualFile
+import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import org.corespring.v2player.integration.transformers.qti.QtiTransformer
 
@@ -17,7 +17,8 @@ object ItemTransformer {
 
     require(qti.isDefined, s"item: ${item.id} has no qti xml")
 
-    val (xhtml, components) = QtiTransformer.transform(scala.xml.XML.loadString(qti.get.content))
+    val (xhtml, components) = QtiTransformer.transform(
+      scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
     Json.obj(
       "metadata" -> Json.obj(
         "title" -> JsString(item.taskInfo.map(_.title.getOrElse("?")).getOrElse("?"))
