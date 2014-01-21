@@ -24,7 +24,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   private def getStatus(reportKey: String) = generator.inProgress(reportKey) match {
     case true => Accepted("")
     case _ => generator.getReport(reportKey) match {
-      case Some((date, _, false)) => Ok(Json.obj("timestamp" -> date.toString("MM/dd/YYYY hh:mm aa")))
+      case Some((date, _, false)) => Ok(Json.obj("timestamp" -> date.toString("MM/dd/YYYY hh:mm aa z")))
       case _ => Accepted("")
     }
   }
