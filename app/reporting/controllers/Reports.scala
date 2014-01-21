@@ -4,13 +4,14 @@ import controllers.auth.BaseApi
 import reporting.services.{ReportGenerator, ReportsService}
 import play.api.mvc.SimpleResult
 import reporting.services.ReportGenerator.ReportKeys
+import play.api.libs.json.Json
 
 class Reports(service: ReportsService, generator: ReportGenerator) extends BaseApi {
 
   def index = ApiAction {
     request =>
       val availableCollections = service.getCollections
-      Ok(reporting.views.html.index(availableCollections, generator.timestamps))
+      Ok(reporting.views.html.index(availableCollections, generator.timestamps, generator.inProgress))
   }
 
   def generate(reportKey: String) = ApiAction { request =>
@@ -20,9 +21,10 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
 
   def status(reportKey: String) = ApiAction { request => getStatus(reportKey) }
 
-  private def getStatus(reportKey: String) = {
-    generator.getReport(reportKey) match {
-      case Some(report) => Ok("")
+  private def getStatus(reportKey: String) = generator.inProgress(reportKey) match {
+    case true => Accepted("")
+    case _ => generator.getReport(reportKey) match {
+      case Some((date, _, false)) => Ok(Json.obj("timestamp" -> date.toString("MM/dd/YYYY hh:mm aa")))
       case _ => Accepted("")
     }
   }
@@ -35,7 +37,6 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
         (a, i) => a + i._1 + "," + i._2 + "\n"
       }
       logger.info(out)
-      //text/csv
       Ok(out).withHeaders(("Content-type", "text/csv"))
   }
 
@@ -45,7 +46,8 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
 
   private def getReport(reportKey: String): SimpleResult = generator.getReport(reportKey) match {
-    case Some((date, string)) => Ok(string).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=$reportKey.csv"))
+    case Some((date, Some(string), inProgress)) =>
+      Ok(string).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=$reportKey.csv"))
     case _ => InternalServerError("There was an error generating this report. Please check the logs.")
   }
 

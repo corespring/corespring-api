@@ -22,16 +22,23 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
-  def getReport(reportKey: String): Option[(DateTime, String)] = Option(Cache.get(reportKey)) match {
-    case Some((date: DateTime, report: String)) => Some(date, report)
+  def getReport(reportKey: String): Option[(DateTime, Option[String], Boolean)] = Option(Cache.get(reportKey)) match {
+    case Some((date: DateTime, report: Option[String], inProgress: Boolean)) => Some(date, report, inProgress)
     case _ => None
   }
 
+  def inProgress(reportKey: String): Boolean = getReport(reportKey) match {
+    case Some((_, _, inProgress)) => inProgress
+    case None => false
+  }
+
+  def inProgress(): Map[String, Boolean] = ReportKeys.keys.map(key => (key, inProgress(key))).toMap
+
   def timestamps: Map[String, String] = {
     ReportKeys.keys.map(key => (key, (getReport(key) match {
-      case Some((date: DateTime, _)) => date.toString("MM/dd/YYYY hh:mm aa")
-      case _ => "--"
-    }))).toMap
+      case Some((date: DateTime, Some(report), _)) => Some(date.toString("MM/dd/YYYY hh:mm aa"))
+      case _ => None
+    }))).filter{ case (a,b) => b.nonEmpty }.map{ case (a,b) => (a, b.get) }.toMap
   }
 
   /**
@@ -42,7 +49,10 @@ class ReportGenerator(reportsService: ReportsService) {
 
     import ExecutionContext.Implicits.global
 
-    Cache.remove(reportKey)
+    Option(Cache.get(reportKey)) match {
+      case Some((date, report, _)) => Cache.set(reportKey, (date, report, true))
+      case _ => Cache.set(reportKey, (new DateTime, None, true))
+    }
 
     future {
       Logger.info(s"Starting to generate report $reportKey")
@@ -50,7 +60,7 @@ class ReportGenerator(reportsService: ReportsService) {
         generatorFunctions.get(reportKey) match {
           case Some(generator: (() => String)) => {
             val report = generator()
-            Cache.set(reportKey, (new DateTime, report))
+            Cache.set(reportKey, (new DateTime, Some(report), false))
             Logger.info(s"Generated $reportKey report")
             Some(report)
           }
