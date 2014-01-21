@@ -212,6 +212,16 @@ object CollectionApi extends BaseApi {
       }).getOrElse(unknownCollection)
   }
 
+  def setEnabledStatus(id: ObjectId, enabled: Boolean) = ApiActionWrite { request =>
+    Organization.setCollectionEnabledStatus(request.ctx.organization, id, enabled) match {
+      case Left(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
+      case Right(collRef) => {
+        Ok(Json.toJson("updated" + collRef.collectionId.toString))
+      }
+    }
+  }
+
+
   /**
    * Deletes a collection
    */
