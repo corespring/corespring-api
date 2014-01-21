@@ -44,7 +44,7 @@ trait BaseItemService[ID] {
 
   def sessionCount(item: Item): Long
 
-  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId]): MongoDBObject
+  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject
 
   def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef]
 }

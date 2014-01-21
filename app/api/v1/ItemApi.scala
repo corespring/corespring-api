@@ -101,7 +101,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections)
+      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections, request.ctx.organization)
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),

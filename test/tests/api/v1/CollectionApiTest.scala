@@ -3,7 +3,7 @@ package tests.api.v1
 import api.v1.{ItemApi, CollectionApi}
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.{Organization, ContentCollection}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.test.BaseTest
@@ -237,6 +237,24 @@ class CollectionApiTest extends BaseTest {
 
   }
 
+
+  "org can enable / disable a collection" in {
+    pending
+  }
+
+  "find items/list items should only find items in 'enabled' collections for an org" in {
+    pending
+  }
+
+  "only an owner of a collection can share that collection with another organization" in {
+    pending
+  }
+
+  "json returned for content coll ref should include owner id, or isowner for current coll" in  {
+    pending
+  }
+
+
 }
 
 
@@ -263,7 +281,8 @@ trait CollectionSharingScope extends BeforeAfter {
   // give organization A access to collection B1
   ContentCollection.addOrganizations(Seq((organizationA, Permission.Read)), collectionB1)
 
-
+  // enable collection b1 in org A
+  Organization.setCollectionEnabledStatus(organizationA, collectionB1, true)
 
   def before : Unit = {
   }

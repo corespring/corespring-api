@@ -49,7 +49,7 @@ class ViewsTest extends Specification with Mockito {
     def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = ???
     def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = Some( MockXml.AllItems )
     def sessionCount(item: Item): Long = ???
-    def createDefaultCollectionsQuery[A](collections: Seq[ObjectId]): MongoDBObject = ???
+    def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = ???
     def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = ???
   }
 

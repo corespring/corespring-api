@@ -49,14 +49,15 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission): Either[InternalError, ContentCollection] = {
+
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled:Boolean = true): Either[InternalError, ContentCollection] = {
     //TODO: apply two-phase commit
     if (Play.isProd) coll.id = new ObjectId()
     try {
       super.insert(coll) match {
         case Some(_) => try {
           Organization.update(MongoDBObject("_id" -> orgId),
-            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id, p.value)))),
+            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id, p.value, enabled)))),
             false, false, Organization.collection.writeConcern)
           Right(coll)
         } catch {
@@ -242,7 +243,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    */
   def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
     val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-    val collectionsQuery = ItemServiceImpl.createDefaultCollectionsQuery(acessibleCollections)
+    val collectionsQuery = ItemServiceImpl.createDefaultCollectionsQuery(acessibleCollections, orgId)
     val parsedQuery: Either[SearchCancelled, MongoDBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery) )
 
     parsedQuery match {

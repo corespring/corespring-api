@@ -17,7 +17,7 @@ import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
-import org.corespring.platform.core.models.{ContentCollection, error}
+import org.corespring.platform.core.models.{Organization, ContentCollection, error}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -75,9 +75,16 @@ class ItemServiceImpl(
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
 
-  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId]): MongoDBObject = {
-    val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
-    val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> collections))
+  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = {
+    // filter the collections to exclude any that are not currently enabled for the organization
+    val org = Organization.findOneById(orgId)
+    val disabledCollections: Seq[ObjectId] = org match {
+      case Some(organization) => organization.contentcolls.filterNot(collRef => collRef.enabled).map(_.collectionId)
+      case None => Seq()
+    }
+    val enabledCollections = collections.filterNot(disabledCollections.contains(_))
+    val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> enabledCollections.map(_.toString)))
+    val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> enabledCollections))
     val initSearch: MongoDBObject = MongoDBObject("$or" -> MongoDBList(collectionIdQry, sharedInCollectionsQry))
     initSearch
   }
