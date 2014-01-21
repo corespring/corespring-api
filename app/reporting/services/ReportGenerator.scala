@@ -36,7 +36,7 @@ class ReportGenerator(reportsService: ReportsService) {
 
   def timestamps: Map[String, String] = {
     ReportKeys.keys.map(key => (key, (getReport(key) match {
-      case Some((date: DateTime, Some(report), _)) => Some(date.toString("MM/dd/YYYY hh:mm aa"))
+      case Some((date: DateTime, Some(report), _)) => Some(date.toString("MM/dd/YYYY hh:mm aa z"))
       case _ => None
     }))).filter{ case (a,b) => b.nonEmpty }.map{ case (a,b) => (a, b.get) }.toMap
   }
