@@ -153,7 +153,7 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
     }
   }
 
-  def loadPlayerForSession(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
+  def loadPlayerForSession(sessionId: String)(error: (Int,String) => Result)(block: (Request[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
       val mode = request.getQueryString("mode").map(_.toString).map(Mode.withName).getOrElse(Mode.view)
       logger.debug(s"loadPlayerForSession $sessionId")
@@ -164,11 +164,11 @@ abstract class AuthenticatedSessionActionsCheckUserAndPermissions(
         }
         case Success(false) => {
           logger.trace(s"loadPlayerForSession failure")
-          Unauthorized("")
+          error(UNAUTHORIZED, "Message")
         }
         case Failure(tuple) => {
           logger.trace(s"loadPlayerForSession failure: $tuple")
-          Status(tuple._1)(tuple._2)
+          error(tuple._1, tuple._2)
         }
       }
   }

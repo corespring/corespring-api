@@ -95,7 +95,7 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
         if (code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
     }
 
-    def loadPlayerForSession(sessionId: String)(block: (Request[AnyContent]) => Result): Action[AnyContent] = auth.loadPlayerForSession(sessionId){
+    def loadPlayerForSession(sessionId: String)(error:(Int,String) => Result)(block: (Request[AnyContent]) => Result): Action[AnyContent] = auth.loadPlayerForSession(sessionId)(error){
       request =>
         block(request)
     }

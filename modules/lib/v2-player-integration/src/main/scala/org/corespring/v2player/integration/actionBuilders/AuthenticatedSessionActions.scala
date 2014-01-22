@@ -26,7 +26,7 @@ trait AuthenticatedSessionActions {
   def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent]
 
 
-  def loadPlayerForSession(sessionId: String)(block : (Request[AnyContent] => Result)) : Action[AnyContent]
+  def loadPlayerForSession(sessionId: String)(error: (Int,String) => Result)(block : (Request[AnyContent] => Result)) : Action[AnyContent]
 }
 
 
