@@ -153,7 +153,14 @@ object AssetLoadingDefaults {
 
     def player = load("public/js/corespring/corespring-player.js")
     def errorPlayer = load("public/js/corespring/corespring-error-player.js")
-    private def load(p: String): String = io.Source.fromFile(Play.getFile(p)).getLines().mkString("\n")
+
+    private def load(p: String): String = {
+      Play.resource(p).map{ url =>
+        io.Source.fromFile(url.getFile).getLines.mkString("\n")
+      }.getOrElse{
+        ""
+      }
+    }
   }
 
   object ErrorHandler {
