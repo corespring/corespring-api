@@ -70,13 +70,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.launchV2Player = function(){
 
-    var server = ($location.search()['server'] || "localhost:9000");
-
     var options = {
       mode: "gather",
       itemId : $scope.itemData.id,
-      evaluate: $scope.modeSettings,
-      corespringUrl: "http://" + server
+      evaluate: $scope.modeSettings
     };
 
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
