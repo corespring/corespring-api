@@ -2,6 +2,7 @@ package org.corespring.player.v1.controllers.launcher
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.{AESCrypto, Crypto}
+import org.corespring.common.log.PackageLogging
 import org.corespring.common.url.BaseUrl
 import org.corespring.common.utils.string
 import org.corespring.platform.core.controllers.AssetResource
@@ -15,7 +16,6 @@ import play.api.mvc._
 import scala.Some
 import scalaz.Scalaz._
 import scalaz.{Success, Failure, Validation}
-import org.corespring.common.log.PackageLogging
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result)
   extends Controller
