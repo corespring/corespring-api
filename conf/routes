@@ -59,6 +59,8 @@ PUT     /api/v1/collections/:id/share-items                                     
 PUT     /api/v1/collections/:id/un-share-items                                  api.v1.CollectionApi.unShareItemsWithCollection(id: ObjectId)
 PUT     /api/v1/collections/:id/share-filtered-items                            api.v1.CollectionApi.shareFilteredItemsWithCollection(id: ObjectId, q: Option[String] ?= None)
 PUT     /api/v1/collections/:id/set-enabled-status/:enabled                     api.v1.CollectionApi.setEnabledStatus(id: ObjectId, enabled: Boolean)
+PUT     /api/v1/collections/:id/share-with-org/:orgId                           api.v1.CollectionApi.shareCollection(id: ObjectId, orgId: ObjectId)
+
 
 
 

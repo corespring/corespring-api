@@ -270,8 +270,17 @@ class CollectionApiTest extends BaseTest {
 
   }
 
-  "only an owner of a collection can share that collection with another organization" in {
-    pending
+  "only an owner of a collection can share that collection with another organization" in new CollectionSharingScope {
+    // attempt to share collection b2 with org a in different org contexts
+    // (using b2 because b1 is already shared)
+    val badShareRequest =
+      FakeRequest(GET, s"/api/v1/collections/$collectionB2/share-with-org/$organizationA?access_token=%s".format(accessTokenA))
+    val badShareResult = CollectionApi.shareCollection(collectionB1, organizationA)(badShareRequest)
+    assertResult(badShareResult, INTERNAL_SERVER_ERROR)
+    val correctShareRequest =
+      FakeRequest(GET, s"/api/v1/collections/$collectionB2/share-with-org/$organizationA?access_token=%s".format(accessTokenB))
+    val correctShareResult = CollectionApi.shareCollection(collectionB2, organizationA)(correctShareRequest)
+    assertResult(correctShareResult)
   }
 
   "json returned for content coll ref should include owner id, or isowner for current coll" in  {

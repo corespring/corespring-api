@@ -221,6 +221,28 @@ object CollectionApi extends BaseApi {
     }
   }
 
+  /**
+   * Shares a collection with an organization, will fail if the context organization is not the same as
+   * the owner organization for the collection
+   * @param collectionId
+   * @param destinationOrgId
+   * @return
+   */
+  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite {  request =>
+    ContentCollection.findOneById(collectionId) match {
+      case Some(collection) =>
+        if (collection.ownerOrgId == request.ctx.organization.toString) {
+          Organization.addCollection(destinationOrgId,collectionId, Permission.Read) match {
+            case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(error.clientOutput)))
+            case Right(collRef) =>  Ok(Json.toJson("updated" + collRef.collectionId.toString))
+          }
+        } else {
+          InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("context org does not own collection"))))
+        }
+
+      case None =>  InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("collection not found"))))
+    }
+  }
 
   /**
    * Deletes a collection
