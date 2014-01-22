@@ -253,8 +253,21 @@ class CollectionApiTest extends BaseTest {
     b1CollrefAfterUpdate.enabled must beFalse
   }
 
-  "find items/list items should only find items in 'enabled' collections for an org" in {
-    pending
+  "find items/list items should only find items in 'enabled' collections for an org" in new CollectionSharingScope {
+    // in the scope b1 should be enabled, try a search, then disable b1 - the results should be different
+    val findRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
+    val findResult = ItemApi.list(None,None,"10",0,200,None)(findRequest)
+    val foundItems = parsed[List[JsValue]](findResult)
+
+    Organization.setCollectionEnabledStatus(organizationA, collectionB1, false)
+
+    val findRequestTwo = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
+    val findResultTwo = ItemApi.list(None,None,"10",0,200,None)(findRequestTwo)
+    val foundItemsTwo = parsed[List[JsValue]](findResultTwo)
+
+    foundItems.size must beEqualTo(6)
+    foundItemsTwo.size must beEqualTo(3)
+
   }
 
   "only an owner of a collection can share that collection with another organization" in {
