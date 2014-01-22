@@ -1,13 +1,13 @@
 package org.corespring.player.v1.controllers.launcher
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.{AESCrypto, Crypto}
+import org.corespring.common.encryption.{ AESCrypto, Crypto }
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.url.BaseUrl
 import org.corespring.common.utils.string
 import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.RenderOptions
 import play.api.Play
@@ -15,13 +15,13 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 import scala.Some
 import scalaz.Scalaz._
-import scalaz.{Success, Failure, Validation}
+import scalaz.{ Success, Failure, Validation }
+import org.apache.commons.lang3.StringEscapeUtils
 
 class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result)
   extends Controller
   with AssetResource
-  with PlayerCookieWriter
- {
+  with PlayerCookieWriter {
 
   object ErrorMessages {
 
@@ -31,11 +31,8 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
     def badJsonString(s: String, e: Throwable) = escape("Can't parse string into json: " + s)
     def cantConvertJsonToRenderOptions(s: String) = escape("Can't convert json to options: " + s)
 
-    private def escape(s: String): String = {
-      val escaped = s.replace("\"", "\\\\\"")
-      logger.debug("escaped: " + escaped)
-      escaped
-    }
+    private def escape(s: String): String = StringEscapeUtils.escapeEcmaScript(s)
+
   }
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
@@ -148,7 +145,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
   }
 }
 
-object AssetLoadingDefaults extends PackageLogging{
+object AssetLoadingDefaults extends PackageLogging {
 
   def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
 
@@ -160,10 +157,10 @@ object AssetLoadingDefaults extends PackageLogging{
     def errorPlayer = load("public/js/corespring/corespring-error-player.js")
 
     private def load(p: String): String = {
-      Play.resource(p).map{ url =>
+      Play.resource(p).map { url =>
         val stream = url.openStream()
         io.Source.fromInputStream(stream).getLines.mkString("\n")
-      }.getOrElse{
+      }.getOrElse {
         logger.warn(s"Can't find resource: $p")
         ""
       }
@@ -184,5 +181,4 @@ object AssetLoadingDefaults extends PackageLogging{
 class AssetLoadingMain extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceWired, AssetLoadingDefaults.ErrorHandler.handleError)
 
 object AssetLoading extends AssetLoadingMain
-
 
