@@ -15,8 +15,13 @@ import play.api.mvc._
 import scala.Some
 import scalaz.Scalaz._
 import scalaz.{Success, Failure, Validation}
+import org.corespring.common.log.PackageLogging
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result) extends Controller with AssetResource with PlayerCookieWriter {
+class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result)
+  extends Controller
+  with AssetResource
+  with PlayerCookieWriter
+ {
 
   object ErrorMessages {
 
@@ -143,7 +148,7 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
   }
 }
 
-object AssetLoadingDefaults {
+object AssetLoadingDefaults extends PackageLogging{
 
   def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
 
@@ -156,8 +161,10 @@ object AssetLoadingDefaults {
 
     private def load(p: String): String = {
       Play.resource(p).map{ url =>
-        io.Source.fromFile(url.getFile).getLines.mkString("\n")
+        val stream = url.openStream()
+        io.Source.fromInputStream(stream).getLines.mkString("\n")
       }.getOrElse{
+        logger.warn(s"Can't find resource: $p")
         ""
       }
     }
