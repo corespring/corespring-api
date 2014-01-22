@@ -239,10 +239,18 @@ class CollectionApiTest extends BaseTest {
 
 
   "org can enable / disable a collection" in new CollectionSharingScope {
+    // in the scope, collection b1 should have been enabled
+    val orgA =  Organization.findOneById(organizationA).get
+    val b1Collref = orgA.contentcolls.find(_.collectionId == collectionB1).get
+    b1Collref.enabled must beTrue
     val disableCollectionRequest =
       FakeRequest(GET, s"/api/v1/collections/$collectionB1/set-enabled-status/false?access_token=%s".format(accessTokenA))
     val disableCollectionResult = CollectionApi.setEnabledStatus(collectionB1, false)(disableCollectionRequest)
     assertResult(disableCollectionResult)
+
+    val orgAAfterUpdate =  Organization.findOneById(organizationA).get
+    val b1CollrefAfterUpdate = orgAAfterUpdate.contentcolls.find(_.collectionId == collectionB1).get
+    b1CollrefAfterUpdate.enabled must beFalse
   }
 
   "find items/list items should only find items in 'enabled' collections for an org" in {
