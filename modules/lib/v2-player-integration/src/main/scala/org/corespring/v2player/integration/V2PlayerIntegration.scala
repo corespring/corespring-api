@@ -39,7 +39,7 @@ import scalaz.Failure
 import scalaz.{Success, Validation}
 
 
-class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: MongoDB) extends AssetResource {
+class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) extends AssetResource {
 
 
   private lazy val secureSocialService = new SecureSocialService {
@@ -57,7 +57,7 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
   private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher(
       secureSocialService,
       UserServiceWired,
-      config)
+      rootConfig)
 
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
@@ -92,9 +92,9 @@ class V2PlayerIntegration(comps: => Seq[Component], config: Configuration, db: M
   }
 
   private lazy val libs = new ComponentsFileController {
-    def componentsPath: String = config.getString("components.path").getOrElse("components")
+    def componentsPath: String = rootConfig.getString("components.path").getOrElse("components")
 
-    def defaultCharSet: String = config.getString("default.charset").getOrElse("utf-8")
+    def defaultCharSet: String = rootConfig.getString("default.charset").getOrElse("utf-8")
   }
 
   private lazy val assets = new Assets {

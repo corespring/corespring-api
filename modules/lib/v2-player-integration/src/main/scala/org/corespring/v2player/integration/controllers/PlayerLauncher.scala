@@ -2,6 +2,7 @@ package org.corespring.v2player.integration.controllers
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.{NullCrypto, AESCrypto}
+import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.controllers.{PlayerLauncher => ContainerPlayerLauncher}
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.auth.ApiClient
@@ -16,7 +17,7 @@ import scalaz.Success
 class PlayerLauncher(
                       secureSocialService : SecureSocialService,
                       userService : UserService,
-                      config : Configuration) extends ContainerPlayerLauncher {
+                      rootConfig : Configuration) extends ContainerPlayerLauncher {
 
   def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(
     secureSocialService,
@@ -36,7 +37,7 @@ class PlayerLauncher(
     }
 
     def encryptionEnabled(r: Request[AnyContent]): Boolean = {
-      val acceptsFlag = Play.current.mode == Mode.Dev || config.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+      val acceptsFlag = Play.current.mode == Mode.Dev || rootConfig.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
 
       val enabled = if (acceptsFlag) {
         val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
@@ -56,4 +57,7 @@ class PlayerLauncher(
     } yield client.orgId
 
   }
+
+  override def playerConfig: V2PlayerConfig = V2PlayerConfig(rootConfig)
+
 }
