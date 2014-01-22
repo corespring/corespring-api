@@ -11,7 +11,7 @@ function up() {
 
     function getStandardsForSkillNumber(skillNumber) {
         return skillNumberMap[skillNumber];
-    }a
+    }
 
     function contains(a, obj) {
         for (var i = 0; i < a.length; i++) {
@@ -23,13 +23,15 @@ function up() {
     }
 
     newClassroomsContent.forEach(function(content) {
-        var skillNumber = content.taskInfo.extended.new_classrooms.skillNumber;
-        var standards = getStandardsForSkillNumber(skillNumber);
-        if (standards.length > 0) {
-            content.standards = standards;
-            db.content.save(content);
-        } else if (contains(noMapping, skillNumber)) {
-            noMatchCount++;
+        if (content && content.taskInfo && content.taskInfo.extended && content.taskInfo.extended.new_classrooms) {
+            var skillNumber = content.taskInfo.extended.new_classrooms.skillNumber;
+            var standards = getStandardsForSkillNumber(skillNumber);
+            if (standards.length > 0) {
+                content.standards = standards;
+                db.content.save(content);
+            } else if (contains(noMapping, skillNumber)) {
+                noMatchCount++;
+            }
         }
     });
 
