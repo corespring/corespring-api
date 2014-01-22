@@ -283,8 +283,15 @@ class CollectionApiTest extends BaseTest {
     assertResult(correctShareResult)
   }
 
-  "json returned for content coll ref should include owner id, or isowner for current coll" in  {
-    pending
+  "json returned for content coll ref should include owner id" in new CollectionSharingScope {
+    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(accessTokenA))
+    //val Some(result) = route(fakeRequest)
+    val result = CollectionApi.list(None,None,"10",0,200,None)(fakeRequest)
+    assertResult(result)
+    val collections = parsed[List[JsValue]](result)
+    val ownedByA = collections.filter(jsVal => (jsVal \ "ownerOrgId").as[String] == organizationA.toString)
+    ownedByA.size must beEqualTo(1)
+
   }
 
 
