@@ -11,28 +11,24 @@ class PointInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
   extends RewriteRule
   with InteractionTransformer {
 
-  private def config(implicit node: Node) = {
-    JsObject(
-      Seq(
-        "maxPoints" -> optForAttr[JsNumber]("max-points"),
-        "scale" -> optForAttr[JsNumber]("scale"),
-        "domain" -> optForAttr[JsNumber]("domain"),
-        "range" -> optForAttr[JsNumber]("range"),
-        "sigfigs" -> optForAttr[JsNumber]("sigfigs"),
-        "domainLabel" -> optForAttr[JsString]("domain-label"),
-        "rangeLabel" -> optForAttr[JsString]("range-label"),
-        "tickLabelFrequency" -> optForAttr[JsNumber]("tick-label-frequency"),
-        "pointLabels" -> optForAttr[JsString]("point-labels"),
-        "maxPoints" -> optForAttr[JsString]("max-points"),
-        "showInputs" -> optForAttr[JsString]("show-inputs"),
-        "locked" -> ((node \\ "@locked").isEmpty match {
-          case true => None
-          case _ => Some(JsBoolean(true))
-        })
-      ).filter{ case (_, v) => v.nonEmpty }
-       .map{ case (a,b) => (a, b.get) }
+  private def config(implicit node: Node) =
+    partialObj(
+      "maxPoints" -> optForAttr[JsNumber]("max-points"),
+      "scale" -> optForAttr[JsNumber]("scale"),
+      "domain" -> optForAttr[JsNumber]("domain"),
+      "range" -> optForAttr[JsNumber]("range"),
+      "sigfigs" -> optForAttr[JsNumber]("sigfigs"),
+      "domainLabel" -> optForAttr[JsString]("domain-label"),
+      "rangeLabel" -> optForAttr[JsString]("range-label"),
+      "tickLabelFrequency" -> optForAttr[JsNumber]("tick-label-frequency"),
+      "pointLabels" -> optForAttr[JsString]("point-labels"),
+      "maxPoints" -> optForAttr[JsString]("max-points"),
+      "showInputs" -> optForAttr[JsString]("show-inputs"),
+      "locked" -> ((node \\ "@locked").isEmpty match {
+        case true => None
+        case _ => Some(JsBoolean(true))
+      })
     )
-  }
 
   private def component(node: Node) = {
 
