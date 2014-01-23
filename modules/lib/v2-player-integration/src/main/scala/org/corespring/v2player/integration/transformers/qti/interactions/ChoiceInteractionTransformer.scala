@@ -53,7 +53,8 @@ class ChoiceInteractionTransformer(componentJson: mutable.Map[String, JsObject],
           "model" -> Json.obj(
               "config" -> Json.obj(
                 "shuffle" -> (e \ "@shuffle").text,
-                "orientation" -> JsString( if( (e \ "@orientation").text == "vertical") "vertical" else "horizontal" ),
+                "orientation" -> JsString( if( (e \ "@orientation").text == "horizontal") "horizontal" else "vertical" ),
+                "choiceStyle" -> JsString( (e \ "@choiceStyle").text ),
                 "singleChoice" -> JsBoolean( ( (e\ "@maxChoices").text == "1") )
               ),
               "prompt" -> (e \ "prompt").map(clearNamespace).text.trim,
