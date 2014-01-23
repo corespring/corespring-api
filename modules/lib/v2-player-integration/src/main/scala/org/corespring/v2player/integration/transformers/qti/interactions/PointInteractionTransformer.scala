@@ -36,12 +36,7 @@ class PointInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
 
     Json.obj(
       "componentType" -> "corespring-point-intercept",
-      "correctResponse" -> ((qti \\ "responseDeclaration").find(n => (n \ "@identifier").text == identifier) match {
-        case Some(responseDeclaration) =>
-          (responseDeclaration \ "correctResponse" \ "value").map(_.text)
-        case _ =>
-          throw new IllegalStateException(s"Item did not contain a responseDeclaration for interaction $identifier")
-      }),
+      "correctResponse" -> (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(_.text),
       "model" -> Json.obj(
         "config" -> config(node)
       )
