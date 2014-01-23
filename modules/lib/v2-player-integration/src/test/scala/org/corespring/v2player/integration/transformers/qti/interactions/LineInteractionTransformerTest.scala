@@ -10,7 +10,8 @@ class LineInteractionTransformerTest extends Specification {
   val identifier = "Q_01"
   val anotherIdentifier = "Q_02"
 
-  val correctResponseEquation = "y=2x+7"
+  val correctResponse = "y=2x+7"
+  val initialValues = Seq("-3,1", "-2,3")
   val scale = 2
   val domain = 10
   val range = 10
@@ -23,14 +24,18 @@ class LineInteractionTransformerTest extends Specification {
     <assessmentItem>
       <responseDeclaration identifier={identifier}>
         <correctResponse>
-          <value>{correctResponseEquation}</value>
+          <value>{correctResponse}</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <lineInteraction jsxgraphcore="" responseIdentifier={identifier}  graph-width="300px" graph-height="300px"
                          domain={domain.toString} range={range.toString} scale={scale.toString}
                          domain-label={domainLabel} range-label={rangeLabel}
-                         tick-label-frequency={tickLabelFrequency.toString} sigfigs={sigfigs.toString} />
+                         tick-label-frequency={tickLabelFrequency.toString} sigfigs={sigfigs.toString}>
+          <graphline>
+            {initialValues.map(v => <point>{v}</point>)}
+          </graphline>
+        </lineInteraction>
       </itemBody>
     </assessmentItem>
 
@@ -48,7 +53,7 @@ class LineInteractionTransformerTest extends Specification {
 
   "PointInteractionTransformer" should {
 
-    val input = qti(correctResponseEquation)
+    val input = qti(correctResponse)
     val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
     val output = new RuleTransformer(new LineInteractionTransformer(componentsJson, input)).transform(input)
 
@@ -68,7 +73,7 @@ class LineInteractionTransformerTest extends Specification {
     }
 
     "returns correct response equation" in {
-      (interactionResult \ "correctResponse" \ "equation").as[String] must be equalTo correctResponseEquation
+      (interactionResult \ "correctResponse").as[String] must be equalTo correctResponse
     }
 
     "returns correct scale" in {
@@ -104,6 +109,11 @@ class LineInteractionTransformerTest extends Specification {
     "returns correct tick label frequency" in {
       (noConfig \ "tickLabelFrequency") must haveClass[JsUndefined]
       (config \ "tickLabelFrequency").as[JsNumber].value.toInt must be equalTo tickLabelFrequency
+    }
+
+    "returns correct initial values" in {
+      (noConfig \ "initialValues") must haveClass[JsUndefined]
+      (config \ "initialValues").as[Seq[String]] diff initialValues must beEmpty
     }
 
     "removes all <lineInteraction/> elements" in {

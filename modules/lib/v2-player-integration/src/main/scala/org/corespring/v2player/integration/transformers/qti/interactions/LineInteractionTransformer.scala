@@ -1,19 +1,14 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import scala.collection.mutable
-import play.api.libs.json.{JsString, JsNumber, Json, JsObject}
-import scala.xml.{Elem, Node}
+import scala.xml._
 import scala.xml.transform.RewriteRule
+import play.api.libs.json._
+import scala.Some
 
 class LineInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
   extends RewriteRule
   with InteractionTransformer {
-
-  private def correctResponse(node: Node) = {
-    Json.obj(
-      "equation" -> (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(_.text).mkString("")
-    )
-  }
 
   private def config(implicit node: Node) = {
     JsObject(
@@ -24,7 +19,11 @@ class LineInteractionTransformer(componentJson: mutable.Map[String, JsObject], q
         "domainLabel" -> optForAttr[JsString]("domain-label"),
         "rangeLabel" -> optForAttr[JsString]("range-label"),
         "tickLabelFrequency" -> optForAttr[JsNumber]("tick-label-frequency"),
-        "sigfigs" -> optForAttr[JsNumber]("sigfigs")
+        "sigfigs" -> optForAttr[JsNumber]("sigfigs"),
+        "initialValues" -> ((node \ "graphline" \\ "point") match {
+          case empty: Seq[Node] if empty.isEmpty => None
+          case nodes: Seq[Node] => Some(JsArray(nodes.map(n => JsString(n.text))))
+        })
       ).filter{ case (_, v) => v.nonEmpty }
        .map{ case (a,b) => (a, b.get) }
     )
@@ -35,7 +34,7 @@ class LineInteractionTransformer(componentJson: mutable.Map[String, JsObject], q
 
     Json.obj(
       "componentType" -> "corespring-line",
-      "correctResponse" -> correctResponse(node),
+      "correctResponse" -> (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(_.text).mkString(""),
       "model" -> Json.obj(
         "config" -> config(node)
       )
