@@ -30,7 +30,11 @@ angular.module('tagger.services').factory('SearchService',
         }
       }
 
-      var query = mongoQuery.fuzzyTextQuery(searchParams.searchText, searchFields);
+     function escapeEcmaScript(str) {
+       return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+     }
+
+      var query = mongoQuery.fuzzyTextQuery(escapeEcmaScript(searchParams.searchText), searchFields);
 
       var hasKey = function (element, key) {
         var foundElement = _.find(element, function (e) {
