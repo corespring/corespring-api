@@ -49,6 +49,11 @@ class TextEntryInteractionTest extends Specification{
       optro.map(ro => ro.isCorrect) must beSome(true)
       optro.map(ro =>ro.outcomeProperties.isEmpty) must beSome(true)
     }
+    "retrieves correct response with different case" in {
+      val optro = optte1.get.getOutcome(optrd1, StringResponse("equationEntryTest","Y=2X+7",None))
+      optro.map(ro => ro.isCorrect) must beSome(true)
+      optro.map(ro =>ro.outcomeProperties.isEmpty) must beSome(true)
+    }
     "retrieves correct response with outcome properties when necessary" in {
       val optro = optte1.get.getOutcome(optrd1, StringResponse("equationEntryTest","y - 2x = 7",None))
       optro.map(ro => ro.isCorrect) must beSome(true)
