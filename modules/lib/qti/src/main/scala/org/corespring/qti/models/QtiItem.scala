@@ -232,7 +232,7 @@ case class ResponseDeclaration(identifier: String, cardinality: String, baseType
    */
   def processInput(response: String) = exactMatch match {
     case true => response
-    case false => response.replaceAllLiterally(" ", "")
+    case false => response.replaceAllLiterally(" ", "").toLowerCase
   }
 
 }
