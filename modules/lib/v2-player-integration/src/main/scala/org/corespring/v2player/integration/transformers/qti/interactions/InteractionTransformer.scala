@@ -12,6 +12,7 @@ import play.api.libs.json.JsBoolean
 import scala.Some
 import play.api.libs.json.JsNumber
 import org.corespring.qti.models.QtiItem
+import play.api.libs.json.Json.JsValueWrapper
 
 trait InteractionTransformer extends XMLNamespaceClearer {
 
@@ -76,5 +77,11 @@ trait InteractionTransformer extends XMLNamespaceClearer {
       case nonEmpty: Seq[Node] => Some(JsString(nonEmpty.head.text.toString))
     }
   }
+
+  /**
+   * Returns a JsObject with only the fields whose values are Some(JsValue)
+   */
+  def partialObj(fields : (String, Option[JsValue])*): JsObject =
+    JsObject(fields.filter{ case (_, v) => v.nonEmpty }.map{ case (a,b) => (a, b.get) })
 
 }
