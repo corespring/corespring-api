@@ -34,11 +34,28 @@ class ChoiceInteractionTransformerTest extends Specification {
       </simpleChoice>
     </choiceInteraction>
 
+  def inlineInteraction =
+    <inlineChoiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+      <prompt>ITEM PROMPT?</prompt>
+      <inlineChoice identifier="A">A
+        <feedbackInline identifier="A" defaultFeedback="true"/>
+      </inlineChoice>
+      <inlineChoice identifier="B">B
+        <feedbackInline identifier="B" defaultFeedback="true"/>
+      </inlineChoice>
+    </inlineChoiceInteraction>
+
   val singleChoice = qti(
     responseDeclaration("single", <correctResponse>
       <value>A</value>
     </correctResponse>),
     choiceInteraction)
+
+  val inlineChoice = qti(
+    responseDeclaration("single", <correctResponse>
+      <value>A</value>
+    </correctResponse>),
+    inlineInteraction)
 
   val multipleChoice = qti(
     responseDeclaration("multiple", <correctResponse>
@@ -49,8 +66,8 @@ class ChoiceInteractionTransformerTest extends Specification {
 
 
   "ChoiceInteractionTransformer" should {
-    "transform" in {
 
+    "transform choiceInteraction" in {
       val responseDeclarations = singleChoice \\ "responseDeclaration"
 
       val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
@@ -61,6 +78,25 @@ class ChoiceInteractionTransformerTest extends Specification {
 
 
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
+      (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
+      (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
+      (q1 \ "feedback").as[Seq[JsObject]].length === 2
+      ((q1 \ "feedback")(0) \ "value").as[String] === "A"
+      ((q1 \ "feedback")(0) \ "feedback").as[String] === "Default Correct"
+    }
+
+    "transform inlineChoiceInteraction" in {
+
+
+      val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
+
+      val out = new RuleTransformer(new ChoiceInteractionTransformer(componentsJson, inlineChoice)).transform(inlineChoice)
+
+      println(componentsJson)
+
+      val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
+
+      (q1 \ "componentType").as[String] === "corespring-inline-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2

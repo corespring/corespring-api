@@ -52,7 +52,7 @@ trait InteractionTransformer extends XMLNamespaceClearer {
         }
         Json.obj("value" -> JsString(id), "feedback" -> JsString(content))
       }
-    }.flatten
+    }.flatten.distinct
     JsArray(feedbackObjects)
   }
 
