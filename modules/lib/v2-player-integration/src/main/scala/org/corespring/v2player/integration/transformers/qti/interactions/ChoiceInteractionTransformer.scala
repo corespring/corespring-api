@@ -22,7 +22,7 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
       def choices: JsArray = {
         val out : Seq[JsValue] = ((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map{ n: Node =>
           Json.obj(
-            "label" -> n.child.filter(_.isInstanceOf[Text]).mkString,
+            "label" -> n.child.filterNot(e => e.label == "feedbackInline").mkString.trim,
             "value" -> (n \ "@identifier").text.trim
           )
         }

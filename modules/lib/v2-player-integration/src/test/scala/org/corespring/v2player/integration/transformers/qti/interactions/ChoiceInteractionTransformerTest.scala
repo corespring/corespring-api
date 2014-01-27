@@ -1,11 +1,9 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.{Json, JsString, JsArray, JsObject}
-import scala.collection.mutable
+import play.api.libs.json._
 import scala.xml.transform.RuleTransformer
 import scala.xml.{Elem, Node}
-import org.corespring.v2player.integration.transformers.qti.interactions.ChoiceInteractionTransformer
 
 class ChoiceInteractionTransformerTest extends Specification {
 
@@ -83,11 +81,9 @@ class ChoiceInteractionTransformerTest extends Specification {
 
     "transform inlineChoiceInteraction" in {
 
-      val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-
       val out = new RuleTransformer(ChoiceInteractionTransformer).transform(inlineChoice)
-
-      val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
+      val q1 = ChoiceInteractionTransformer.interactionJs(inlineChoice).get("Q_01")
+        .getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
