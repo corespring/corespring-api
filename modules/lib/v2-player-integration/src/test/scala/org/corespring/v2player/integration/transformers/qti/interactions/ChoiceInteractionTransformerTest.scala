@@ -37,10 +37,10 @@ class ChoiceInteractionTransformerTest extends Specification {
   def inlineInteraction =
     <inlineChoiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
       <prompt>ITEM PROMPT?</prompt>
-      <inlineChoice identifier="A">A
+      <inlineChoice identifier="A"><math>A</math>
         <feedbackInline identifier="A" defaultFeedback="true"/>
       </inlineChoice>
-      <inlineChoice identifier="B">B
+      <inlineChoice identifier="B"><math>A</math>
         <feedbackInline identifier="B" defaultFeedback="true"/>
       </inlineChoice>
     </inlineChoiceInteraction>
@@ -79,6 +79,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
+      ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "A"
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
       ((q1 \ "feedback")(0) \ "value").as[String] === "A"
@@ -86,7 +87,6 @@ class ChoiceInteractionTransformerTest extends Specification {
     }
 
     "transform inlineChoiceInteraction" in {
-
 
       val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
 
@@ -98,6 +98,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
+      ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "<math>A</math>"
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
       ((q1 \ "feedback")(0) \ "value").as[String] === "A"
