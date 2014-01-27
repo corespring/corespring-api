@@ -4,5 +4,8 @@
     },
     "name" : "Demo Collection",
     "description" : "demo collection to be used by api demonstration. this particular collection contains the demo content",
-    "isPublic" : true
+    "isPublic" : true,
+    "ownerOrgId" : {
+        "$oid": "51114b307fc1eaa866444648"
+    }
 }
