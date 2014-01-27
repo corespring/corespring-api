@@ -49,7 +49,7 @@ object FeedbackBlockTransformer extends InteractionTransformer {
     node match {
       case e: Elem if e.label == "feedbackBlock" => {
         (e \ "@outcomeIdentifier").text match {
-          case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}/>
+          case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}></corespring-feedback-block>
           case _ => Seq.empty
         }
       }
