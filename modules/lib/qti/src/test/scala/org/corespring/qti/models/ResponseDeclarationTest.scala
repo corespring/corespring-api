@@ -67,4 +67,21 @@ class ResponseDeclarationTest extends Specification {
 
   }
 
+  "hasDefaultCorrectResponse" should {
+
+    val mockResponseDeclaration = ResponseDeclaration(identifier = "identifier", cardinality = "single",
+      baseType = "something", exactMatch = false, correctResponse = None, mapping = None)
+
+    val mockCorrectResponse = CorrectResponseAny(<value>5</value>)
+
+    "return true when correctResponse is defined" in {
+      mockResponseDeclaration.copy(correctResponse = Some(mockCorrectResponse)).hasDefaultCorrectResponse must beTrue
+    }
+
+    "return false when correctResponse is not defined" in {
+      mockResponseDeclaration.copy(correctResponse = None).hasDefaultCorrectResponse must beFalse
+    }
+
+  }
+
 }
