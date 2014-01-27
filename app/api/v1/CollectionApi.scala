@@ -157,7 +157,7 @@ object CollectionApi extends BaseApi {
             if (name.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionNameMissing))
             } else {
-              val collection = ContentCollection(id = newId, name = name.get, ownerOrgId = request.ctx.organization.toString)
+              val collection = ContentCollection(id = newId, name = name.get, ownerOrgId = request.ctx.organization)
               ContentCollection.insertCollection(request.ctx.organization, collection, Permission.Write) match {
                 case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll, Permission.Write.value)))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
@@ -192,7 +192,7 @@ object CollectionApi extends BaseApi {
         request.body.asJson match {
           case Some(json) => {
             val name = (json \ "name").asOpt[String].getOrElse(original.name)
-            val toUpdate = ContentCollection(name, id = original.id)
+            val toUpdate = ContentCollection(name, id = original.id, ownerOrgId = original.ownerOrgId)
             if ((Organization.getPermissions(request.ctx.organization, original.id).value & Permission.Read.value) == Permission.Read.value) {
               ContentCollection.updateCollection(toUpdate) match {
                 case Right(coll) => (json \ "organizations") match {
@@ -231,7 +231,7 @@ object CollectionApi extends BaseApi {
   def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite {  request =>
     ContentCollection.findOneById(collectionId) match {
       case Some(collection) =>
-        if (collection.ownerOrgId == request.ctx.organization.toString) {
+        if (collection.ownerOrgId == request.ctx.organization) {
           Organization.addCollection(destinationOrgId,collectionId, Permission.Read) match {
             case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(error.clientOutput)))
             case Right(collRef) =>  Ok(Json.toJson("updated" + collRef.collectionId.toString))

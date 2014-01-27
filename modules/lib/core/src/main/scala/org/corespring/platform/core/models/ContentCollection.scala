@@ -30,7 +30,7 @@ import se.radley.plugin.salat._
  */
 case class ContentCollection(
   var name: String = "",
-  var ownerOrgId: String = "",
+  var ownerOrgId: ObjectId,
   var isPublic: Boolean = false,
   var id: ObjectId = new ObjectId()) {
 
@@ -90,7 +90,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   lazy val archiveCollId: ObjectId = {
     val id = new ObjectId("500ecfc1036471f538f24bdc")
-    ContentCollection.insert(ContentCollection("archiveColl", id = id))
+    val archiveOrg = new ObjectId("52e68c0bd455283f1744a721");
+    ContentCollection.insert(ContentCollection("archiveColl", id = id, ownerOrgId = archiveOrg))
     id
   }
 
@@ -328,7 +329,7 @@ object CollectionExtraDetails {
     def writes(c: CollectionExtraDetails): JsValue = {
       JsObject(Seq(
         "name" -> JsString(c.coll.name),
-        "ownerOrgId" -> JsString(c.coll.ownerOrgId),
+        "ownerOrgId" -> JsString(c.coll.ownerOrgId.toString),
         "permission" -> JsString(Permission.toHumanReadable(c.access)),
         "itemCount" -> JsNumber(c.coll.itemCount),
         "isPublic" -> JsBoolean(c.coll.isPublic),

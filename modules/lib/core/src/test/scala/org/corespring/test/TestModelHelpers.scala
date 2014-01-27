@@ -43,7 +43,7 @@ trait TestModelHelpers extends ClassLogging {
       case _ => throw new RuntimeException("no token created")
     }
 
-    def createCollection = ContentCollection.insertCollection(org.id, new ContentCollection("test_collection"), collectionPermission) match {
+    def createCollection = ContentCollection.insertCollection(org.id, new ContentCollection("test_collection", ownerOrgId = org.id), collectionPermission) match {
       case Right(coll) => coll
       case Left(e) => throw new RuntimeException("no collection created")
     }
