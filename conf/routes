@@ -33,13 +33,17 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 ->     /player                v1Player.Routes
 # Note: You can't assign the same routes file to different paths as the object will get overwritten
 # ->     /v1/player             v1Player.Routes
+
 ->     /v2/player             v2Player.Routes
+
+
 ->     /lti                   lti.Routes
 ->     /reports               reports.Routes
 ->     /scorm                 scorm.Routes
 
 
 ## Dev endpoints...
+GET    /dev/tools/v2-player/:itemId                                  dev.tools.controllers.V2Player.v2Player(itemId)
 GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
 GET    /dev/tools/player/item/:itemId/*filename                      dev.tools.controllers.AssetLoading.getDataFile(itemId, filename)
 

@@ -6,10 +6,10 @@ import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
-import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
+import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.poc.integration.ControllerInstanceResolver
-import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.reporting.services.ReportGenerator
+import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.DateTime
 import play.api._
@@ -24,7 +24,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
 
   val INIT_DATA: String = "INIT_DATA"
 
-  private lazy val componentLoader : ComponentLoader = {
+  private lazy val componentLoader: ComponentLoader = {
     val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
     out.reload
     out
@@ -56,12 +56,11 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     Future { InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable)) }
   }
 
-  private def applyFilter(f : Future[SimpleResult]) : Future[SimpleResult] = f.map( _.withHeaders(Headers.AccessControlAllowEverything))
+  private def applyFilter(f: Future[SimpleResult]): Future[SimpleResult] = f.map(_.withHeaders(Headers.AccessControlAllowEverything))
 
   override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Future[SimpleResult] = applyFilter(super.onHandlerNotFound(request))
 
   override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
-
 
   override def onStart(app: Application): Unit = {
 
@@ -126,7 +125,6 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
       - new DateTime().getMinuteOfDay) minutes
   }
-
 
   private def reportingDaemon(app: Application) = {
     import scala.language.postfixOps
