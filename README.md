@@ -113,3 +113,13 @@ https://corespring.signin.aws.amazon.com/console
 
 Ask evan for a user account.
 
+
+### Dev Tools
+
+Some quick shortcuts for running certain things:
+
+DEV_TOOLS_ENABLED needs to be set to true on the env for this to work:
+
+
+   GET /dev/tools/v2-player/:itemId -> run the item in the new v2 player.
+
