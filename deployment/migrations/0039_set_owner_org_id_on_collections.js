@@ -11,8 +11,15 @@ function up() {
                 collsOwnedByOrg.push(coll.collectionId);
             }
         }
-
         db.contentcolls.update({"_id": {$in: collsOwnedByOrg} }, { $set: {"ownerOrgId": orgId} }, { multi: true });
-
     });
+
+    // handle special collections
+    var corespringOrg = ObjectId("502404dd0364dc35bb393398");
+    var specialCollectionNames = ["archiveColl", "default", "Demo Collection"];
+    db.contentcolls.update({"name": {$in: specialCollectionNames} }, { $set: {"ownerOrgId": corespringOrg} }, { multi: true });
+}
+
+function down() {
+    db.contentcolls.update({}, { $unset: {"ownerOrgId": ""} }, { multi: true });
 }
