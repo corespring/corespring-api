@@ -46,7 +46,7 @@ class FeedbackBlockTransformerTest extends Specification {
     )
 
     val componentsJson = FeedbackBlockTransformer.interactionJs(input)
-    val output = new RuleTransformer(FeedbackBlockTransformer).transform(input)
+    val output = new RuleTransformer(FeedbackBlockTransformer(input)).transform(input)
 
     val feedbackResult = componentsJson.get(feedbackIdentifier)
       .getOrElse(throw new RuntimeException(s"No feedback component for $identifier"))
@@ -73,15 +73,17 @@ class FeedbackBlockTransformerTest extends Specification {
       (feedbackResult \ "feedback" \ "incorrect").as[JsObject].value("*").as[String] must be equalTo incorrectFeedback
     }
 
-    "replace all <feedbackBlock/>s with a single <corespring-feedback-block/> in document" in {
+    "replace all <feedbackBlock/>s with a <corespring-feedback-block/>" in {
       (output \ "feedbackBlock").toSeq.length must be equalTo 0
       (output \\ "corespring-feedback-block").toSeq match {
         case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
-        case seq => {
-          seq.length must be equalTo 1
-          (seq.head \\ "@id").text must be equalTo feedbackIdentifier
-        }
+        case seq => (seq.head \\ "@id").text must be equalTo feedbackIdentifier
       }
+    }
+
+    "contain unique <corespring-feedback-block/>" in {
+      println(output)
+      (output \\ "corespring-feedback-block").toSeq.length must be equalTo 1
     }
 
   }

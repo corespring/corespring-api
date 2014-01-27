@@ -9,20 +9,20 @@ import scala.collection.mutable
 
 object QtiTransformer extends XMLNamespaceClearer {
 
-  val transformers = Seq(
-    ChoiceInteractionTransformer,
-    DragAndDropInteractionTransformer,
-    FeedbackBlockTransformer,
-    FocusTaskInteractionTransformer,
-    LineInteractionTransformer,
-    OrderInteractionTransformer,
-    PointInteractionTransformer,
-    TextEntryInteractionTransformer,
-    FoldableInteractionTransformer,
-    CoverflowInteractionTransformer
-  )
-
   def transform(qti: Elem): (Node,JsValue) = {
+
+    val transformers = Seq(
+      ChoiceInteractionTransformer,
+      DragAndDropInteractionTransformer,
+      FeedbackBlockTransformer(qti),
+      FocusTaskInteractionTransformer,
+      LineInteractionTransformer,
+      OrderInteractionTransformer,
+      PointInteractionTransformer,
+      TextEntryInteractionTransformer,
+      FoldableInteractionTransformer,
+      CoverflowInteractionTransformer
+    )
 
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(qti))
@@ -33,6 +33,7 @@ object QtiTransformer extends XMLNamespaceClearer {
     (html, JsObject(components.toSeq))
 
   }
+
 }
 
 

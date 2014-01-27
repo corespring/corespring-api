@@ -1,18 +1,37 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.Json
+import play.api.libs.json._
 import scala.Predef._
-import scala.collection.mutable
-import scala.xml.transform.RewriteRule
-import scala.xml.{Elem, Node}
+import scala.xml._
 
-object FeedbackBlockTransformer extends InteractionTransformer {
+case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
+
+  var usedFeedbackIds = Set.empty[String]
+
+  override def transform(node: Node): Seq[Node] = {
+    node match {
+      case e: Elem if e.label == "feedbackBlock" => {
+        (e \ "@outcomeIdentifier").text match {
+          case FeedbackBlockTransformer.outcomeIdentifier(id) if (!usedFeedbackIds.contains(id)) => {
+            usedFeedbackIds = usedFeedbackIds + id
+            <corespring-feedback-block id={s"${id}_feedback"}/>
+          }
+          case _ => Seq.empty
+        }
+      }
+      case _ => node
+    }
+  }
+
+  override def interactionJs(qti: Node) = FeedbackBlockTransformer.interactionJs(qti)
+
+}
+
+object FeedbackBlockTransformer {
 
   val outcomeIdentifier = """responses\.(.+?)\..*""".r
 
-  override def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
+  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
     (node \ "@outcomeIdentifier").text match {
       case outcomeIdentifier(id) => {
         s"${id}_feedback" -> {
@@ -44,17 +63,5 @@ object FeedbackBlockTransformer extends InteractionTransformer {
         throw new IllegalArgumentException(s"Malformed feedbackBlock outcomeIdentifier: ${(node \\ "@outcomeIdentifier").text}")
     }
   }).toMap
-
-  override def transform(node: Node): Seq[Node] = {
-    node match {
-      case e: Elem if e.label == "feedbackBlock" => {
-        (e \ "@outcomeIdentifier").text match {
-          case outcomeIdentifier(id) => <corespring-feedback-block id={s"${id}_feedback"}></corespring-feedback-block>
-          case _ => Seq.empty
-        }
-      }
-      case _ => node
-    }
-  }
 
 }
