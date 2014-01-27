@@ -1,18 +1,13 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.collection.mutable
 import play.api.libs.json._
 import scala.xml.{Elem, Node}
-import scala.xml.transform.RewriteRule
-import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 
-class FocusTaskInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
-  extends RewriteRule
-  with InteractionTransformer {
+object FocusTaskInteractionTransformer extends InteractionTransformer {
 
-  (qti \\ "focusTaskInteraction").foreach(implicit node => {
-    componentJson.put((node \\ "@responseIdentifier").text,
+  override def interactionJs(qti: Node) = (qti \\ "focusTaskInteraction").map(implicit node => {
+    (node \\ "@responseIdentifier").text ->
       Json.obj(
         "componentType" -> "corespring-focus-task",
         "correctResponse" -> Json.obj(
@@ -34,8 +29,7 @@ class FocusTaskInteractionTransformer(componentJson: mutable.Map[String, JsObjec
           ))
         )
       )
-    )
-  })
+    }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "focusTaskInteraction" => {

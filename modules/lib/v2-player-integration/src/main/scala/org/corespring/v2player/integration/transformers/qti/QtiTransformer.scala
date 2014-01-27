@@ -9,25 +9,29 @@ import scala.collection.mutable
 
 object QtiTransformer extends XMLNamespaceClearer {
 
+  val transformers = Seq(
+    ChoiceInteractionTransformer,
+    DragAndDropInteractionTransformer,
+    FeedbackBlockTransformer,
+    FocusTaskInteractionTransformer,
+    LineInteractionTransformer,
+    OrderInteractionTransformer,
+    PointInteractionTransformer,
+    TextEntryInteractionTransformer,
+    FoldableInteractionTransformer,
+    CoverflowInteractionTransformer
+  )
+
   def transform(qti: Elem): (Node,JsValue) = {
 
-    val components : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
+    val components = transformers.foldLeft(Map.empty[String, JsObject])(
+      (map, transformer) => map ++ transformer.interactionJs(qti))
 
-    val transformedHtml = new RuleTransformer(
-      new ChoiceInteractionTransformer(components, qti),
-      new TextEntryInteractionTransformer(components, qti),
-      new DragAndDropInteractionTransformer(components, qti),
-      new OrderInteractionTransformer(components, qti),
-      new PointInteractionTransformer(components, qti),
-      new LineInteractionTransformer(components, qti),
-      new FocusTaskInteractionTransformer(components, qti),
-      FoldableInteractionTransformer,
-      CoverflowInteractionTransformer
-    ).transform(qti)
-
+    val transformedHtml = new RuleTransformer(transformers: _*).transform(qti)
     val html = clearNamespace((transformedHtml(0) \ "itemBody")(0))
 
     (html, JsObject(components.toSeq))
+
   }
 }
 

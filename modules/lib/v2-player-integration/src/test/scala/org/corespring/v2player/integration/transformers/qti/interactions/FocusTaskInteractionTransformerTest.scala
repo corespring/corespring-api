@@ -34,8 +34,8 @@ class FocusTaskInteractionTransformerTest extends Specification {
   "FocusTaskInteractionTransformer" should {
 
     val input = qti(correctResponses)
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    val output = new RuleTransformer(new FocusTaskInteractionTransformer(componentsJson, input)).transform(input)
+    val componentsJson = FocusTaskInteractionTransformer.interactionJs(input)
+    val output = new RuleTransformer(FocusTaskInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

@@ -1,10 +1,7 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.JsObject
-import scala.collection.mutable
 import scala.xml.Node
-import scala.xml.transform.RuleTransformer
 
 class TextEntryInteractionTransformerTest extends Specification {
 
@@ -35,8 +32,7 @@ class TextEntryInteractionTransformerTest extends Specification {
       incorrectFeedback = incorrectFeedback
     )
 
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    new RuleTransformer(new TextEntryInteractionTransformer(componentsJson, input)).transform(input)
+    val componentsJson = TextEntryInteractionTransformer.interactionJs(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

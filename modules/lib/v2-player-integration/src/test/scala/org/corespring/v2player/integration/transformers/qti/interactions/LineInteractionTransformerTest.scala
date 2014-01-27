@@ -54,16 +54,13 @@ class LineInteractionTransformerTest extends Specification {
   "PointInteractionTransformer" should {
 
     val input = qti(correctResponse)
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    val output = new RuleTransformer(new LineInteractionTransformer(componentsJson, input)).transform(input)
+    val output = new RuleTransformer(LineInteractionTransformer).transform(input)
 
-    new RuleTransformer(new LineInteractionTransformer(componentsJson, qtiNoConfig)).transform(input)
+    val interactionResult = LineInteractionTransformer.interactionJs(input).get(identifier)
+      .getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
-    val interactionResult =
-      componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
-
-    val noConfigInteractionResult =
-      componentsJson.get(anotherIdentifier).getOrElse(throw new RuntimeException(s"No component called $anotherIdentifier"))
+    val noConfigInteractionResult = LineInteractionTransformer.interactionJs(qtiNoConfig).get(anotherIdentifier)
+      .getOrElse(throw new RuntimeException(s"No component called $anotherIdentifier"))
 
     val config = (interactionResult \ "model" \ "config")
     val noConfig = (noConfigInteractionResult \ "model" \ "config")

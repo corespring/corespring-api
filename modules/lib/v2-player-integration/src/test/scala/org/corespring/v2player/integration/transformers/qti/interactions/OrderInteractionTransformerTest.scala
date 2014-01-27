@@ -38,8 +38,8 @@ class OrderInteractionTransformerTest extends Specification {
     val responses = List("a", "b", "c")
 
     val input = qti(responses)
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    val output = new RuleTransformer(new OrderInteractionTransformer(componentsJson, input)).transform(input)
+    val componentsJson = OrderInteractionTransformer.interactionJs(input)
+    val output = new RuleTransformer(OrderInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

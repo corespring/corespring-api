@@ -1,17 +1,14 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.xml.transform.RewriteRule
-import scala.xml.{Elem, Node}
-import scala.collection.mutable
-import play.api.libs.json.{Json, JsObject}
+import scala.xml._
+import play.api.libs.json._
 
-class TextEntryInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
-  extends RewriteRule
-  with InteractionTransformer {
+object TextEntryInteractionTransformer extends InteractionTransformer {
 
-  private def component(node: Node, identifier: String) = {
+  override def interactionJs(qti: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
     val correctResponses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text).toSet
-    Json.obj(
+
+    (node \ "@responseIdentifier").text -> Json.obj(
       "componentType" -> "corespring-text-entry",
       "correctResponse" -> (correctResponses.size match {
         case 0 => Json.arr()
@@ -19,13 +16,11 @@ class TextEntryInteractionTransformer(componentJson: mutable.Map[String, JsObjec
         case _ => correctResponses
       })
     )
-  }
+  }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "textEntryInteraction" => {
-      val responseIdentifier = (e \ "@responseIdentifier").text
-      componentJson.put(responseIdentifier, component(node, responseIdentifier))
-      <corespring-text-entry id={responseIdentifier}></corespring-text-entry>
+      <corespring-text-entry id={(node \ "@responseIdentifier").text}></corespring-text-entry>
     }
     case _ => node
   }

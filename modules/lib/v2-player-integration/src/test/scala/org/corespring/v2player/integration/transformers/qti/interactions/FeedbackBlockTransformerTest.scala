@@ -2,10 +2,8 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
 import scala.xml.Node
-import scala.collection.mutable
 import play.api.libs.json.JsObject
 import scala.xml.transform.RuleTransformer
-import org.corespring.v2player.integration.transformers.qti.interactions.FeedbackBlockTransformer
 
 class FeedbackBlockTransformerTest extends Specification {
 
@@ -47,11 +45,11 @@ class FeedbackBlockTransformerTest extends Specification {
       incorrectFeedback = incorrectFeedback
     )
 
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    val output = new RuleTransformer(new FeedbackBlockTransformer(componentsJson, input)).transform(input)
+    val componentsJson = FeedbackBlockTransformer.interactionJs(input)
+    val output = new RuleTransformer(FeedbackBlockTransformer).transform(input)
 
     val feedbackResult = componentsJson.get(feedbackIdentifier)
-      .getOrElse(throw new RuntimeException("No feedback component for $identifier"))
+      .getOrElse(throw new RuntimeException(s"No feedback component for $identifier"))
 
     "return the correct feedback component type" in {
       (feedbackResult \ "componentType").as[String] must be equalTo "corespring-feedback-block"
