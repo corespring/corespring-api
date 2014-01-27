@@ -115,7 +115,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
       storedFile.map { sf =>
         logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
-        playS3.download(bucket, storedFile.get.storageKey, Some(request.headers))
+        playS3.download(bucket, sf.storageKey, Some(request.headers))
       }.getOrElse(NotFound(s"Can't find file: $file for itemId $itemId"))
     }
 
