@@ -53,8 +53,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
       "3" -> "<img src='three.png'/>")
 
     val input = qti(responses, correctResponses)
-    val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-    val output = new RuleTransformer(new DragAndDropInteractionTransformer(componentsJson, input)).transform(input)
+    val componentsJson = DragAndDropInteractionTransformer.interactionJs(input)
+    val output = new RuleTransformer(DragAndDropInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

@@ -1,18 +1,15 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.xml.transform.RewriteRule
-import scala.xml.{Text, Elem, Node}
-import scala.collection.mutable
-import play.api.libs.json.{JsBoolean, Json, JsObject}
+import scala.xml._
+import play.api.libs.json._
 
-class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
-  extends RewriteRule
-  with InteractionTransformer {
+object OrderInteractionTransformer extends InteractionTransformer {
 
-  def component(node: Node) = {
+  override def interactionJs(qti: Node) = (qti \\ "orderInteraction").map(implicit node => {
     val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
+    val identifier = (node \ "@responseIdentifier").text
 
-    Json.obj(
+    identifier -> Json.obj(
       "componentType" -> "corespring-ordering",
       "correctResponse" -> responses,
       "model" -> Json.obj(
@@ -31,11 +28,7 @@ class OrderInteractionTransformer(componentJson: mutable.Map[String, JsObject], 
       ),
       "feedback" -> feedback(node, qti)
     )
-  }
-
-  (qti \\ "orderInteraction").foreach(node => {
-    componentJson.put((node \\ "@responseIdentifier").text, component(node))
-  })
+  }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "orderInteraction" => {

@@ -10,13 +10,9 @@ import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import scala.Some
 
-class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
-  extends RewriteRule
-  with InteractionTransformer {
+object DragAndDropInteractionTransformer extends InteractionTransformer {
 
-  var dragAndDropNodes = mutable.Seq[Node]()
-
-  object AnswerAreaTransformer extends RewriteRule {
+  private object AnswerAreaTransformer extends RewriteRule {
 
     private def landingPlace(elem: Elem): Node = {
       elem.copy(label = "span",
@@ -36,25 +32,21 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
 
   }
 
-  def component(node: Node) = {
-    dragAndDropNodes = dragAndDropNodes :+ node
-
-    val correctResponses = (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
-      ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
-    })
-
-    val choices = JsArray((node \\ "draggableChoice").map(n =>
-      Json.obj(
-        "id" -> (n \ "@identifier").text,
-        "content" -> n.child.map(clearNamespace).mkString
-      )
-    ))
-
-    Json.obj(
+  override def interactionJs(qti: Node) = (qti \\ "dragAndDropInteraction").map(node => {
+    (node \\ "@responseIdentifier").text -> Json.obj(
       "componentType" -> "corespring-drag-and-drop",
-      "correctResponse" -> JsObject(correctResponses),
+      "correctResponse" -> JsObject(
+        (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
+          ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
+        })
+      ),
       "model" -> Json.obj(
-        "choices" -> choices,
+        "choices" -> JsArray((node \\ "draggableChoice").map(n =>
+          Json.obj(
+            "id" -> (n \ "@identifier").text,
+            "content" -> n.child.map(clearNamespace).mkString
+          )
+        )),
         "prompt" -> ((node \ "prompt") match {
           case seq: Seq[Node] if seq.isEmpty => ""
           case seq: Seq[Node] => seq.head.child.map(clearNamespace).mkString
@@ -69,11 +61,7 @@ class DragAndDropInteractionTransformer(componentJson: mutable.Map[String, JsObj
       ),
       "feedback" -> feedback(node, qti)
     )
-  }
-
-  (qti \\ "dragAndDropInteraction").foreach(node => {
-    componentJson.put((node \\ "@responseIdentifier").text, component(node))
-  })
+  }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "dragAndDropInteraction" => {

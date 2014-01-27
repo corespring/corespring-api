@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsString, JsArray, JsObject}
+import play.api.libs.json.{Json, JsString, JsArray, JsObject}
 import scala.collection.mutable
 import scala.xml.transform.RuleTransformer
 import scala.xml.{Elem, Node}
@@ -51,14 +51,8 @@ class ChoiceInteractionTransformerTest extends Specification {
   "ChoiceInteractionTransformer" should {
     "transform" in {
 
-      val responseDeclarations = singleChoice \\ "responseDeclaration"
-
-      val componentsJson : mutable.Map[String,JsObject] = new mutable.HashMap[String,JsObject]()
-
-      val out = new RuleTransformer(new ChoiceInteractionTransformer(componentsJson, singleChoice)).transform(singleChoice)
-
+      val componentsJson = ChoiceInteractionTransformer.interactionJs(singleChoice)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
-
 
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true

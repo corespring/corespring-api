@@ -1,8 +1,14 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
+import scala.xml.Node
+import play.api.libs.json.JsObject
 
-class InteractionTransformerTest extends Specification with InteractionTransformer {
+class InteractionTransformerTest extends Specification {
+
+  val transformer = new InteractionTransformer {
+    def interactionJs(qti: Node): Map[String, JsObject] = ???
+  }
 
   val responseIdentifier = "Q_01"
 
@@ -23,15 +29,15 @@ class InteractionTransformerTest extends Specification with InteractionTransform
   "responseDeclaration" should {
 
     "return <responseDeclaration/> corresponding to identifier" in {
-      responseDeclaration(interaction, qti) must be equalTo responseDeclarationNode
+      transformer.responseDeclaration(interaction, qti) must be equalTo responseDeclarationNode
     }
 
     "throw IllegalArgumentException when there is no identifier" in {
-      responseDeclaration(interactionWithNoIdentifier, qti) must throwAn[IllegalArgumentException]
+      transformer.responseDeclaration(interactionWithNoIdentifier, qti) must throwAn[IllegalArgumentException]
     }
 
     "throw IllegalArgumentException when there is no corresponding <responseDeclaration/>" in {
-      responseDeclaration(interactionWithoutResponseDeclaration, qti) must throwAn[IllegalArgumentException]
+      transformer.responseDeclaration(interactionWithoutResponseDeclaration, qti) must throwAn[IllegalArgumentException]
     }
 
   }

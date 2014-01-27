@@ -1,18 +1,12 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.collection.mutable
 import scala.xml._
-import scala.xml.transform.RewriteRule
 import play.api.libs.json._
 import scala.Some
 
-class LineInteractionTransformer(componentJson: mutable.Map[String, JsObject], qti: Node)
-  extends RewriteRule
-  with InteractionTransformer {
+object LineInteractionTransformer extends InteractionTransformer {
 
-  interactionJs(qti).map{ case (identifier, json) => componentJson.put(identifier, json) }
-
-  private def interactionJs(qti: Node) = (qti \\ "lineInteraction").map(implicit node => {
+  override def interactionJs(qti: Node) = (qti \\ "lineInteraction").map(implicit node => {
     (node \\ "@responseIdentifier").text ->
       Json.obj(
         "componentType" -> "corespring-line",

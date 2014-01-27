@@ -2,8 +2,9 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 
 import scala.xml.{Elem, Node}
 import scala.xml.transform.RewriteRule
+import play.api.libs.json.JsObject
 
-abstract class NodeReplacementTransformer() extends RewriteRule with XMLNamespaceClearer {
+abstract class NodeReplacementTransformer extends InteractionTransformer {
 
   def labelToReplace: String
   def replacementNode: Elem
@@ -14,5 +15,7 @@ abstract class NodeReplacementTransformer() extends RewriteRule with XMLNamespac
     }
     case _ => node
   }
+
+  override def interactionJs(qti: Node) = Map.empty[String, JsObject]
 
 }

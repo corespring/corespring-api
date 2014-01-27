@@ -13,8 +13,11 @@ import scala.Some
 import play.api.libs.json.JsNumber
 import org.corespring.qti.models.QtiItem
 import play.api.libs.json.Json.JsValueWrapper
+import scala.xml.transform.RewriteRule
 
-trait InteractionTransformer extends XMLNamespaceClearer {
+abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClearer {
+
+  def interactionJs(qti: Node): Map[String, JsObject]
 
   /**
    * Given a node and QTI document, method looks at node's responseIdentifier attribute, and finds a
@@ -35,13 +38,12 @@ trait InteractionTransformer extends XMLNamespaceClearer {
 
   def feedback(node: Node, qti: Node): JsArray = {
     val qtiItem = QtiItem(qti)
-    val choiceIds: Seq[Node] = (node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice").toSeq ++ (node \\ "feedbackInline").toSeq
+    val choiceIds: Seq[Node] = Seq("simpleChoice", "inlineChoice", "feedbackInline").map(node \\ _).map(_.toSeq).flatten
     val componentId = (node \ "@responseIdentifier").text.trim
 
     val feedbackObjects : Seq[JsObject] = choiceIds.map{(n: Node) =>
 
       val id = (n \ "@identifier").text.trim
-
       val fbInline = qtiItem.getFeedback(componentId, id)
 
       fbInline.map{ fb =>
@@ -52,7 +54,7 @@ trait InteractionTransformer extends XMLNamespaceClearer {
         }
         Json.obj("value" -> JsString(id), "feedback" -> JsString(content))
       }
-    }.flatten
+    }.flatten.distinct
     JsArray(feedbackObjects)
   }
 
