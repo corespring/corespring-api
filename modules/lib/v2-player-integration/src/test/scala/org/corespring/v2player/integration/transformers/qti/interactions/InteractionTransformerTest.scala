@@ -2,7 +2,7 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
 import scala.xml.Node
-import play.api.libs.json.JsObject
+import play.api.libs.json._
 
 class InteractionTransformerTest extends Specification {
 
@@ -40,6 +40,31 @@ class InteractionTransformerTest extends Specification {
       transformer.responseDeclaration(interactionWithoutResponseDeclaration, qti) must throwAn[IllegalArgumentException]
     }
 
+  }
+
+  "optForAttr" should {
+
+    implicit val node = <span class="great" count="2" awesome="true" empty="">Test</span>
+
+    "return Some[JsString] when present" in {
+      transformer.optForAttr[JsString]("class") must be equalTo Some(JsString("great"))
+    }
+
+    "return None when blank String" in {
+      transformer.optForAttr[JsString]("empty") must beNone
+    }
+
+    "return Some[JsNumber] when present" in {
+      transformer.optForAttr[JsNumber]("count") must be equalTo Some(JsNumber(2))
+    }
+
+    "return Some[JsBoolean] when present" in {
+      transformer.optForAttr[JsBoolean]("awesome") must be equalTo Some(JsBoolean(true))
+    }
+
+    "return None when not present" in {
+      transformer.optForAttr[JsString]("id") must beNone
+    }
   }
 
 }

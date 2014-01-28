@@ -20,6 +20,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       OrderInteractionTransformer,
       PointInteractionTransformer,
       TextEntryInteractionTransformer,
+      SelectTextInteractionTransformer,
       ExtendedTextInteractionTransformer,
       FoldableInteractionTransformer,
       CoverflowInteractionTransformer
