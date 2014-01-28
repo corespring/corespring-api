@@ -28,7 +28,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       (map, transformer) => map ++ transformer.interactionJs(qti))
 
     val transformedHtml = new RuleTransformer(transformers: _*).transform(qti)
-    val html = clearNamespace((transformedHtml(0) \ "itemBody")(0))
+    val html = FeedbackBlockTransformer.transform(clearNamespace((transformedHtml(0) \ "itemBody")(0)))
 
     (html, JsObject(components.toSeq))
 

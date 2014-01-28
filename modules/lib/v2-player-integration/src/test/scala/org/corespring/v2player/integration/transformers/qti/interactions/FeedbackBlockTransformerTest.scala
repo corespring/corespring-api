@@ -74,16 +74,16 @@ class FeedbackBlockTransformerTest extends Specification {
     }
 
     "replace all <feedbackBlock/>s with a <corespring-feedback-block/>" in {
-      (output \ "feedbackBlock").toSeq.length must be equalTo 0
-      (output \\ "corespring-feedback-block").toSeq match {
+      val finalOutput = FeedbackBlockTransformer.transform(output.head)
+      (finalOutput \ "feedbackBlock").toSeq.length must be equalTo 0
+      (finalOutput \\ "corespring-feedback-block").toSeq match {
         case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
         case seq => (seq.head \\ "@id").text must be equalTo feedbackIdentifier
       }
     }
 
     "contain unique <corespring-feedback-block/>" in {
-      println(output)
-      (output \\ "corespring-feedback-block").toSeq.length must be equalTo 1
+      (FeedbackBlockTransformer.transform(output.head) \\ "corespring-feedback-block").toSeq.length must be equalTo 1
     }
 
   }

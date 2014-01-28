@@ -6,23 +6,7 @@ import scala.xml._
 
 case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
-  var usedFeedbackIds = Set.empty[String]
-
-  override def transform(node: Node): Seq[Node] = {
-    node match {
-      case e: Elem if e.label == "feedbackBlock" => {
-        (e \ "@outcomeIdentifier").text match {
-          case FeedbackBlockTransformer.outcomeIdentifier(id) if (!usedFeedbackIds.contains(id)) => {
-            usedFeedbackIds = usedFeedbackIds + id
-            <corespring-feedback-block id={s"${id}_feedback"}/>
-          }
-          case _ => Seq.empty
-        }
-      }
-      case _ => node
-    }
-  }
-
+  override def transform(node: Node): Seq[Node] = node
   override def interactionJs(qti: Node) = FeedbackBlockTransformer.interactionJs(qti)
 
 }
@@ -63,5 +47,37 @@ object FeedbackBlockTransformer {
         throw new IllegalArgumentException(s"Malformed feedbackBlock outcomeIdentifier: ${(node \\ "@outcomeIdentifier").text}")
     }
   }).toMap
+
+  /**
+   * Takes a QTI document rooted at the provided node, removing <feedbackBlock/>s with duplicate outcomeIdentifier
+   * attributes and replacing them with a single <corespring-feedback-block/> element.
+   */
+  def transform(qti: Node): Node = {
+    var ids = Set.empty[String]
+
+    def recurse(node: Node): Seq[Node] = {
+
+      node match {
+        case e: Elem if (e.label == "feedbackBlock") => {
+          val id = (e \\ "@outcomeIdentifier").text match {
+            case outcomeIdentifier(id) => id
+            case _ => throw new IllegalArgumentException(
+              s"outcomeIdentifier ${(e \\ "@outcomeIdentifier").text} does not match ${outcomeIdentifier.toString}")
+          }
+          ids.contains(id) match {
+            case true => Seq.empty
+            case _ => {
+              ids = ids + id
+              <corespring-feedback-block id={s"${id}_feedback"}/>
+            }
+          }
+        }
+        case e: Elem => e.copy(child = e.nonEmptyChildren.map(recurse(_).headOption).flatten)
+        case _ => node
+      }
+    }
+
+    recurse(qti).head
+  }
 
 }
