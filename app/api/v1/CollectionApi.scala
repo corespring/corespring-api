@@ -1,11 +1,8 @@
 package api.v1
 
 import api.ApiError
-import com.mongodb.DBObject
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import com.mongodb.casbah.map_reduce.MapReduceCommand
-import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
 import com.mongodb.casbah.map_reduce._
 import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.BaseApi
@@ -15,11 +12,6 @@ import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceImpl
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsNumber
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsUndefined
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.Result
