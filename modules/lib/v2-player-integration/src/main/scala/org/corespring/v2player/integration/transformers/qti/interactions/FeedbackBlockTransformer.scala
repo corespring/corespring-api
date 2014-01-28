@@ -68,7 +68,7 @@ object FeedbackBlockTransformer {
             case true => Seq.empty
             case _ => {
               ids = ids + id
-              <corespring-feedback-block id={s"${id}_feedback"}/>
+              <corespring-feedback-block id={s"${id}_feedback"}></corespring-feedback-block>
             }
           }
         }
