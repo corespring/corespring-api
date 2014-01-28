@@ -15,20 +15,19 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.json.ItemView
-import org.corespring.platform.core.models.metadata.MetadataSet
 import org.corespring.platform.core.models.mongoContext.context
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
+import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{ Result, Action, AnyContent }
 import scalaz.Scalaz._
-import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
 import scalaz._
-import org.corespring.platform.core.services.organization.OrganizationService
 
 /**
  * Items API
@@ -88,23 +87,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     toJson(itemViews)
   }
 
-  def parseCollectionIds[A](request: ApiRequest[A])(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
-    case dbo: BasicDBObject => dbo.toSeq.headOption match {
-      case Some((key, dblist)) => if (key == "$in") {
-        if (dblist.isInstanceOf[BasicDBList]) {
-          try {
-            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(request.ctx.organization, new ObjectId(coll.toString), Permission.Read)))
-              Right(value)
-            else Left(InternalError("attempted to access a collection that you are not authorized to"))
-          } catch {
-            case e: IllegalArgumentException => Left(InternalError("could not parse collectionId into an object id", e))
-          }
-        } else Left(InternalError("invalid value for collectionId key. could not cast to array"))
-      } else Left(InternalError("can only use $in special operator when querying on collectionId"))
-      case None => Left(InternalError("empty db object as value of collectionId key"))
-    }
-    case _ => Left(InternalError("invalid value for collectionId"))
-  }
+
 
   private def itemList[A](
     q: Option[String],
@@ -118,11 +101,11 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> collections.map(_.toString)))
+      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections, request.ctx.organization)
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(collectionId -> parseCollectionIds(request)))) match {
+        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
         case Some(result) => result
         case None => Right(initSearch)
       }
@@ -158,6 +141,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     }
   }
 
+
+
+
   private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
     if (!isLoggedIn && searchFields.dbfields.isEmpty) {
       dbExtraFields.foreach(extraField =>
@@ -185,10 +171,13 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
         val jsBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
         itemList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
-          case Left(apiError) => BadRequest(toJson(apiError))
+          case Left(apiError) =>
+            BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
         }
-      } else Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+      } else {
+        Unauthorized(toJson(ApiError.UnauthorizedOrganization))
+      }
   }
 
   def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
@@ -368,7 +357,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
   }
   def updateMetadata(id: VersionedId[ObjectId], property: String) = ApiAction { request =>
-    import scala.collection.mutable.Map
     import collection.JavaConversions._
     service.findOneById(id) match {
       case Some(item) => {

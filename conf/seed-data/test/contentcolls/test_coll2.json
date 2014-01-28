@@ -4,5 +4,6 @@
     },
     "name" : "Demo Collection 2",
     "description" : "this particular collection does not contain any content",
-    "isPublic" : true
+    "isPublic" : true,
+    "ownerOrgId" : {"$oid": "51114b307fc1eaa866444648"}
 }

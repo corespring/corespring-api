@@ -1,34 +1,46 @@
 package org.corespring.platform.core.models
 
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
-import org.bson.types.ObjectId
+import com.novus.salat.dao._
+import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
-import org.corespring.platform.core.models.search.Searchable
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.search.{ItemSearch, Searchable}
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.Left
 import scala.Right
 import scala.Some
-import scalaz.{ Failure, Success, Validation }
-import org.corespring.platform.core.services.item.ItemServiceImpl
-import org.corespring.common.log.ClassLogging
-import com.novus.salat._
-import com.novus.salat.dao._
+import scalaz.Failure
+import scalaz.Success
+import scalaz.Validation
 import se.radley.plugin.salat._
 
 /**
  * A ContentCollection
+ * ownerOrgId is not a one-to-many with organization. Collections may be in multiple orgs, but they have one 'owner'
+ *
  */
-case class ContentCollection(var name: String = "", var isPublic: Boolean = false, var id: ObjectId = new ObjectId()) {
+case class ContentCollection(
+  var name: String = "",
+  var ownerOrgId: ObjectId,
+  var isPublic: Boolean = false,
+  var id: ObjectId = new ObjectId()) {
+
   lazy val itemCount: Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
   val name = "name"
   val isPublic = "isPublic"
+  val ownerOrgId = "ownerOrgId"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
   val collection = mongoCollection("contentcolls")
@@ -37,14 +49,15 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission): Either[InternalError, ContentCollection] = {
+
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled:Boolean = true): Either[InternalError, ContentCollection] = {
     //TODO: apply two-phase commit
     if (Play.isProd) coll.id = new ObjectId()
     try {
       super.insert(coll) match {
         case Some(_) => try {
           Organization.update(MongoDBObject("_id" -> orgId),
-            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id, p.value)))),
+            MongoDBObject("$addToSet" -> MongoDBObject(Organization.contentcolls -> grater[ContentCollRef].asDBObject(new ContentCollRef(coll.id, p.value, enabled)))),
             false, false, Organization.collection.writeConcern)
           Right(coll)
         } catch {
@@ -77,7 +90,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   lazy val archiveCollId: ObjectId = {
     val id = new ObjectId("500ecfc1036471f538f24bdc")
-    ContentCollection.insert(ContentCollection("archiveColl", id = id))
+    val archiveOrg = new ObjectId("52e68c0bd455283f1744a721");
+    ContentCollection.insert(ContentCollection("archiveColl", id = id, ownerOrgId = archiveOrg))
     id
   }
 
@@ -85,17 +99,25 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     //todo: roll backs after detecting error in organization update
     try {
       ContentCollection.removeById(collId)
-      Organization.find(MongoDBObject(Organization.contentcolls + "." + ContentCollRef.collectionId -> collId)).foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
+      Organization.find(
+        MongoDBObject(
+          Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
+        .foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
         if (result.isSuccess) {
           org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
           try {
             Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
+            val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
+            ItemServiceImpl.find(query).foreach(item => {
+              ItemServiceImpl.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+            })
             Success(())
           } catch {
             case e: SalatDAOUpdateError => Failure(InternalError(e.getMessage))
           }
         } else result
       })
+
     } catch {
       case e: SalatDAOUpdateError => Failure(InternalError("failed to transfer collection to archive", e))
       case e: SalatRemoveError => Failure(InternalError(e.getMessage))
@@ -157,6 +179,124 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     else Right(())
   }
 
+
+  /**
+   * Share items to the collection specified.
+   * - must ensure that the context org has write access to the collection
+   * - must ensure that the context org has read access to the items being added
+   *
+   * @param orgId
+   * @param items
+   * @param collId
+   * @return
+   */
+  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    if (isAuthorized(orgId, collId, Permission.Write)) {
+      val oids = items.map(i => i.id)
+      val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+
+      // get a list of any items that were not authorized to be added
+      val itemsNotAuthorized = ItemServiceImpl.find(query).filterNot(item => {
+        // get the collections to test auth on (owner collection for item, and shared-in collections)
+        val collectionsToAuth = Seq(item.collectionId) ++ item.sharedInCollections
+        // does org have read access to any of these collections
+        val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
+        collectionsAuthorized.size > 0
+      })
+      if (itemsNotAuthorized.size <= 0) {
+        // add collection id to item.sharedinCollections unless the collection is the owner collection for item
+        val savedUnsavedItems = items.partition(item => {
+          try {
+            ItemServiceImpl.findOneById(item) match {
+              case Some(itemObj) if (collId.equals(itemObj)) => true
+              case _ =>
+                ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$addToSet" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)) ,false)
+                true
+            }
+          } catch {
+            case e: SalatDAOUpdateError => false
+        }
+        })
+        if (savedUnsavedItems._2.size > 0) {
+          logger.debug(s"[addItems] failed to add items: " + savedUnsavedItems._2.map(_.id + " ").toString)
+          Left(InternalError("failed to add items"))
+        } else {
+          logger.debug(s"[addItems] added items: " + savedUnsavedItems._1.map(_.id + " ").toString)
+          Right(savedUnsavedItems._1)
+        }
+
+      } else {
+        Left(InternalError("items failed auth: " + itemsNotAuthorized.map(_.id)))
+      }
+    } else {
+      Left(InternalError("organization does not have write permission on collection"))
+    }
+
+  }
+
+  /**
+   * Share the items returned by the query with the specified collection.
+   *
+   * @param orgId
+   * @param query
+   * @param collId
+   * @return
+   */
+  def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
+    val collectionsQuery = ItemServiceImpl.createDefaultCollectionsQuery(acessibleCollections, orgId)
+    val parsedQuery: Either[SearchCancelled, MongoDBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery) )
+
+    parsedQuery match {
+      case Right(searchQry) =>
+        val cursor = ItemServiceImpl.find(searchQry, MongoDBObject("_id" -> 1))
+        val ids = cursor.map(item => item.id)
+        shareItems(orgId,ids.toSeq, collId)
+      case Left(sc) => sc.error match {
+        case None => Right(Seq())
+        case Some(error) => Left(InternalError(error.clientOutput.getOrElse("error processing search")))
+      }
+    }
+  }
+
+
+    /**
+   * Unshare the specified items from the specified collections
+   *
+   * @param orgId
+   * @param items - sequence of items to be unshared from
+   * @param collIds - sequence of collections to have the items removed from
+   * @return
+   */
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+    // make sure org has auth for all the collIds
+    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
+    if (authorizedCollIds.size != collIds.size) {
+      Left(InternalError("authorization failed on collection(s)"))
+    } else {
+      val failedItems = items.filterNot(item => {
+        try {
+          ItemServiceImpl.findOneById(item) match {
+            case _ =>
+              ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)) ,false)
+              true
+          }
+        } catch {
+          case e: SalatDAOUpdateError => false
+        }
+      })
+      if (failedItems.size > 0) {
+        Left(InternalError("failed to unshare collections for items: " + failedItems))
+      } else {
+        Right(items)
+      }
+    }
+
+  }
+
+
+
+
   /**
    * does the given organization have access to the given collection with given permissions?
    * @param orgId
@@ -189,6 +329,7 @@ object CollectionExtraDetails {
     def writes(c: CollectionExtraDetails): JsValue = {
       JsObject(Seq(
         "name" -> JsString(c.coll.name),
+        "ownerOrgId" -> JsString(c.coll.ownerOrgId.toString),
         "permission" -> JsString(Permission.toHumanReadable(c.access)),
         "itemCount" -> JsNumber(c.coll.itemCount),
         "isPublic" -> JsBoolean(c.coll.isPublic),

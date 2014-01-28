@@ -9,7 +9,7 @@ object CollectionHelper {
   import faker._
 
   def create(organizationId: ObjectId): ObjectId =
-    ContentCollection.insertCollection(orgId = organizationId, ContentCollection(id = new ObjectId, name = Company.name), Permission.Write) match {
+    ContentCollection.insertCollection(orgId = organizationId, ContentCollection(id = new ObjectId, name = Company.name, ownerOrgId = organizationId), Permission.Write, true) match {
       case Right(contentCollection) => contentCollection.id
       case _ => throw new Exception("Failed to create collection")
     }

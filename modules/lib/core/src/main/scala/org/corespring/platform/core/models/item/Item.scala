@@ -20,6 +20,7 @@ case class Item(
   var priorUse: Option[String] = None,
   var priorGradeLevel: Seq[String] = Seq(),
   var reviewsPassed: Seq[String] = Seq(),
+  var sharedInCollections: Seq[String] = Seq(),
   var standards: Seq[String] = Seq(),
   var pValue: Option[String] = None,
   var lexile: Option[String] = None,
@@ -88,6 +89,7 @@ object Item {
     val pValue = "pValue"
     val priorUse = "priorUse"
     val reviewsPassed = "reviewsPassed"
+    val sharedInCollections = "sharedInCollections"
     val demonstratedKnowledge = "demonstratedKnowledge"
     val sourceUrl = "sourceUrl"
     val standards = "standards"
@@ -135,6 +137,7 @@ object Item {
       item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)

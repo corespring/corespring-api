@@ -13,7 +13,8 @@
       "collectionId": {
         "$oid": "5001b7ade4b0d7c9ec321070"
       },
-      "pval": 3
+      "pval": 3,
+      "enabled": true
     }
   ], "_id": {
   "$oid": "502404dd0364dc35bb39339e"
