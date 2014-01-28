@@ -17,7 +17,10 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
           "prompt" -> (node \ "prompt").headOption.map(n => JsString(n.text)),
           "config" -> Some(partialObj(
             "shuffle" -> optForAttr[JsBoolean]("shuffle"),
-            "itemShape" -> optForAttr[JsString]("itemShape")
+            "itemShape" -> optForAttr[JsString]("itemShape"),
+            "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
+            "minSelections" -> optForAttr[JsNumber]("minSelections"),
+            "maxSelections" -> optForAttr[JsNumber]("maxSelections")
           )),
           "choices" -> Some(JsArray(
             (node \\ "focusChoice").map(choiceNode =>

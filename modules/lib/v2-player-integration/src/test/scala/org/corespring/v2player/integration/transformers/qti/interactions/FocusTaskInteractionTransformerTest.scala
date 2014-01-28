@@ -13,6 +13,9 @@ class FocusTaskInteractionTransformerTest extends Specification {
   val choices = Map("A" -> "Option A", "B" -> "Option B", "C" -> "Option C")
   val shuffle = false
   val itemShape = "circle"
+  val minSelections = 2
+  val maxSelections = 3
+  val checkIfCorrect = "yes"
 
   val correctResponses = Random.shuffle(choices.keys).toSeq
 
@@ -24,7 +27,9 @@ class FocusTaskInteractionTransformerTest extends Specification {
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <focusTaskInteraction responseIdentifier={identifier} shuffle={shuffle.toString} itemShape={itemShape}>
+        <focusTaskInteraction responseIdentifier={identifier} checkIfCorrect={checkIfCorrect}
+                              minSelections={minSelections.toString} maxSelections={maxSelections.toString}
+                              shuffle={shuffle.toString} itemShape={itemShape}>
           <prompt>{prompt}</prompt>
           {choices.map{ case(identifier, label) => {<focusChoice identifier={identifier}>{label}</focusChoice>}}}
         </focusTaskInteraction>
@@ -63,6 +68,18 @@ class FocusTaskInteractionTransformerTest extends Specification {
 
     "returns correct itemShape" in {
       (config \ "itemShape").as[String] must be equalTo itemShape
+    }
+
+    "returns correct minSelections" in {
+      (config \ "minSelections").as[Int] must be equalTo minSelections
+    }
+
+    "returns correct maxSelections" in {
+      (config \ "maxSelections").as[Int] must be equalTo maxSelections
+    }
+
+    "returns correct checkIfCorrect" in {
+      (config \ "checkIfCorrect").as[String] must be equalTo checkIfCorrect
     }
 
     "returns correct prompt" in {
