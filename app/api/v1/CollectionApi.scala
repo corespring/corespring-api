@@ -208,7 +208,7 @@ object CollectionApi extends BaseApi {
     Organization.setCollectionEnabledStatus(request.ctx.organization, id, enabled) match {
       case Left(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
       case Right(collRef) => {
-        Ok(Json.toJson("updated" + collRef.collectionId.toString))
+        Ok(Json.toJson(s"updated ${collRef.collectionId.toString}"))
       }
     }
   }
