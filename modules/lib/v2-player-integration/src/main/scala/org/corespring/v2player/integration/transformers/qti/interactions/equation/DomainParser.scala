@@ -4,6 +4,25 @@ import play.api.libs.json._
 
 trait DomainParser {
 
+/**
+ * Parses a "domain" string from the old QTI format to the new container format. For exmaple, the old QTI format would
+ * is of the comma-separated style "-10->10,0", where two numbers separated by a '->' denote an included range, whereas
+ * individual numbers correspond to excluded integers from the range. The new container format representation uses the
+ * following JSON format:
+ * <pre>
+ *   {
+ *     "included" : ["-10,10"],
+ *     "excluded" : [0]
+ *   }
+ * </pre>
+ *
+ * In which included ranges are comma-delimited in their own strings, and excluded integers are provided in an array.
+ */
+trait DomainParser {
+
+  /**
+   * Parses a "domain" string from the old QTI format, returning a JSON representation of the new container format.
+   */
   def parseDomain(domain: String): JsObject = {
     flattenObj(
       "included" -> (domain.split(",").map(_.trim).toSeq.filter(_.contains("->")).map(_.replaceAll("->", ",")) match {

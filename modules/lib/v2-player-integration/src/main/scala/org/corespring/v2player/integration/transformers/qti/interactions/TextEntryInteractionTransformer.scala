@@ -12,10 +12,6 @@ object TextEntryInteractionTransformer extends InteractionTransformer with Domai
     val responseDeclarationNode = responseDeclaration(node, qti)
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
 
-    if (isEquation(node, qti)) {
-      equationConfig(responseDeclarationNode)
-    }
-
     (node \ "@responseIdentifier").text -> partialObj(
       "componentType" -> Option(isEquation(node, qti) match {
         case true => JsString("corespring-function-entry")
