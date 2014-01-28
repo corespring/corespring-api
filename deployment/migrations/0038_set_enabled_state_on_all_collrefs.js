@@ -18,9 +18,9 @@ function changeCollStatus(enabledStatus) {
 }
 
 function up() {
-    changeCollStatus(true)
+    changeCollStatus(true);
 }
 
 function down() {
-    changeCollStatus(false)
+    changeCollStatus(false);
 }
