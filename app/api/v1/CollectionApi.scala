@@ -18,6 +18,8 @@ import play.api.mvc.Result
 import scala.Some
 import scalaz.Failure
 import scalaz.Success
+import com.mongodb.casbah.map_reduce.MapReduceCommand
+import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
 
 /**
  * The Collections API
