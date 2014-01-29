@@ -2,8 +2,6 @@ package org.corespring.v2player.integration.transformers.qti.interactions.equati
 
 import play.api.libs.json._
 
-trait DomainParser {
-
 /**
  * Parses a "domain" string from the old QTI format to the new container format. For exmaple, the old QTI format would
  * is of the comma-separated style "-10->10,0", where two numbers separated by a '->' denote an included range, whereas

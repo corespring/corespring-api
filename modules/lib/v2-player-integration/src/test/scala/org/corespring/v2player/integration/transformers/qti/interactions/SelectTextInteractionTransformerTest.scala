@@ -50,10 +50,6 @@ class SelectTextInteractionTransformerTest extends Specification {
       (config \ "selectionUnit").as[String] must be equalTo selectionType
     }
 
-    "return the correct config shuffle value" in {
-      (config \ "shuffle").as[Boolean] must be equalTo SelectTextInteractionTransformer.Defaults.shuffle
-    }
-
     "return the correct config checkIfCorrect value" in {
       (config \ "checkIfCorrect").as[String] must be equalTo checkIfCorrect
     }
