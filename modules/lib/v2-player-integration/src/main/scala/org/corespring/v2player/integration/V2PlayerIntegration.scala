@@ -40,6 +40,7 @@ import scalaz.{ Success, Validation }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.dev.tools.DevTools
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
@@ -64,10 +65,6 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private def devToolsEnabled = {
-    Play.current.mode == Mode.Dev || rootConfig.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
-  }
-
   private lazy val authActions = new AuthenticatedSessionActionsCheckUserAndPermissions(
     secureSocialService,
     UserServiceWired,
@@ -83,7 +80,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val authenticatedSessionActions = if (devToolsEnabled) {
+  private lazy val authenticatedSessionActions = if (DevTools.enabled) {
     new DevToolsSessionActions(authActions)
   } else {
     authActions

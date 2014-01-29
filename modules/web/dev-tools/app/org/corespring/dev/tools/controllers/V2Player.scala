@@ -1,10 +1,9 @@
-package dev.tools.controllers
+package org.corespring.dev.tools.controllers
 
-import dev.tools.DevTools
-import play.api.mvc.Action
-import securesocial.core.SecureSocial
+import org.corespring.dev.tools.DevTools
+import play.api.mvc.{Controller, Action}
 
-object V2Player extends SecureSocial {
+object V2Player extends Controller {
 
   def v2Player(itemId: String) = Action {
     request =>

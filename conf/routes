@@ -40,16 +40,7 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 ->     /lti                   lti.Routes
 ->     /reports               reports.Routes
 ->     /scorm                 scorm.Routes
-
-
-## Dev endpoints...
-GET    /dev/tools/v2-player/:itemId                                  dev.tools.controllers.V2Player.v2Player(itemId)
-GET    /dev/tools/player/item/:itemId/administer                     dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
-GET    /dev/tools/player/item/:itemId/*filename                      dev.tools.controllers.AssetLoading.getDataFile(itemId, filename)
-
-GET    /dev/tools/player/session/:sessionId/render                   dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
-GET    /dev/tools/player/session/:sessionId/*filename                dev.tools.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
-
+->     /dev/tools             devTools.Routes
 
 # Web tier
 GET    /web                                    web.controllers.Main.index

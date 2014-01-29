@@ -1,4 +1,4 @@
-package dev.tools
+package org.corespring.dev.tools
 
 import play.api.{ Mode, Play }
 
