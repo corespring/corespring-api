@@ -1,4 +1,4 @@
-package dev.tools.controllers
+package org.corespring.dev.tools.controllers
 
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
@@ -8,7 +8,7 @@ import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
-import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import org.corespring.player.v1.controllers.Views
 import org.corespring.player.v1.views.models.PlayerParams
 import play.api.mvc.Results._
@@ -63,7 +63,9 @@ object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] w
 object DevViews extends Views(DevActionBuilder, ItemServiceWired, QuizService){
 
 
-  override def defaultTemplate: (PlayerParams => Html) = (p) => dev.tools.views.html.DevPlayer(p)
+  override def defaultTemplate: (PlayerParams => Html) = (p) => org.corespring.dev.tools.views.html.DevPlayer(p)
+
+
 }
 
 

@@ -98,15 +98,6 @@ object Build extends sbt.Build {
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
-  val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
-    libraryDependencies ++= Seq(
-      containerClientWeb,
-      componentLoader,
-      componentModel,
-      mongoJsonService)
-  ).dependsOn(core % "test->test;compile->compile", playerLib)
-
-
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
 
   val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
@@ -158,6 +149,19 @@ object Build extends sbt.Build {
     )
     .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
     .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
+
+  val devTools = builders.web("dev-tools").settings(
+    routesImport ++= customImports,
+    libraryDependencies ++= Seq(containerClientWeb)
+  ).dependsOn(v1Player, playerLib, core)
+
+  val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
+    libraryDependencies ++= Seq(
+      containerClientWeb,
+      componentLoader,
+      componentModel,
+      mongoJsonService)
+  ).dependsOn(core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,

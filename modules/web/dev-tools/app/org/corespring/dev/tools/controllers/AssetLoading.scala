@@ -1,4 +1,4 @@
-package dev.tools.controllers
+package org.corespring.dev.tools.controllers
 
 /**
  * Note: Overriding the AssetLoading to prevent routes file eclipsing
