@@ -31,7 +31,7 @@ class SelectTextInteractionTransformerTest extends Specification {
        anim id est laborum."""
 
 
-  "OrderInteractionTransformer" should {
+  "SelectTextInteractionTransformer" should {
 
     val input = qti(selectionText)
     val componentsJson = SelectTextInteractionTransformer.interactionJs(input)
