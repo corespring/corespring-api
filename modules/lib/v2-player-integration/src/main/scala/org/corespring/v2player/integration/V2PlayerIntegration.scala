@@ -24,13 +24,13 @@ import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemServic
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.actionBuilders.{ AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions }
+import org.corespring.v2player.integration.actionBuilders.{ DevToolsSessionActions, AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions }
 import org.corespring.v2player.integration.controllers.PlayerLauncher
 import org.corespring.v2player.integration.controllers.editor.{ ItemWithBuilder, EditorHooksWithBuilder }
 import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithBuilder, PlayerHooksWithBuilder }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{ Logger, Configuration }
+import play.api.{ Mode, Play, Logger, Configuration }
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import scala.concurrent.Await
@@ -39,6 +39,7 @@ import scalaz.Failure
 import scalaz.{ Success, Validation }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
@@ -63,7 +64,11 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private lazy val authenticatedSessionActions = new AuthenticatedSessionActionsCheckUserAndPermissions(
+  private def devToolsEnabled = {
+    Play.current.mode == Mode.Dev || rootConfig.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+  }
+
+  private lazy val authActions = new AuthenticatedSessionActionsCheckUserAndPermissions(
     secureSocialService,
     UserServiceWired,
     mainSessionService,
@@ -76,6 +81,12 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
       case Left(error) => Failure(error)
       case Right(allowed) => Success(true)
     }
+  }
+
+  private lazy val authenticatedSessionActions = if (devToolsEnabled) {
+    new DevToolsSessionActions(authActions)
+  } else {
+    authActions
   }
 
   private lazy val icons = new Icons {
@@ -113,9 +124,10 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
         asset <- data.files.find(_.name == file)
       } yield asset.asInstanceOf[StoredFile]
 
-      storedFile.map { sf =>
-        logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
-        playS3.download(bucket, sf.storageKey, Some(request.headers))
+      storedFile.map {
+        sf =>
+          logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
+          playS3.download(bucket, sf.storageKey, Some(request.headers))
       }.getOrElse(NotFound(s"Can't find file: $file for itemId $itemId"))
     }
 
