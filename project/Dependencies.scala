@@ -87,7 +87,6 @@ object Dependencies {
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
-    val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
     val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
 
     val all: Seq[Resolver] = Seq(
@@ -101,8 +100,7 @@ object Dependencies {
       sbtPluginReleases,
       edeustaceReleases,
       edeustaceSnapshots,
-      justWrote,
-      localRepo)
+      justWrote)
   }
 
 }
