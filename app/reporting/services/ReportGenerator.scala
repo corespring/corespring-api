@@ -7,6 +7,7 @@ import play.cache.Cache
 import reporting.services.ReportGenerator.ReportKeys
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
+import common.ExecutionContexts
 
 class ReportGenerator(reportsService: ReportsService) {
 
@@ -47,7 +48,7 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateReport(reportKey: String): Future[Option[String]] = {
 
-    import ExecutionContext.Implicits.global
+    implicit val executionContext = ExecutionContexts.reportGeneration
 
     Option(Cache.get(reportKey)) match {
       case Some((date, report, _)) => Cache.set(reportKey, (date, report, true))
