@@ -17,7 +17,6 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
           "text" -> node.child.mkString,
           "config" -> partialObj(
             "selectionUnit" -> optForAttr[JsString]("selectionType"),
-            "shuffle" -> Some(JsBoolean(Defaults.shuffle)),
             "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
             "minSelections" -> optForAttr[JsNumber]("minSelections"),
             "maxSelections" -> optForAttr[JsNumber]("maxSelections")
