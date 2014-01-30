@@ -6,6 +6,7 @@ import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
+import org.corespring.play.utils._
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
@@ -20,7 +21,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) with ControllerInstanceResolver with GlobalSettings with ClassLogging {
+object Global
+  extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
+  with ControllerInstanceResolver
+  with GlobalSettings
+  with ClassLogging {
 
   val INIT_DATA: String = "INIT_DATA"
 
@@ -63,6 +68,14 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
   override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
 
   override def onStart(app: Application): Unit = {
+
+    CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
+
+      if (componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
+        logger.info("reload components!")
+        componentLoader.reload
+      }
+    }
 
     RegisterJodaTimeConversionHelpers()
 
