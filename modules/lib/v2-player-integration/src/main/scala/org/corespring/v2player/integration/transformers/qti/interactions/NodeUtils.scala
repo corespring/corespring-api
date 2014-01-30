@@ -4,7 +4,6 @@ import scala.xml.Node
 
 trait NodeUtils {
 
-
   /**
    * Performs an in-order traversal of an XML document, returning the first Node matching the provided predicate.
    */
@@ -18,11 +17,10 @@ trait NodeUtils {
    * Returns an Option[String] representing which of the two provided labels was found "first" in the XML document. If
    * neither was found in the document, returns None.
    */
-  def whichFirst(xml: Node, one: String, two: String, more: String*): Option[String] = {
+  def whichFirst(xml: Node, one: String, two: String, more: String*) =
     inOrder(xml, n => (more :+ one :+ two).contains(n.label)) match {
       case Some(node) => Some(node.label)
       case None => None
     }
-  }
 
 }
