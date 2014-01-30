@@ -1,13 +1,8 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.xml.transform.{RuleTransformer, RewriteRule}
+import scala.xml.transform._
 import scala.xml._
 import play.api.libs.json._
-import play.api.libs.json.JsObject
-import scala.Some
-import scala.collection.mutable
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
 import scala.Some
 
 object DragAndDropInteractionTransformer extends InteractionTransformer {
@@ -30,6 +25,11 @@ object DragAndDropInteractionTransformer extends InteractionTransformer {
       case _ => node
     }
 
+  }
+
+  object Defaults {
+    val shuffle = false
+    val expandHorizontal = false
   }
 
   override def interactionJs(qti: Node) = (qti \\ "dragAndDropInteraction").map(node => {
@@ -57,9 +57,24 @@ object DragAndDropInteractionTransformer extends InteractionTransformer {
             new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
               .head.child.map(clearNamespace).mkString))
         }),
-        "config" -> Some(Json.obj(
-          "shuffle" -> true,
-          "expandHorizontal" -> false
+        "config" -> Some(partialObj(
+          "shuffle" -> Some(JsBoolean((node \ "draggableChoiceGroup") match {
+            case choiceGroups: Seq[Node] if choiceGroups.nonEmpty =>
+              choiceGroups.find(g => (g \ "@shuffle").text.nonEmpty) match {
+                case Some(choiceGroup) => (choiceGroup \ "@shuffle").text == "true"
+                case _ => Defaults.shuffle
+              }
+            case _ => Defaults.shuffle
+          })),
+          "expandHorizontal" -> Some(JsBoolean(Defaults.expandHorizontal)),
+          "itemsPerRow" -> ((node \ "draggableChoiceGroup") match {
+            case choiceGroups: Seq[Node] if choiceGroups.nonEmpty =>
+              choiceGroups.find(g => (g \ "@itemsPerRow").text.nonEmpty) match {
+                case Some(choiceGroup) => Some(JsNumber((choiceGroup \ "@itemsPerRow").text.toInt))
+                case _ => None
+              }
+            case _ => None
+          })
         ))
       ),
       "feedback" -> feedback(node, qti)

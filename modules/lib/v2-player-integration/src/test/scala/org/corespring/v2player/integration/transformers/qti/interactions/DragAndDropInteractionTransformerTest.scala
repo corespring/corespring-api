@@ -3,7 +3,7 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import org.specs2.mutable.Specification
 import scala.xml.{XML, Node}
 import scala.collection.mutable
-import play.api.libs.json.{JsArray, Json, JsObject}
+import play.api.libs.json.{JsUndefined, JsArray, Json, JsObject}
 import scala.xml.transform.RuleTransformer
 
 class DragAndDropInteractionTransformerTest extends Specification {
@@ -11,7 +11,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
   val identifier = "Q_01"
   val feedbackValue = "Feedback!"
 
-  def qti(responses: Map[String, String], correctResponses: Map[String, String]): Node =
+  def qti(responses: Map[String, String], correctResponses: Map[String, String], shuffle: Option[Boolean] = None,
+          itemsPerRow: Option[Int] = None): Node =
     <assessmentItem>
       <responseDeclaration identifier={identifier} cardinality="targeted">
         <correctResponse>
@@ -27,11 +28,24 @@ class DragAndDropInteractionTransformerTest extends Specification {
       <itemBody>
         <dragAndDropInteraction responseIdentifier={identifier}>
           {
-            responses.map { case (key, value) => {
-              <draggableChoice identifier={key}>{XML.loadString(value)}
-                <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
-              </draggableChoice>
-            } }
+            val choices = responses.map {
+              case (key, value) =>
+                <draggableChoice identifier={key}>{XML.loadString(value)}
+                  <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
+                </draggableChoice>
+            }
+
+            (shuffle, itemsPerRow) match {
+              case (Some(shuffleValue), Some(itemsPerRowValue)) =>
+                <draggableChoiceGroup shuffle={shuffleValue.toString} itemsPerRow={itemsPerRowValue.toString}>
+                  {choices}
+                </draggableChoiceGroup>
+              case (Some(shuffleValue), None) =>
+                <draggableChoiceGroup shuffle={shuffleValue.toString}>{choices}</draggableChoiceGroup>
+              case (None, Some(itemsPerRowValue)) =>
+                <draggableChoiceGroup itemsPerRow={itemsPerRowValue.toString}>{choices}</draggableChoiceGroup>
+              case _ => choices
+            }
           }
           <answerArea>
             {
@@ -59,6 +73,9 @@ class DragAndDropInteractionTransformerTest extends Specification {
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
+    val model = (interactionResult \ "model")
+    val config = (model \ "config")
+
     "return the correct component type" in {
       (interactionResult \ "componentType").as[String] must be equalTo "corespring-drag-and-drop"
     }
@@ -71,6 +88,37 @@ class DragAndDropInteractionTransformerTest extends Specification {
         correctResponses.get(identifier).get must be equalTo response
       }}
       answers.keys.toSeq diff correctResponses.keys.toSeq must beEmpty
+    }
+
+    "returns default shuffle when none present" in {
+      (config \ "shuffle").as[Boolean] must be equalTo DragAndDropInteractionTransformer.Defaults.shuffle
+    }
+
+    "returns default expandHorizontal" in {
+      (config \ "expandHorizontal").as[Boolean] must be equalTo
+        DragAndDropInteractionTransformer.Defaults.expandHorizontal
+    }
+
+    "returns no itemsPerRow by default" in {
+      (config \ "itemsPerRow") must haveClass[JsUndefined]
+    }
+
+    "returns shuffle value when present" in {
+      Seq(true, false).map(shuffleValue => {
+        val input = qti(responses, correctResponses, shuffle = Some(shuffleValue))
+        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
+          .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+        (interactionResult \ "model" \ "config" \ "shuffle").as[Boolean] must be equalTo shuffleValue
+      })
+    }
+
+    "returns itemsPerRow value when present" in {
+      Seq(1, 2, 3, 4).map(itemsPerRowValue => {
+        val input = qti(responses, correctResponses, itemsPerRow = Some(itemsPerRowValue))
+        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
+          .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+        (interactionResult \ "model" \ "config" \ "itemsPerRow").as[Int] must be equalTo itemsPerRowValue
+      })
     }
 
     "removes all <dragAndDropInteraction/> elements" in {
