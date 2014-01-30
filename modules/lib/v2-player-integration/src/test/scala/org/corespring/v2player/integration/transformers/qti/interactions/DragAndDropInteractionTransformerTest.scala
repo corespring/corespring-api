@@ -12,7 +12,7 @@ class DragAndDropInteractionTransformerTest extends Specification {
   val feedbackValue = "Feedback!"
 
   def qti(responses: Map[String, String], correctResponses: Map[String, String], shuffle: Option[Boolean] = None,
-          itemsPerRow: Option[Int] = None): Node =
+          itemsPerRow: Option[Int] = None, choicesFirst: Boolean = true): Node =
     <assessmentItem>
       <responseDeclaration identifier={identifier} cardinality="targeted">
         <correctResponse>
@@ -28,32 +28,39 @@ class DragAndDropInteractionTransformerTest extends Specification {
       <itemBody>
         <dragAndDropInteraction responseIdentifier={identifier}>
           {
-            val choices = responses.map {
-              case (key, value) =>
-                <draggableChoice identifier={key}>{XML.loadString(value)}
-                  <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
-                </draggableChoice>
-            }
-
-            (shuffle, itemsPerRow) match {
-              case (Some(shuffleValue), Some(itemsPerRowValue)) =>
-                <draggableChoiceGroup shuffle={shuffleValue.toString} itemsPerRow={itemsPerRowValue.toString}>
-                  {choices}
-                </draggableChoiceGroup>
-              case (Some(shuffleValue), None) =>
-                <draggableChoiceGroup shuffle={shuffleValue.toString}>{choices}</draggableChoiceGroup>
-              case (None, Some(itemsPerRowValue)) =>
-                <draggableChoiceGroup itemsPerRow={itemsPerRowValue.toString}>{choices}</draggableChoiceGroup>
-              case _ => choices
+            val choices =
+                {
+                  val choices = responses.map {
+                    case (key, value) =>
+                      <draggableChoice identifier={key}>{XML.loadString(value)}
+                        <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
+                      </draggableChoice>
+                  }
+                  (shuffle, itemsPerRow) match {
+                    case (Some(shuffleValue), Some(itemsPerRowValue)) =>
+                      <draggableChoiceGroup shuffle={shuffleValue.toString} itemsPerRow={itemsPerRowValue.toString}>
+                        {choices}
+                      </draggableChoiceGroup>
+                    case (Some(shuffleValue), None) =>
+                      <draggableChoiceGroup shuffle={shuffleValue.toString}>{choices}</draggableChoiceGroup>
+                    case (None, Some(itemsPerRowValue)) =>
+                      <draggableChoiceGroup itemsPerRow={itemsPerRowValue.toString}>{choices}</draggableChoiceGroup>
+                    case _ => choices
+                  }
+                }
+             val answers =
+              <answerArea>
+                {
+                correctResponses.keys.map(id => {
+                    <landingPlace identifier={id} cardinality="single" />
+                })
+                }
+              </answerArea>
+            choicesFirst match {
+              case true => Seq(choices, answers)
+              case _ => Seq(answers, choices)
             }
           }
-          <answerArea>
-            {
-              correctResponses.keys.map(id => {
-                <landingPlace identifier={id} cardinality="single" />
-              })
-            }
-          </answerArea>
         </dragAndDropInteraction>
       </itemBody>
     </assessmentItem>
@@ -119,6 +126,17 @@ class DragAndDropInteractionTransformerTest extends Specification {
           .getOrElse(throw new RuntimeException(s"No component called $identifier"))
         (interactionResult \ "model" \ "config" \ "itemsPerRow").as[Int] must be equalTo itemsPerRowValue
       })
+    }
+
+    "returns choicesPosition 'above' when choices are first" in {
+      (config \ "choicesPosition").as[String] must be equalTo "above"
+    }
+
+    "returns choicesPosition 'below' when landing places are first" in {
+      val input = qti(responses, correctResponses, choicesFirst = false)
+      val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
+        .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+      (interactionResult \ "model" \ "config" \ "choicesPosition").as[String] must be equalTo "below"
     }
 
     "removes all <dragAndDropInteraction/> elements" in {

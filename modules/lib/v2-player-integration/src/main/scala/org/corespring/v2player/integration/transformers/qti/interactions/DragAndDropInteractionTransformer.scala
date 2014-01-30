@@ -5,7 +5,7 @@ import scala.xml._
 import play.api.libs.json._
 import scala.Some
 
-object DragAndDropInteractionTransformer extends InteractionTransformer {
+object DragAndDropInteractionTransformer extends InteractionTransformer with NodeUtils {
 
   private object AnswerAreaTransformer extends RewriteRule {
 
@@ -74,6 +74,11 @@ object DragAndDropInteractionTransformer extends InteractionTransformer {
                 case _ => None
               }
             case _ => None
+          }),
+          "choicesPosition" -> (whichFirst(qti, "draggableChoice", "landingPlace") match {
+            case Some("draggableChoice") => Some(JsString("above"))
+            case Some(_) => Some(JsString("below"))
+            case None => None
           })
         ))
       ),
