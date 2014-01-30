@@ -23,7 +23,8 @@ object QtiTransformer extends XMLNamespaceClearer {
       SelectTextInteractionTransformer,
       ExtendedTextInteractionTransformer,
       FoldableInteractionTransformer,
-      CoverflowInteractionTransformer
+      CoverflowInteractionTransformer,
+      CorespringTabTransformer
     )
 
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
