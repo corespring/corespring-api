@@ -37,7 +37,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer {
       "componentType" -> "corespring-drag-and-drop",
       "correctResponse" -> JsObject(
         (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
-          ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
+          ((valueNode \ "@identifier").text -> JsArray((valueNode \ "value").map(v => JsString(v.text.trim))))
         })
       ),
       "model" -> partialObj(
