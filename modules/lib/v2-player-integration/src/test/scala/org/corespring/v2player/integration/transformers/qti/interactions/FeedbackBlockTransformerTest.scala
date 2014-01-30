@@ -141,7 +141,9 @@ class FeedbackBlockTransformerTest extends Specification {
       (finalOutcomeSpecificOutput \ "feedbackBlock").toSeq.length must be equalTo 0
       (finalOutcomeSpecificOutput \\ "corespring-feedback-block").toSeq match {
         case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
-        case _ => success
+        case seq =>
+          correctResponses.map(r => s"${identifier}_feedback_${r}").toSeq diff
+            seq.map(n => (n \ "@id").text) must beEmpty
       }
     }
 

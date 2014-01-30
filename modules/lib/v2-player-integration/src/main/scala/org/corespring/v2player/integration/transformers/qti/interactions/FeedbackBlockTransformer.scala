@@ -3,7 +3,6 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import play.api.libs.json._
 import scala.Predef._
 import scala.xml._
-import java.lang.IllegalArgumentException
 import scala.IllegalArgumentException
 
 case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
@@ -83,26 +82,28 @@ object FeedbackBlockTransformer {
   def transform(qti: Node): Node = {
     var ids = Set.empty[String]
 
-    def recurse(node: Node): Seq[Node] = {
-
-      node match {
-        case e: Elem if (e.label == "feedbackBlock") => {
-          val id = (e \\ "@outcomeIdentifier").text match {
-            case outcomeIdentifier(id, _*) => id
-            case _ => throw new IllegalArgumentException(
-              s"outcomeIdentifier ${(e \\ "@outcomeIdentifier").text} does not match ${outcomeIdentifier.toString}")
-          }
-          ids.contains(id) match {
-            case true => Seq.empty
-            case _ => {
-              ids = ids + id
-              <corespring-feedback-block id={s"${id}_feedback"}></corespring-feedback-block>
+    def recurse(node: Node): Seq[Node] = node match {
+      case e: Elem if (e.label == "feedbackBlock") => {
+        val feedbackId = (e \\ "@outcomeIdentifier").text match {
+          case outcomeIdentifier(id, value) => {
+            value match {
+              case "value" => s"${id}_feedback"
+              case outcomeSpecificRegex(responseIdentifier) => s"${id}_feedback_${responseIdentifier}"
             }
           }
+          case _ => throw new IllegalArgumentException(
+            s"outcomeIdentifier ${(e \\ "@outcomeIdentifier").text} does not match ${outcomeIdentifier.toString}")
         }
-        case e: Elem => e.copy(child = e.nonEmptyChildren.map(recurse(_).headOption).flatten)
-        case _ => node
+        ids.contains(feedbackId) match {
+          case true => Seq.empty
+          case _ => {
+            ids = ids + feedbackId
+            <corespring-feedback-block id={feedbackId}></corespring-feedback-block>
+          }
+        }
       }
+      case e: Elem => e.copy(child = e.nonEmptyChildren.map(recurse(_).headOption).flatten)
+      case _ => node
     }
 
     recurse(qti).head
