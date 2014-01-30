@@ -40,24 +40,27 @@ object DragAndDropInteractionTransformer extends InteractionTransformer {
           ((valueNode \ "@identifier").text -> Json.arr((valueNode \ "value").text))
         })
       ),
-      "model" -> Json.obj(
-        "choices" -> JsArray((node \\ "draggableChoice").map(n =>
+      "model" -> partialObj(
+        "choices" -> Some(JsArray((node \\ "draggableChoice").map(n =>
           Json.obj(
             "id" -> (n \ "@identifier").text,
             "content" -> n.child.map(clearNamespace).mkString
           )
-        )),
+        ))),
         "prompt" -> ((node \ "prompt") match {
-          case seq: Seq[Node] if seq.isEmpty => ""
-          case seq: Seq[Node] => seq.head.child.map(clearNamespace).mkString
+          case seq: Seq[Node] if seq.isEmpty => None
+          case seq: Seq[Node] => Some(JsString(seq.head.child.map(clearNamespace).mkString))
         }),
-        "answerArea" ->
-          new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
-            .head.child.map(clearNamespace).mkString,
-        "config" -> Json.obj(
+        "answerArea" -> ((node \ "answerArea") match {
+          case empty: Seq[Node] if empty.isEmpty => None
+          case _ => Some(JsString(
+            new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
+              .head.child.map(clearNamespace).mkString))
+        }),
+        "config" -> Some(Json.obj(
           "shuffle" -> true,
           "expandHorizontal" -> false
-        )
+        ))
       ),
       "feedback" -> feedback(node, qti)
     )
