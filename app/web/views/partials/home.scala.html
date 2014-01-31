@@ -10,41 +10,82 @@
 <div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
         <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
-        <div class="header"><h4>{{orgName}} Collections</h4></div>
+        <div class="header">
+            <button type="button" class="btn btn-default" ng-click="viewState = 'org'">{{orgName}} Collections</button>
+            <button type="button" class="btn btn-default" ng-click="viewState = 'shared'">Other Collections</button>
+        </div>
     </div>
-    <div class="header-holder">
+    <div ng-show="viewState == 'org'">
+        <div class="header-holder">
+            <!-- org collections -->
+            <table class="table header">
+            <thead>
+                    <th class="collection-label">Collection</th>
+                    <th># of items</th>
+                    <th></th>
+                </thead>
+            </table>
+        </div>
 
-    <table class="table header">
-    <thead>
-            <th class="collection-label">Collection</th>
-            <th># of items</th>
-            <th></th>
-        </thead>
-    </table>
-    </div>
-    <div class="scrollable">
-        <table class="table table-striped">
-            <tbody>
-            <tr ng-repeat="collection in collections">
-                <td class="collection-label">
+        <div class="scrollable">
+            <table class="table table-striped">
+                <tbody>
+                <tr ng-repeat="collection in collections">
+                    <td class="collection-label">
 
-                    <div content-editable
-                         content-id="{{collection.id}}"
-                         ng-model="collection.name"
-                         validate-change="onRenameCollection(text, id, callback)">
-                    </div>
-                </td>
-                <td>{{collection.itemCount}}</td>
-                <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
-            </tr>
-            </tbody>
-        </table>
+                        <div content-editable
+                             content-id="{{collection.id}}"
+                             ng-model="collection.name"
+                             validate-change="onRenameCollection(text, id, callback)">
+                        </div>
+                    </td>
+                    <td>{{collection.itemCount}}</td>
+                    <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+        <div class="footer">
+             <input type="text" id="newcollection" ui-keypress="{13:'createCollection(newcolname)'}" placeholder="type collection name..." ng-model="newcolname">
+             <button class="btn btn-mini btn-success" ng-click="createCollection(newcolname)">add</button>
+        </div>
+        <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
-    <div class="footer">
-         <input type="text" id="newcollection" ui-keypress="{13:'createCollection(newcolname)'}" placeholder="type collection name..." ng-model="newcolname">
-         <button class="btn btn-mini btn-success" ng-click="createCollection(newcolname)">add</button>
+    <!-- shared collections -->
+
+    <div ng-show="viewState == 'shared'">
+        <div class="header-holder">
+            <!-- org collections -->
+            <table class="table header">
+                <thead>
+                <th class="collection-label">Collection</th>
+                <th># of items</th>
+                <th></th>
+                </thead>
+            </table>
+        </div>
+
+        <div class="scrollable">
+            <table class="table table-striped">
+                <tbody>
+                <tr ng-repeat="collection in sharedCollections">
+                    <td class="collection-label">{{collection.name}}</td>
+                    <td>{{collection.itemCount}}</td>
+                    <td>
+                        <span ng-show="collection.enabled"><a ng-click="disableCollection(collection.id)">disable</a></span>
+                        <span ng-show="!collection.enabled"><a ng-click="enableCollection(collection.id)">enable</a></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
-    <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
+
 </div>
 <div ng-class="{'window-up': showPopup}">
     <div class="window-overlay">

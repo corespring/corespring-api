@@ -16,10 +16,11 @@
  * TODO: We do alot of data formatting on the client side here - should that be server side instead?
  */
 angular.module('tagger.services')
-  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', function (Collection, UserInfo, Logger) {
+  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', function (Collection, UserInfo, Logger, CollectionEnabledStatus) {
     "use strict";
 
     var rawData = {};
+
 
     var getCollectionById = function (id) {
 
@@ -41,6 +42,8 @@ angular.module('tagger.services')
         });
       }
     };
+
+
 
     var removeCollectionFromSortedCollection = function (id) {
       if (out.sortedCollections[0]) {
@@ -68,12 +71,12 @@ angular.module('tagger.services')
         return out ? out.name : "?";
       };
 
-      var hasWritePermission = function (c) {
-        return c.permission === "write";
+      var isOwner = function (c) {
+        return userOrg.id === c.ownerOrgId;
       };
 
-      var toIdAndName = function (c) {
-        return { id: c.collectionId, name: getName(c.collectionId), permission: c.permission };
+      var convertProperties = function (c) {
+        return { id: c.collectionId, name: getName(c.collectionId), permission: c.permission, enabled: c.enabled };
       };
 
       var getItemCount = function (id) {
@@ -92,20 +95,37 @@ angular.module('tagger.services')
         return userIds.indexOf(c.id) === -1;
       };
 
-      delete userOrg.path;
-      delete userOrg.id;
-      userOrg.collections = _.filter(userOrg.collections, hasWritePermission);
-      userOrg.collections = _.map(userOrg.collections, toIdAndName);
-      userOrg.collections = _.map(userOrg.collections, addItemCount);
+      var addEnabledState = function (c) {
+        c.enabled = getEnabledState(c.id);
+        return c;
+      };
+
+      var getEnabledState = function (id) {
+        var collection = _.find(userOrg.collections, function (c) {
+          return c.collectionId === id;
+        });
+        return collection ? collection.enabled : false;
+      };
+
+
+
+      collections = _.map(collections, addEnabledState);
+      userOrg.collections = _.filter(collections, isOwner);
+
+      var sharedCollections = {
+        name: "Shared",
+        collections: _.filter(collections, function(c){
+          return c.ownerOrgId != userOrg.id;
+        })
+      }
 
       var userIds = _.pluck(userOrg.collections, "id");
 
-      var publicCollection = {
-        name: "Public",
-        collections: _.filter(collections, notInUserOrgs)
-      };
+      delete userOrg.path;
+      delete userOrg.id;
 
-      return [userOrg, publicCollection];
+      // return colls for this org and colls shared with the org
+      return [userOrg, sharedCollections];
     };
 
     var initialize = function (onComplete) {
@@ -118,6 +138,21 @@ angular.module('tagger.services')
         function (err) {
             Logger.error("Error initializing collections: "+JSON.stringify(err));
         });
+    };
+
+
+    var updateCollectionEnabledStatus = function(collectionId, status, onSuccess, onError) {
+      CollectionEnabledStatus.update({id: collectionId, enabled : status }, {}, onSuccess, onError);
+
+      if (out.sortedCollections[1]) {
+        out.sortedCollections[1].collections = _.map(out.sortedCollections[1].collections, function (c) {
+          if (c.id === collectionId) {
+            c.enabled = status;
+          }
+          return c;
+        });
+      }
+
     };
 
     /** PUBLIC */
@@ -162,6 +197,15 @@ angular.module('tagger.services')
 
         Collection.update({id: id}, {name: newName}, successHandler, onError);
       },
+
+      disableCollection: function(collectionId, onSuccess, onError) {
+        updateCollectionEnabledStatus(collectionId, false, onSuccess, onError);
+      },
+
+      enableCollection: function(collectionId, onSuccess, onError) {
+        updateCollectionEnabledStatus(collectionId, true,  onSuccess, onError);
+      },
+
       init: function (onComplete) {
         initialize(onComplete);
       },

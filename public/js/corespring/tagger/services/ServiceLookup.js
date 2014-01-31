@@ -75,6 +75,7 @@ angular.module('tagger.services')
                 uploadFile:'/tagger/upload/{itemId}/{fileName}',
                 viewFile:'/tagger/files/{itemId}/{fileName}',
                 deleteFile:'/tagger/delete/{itemId}/{fileName}',
+                collectionSetEnabledStatus: '/api/v1/collections/:id/set-enabled-status/:enabled',
 
                 playerPreview: checkInjectedRoutes('PlayerRoutes','preview', [':itemId'], '/player/item/:itemId/preview')
             };

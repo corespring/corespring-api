@@ -29,3 +29,17 @@ angular.module('tagger.services')
     return Collection;
 }]
 );
+
+angular.module('tagger.services')
+  .factory('CollectionEnabledStatus', [
+    '$resource', 'ServiceLookup', function($resource, ServiceLookup){
+
+      return $resource(
+        ServiceLookup.getUrlFor('collectionSetEnabledStatus'),
+        {},
+        {
+          "update": { method : 'PUT'}
+        }
+      );
+    }
+  ]);

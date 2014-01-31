@@ -1,6 +1,20 @@
 function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
 
   $scope.orgName = UserInfo.org.name;
+  $scope.viewState = "shared";
+
+  $scope.disableCollection = function(collectionId) {
+    CollectionManager.disableCollection(collectionId, function onSuccess(success){}, function onError(error){});
+  };
+
+  $scope.enableCollection = function(collectionId) {
+    CollectionManager.enableCollection(collectionId, function onSuccess(success){
+      var test = success;
+    },
+    function onError(error){
+      var test = error;
+    });
+  };
 
   $scope.hideAlertMessage = function () {
     $scope.alertMessage = null;
@@ -72,6 +86,7 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
     function (newValue) {
       if (newValue) {
         $scope.collections = newValue[0].collections;
+        $scope.sharedCollections = newValue[1].collections;
       }
     }, true);
 }
