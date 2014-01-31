@@ -25,9 +25,9 @@ object PlayerLauncherActionBuilder {
 }
 
 abstract class PlayerLauncherActionBuilder(
-                                   val secureSocialService: SecureSocialService,
-                                   val userService: UserService
-                                   )
+                                            val secureSocialService: SecureSocialService,
+                                            val userService: UserService
+                                            )
   extends Builder[AnyContent]
   with UserSession
   with V2PlayerCookieWriter {
@@ -58,10 +58,15 @@ abstract class PlayerLauncherActionBuilder(
     keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc +(kv._1, kv._2))
   }
 
+
+  override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = loadJs(block)
+
   /** Handle the request for the player js.
     * Get the orgId and player options and add them to the player session if found.
     */
-  def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+  override def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = loadJs(block)
+
+  private def loadJs(block: PlayerJsRequest[AnyContent] => Result): Action[AnyContent] = Action {
     request =>
       getOrgIdAndOptions(request) match {
         case Success((orgId, opts)) => {
@@ -70,5 +75,6 @@ abstract class PlayerLauncherActionBuilder(
         }
         case Failure(msg) => block(new PlayerJsRequest(false, request, Seq(msg)))
       }
+
   }
 }

@@ -30,7 +30,7 @@ trait ItemWithBuilder extends Item {
       }.getOrElse(NotFound("?"))
     }
 
-    def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
+    def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("Not ready yet"))
 
     def getScore(itemId: String)(block: (ScoreItemRequest[AnyContent]) => Result): Action[AnyContent] = ???
   }

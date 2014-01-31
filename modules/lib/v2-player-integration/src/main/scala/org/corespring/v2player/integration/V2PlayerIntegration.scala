@@ -2,7 +2,6 @@ package org.corespring.v2player.integration
 
 import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets, ComponentsFileController, Rig, Icons }
@@ -15,13 +14,10 @@ import org.corespring.container.components.processing.rhino.{ PlayerItemPreProce
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.container.components.response.rhino.{ OutcomeProcessor => RhinoProcessor }
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.actionBuilders.{ DevToolsSessionActions, AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions }
@@ -30,11 +26,9 @@ import org.corespring.v2player.integration.controllers.editor.{ ItemWithBuilder,
 import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithBuilder, PlayerHooksWithBuilder }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{ Mode, Play, Logger, Configuration }
+import play.api.{ Logger, Configuration }
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import scala.concurrent.Await
-import scala.concurrent.duration._
 import scalaz.Failure
 import scalaz.{ Success, Validation }
 import org.corespring.platform.data.mongo.models.VersionedId

@@ -10,9 +10,10 @@ import org.corespring.platform.core.services.UserService
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActionBuilder
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import play.api.mvc.{AnyContent, Request}
+import play.api.mvc.{Action, Result, AnyContent, Request}
 import play.api.{Configuration, Mode, Play}
 import scalaz.Success
+import org.corespring.container.client.actions.PlayerJsRequest
 
 class PlayerLauncher(
                       secureSocialService : SecureSocialService,
