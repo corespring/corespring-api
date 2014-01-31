@@ -37,7 +37,7 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "focusTaskInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-focus-task id={identifier} />
+      <corespring-focus-task id={identifier}></corespring-focus-task>
     }
     case _ => node
   }
