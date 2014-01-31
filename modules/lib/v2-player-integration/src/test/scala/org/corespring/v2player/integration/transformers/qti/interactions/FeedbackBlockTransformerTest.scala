@@ -111,8 +111,8 @@ class FeedbackBlockTransformerTest extends Specification {
         (outcomeSpecificInput \\ "feedbackBlock").find(f => (f \ "@outcomeIdentifier").text == s"responses.$identifier.outcome.$response") match {
           case Some(feedbackNode) => {
             (feedbackNode \ "@incorrectResponse").text match {
-              case "true" => (feedback \ "correct").as[Boolean] must beTrue
-              case _ => (feedback \ "correct").as[Boolean] must beFalse
+              case "true" => (feedback \ "correct").as[Boolean] must beFalse
+              case _ => (feedback \ "correct").as[Boolean] must beTrue
             }
             feedbackNode.child.mkString must be equalTo (feedback \ "text").as[String]
           }

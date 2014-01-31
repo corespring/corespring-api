@@ -41,11 +41,11 @@ object FeedbackBlockTransformer {
                     Json.obj(
                       responseIdentifier -> Json.obj(
                         "text" -> node.child.mkString,
-                        "correct" -> ((node \ "@incorrectResponse").toString == "true")
+                        "correct" -> ((node \ "@incorrectResponse").toString != "true")
                       )
                     )
                   }
-                  case _ => throw new RuntimeException("BLAM")
+                  case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
                 })
               )
               case false => Json.obj(
