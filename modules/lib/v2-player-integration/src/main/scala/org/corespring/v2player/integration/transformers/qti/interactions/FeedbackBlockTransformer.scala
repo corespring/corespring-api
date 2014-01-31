@@ -34,6 +34,7 @@ object FeedbackBlockTransformer {
           Json.obj(
             "componentType" -> "corespring-feedback-block",
             "target" -> Json.obj("id" -> id),
+            "weight" -> 0,
             "feedback" -> (outcomeSpecific match {
               case true => Json.obj(
                 "outcome" -> ((node \ "@outcomeIdentifier").text match {
