@@ -92,6 +92,10 @@ class FeedbackBlockTransformerTest extends Specification {
       })
     }
 
+    "return component weight as 0" in {
+      (feedbackResult(identifier) \ "weight").as[Int] must be equalTo 0
+    }
+
     "return correct feedback for answers" in {
       correctResponses.map(response => {
         (feedbackResult(identifier) \ "feedback" \ "correct").as[JsObject].keys.contains(response) must beTrue
