@@ -6,12 +6,12 @@ import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
-import org.joda.time.{DateMidnight, DateTime}
+import org.joda.time.{DateTimeZone, DateTime}
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import reporting.services.{ReportGenerator, ReportsService}
+import reporting.services.ReportGenerator
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -109,10 +109,10 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
-  private def timeLeftUntilMidnight = {
+  private def timeLeftUntil2am = {
     implicit val postfixOps = scala.language.postfixOps
-    (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
-      - new DateTime().getMinuteOfDay) minutes
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(2).withZone(DateTimeZone.forID("America/New_York"))
+      .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
   }
 
 
@@ -122,7 +122,7 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
     Logger.info("Scheduling the reporting daemon")
 
     val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
-    Akka.system(app).scheduler.schedule(timeLeftUntilMidnight, 24 hours, reportingActor, "reportingDaemon")
+    Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
   }
 
   /**
