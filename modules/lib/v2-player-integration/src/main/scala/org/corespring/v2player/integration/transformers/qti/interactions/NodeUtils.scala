@@ -9,8 +9,7 @@ trait NodeUtils {
    */
   def inOrder(node: Node, predicate: Node => Boolean): Option[Node] = predicate(node) match {
     case true => Some(node)
-    /* TODO: This should be optimized */
-    case _ => node.child.map(child => inOrder(child, predicate)).flatten.find(_.nonEmpty)
+    case _ => node.child.find(child => inOrder(child, predicate).nonEmpty).map(inOrder(_, predicate)).getOrElse(None)
   }
 
   /**
