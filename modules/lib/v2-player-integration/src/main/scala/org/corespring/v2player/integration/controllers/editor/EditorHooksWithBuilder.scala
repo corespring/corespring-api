@@ -1,14 +1,15 @@
 package org.corespring.v2player.integration.controllers.editor
 
-import org.corespring.container.client.actions.{EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
+import org.corespring.container.client.actions.{ EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest, ClientHooksActionBuilder }
 import org.corespring.container.client.controllers.hooks.EditorHooks
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, Result, AnyContent}
+import play.api.libs.json.{ Json, JsValue }
+import play.api.mvc.{ SimpleResult, Action, Result, AnyContent }
 import scalaz.Scalaz._
 import scalaz._
+import scala.concurrent.Future
 
 trait EditorHooksWithBuilder extends EditorHooks {
 
@@ -43,5 +44,8 @@ trait EditorHooksWithBuilder extends EditorHooks {
     def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("Not supported"))
 
     def createItem(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("TODO"))
+
+    //TODO: flesh this out
+    override def editItem(itemId: String)(block: (PlayerRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action(BadRequest("TODO"))
   }
 }

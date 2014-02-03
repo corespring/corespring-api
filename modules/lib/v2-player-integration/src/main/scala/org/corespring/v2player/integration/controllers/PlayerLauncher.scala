@@ -1,23 +1,24 @@
 package org.corespring.v2player.integration.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.{NullCrypto, AESCrypto}
+import org.corespring.common.encryption.{ NullCrypto, AESCrypto }
 import org.corespring.container.client.V2PlayerConfig
-import org.corespring.container.client.controllers.{PlayerLauncher => ContainerPlayerLauncher}
+import org.corespring.container.client.controllers.{ PlayerLauncher => ContainerPlayerLauncher }
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActionBuilder
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import play.api.mvc.{AnyContent, Request}
-import play.api.{Configuration, Mode, Play}
+import play.api.mvc.{ Action, Result, AnyContent, Request }
+import play.api.{ Configuration, Mode, Play }
 import scalaz.Success
+import org.corespring.container.client.actions.PlayerJsRequest
 
 class PlayerLauncher(
-                      secureSocialService : SecureSocialService,
-                      userService : UserService,
-                      rootConfig : Configuration) extends ContainerPlayerLauncher {
+  secureSocialService: SecureSocialService,
+  userService: UserService,
+  rootConfig: Configuration) extends ContainerPlayerLauncher {
 
   def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(
     secureSocialService,
@@ -56,6 +57,7 @@ class PlayerLauncher(
       client <- ApiClient.findByKey(apiClientId)
     } yield client.orgId
 
+    override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
   }
 
   override def playerConfig: V2PlayerConfig = V2PlayerConfig(rootConfig)
