@@ -3,13 +3,14 @@ package org.corespring.platform.core.models.item
 import play.api.libs.json._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
+import org.corespring.platform.core.models.JsonUtil
 
 case class Alignments(bloomsTaxonomy: Option[String] = None,
   keySkills: Seq[String] = Seq(),
   demonstratedKnowledge: Option[String] = None,
   relatedCurriculum: Option[String] = None)
 
-object Alignments extends ValueGetter {
+object Alignments extends ValueGetter with JsonUtil {
 
   object Keys {
     val bloomsTaxonomy = "bloomsTaxonomy"
@@ -18,7 +19,29 @@ object Alignments extends ValueGetter {
     val relatedCurriculum = "relatedCurriculum"
   }
 
-  implicit val Writes = Json.writes[Alignments]
+  object Values {
+    val none = "None"
+  }
+
+  implicit object Writes extends Writes[Alignments]{
+
+    def writes(alignments: Alignments): JsValue = {
+      import Keys._
+      partialObj(
+        demonstratedKnowledge -> (alignments.demonstratedKnowledge match {
+          case Some(demonstrated) if demonstrated != Values.none => Some(demonstrated)
+          case _ => None
+        }).map(JsString(_)),
+        bloomsTaxonomy -> alignments.bloomsTaxonomy.map(JsString(_)),
+        keySkills -> (alignments.keySkills.map(JsString(_)) match {
+          case skills: Seq[JsString] if (skills.isEmpty) => None
+          case skills: Seq[JsString] => Some(JsArray(skills))
+        }),
+        relatedCurriculum -> alignments.relatedCurriculum.map(JsString(_))
+      )
+    }
+
+  }
 
   implicit object Reads extends Reads[Alignments] {
     def reads(json: JsValue): JsResult[Alignments] = {
