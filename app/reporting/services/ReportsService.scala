@@ -13,6 +13,7 @@ import org.corespring.common.utils.string
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import reporting.models.ReportLineResult.LineResult
 import scala.Some
+import scala.util.Sorting
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
@@ -83,19 +84,20 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   def populateHeaders {
-    def mapToDistincList(field: String): List[String] = {
+    def mapToDistinctList(field: String): List[String] = {
       val distResult = ItemCollection.distinct(field)
       if (distResult == null) return List()
-      val distStringResult = distResult.map((p: Any) => if (p != null) p.toString else "")
+      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
       if (distStringResult == null) return List()
 
-      distStringResult.filter(_ != "").toList
+      distStringResult.filter(_ != "").toList.sortWith((a,b) => a < b)
     }
-    ReportLineResult.ItemTypes = mapToDistincList("taskInfo.itemType")
-    ReportLineResult.GradeLevel = mapToDistincList("taskInfo.gradeLevel")
-    ReportLineResult.PriorUse = mapToDistincList("priorUse")
-    ReportLineResult.LicenseType = mapToDistincList("contributorDetails.licenseType")
-    ReportLineResult.Credentials = mapToDistincList("contributorDetails.credentials")
+
+    ReportLineResult.ItemTypes = mapToDistinctList("taskInfo.itemType")
+    ReportLineResult.GradeLevel = mapToDistinctList("taskInfo.gradeLevel")
+    ReportLineResult.PriorUse = mapToDistinctList("priorUse")
+    ReportLineResult.LicenseType = mapToDistinctList("contributorDetails.licenseType")
+    ReportLineResult.Credentials = mapToDistinctList("contributorDetails.credentials")
   }
 
   /**

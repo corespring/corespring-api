@@ -17,16 +17,17 @@ object ReportLineResult {
   def buildCsv(title: String, list: List[LineResult]): String = {
     val header: String =
       List(title, "Total # of Items").mkString(",") + "," +
-        ItemTypes.mkString(",") + "," +
+        ItemTypes.map(_.replaceAll(",", " ")).mkString(",") + "," +
         GradeLevel.mkString(",") + "," +
         PriorUse.mkString(",") + "," +
         Credentials.mkString(",") + "," +
         LicenseType.mkString(",") + "\n"
 
     header + list.map(buildLineString).mkString("\n")
+
   }
 
-  private def createValueList(l: List[KeyCount]) = l.map((kc: KeyCount) => kc.count)
+  private def createValueList(l: List[KeyCount]) = l.sortWith((a,b) => a.key < b.key).map(kc => kc.count)
 
   private def buildLineString(result: LineResult): String = {
     val outList = List(result.subject, result.total) :::
