@@ -1,8 +1,16 @@
 function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUtils) {
 
+  // This isn't great, but it's the only way I've found to get Firefox to render properly.
+  function fitIFrame() {
+    $('iframe').height($(window).height() - $('.sub-nav').height());
+  }
+
+  $(window).on('resize', fitIFrame);
+
   $scope.changeSupportingMaterialPanel = function (sm) {
     $scope.changePanel(sm.name);
     $scope.currentSm = sm;
+    fitIFrame();
   };
 
   $scope.getItemSrc = function (forPrinting) {
@@ -43,7 +51,6 @@ function ProfileController($scope, Config, Item, ItemFormattingUtils, ResourceUt
   };
 
   $scope.changePanel = function (panelName) {
-    console.log(panelName);
     $scope.currentSm = null;
     $scope.currentPanel = panelName;
     if (panelName == 'item') {
