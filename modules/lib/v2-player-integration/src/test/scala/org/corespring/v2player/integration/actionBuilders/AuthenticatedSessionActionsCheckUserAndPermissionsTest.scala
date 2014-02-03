@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.{UserOrg, Organization, User}
+import org.corespring.platform.core.models.{ UserOrg, Organization, User }
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -12,13 +12,13 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
-import org.corespring.v2player.integration.actionBuilders.access.{V2PlayerCookieKeys, Mode, PlayerOptions}
+import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieKeys, Mode, PlayerOptions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.JsString
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
 import play.api.test.FakeHeaders
 import play.api.test.FakeRequest
@@ -28,9 +28,9 @@ import scalaz.Validation
 import securesocial.core._
 
 class AuthenticatedSessionActionsCheckUserAndPermissionsTest
-  extends Specification 
-  with Mockito 
-  with RequestMatchers{
+  extends Specification
+  with Mockito
+  with RequestMatchers {
 
   //TODO: There should be no need to have to init the play app when using a model
   //But at the moment the models are bound to a ModelCompanion object.
@@ -48,7 +48,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
   val itemId = VersionedId(ObjectId.get.toString).get
   val collectionId = ObjectId.get
 
-  def returnFromTuple(t:(Int,String)) = returnResult(t._1, t._2)
+  def returnFromTuple(t: (Int, String)) = returnResult(t._1, t._2)
 
   "read" should {
     "when no user and permissions" should {
@@ -57,41 +57,35 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
       }
     }
 
-    def withMaybeUserAndRequest(u:Option[User], id: Option[Identity], r : Request[AnyContent]) = {
+    def withMaybeUserAndRequest(u: Option[User], id: Option[Identity], r: Request[AnyContent]) = {
       s"return $NOT_FOUND when session isn't found" in new ActionsScope(
-        u, id
-      ) {
+        u, id) {
         actions.read("id")(handler)(r) must returnFromTuple(Errors.cantLoadSession("id"))
       }
 
       s"return $BAD_REQUEST when the item id has a bad format" in new ActionsScope(
-        u, id,  Some(Json.obj("itemId" -> JsString("bad string")))
-      ) {
+        u, id, Some(Json.obj("itemId" -> JsString("bad string")))) {
         actions.read("id")(handler)(r) must returnFromTuple(Errors.cantParseItemId)
       }
 
       s"return $NOT_FOUND when item id can't be found" in new ActionsScope(
-        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString)))
-      ) {
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString)))) {
         actions.read("id")(handler)(r) must returnFromTuple(Errors.cantFindItemWithId(itemId))
       }
 
       s"return $NOT_FOUND when org id can't be found" in new ActionsScope(
-        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId)
-      ) {
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId)) {
         actions.read("id")(handler)(r) must returnFromTuple(Errors.cantFindOrgWithId(orgId))
       }
 
       s"return $UNAUTHORIZED when org can't access item" in new ActionsScope(
-        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId)
-      ) {
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId)) {
         actions.read("id")(handler)(r) must returnFromTuple(Errors.default)
       }
 
       s"return $OK when org can access item" in new ActionsScope(
-        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId), true, true
-      ) {
-        actions.read("id")(handler)(r) must returnFromTuple((OK,"Worked"))
+        u, id, Some(Json.obj("itemId" -> JsString(itemId.toString))), item(itemId), org(orgId), true, true) {
+        actions.read("id")(handler)(r) must returnFromTuple((OK, "Worked"))
       }
     }
 
@@ -101,17 +95,17 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
 
     "when anonymous user" should {
 
-      val anonymousRequest = FakeRequest("","", FakeHeaders(), AnyContentAsEmpty)
+      val anonymousRequest = FakeRequest("", "", FakeHeaders(), AnyContentAsEmpty)
         .withSession((V2PlayerCookieKeys.orgId, orgId.toString), (V2PlayerCookieKeys.renderOptions, "{}"))
       withMaybeUserAndRequest(None, None, anonymousRequest)
     }
   }
 
-  def item(itemId : VersionedId[ObjectId]) = {
+  def item(itemId: VersionedId[ObjectId]) = {
     Some(Item(id = itemId, collectionId = collectionId.toString))
   }
 
-  def org(orgId : ObjectId) = {
+  def org(orgId: ObjectId) = {
     Some(Organization(id = orgId))
   }
 
@@ -123,14 +117,13 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
     Some(out)
   }
 
-
   class ActionsScope(user: Option[User] = None,
-                     identity: Option[Identity] = None,
-                     session: Option[JsValue] = None,
-                     item: Option[Item] = None,
-                     org: Option[Organization] = None,
-                     orgCanAccess : Boolean = false,
-                     userHasPermissions : Boolean = false) extends Scope {
+    identity: Option[Identity] = None,
+    session: Option[JsValue] = None,
+    item: Option[Item] = None,
+    org: Option[Organization] = None,
+    orgCanAccess: Boolean = false,
+    userHasPermissions: Boolean = false) extends Scope {
 
     lazy val actions = {
       val userService = mock[UserService]
@@ -149,13 +142,12 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
       orgService.findOneById(any[ObjectId]) returns org
       orgService.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns orgCanAccess
 
-      new AuthenticatedSessionActionsCheckUserAndPermissions(
+      new AuthSessionActionsCheckPermissions(
         secureSocialService,
         userService,
         sessionService,
         itemService,
-        orgService
-      ) {
+        orgService) {
 
         override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode.Mode, options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
       }

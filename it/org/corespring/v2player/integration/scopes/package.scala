@@ -28,18 +28,30 @@ package object scopes {
     }
   }
 
+  trait sessionData extends data {
 
-  trait sessionData extends data{
+    val sessionId: ObjectId = V2SessionHelper.create(itemId)
 
-    val sessionId : ObjectId = V2SessionHelper.create(itemId)
-
-    override def before : Any = {
+    override def before: Any = {
       super.before
     }
 
-    override def after : Any = {
+    override def after: Any = {
       super.after
       V2SessionHelper.delete(sessionId)
+    }
+  }
+
+  trait user extends BeforeAfter {
+
+    val orgId = OrganizationHelper.create("my-org")
+    val user = UserHelper.create(orgId)
+
+    def before: Any = {}
+
+    def after: Any = {
+      UserHelper.delete(user.id)
+      OrganizationHelper.delete(orgId)
     }
   }
 

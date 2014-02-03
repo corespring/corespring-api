@@ -3,7 +3,7 @@
     <!--
         The logger in test mode doesn't work. This is a workaround:
         Call play with:
-        play -Dlogger.file=conf/test-logger.xml
+        play -Dlogger.file=conf/logging/it-logger.xml
         Warning - it may cause memory leaks
     -->
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />

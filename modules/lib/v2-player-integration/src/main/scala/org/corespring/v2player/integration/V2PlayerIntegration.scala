@@ -13,28 +13,30 @@ import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.container.components.processing.rhino.{ PlayerItemPreProcessor => RhinoPreProcessor }
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.container.components.response.rhino.{ OutcomeProcessor => RhinoProcessor }
+import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2player.integration.actionBuilders._
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.actionBuilders.{ DevToolsSessionActions, AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions }
 import org.corespring.v2player.integration.controllers.PlayerLauncher
-import org.corespring.v2player.integration.controllers.editor.{ ItemWithBuilder, EditorHooksWithBuilder }
+import org.corespring.v2player.integration.controllers.editor.{ AuthEditorActions, ItemWithBuilder, EditorHooksWithBuilder }
 import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithBuilder, PlayerHooksWithBuilder }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{ Logger, Configuration }
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import play.api.{ Logger, Configuration }
+import scala.Some
 import scalaz.Failure
-import scalaz.{ Success, Validation }
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
-import org.corespring.dev.tools.DevTools
+import scalaz.Success
+import scalaz.Validation
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
@@ -59,7 +61,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private lazy val authActions = new AuthenticatedSessionActionsCheckUserAndPermissions(
+  private lazy val authActions = new AuthSessionActionsCheckPermissions(
     secureSocialService,
     UserServiceWired,
     mainSessionService,
@@ -149,6 +151,21 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     def itemService: ItemService = ItemServiceWired
 
     def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+
+    override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
+      secureSocialService,
+      UserServiceWired,
+      mainSessionService,
+      ItemServiceWired,
+      Organization) {
+
+      val permissionGranter = new SimpleWildcardChecker()
+
+      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
+        case Left(error) => Failure(error)
+        case Right(allowed) => Success(true)
+      }
+    }
   }
 
   private lazy val items = new ItemWithBuilder {

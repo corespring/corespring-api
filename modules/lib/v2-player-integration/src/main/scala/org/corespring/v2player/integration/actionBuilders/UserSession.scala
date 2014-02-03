@@ -1,14 +1,14 @@
 package org.corespring.v2player.integration.actionBuilders
 
-import play.api.mvc.{AnyContent, Request}
 import org.corespring.platform.core.models.User
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.platform.core.services.UserService
+import org.corespring.v2player.integration.securesocial.SecureSocialService
+import play.api.mvc.{ AnyContent, Request }
 
 trait UserSession {
 
-  def secureSocialService : SecureSocialService
-  def userService : UserService
+  def secureSocialService: SecureSocialService
+  def userService: UserService
 
   def userFromSession(request: Request[AnyContent]): Option[User] = for {
     ssUser <- secureSocialService.currentUser(request)

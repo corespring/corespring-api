@@ -1,22 +1,34 @@
 package org.corespring.v2player.integration.controllers.editor
 
-import org.corespring.container.client.actions.{EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest}
+import org.corespring.container.client.actions.{ ItemActionBuilder, EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest }
 import org.corespring.container.client.controllers.hooks.EditorHooks
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsValue
-import play.api.mvc.{SimpleResult, Action, Result, AnyContent}
+import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import play.api.Logger
+import org.corespring.container.client.actions.PlayerRequest
+import org.corespring.container.client.actions.SessionIdRequest
+import scalaz.Success
+import scalaz.Failure
+import play.api.mvc.SimpleResult
+
+trait AuthEditorActions {
+
+  def edit(itemId: String)(block: Request[AnyContent] => Future[SimpleResult]): Action[AnyContent]
+}
 
 trait EditorHooksWithBuilder extends EditorHooks {
 
   def itemService: ItemService
 
   def transform: Item => JsValue
+
+  def auth: AuthEditorActions
 
   def builder: EditorClientHooksActionBuilder[AnyContent] = new EditorClientHooksActionBuilder[AnyContent] {
 
@@ -38,11 +50,8 @@ trait EditorHooksWithBuilder extends EditorHooks {
         }
     }
 
-    override def editItem(itemId: String)(block: (PlayerRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async {
+    override def editItem(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: (PlayerRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = auth.edit(itemId) {
       request =>
-
-
-        import ExecutionContext.Implicits.global
 
         logger.debug(s"[editItem] $itemId")
         val result = for {
@@ -55,9 +64,8 @@ trait EditorHooksWithBuilder extends EditorHooks {
             val pocJson = transform(item)
             block(PlayerRequest(pocJson, request))
           }
-          case Failure(message) => Future(BadRequest(message))
+          case Failure(message) => error(1111, message)
         }
-
     }
 
     def loadComponents(id: String)(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = load(id)(block)
