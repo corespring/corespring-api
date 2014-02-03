@@ -8,8 +8,8 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node match {
-      case elem: Elem if elem.label == "choiceInteraction" => <corespring-multiple-choice id={identifier} />
-      case elem: Elem if elem.label == "inlineChoiceInteraction" => <corespring-inline-choice id={identifier} />
+      case elem: Elem if elem.label == "choiceInteraction" => <corespring-multiple-choice id={identifier}></corespring-multiple-choice>
+      case elem: Elem if elem.label == "inlineChoiceInteraction" => <corespring-inline-choice id={identifier}></corespring-inline-choice>
       case _ => node
     }
   }
