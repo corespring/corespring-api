@@ -1,5 +1,7 @@
 package reporting.models
 
+import org.corespring.platform.core.models.item.TaskInfo
+
 object ReportLineResult {
 
   var ItemTypes: List[String] = List()
@@ -27,11 +29,12 @@ object ReportLineResult {
 
   }
 
-  private def createValueList(l: List[KeyCount]) = l.sortWith((a,b) => a.key < b.key).map(kc => kc.count)
+  private def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key < b.key) =
+    l.sortWith(sorter).map(kc => kc.count)
 
   private def buildLineString(result: LineResult): String = {
     val outList = List(result.subject, result.total) :::
-      createValueList(result.itemType) :::
+      createValueList(result.itemType, (a,b) => {TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
       createValueList(result.gradeLevel) :::
       createValueList(result.priorUse) :::
       createValueList(result.credentials) :::
