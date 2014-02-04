@@ -3,15 +3,23 @@ package org.corespring.v2player.integration.actionBuilders
 import org.bson.types.ObjectId
 import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieReader, PlayerOptions }
 import play.api.mvc.{ AnyContent, Request }
+import org.slf4j.LoggerFactory
 
 trait LoadOrgAndOptions extends UserSession with V2PlayerCookieReader {
 
-  def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = userFromSession(request).map(
-    u => {
-      (u.org.orgId, PlayerOptions.ANYTHING)
-    }) orElse anonymousUser(request)
+  protected lazy val logger = LoggerFactory.getLogger("v2Player.org-id-options")
+
+  def getOrgIdAndOptions(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = {
+    logger.trace(s"[getOrgIdAndOptions]: ${request.cookies}")
+    userFromSession(request).map(
+      u => {
+        logger.trace(s"found user: $u")
+        (u.org.orgId, PlayerOptions.ANYTHING)
+      }) orElse anonymousUser(request)
+  }
 
   def anonymousUser(request: Request[AnyContent]): Option[(ObjectId, PlayerOptions)] = {
+    logger.trace(s"parse anonymous user")
     for {
       orgId <- orgIdFromCookie(request)
       options <- renderOptions(request)

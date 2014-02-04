@@ -7,7 +7,6 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.v2player.integration.actionBuilders.access.Mode
 import org.corespring.v2player.integration.controllers.editor.AuthEditorActions
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import play.api.mvc.Results._
 import play.api.mvc.{ Action, SimpleResult, AnyContent, Request }
 import scala.concurrent.Future
 import scalaz.{ Failure, Success }
@@ -31,9 +30,7 @@ abstract class AuthEditorActionsCheckPermissions(
       result match {
         case Success(true) => block(request)
         case Success(false) => error(1001, "Access not granted")
-        case Failure((code, msg)) => error(code, msg)
-
+        case Failure(err) => error(err.code, err.message)
       }
-
   }
 }

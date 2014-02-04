@@ -18,7 +18,7 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.services.UserServiceWired
+import org.corespring.platform.core.services.{ UserService, UserServiceWired }
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders._
@@ -37,12 +37,13 @@ import scala.Some
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
+import org.corespring.platform.core.services.organization.OrganizationService
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
   lazy val logger = Logger("v2player.integration")
 
-  private lazy val secureSocialService = new SecureSocialService {
+  private lazy val mainSecureSocialService = new SecureSocialService {
     def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
   }
 
@@ -55,14 +56,14 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
 
   private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher(
-    secureSocialService,
+    mainSecureSocialService,
     UserServiceWired,
     rootConfig)
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
   private lazy val authActions = new AuthSessionActionsCheckPermissions(
-    secureSocialService,
+    mainSecureSocialService,
     UserServiceWired,
     mainSessionService,
     ItemServiceWired,
@@ -153,7 +154,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
 
     override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
-      secureSocialService,
+      mainSecureSocialService,
       UserServiceWired,
       mainSessionService,
       ItemServiceWired,
@@ -170,13 +171,19 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
   private lazy val items = new ItemWithActions {
 
-    def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
+    override def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
 
-    def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
+    override def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
 
-    def itemService: ItemService = ItemServiceWired
+    override def itemService: ItemService = ItemServiceWired
 
-    def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+
+    override def orgService: OrganizationService = Organization
+
+    override def userService: UserService = UserServiceWired
+
+    override def secureSocialService: SecureSocialService = mainSecureSocialService
   }
 
   private lazy val sessions = new ClientSessionWithActions {

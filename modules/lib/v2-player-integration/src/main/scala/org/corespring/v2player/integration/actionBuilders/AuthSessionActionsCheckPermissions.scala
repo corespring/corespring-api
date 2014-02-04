@@ -5,37 +5,15 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.{ Mode, PlayerOptions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc._
 import scala.Some
+import org.corespring.v2player.integration.errors.Errors.{ cantLoadSession, cantParseItemId }
+import org.corespring.v2player.integration.errors.V2Error
 
-object CheckUserAndPermissions {
-
-  import play.api.http.Status._
-
-  object Errors {
-
-    def noOrgIdAndOptions(request: Request[AnyContent]) = (
-      UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")
-    def orgCantAccessCollection(orgId: ObjectId, collectionId: String) = (UNAUTHORIZED, s"The org: $orgId can't access collection: $collectionId")
-
-    val default = (UNAUTHORIZED, "Failed to grant access")
-
-    def cantLoadSession(id: String) = (NOT_FOUND, s"Can't load session with id $id")
-
-    val cantParseItemId = (BAD_REQUEST, "Can't parse itemId")
-
-    def cantFindItemWithId(vid: VersionedId[ObjectId]) = cantFindById("item", vid.toString())
-
-    def cantFindOrgWithId(orgId: ObjectId) = cantFindById("org", orgId.toString)
-
-    def cantFindById(name: String, id: String) = (NOT_FOUND, s"Can't find $name with id $id")
-  }
-
+object AuthSessionActionsCheckPermissions {
 }
 
 abstract class AuthSessionActionsCheckPermissions(
@@ -71,9 +49,9 @@ abstract class AuthSessionActionsCheckPermissions(
     out
   }
 
-  protected def orgCanAccessSession(sessionId: String, orgId: ObjectId): Validation[(Int, String), Boolean] = for {
-    session <- sessionService.load(sessionId).toSuccess(Errors.cantLoadSession(sessionId))
-    itemId <- (session \ "itemId").asOpt[String].toSuccess(Errors.cantParseItemId)
+  protected def orgCanAccessSession(sessionId: String, orgId: ObjectId): Validation[V2Error, Boolean] = for {
+    session <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+    itemId <- (session \ "itemId").asOpt[String].toSuccess(cantParseItemId)
     canAccess <- orgCanAccessItem(itemId, orgId)
   } yield canAccess
 
@@ -83,7 +61,7 @@ abstract class AuthSessionActionsCheckPermissions(
       checkAccess(request, orgCanAccessSession(sessionId, _), hasPermissionForSession(sessionId, mode, _)) match {
         case Success(true) => block(request)
         case Success(false) => Unauthorized("Authentication failed")
-        case Failure(error) => Status(error._1)(error._2)
+        case Failure(error) => Status(error.code)(error.message)
       }
   }
 
@@ -93,7 +71,7 @@ abstract class AuthSessionActionsCheckPermissions(
       checkAccess(request, orgCanAccessItem(itemId, _), hasPermissions(itemId, None, Mode.gather, _)) match {
         case Success(true) => authorized(request)
         case Success(false) => failed(request, BAD_REQUEST, "Didn't work")
-        case Failure(error) => failed(request, error._1, error._2)
+        case Failure(error) => failed(request, error.code, error.message)
       }
   }
 
@@ -110,10 +88,11 @@ abstract class AuthSessionActionsCheckPermissions(
           logger.trace(s"loadPlayerForSession failure")
           error(UNAUTHORIZED, "Message")
         }
-        case Failure(tuple) => {
-          logger.trace(s"loadPlayerForSession failure: $tuple")
-          error(tuple._1, tuple._2)
+        case Failure(err) => {
+          logger.trace(s"loadPlayerForSession failure: $error")
+          error(err.code, err.message)
         }
       }
   }
 }
+

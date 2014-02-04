@@ -46,12 +46,16 @@ package object scopes {
 
     val orgId = OrganizationHelper.create("my-org")
     val user = UserHelper.create(orgId)
+    val collectionId = CollectionHelper.create(orgId)
 
-    def before: Any = {}
+    def before: Any = {
+    }
 
     def after: Any = {
+
       UserHelper.delete(user.id)
       OrganizationHelper.delete(orgId)
+      CollectionHelper.delete(collectionId)
     }
   }
 

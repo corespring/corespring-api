@@ -2,11 +2,11 @@ package org.corespring.v2player.integration
 
 import org.corespring.container.client.controllers.routes.PlayerLauncher
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
+import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
 import org.corespring.v2player.integration.scopes.data
 import org.slf4j.LoggerFactory
 import play.api.mvc._
 import play.api.test.FakeRequest
-import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
 
 class LoadEditorJsThenEditorTest
   extends IntegrationSpecification
@@ -17,8 +17,8 @@ class LoadEditorJsThenEditorTest
   "when I load the editor js with orgId and encrypted options" should {
     "fail if i don't pass in the session" in new loader(false) {
       status(result) === UNAUTHORIZED
-      val err = Errors.noOrgIdAndOptions(FakeRequest("", ""))
-      contentAsString(result) === org.corespring.container.client.views.html.error.main(err._1, err._2).toString
+      val err = noOrgIdAndOptions(FakeRequest("", ""))
+      contentAsString(result) === org.corespring.container.client.views.html.error.main(err.code, err.message).toString
     }
     "allow me to load the editor" in new loader(true) {
       status(result) === OK
