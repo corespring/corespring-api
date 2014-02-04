@@ -45,7 +45,7 @@ abstract class BaseAuth(
             orgAccess <- getOrgAccess(orgId)
             permissionAccess <- getPermissions(options).leftMap(msg => (UNAUTHORIZED, msg))
           } yield permissionAccess
-      }.getOrElse(Failure(Errors.default))
+      }.getOrElse(Failure(Errors.noOrgIdAndOptions(request)))
     }
   }
 
@@ -56,7 +56,7 @@ abstract class BaseAuth(
       vid <- VersionedId(itemId).toSuccess(Errors.cantParseItemId)
       item <- itemService.findOneById(vid).toSuccess(Errors.cantFindItemWithId(vid))
       org <- orgService.findOneById(orgId).toSuccess(Errors.cantFindOrgWithId(orgId))
-      canAccess <- if (canAccess(item.collectionId)) Success(true) else Failure(Errors.default)
+      canAccess <- if (canAccess(item.collectionId)) Success(true) else Failure(Errors.orgCantAccessCollection(orgId, item.collectionId))
     } yield {
       logger.trace(s"orgCanAccessItem: $canAccess")
       canAccess

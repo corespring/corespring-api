@@ -10,7 +10,7 @@ import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.Results._
 import play.api.mvc.{ Action, SimpleResult, AnyContent, Request }
 import scala.concurrent.Future
-import scalaz.Success
+import scalaz.{ Failure, Success }
 
 abstract class AuthEditorActionsCheckPermissions(
   secureSocialService: SecureSocialService,
@@ -20,7 +20,7 @@ abstract class AuthEditorActionsCheckPermissions(
   orgService: OrganizationService)
   extends BaseAuth(secureSocialService, userService, sessionService, itemService, orgService)
   with AuthEditorActions {
-  override def edit(itemId: String)(block: (Request[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async {
+  override def edit(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: (Request[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async {
     request =>
 
       val result = checkAccess(
@@ -30,10 +30,9 @@ abstract class AuthEditorActionsCheckPermissions(
 
       result match {
         case Success(true) => block(request)
-        case _ => {
-          import scala.concurrent.ExecutionContext.Implicits.global
-          Future(BadRequest("TODO"))
-        }
+        case Success(false) => error(1001, "Access not granted")
+        case Failure((code, msg)) => error(code, msg)
+
       }
 
   }

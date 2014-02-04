@@ -19,6 +19,10 @@ object CheckUserAndPermissions {
 
   object Errors {
 
+    def noOrgIdAndOptions(request: Request[AnyContent]) = (
+      UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")
+    def orgCantAccessCollection(orgId: ObjectId, collectionId: String) = (UNAUTHORIZED, s"The org: $orgId can't access collection: $collectionId")
+
     val default = (UNAUTHORIZED, "Failed to grant access")
 
     def cantLoadSession(id: String) = (NOT_FOUND, s"Can't load session with id $id")

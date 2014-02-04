@@ -3,18 +3,23 @@ package org.corespring.it
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.slf4j.LoggerFactory
 import play.api.http.Writeable
 import play.api.libs.json.Json
-import play.api.mvc.{ SimpleResult, Request, Call }
-import play.api.test.PlaySpecification
+import play.api.mvc._
+import play.api.test.{ FakeRequest, PlaySpecification }
 import scala.concurrent.Future
-import org.slf4j.LoggerFactory
 
 trait IntegrationHelpers extends PlaySpecification {
 
   val logger = LoggerFactory.getLogger("it.spec.helper")
 
-  def getEncryptedOptions(call: Call, apiClient: ApiClient, options: PlayerOptions = PlayerOptions.ANYTHING) = {
+  def makeRequest(call: Call, c: Cookies): Request[AnyContentAsEmpty.type] = {
+    val req = FakeRequest(call.method, call.url)
+    req.withCookies(c.toSeq: _*)
+  }
+
+  def urlWithEncryptedOptions(call: Call, apiClient: ApiClient, options: PlayerOptions = PlayerOptions.ANYTHING) = {
     val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
     val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
     s"${call.url}?apiClient=${apiClient.clientId}&options=$encrypted"

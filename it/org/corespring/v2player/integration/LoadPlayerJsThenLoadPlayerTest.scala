@@ -57,7 +57,7 @@ class LoadPlayerJsThenLoadPlayerTest
 
     val createSession = playerHooks.createSessionForItem(itemId.toString)
 
-    val url = getEncryptedOptions(js, apiClient)
+    val url = urlWithEncryptedOptions(js, apiClient)
     val resultAndCookies = getResultAndCookiesForCreateSession(url, addCookies, createSession)
 
     resultAndCookies.map(_._1) match {
@@ -82,7 +82,7 @@ class LoadPlayerJsThenLoadPlayerTest
       })
     }
 
-    val url = getEncryptedOptions(js, apiClient)
+    val url = urlWithEncryptedOptions(js, apiClient)
 
     val out = for {
       result <- getResultAndCookiesForCreateSession(url, true, createSession)

@@ -19,7 +19,7 @@ import play.api.mvc.SimpleResult
 
 trait AuthEditorActions {
 
-  def edit(itemId: String)(block: Request[AnyContent] => Future[SimpleResult]): Action[AnyContent]
+  def edit(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: Request[AnyContent] => Future[SimpleResult]): Action[AnyContent]
 }
 
 trait EditorHooksWithBuilder extends EditorHooks {
@@ -50,7 +50,7 @@ trait EditorHooksWithBuilder extends EditorHooks {
         }
     }
 
-    override def editItem(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: (PlayerRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = auth.edit(itemId) {
+    override def editItem(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: (PlayerRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = auth.edit(itemId)(error) {
       request =>
 
         logger.debug(s"[editItem] $itemId")

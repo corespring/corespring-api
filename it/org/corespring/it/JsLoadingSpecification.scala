@@ -9,7 +9,7 @@ import scala.concurrent.Future
 class JsLoadingSpecification extends IntegrationSpecification
   with SecureSocialHelpers {
 
-  class callAndUser(call: Call) extends user {
+  class callAsUser(call: Call) extends user {
     lazy val result: Future[SimpleResult] = {
       val cookie = secureSocialCookie(Some(user), None).getOrElse(throw new RuntimeException("can't create cookie"))
       val request = FakeRequest(call.method, call.url).withCookies(cookie)

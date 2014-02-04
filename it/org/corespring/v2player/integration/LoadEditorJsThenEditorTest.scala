@@ -4,9 +4,9 @@ import org.corespring.container.client.controllers.routes.PlayerLauncher
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.v2player.integration.scopes.data
 import org.slf4j.LoggerFactory
-import org.specs2.execute.Result
 import play.api.mvc._
 import play.api.test.FakeRequest
+import org.corespring.v2player.integration.actionBuilders.CheckUserAndPermissions.Errors
 
 class LoadEditorJsThenEditorTest
   extends IntegrationSpecification
@@ -14,39 +14,34 @@ class LoadEditorJsThenEditorTest
 
   override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
 
-  "when I load the editor js with orgId and options" should {
-    "fail if i don't pass in the session" in loadJsThenLoadEditor(BAD_REQUEST, false)
-    "allow me to load the editor" in loadJsThenLoadEditor()
+  "when I load the editor js with orgId and encrypted options" should {
+    "fail if i don't pass in the session" in new loader(false) {
+      status(result) === OK
+      val err = Errors.noOrgIdAndOptions(FakeRequest("", ""))
+      contentAsString(result) === org.corespring.container.client.views.html.error.main(err._1, err._2).toString
+    }
+    "allow me to load the editor" in new loader(true) {
+      status(result) === OK
+    }
   }
 
-  def loadEditorRequest(call: Call, c: Cookies): Request[AnyContentAsEmpty.type] = {
-    val req = FakeRequest(call.method, call.url)
-    req.withCookies(c.toSeq: _*)
+  class loader(val addCookies: Boolean) extends data {
+
+    lazy val result = {
+      val url = urlWithEncryptedOptions(PlayerLauncher.editorJs, apiClient)
+
+      import org.corespring.container.client.controllers.hooks.routes.EditorHooks
+
+      val editItemCall = EditorHooks.editItem(itemId.toString)
+
+      val r = for {
+        jsResult <- getResultFor(FakeRequest("GET", url))
+        requestCookies <- if (addCookies) Some(cookies(jsResult)) else Some(Cookies(None))
+        loadEditorResult <- route(makeRequest(editItemCall, requestCookies))
+      } yield loadEditorResult
+
+      r.getOrElse(throw new RuntimeException("no result"))
+    }
   }
 
-  class loader(val expectedStatus: Int, val addCookies: Boolean) extends data
-
-  def loadJsThenLoadEditor(
-    expectedStatus: Int = OK,
-    addCookies: Boolean = true): Result = new loader(expectedStatus, addCookies) {
-
-    val url = getEncryptedOptions(PlayerLauncher.editorJs, apiClient)
-
-    import org.corespring.container.client.controllers.hooks.routes.EditorHooks
-
-    val editItemCall = EditorHooks.editItem(itemId.toString)
-
-    val r = for {
-      jsResult <- getResultFor(FakeRequest("GET", url))
-      requestCookies <- if (addCookies) Some(cookies(jsResult)) else Some(Cookies(None))
-      loadEditorResult <- route(loadEditorRequest(editItemCall, requestCookies))
-    } yield loadEditorResult
-
-    r.map {
-      result =>
-        logger.debug(s"status: ${status(result)}")
-        status(result) === expectedStatus
-    }.getOrElse(failure("can't load result"))
-
-  }
 }
