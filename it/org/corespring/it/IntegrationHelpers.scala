@@ -26,7 +26,14 @@ trait IntegrationHelpers extends PlaySpecification {
   }
 
   def getResultFor[T](request: Request[T])(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
+
+    logger.debug(s"[getResultFor] -> ${request.method}, ${request.path}")
+
     val result: Option[Future[SimpleResult]] = route(request)
+    result.foreach {
+      r =>
+        logger.debug(s"[getResultFor] status: ${status(r)}")
+    }
     result.filter {
       r =>
         {
