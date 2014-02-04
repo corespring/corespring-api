@@ -2,29 +2,27 @@ package org.corespring.v2player.integration.controllers.editor
 
 import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Item
-import org.corespring.platform.core.models.item.{Item => ModelItem}
-import play.api.mvc.{Action, Result, AnyContent}
+import org.corespring.platform.core.models.item.{ Item => ModelItem }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsValue
-import org.corespring.container.client.actions.SaveItemRequest
-import org.corespring.container.client.actions.ItemRequest
+import play.api.mvc.{ Action, Result, AnyContent }
 
-trait ItemWithBuilder extends Item {
+trait ItemWithActions extends Item {
 
-  def itemService : ItemService
+  def itemService: ItemService
 
-  def transform : ModelItem => JsValue
+  def transform: ModelItem => JsValue
 
-  def builder: ItemActionBuilder[AnyContent] = new ItemActionBuilder[AnyContent] {
+  override def actions: ItemActions[AnyContent] = new ItemActions[AnyContent] {
 
-    def load(itemId: String)(block: (ItemRequest[AnyContent]) => Result): Action[AnyContent] = Action{ request =>
-      val item = for{
+    def load(itemId: String)(block: (ItemRequest[AnyContent]) => Result): Action[AnyContent] = Action { request =>
+      val item = for {
         id <- VersionedId(itemId)
         item <- itemService.findOneById(id)
       } yield item
 
-      item.map{ i =>
+      item.map { i =>
         val pocJson = transform(i)
         block(ItemRequest(pocJson, request))
       }.getOrElse(NotFound("?"))

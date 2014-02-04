@@ -26,8 +26,8 @@ import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.controllers.PlayerLauncher
-import org.corespring.v2player.integration.controllers.editor.{ AuthEditorActions, ItemWithBuilder, EditorHooksWithBuilder }
-import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithBuilder, PlayerHooksWithBuilder }
+import org.corespring.v2player.integration.controllers.editor.{ AuthEditorActions, ItemWithActions, EditorHooksWithActions }
+import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithActions, PlayerHooksWithActions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.libs.json.JsValue
@@ -132,7 +132,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val playerHooks = new PlayerHooksWithBuilder {
+  private lazy val playerHooks = new PlayerHooksWithActions {
 
     def loadedComponents: Seq[Component] = comps
 
@@ -145,7 +145,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     def auth: AuthenticatedSessionActions = authenticatedSessionActions
   }
 
-  private lazy val editorHooks = new EditorHooksWithBuilder {
+  private lazy val editorHooks = new EditorHooksWithActions {
     def loadedComponents: Seq[Component] = comps
 
     def itemService: ItemService = ItemServiceWired
@@ -168,7 +168,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val items = new ItemWithBuilder {
+  private lazy val items = new ItemWithActions {
 
     def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
 
@@ -179,7 +179,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
   }
 
-  private lazy val sessions = new ClientSessionWithBuilder {
+  private lazy val sessions = new ClientSessionWithActions {
 
     def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
 

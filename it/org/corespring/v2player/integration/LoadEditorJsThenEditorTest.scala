@@ -16,7 +16,7 @@ class LoadEditorJsThenEditorTest
 
   "when I load the editor js with orgId and encrypted options" should {
     "fail if i don't pass in the session" in new loader(false) {
-      status(result) === OK
+      status(result) === UNAUTHORIZED
       val err = Errors.noOrgIdAndOptions(FakeRequest("", ""))
       contentAsString(result) === org.corespring.container.client.views.html.error.main(err._1, err._2).toString
     }

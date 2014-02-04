@@ -1,16 +1,14 @@
 package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions.PlayerJsRequest
-import org.corespring.container.client.actions.{PlayerLauncherActionBuilder => Builder}
-import org.corespring.v2player.integration.actionBuilders.access.{V2PlayerCookieWriter, PlayerOptions}
-import play.api.mvc.Results._
+import org.corespring.container.client.actions.{ PlayerLauncherActions => LaunchActions, PlayerJsRequest }
+import org.corespring.platform.core.services.UserService
+import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieWriter, PlayerOptions }
+import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc._
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.v2player.integration.securesocial.SecureSocialService
-import org.corespring.platform.core.services.UserService
 
 object PlayerLauncherActionBuilder {
 
@@ -25,17 +23,15 @@ object PlayerLauncherActionBuilder {
 }
 
 abstract class PlayerLauncherActionBuilder(
-                                            val secureSocialService: SecureSocialService,
-                                            val userService: UserService
-                                            )
-  extends Builder[AnyContent]
+  val secureSocialService: SecureSocialService,
+  val userService: UserService)
+  extends LaunchActions[AnyContent]
   with UserSession
   with V2PlayerCookieWriter {
 
   def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String]
 
   def toOrgId(apiClientId: String): Option[ObjectId]
-
 
   protected def getOrgIdAndOptions(request: Request[AnyContent]): Validation[String, (ObjectId, PlayerOptions)] = {
 
@@ -55,15 +51,15 @@ abstract class PlayerLauncherActionBuilder(
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   override def sumSession(s: Session, keyValues: (String, String)*): Session = {
-    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc +(kv._1, kv._2))
+    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc + (kv._1, kv._2))
   }
-
 
   override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = loadJs(block)
 
-  /** Handle the request for the player js.
-    * Get the orgId and player options and add them to the player session if found.
-    */
+  /**
+   * Handle the request for the player js.
+   * Get the orgId and player options and add them to the player session if found.
+   */
   override def playerJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = loadJs(block)
 
   private def loadJs(block: PlayerJsRequest[AnyContent] => Result): Action[AnyContent] = Action {

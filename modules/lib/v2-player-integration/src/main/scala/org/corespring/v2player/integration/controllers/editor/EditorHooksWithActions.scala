@@ -1,28 +1,23 @@
 package org.corespring.v2player.integration.controllers.editor
 
-import org.corespring.container.client.actions.{ ItemActionBuilder, EditorClientHooksActionBuilder, SessionIdRequest, PlayerRequest }
+import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.hooks.EditorHooks
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
-import scala.concurrent.Future
-import play.api.Logger
-import org.corespring.container.client.actions.PlayerRequest
-import org.corespring.container.client.actions.SessionIdRequest
-import scalaz.Success
-import scalaz.Failure
-import play.api.mvc.SimpleResult
 
 trait AuthEditorActions {
 
   def edit(itemId: String)(error: (Int, String) => Future[SimpleResult])(block: Request[AnyContent] => Future[SimpleResult]): Action[AnyContent]
 }
 
-trait EditorHooksWithBuilder extends EditorHooks {
+trait EditorHooksWithActions extends EditorHooks {
 
   def itemService: ItemService
 
@@ -30,7 +25,7 @@ trait EditorHooksWithBuilder extends EditorHooks {
 
   def auth: AuthEditorActions
 
-  def builder: EditorClientHooksActionBuilder[AnyContent] = new EditorClientHooksActionBuilder[AnyContent] {
+  override def actions: EditorActions[AnyContent] = new EditorActions[AnyContent] {
 
     private lazy val logger = Logger("v2player.editor.client.actions")
 
