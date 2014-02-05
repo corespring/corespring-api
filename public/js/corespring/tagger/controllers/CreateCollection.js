@@ -3,17 +3,24 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
   $scope.orgName = UserInfo.org.name;
   $scope.viewState = "shared";
 
-  $scope.disableCollection = function(collectionId) {
-    CollectionManager.disableCollection(collectionId, function onSuccess(success){}, function onError(error){});
+  $scope.disableCollection = function(collection) {
+    CollectionManager.disableCollection(collection.id,
+      function onSuccess(success){
+        $scope.setAlertClassAndMessage('success', "disabled collection: " + collection.name);
+    },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error disabling collection: " + collection.name);
+    });
+
   };
 
-  $scope.enableCollection = function(collectionId) {
-    CollectionManager.enableCollection(collectionId, function onSuccess(success){
-      var test = success;
-    },
-    function onError(error){
-      var test = error;
-    });
+  $scope.enableCollection = function(collection) {
+    CollectionManager.enableCollection(collection.id, function onSuccess(success){
+        $scope.setAlertClassAndMessage('success', "enabled collection: " + collection.name);
+      },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error disabling collection: " + collection.name);
+      });
   };
 
   $scope.hideAlertMessage = function () {

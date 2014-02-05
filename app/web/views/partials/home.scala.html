@@ -75,8 +75,8 @@
                     <td class="collection-label">{{collection.name}}</td>
                     <td>{{collection.itemCount}}</td>
                     <td>
-                        <span ng-show="collection.enabled"><a ng-click="disableCollection(collection.id)">disable</a></span>
-                        <span ng-show="!collection.enabled"><a ng-click="enableCollection(collection.id)">enable</a></span>
+                        <span ng-show="collection.enabled"><a ng-click="disableCollection(collection)">disable</a></span>
+                        <span ng-show="!collection.enabled"><a ng-click="enableCollection(collection)">enable</a></span>
                     </td>
                 </tr>
                 </tbody>
