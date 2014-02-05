@@ -22,14 +22,32 @@ class LoadPlayerJsThenLoadPlayerTest
 
   "when I load the player js with orgId and options" should {
 
-    "fail if i don't pass in the session" in
-      loadJsThenCreateSession(
+    "fail if i don't pass in the session" in new loader(SEE_OTHER, false, Some("/login")) {
+
+      val createSession = playerHooks.createSessionForItem(itemId.toString)
+
+      val url = urlWithEncryptedOptions(js, apiClient)
+      val resultAndCookies = getResultAndCookiesForCreateSession(url, addCookies, createSession)
+
+      resultAndCookies.map(_._1) match {
+        case Some(r) => {
+          Logger.debug(contentAsString(r))
+          status(r) === expectedStatus
+          if (expectedStatus == SEE_OTHER && expectedLocation.isDefined) {
+            headers(r).get("Location").get === expectedLocation.get
+          }
+        }
+        case _ => failure
+      }
+
+    }
+    /*loadJsThenCreateSession(
         SEE_OTHER,
         addCookies = false,
-        expectedLocation = Some("/login"))
+        expectedLocation = Some("/login"))*/
 
-    "allow me to create a session" in loadJsThenCreateSession()
-    "allow me to create a session and load player" in loadJsThenCreateSessionThenLoadPlayer
+    //"allow me to create a session" in loadJsThenCreateSession()
+    //"allow me to create a session and load player" in loadJsThenCreateSessionThenLoadPlayer
   }
 
   /**
