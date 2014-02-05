@@ -97,24 +97,6 @@ class ItemSessionTest extends BaseTest {
       }
     }
 
-    "not update settings if session has been started" in {
-
-      val settings = ItemSessionSettings(submitCompleteMessage = "custom")
-      val session = ItemSession(itemId = genItemId, settings = settings)
-      itemSession.save(session)
-      itemSession.begin(session)
-
-      session.settings.submitCompleteMessage = "updated custom message"
-
-      itemSession.update(session) match {
-        case Right(is) => {
-          is.settings.submitCompleteMessage must equalTo("custom")
-          success
-        }
-        case _ => failure
-      }
-    }
-
   }
 
   "process" should {
