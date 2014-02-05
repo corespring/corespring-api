@@ -1,24 +1,27 @@
 package org.corespring.v2player.integration.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.{NullCrypto, AESCrypto}
+import org.corespring.common.encryption.{ NullCrypto, AESCrypto }
 import org.corespring.container.client.V2PlayerConfig
-import org.corespring.container.client.controllers.{PlayerLauncher => ContainerPlayerLauncher}
+import org.corespring.container.client.controllers.{ PlayerLauncher => ContainerPlayerLauncher }
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActionBuilder
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import play.api.mvc.{Action, Result, AnyContent, Request}
-import play.api.{Configuration, Mode, Play}
+import play.api.mvc.{ Action, Result, AnyContent, Request }
+import play.api.{ Configuration, Mode, Play }
 import scalaz.Success
 import org.corespring.container.client.actions.PlayerJsRequest
+import org.slf4j.LoggerFactory
 
 class PlayerLauncher(
-                      secureSocialService : SecureSocialService,
-                      userService : UserService,
-                      rootConfig : Configuration) extends ContainerPlayerLauncher {
+  secureSocialService: SecureSocialService,
+  userService: UserService,
+  rootConfig: Configuration) extends ContainerPlayerLauncher {
+
+  lazy val logger = LoggerFactory.getLogger("v2player.launcher")
 
   def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(
     secureSocialService,
@@ -53,9 +56,15 @@ class PlayerLauncher(
       out <- orgEncrypter.decrypt(contents)
     } yield out
 
-    def toOrgId(apiClientId: String): Option[ObjectId] = for {
-      client <- ApiClient.findByKey(apiClientId)
-    } yield client.orgId
+    def toOrgId(apiClientId: String): Option[ObjectId] = {
+      logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
+      val client = ApiClient.findByKey(apiClientId)
+
+      if (client.isEmpty) {
+        logger.warn(s"[toOrgId] can't find org for $apiClientId")
+      }
+      client.map(_.orgId)
+    }
 
   }
 

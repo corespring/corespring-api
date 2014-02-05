@@ -31,8 +31,11 @@ trait IntegrationHelpers extends PlaySpecification {
 
     val result: Option[Future[SimpleResult]] = route(request)
 
-    result.foreach { r =>
-      logger.trace(s"[getResultFor] >> ${status(r)}")
+    logger.debug(s"[getResultFor] -> ${request.method}, ${request.path}")
+
+    result.foreach {
+      r =>
+        logger.debug(s"[getResultFor] status: ${status(r)}")
     }
 
     result.filter {

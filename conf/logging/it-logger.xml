@@ -12,6 +12,7 @@
         <encoder><pattern>%coloredLevel [%logger{20}] %message%n%xException{5}</pattern></encoder>
     </appender>
 
+    <logger name="application" level="OFF"/>
     <logger name="org.corespring.test" level="TRACE"/>
     <logger name="it" level="TRACE"/>
     <logger name="v2player" level="TRACE"/>

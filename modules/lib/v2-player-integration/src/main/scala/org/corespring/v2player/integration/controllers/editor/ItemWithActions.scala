@@ -17,8 +17,6 @@ import play.api.libs.json.JsValue
 import play.api.mvc.{ Action, Result, AnyContent }
 import scalaz.{ Failure, Validation, Success }
 
-object ItemWithActions {}
-
 trait ItemWithActions
   extends Item
   with LoadOrgAndOptions {

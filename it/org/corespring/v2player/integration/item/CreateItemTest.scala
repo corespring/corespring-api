@@ -38,8 +38,6 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
     "should fail for a auth request with json + bad collection id" in new createItem(false,
       id => Some(Json.obj("collectionId" -> badCollectionId.toString)),
       u => secureSocialCookie(u)) {
-      println(s">>>>>> user: $user")
-      println(s">>>>>> orgId: $orgId")
       status(result) === UNAUTHORIZED
       logger.debug(s"content: ${contentAsString(result)}")
       (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString).message)
