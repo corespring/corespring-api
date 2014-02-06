@@ -15,4 +15,11 @@ These tests are run sequentially and not forked.
 
 ### Seeing the logs
 
-    play -Dlogger.resource=logging/it-logger.xml
+    play -Dlogger.resource=conf/logging/it-logger.xml
+
+
+### Integration test top tips
+
+* The tests are run sequentially and are not forked.
+* Be wary of play's route helper method see: https://gist.github.com/edeustace/972f78ef8238143c91ca
+
