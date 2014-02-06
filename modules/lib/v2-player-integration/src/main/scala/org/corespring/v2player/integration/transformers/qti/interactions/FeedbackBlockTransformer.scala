@@ -34,6 +34,7 @@ object FeedbackBlockTransformer {
           Json.obj(
             "componentType" -> "corespring-feedback-block",
             "target" -> Json.obj("id" -> id),
+            "weight" -> 0,
             "feedback" -> (outcomeSpecific match {
               case true => Json.obj(
                 "outcome" -> ((node \ "@outcomeIdentifier").text match {
@@ -41,13 +42,10 @@ object FeedbackBlockTransformer {
                     Json.obj(
                       responseIdentifier -> Json.obj(
                         "text" -> node.child.mkString,
-                        "correct" -> ((node \ "@incorrectResponse").toString != "true")
-                      )
-                    )
+                        "correct" -> ((node \ "@incorrectResponse").toString != "true")))
                   }
                   case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
-                })
-              )
+                }))
               case false => Json.obj(
                 "correct" -> JsObject(
                   (qti \\ "feedbackBlock").filter(n => (n \ "@incorrectResponse").toString != "true").map(feedbackBlock => {
@@ -55,19 +53,15 @@ object FeedbackBlockTransformer {
                       case "" => "*" -> JsString(feedbackBlock.child.text.trim)
                       case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
                     }
-                  })
-                ),
+                  })),
                 "incorrect" -> JsObject(
                   (qti \\ "feedbackBlock").filter(n => (n \ "@incorrectResponse").toString == "true").map(feedbackBlock => {
                     (feedbackBlock \ "@identifier").text match {
                       case "" => "*" -> JsString(feedbackBlock.child.text.trim)
                       case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
                     }
-                  })
-                )
-              )
-            })
-          )
+                  })))
+            }))
         }
       }
       case _ =>
@@ -98,7 +92,7 @@ object FeedbackBlockTransformer {
           case true => Seq.empty
           case _ => {
             ids = ids + feedbackId
-            <corespring-feedback-block id={feedbackId}></corespring-feedback-block>
+            <corespring-feedback-block id={ feedbackId }></corespring-feedback-block>
           }
         }
       }

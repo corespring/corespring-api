@@ -7,7 +7,7 @@ import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
@@ -32,7 +32,8 @@ import scalaz._
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
+  extends BaseApi with PackageLogging with ItemTransformationCache {
 
   import Item.Keys._
 
@@ -197,7 +198,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
-      } yield savedResult
+      } yield {
+        removeCachedTransformation(item)
+        savedResult
+      }
   }
 
   def cloneItem(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {

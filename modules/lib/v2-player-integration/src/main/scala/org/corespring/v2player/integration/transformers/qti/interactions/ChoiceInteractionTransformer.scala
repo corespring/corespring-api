@@ -8,8 +8,8 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node match {
-      case elem: Elem if elem.label == "choiceInteraction" => <corespring-multiple-choice id={identifier} />
-      case elem: Elem if elem.label == "inlineChoiceInteraction" => <corespring-inline-choice id={identifier} />
+      case elem: Elem if elem.label == "choiceInteraction" => <corespring-multiple-choice id={ identifier }></corespring-multiple-choice>
+      case elem: Elem if elem.label == "inlineChoiceInteraction" => <corespring-inline-choice id={ identifier }></corespring-inline-choice>
       case _ => node
     }
   }
@@ -20,11 +20,10 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
       val componentId = (node \ "@responseIdentifier").text.trim
 
       def choices: JsArray = {
-        val out : Seq[JsValue] = ((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map{ n: Node =>
+        val out: Seq[JsValue] = ((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n: Node =>
           Json.obj(
             "label" -> n.child.filterNot(e => e.label == "feedbackInline").mkString.trim,
-            "value" -> (n \ "@identifier").text.trim
-          )
+            "value" -> (n \ "@identifier").text.trim)
         }
         JsArray(out)
       }
@@ -45,21 +44,18 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
           case _ => throw new IllegalStateException
         }),
         "model" -> Json.obj(
-            "config" -> Json.obj(
-              "shuffle" -> (node \ "@shuffle").text,
-              "orientation" -> JsString( if( (node \ "@orientation").text == "horizontal") "horizontal" else "vertical" ),
-              "choiceStyle" -> JsString( (node \ "@choiceStyle").text ),
-              "singleChoice" -> JsBoolean( ( (node\ "@maxChoices").text == "1") )
-            ),
-            "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
-            "choices" -> choices
-        ),
+          "config" -> Json.obj(
+            "shuffle" -> (node \ "@shuffle").text,
+            "orientation" -> JsString(if ((node \ "@orientation").text == "horizontal") "horizontal" else "vertical"),
+            "choiceStyle" -> JsString((node \ "@choiceStyle").text),
+            "singleChoice" -> JsBoolean(((node \ "@maxChoices").text == "1"))),
+          "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
+          "choices" -> choices),
         "feedback" -> feedback(node, qti),
-        "correctResponse" -> correctResponse
-      )
+        "correctResponse" -> correctResponse)
 
       componentId -> json
 
-  }).toMap
+    }).toMap
 
 }

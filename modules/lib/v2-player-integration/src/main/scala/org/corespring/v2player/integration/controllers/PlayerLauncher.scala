@@ -66,6 +66,7 @@ class PlayerLauncher(
       client.map(_.orgId)
     }
 
+    //override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
   }
 
   override def playerConfig: V2PlayerConfig = V2PlayerConfig(rootConfig)

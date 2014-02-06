@@ -1,6 +1,6 @@
 package org.corespring.v2player.integration.controllers.editor
 
-import org.corespring.container.client.actions._
+import org.corespring.container.client.actions.{ SessionIdRequest, PlayerRequest, EditorActions }
 import org.corespring.container.client.controllers.hooks.EditorHooks
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -8,6 +8,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import play.api.mvc.{ SimpleResult, Action, Result, AnyContent }
 import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
@@ -72,6 +73,5 @@ trait EditorHooksWithActions extends EditorHooks {
     def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("Not supported"))
 
     def createItem(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("TODO"))
-
   }
 }
