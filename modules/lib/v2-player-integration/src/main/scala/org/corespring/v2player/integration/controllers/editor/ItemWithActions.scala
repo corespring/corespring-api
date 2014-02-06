@@ -5,7 +5,7 @@ import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Item
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.platform.core.models.item.resource.{ PlayerDefinition, VirtualFile, Resource }
 import org.corespring.platform.core.models.item.{ Item => ModelItem }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -13,7 +13,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
 import org.corespring.v2player.integration.errors.Errors.{ orgCantAccessCollection, noOrgIdAndOptions, propertyNotFoundInJson, noJson }
 import org.corespring.v2player.integration.errors.V2Error
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc.{ Action, Result, AnyContent }
 import scalaz.{ Failure, Validation, Success }
 
@@ -49,15 +49,11 @@ trait ItemWithActions
 
     private def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
 
+      val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj())
       val item = models.item.Item(
         collectionId = collectionId,
-        data = Some(Resource(
-          name = "data",
-          files = Seq(
-            VirtualFile(
-              name = "qti.xml",
-              contentType = "text/xml",
-              content = "<assessmentItem><itemBody><p>I'm a new item</p></itemBody></assessmentItem>")))))
+        playerDefinition = Some(definition))
+
       itemService.insert(item)
     }
 

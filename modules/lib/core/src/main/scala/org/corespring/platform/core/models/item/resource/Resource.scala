@@ -14,6 +14,14 @@ case class Resource(name: String, var files: Seq[BaseFile]) {
   def defaultFile = files.find(_.isMain)
 }
 
+/**
+ * Model to contain the new v2 player model
+ * @param files
+ * @param xhtml
+ * @param components
+ */
+case class PlayerDefinition(files: Seq[BaseFile], xhtml: String, components: JsValue)
+
 object Resource extends PackageLogging {
   val name = "name"
   val files = "files"

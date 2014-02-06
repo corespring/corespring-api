@@ -113,8 +113,8 @@ object Global
         }
         seedStaticData()
         seedDemoData()
-        initializeReports
-        reportingDaemon(app)
+        //initializeReports
+        //reportingDaemon(app)
       }
     }
 

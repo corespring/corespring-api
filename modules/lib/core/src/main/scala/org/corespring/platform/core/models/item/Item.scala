@@ -11,7 +11,7 @@ import scala._
 import com.novus.salat._
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.item.resource.{ PlayerDefinition, Resource }
 
 case class Item(
   var collectionId: String = "",
@@ -24,6 +24,7 @@ case class Item(
   var pValue: Option[String] = None,
   var lexile: Option[String] = None,
   var data: Option[Resource] = None,
+  var playerDefinition: Option[PlayerDefinition] = None,
   var originId: Option[String] = None,
   var supportingMaterials: Seq[Resource] = Seq(),
   var published: Boolean = false,
