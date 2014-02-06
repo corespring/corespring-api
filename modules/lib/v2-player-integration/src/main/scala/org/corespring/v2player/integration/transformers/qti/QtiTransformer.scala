@@ -14,6 +14,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       ChoiceInteractionTransformer,
       DragAndDropInteractionTransformer,
       FeedbackBlockTransformer(qti),
+      NumberedLinesTransformer(qti),
       FocusTaskInteractionTransformer,
       LineInteractionTransformer,
       OrderInteractionTransformer,
@@ -26,11 +27,17 @@ object QtiTransformer extends XMLNamespaceClearer {
       CoverflowInteractionTransformer,
       CorespringTabTransformer)
 
+    val statefulTransformers = Seq(
+      FeedbackBlockTransformer,
+      NumberedLinesTransformer
+    )
+
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(qti))
 
     val transformedHtml = new RuleTransformer(transformers: _*).transform(qti)
-    val html = FeedbackBlockTransformer.transform(clearNamespace((transformedHtml(0) \ "itemBody")(0)))
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
+      (html, transformer) => transformer.transform(html).head)
 
     (html, JsObject(components.toSeq))
 

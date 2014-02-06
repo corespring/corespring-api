@@ -87,3 +87,9 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
     JsObject(fields.filter{ case (_, v) => v.nonEmpty }.map{ case (a,b) => (a, b.get) })
 
 }
+
+trait Transformer {
+
+  def transform(qti: Node): Node
+
+}

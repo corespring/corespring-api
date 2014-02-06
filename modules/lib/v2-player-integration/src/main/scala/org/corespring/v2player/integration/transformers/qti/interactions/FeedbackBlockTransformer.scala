@@ -12,7 +12,7 @@ case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
 }
 
-object FeedbackBlockTransformer {
+object FeedbackBlockTransformer extends Transformer {
 
   val outcomeIdentifier = """responses\.(.+?)\.(.*)""".r
   val outcomeSpecificRegex = "outcome.(.*)".r
@@ -73,7 +73,7 @@ object FeedbackBlockTransformer {
    * Takes a QTI document rooted at the provided node, removing <feedbackBlock/>s with duplicate outcomeIdentifier
    * attributes and replacing them with a single <corespring-feedback-block/> element.
    */
-  def transform(qti: Node): Node = {
+  override def transform(qti: Node): Node = {
     var ids = Set.empty[String]
 
     def recurse(node: Node): Seq[Node] = node match {
