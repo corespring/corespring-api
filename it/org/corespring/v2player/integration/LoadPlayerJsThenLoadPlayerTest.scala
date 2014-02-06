@@ -16,7 +16,7 @@ class LoadPlayerJsThenLoadPlayerTest
 
   "when I load the player js with orgId and options" should {
 
-    "tester" in new LoadJsAndCreateSession("tester 1") {
+    "load js with no errors" in new LoadJsAndCreateSession("js no errors") {
       contentAsString(jsResult).contains("exports.hasErrors = false;") === true
     }
 
