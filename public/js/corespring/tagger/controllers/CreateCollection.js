@@ -1,7 +1,7 @@
 function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
 
   $scope.orgName = UserInfo.org.name;
-  $scope.viewState = "shared";
+  $scope.viewState = "org";
 
   $scope.disableCollection = function(collection) {
     CollectionManager.disableCollection(collection.id,
@@ -19,7 +19,7 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
         $scope.setAlertClassAndMessage('success', "enabled collection: " + collection.name);
       },
       function onError(error){
-        $scope.setAlertClassAndMessage('error', "error disabling collection: " + collection.name);
+        $scope.setAlertClassAndMessage('error', "error enabling collection: " + collection.name);
       });
   };
 

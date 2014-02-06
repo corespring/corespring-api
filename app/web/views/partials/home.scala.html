@@ -11,8 +11,8 @@
     <div class="modal-header create-collections">
         <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
         <div class="header">
-            <button type="button" class="btn btn-default" ng-click="viewState = 'org'">{{orgName}} Collections</button>
-            <button type="button" class="btn btn-default" ng-click="viewState = 'shared'">Other Collections</button>
+            <button type="button" class="btn btn-default" ng-click="viewState = 'org'" ng-disabled="viewState == 'org'">{{orgName}} Collections</button>
+            <button type="button" class="btn btn-default" ng-click="viewState = 'shared'" ng-disabled="viewState == 'shared'">Shared Collections</button>
         </div>
     </div>
     <div ng-show="viewState == 'org'">
@@ -71,7 +71,7 @@
         <div class="scrollable">
             <table class="table table-striped">
                 <tbody>
-                <tr ng-repeat="collection in sharedCollections">
+                <tr ng-repeat="collection in sharedCollections | filter:{isPublic:false}">
                     <td class="collection-label">{{collection.name}}</td>
                     <td>{{collection.itemCount}}</td>
                     <td>
@@ -126,7 +126,7 @@
                           <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
                           <div ng-repeat="c in o.collections">
                               <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"/>
-                              {{c.name}}
+                              {{c.name}} <span ng-show="c.isPublic">(public)</span>
                           </div>
 
                       </div>
