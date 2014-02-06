@@ -2,7 +2,7 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 
 import org.specs2.mutable.Specification
 import scala.xml.Node
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{ Json, JsObject }
 import scala.xml.transform.RuleTransformer
 import org.specs2.execute.Failure
 
@@ -14,45 +14,44 @@ class FeedbackBlockTransformerTest extends Specification {
 
   def qti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="single" baseType="string">
+      <responseDeclaration identifier={ identifier } cardinality="single" baseType="string">
         <correctResponse>
-          {correctResponses.map(response => <value>{response}</value>)}
+          { correctResponses.map(response => <value>{ response }</value>) }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={identifier} expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={ identifier } expectedLength="15"/>
         {
-        correctResponses.map(response =>
-          <feedbackBlock outcomeIdentifier={s"responses.$identifier.value"} identifier={response}>
-            <div class="feedback-block-correct">{correctFeedback}</div>
-          </feedbackBlock>)
+          correctResponses.map(response =>
+            <feedbackBlock outcomeIdentifier={ s"responses.$identifier.value" } identifier={ response }>
+              <div class="feedback-block-correct">{ correctFeedback }</div>
+            </feedbackBlock>)
         }
-        <feedbackBlock outcomeIdentifier={s"responses.$identifier.value"} incorrectResponse="true">
-          <div class="feedback-block-incorrect">{incorrectFeedback}</div>
+        <feedbackBlock outcomeIdentifier={ s"responses.$identifier.value" } incorrectResponse="true">
+          <div class="feedback-block-incorrect">{ incorrectFeedback }</div>
         </feedbackBlock>
       </itemBody>
     </assessmentItem>
 
   def outcomeSpecificQti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="single" baseType="string">
+      <responseDeclaration identifier={ identifier } cardinality="single" baseType="string">
         <correctResponse>
-          {correctResponses.map(response => <value>{response}</value>)}
+          { correctResponses.map(response => <value>{ response }</value>) }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={identifier} expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={ identifier } expectedLength="15"/>
         {
           correctResponses.map(response =>
-            <feedbackBlock outcomeIdentifier={s"responses.$identifier.outcome.$response"} identifier={response} incorrectResponse="true">
-              <div class="feedback-block-correct">{correctFeedback}</div>
+            <feedbackBlock outcomeIdentifier={ s"responses.$identifier.outcome.$response" } identifier={ response } incorrectResponse="true">
+              <div class="feedback-block-correct">{ correctFeedback }</div>
             </feedbackBlock>)
         }
       </itemBody>
     </assessmentItem>
-
 
   "FeedbackBlockTransformer" should {
 
@@ -63,14 +62,12 @@ class FeedbackBlockTransformerTest extends Specification {
     val input = qti(
       correctResponses = correctResponses,
       correctFeedback = correctFeedback,
-      incorrectFeedback = incorrectFeedback
-    )
+      incorrectFeedback = incorrectFeedback)
 
     val outcomeSpecificInput = outcomeSpecificQti(
       correctResponses = correctResponses,
       correctFeedback = correctFeedback,
-      incorrectFeedback = incorrectFeedback
-    )
+      incorrectFeedback = incorrectFeedback)
 
     val componentsJson = FeedbackBlockTransformer.interactionJs(input) ++ FeedbackBlockTransformer.interactionJs(outcomeSpecificInput)
     val output = new RuleTransformer(FeedbackBlockTransformer(input)).transform(input)

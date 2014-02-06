@@ -1,6 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
-import scala.xml.{Elem, Node}
+import scala.xml.{ Elem, Node }
 import scala.xml.transform.RewriteRule
 import play.api.libs.json.JsObject
 

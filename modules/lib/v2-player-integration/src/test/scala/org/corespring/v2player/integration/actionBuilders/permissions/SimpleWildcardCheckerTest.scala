@@ -1,14 +1,14 @@
 package org.corespring.v2player.integration.actionBuilders.permissions
 
 import org.specs2.mutable.Specification
-import org.corespring.v2player.integration.actionBuilders.access.{PlayerOptions, Mode}
+import org.corespring.v2player.integration.actionBuilders.access.{ PlayerOptions, Mode }
 
 class SimpleWildcardCheckerTest extends Specification {
 
   val checker = new SimpleWildcardChecker()
 
+  import SimpleWildcardChecker._
   "allow" should {
-    import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker.Errors._
 
     "allow" in {
       checker.allow("*", Some("*"), Mode.view, PlayerOptions("*", "*", false)) === Right(true)

@@ -3,7 +3,7 @@
     <!--
         The logger in test mode doesn't work. This is a workaround:
         Call play with:
-        play -Dlogger.file=conf/test-logger.xml
+        play -Dlogger.file=conf/logging/it-logger.xml
         Warning - it may cause memory leaks
     -->
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
@@ -12,8 +12,10 @@
         <encoder><pattern>%coloredLevel [%logger{20}] %message%n%xException{5}</pattern></encoder>
     </appender>
 
+    <logger name="application" level="OFF"/>
     <logger name="org.corespring.test" level="TRACE"/>
     <logger name="it" level="TRACE"/>
+    <logger name="v2player" level="TRACE"/>
     <logger name="org.corespring.player.accessControl.cookies" level="TRACE"/>
     <logger name="org.corespring.v2player" level="TRACE"/>
     <logger name="AuthenticatedSessionActionsCheckUserAndPermissions" level="INFO"/>

@@ -4,10 +4,10 @@ import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
-import org.corespring.platform.core.models.item.{ItemTransformationCache, Item, Content}
+import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId

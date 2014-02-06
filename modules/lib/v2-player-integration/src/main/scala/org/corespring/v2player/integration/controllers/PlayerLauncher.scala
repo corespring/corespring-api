@@ -14,11 +14,14 @@ import play.api.mvc.{ Action, Result, AnyContent, Request }
 import play.api.{ Configuration, Mode, Play }
 import scalaz.Success
 import org.corespring.container.client.actions.PlayerJsRequest
+import org.slf4j.LoggerFactory
 
 class PlayerLauncher(
   secureSocialService: SecureSocialService,
   userService: UserService,
   rootConfig: Configuration) extends ContainerPlayerLauncher {
+
+  lazy val logger = LoggerFactory.getLogger("v2player.launcher")
 
   def builder: PlayerLauncherActionBuilder = new PlayerLauncherActionBuilder(
     secureSocialService,
@@ -53,11 +56,17 @@ class PlayerLauncher(
       out <- orgEncrypter.decrypt(contents)
     } yield out
 
-    def toOrgId(apiClientId: String): Option[ObjectId] = for {
-      client <- ApiClient.findByKey(apiClientId)
-    } yield client.orgId
+    def toOrgId(apiClientId: String): Option[ObjectId] = {
+      logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
+      val client = ApiClient.findByKey(apiClientId)
 
-    override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
+      if (client.isEmpty) {
+        logger.warn(s"[toOrgId] can't find org for $apiClientId")
+      }
+      client.map(_.orgId)
+    }
+
+    //override def editorJs(block: (PlayerJsRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
   }
 
   override def playerConfig: V2PlayerConfig = V2PlayerConfig(rootConfig)

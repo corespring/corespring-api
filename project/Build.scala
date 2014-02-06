@@ -18,9 +18,9 @@ object Build extends sbt.Build {
 
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
-    publishArtifact in(Compile, packageDoc) := false,
+    publishArtifact in (Compile, packageDoc) := false,
     // disable publishing the main sources jar
-    publishArtifact in(Compile, packageSrc) := false,
+    publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
   val cred = {
@@ -48,8 +48,7 @@ object Build extends sbt.Build {
     resolvers ++= Dependencies.Resolvers.all,
     credentials += cred,
     Keys.fork.in(Test) := forkInTests,
-    scalacOptions ++= Seq("-feature", "-deprecation")
-  ) ++ disableDocsSettings
+    scalacOptions ++= Seq("-feature", "-deprecation")) ++ disableDocsSettings
 
   val builders = new Builders(appName, org, appVersion, ScalaVersion, sharedSettings)
 
@@ -63,8 +62,7 @@ object Build extends sbt.Build {
   val apiUtils = builders.lib("api-utils")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
-      Keys.fork in Test := forkInTests
-    )
+      Keys.fork in Test := forkInTests)
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers")
@@ -115,16 +113,13 @@ object Build extends sbt.Build {
   val commonViews = builders.web("common-views").settings(
     buildInfoTask,
     (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
-    libraryDependencies ++= Seq(playJson % "test")
-  ).dependsOn(core % "compile->compile;test->test")
+    libraryDependencies ++= Seq(playJson % "test")).dependsOn(core % "compile->compile;test->test")
 
   val clientLogging = builders.web("client-logging").settings(
-    libraryDependencies ++= Seq(playFramework, scalaz)
-  ).dependsOn(apiUtils, core % "test->test")
+    libraryDependencies ++= Seq(playFramework, scalaz)).dependsOn(apiUtils, core % "test->test")
 
   val scormLib = builders.lib("scorm").settings(
-    libraryDependencies ++= Seq(playFramework)
-  ).dependsOn(core)
+    libraryDependencies ++= Seq(playFramework)).dependsOn(core)
 
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
@@ -132,8 +127,7 @@ object Build extends sbt.Build {
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
-    routesImport ++= customImports
-  )
+    routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
@@ -141,27 +135,23 @@ object Build extends sbt.Build {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
 
-
   val v1Player = builders.web("v1-player")
     .settings(
       templatesImport ++= TemplateImports.Ids,
-      routesImport ++= customImports
-    )
+      routesImport ++= customImports)
     .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
     .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
 
   val devTools = builders.web("dev-tools").settings(
     routesImport ++= customImports,
-    libraryDependencies ++= Seq(containerClientWeb)
-  ).dependsOn(v1Player, playerLib, core)
+    libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
 
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
       containerClientWeb,
       componentLoader,
       componentModel,
-      mongoJsonService)
-  ).dependsOn(core % "test->test;compile->compile", playerLib, devTools)
+      mongoJsonService)).dependsOn(core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
@@ -180,16 +170,26 @@ object Build extends sbt.Build {
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
   val scormWeb = builders.web("scorm-web").settings(
-    routesImport ++= customImports
-  ).dependsOn(core, scormLib, v1Player)
+    routesImport ++= customImports).dependsOn(core, scormLib, v1Player)
+
+  val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
 
   lazy val integrationTestSettings = Seq(
     scalaSource in IntegrationTest <<= baseDirectory / "it",
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
+    Keys.logBuffered := false,
     testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
-    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test"))
-  )
+    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test")),
+
+    /**
+     * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
+     * This is a workaround that *always* calls an empty Integration test first.
+     * @see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
+     */
+    testOnly in IntegrationTest := {
+      (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
+    })
 
   val main = builders.web(appName, Some(file(".")))
     .settings(
@@ -201,8 +201,7 @@ object Build extends sbt.Build {
       credentials += cred,
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
-      (test in Test) <<= (test in Test).map(Commands.runJsTests)
-    )
+      (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)

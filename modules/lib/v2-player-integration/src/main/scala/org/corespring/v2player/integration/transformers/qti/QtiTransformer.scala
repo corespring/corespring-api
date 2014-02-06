@@ -1,14 +1,14 @@
 package org.corespring.v2player.integration.transformers.qti
 
 import play.api.libs.json.JsValue
-import scala.xml.{Elem, Node}
+import scala.xml.{ Elem, Node }
 import scala.xml.transform.RuleTransformer
 import org.corespring.v2player.integration.transformers.qti.interactions._
 import play.api.libs.json.JsObject
 
 object QtiTransformer extends XMLNamespaceClearer {
 
-  def transform(qti: Elem): (Node,JsValue) = {
+  def transform(qti: Elem): (Node, JsValue) = {
 
     val transformers = Seq(
       ChoiceInteractionTransformer,
@@ -24,8 +24,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       TexTransformer,
       FoldableInteractionTransformer,
       CoverflowInteractionTransformer,
-      CorespringTabTransformer
-    )
+      CorespringTabTransformer)
 
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(qti))
@@ -38,5 +37,4 @@ object QtiTransformer extends XMLNamespaceClearer {
   }
 
 }
-
 

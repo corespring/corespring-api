@@ -2,26 +2,21 @@ package org.corespring.v2player.integration.controllers.player
 
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.container.client.actions.{PlayerHooksActionBuilder, SessionIdRequest, PlayerRequest, ClientHooksActionBuilder}
+import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.hooks.PlayerHooks
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
-import play.api.libs.json.{Json, JsString, JsValue}
+import play.api.libs.json.JsString
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
+import scala.Some
 import scalaz.Scalaz._
 import scalaz._
-import scala.concurrent.{Await, Future}
-import org.corespring.container.client.actions.PlayerRequest
-import scalaz.Failure
-import play.api.libs.json.JsString
-import scala.Some
-import org.corespring.container.client.actions.SessionIdRequest
-import scalaz.Success
 
-trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
+trait PlayerHooksWithActions extends PlayerHooks with PackageLogging {
 
   def sessionService: MongoService
 
@@ -36,7 +31,7 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
     case _ => None
   }
 
-  def builder: PlayerHooksActionBuilder[AnyContent] = new PlayerHooksActionBuilder[AnyContent] {
+  override def actions: PlayerActions[AnyContent] = new PlayerActions[AnyContent] {
 
     private def maybeOid(s: String): Option[ObjectId] = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
@@ -67,16 +62,14 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
 
     def loadConfig(id: String)(block: (PlayerRequest[AnyContent]) => Result): Action[AnyContent] = load(id)(block)
 
-    def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent]
-    = auth.createSessionHandleNotAuthorized(itemId) {
+    def createSessionForItem(itemId: String)(block: (SessionIdRequest[AnyContent]) => Result): Action[AnyContent] = auth.createSessionHandleNotAuthorized(itemId) {
       request =>
 
         def createSessionJson(vid: VersionedId[ObjectId]) = {
           Some(
             Json.obj(
               "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
-              "itemId" -> JsString(vid.toString)
-            ))
+              "itemId" -> JsString(vid.toString)))
         }
 
         val result = for {
@@ -95,7 +88,7 @@ trait PlayerHooksWithBuilder extends PlayerHooks with PackageLogging {
         if (code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
     }
 
-    def loadPlayerForSession(sessionId: String)(error:(Int,String) => Result)(block: (Request[AnyContent]) => Result): Action[AnyContent] = auth.loadPlayerForSession(sessionId)(error){
+    def loadPlayerForSession(sessionId: String)(error: (Int, String) => Result)(block: (Request[AnyContent]) => Result): Action[AnyContent] = auth.loadPlayerForSession(sessionId)(error) {
       request =>
         block(request)
     }

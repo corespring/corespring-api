@@ -10,11 +10,11 @@ class TexTransformerTest extends Specification {
 
     def qti(texNode: Node) =
       <assessmentItem>
-        <itemBody>{texNode}</itemBody>
+        <itemBody>{ texNode }</itemBody>
       </assessmentItem>
 
     val tex = "This is my latex!"
-    val texNode = <tex class="best-class">{tex}</tex>
+    val texNode = <tex class="best-class">{ tex }</tex>
 
     def output = new RuleTransformer(TexTransformer).transform(qti(texNode))
     def corespringTex = (output \\ "corespring-tex")
@@ -34,7 +34,6 @@ class TexTransformerTest extends Specification {
     "should preserve <tex/> attributes in <corespring-tex/>" in {
       corespringTex.head.attributes must be equalTo texNode.attributes
     }
-
 
   }
 

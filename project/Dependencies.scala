@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.2.3-SNAPSHOT"
+  val containerVersion = "0.2.4-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
   val componentLoader = "org.corespring" %% "component-loader" % containerVersion
@@ -37,7 +37,7 @@ object Dependencies {
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
   val playS3 = "org.corespring" %% "play-s3" % "0.2-35dbed6"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
-  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.0"
+  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"

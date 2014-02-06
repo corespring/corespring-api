@@ -2,7 +2,6 @@ package org.corespring.v2player.integration
 
 import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets, ComponentsFileController, Rig, Icons }
@@ -14,39 +13,37 @@ import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.container.components.processing.rhino.{ PlayerItemPreProcessor => RhinoPreProcessor }
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.container.components.response.rhino.{ OutcomeProcessor => RhinoProcessor }
+import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
-import org.corespring.platform.core.services.UserServiceWired
+import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.services.{ UserService, UserServiceWired }
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2player.integration.actionBuilders._
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.actionBuilders.{ DevToolsSessionActions, AuthenticatedSessionActionsCheckUserAndPermissions, AuthenticatedSessionActions }
 import org.corespring.v2player.integration.controllers.PlayerLauncher
-import org.corespring.v2player.integration.controllers.editor.{ ItemWithBuilder, EditorHooksWithBuilder }
-import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithBuilder, PlayerHooksWithBuilder }
+import org.corespring.v2player.integration.controllers.editor.{ AuthEditorActions, ItemWithActions, EditorHooksWithActions }
+import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithActions, PlayerHooksWithActions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{ Mode, Play, Logger, Configuration }
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import play.api.{ Logger, Configuration }
+import scala.Some
 import scalaz.Failure
-import scalaz.{ Success, Validation }
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
-import org.corespring.dev.tools.DevTools
+import scalaz.Success
+import scalaz.Validation
+import org.corespring.platform.core.services.organization.OrganizationService
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
   lazy val logger = Logger("v2player.integration")
 
-  private lazy val secureSocialService = new SecureSocialService {
+  private lazy val mainSecureSocialService = new SecureSocialService {
     def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
   }
 
@@ -59,14 +56,14 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
   lazy val controllers: Seq[Controller] = Seq(playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
 
   private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher(
-    secureSocialService,
+    mainSecureSocialService,
     UserServiceWired,
     rootConfig)
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private lazy val authActions = new AuthenticatedSessionActionsCheckUserAndPermissions(
-    secureSocialService,
+  private lazy val authActions = new AuthSessionActionsCheckPermissions(
+    mainSecureSocialService,
     UserServiceWired,
     mainSessionService,
     ItemServiceWired,
@@ -136,7 +133,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val playerHooks = new PlayerHooksWithBuilder {
+  private lazy val playerHooks = new PlayerHooksWithActions {
 
     def loadedComponents: Seq[Component] = comps
 
@@ -149,26 +146,47 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     def auth: AuthenticatedSessionActions = authenticatedSessionActions
   }
 
-  private lazy val editorHooks = new EditorHooksWithBuilder {
+  private lazy val editorHooks = new EditorHooksWithActions {
     def loadedComponents: Seq[Component] = comps
 
     def itemService: ItemService = ItemServiceWired
 
     def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+
+    override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
+      mainSecureSocialService,
+      UserServiceWired,
+      mainSessionService,
+      ItemServiceWired,
+      Organization) {
+
+      val permissionGranter = new SimpleWildcardChecker()
+
+      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
+        case Left(error) => Failure(error)
+        case Right(allowed) => Success(true)
+      }
+    }
   }
 
-  private lazy val items = new ItemWithBuilder {
+  private lazy val items = new ItemWithActions {
 
-    def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
+    override def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
 
-    def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
+    override def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
 
-    def itemService: ItemService = ItemServiceWired
+    override def itemService: ItemService = ItemServiceWired
 
-    def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+
+    override def orgService: OrganizationService = Organization
+
+    override def userService: UserService = UserServiceWired
+
+    override def secureSocialService: SecureSocialService = mainSecureSocialService
   }
 
-  private lazy val sessions = new ClientSessionWithBuilder {
+  private lazy val sessions = new ClientSessionWithActions {
 
     def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
 

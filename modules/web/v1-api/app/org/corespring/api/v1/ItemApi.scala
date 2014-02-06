@@ -7,7 +7,7 @@ import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
@@ -191,16 +191,17 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   }
 
   def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
-    request => for {
-      json <- request.body.asJson.toSuccess("No json in request body")
-      item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
-      dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
-      validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-      savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
-    } yield {
-      removeCachedTransformation(item)
-      savedResult
-    }
+    request =>
+      for {
+        json <- request.body.asJson.toSuccess("No json in request body")
+        item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
+        dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
+        validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
+        savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
+      } yield {
+        removeCachedTransformation(item)
+        savedResult
+      }
   }
 
   def cloneItem(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {

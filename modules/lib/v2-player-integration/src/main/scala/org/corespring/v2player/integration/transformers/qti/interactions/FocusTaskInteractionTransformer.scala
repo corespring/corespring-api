@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
 import play.api.libs.json._
-import scala.xml.{Elem, Node}
+import scala.xml.{ Elem, Node }
 import play.api.libs.json.JsString
 
 object FocusTaskInteractionTransformer extends InteractionTransformer {
@@ -11,8 +11,7 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
       Json.obj(
         "componentType" -> "corespring-focus-task",
         "correctResponse" -> Json.obj(
-          "value" -> (responseDeclaration(node, qti) \\ "value").map(_.text)
-        ),
+          "value" -> (responseDeclaration(node, qti) \\ "value").map(_.text)),
         "model" -> partialObj(
           "prompt" -> (node \ "prompt").headOption.map(n => JsString(n.text)),
           "config" -> Some(partialObj(
@@ -20,24 +19,18 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
             "itemShape" -> optForAttr[JsString]("itemShape"),
             "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
             "minSelections" -> optForAttr[JsNumber]("minSelections"),
-            "maxSelections" -> optForAttr[JsNumber]("maxSelections")
-          )),
+            "maxSelections" -> optForAttr[JsNumber]("maxSelections"))),
           "choices" -> Some(JsArray(
             (node \\ "focusChoice").map(choiceNode =>
               Json.obj(
                 "label" -> choiceNode.text,
-                "value" -> (choiceNode \ "@identifier").text
-              )
-            )
-          ))
-        )
-      )
-    }).toMap
+                "value" -> (choiceNode \ "@identifier").text))))))
+  }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "focusTaskInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-focus-task id={identifier}></corespring-focus-task>
+      <corespring-focus-task id={ identifier }></corespring-focus-task>
     }
     case _ => node
   }

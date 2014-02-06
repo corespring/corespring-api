@@ -7,14 +7,14 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.{JsString, JsValue, Json}
-import play.api.mvc.{Action, Result, AnyContent}
+import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
+import play.api.libs.json.{ JsString, JsValue, Json }
+import play.api.mvc.{ Action, Result, AnyContent }
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
 
-trait ClientSessionWithBuilder extends Session{
+trait ClientSessionWithActions extends Session {
 
   def itemService: ItemService
 
@@ -22,7 +22,7 @@ trait ClientSessionWithBuilder extends Session{
 
   def transformItem: Item => JsValue
 
-  def auth : AuthenticatedSessionActions
+  def auth: AuthenticatedSessionActions
 
   def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
@@ -56,18 +56,20 @@ trait ClientSessionWithBuilder extends Session{
     case Success(r) => r
   }
 
-  def builder: SessionActionBuilder[AnyContent] = new SessionActionBuilder[AnyContent] {
+  override def actions: SessionActions[AnyContent] = new SessionActions[AnyContent] {
 
     def submitAnswers(id: String)(block: (SubmitSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
-        handleValidationResult{
+        handleValidationResult {
           loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save, request)))
         }
     }
 
-    def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id){ request =>
-      handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
+    def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id) {
+      request =>
+        handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
     }
+
     /*Action {
       request =>
         //TODO: Add secure mode
@@ -85,7 +87,7 @@ trait ClientSessionWithBuilder extends Session{
     def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
         //TODO: Add secure mode
-        handleValidationResult{
+        handleValidationResult {
           loadSession(id)
             .map(s => SaveSessionRequest(s, false, false, sessionService.save, request))
             .map(block)
