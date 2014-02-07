@@ -7,7 +7,7 @@ import dao.SalatDAOUpdateError
 import dao.SalatMongoCursor
 import dao.SalatRemoveError
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
+import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.search.Searchable
@@ -30,7 +30,7 @@ case class User(var userName: String = "",
   def hasRegisteredOrg: Boolean = org.orgId != AppConfig.demoOrgId
 }
 
-object User extends ModelCompanion[User, ObjectId] with Searchable with PackageLogging {
+object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLogging {
   val userName = "userName"
   val fullName = "fullName"
   val email = "email"
@@ -148,9 +148,9 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with PackageL
   def getUser(userId: IdentityId): Option[User] = getUser(userId.userId, userId.providerId)
 
   def getUser(username: String, provider: String): Option[User] = {
-    logger.debug(s"getUser: $username, $provider")
+    logger.debug(s"[getUser]: $username, $provider")
     val query = MongoDBObject(User.userName -> username, User.provider -> provider)
-    logger.debug(s"${User.count(query)}")
+    logger.trace(s"${User.count(query)}")
     User.findOne(query)
   }
 

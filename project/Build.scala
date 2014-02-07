@@ -59,6 +59,9 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
+  val playJsonSalatUtils = builders.lib("play-json-salat-utils").settings(
+    libraryDependencies ++= Seq(playJson, salat, specs2 % "test"))
+
   val apiUtils = builders.lib("api-utils")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
@@ -88,7 +91,7 @@ object Build extends sbt.Build {
       mockito,
       playTest % "test",
       scalaFaker))
-    .dependsOn(assets, testLib % "test->compile", qti)
+    .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
 
   val playerLib = builders.lib("player-lib")
     .settings(

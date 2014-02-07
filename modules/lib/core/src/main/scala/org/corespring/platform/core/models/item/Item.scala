@@ -1,17 +1,15 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.json.JsonValidationException
-import org.corespring.platform.core.models.json.ItemView
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.json.ItemView
+import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
-import com.novus.salat._
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.resource.Resource
 
 case class Item(
   var collectionId: String = "",
@@ -24,6 +22,7 @@ case class Item(
   var pValue: Option[String] = None,
   var lexile: Option[String] = None,
   var data: Option[Resource] = None,
+  var playerDefinition: Option[PlayerDefinition] = None,
   var originId: Option[String] = None,
   var supportingMaterials: Seq[Resource] = Seq(),
   var published: Boolean = false,
@@ -120,6 +119,8 @@ object Item {
 
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
 
+
+      item.playerDefinition = (json \ "playerDefinition").asOpt[PlayerDefinition]
       item.taskInfo = json.asOpt[TaskInfo]
       item.otherAlignments = json.asOpt[Alignments]
       item.workflow = (json \ workflow).asOpt[Workflow]

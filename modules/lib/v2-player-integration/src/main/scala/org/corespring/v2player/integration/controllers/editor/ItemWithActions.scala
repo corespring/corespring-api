@@ -5,17 +5,22 @@ import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Item
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
-import org.corespring.platform.core.models.item.{ Item => ModelItem }
+import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
-import org.corespring.v2player.integration.errors.Errors.{ orgCantAccessCollection, noOrgIdAndOptions, propertyNotFoundInJson, noJson }
+import org.corespring.v2player.integration.errors.Errors._
+import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
+import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
+import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
 import org.corespring.v2player.integration.errors.V2Error
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc.{ Action, Result, AnyContent }
-import scalaz.{ Failure, Validation, Success }
+import scala.Some
+import scalaz.Failure
+import scalaz.Success
+import scalaz.Validation
 
 trait ItemWithActions
   extends Item
@@ -43,21 +48,53 @@ trait ItemWithActions
         }.getOrElse(NotFound("?"))
     }
 
-    def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action(BadRequest("Not ready yet"))
+    def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+      request =>
+
+        import scalaz.Scalaz._
+        import scalaz._
+
+        val out: Validation[V2Error, Result] = for {
+          vid <- VersionedId(itemId).toSuccess(cantParseItemId)
+          item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+          orgIdAndOptions <- getOrgIdAndOptions(request).toSuccess(noOrgIdAndOptions(request))
+          hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(item.collectionId), Permission.Write)) {
+            Success(true)
+          } else {
+            Failure(orgCantAccessCollection(orgIdAndOptions._1, item.collectionId))
+          }
+        } yield {
+
+          /** an implementation for the container to save its definition */
+          def save(itemId: String, playerJson: JsValue): Option[JsValue] = {
+            val playerDef = playerJson.as[PlayerDefinition]
+            val update = item.copy(playerDefinition = Some(playerDef))
+            itemService.save(update, false)
+            Some(playerJson)
+          }
+
+          val itemJson = item.playerDefinition.map {
+            Json.toJson(_)
+          }.getOrElse(Json.obj())
+
+          block(SaveItemRequest(itemJson, save, request))
+        }
+
+        out match {
+          case Success(r) => r
+          case Failure(err) => Status(err.code)(err.message)
+        }
+    }
 
     def getScore(itemId: String)(block: (ScoreItemRequest[AnyContent]) => Result): Action[AnyContent] = ???
 
     private def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
 
+      val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj())
       val item = models.item.Item(
         collectionId = collectionId,
-        data = Some(Resource(
-          name = "data",
-          files = Seq(
-            VirtualFile(
-              name = "qti.xml",
-              contentType = "text/xml",
-              content = "<assessmentItem><itemBody><p>I'm a new item</p></itemBody></assessmentItem>")))))
+        playerDefinition = Some(definition))
+
       itemService.insert(item)
     }
 
