@@ -8,31 +8,39 @@ class TexTransformerTest extends Specification {
 
   "TexTransformer" should {
 
-    def qti(texNode: Node) =
-      <assessmentItem>
-        <itemBody>{ texNode }</itemBody>
-      </assessmentItem>
+    implicit class TexNodeHelper(node: Node) {
+      def inQti =
+        <assessmentItem>
+          <itemBody>{ node }</itemBody>
+        </assessmentItem>
+
+      def transformed = new RuleTransformer(TexTransformer).transform(node)
+    }
 
     val tex = "This is my latex!"
-    val texNode = <tex class="best-class">{ tex }</tex>
 
-    def output = new RuleTransformer(TexTransformer).transform(qti(texNode))
-    def corespringTex = (output \\ "corespring-tex")
+    def texNode(tex: String, inline: Option[Boolean] = None) = inline match {
+      case Some(inlineValue) => <tex inline={ inlineValue.toString }>{tex}</tex>
+      case _ => <tex>{tex}</tex>
+    }
+
+    def inlineOutput(tex: String) = s"\\($tex\\)"
+    def nonInlineOutput(tex: String) = s"$$$tex$$"
 
     "should remove <tex/>" in {
-      (output \\ "tex") must beEmpty
+      texNode(tex).inQti.transformed \\ "tex" must beEmpty
     }
 
-    "should add <corespring-tex/>" in {
-      corespringTex.length must be equalTo 1
+    "should replace <tex/> body with inline by default" in {
+      texNode(tex).inQti.transformed.text must contain(inlineOutput(tex))
     }
 
-    "should add <corespring-tex/> with children" in {
-      corespringTex.head.child diff texNode.child must beEmpty
+    "should replace <tex/> body with non-inline when inline='false'" in {
+      texNode(tex, inline = Some(false)).inQti.transformed.text must contain(nonInlineOutput(tex))
     }
 
-    "should preserve <tex/> attributes in <corespring-tex/>" in {
-      corespringTex.head.attributes must be equalTo texNode.attributes
+    "should replace <tex/> body with inline when inline='true'" in {
+      texNode(tex, inline = Some(true)).inQti.transformed.text must contain(inlineOutput(tex))
     }
 
   }
