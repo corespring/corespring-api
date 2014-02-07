@@ -1,11 +1,10 @@
 package org.corespring.v2player.integration.transformers
 
-import org.corespring.platform.core.models.item.{ItemTransformationCache, Item}
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-import scala.xml.Node
-import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile}
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile }
+import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item }
 import org.corespring.v2player.integration.transformers.qti.QtiTransformer
-import play.api.Logger
+import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import scala.xml.Node
 
 object ItemTransformer extends ItemTransformationCache {
 

@@ -1,15 +1,14 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.BasicDBObject
-import org.corespring.platform.core.models.json.JsonValidationException
 import org.bson.types.ObjectId
 import org.corespring.platform.core
 import org.corespring.platform.core.models.Subject
 import org.corespring.platform.core.models.item.Item.Keys
-import org.corespring.platform.core.models.item._
-import play.api.libs.json.{JsArray, JsObject, JsString, Json}
-import scala.Some
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.test.BaseTest
+import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
+import scala.Some
 
 class ItemTest extends BaseTest {
 
@@ -39,9 +38,7 @@ class ItemTest extends BaseTest {
         "playerDefinition" -> Json.obj(
           "files" -> JsArray(Seq()),
           "xhtml" -> "<div/>",
-          "components" -> Json.obj("3" -> Json.obj("componentType" -> "type"))
-        )
-      )
+          "components" -> Json.obj("3" -> Json.obj("componentType" -> "type"))))
       val item = json.as[Item]
       item.playerDefinition.isDefined === true
     }

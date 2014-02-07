@@ -1,12 +1,12 @@
 package org.corespring.platform.core.models.item
 
-import com.mongodb.{BasicDBList, DBObject}
-import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
+import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
+import com.mongodb.{ BasicDBList, DBObject }
 import com.novus.salat.Context
 import com.novus.salat.transformers.CustomTransformer
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.corespring.platform.core.models.item.resource.BaseFile
-import org.corespring.play.json.salat.utils.{ToJsValue, ToDBObject}
+import org.corespring.play.json.salat.utils.{ ToJsValue, ToDBObject }
 import play.api.libs.json._
 
 /**
@@ -25,8 +25,7 @@ object PlayerDefinition {
       Json.obj(
         "xhtml" -> o.xhtml,
         "files" -> o.files.map(f => Json.toJson(f)),
-        "components" -> o.components
-      )
+        "components" -> o.components)
     }
 
     override def reads(json: JsValue): JsResult[PlayerDefinition] = json match {
@@ -58,7 +57,6 @@ class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val componen
     case _ => false
   }
 }
-
 
 /**
  * A transformer to help salat to (de)serialize - jsvalue to and from mongo db
