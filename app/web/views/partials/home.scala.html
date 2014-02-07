@@ -23,6 +23,7 @@
                     <th class="collection-label">Collection</th>
                     <th># of items</th>
                     <th></th>
+                    <th></th>
                 </thead>
             </table>
         </div>
@@ -40,7 +41,12 @@
                         </div>
                     </td>
                     <td>{{collection.itemCount}}</td>
-                    <td><span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span></td>
+                    <td>
+                        <span ng-show="collection.itemCount == 0"><a ng-click="deleteCollection(collection.id)">delete</a></span>
+                    </td>
+                    <td>
+                        <span><a ng-click="openCollectionSharing(collection)">share...</a></span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
@@ -83,6 +89,41 @@
             </table>
         </div>
 
+        <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
+    </div>
+
+    <!-- collection sharing -->
+
+    <div ng-show="viewState == 'collectionSharing'">
+        <div class="header-holder">
+            <!-- org collections -->
+            <table class="table header">
+                <thead>
+                <th class="collection-label">Collection: {{activeCollection.name}}, Shared with Organizations....</th>
+                <th></th>
+                <th></th>
+                </thead>
+            </table>
+        </div>
+
+        <div class="scrollable">
+            <table class="table table-striped">
+                <tbody>
+                <tr ng-repeat="org in orgsForSharedCollection">
+                    <td class="collection-label">{{org.name}}</td>
+                    <td></td>
+                    <td>
+                        <span></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            Organization ID: <input type="text" id="sharedOrgIdInput" ui-keypress="{13:'shareCollection(sharedOrgId activeCollection)'}" placeholder="enter org id..." ng-model="sharedOrgId">
+            <button class="btn btn-mini btn-success" ng-click="shareCollection(sharedOrgId, activeCollection)">share</button>
+            <button class="btn btn-mini btn-primary" ng-click="viewState = 'org'">cancel</button>
+        </div>
         <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
 

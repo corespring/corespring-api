@@ -1,6 +1,6 @@
 package tests.api.v1
 
-import api.v1.{ItemApi, CollectionApi}
+import api.v1.{OrganizationApi, ItemApi, CollectionApi}
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.{Organization, ContentCollection}
@@ -292,6 +292,14 @@ class CollectionApiTest extends BaseTest {
     val ownedByA = collections.filter(jsVal => (jsVal \ "ownerOrgId").as[String] == organizationA.toString)
     ownedByA.size must beEqualTo(1)
 
+  }
+
+  "can get all organizations a collection is shared with" in new CollectionSharingScope {
+    val fakeRequest = FakeRequest(GET, s"/api/v1/organizations/with-shared-collection/$collectionB1 ?access_token=%s".format(accessTokenA))
+    val result = OrganizationApi.getOrgsWithSharedCollection(collectionB1)(fakeRequest)
+    assertResult(result)
+    val foundItems = parsed[List[JsValue]](result)
+    foundItems.size must beEqualTo(2)
   }
 
 

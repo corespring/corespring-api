@@ -76,7 +76,8 @@ angular.module('tagger.services')
                 viewFile:'/tagger/files/{itemId}/{fileName}',
                 deleteFile:'/tagger/delete/{itemId}/{fileName}',
                 collectionSetEnabledStatus: '/api/v1/collections/:id/set-enabled-status/:enabled',
-
+                shareCollection: '/api/v1/collections/:id/share-with-org/:orgId',
+                getOrgsWithSharedCollection: '/api/v1/organizations/with-shared-collection/:collId',
                 playerPreview: checkInjectedRoutes('PlayerRoutes','preview', [':itemId'], '/player/item/:itemId/preview')
             };
         };

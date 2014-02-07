@@ -16,7 +16,7 @@
  * TODO: We do alot of data formatting on the client side here - should that be server side instead?
  */
 angular.module('tagger.services')
-  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', function (Collection, UserInfo, Logger, CollectionEnabledStatus) {
+  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', 'ShareCollection', function (Collection, UserInfo, Logger, CollectionEnabledStatus, ShareCollection) {
     "use strict";
 
     var rawData = {};
@@ -208,6 +208,9 @@ angular.module('tagger.services')
 
       init: function (onComplete) {
         initialize(onComplete);
+      },
+      shareCollection: function(collectionId, orgId, onSuccess, onError) {
+        ShareCollection.update({id: collectionId, orgId : orgId }, {}, onSuccess, onError);
       },
       rawCollections: null,
       sortedCollections: null
