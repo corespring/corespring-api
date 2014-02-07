@@ -1,17 +1,15 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.json.JsonValidationException
-import org.corespring.platform.core.models.json.ItemView
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.json.ItemView
+import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
-import com.novus.salat._
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.resource.{ PlayerDefinition, Resource }
 
 case class Item(
   var collectionId: String = "",
