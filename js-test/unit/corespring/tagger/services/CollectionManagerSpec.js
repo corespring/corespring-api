@@ -4,10 +4,10 @@ describe('ItemService', function () {
   var MockUserInfo = {};
 
   var collections = [
-    {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics", itemCount: 0},
-    {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items", itemCount: 0},
-    {"id": "50a22ccc300479fa2a5a66ac", "name": "default", itemCount: 0},
-    {"id": "51baf73da196d2f175140218", "name": "Items from Production", itemCount: 0}
+    {"id": "4ff2e56fe4b077b9e3168a05", "name": "CoreSpring Mathematics", "isPublic": true ,itemCount: 0},
+    {"id": "505777f5e4b05f7845735bc1", "name": "Beta Items", "isPublic": true, itemCount: 0},
+    {"id": "50a22ccc300479fa2a5a66ac", "name": "default",  "ownerOrgId": "502404dd0364dc35bb39339c", itemCount: 0},
+    {"id": "51baf73da196d2f175140218", "name": "Items from Production",  "ownerOrgId": "502404dd0364dc35bb39339c", itemCount: 0}
   ];
 
   MockUserInfo.org = {
@@ -15,9 +15,9 @@ describe('ItemService', function () {
     "name": "Organization A",
     "path": ["502404dd0364dc35bb39339c"],
     "collections": [
-      {"collectionId": "51baf73da196d2f175140218", "name": "Items from Production", "permission": "write"},
-      {"collectionId": "50a22ccc300479fa2a5a66ac", "name": "default", "permission": "write"},
-      {"collectionId": "505777f5e4b05f7845735bc1", "name": "Beta Items", "permission": "read"}
+      {"collectionId": "51baf73da196d2f175140218", "name": "Items from Production", "permission": "write", "enabled": true},
+      {"collectionId": "50a22ccc300479fa2a5a66ac", "name": "default", "permission": "write", "enabled": true},
+      {"collectionId": "505777f5e4b05f7845735bc1", "name": "Beta Items", "permission": "read", "enabled": true}
     ]
   };
 
@@ -69,8 +69,9 @@ describe('ItemService', function () {
         {
           "name": "Organization A",
           "collections": [
-            {"id": "51baf73da196d2f175140218", "name": "Items from Production"},
-            {"id": "50a22ccc300479fa2a5a66ac", "name": "default"}
+            {"id": "50a22ccc300479fa2a5a66ac", "name": "default"},
+            {"id": "51baf73da196d2f175140218", "name": "Items from Production"}
+
           ]},
         {
           "name": "Public",
