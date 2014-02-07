@@ -14,6 +14,7 @@ import play.api.Play.current
 import play.api.libs.json._
 import se.radley.plugin.salat._
 import search.Searchable
+import org.corespring.common.log.PackageLogging
 
 case class Organization(var name: String = "",
   var path: Seq[ObjectId] = Seq(),
@@ -23,7 +24,11 @@ case class Organization(var name: String = "",
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
 }
 
-trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searchable with OrganizationService {
+trait OrganizationImpl
+  extends ModelCompanion[Organization, ObjectId]
+  with Searchable
+  with OrganizationService
+  with PackageLogging {
 
   val name: String = "name"
   val path: String = "path"
@@ -116,13 +121,13 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
     }
   }
 
-    /**
-     * TODO: I'm duplicating hasCollRef, but adjusting the query so that it checks that the stored permission pval is gte than the
-     * requested pval.
-     * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
-     * @see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
-     */
-  override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission) : Boolean = {
+  /**
+   * TODO: I'm duplicating hasCollRef, but adjusting the query so that it checks that the stored permission pval is gte than the
+   * requested pval.
+   * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
+   * @see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
+   */
+  override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean = {
     val query = MongoDBObject(
       "_id" -> orgId,
       contentcolls ->
@@ -130,11 +135,10 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
           "$elemMatch" ->
             MongoDBObject(
               ContentCollRef.collectionId -> collectionId,
-              ContentCollRef.pval -> MongoDBObject( "$gte" -> permission.value)
-            )
-        )
-    )
-    count(query) > 0
+              ContentCollRef.pval -> MongoDBObject("$gte" -> permission.value))))
+    val access = count(query) > 0
+    logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
+    access
   }
 
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
@@ -142,7 +146,6 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
-
 
   def removeCollection(orgId: ObjectId, collId: ObjectId): Either[InternalError, Unit] = {
     findOneById(orgId) match {
@@ -168,7 +171,6 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
     })
   }
 
-
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
@@ -184,7 +186,6 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
     }
   }
-
 
   def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
@@ -222,11 +223,12 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       }
   }
 
-  def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String] = findOneById(orgId).map { org =>
-    val query = MongoDBObject("_id" -> orgId)
-    val pull = MongoDBObject("$pull" -> MongoDBObject("metadataSets" -> MongoDBObject("metadataId" -> setId)))
-    val result = update(query, pull, false, false, collection.writeConcern)
-    if (result.getLastError.ok) None else Some("Error updating orgs")
+  def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String] = findOneById(orgId).map {
+    org =>
+      val query = MongoDBObject("_id" -> orgId)
+      val pull = MongoDBObject("$pull" -> MongoDBObject("metadataSets" -> MongoDBObject("metadataId" -> setId)))
+      val result = update(query, pull, false, false, collection.writeConcern)
+      if (result.getLastError.ok) None else Some("Error updating orgs")
   }.getOrElse(Some("Can't find org with id: " + orgId))
 
   object FullWrites extends BasicWrites {
@@ -258,6 +260,7 @@ trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searc
       JsObject(list)
     }
   }
+
   override val searchableFields = Seq(
     name)
 

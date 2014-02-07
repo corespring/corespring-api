@@ -5,26 +5,22 @@ import org.corespring.container.client.actions._
 import org.corespring.container.client.controllers.resources.Item
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{Item => ModelItem, PlayerDefinition}
+import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
 import org.corespring.v2player.integration.errors.Errors._
-import org.corespring.v2player.integration.errors.V2Error
-import play.api.libs.json.{JsError, JsSuccess, Json, JsValue}
-import play.api.mvc.{Action, Result, AnyContent}
-import scalaz.{Failure, Validation, Success}
-import org.corespring.container.client.actions.SaveItemRequest
-import org.corespring.container.client.actions.NewItemRequest
-import org.corespring.container.client.actions.ScoreItemRequest
-import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
-import scalaz.Failure
-import scala.Some
-import org.corespring.container.client.actions.ItemRequest
 import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
-import scalaz.Success
 import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
+import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
+import org.corespring.v2player.integration.errors.V2Error
+import play.api.libs.json.{ Json, JsValue }
+import play.api.mvc.{ Action, Result, AnyContent }
+import scala.Some
+import scalaz.Failure
+import scalaz.Success
+import scalaz.Validation
 
 trait ItemWithActions
   extends Item
@@ -55,12 +51,18 @@ trait ItemWithActions
     def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action {
       request =>
 
-        import scalaz._
         import scalaz.Scalaz._
+        import scalaz._
 
         val out: Validation[V2Error, Result] = for {
           vid <- VersionedId(itemId).toSuccess(cantParseItemId)
           item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+          orgIdAndOptions <- getOrgIdAndOptions(request).toSuccess(noOrgIdAndOptions(request))
+          hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(item.collectionId), Permission.Write)) {
+            Success(true)
+          } else {
+            Failure(orgCantAccessCollection(orgIdAndOptions._1, item.collectionId))
+          }
         } yield {
 
           /** an implementation for the container to save its definition */
