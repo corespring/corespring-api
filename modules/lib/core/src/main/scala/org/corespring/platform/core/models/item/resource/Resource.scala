@@ -5,22 +5,14 @@ import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
 import scala.Some
 import org.corespring.common.log.PackageLogging
+import org.json4s.JValue
 
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
  */
 case class Resource(name: String, var files: Seq[BaseFile]) {
-
   def defaultFile = files.find(_.isMain)
 }
-
-/**
- * Model to contain the new v2 player model
- * @param files
- * @param xhtml
- * @param components
- */
-case class PlayerDefinition(files: Seq[BaseFile], xhtml: String, components: JsValue)
 
 object Resource extends PackageLogging {
   val name = "name"
