@@ -1,11 +1,10 @@
 package org.corespring.platform.core.models.item.resource
 
-import play.api.libs.json._
+import org.corespring.common.log.PackageLogging
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import play.api.libs.json._
 import scala.Some
-import org.corespring.common.log.PackageLogging
-import org.json4s.JValue
 
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
