@@ -11,6 +11,7 @@ object QtiTransformer extends XMLNamespaceClearer {
   def transform(qti: Elem): (Node, JsValue) = {
 
     val transformers = Seq(
+      TexTransformer,
       ChoiceInteractionTransformer,
       DragAndDropInteractionTransformer,
       FeedbackBlockTransformer(qti),
@@ -21,7 +22,6 @@ object QtiTransformer extends XMLNamespaceClearer {
       TextEntryInteractionTransformer,
       SelectTextInteractionTransformer,
       ExtendedTextInteractionTransformer,
-      TexTransformer,
       FoldableInteractionTransformer,
       CoverflowInteractionTransformer,
       CorespringTabTransformer)
