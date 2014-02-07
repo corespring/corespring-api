@@ -9,6 +9,8 @@ import org.specs2.execute.Failure
 class FeedbackBlockTransformerTest extends Specification {
 
   val identifier = "Q_01"
+  val anotherIdentifier = "Q_02"
+
   def feedbackIdentifier(identifier: String) = s"${identifier}_feedback"
   def feedbackIdentifier(identifier: String, outcomeIdentifier: String) = s"${identifier}_feedback_${outcomeIdentifier}"
 
@@ -21,16 +23,21 @@ class FeedbackBlockTransformerTest extends Specification {
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={ identifier } expectedLength="15"/>
         {
-          correctResponses.map(response =>
-            <feedbackBlock outcomeIdentifier={ s"responses.$identifier.value" } identifier={ response }>
-              <div class="feedback-block-correct">{ correctFeedback }</div>
-            </feedbackBlock>)
+          Seq(identifier, anotherIdentifier).map(id => {
+              Seq(
+                <textEntryInteraction responseIdentifier={ id } expectedLength="15"/>,
+                correctResponses.map(response =>
+                  <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } identifier={ response }>
+                    <div class="feedback-block-correct">{ s"$correctFeedback $id" }</div>
+                  </feedbackBlock>
+                ),
+                <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } incorrectResponse="true">
+                  <div class="feedback-block-incorrect">{ s"$incorrectFeedback $id" }</div>
+                </feedbackBlock>
+              )
+          })
         }
-        <feedbackBlock outcomeIdentifier={ s"responses.$identifier.value" } incorrectResponse="true">
-          <div class="feedback-block-incorrect">{ incorrectFeedback }</div>
-        </feedbackBlock>
       </itemBody>
     </assessmentItem>
 
@@ -99,11 +106,13 @@ class FeedbackBlockTransformerTest extends Specification {
       })
     }
 
-    "return correct feedback text for answers" in {
-      correctResponses.map(response => {
-        (feedbackResult(identifier) \ "feedback" \ "correct").as[JsObject]
-          .value(response).as[String] must be equalTo correctFeedback
-      })
+    "return feedback text for answers with correct identifier" in {
+      Seq(identifier, anotherIdentifier).map(id => {
+        correctResponses.map(response => {
+          (feedbackResult(id) \ "feedback" \ "correct").as[JsObject]
+            .value(response).as[String] must be equalTo s"$correctFeedback $id"
+        })
+      }).flatten
     }
 
     "return correct outcome feedback" in {
@@ -124,9 +133,11 @@ class FeedbackBlockTransformerTest extends Specification {
     }
 
     "return incorrect feedback" in {
-      (feedbackResult(identifier) \ "feedback" \ "incorrect").as[JsObject].keys.contains("*") must beTrue
-      (feedbackResult(identifier) \ "feedback" \ "incorrect")
-        .as[JsObject].value("*").as[String] must be equalTo incorrectFeedback
+      Seq(identifier, anotherIdentifier).map(id => {
+        (feedbackResult(id) \ "feedback" \ "incorrect").as[JsObject].keys.contains("*") must beTrue
+        (feedbackResult(id) \ "feedback" \ "incorrect")
+          .as[JsObject].value("*").as[String] must be equalTo s"$incorrectFeedback $id"
+      })
     }
 
     "replace all <feedbackBlock/>s with a <corespring-feedback-block/>" in {
@@ -148,8 +159,11 @@ class FeedbackBlockTransformerTest extends Specification {
       }
     }
 
-    "contain unique <corespring-feedback-block/>" in {
-      (FeedbackBlockTransformer.transform(output.head) \\ "corespring-feedback-block").toSeq.length must be equalTo 1
+    "contain unique <corespring-feedback-block/> by id" in {
+      Seq(identifier, anotherIdentifier).map(id => {
+        (FeedbackBlockTransformer.transform(output.head) \\ "corespring-feedback-block")
+          .filter(n => (n \ "@id").text == feedbackIdentifier(id)).toSeq.length must be equalTo 1
+      })
     }
 
   }
