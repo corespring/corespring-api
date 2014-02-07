@@ -1,8 +1,6 @@
 package org.corespring.platform.core.models.item.resource
 
 import org.corespring.common.log.PackageLogging
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import play.api.libs.json._
 import scala.Some
 

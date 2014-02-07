@@ -5,6 +5,7 @@ import com.novus.salat._
 import com.novus.salat.dao.{ SalatDAOUpdateError, SalatRemoveError, ModelCompanion, SalatDAO }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
@@ -14,7 +15,6 @@ import play.api.Play.current
 import play.api.libs.json._
 import se.radley.plugin.salat._
 import search.Searchable
-import org.corespring.common.log.PackageLogging
 
 case class Organization(var name: String = "",
   var path: Seq[ObjectId] = Seq(),
