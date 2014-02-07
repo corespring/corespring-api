@@ -119,6 +119,8 @@ object Item {
 
       item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
 
+
+      item.playerDefinition = (json \ "playerDefinition").asOpt[PlayerDefinition]
       item.taskInfo = json.asOpt[TaskInfo]
       item.otherAlignments = json.asOpt[Alignments]
       item.workflow = (json \ workflow).asOpt[Workflow]

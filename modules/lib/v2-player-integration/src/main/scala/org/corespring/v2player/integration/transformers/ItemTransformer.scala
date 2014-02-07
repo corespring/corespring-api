@@ -1,15 +1,19 @@
 package org.corespring.v2player.integration.transformers
 
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item }
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import org.corespring.platform.core.models.item.{ItemTransformationCache, Item}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import scala.xml.Node
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile }
+import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile}
 import org.corespring.v2player.integration.transformers.qti.QtiTransformer
 import play.api.Logger
 
 object ItemTransformer extends ItemTransformationCache {
 
   def transformToV2Json(item: Item): JsValue = {
+    item.playerDefinition.map(Json.toJson(_)).getOrElse(createFromQti(item))
+  }
+
+  private def createFromQti(item: Item): JsValue = {
     val (xhtml, components) = getTransformation(item)
 
     Json.obj(

@@ -136,7 +136,7 @@ object ToDBObject {
         case v: JsObject => parse(v, parent)
         case v: JsArray => parse(v, parent)
         case v: JsString => JsSuccess(v.value, parent)
-        case v: JsNumber => JsSuccess(v.value, parent)
+        case v: JsNumber => JsSuccess(v.value.toLong, parent)
         case v: JsBoolean => JsSuccess(v.value, parent)
         case JsNull => JsSuccess(null)
         case _: JsUndefined => JsSuccess(null)
