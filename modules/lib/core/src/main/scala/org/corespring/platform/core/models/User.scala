@@ -7,7 +7,7 @@ import dao.SalatDAOUpdateError
 import dao.SalatMongoCursor
 import dao.SalatRemoveError
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.{ ClassLogging, PackageLogging }
+import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.search.Searchable
