@@ -11,7 +11,6 @@ object QtiTransformer extends XMLNamespaceClearer {
   def transform(qti: Elem): (Node, JsValue) = {
 
     val transformers = Seq(
-      TexTransformer,
       ChoiceInteractionTransformer,
       DragAndDropInteractionTransformer,
       FeedbackBlockTransformer(qti),
@@ -33,6 +32,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       NumberedLinesTransformer
     )
 
+    /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
     val texProcessedQti = new RuleTransformer(TexTransformer).transform(qti)
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
