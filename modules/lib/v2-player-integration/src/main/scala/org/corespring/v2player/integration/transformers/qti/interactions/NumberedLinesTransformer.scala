@@ -16,6 +16,7 @@ object NumberedLinesTransformer extends Transformer {
     (qti \\ "_").filter(isNumberedLinesNode(_)).zipWithIndex.map{ case(node, index) => {
       id(index+1) -> Json.obj(
         "componentType" -> "corespring-numbered-lines",
+        "weight" -> 0,
         "model" -> Json.obj(
           "lines" -> (node \ "line").map(_.child.mkString)
         )
