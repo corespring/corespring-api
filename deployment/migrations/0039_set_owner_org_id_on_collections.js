@@ -72,7 +72,7 @@ function getOwnerId(collection) {
 
 function up() {
     db.contentcolls.find().forEach(function(collection) {
-        db.contentcolls.update(collection._id, { $set: { "ownerOrgId": getOwnerId(collection) }});
+        db.contentcolls.update({"_id": collection._id}, { $set: { "ownerOrgId": getOwnerId(collection) }});
     });
 }
 
