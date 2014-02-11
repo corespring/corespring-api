@@ -117,7 +117,7 @@ angular.module('tagger.services')
         collections: _.filter(collections, function(c){
           return c.ownerOrgId != userOrg.id;
         })
-      }
+      };
 
       var userIds = _.pluck(userOrg.collections, "id");
 

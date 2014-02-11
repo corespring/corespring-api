@@ -166,8 +166,10 @@
                           <b>{{o.name}}</b> <br/>
                           <span ng-show="o.collections.length == 0">You don't have any collections yet</span>
                           <div ng-repeat="c in o.collections">
-                              <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"/>
-                              {{c.name}} <span ng-show="c.isPublic">(public)</span>
+                              <span ng-show="c.enabled">
+                                  <input type="checkbox" ng-model="selectedArr[c.${uidKey}]" ng-click="toggleItem(c)"/>
+                                  {{c.name}} <span ng-show="c.isPublic">(public)</span>
+                              </span>
                           </div>
 
                       </div>
