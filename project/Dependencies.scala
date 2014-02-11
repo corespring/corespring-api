@@ -40,6 +40,7 @@ object Dependencies {
   val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
+  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
 
   val all = Seq(
     amapClient,
@@ -58,7 +59,8 @@ object Dependencies {
     slf4j,
     playMemcached,
     playPluginMailer,
-    playPluginUtil
+    playPluginUtil,
+    simplecsv
   )
 
   object Resolvers {
