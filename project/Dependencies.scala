@@ -12,7 +12,7 @@ object Dependencies {
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.6")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.8-SNAPSHOT")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
