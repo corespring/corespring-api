@@ -19,21 +19,23 @@ object ReportLineResult extends CsvWriter {
   def zeroedKeyCountList(l: List[String]): List[KeyCount] = l.map((s: String) => new KeyCount(s, 0))
 
   def buildCsv(title: String, list: List[LineResult]): String = {
-    val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel, PriorUse, Credentials, LicenseType).flatten
+    val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel.sortWith(TaskInfo.gradeLevelSorter),
+      PriorUse, Credentials, LicenseType).flatten
     val lines: List[List[String]] = list.map(buildLine)
     (List(header) ::: lines).toCsv
   }
 
-  private def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key < b.key) =
-    l.sortWith(sorter).map(kc => kc.count).map(_.toString)
+  private def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key <= b.key) =
+    l.sortWith(sorter).map(_.count.toString)
 
-  private def buildLine(result: LineResult): List[String] =
+  private def buildLine(result: LineResult): List[String] = {
     List(List(result.subject), List(result.total.toString),
-      createValueList(result.itemType, (a,b) => {TaskInfo.gradeLevelSorter(a.key, b.key) }),
-      createValueList(result.gradeLevel) :::
+      createValueList(result.itemType),
+      createValueList(result.gradeLevel, (a: KeyCount, b: KeyCount) => {TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
       createValueList(result.priorUse),
       createValueList(result.credentials),
       createValueList(result.licenseType)).flatten
+  }
 
   case class LineResult(subject: String,
     total: Int = 0,
