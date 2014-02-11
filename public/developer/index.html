@@ -196,24 +196,26 @@
 </ul>
 <ul class="nav nav-list">
   <li><a href="#the-corespring-item-player" class="main-menu">Overview</a></li>
-</ul>
-<ul class="nav nav-list">
   <li><a href="#loading-the-corespring-item-player" class="main-menu">Loading the Player</a></li>
-</ul>
-<ul class="nav nav-list">
   <li><a href="#player-options" class="main-menu">Player Options</a></li>
-</ul>
-<ul class="nav nav-list">
   <li><a href="#player-modes" class="main-menu">Player Modes</a></li>
-</ul>
-<ul class="nav nav-list">
   <li><a href="#encrypting-player-options" class="main-menu">Encrypting Player Options</a></li>
-</ul>
-<ul class="nav nav-list">
   <li><a href="#advanced-options" class="main-menu">Advanced Options</a></li>
+  <li><a href="#road-map" class="main-menu">Road Map</a></li>
 </ul>
 <ul class="nav nav-list">
-  <li><a href="#road-map" class="main-menu">Road Map</a></li>
+  <li class="nav-header" style="color: white;">CoreSpring Item Player v2</li>
+</ul>
+<ul class="nav nav-list">
+  <li><a href="#the-corespring-item-player-v2" class="main-menu">Overview</a></li>
+  <li><a href="#player-quick-start" class="main-menu">Quick Start</a></li>
+  <li><a href="#creating-a-token-and-loading-the-player-javascript" class="main-menu">Creating a Token and Loading the Player Javascript</a></li>
+  <li><a href="#launching-the-player" class="main-menu">Launching the Player</a></li>
+  <li><a href="#v2-player-options" class="main-menu">Player Options</a></li>
+  <li><a href="#v2-player-modes" class="main-menu">Player Modes</a></li>
+  <li><a href="#player-methods" class="main-menu">Player Methods</a></li>
+  <li><a href="#advanced-options-and-security" class="main-menu">Advanced Options and Security</a></li>
+  <li><a href="#" class="main-menu"></a></li>
 </ul>
 <ul class="nav nav-list">
   <li class="nav-header" style="color: white;">Rest Api</li>
@@ -310,8 +312,7 @@ Collections
     </div>
     <!-- main content -->
     <div class="main-content">
-        <br/>
-
+        <p><br/></p>
 
 <div class="span9 lead-in developer" style="margin-left: 0px;">
 
@@ -410,8 +411,7 @@ Our developer tools include a set of APIs for discovering, managing and deployin
 </ol>
 
 
-<br/>
-
+<p><br/></p>
 
 <p><strong>Finding an Item</strong></p>
 
@@ -780,6 +780,284 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 </ul>
 
 
+<h1><a name="the-corespring-item-player-v2" class="waypoint"></a>The CoreSpring Item Player v2</h1>
+
+<p>The CoreSpring Item Player is an embeddable javascript component that will render the interface for an assessment item and capture a student's response on a browser. It also can provide a view for a student or teacher to review responses, and to show scoring and feedback based on the response.</p>
+
+<p>Some terms used in this documentation:</p>
+
+<ul>
+<li>An <strong>Assessment Item</strong> contains some content and one or more questions / interactions that may be presented to a user to gather a response.</li>
+<li>Each instance of a user's interaction with and response to an item is called an <strong>Item Session</strong>.</li>
+<li>Individual components in the interface that capture a user response are called <strong>Interactions</strong>.</li>
+</ul>
+
+
+<h2><a name="player-quick-start" class="waypoint"></a>Quick Start</h2>
+
+<p>You can launch the Item Player on your page with the few simple steps outlined here. For more detailed information and options continue to the full item player documentation.</p>
+
+<p>Steps to launch the item player:</p>
+
+<ol>
+<li><p>Create a player token using a call to the REST API (see <a href="#authentication-register">REST API</a> documentation).</p>
+
+<pre><code> POST /api/v1/player/token (passing in your client_id and client_secret)
+</code></pre></li>
+<li>Choose either an item id to launch to gather a new response from a user, or a session id for an existing Item Session</li>
+<li>Choose the mode in which to launch the player (gather response, view response, evaluate response) if itemId is set it defaults to gather response.</li>
+<li>Launch the player.</li>
+</ol>
+
+
+<blockquote><p>Note:
+You can create a token once, and re-use the same token for any launch of the item player. But for fine-grained control of
+access/permissions, to create short-lived tokens, or tokens with specific options, see full documentation on Player Tokens.</p></blockquote>
+
+<p>Player Launch Example:</p>
+
+<div class="highlight"><pre><code class="html">    <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span>
+      <span class="na">src=</span><span class="s">&quot;http://api.corespring.org/v1/player.js?apiClientId=$client_id&amp;token=$token&quot;</span><span class="nt">/&gt;</span>
+
+    <span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+        <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{};</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">itemId</span> <span class="o">=</span> <span class="s2">&quot;12345abc&quot;</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+
+        <span class="kd">function</span> <span class="nx">submit</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">player</span><span class="p">.</span><span class="nx">completeSession</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="nt">&lt;/script&gt;</span>
+
+    <span class="nt">&lt;body&gt;</span>
+        <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;player&quot;</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;button&quot;</span> <span class="na">onclick=</span><span class="s">&quot;submit()&quot;</span> <span class="na">value=</span><span class="s">&quot;Submit Answer&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;/body&gt;</span>
+</code></pre>
+</div>
+
+
+<p>Once the player has been launched, you can control some of it's behaviour by implementing callbacks or calling player api methods, as shown in the player.completeSession() example above.</p>
+
+<h2><a name="creating-a-token-and-loading-the-player-javascript" class="waypoint"></a>Creating a Token and Loading the Player Javascript</h2>
+
+<p>To create a token, you call the CoreSpring REST API*, passing in your <strong>client_id</strong> and <strong>client_secret</strong>.  See the documentation on the REST API (TODO LINK) for information on how to retrieve an use the access token needed for calls to the REST API.</p>
+
+<pre><code>POST /api/v1/player/token
+</code></pre>
+
+<blockquote><p>Note: (This request should be performed from your server code, not in the browser.)</p></blockquote>
+
+<p>Once you have created a token, you include that token as a query option in the url for loading the item player javascript source, along with your API client id:</p>
+
+<div class="highlight"><pre><code class="html">    <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span>
+      <span class="na">src=</span><span class="s">&quot;http://api.corespring.org/v1/player.js?apiClientId=CLIENT_ID&amp;token=PLAYER_TOKEN&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre>
+</div>
+
+
+<p>This token is different from the access token you use to make REST calls to the CoreSpring API. It is designed specifically for launching and viewing the player in a browser and cannot be used to make REST calls to the CoreSpring API.</p>
+
+<p>The simplest thing to do is to create one token and re-use it any time you are launching the player. But you can also add options to the token that will affect the behaviour and security settings of the player. More details are in the <a href="#advanced-options-and-security">Advanced Options</a> section.</p>
+
+<h2><a name="launching-the-player" class="waypoint"></a>Launching the Player</h2>
+
+<p>To launch the player, you pass the id of the element in your page where you would like the player to render, and some options to configure the behaviour of the player:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{};</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">sessionId</span> <span class="o">=</span> <span class="s2">&quot;abcdefghijk&quot;</span><span class="p">;</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">mode</span> <span class="o">=</span> <span class="s2">&quot;view&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+</code></pre>
+</div>
+
+
+<h2><a name="v2-player-options" class="waypoint"></a>Player Options</h2>
+
+<h3>Item Id or Session Id</h3>
+
+<p>You need to specify whether to load the player to view (or edit) an existing response to an item, or to ask a user to enter a new response for an item.</p>
+
+<ul>
+<li><strong>itemId</strong> - To ask user for a new response, provide the item id of the item you wish to launch.</li>
+<li><strong>sessionId</strong> - To view or edit a previous response, provide the sessionId for the response.</li>
+</ul>
+
+
+<h2><a name="v2-player-modes" class="waypoint"></a>Player Modes</h2>
+
+<p>There are three main states or 'modes' in which the player can display an item / item session:</p>
+
+<ul>
+<li><strong>gather</strong> - gather response - this mode allows a student to enter a new response or continue editing an existing saved response</li>
+<li><strong>view</strong> - view response - this mode allows an instructor or student to view a completed response (not editable)</li>
+<li><strong>evaluate</strong> - view evaluated response - this mode allows an instructor or student to view a completed response, with feedback about the answers (not editable)</li>
+</ul>
+
+
+<blockquote><p>Passing a mode option is optional. If no mode is provided in the options object used when creating the player, the mode will default to 'gather' when itemId is set and 'view' when sessionId is set.</p></blockquote>
+
+<h2><a name="player-methods" class="waypoint"></a>Player Methods</h2>
+
+<p>Once you have launched the player, you can interact with it by implementing callback methods, or by calling API methods exposed by the player.</p>
+
+<h4>setMode()</h4>
+
+<p>Change the mode of the player:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="nx">player</span><span class="p">.</span><span class="nx">setMode</span><span class="p">(</span><span class="s2">&quot;view&quot;</span><span class="p">);</span>
+    <span class="nx">player</span><span class="p">.</span><span class="nx">setMode</span><span class="p">(</span><span class="s2">&quot;gather&quot;</span><span class="p">);</span>
+    <span class="nx">player</span><span class="p">.</span><span class="nx">setMode</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">);</span>
+</code></pre>
+</div>
+
+
+<blockquote><p>Note: Changing the mode to 'evaluate' will retrieve correct answers, feedback and score information from the server and deliver them to the client. The method is disabled if 'secure' is enabled - see Advanced Options.</p></blockquote>
+
+<h4>saveResponses(isAttempt = false)</h4>
+
+<p>Persist the current state of a user's responses in the player to the server.
+The score based on the current response values will be calculated on the server, and made available through the getScore() method.</p>
+
+<p>The optional isAttempt parameter defaults to false. Use this in conjunction with countAttempts() if you wish to allow a user have several attempts to response to an item.</p>
+
+<h4>countAttempts()</h4>
+
+<p>Returns the number of times saveResponse(true) as been called.</p>
+
+<h4>getScore([format = 'scaled'])</h4>
+
+<p>Get the calculated score based on the current state of responses. The method is only available if 'secure' is not enabled - see Advanced Options</p>
+
+<p>An optional 'format' property can be passed, the default is 'scaled' meaning a value between 0 and 1.0. 'percent' can be passed as a convenience to return the score out of 100.</p>
+
+<h4>completeResponse()</h4>
+
+<p>Mark the item as completed - this should be called when the student or system determines that the no further revision of the responses are intended. This is optional in basic use, but is used with the 'secure' option, which prevents the answer from being revised after it has been marked as complete.</p>
+
+<h4>isComplete() : Boolean</h4>
+
+<p>Check if the item has been marked completed.</p>
+
+<h4>getSessionStatus() : Object{}</h4>
+
+<p>This method allows you retrieve the current state of user's response to the item. It returns an object with the following properties:</p>
+
+<div>
+<json-highlight>
+    {
+        allInteractionsHaveResponse: Boolean, // is there a response entered for all interactions in the item?
+        interactionCount: Int, // number of interactions in the item
+        interactionsWithResponseCount: Int // number of interactions which have some response input
+        autoScoreInteractionsCount: Int // number of interactions in the item that can auto-calculate score/correct
+    }
+</json-highlight>
+</div>
+
+
+<p>This is useful if you for example want to only accept final submission of the item if all questions, or some partial number of questions have a response.</p>
+
+<h4>resetItem()</h4>
+
+<p>This will clear all responses and state from interactions in the item</p>
+
+<h3>Callbacks Functions</h3>
+
+<p>The following callback functions can be added to the options object passed into the Item Player.</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{};</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">onSessionCreated</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">sessionId</span><span class="p">)</span> <span class="p">{};</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">onSessionCreated</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">itemStatus</span><span class="p">)</span> <span class="p">{};</span>
+</code></pre>
+</div>
+
+
+<h4>onSessionCreated(sessionId)</h4>
+
+<p>Only available when 'gather' mode is active. Triggered when the player is loaded with an itemId. In this case the player will create a new session and callback this function with the new sessionId.</p>
+
+<h4>onInputReceived(itemStatus: Object)</h4>
+
+<p>Only available when 'gather' mode is active. Triggered when user input is received for interactions in the item  Receives itemStatus, an object with information about the current state of the user's response:</p>
+
+<div>
+<json-highlight>
+    {
+        allQuestionsAnswered: Boolean, // is there a response entered for all interactions in the item
+        questionCount: Int, // number of interactions in the item
+        questionsWithInput: Int // number of interactions which have input
+    }
+</json-highlight>
+</div>
+
+
+<h2><a name="advanced-options-and-security" class="waypoint"></a>Advanced Options and Security</h2>
+
+<p>By default, you can pass options to the player with the options parameter when constructing it:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{};</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">itemId</span> <span class="o">=</span> <span class="s2">&quot;12345abc&quot;</span><span class="p">;</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">mode</span> <span class="o">=</span> <span class="s2">&quot;gather&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">player</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+</code></pre>
+</div>
+
+
+<p>These values are in the javascript sent to the browser client, and in theory a user could pause execution of the javascript, and change some options before the player loads.</p>
+
+<p>If you would like to prevent this. You have the option of wrapping some or all of your options in encrypted form in the token that is used to launch the player. The token is encrypted using your client_secret on CoreSpring's servers. We use your client id to look up your client secret with which we decrypt the options embedded in the token.</p>
+
+<p>To specify the options to use when launching the player, you can pass them as a JSON object to the call you use to generate your player token.</p>
+
+<p>Example:</p>
+
+<pre><code>POST  /api/v1/player/token
+{
+  "itemId": "12345abc"
+}
+</code></pre>
+
+<p>If you pass options this way, they will be read from your encrypted token. Settings passed in the Javascript options will be ignored. In the above example, the player will only load the item with the id "12345abc" even if itemId is passed in the options parameter when constructing the player:</p>
+
+<div class="highlight"><pre><code class="javascript">    <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{};</span>
+
+    <span class="nx">options</span><span class="p">.</span><span class="nx">itemId</span> <span class="o">=</span> <span class="s2">&quot;abcde&quot;</span><span class="p">;</span>  <span class="c1">// will be ignored by player because was set in token</span>
+    <span class="nx">options</span><span class="p">.</span><span class="nx">mode</span> <span class="o">=</span> <span class="s2">&quot;view&quot;</span><span class="p">;</span>     <span class="c1">// will be used by player</span>
+
+    <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">corespring</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">ItemPlayer</span><span class="p">(</span><span class="s1">&#39;#player&#39;</span><span class="p">,</span> <span class="nx">options</span><span class="p">);</span>
+</code></pre>
+</div>
+
+
+<blockquote><p>Note Any option that is not given a fixed value in the encrypted token can be overriden in javascript. In the example above only itemId is fixed:</p></blockquote>
+
+<h4>Expires Option</h4>
+
+<p>If you would like the player token to expire after a certain time period, you may pass an 'expires' property when creating your player token. This will apply, whether any other options are set in the token or not. The token will only work until the expiry time that you specify. If this property is not provided, the token will not expire.</p>
+
+<h4>Secure Option</h4>
+
+<p>The secure option provides some support for preventing answers or scores being sent down to the client if the item session is not yet complete. When using this option, you must call completeResponse() to indicate the final response has been submitted.</p>
+
+<p>This option can be passed when creating a token.</p>
+
+<pre><code>POST  /api/v1/player/token
+{
+  "secure": true
+}
+</code></pre>
+
+<p>Setting it to true will disable certain functionality in the Item Player API:</p>
+
+<ul>
+<li>Mode cannot be changed to 'evaluate' if the server-side item session <strong>is not</strong> marked as complete</li>
+<li>Mode cannot be changed to 'gather' if the server-side item session <strong>is</strong> marked as complete</li>
+<li>getScore() will not work unless the server-side item session <strong>is not</strong> marked as complete</li>
+</ul>
+
+
+<blockquote><p>Note: When using secure mode, you still can 're-open' an Item Session using the REST API if you choose.</p></blockquote>
+
 <h1>REST API</h1>
 
 <hr />
@@ -804,8 +1082,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 
 <p>Once you have <a href="/developer/register">registered</a> and have a <code>client_id</code> and <code>client_secret</code> you can request an access token by invoking the authorization URL. You can access the authorization url to receive your auth token using the widget below.</p>
 
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -835,8 +1112,7 @@ The interactive API widget is pre-configured to use this access token but you ca
 </div>
 
 
-<br/>
-
+<p><br/></p>
 
 <p>Or by passing it in the query string to a request:</p>
 
@@ -868,10 +1144,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Does not return every field (see below).</p>
 
-<br/>
-
-
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -884,8 +1157,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns the Item for the specified <em>:itemId</em>. Returns <em>all</em> properties of the Item model.</p>
 
-<br/>
-
+<p><br/></p>
 
 <h2><a name="items-get-list" class="waypoint"></a>Getting a List of Items</h2>
 
@@ -903,10 +1175,7 @@ This complete model for Item is described at the end of this section.</p>
 </p></blockquote>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -918,8 +1187,7 @@ This complete model for Item is described at the end of this section.</p>
 
 <p>Returns an array of all Items for the specified <em>:collectionId</em>.</p>
 
-<br/>
-
+<p><br/></p>
 
 <div style="padding-bottom: 10px;">
   <rest-widget
@@ -1176,12 +1444,7 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-
-
-<br/>
-
-
-
+<p><br/></p>
 
 <table class="table table-striped table-bordered table-condensed">
   <tr>
@@ -1227,10 +1490,7 @@ these properties as was originally set by the contributor of the item:</p>
 </table>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <h2><a name="item-session-response-model"></a>Item Session Response Model</h2>
 
@@ -1278,10 +1538,7 @@ these properties as was originally set by the contributor of the item:</p>
 </div>
 
 
-
-
-<br/>
-
+<p><br/></p>
 
 <h1><a name="organizations-index" class="waypoint"></a>Organizations</h1>
 
@@ -1567,7 +1824,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  12/04/2013 03:21PM</p>
+<p>date:  02/11/2014 02:04PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
