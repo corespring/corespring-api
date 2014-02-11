@@ -1,14 +1,16 @@
 package reporting.models
 
 import org.corespring.platform.core.models.item.TaskInfo
+import java.io.StringWriter
+import reporting.utils.CsvWriter
 
-object ReportLineResult {
+object ReportLineResult extends CsvWriter {
 
-  var ItemTypes: List[String] = List()
-  var GradeLevel: List[String] = List()
-  var PriorUse: List[String] = List()
-  var LicenseType: List[String] = List()
-  var Credentials: List[String] = List()
+  var ItemTypes: List[String] = List.empty[String]
+  var GradeLevel: List[String] = List.empty[String]
+  var PriorUse: List[String] = List.empty[String]
+  var LicenseType: List[String] = List.empty[String]
+  var Credentials: List[String] = List.empty[String]
 
   class KeyCount(var key: String, var count: Int) {
     override def toString = key + "," + count
@@ -17,31 +19,21 @@ object ReportLineResult {
   def zeroedKeyCountList(l: List[String]): List[KeyCount] = l.map((s: String) => new KeyCount(s, 0))
 
   def buildCsv(title: String, list: List[LineResult]): String = {
-    val header: String =
-      List(title, "Total # of Items").mkString(",") + "," +
-        ItemTypes.map(_.replaceAll(",", " ")).mkString(",") + "," +
-        GradeLevel.mkString(",") + "," +
-        PriorUse.mkString(",") + "," +
-        Credentials.mkString(",") + "," +
-        LicenseType.mkString(",") + "\n"
-
-    header + list.map(buildLineString).mkString("\n")
-
+    val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel, PriorUse, Credentials, LicenseType).flatten
+    val lines: List[List[String]] = list.map(buildLine)
+    (List(header) ::: lines).toCsv
   }
 
   private def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key < b.key) =
-    l.sortWith(sorter).map(kc => kc.count)
+    l.sortWith(sorter).map(kc => kc.count).map(_.toString)
 
-  private def buildLineString(result: LineResult): String = {
-    val outList = List(result.subject, result.total) :::
-      createValueList(result.itemType, (a,b) => {TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
+  private def buildLine(result: LineResult): List[String] =
+    List(List(result.subject), List(result.total.toString),
+      createValueList(result.itemType, (a,b) => {TaskInfo.gradeLevelSorter(a.key, b.key) }),
       createValueList(result.gradeLevel) :::
-      createValueList(result.priorUse) :::
-      createValueList(result.credentials) :::
-      createValueList(result.licenseType)
-
-    outList.mkString(",")
-  }
+      createValueList(result.priorUse),
+      createValueList(result.credentials),
+      createValueList(result.licenseType)).flatten
 
   case class LineResult(subject: String,
     total: Int = 0,
