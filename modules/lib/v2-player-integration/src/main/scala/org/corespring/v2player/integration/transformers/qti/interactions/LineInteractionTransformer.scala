@@ -32,7 +32,7 @@ object LineInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "lineInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-        <corespring-line id={identifier} />
+        <corespring-line id={identifier}></corespring-line>
     }
     case _ => node
   }

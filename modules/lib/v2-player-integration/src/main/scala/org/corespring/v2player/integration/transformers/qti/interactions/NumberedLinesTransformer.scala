@@ -29,7 +29,7 @@ object NumberedLinesTransformer extends Transformer {
     def recurse(node: Node): Seq[Node] = node match {
       case node: Node if isNumberedLinesNode(node) => {
         count = count + 1
-        <corespring-numbered-lines id={id(count)}/>
+        <corespring-numbered-lines id={id(count)}></corespring-numbered-lines>
       }
       case e: Elem => e.copy(child = e.nonEmptyChildren.map(recurse(_).headOption).flatten)
       case _ => node

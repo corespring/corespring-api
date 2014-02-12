@@ -36,7 +36,7 @@ object PointInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "pointInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-      <corespring-point-intercept id={identifier} />
+      <corespring-point-intercept id={identifier}></corespring-point-intercept>
     }
     case _ => node
   }

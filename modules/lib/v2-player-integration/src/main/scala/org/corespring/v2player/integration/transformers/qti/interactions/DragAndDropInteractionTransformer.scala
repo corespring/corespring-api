@@ -89,7 +89,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "dragAndDropInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-drag-and-drop id={identifier} />
+      <corespring-drag-and-drop id={identifier}></corespring-drag-and-drop>
     }
     case _ => node
   }
