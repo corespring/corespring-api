@@ -51,7 +51,9 @@ object FeedbackBlockTransformer extends Transformer {
                 case outcomeIdentifier(id, outcomeSpecificRegex(responseIdentifier)) => Json.obj(
                   responseIdentifier -> Json.obj(
                     "text" -> node.child.mkString,
-                    "correct" -> ((node \ "@incorrectResponse").toString != "true"))
+                    "correct" -> ((node \ "@incorrectResponse").toString != "true" ||
+                      ((node \\ "div").find(n => (n \ "@class").text == "feedback-block-correct").isDefined))
+                  )
                 )
                 case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
               })
