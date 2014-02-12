@@ -35,7 +35,7 @@ class OrderInteractionTransformerTest extends Specification {
 
   "OrderInteractionTransformer" should {
 
-    val responses = List("a", "b", "c")
+    val responses = List("a", <img src="puppies.png"/>.toString, "c")
 
     val input = qti(responses)
     val componentsJson = OrderInteractionTransformer.interactionJs(input)

@@ -23,7 +23,7 @@ object OrderInteractionTransformer extends InteractionTransformer {
         "choices" -> (node \\ "simpleChoice")
           .map(choice =>
             Json.obj(
-              "label" -> choice.child.filter(_.label != "feedbackInline").text.trim,
+              "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
               "value" -> (choice \ "@identifier").text))
       ),
       "feedback" -> feedback(node, qti)
