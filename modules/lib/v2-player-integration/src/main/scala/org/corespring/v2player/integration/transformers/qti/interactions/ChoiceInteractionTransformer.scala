@@ -19,20 +19,9 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
 
       val componentId = (node \ "@responseIdentifier").text.trim
 
-      def choices: JsArray = {
-        val out: Seq[JsValue] = ((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n: Node =>
-          Json.obj(
-            "label" -> n.child.filterNot(e => e.label == "feedbackInline").mkString.trim,
-            "value" -> (n \ "@identifier").text.trim)
-        }
-        JsArray(out)
-      }
-
       def correctResponse: JsObject = {
         val values: Seq[Node] = (responseDeclaration(node, qti) \\ "value").toSeq
-        val jsonValues: Seq[JsString] = values.map {
-          (n: Node) => JsString(n.text.trim)
-        }
+        val jsonValues: Seq[JsString] = values.map(n => JsString(n.text.trim))
 
         Json.obj("value" -> JsArray(jsonValues))
       }
@@ -50,7 +39,11 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
             "choiceStyle" -> JsString((node \ "@choiceStyle").text),
             "singleChoice" -> JsBoolean(((node \ "@maxChoices").text == "1"))),
           "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
-          "choices" -> choices),
+          "choices" -> JsArray(((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n =>
+            Json.obj(
+              "label" -> n.child.filterNot(e => e.label == "feedbackInline").mkString.trim,
+              "value" -> (n \ "@identifier").text.trim)
+          })),
         "feedback" -> feedback(node, qti),
         "correctResponse" -> correctResponse)
 
