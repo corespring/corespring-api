@@ -5,7 +5,7 @@ import play.api.libs.json._
 
 case class PlayerOptions(itemId: String,
                          sessionId: Option[String] = None,
-                         secure: Boolean,
+                         secure: Boolean = false,
                          expires: Option[Long] = None,
                          mode: Option[String] = None) {
 
