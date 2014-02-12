@@ -4,12 +4,15 @@ import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import play.api.libs.json._
 
 case class PlayerOptions(itemId: String,
-                         sessionId: String,
-                         secure: Boolean,
+                         sessionId: Option[String] = None,
+                         secure: Boolean = false,
                          expires: Option[Long] = None,
                          mode: Option[String] = None) {
 
-  def allowSessionId(sessionId: String): Boolean = this.sessionId == PlayerOptions.STAR || this.sessionId == sessionId
+  def allowSessionId(sessionId: String): Boolean = this.sessionId.map {
+    s =>
+      s == PlayerOptions.STAR || s == sessionId
+  }.getOrElse(sessionId == PlayerOptions.STAR)
 
   def allowItemId(itemId: String): Boolean = this.itemId == PlayerOptions.STAR || this.itemId == itemId
 
@@ -21,7 +24,7 @@ case class PlayerOptions(itemId: String,
 
 object PlayerOptions {
   val STAR = "*"
-  val ANYTHING = PlayerOptions(STAR, STAR, false)
+  val ANYTHING = PlayerOptions(STAR, Some(STAR), false)
 
   def fromJson(s: String) = try {
     optionsFormat.reads(Json.parse(s)) match {

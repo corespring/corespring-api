@@ -34,7 +34,7 @@ class PlayerLauncher(
         val opts: PlayerOptions = request.getQueryString("options")
           .map(PlayerOptions.fromJson(_))
           .flatten
-          .getOrElse(new PlayerOptions("*", "*", true, None, Some("*")))
+          .getOrElse(new PlayerOptions("*", Some("*"), true, None, Some("*")))
         val orgId: ObjectId = request.getQueryString("apiClient").map(toOrgId).flatten.getOrElse(ObjectId.get)
         Success(orgId, opts)
       }
