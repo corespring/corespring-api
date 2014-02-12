@@ -19,7 +19,6 @@ object QtiTransformer extends XMLNamespaceClearer {
       LineInteractionTransformer,
       OrderInteractionTransformer,
       PointInteractionTransformer,
-      TextEntryInteractionTransformer,
       SelectTextInteractionTransformer,
       ExtendedTextInteractionTransformer,
       FoldableInteractionTransformer,
@@ -27,9 +26,10 @@ object QtiTransformer extends XMLNamespaceClearer {
       CorespringTabTransformer
     )
 
-    val statefulTransformers = Seq(
+    val statefulTransformers: Seq[Transformer] = Seq(
       FeedbackBlockTransformer,
-      NumberedLinesTransformer
+      NumberedLinesTransformer,
+      TextEntryInteractionTransformer
     )
 
     /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
