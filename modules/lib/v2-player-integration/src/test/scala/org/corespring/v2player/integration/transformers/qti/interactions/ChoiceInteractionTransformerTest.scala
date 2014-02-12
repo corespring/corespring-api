@@ -7,6 +7,8 @@ import scala.xml.{Elem, Node}
 
 class ChoiceInteractionTransformerTest extends Specification {
 
+  val a = <img src="test.jpg"/>
+
   def qti(rd: Elem, body: Elem): Node =
     <assessmentItem>
       <correctResponseFeedback>Default Correct</correctResponseFeedback>
@@ -24,7 +26,7 @@ class ChoiceInteractionTransformerTest extends Specification {
   def choiceInteraction =
     <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
       <prompt>ITEM PROMPT?</prompt>
-      <simpleChoice identifier="A">A
+      <simpleChoice identifier="A">{a}
         <feedbackInline identifier="A" defaultFeedback="true"/>
       </simpleChoice>
       <simpleChoice identifier="B">B
@@ -72,7 +74,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
       (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
-      ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "A"
+      ((q1 \ "model" \ "choices")(0) \ "label").as[String] === a.toString
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
       ((q1 \ "feedback")(0) \ "value").as[String] === "A"
