@@ -4,11 +4,13 @@ import org.specs2.mutable.Specification
 import scala.xml.Node
 import org.corespring.v2player.integration.transformers.qti.interactions.equation.DomainParser
 import play.api.libs.json.Json
+import scala.xml.transform.RuleTransformer
 
 class TextEntryInteractionTransformerTest extends Specification with DomainParser {
 
   val identifier = "Q_01"
   val equationIdentifier = "Q_02"
+  val lineIdentifier = "Q_03"
 
   def qti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String): Node =
     <assessmentItem>
@@ -39,6 +41,22 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     </assessmentItem>
   }
 
+  def lineQti(equation: String): Node = {
+    <assessmentItem>
+      <responseDeclaration identifier={lineIdentifier} cardinality="single"
+                           baseType="line">
+        <correctResponse>
+          <value>{equation}</value>
+        </correctResponse>
+      </responseDeclaration>
+      <itemBody>
+        <p>This is some info that's in the prompt</p>
+        <textEntryInteraction responseIdentifier={lineIdentifier} expectedLength="15"/>
+      </itemBody>
+    </assessmentItem>
+  }
+
+
   "TextEntryInteractionTransformer" should {
 
     val correctResponses = Seq("a", "b", "c")
@@ -51,8 +69,9 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
       incorrectFeedback = incorrectFeedback
     )
 
-    val interactionResult = TextEntryInteractionTransformer.interactionJs(input).get(identifier)
+    val interactionResult = TextEntryInteractionTransformer(input).interactionJs(input).get(identifier)
       .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+
 
     val equation = "y=2x+7"
     val vars = "x,y"
@@ -60,9 +79,15 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     val sigfigs = 3
 
     val equationInput = equationQti(equation, vars, domain, sigfigs)
+    val lineInput = lineQti(equation)
 
-    val equationInteractionResult = TextEntryInteractionTransformer.interactionJs(equationInput).get(equationIdentifier)
+    val lineOutput = new RuleTransformer(new TextEntryInteractionTransformer(lineInput)).transform(lineInput)
+
+    val equationInteractionResult = new TextEntryInteractionTransformer(equationInput).interactionJs(equationInput).get(equationIdentifier)
       .getOrElse(throw new RuntimeException(s"No component called $equationIdentifier"))
+
+    new TextEntryInteractionTransformer(lineInput).interactionJs(lineInput).get(lineIdentifier)
+      .getOrElse(throw new RuntimeException(s"No component called $lineIdentifier"))
 
     "return the correct interaction component type" in {
       (interactionResult \ "componentType").as[String] must be equalTo "corespring-text-entry"
@@ -87,6 +112,10 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
 
     "returns the correct correct response equation" in {
       (equationInteractionResult \ "correctResponse" \ "equation").as[String] must be equalTo equation
+    }
+
+    "converts baseType=line to <corespring-function-entry/>" in {
+      (lineOutput \\ "corespring-function-entry") must not beEmpty
     }
 
   }

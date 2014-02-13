@@ -3,8 +3,16 @@ package org.corespring.v2player.integration.transformers.qti.interactions
 import scala.xml._
 import play.api.libs.json._
 import org.corespring.v2player.integration.transformers.qti.interactions.equation.DomainParser
+import scala.xml.transform.RuleTransformer
 
-object TextEntryInteractionTransformer extends InteractionTransformer with DomainParser {
+object TextEntryInteractionTransformer extends Transformer {
+
+  def transform(qti: Node): Node =
+    new RuleTransformer(new TextEntryInteractionTransformer(qti)).transform(qti).head
+
+}
+
+case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransformer with DomainParser {
 
   val equationRegex = "eqn[:]?(.*)?".r
 
@@ -32,8 +40,10 @@ object TextEntryInteractionTransformer extends InteractionTransformer with Domai
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
-    case e: Elem if e.label == "textEntryInteraction" =>
-      <corespring-text-entry id={(node \ "@responseIdentifier").text}></corespring-text-entry>
+    case e: Elem if e.label == "textEntryInteraction" => isEquation(node, qti) match {
+      case true => <corespring-function-entry id={(node \ "@responseIdentifier").text}></corespring-function-entry>
+      case false => <corespring-text-entry id={(node \ "@responseIdentifier").text}></corespring-text-entry>
+    }
     case _ => node
   }
 
@@ -46,13 +56,14 @@ object TextEntryInteractionTransformer extends InteractionTransformer with Domai
 
     baseType match {
       case equationRegex(_*) => true
+      case "line" => true
       case _ => false
     }
   }
 
   private def equationConfig(responseDeclaration: Node): Option[JsObject] = {
     (responseDeclaration \ "@baseType").text match {
-      case equationRegex(params) => {
+      case equationRegex(params) if Option(params).isDefined => {
         val values = params.split(" ").map(param => {
           param.split(":") match {
             case Array(key: String, value: String, _*) => Some(key -> (key match {
