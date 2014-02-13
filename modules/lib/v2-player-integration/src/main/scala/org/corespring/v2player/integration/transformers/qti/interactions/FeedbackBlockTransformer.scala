@@ -14,6 +14,7 @@ case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
 object FeedbackBlockTransformer extends Transformer {
 
+  val defaultCorrectness = true
   val outcomeIdentifier = """responses\.(.+?)\.(.*)""".r
   val outcomeSpecificRegex = "outcome.(.*)".r
 
@@ -51,8 +52,15 @@ object FeedbackBlockTransformer extends Transformer {
                 case outcomeIdentifier(id, outcomeSpecificRegex(responseIdentifier)) => Json.obj(
                   responseIdentifier -> Json.obj(
                     "text" -> node.child.mkString,
-                    "correct" -> ((node \ "@incorrectResponse").toString != "true" ||
-                      ((node \\ "div").find(n => (n \ "@class").text == "feedback-block-correct").isDefined))
+                    "correct" -> ((node \ "@incorrectResponse").toString match {
+                      case "true" => false
+                      case "false" => true
+                      case _ => (node \\ "div").find(n => Seq("feedback-block-correct", "feedback-block-incorrect")
+                        .find(c => (n \ "@class").text.contains(c)).isDefined) match {
+                        case Some(node) => (node \ "@class").text.contains("feedback-block-correct")
+                        case _ => defaultCorrectness
+                      }
+                    })
                   )
                 )
                 case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
