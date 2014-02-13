@@ -53,7 +53,7 @@ class FeedbackBlockTransformerTest extends Specification {
         <textEntryInteraction responseIdentifier={ identifier } expectedLength="15"/>
         {
           correctResponses.map(response =>
-            <feedbackBlock outcomeIdentifier={ s"responses.$identifier.outcome.$response" } identifier={ response } incorrectResponse="true">
+            <feedbackBlock outcomeIdentifier={ s"responses.$identifier.outcome.$response" } identifier={ response } incorrectResponse="false">
               <div class="feedback-block-correct">{ correctFeedback }</div>
             </feedbackBlock>)
         }
@@ -164,6 +164,36 @@ class FeedbackBlockTransformerTest extends Specification {
         (FeedbackBlockTransformer.transform(output.head) \\ "corespring-feedback-block")
           .filter(n => (n \ "@id").text == feedbackIdentifier(id)).toSeq.length must be equalTo 1
       })
+    }
+
+    "identifies correct feedback for <div class='feedback-block-correct'/>'" in {
+      def qti(response: String, feedback: String) =
+        <assessmentItem>
+          <responseDeclaration identifier="Q_01" cardinality="single" baseType="string">
+            <correctResponse>
+              <value>response</value>
+            </correctResponse>
+          </responseDeclaration>
+          <itemBody>
+            <textEntryInteraction responseIdentifier="Q_01" expectedLength="15"/>
+            <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier={response}>
+              <div class="feedback-block-correct">{feedback}</div>
+            </feedbackBlock>
+          </itemBody>
+        </assessmentItem>
+
+      val response = "a"
+      val feedback = "feedback"
+
+      val input = qti(response, feedback)
+
+      val json = new FeedbackBlockTransformer(input).interactionJs(input).get("Q_01_feedback")
+        .getOrElse(throw new RuntimeException(s"No feedback component for Q_01"))
+
+      (json \ "feedback" \ "correct" \ response).asOpt[String] match {
+        case Some(text) => text must be equalTo feedback
+        case None => failure("Json did not contain feedback for response")
+      }
     }
 
   }
