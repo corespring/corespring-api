@@ -13,7 +13,6 @@ import org.corespring.common.utils.string
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import reporting.models.ReportLineResult.LineResult
 import scala.Some
-import scala.util.Sorting
 import org.corespring.platform.core.models.item.TaskInfo
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
@@ -116,7 +115,7 @@ class ReportsService(ItemCollection: MongoCollection,
       val category = dbo.get("category").asInstanceOf[String]
       val finalKey = buildSubjectString(category, subject)
 
-      val query = new BasicDBObject()
+      val query = baseQuery
       query.put("taskInfo.subjects.primary", dbo.get("_id").asInstanceOf[ObjectId])
       buildLineResult(query, finalKey)
     }).toList
@@ -141,7 +140,7 @@ class ReportsService(ItemCollection: MongoCollection,
       val category = dbo.get("category").asInstanceOf[String]
       val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
-      val query = new BasicDBObject()
+      val query = baseQuery
       query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
@@ -164,7 +163,7 @@ class ReportsService(ItemCollection: MongoCollection,
     val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
 
     val lineResults: List[LineResult] = inlineResult.map((dbo: DBObject) => {
-      val query = new BasicDBObject()
+      val query = baseQuery
       val finalKey = dbo.get("_id").asInstanceOf[String]
       query.put("contributorDetails.contributor", dbo.get("_id").asInstanceOf[String])
       buildLineResult(query, finalKey)
@@ -181,7 +180,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
     val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
       val name = dbo.get("name").asInstanceOf[String]
-      val query = new BasicDBObject()
+      val query = baseQuery
       query.put("collectionId", dbo.get("_id").toString)
       buildLineResult(query, name)
     }).toList
@@ -330,6 +329,9 @@ class ReportsService(ItemCollection: MongoCollection,
   private def interpolate(text: String, vars: Map[String, String]) = {
     string.interpolate(text, (k) => vars.getOrElse(k, ""), """\$\{([^}]+)\}""".r)
   }
+
+  private def baseQuery = new BasicDBObject("collectionId",
+    new BasicDBObject("$ne", ContentCollection.archiveCollId.toString))
 
 }
 
