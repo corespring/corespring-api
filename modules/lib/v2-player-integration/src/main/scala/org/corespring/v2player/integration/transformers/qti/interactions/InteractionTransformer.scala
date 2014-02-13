@@ -24,10 +24,9 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
    * <responseDeclaration/> within the QTI document whose identifier attribute matches.
    */
   def responseDeclaration(node: Node, qti: Node): Node = {
-    (node \ "@responseIdentifier") match {
-      case empty: Seq[Node] if empty.isEmpty => throw new IllegalArgumentException("Such bad")
-      case nonEmpty: Seq[Node] => {
-        val identifier = nonEmpty.text
+    (node \ "@responseIdentifier").text match {
+      case "" => throw new IllegalArgumentException("Node does not have a responseIdentifier")
+      case identifier: String => {
         (qti \\ "responseDeclaration").find(n => (n \ "@identifier").text == identifier) match {
           case Some(node) => node
           case _ => throw new IllegalArgumentException(s"QTI does not contain responseDeclaration for $identifier")

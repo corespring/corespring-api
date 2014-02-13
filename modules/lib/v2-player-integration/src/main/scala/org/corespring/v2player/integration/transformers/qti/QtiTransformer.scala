@@ -16,6 +16,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       FeedbackBlockTransformer(qti),
       NumberedLinesTransformer(qti),
       FocusTaskInteractionTransformer,
+      TextEntryInteractionTransformer(qti),
       LineInteractionTransformer,
       OrderInteractionTransformer,
       PointInteractionTransformer,
