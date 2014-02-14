@@ -111,18 +111,27 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
     def loadAsset(itemId: String, file: String)(request: Request[AnyContent]): SimpleResult = {
 
-      val storedFile = for {
-        vid <- VersionedId(itemId)
-        item <- ItemServiceWired.findOneById(vid)
-        data <- item.data
-        asset <- data.files.find(_.name == file)
+      import scalaz._
+      import scalaz.Scalaz._
+
+      val decodedFilename = java.net.URI.create(file).getPath
+      val storedFile: Validation[String, StoredFile] = for {
+        vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
+        item <- ItemServiceWired.findOneById(vid).toSuccess(s"can't find item with id: $vid")
+        data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
+        asset <- data.files.find(_.name == decodedFilename).toSuccess(s"can't find a file with name: $decodedFilename in ${data}")
       } yield asset.asInstanceOf[StoredFile]
 
-      storedFile.map {
-        sf =>
+      storedFile match {
+        case Success(sf) => {
           logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
           playS3.download(bucket, sf.storageKey, Some(request.headers))
-      }.getOrElse(NotFound(s"Can't find file: $file for itemId $itemId"))
+        }
+        case Failure(msg) => {
+          logger.warn(s"can't load file: $msg")
+          NotFound(msg)
+        }
+      }
     }
 
     //TODO: Need to look at a way of pre-validating before we upload - look at the predicate?
