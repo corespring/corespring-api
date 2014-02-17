@@ -43,7 +43,8 @@
     <logger name="org.corespring.platform.core" level="TRACE"/>
     <logger name="org.corespring.platform.core.encryption" level="DEBUG"/>
     <logger name="org.corespring.v2player" level="TRACE"/>
-    <logger name="v2player" level="TRACE"/>
+    <logger name="v2player" level="DEBUG"/>
+    <logger name="container" level="TRACE"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
