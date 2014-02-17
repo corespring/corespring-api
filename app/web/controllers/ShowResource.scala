@@ -9,12 +9,12 @@ import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
-import player.controllers.QtiRenderer
 import player.views.models.{ QtiKeys, PlayerParams }
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{ Success, Failure }
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import player.controllers.qti.QtiRenderer
 
 object ShowResource
   extends BaseApi
