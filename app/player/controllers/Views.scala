@@ -20,6 +20,7 @@ import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import VersionedIdImplicits.Binders._
 import org.corespring.qti.models.RenderingMode._
 import scala.concurrent.{Await, Future}
+import player.controllers.qti.QtiRenderer
 
 class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
   extends BaseApi
