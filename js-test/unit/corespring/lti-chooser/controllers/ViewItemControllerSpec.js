@@ -78,7 +78,7 @@ describe('lti-chooser.ViewItemController', function () {
       };
 
       bridge.addMessageListenerWithTarget("previewIframe", onCalled);
-      scope.quiz = { question: {settings: { maxNoOfAttempts: 1}} };
+      scope.assessment = { question: {settings: { maxNoOfAttempts: 1}} };
       expect(scope.previewPageIsReady).toBe(false);
       bridge.sendMessage("default", {message: "ready"});
       expect(scope.previewPageIsReady).toBe(true);
@@ -87,11 +87,11 @@ describe('lti-chooser.ViewItemController', function () {
     });
 
     it("responds to update messages from bridge", function () {
-      scope.quiz = { question: { settings: { maxNoOfAttempts: 1}} };
+      scope.assessment = { question: { settings: { maxNoOfAttempts: 1}} };
       bridge.sendMessage("default", {message: "ready"});
       bridge.sendMessage("default", {message: "update", settings: {maxNoOfAttempts: 100}});
 
-      expect(scope.quiz.question.settings.maxNoOfAttempts).toBe(100);
+      expect(scope.assessment.question.settings.maxNoOfAttempts).toBe(100);
 
     });
   });

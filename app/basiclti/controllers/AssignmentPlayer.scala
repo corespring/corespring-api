@@ -1,11 +1,11 @@
 package basiclti.controllers
 
-import basiclti.models.LtiQuiz
+import basiclti.models.LtiAssessment
 import common.controllers.AssetResource
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.player.accessControl.auth.CheckSessionAccess
 import org.corespring.player.accessControl.models.RequestedAccess
 import play.api.mvc.Action
@@ -13,7 +13,7 @@ import player.controllers.Views
 import player.views.models.PlayerParams
 import org.corespring.platform.core.services.item.ItemServiceImpl
 
-object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizService) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, AssessmentService) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {
@@ -29,7 +29,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceImpl, QuizS
     }
   }
 
-  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiQuiz.findOneById(configId) match {
+  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiAssessment.findOneById(configId) match {
     case Some(config) => {
 
       config.participants.find(_.resultSourcedId == resultSourcedId) match {

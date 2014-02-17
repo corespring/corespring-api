@@ -39,8 +39,8 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   };
 
   $rootScope.getItemId = function () {
-    if ($scope.quiz && $scope.quiz.question && $scope.quiz.question.itemId) {
-      return $scope.quiz.question.itemId;
+    if ($scope.assessment && $scope.assessment.question && $scope.assessment.question.itemId) {
+      return $scope.assessment.question.itemId;
     }
     return null;
   };
@@ -54,7 +54,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   };
 
   $scope.showPager = function () {
-    return ($scope.quiz && !$scope.quiz.question.itemId) && $scope.itemCount;
+    return ($scope.assessment && !$scope.assessment.question.itemId) && $scope.itemCount;
   };
 
   $scope.loadItem = function (id) {
@@ -81,7 +81,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   };
 
   $scope.isRemoveDisabled = function () {
-    return $scope.quiz && $scope.quiz.participants && $scope.quiz.participants.length > 0;
+    return $scope.assessment && $scope.assessment.participants && $scope.assessment.participants.length > 0;
   };
 
   $scope.isAssigned = function () {
@@ -94,7 +94,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
       return false;
     }
 
-    return $scope.quiz.question.itemId === $scope.item.id;
+    return $scope.assessment.question.itemId === $scope.item.id;
   };
 
   $scope.remove = function () {
@@ -103,7 +103,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
       return;
     }
 
-    $scope.quiz.question.itemId = null;
+    $scope.assessment.question.itemId = null;
   };
 
   //callback for confirm-popup directive
@@ -113,7 +113,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   };
 
   $scope.assign = function () {
-    $scope.quiz.question.itemId = $scope.item.id;
+    $scope.assessment.question.itemId = $scope.item.id;
     $rootScope.$broadcast('saveConfig');
   };
 
@@ -138,14 +138,14 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
     $scope.loadSavedSearchParams();
     $scope.watchSearchParams();
 
-    $scope.quizId = Config.quizId;
+    $scope.assessmentId = Config.assessmentId;
 
-    if (!$scope.quizId) {
-      throw "No quizId defined - can't load configuration";
+    if (!$scope.assessmentId) {
+      throw "No assessmentId defined - can't load configuration";
     }
 
-    LaunchConfigService.get({id: $scope.quizId}, function (data) {
-      $rootScope.quiz = data;
+    LaunchConfigService.get({id: $scope.assessmentId}, function (data) {
+      $rootScope.assessment = data;
 
       if (!$rootScope.hasItemId()) {
         $rootScope.$broadcast('search');
@@ -156,8 +156,8 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
   };
 
   $scope.saveItem = function (onSaveCompleteCallback) {
-    LaunchConfigService.save({id: $scope.quiz.id}, $scope.quiz, function (data) {
-      $scope.quiz = data;
+    LaunchConfigService.save({id: $scope.assessment.id}, $scope.assessment, function (data) {
+      $scope.assessment = data;
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     }, function (error) {
       Logger.error("Exception In LtiChooserController.saveItem: "+JSON.stringify(error));
@@ -215,7 +215,7 @@ function LtiChooserController($scope, $rootScope, $location, LaunchConfigService
       var args = [];
       args.push("embed_type=basic_lti");
       var url = document.location.href.replace(document.location.hash, "");
-      var encodedUrl = encodeURIComponent(url + "?canvas_config_id=" + $scope.quiz.id);
+      var encodedUrl = encodeURIComponent(url + "?canvas_config_id=" + $scope.assessment.id);
       args.push("url=" + encodedUrl);
       location.href = Config.returnUrl + args.join('&');
     };

@@ -9,7 +9,7 @@ import scala.xml.Elem
 import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.models.RequestedAccess
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
-import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import controllers.auth.BaseApi
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -21,7 +21,7 @@ import VersionedIdImplicits.Binders._
 import org.corespring.qti.models.RenderingMode._
 import scala.concurrent.{Await, Future}
 
-class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, quizService: QuizService)
+class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemService: ItemService, assessmentService: AssessmentService)
   extends BaseApi
   with QtiResource
   with ItemServiceClient
@@ -64,7 +64,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
   def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = {
 
-    quizService.findOneById(assessmentId) match {
+    assessmentService.findOneById(assessmentId) match {
       case Some(id) => {
         def renderAggregatePlayer(assessmentId: ObjectId)(p: PlayerParams) = player.views.html.aggregatePlayer(p, assessmentId.toString)
         val p = RenderParams(
@@ -164,4 +164,4 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
 
 }
 
-object Views extends Views(CheckSessionAccess, ItemServiceImpl, QuizService)
+object Views extends Views(CheckSessionAccess, ItemServiceImpl, AssessmentService)

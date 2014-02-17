@@ -4,9 +4,9 @@ import com.mongodb.DBObject
 import com.novus.salat.dao.SalatMongoCursor
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.quiz.basic.{Answer, Quiz}
+import org.corespring.platform.core.models.assessment.basic.{Answer, Assessment}
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.player.accessControl.models.RequestedAccess
@@ -53,19 +53,19 @@ class ViewsTest extends Specification with Mockito {
     def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = ???
   }
 
-  val quizService = new QuizService{
-    def findOneById(id: ObjectId): Option[Quiz] = Some(Quiz(id = id))
-    def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz] = ???
-    def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = ???
-    def create(q: Quiz) {}
-    def findAllByOrgId(id: ObjectId): List[Quiz] = ???
-    def findByIds(ids: List[ObjectId]): List[Quiz] = ???
-    def remove(q: Quiz) {}
-    def update(q: Quiz) {}
-    def findByAuthor(authorId: String): List[Quiz] = ???
+  val assessmentService = new AssessmentService{
+    def findOneById(id: ObjectId): Option[Assessment] = Some(Assessment(id = id))
+    def addAnswer(assessmentId: ObjectId, externalUid: String, answer: Answer): Option[Assessment] = ???
+    def addParticipants(assessmentId: ObjectId, externalUids: Seq[String]): Option[Assessment] = ???
+    def create(q: Assessment) {}
+    def findAllByOrgId(id: ObjectId): List[Assessment] = ???
+    def findByIds(ids: List[ObjectId]): List[Assessment] = ???
+    def remove(q: Assessment) {}
+    def update(q: Assessment) {}
+    def findByAuthor(authorId: String): List[Assessment] = ???
   }
 
-  val views = new Views(new TestBuilder, mockService, quizService)
+  val views = new Views(new TestBuilder, mockService, assessmentService)
 
   class BeRightMode(m:Mode) extends Matcher[Action[AnyContent]]{
     def apply[S <: Action[AnyContent]](s:Expectable[S]) = {
@@ -91,7 +91,7 @@ class ViewsTest extends Specification with Mockito {
       views.administerItem(testId) must beMode(Administer)
       views.administerSession(testSessionId) must beMode(Administer)
       views.render(testSessionId,"student") must  beMode(Render)
-      views.aggregate(testQuizId, testQuizItemId) must beMode(Aggregate)
+      views.aggregate(testAssessmentId, testAssessmentItemId) must beMode(Aggregate)
       views.profile(testId, "tab", "") must beMode(Preview)
 
     }

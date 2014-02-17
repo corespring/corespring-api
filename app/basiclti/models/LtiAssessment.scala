@@ -12,7 +12,7 @@ import scala.Right
 import scala.Some
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
-import org.corespring.platform.core.models.quiz.{ BaseQuiz, BaseQuestion, BaseParticipant }
+import org.corespring.platform.core.models.assessment.{ BaseAssessment, BaseQuestion, BaseParticipant }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
 case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
@@ -45,18 +45,18 @@ object LtiParticipant {
   implicit val Reads = Json.reads[LtiParticipant]
 }
 
-case class LtiQuiz(resourceLinkId: String,
+case class LtiAssessment(resourceLinkId: String,
   question: LtiQuestion,
   participants: Seq[LtiParticipant] = Seq(),
   orgId: Option[ObjectId],
   id: ObjectId = new ObjectId())
-  extends BaseQuiz(Seq(question), participants, id) {
+  extends BaseAssessment(Seq(question), participants, id) {
 
   def hasAssignments = this.participants.length > 0
 
   def addParticipantIfNew(resultSourcedId: String,
     passbackUrl: String,
-    finishedUrl: String): LtiQuiz = {
+    finishedUrl: String): LtiAssessment = {
 
     participants.find(_.resultSourcedId == resultSourcedId) match {
       case Some(a) => this
@@ -76,10 +76,10 @@ case class LtiQuiz(resourceLinkId: String,
           onFinishedUrl = finishedUrl)
         val updated = this.participants :+ newParticipant
 
-        val updatedQuiz = this.copy(participants = updated)
+        val updatedAssessment = this.copy(participants = updated)
 
-        LtiQuiz.updateNoValidation(updatedQuiz) match {
-          case Left(e) => throw new RuntimeException("Error updating LtiQuizzes")
+        LtiAssessment.updateNoValidation(updatedAssessment) match {
+          case Left(e) => throw new RuntimeException("Error updating LtiAssessments")
           case Right(q) => q
         }
       }
@@ -87,31 +87,31 @@ case class LtiQuiz(resourceLinkId: String,
   }
 }
 
-object LtiQuiz {
+object LtiAssessment {
 
   /*
-  implicit object Writes extends Writes[LtiQuiz] {
+  implicit object Writes extends Writes[LtiAssessment] {
 
 
-    def writes(quiz: LtiQuiz): JsValue = {
+    def writes(assessment: LtiAssessment): JsValue = {
 
       JsObject(Seq(
-        "resourceLinkId" -> JsString(quiz.resourceLinkId),
-        "question" -> Json.toJson(quiz.question),
-        "participants" -> JsArray(quiz.participants.map(p => Json.toJson(p))),
-        "id" -> JsString(quiz.id.toString)
-      ) ++ quiz.orgId.map( o => "orgId" -> JsString(o.toString)))
+        "resourceLinkId" -> JsString(assessment.resourceLinkId),
+        "question" -> Json.toJson(assessment.question),
+        "participants" -> JsArray(assessment.participants.map(p => Json.toJson(p))),
+        "id" -> JsString(assessment.id.toString)
+      ) ++ assessment.orgId.map( o => "orgId" -> JsString(o.toString)))
     }
   }
 */
   import org.corespring.platform.core.models.json._
-  implicit val Writes = Json.writes[LtiQuiz]
-  implicit val Reads = Json.reads[LtiQuiz]
+  implicit val Writes = Json.writes[LtiAssessment]
+  implicit val Reads = Json.reads[LtiAssessment]
 
-  /*  implicit object Reads extends Reads[LtiQuiz] {
+  /*  implicit object Reads extends Reads[LtiAssessment] {
 
-    def reads(json:JsValue) : LtiQuiz = {
-      LtiQuiz(
+    def reads(json:JsValue) : LtiAssessment = {
+      LtiAssessment(
         (json \ "resourceLinkId").as[String],
         (json \ "question").as[LtiQuestion],
         (json \ "participants").as[Seq[LtiParticipant]],
@@ -125,16 +125,16 @@ object LtiQuiz {
   /**
    * Hide the ModelCompanion from the client code as it provides too many operations.
    */
-  private object Dao extends ModelCompanion[LtiQuiz, ObjectId] {
-    val collection = mongoCollection("lti_quizzes")
+  private object Dao extends ModelCompanion[LtiAssessment, ObjectId] {
+    val collection = mongoCollection("lti_assessments")
     import org.corespring.platform.core.models.mongoContext.context
     import org.corespring.platform.core.models.mongoContext.context
-    val dao = new SalatDAO[LtiQuiz, ObjectId](collection = collection) {}
+    val dao = new SalatDAO[LtiAssessment, ObjectId](collection = collection) {}
   }
 
   def collection = Dao.collection
 
-  private def updateNoValidation(update: LtiQuiz): Either[ApiError, LtiQuiz] = Dao.findOneById(update.id) match {
+  private def updateNoValidation(update: LtiAssessment): Either[ApiError, LtiAssessment] = Dao.findOneById(update.id) match {
     case Some(c) => {
       Dao.save(update)
       Right(update)
@@ -142,25 +142,25 @@ object LtiQuiz {
     case _ => Left(new ApiError(9900, ""))
   }
 
-  def insert(q: LtiQuiz) {
+  def insert(q: LtiAssessment) {
     Dao.insert(q)
   }
 
-  def findOneById(id: ObjectId): Option[LtiQuiz] = Dao.findOneById(id)
+  def findOneById(id: ObjectId): Option[LtiAssessment] = Dao.findOneById(id)
 
-  def findByResourceLinkId(resourceLinkId: String): Option[LtiQuiz] = {
+  def findByResourceLinkId(resourceLinkId: String): Option[LtiAssessment] = {
     Dao.findOne(MongoDBObject("resourceLinkId" -> resourceLinkId))
   }
 
-  def update(update: LtiQuiz, orgId: ObjectId): Either[ApiError, LtiQuiz] = {
+  def update(update: LtiAssessment, orgId: ObjectId): Either[ApiError, LtiAssessment] = {
     if (!canUpdate(update, orgId)) {
-      Left(new ApiError(9900, "You are not allowed update the LtiQuiz - because students have already started using it."))
+      Left(new ApiError(9900, "You are not allowed update the LtiAssessment - because students have already started using it."))
     } else {
       updateNoValidation(update)
     }
   }
 
-  def canUpdate(proposedChange: LtiQuiz, orgId: ObjectId): Boolean = LtiQuiz.findOneById(proposedChange.id) match {
+  def canUpdate(proposedChange: LtiAssessment, orgId: ObjectId): Boolean = LtiAssessment.findOneById(proposedChange.id) match {
     case Some(dbConfig) => {
       val orgIdMatches = dbConfig.orgId.isDefined && dbConfig.orgId.get == orgId
       val isUnassigning = dbConfig.question.itemId.isDefined && proposedChange.question.itemId.isEmpty

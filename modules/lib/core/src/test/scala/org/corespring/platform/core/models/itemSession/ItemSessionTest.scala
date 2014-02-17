@@ -410,7 +410,7 @@ class ItemSessionTest extends BaseTest {
       maxScore === 7.0
     }
 
-    "return correct score from full quiz" in {
+    "return correct score from full assessment" in {
 
       def assertScore(id: String, expectedScore: Double, expectedTotal: Double): org.specs2.execute.Result = {
         itemSession.findOneById(new ObjectId(id)) match {

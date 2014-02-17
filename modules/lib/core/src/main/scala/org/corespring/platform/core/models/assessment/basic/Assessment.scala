@@ -1,9 +1,9 @@
-package org.corespring.platform.core.models.quiz.basic
+package org.corespring.platform.core.models.assessment.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.models.quiz._
+import org.corespring.platform.core.models.assessment._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -158,18 +158,18 @@ object Question extends QuestionLike with ItemServiceClient {
   def itemService: ItemService = ItemServiceImpl
 }
 
-case class Quiz(orgId: Option[ObjectId] = None,
+case class Assessment(orgId: Option[ObjectId] = None,
   metadata: Map[String, String] = Map(),
   questions: Seq[Question] = Seq(),
   starts: Option[DateTime] = None,
   ends: Option[DateTime] = None,
   participants: Seq[Participant] = Seq(),
-  id: ObjectId = new ObjectId()) extends BaseQuiz(questions, participants, id)
+  id: ObjectId = new ObjectId()) extends BaseAssessment(questions, participants, id)
 
-object Quiz {
+object Assessment {
 
-  implicit object Writes extends Writes[Quiz] {
-    def writes(q: Quiz): JsObject = {
+  implicit object Writes extends Writes[Assessment] {
+    def writes(q: Assessment): JsObject = {
 
       val props = List(
         Some("id" -> JsString(q.id.toString)),
@@ -184,12 +184,12 @@ object Quiz {
     }
   }
 
-  implicit object Reads extends Reads[Quiz] {
-    def reads(json: JsValue): JsResult[Quiz] = {
+  implicit object Reads extends Reads[Assessment] {
+    def reads(json: JsValue): JsResult[Assessment] = {
 
       val participants = (json \ "participants").asOpt[Seq[Participant]].getOrElse(Seq())
 
-      JsSuccess(Quiz(
+      JsSuccess(Assessment(
         (json \ "orgId").asOpt[String].map(new ObjectId(_)),
         (json \ "metadata").asOpt[Map[String, String]].getOrElse(Map()),
         (json \ "questions").asOpt[Seq[Question]].getOrElse(Seq()),

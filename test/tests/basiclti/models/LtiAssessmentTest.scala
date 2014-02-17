@@ -6,17 +6,17 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
 import org.corespring.test.BaseTest
 
-class LtiQuizTest extends BaseTest {
+class LtiAssessmentTest extends BaseTest {
 
   "launch config" should {
 
     "add assignments" in {
-      val config = new LtiQuiz(
+      val config = new LtiAssessment(
         "1",
         LtiQuestion(Some(VersionedId(new ObjectId())), ItemSessionSettings()),
         Seq(),
         None)
-      LtiQuiz.insert(config)
+      LtiAssessment.insert(config)
 
       config.participants.length === 0
       val updatedConfig = config.addParticipantIfNew("1", "passbackUrl", "finishedUrl")
@@ -31,46 +31,46 @@ class LtiQuizTest extends BaseTest {
 
     "can update works" in {
 
-      val config = new LtiQuiz("1",
+      val config = new LtiAssessment("1",
         LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(),
         orgId = Some(ObjectId.get))
-      LtiQuiz.insert(config)
-      LtiQuiz.canUpdate(config, config.orgId.get) === true
-      LtiQuiz.canUpdate(config, new ObjectId()) === false
+      LtiAssessment.insert(config)
+      LtiAssessment.canUpdate(config, config.orgId.get) === true
+      LtiAssessment.canUpdate(config, new ObjectId()) === false
     }
 
     "can't update the settings if somebody has participated with an item" in {
 
-      val config = new LtiQuiz("1",
+      val config = new LtiAssessment("1",
         LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(),
         orgId = Some(new ObjectId())
       )
-      LtiQuiz.insert(config)
-      LtiQuiz.canUpdate(config, config.orgId.get) === true
-      val maybeUpdate = LtiQuiz.update(config.copy(participants = Seq(LtiParticipant(new ObjectId(), "", "", ""))), config.orgId.get)
+      LtiAssessment.insert(config)
+      LtiAssessment.canUpdate(config, config.orgId.get) === true
+      val maybeUpdate = LtiAssessment.update(config.copy(participants = Seq(LtiParticipant(new ObjectId(), "", "", ""))), config.orgId.get)
       maybeUpdate.isRight === true
-      val updatedQuiz: LtiQuiz = maybeUpdate.right.get
+      val updatedAssessment: LtiAssessment = maybeUpdate.right.get
 
-      val newSettings = updatedQuiz.question.settings.copy(maxNoOfAttempts = 2323)
-      val newQuestion = updatedQuiz.question.copy(settings = newSettings)
-      val newQuiz = updatedQuiz.copy(question = newQuestion)
-      val maybeUpdateTwo = LtiQuiz.update(newQuiz, newQuiz.orgId.get)
+      val newSettings = updatedAssessment.question.settings.copy(maxNoOfAttempts = 2323)
+      val newQuestion = updatedAssessment.question.copy(settings = newSettings)
+      val newAssessment = updatedAssessment.copy(question = newQuestion)
+      val maybeUpdateTwo = LtiAssessment.update(newAssessment, newAssessment.orgId.get)
       maybeUpdateTwo.isLeft === true
     }
 
     "can't remove itemId if the config has assignments" in {
 
-      val config = new LtiQuiz("1",
+      val config = new LtiAssessment("1",
         LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(LtiParticipant(new ObjectId(), "", "", "")),
         orgId = Some(new ObjectId())
       )
-      LtiQuiz.insert(config)
+      LtiAssessment.insert(config)
       val copiedQuestion = config.question.copy(itemId = None)
       val copy = config.copy(question = copiedQuestion)
-      LtiQuiz.canUpdate(copy, copy.orgId.get) === false
+      LtiAssessment.canUpdate(copy, copy.orgId.get) === false
     }
   }
 
