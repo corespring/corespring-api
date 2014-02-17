@@ -8,7 +8,7 @@ object TexTransformer extends InteractionTransformer {
   implicit class TexConverter(child: Seq[Node]) {
 
     def convertToTex(implicit parent: Node): Node = Text((parent \ "@inline").text match {
-      case "false" => s"$$${child.map(clearNamespace).mkString}$$"
+      case "false" => s"$$$$${child.map(clearNamespace).mkString}$$$$"
       case _ => s"\\(${child.map(clearNamespace).mkString}\\)"
     })
 

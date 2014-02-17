@@ -25,22 +25,22 @@ class TexTransformerTest extends Specification {
     }
 
     def inlineOutput(tex: String) = s"\\($tex\\)"
-    def nonInlineOutput(tex: String) = s"$$$tex$$"
+    def nonInlineOutput(tex: String) = s"$$$$$tex$$$$"
 
     "should remove <tex/>" in {
       texNode(tex).inQti.transformed \\ "tex" must beEmpty
     }
 
     "should replace <tex/> body with inline by default" in {
-      texNode(tex).inQti.transformed.text must contain(inlineOutput(tex))
+      texNode(tex).inQti.transformed.text.trim must equalTo(inlineOutput(tex))
     }
 
     "should replace <tex/> body with non-inline when inline='false'" in {
-      texNode(tex, inline = Some(false)).inQti.transformed.text must contain(nonInlineOutput(tex))
+      texNode(tex, inline = Some(false)).inQti.transformed.text.trim must equalTo(nonInlineOutput(tex))
     }
 
     "should replace <tex/> body with inline when inline='true'" in {
-      texNode(tex, inline = Some(true)).inQti.transformed.text must contain(inlineOutput(tex))
+      texNode(tex, inline = Some(true)).inQti.transformed.text.trim must equalTo(inlineOutput(tex))
     }
 
   }
