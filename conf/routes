@@ -132,7 +132,7 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
 PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
-GET     /api/v1/assessments/author/:authorId                       api.v1.AssessmentApi.getByAuthor(authorId: String)
+GET     /api/v1/sessions/author/:authorId                       api.v1.AssessmentApi.getByAuthor(authorId: String)
 PUT     /api/v1/assessments/:assessmentId/:externalUid/add-answer        api.v1.AssessmentApi.addAnswerForParticipant(assessmentId:ObjectId,externalUid:String)
 GET     /api/v1/assessments/:assessmentId                     api.v1.AssessmentApi.get(assessmentId:ObjectId)
 GET     /api/v1/assessments/multiple/:assessmentIds           api.v1.AssessmentApi.getMultiple(assessmentIds:String)
@@ -142,6 +142,8 @@ DELETE  /api/v1/assessments/:assessmentId                     api.v1.AssessmentA
 PUT     /api/v1/assessments/:assessmentId/add-participants    api.v1.AssessmentApi.addParticipants(assessmentId:ObjectId)
 POST    /api/v1/assessments                             api.v1.AssessmentApi.create()
 GET     /api/v1/assessments                             api.v1.AssessmentApi.list()
+
+POST    /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.create()
 
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])

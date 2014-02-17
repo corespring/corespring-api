@@ -25,8 +25,6 @@ import play.api.Application
 import play.api.PlayException
 import scala.Some
 import scala.xml.Elem
-import scalaz.Failure
-import scalaz.Success
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
 
