@@ -3,12 +3,12 @@
 require 'json'
 
 count = 0
-Dir["**/**/quizzes/*.json"].each{ |f|
+Dir["**/**/assessments/*.json"].each{ |f|
   puts "found: #{f}"
   json = File.read(f)
-  quiz = JSON.parse(json)
+  assessment = JSON.parse(json)
 
-  questions = quiz["questions"]
+  questions = assessment["questions"]
 
   questions.each{ |q|
 
@@ -21,6 +21,6 @@ Dir["**/**/quizzes/*.json"].each{ |f|
 
   puts "writing: #{f}"
   File.open(f,"w") do |fw|
-    fw.write(JSON.pretty_generate(quiz))
+    fw.write(JSON.pretty_generate(assessment))
   end
 }

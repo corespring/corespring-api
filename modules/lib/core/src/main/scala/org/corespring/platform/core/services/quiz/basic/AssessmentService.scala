@@ -1,28 +1,28 @@
-package org.corespring.platform.core.services.quiz.basic
+package org.corespring.platform.core.services.assessment.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
-import org.corespring.platform.core.models.quiz.basic.{ Answer, Question, Participant, Quiz }
+import org.corespring.platform.core.models.assessment.basic.{ Answer, Question, Participant, Assessment }
 import se.radley.plugin.salat._
 import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSessionCompanion}
 import com.mongodb.casbah.Imports._
 import scala.Some
 import org.joda.time.DateTime
 
-trait QuizService {
+trait AssessmentService {
 
-  def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz]
-  def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz]
-  def create(q: Quiz): Unit
-  def findAllByOrgId(id: ObjectId): List[Quiz]
-  def findByIds(ids: List[ObjectId]): List[Quiz]
-  def findByAuthor(authorId: String): List[Quiz]
-  def findOneById(id: ObjectId): Option[Quiz]
-  def remove(q: Quiz): Unit
-  def update(q: Quiz): Unit
+  def addAnswer(assessmentId: ObjectId, externalUid: String, answer: Answer): Option[Assessment]
+  def addParticipants(assessmentId: ObjectId, externalUids: Seq[String]): Option[Assessment]
+  def create(q: Assessment): Unit
+  def findAllByOrgId(id: ObjectId): List[Assessment]
+  def findByIds(ids: List[ObjectId]): List[Assessment]
+  def findByAuthor(authorId: String): List[Assessment]
+  def findOneById(id: ObjectId): Option[Assessment]
+  def remove(q: Assessment): Unit
+  def update(q: Assessment): Unit
 }
 
-class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
+class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends AssessmentService {
 
   private object Keys {
     val orgId = "orgId"
@@ -31,28 +31,28 @@ class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
 
   /**
    * Hide the dao - it provides too many options
-   * By hiding it we can thin out the client api for quiz
+   * By hiding it we can thin out the client api for assessment
    */
-  private object Dao extends ModelCompanion[Quiz, ObjectId] {
+  private object Dao extends ModelCompanion[Assessment, ObjectId] {
 
     import com.novus.salat.global._
     import play.api.Play.current
     import org.corespring.platform.core.models.mongoContext.context
 
-    val collection = mongoCollection("quizzes")
-    val dao = new SalatDAO[Quiz, ObjectId](collection = collection){}
+    val collection = mongoCollection("assessments")
+    val dao = new SalatDAO[Assessment, ObjectId](collection = collection){}
   }
 
   /** Bind Item title and standards to the question */
-  private def bindItemData(q: Quiz): Quiz = {
+  private def bindItemData(q: Assessment): Assessment = {
     q.copy(questions = q.questions.map(Question.bindItemToQuestion))
   }
 
-  def create(q: Quiz) {
+  def create(q: Assessment) {
     Dao.insert(bindItemData(q))
   }
 
-  def update(q: Quiz) {
+  def update(q: Assessment) {
     Dao.save(bindItemData(q))
   }
 
@@ -64,7 +64,7 @@ class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
     Dao.remove(MongoDBObject())
   }
 
-  def remove(q: Quiz) {
+  def remove(q: Assessment) {
     Dao.remove(q)
   }
 
@@ -77,12 +77,12 @@ class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
 
   def collection = Dao.collection
 
-  def findAllByOrgId(id: ObjectId): List[Quiz] = {
+  def findAllByOrgId(id: ObjectId): List[Assessment] = {
     val query = MongoDBObject(Keys.orgId -> id)
     Dao.find(query).toList
   }
 
-  def addAnswer(quizId: ObjectId, externalUid: String, answer: Answer): Option[Quiz] = {
+  def addAnswer(assessmentId: ObjectId, externalUid: String, answer: Answer): Option[Assessment] = {
 
     def processParticipants(externalUid: String)(p: Participant): Participant = {
       if (p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)) {
@@ -92,39 +92,39 @@ class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
       }
     }
 
-    findOneById(quizId) match {
+    findOneById(assessmentId) match {
       case Some(q) => {
-        val updatedQuiz = q.copy(participants = q.participants.map(processParticipants(externalUid)))
-        update(updatedQuiz)
-        Some(updatedQuiz)
+        val updatedAssessment = q.copy(participants = q.participants.map(processParticipants(externalUid)))
+        update(updatedAssessment)
+        Some(updatedAssessment)
       }
       case None => None
     }
   }
 
-  def addParticipants(quizId: ObjectId, externalUids: Seq[String]): Option[Quiz] = {
-    findOneById(quizId) match {
+  def addParticipants(assessmentId: ObjectId, externalUids: Seq[String]): Option[Assessment] = {
+    findOneById(assessmentId) match {
       case Some(q) => addParticipants(q, externalUids)
       case None => None
     }
   }
 
-  def addParticipants(q: Quiz, externalUids: Seq[String]): Option[Quiz] = {
-    val updatedQuiz = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
-    update(updatedQuiz)
-    Some(updatedQuiz)
+  def addParticipants(q: Assessment, externalUids: Seq[String]): Option[Assessment] = {
+    val updatedAssessment = q.copy(participants = q.participants ++ externalUids.map(euid => Participant(Seq(), euid)))
+    update(updatedAssessment)
+    Some(updatedAssessment)
   }
 
-  def findByAuthor(authorId: String): List[Quiz] = {
+  def findByAuthor(authorId: String): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId)
     withParticipantTimestamps(Dao.find(query).toList)
   }
 
-  private def withParticipantTimestamps(quizzes: List[Quiz]): List[Quiz] = {
+  private def withParticipantTimestamps(assessments: List[Assessment]): List[Assessment] = {
 
     implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
-    quizzes.map(quiz => {
-      quiz.copy(participants = quiz.participants.map(
+    assessments.map(assessment => {
+      assessment.copy(participants = assessment.participants.map(
         participant => {
           val timestamps = itemSession.find(
             MongoDBObject("_id" -> MongoDBObject("$in" -> participant.answers.map(_.sessionId)))).toList
@@ -138,4 +138,4 @@ class QuizServiceImpl(itemSession: ItemSessionCompanion) extends QuizService {
   }
 }
 
-object QuizService extends QuizServiceImpl(DefaultItemSession)
+object AssessmentService extends AssessmentServiceImpl(DefaultItemSession)

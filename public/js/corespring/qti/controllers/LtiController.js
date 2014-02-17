@@ -12,7 +12,7 @@ function LtiController($scope, $http, Config) {
 
     if (newValue && hasSubmitted) {
 
-      $http.get("/lti/assignment/" + Config.quizId + "/" + Config.resultSourcedId + "/process")
+      $http.get("/lti/assignment/" + Config.assessmentId + "/" + Config.resultSourcedId + "/process")
         .success(function (data) {
           document.location.href = data.returnUrl;
         }).error(function (data, status) {

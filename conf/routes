@@ -132,16 +132,16 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
 PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
-GET     /api/v1/quizzes/author/:authorId                       api.v1.QuizApi.getByAuthor(authorId: String)
-PUT     /api/v1/quizzes/:quizId/:externalUid/add-answer        api.v1.QuizApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
-GET     /api/v1/quizzes/:quizId                     api.v1.QuizApi.get(quizId:ObjectId)
-GET     /api/v1/quizzes/multiple/:quizIds           api.v1.QuizApi.getMultiple(quizIds:String)
-POST    /api/v1/quizzes/:quizId/:itemId/aggregate           api.v1.ItemSessionApi.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
-PUT     /api/v1/quizzes/:quizId                     api.v1.QuizApi.update(quizId:ObjectId)
-DELETE  /api/v1/quizzes/:quizId                     api.v1.QuizApi.delete(quizId:ObjectId)
-PUT     /api/v1/quizzes/:quizId/add-participants    api.v1.QuizApi.addParticipants(quizId:ObjectId)
-POST    /api/v1/quizzes                             api.v1.QuizApi.create()
-GET     /api/v1/quizzes                             api.v1.QuizApi.list()
+GET     /api/v1/assessments/author/:authorId                       api.v1.AssessmentApi.getByAuthor(authorId: String)
+PUT     /api/v1/assessments/:assessmentId/:externalUid/add-answer        api.v1.AssessmentApi.addAnswerForParticipant(assessmentId:ObjectId,externalUid:String)
+GET     /api/v1/assessments/:assessmentId                     api.v1.AssessmentApi.get(assessmentId:ObjectId)
+GET     /api/v1/assessments/multiple/:assessmentIds           api.v1.AssessmentApi.getMultiple(assessmentIds:String)
+POST    /api/v1/assessments/:assessmentId/:itemId/aggregate           api.v1.ItemSessionApi.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
+PUT     /api/v1/assessments/:assessmentId                     api.v1.AssessmentApi.update(assessmentId:ObjectId)
+DELETE  /api/v1/assessments/:assessmentId                     api.v1.AssessmentApi.delete(assessmentId:ObjectId)
+PUT     /api/v1/assessments/:assessmentId/add-participants    api.v1.AssessmentApi.addParticipants(assessmentId:ObjectId)
+POST    /api/v1/assessments                             api.v1.AssessmentApi.create()
+GET     /api/v1/assessments                             api.v1.AssessmentApi.list()
 
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
@@ -155,7 +155,7 @@ GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormP
 POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
 GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
-POST   /player/api/:itemId/session/:quizId/aggregate       player.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
+POST   /player/api/:itemId/session/:assessmentId/aggregate       player.controllers.Session.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
 GET    /player/routes.js                                   player.controllers.Session.jsRoutes
 GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
 ## JS Routes
@@ -208,8 +208,8 @@ GET    /web/print-resource/:itemId/data/main                web.controllers.Show
 #
 # BasicLTI
 #
-GET     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.get(id:ObjectId)
-PUT     /lti/launch-config/:id                  basiclti.controllers.LtiQuizzes.update(id:ObjectId)
+GET     /lti/launch-config/:id                  basiclti.controllers.LtiAssessments.get(id:ObjectId)
+PUT     /lti/launch-config/:id                  basiclti.controllers.LtiAssessments.update(id:ObjectId)
 GET     /lti/dev/test-harness                   basiclti.controllers.dev.TestHarness.begin
 POST    /lti/dev/prepare                        basiclti.controllers.dev.TestHarness.prepare
 POST    /lti/dev/grade-passback                 basiclti.controllers.dev.TestHarness.gradePassback

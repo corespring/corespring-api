@@ -1,6 +1,6 @@
 package tests.basiclti.accessControl.auth
 
-import basiclti.accessControl.auth.ValidateQuizIdAndOrgId
+import basiclti.accessControl.auth.ValidateAssessmentIdAndOrgId
 import basiclti.accessControl.auth.cookies.LtiCookieKeys
 import org.bson.types.ObjectId
 import org.specs2.mutable.Specification
@@ -12,32 +12,32 @@ import org.corespring.test.PlaySingleton
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import scala.concurrent.{ExecutionContext, Future}
 
-object MockImpl extends ValidateQuizIdAndOrgId[FakeRequest[AnyContent]] {
+object MockImpl extends ValidateAssessmentIdAndOrgId[FakeRequest[AnyContent]] {
   def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[FakeRequest[AnyContent]] = Some(r.asInstanceOf[FakeRequest[AnyContent]])
 }
 
-class ValidateQuizIdAndOrgIdTest extends Specification {
+class ValidateAssessmentIdAndOrgIdTest extends Specification {
 
   PlaySingleton.start()
 
-  "validate quiz id and org id" should {
+  "validate assessment id and org id" should {
 
     def run(keys: (String, String)*): Future[SimpleResult] = {
 
       import ExecutionContext.Implicits.global
 
-      def mockQuery(quizId: String, orgId: String): Boolean = true
+      def mockQuery(assessmentId: String, orgId: String): Boolean = true
       def mockBlock(request: FakeRequest[AnyContent]): Future[SimpleResult] = Future(Ok("hello"))
-      val q: MockImpl.OrgIdAndQuizIdAreValid = mockQuery
+      val q: MockImpl.OrgIdAndAssessmentIdAreValid = mockQuery
       MockImpl.ValidatedAction(q)(mockBlock)(FakeRequest().withSession(keys: _*))
     }
 
     def oid(): String = new ObjectId().toString
 
     "fail for nothing" in status(run()) === UNAUTHORIZED
-    "fail for no quiz id" in status(run(PlayerCookieKeys.ORG_ID -> oid)) === UNAUTHORIZED
-    "fail for no org id" in status(run(LtiCookieKeys.QUIZ_ID -> oid)) === UNAUTHORIZED
-    "ok for quiz id and org id" in status(run(LtiCookieKeys.QUIZ_ID -> oid, PlayerCookieKeys.ORG_ID -> oid)) === OK
+    "fail for no assessment id" in status(run(PlayerCookieKeys.ORG_ID -> oid)) === UNAUTHORIZED
+    "fail for no org id" in status(run(LtiCookieKeys.ASSESSMENT_ID -> oid)) === UNAUTHORIZED
+    "ok for assessment id and org id" in status(run(LtiCookieKeys.ASSESSMENT_ID -> oid, PlayerCookieKeys.ORG_ID -> oid)) === OK
 
   }
 }

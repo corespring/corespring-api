@@ -2,7 +2,7 @@ package tests.basiclti.controllers
 
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
-import basiclti.models.{LtiQuestion, LtiQuiz}
+import basiclti.models.{LtiQuestion, LtiAssessment}
 import org.bson.types.ObjectId
 import play.api.libs.json.Json._
 import play.api.libs.json.JsValue
@@ -20,44 +20,44 @@ class LaunchConfigTest extends Specification{
 
   PlaySingleton.start()
 
-  val Routes = basiclti.controllers.routes.LtiQuizzes
+  val Routes = basiclti.controllers.routes.LtiAssessments
   val MockOrgId: ObjectId = new ObjectId("51114b307fc1eaa866444648")
 
   private def getOrg: Organization = Organization.findOneById(MockOrgId).get
 
-  private def getMockConfig: LtiQuiz = {
-    val c = new LtiQuiz(id = new ObjectId(),
+  private def getMockConfig: LtiAssessment = {
+    val c = new LtiAssessment(id = new ObjectId(),
       resourceLinkId = "some link id",
       question = LtiQuestion(None, ItemSessionSettings()),
       participants = Seq(),
       orgId = Some(getOrg.id))
-    LtiQuiz.insert(c)
+    LtiAssessment.insert(c)
     c
   }
 
-  private def get(quiz:LtiQuiz): LtiQuiz = {
-    val action = basiclti.controllers.LtiQuizzes.get(quiz.id)
+  private def get(assessment:LtiAssessment): LtiAssessment = {
+    val action = basiclti.controllers.LtiAssessments.get(assessment.id)
     val request = FakeRequest("ignore", "ignore")
-    val result = action(addSessionInfo(quiz,request))
+    val result = action(addSessionInfo(assessment,request))
     val json = parse(contentAsString(result))
-    json.as[LtiQuiz]
-    //callAndReturnModel(addSessionInfo(quiz,request))
+    json.as[LtiAssessment]
+    //callAndReturnModel(addSessionInfo(assessment,request))
   }
 
-  private def addSessionInfo[A](quiz: LtiQuiz, r: FakeRequest[A]): FakeRequest[A] = {
+  private def addSessionInfo[A](assessment: LtiAssessment, r: FakeRequest[A]): FakeRequest[A] = {
     r.withSession(
-      (LtiCookieKeys.QUIZ_ID -> quiz.id.toString),
-      (PlayerCookieKeys.ORG_ID -> quiz.orgId.get.toString)
+      (LtiCookieKeys.ASSESSMENT_ID -> assessment.id.toString),
+      (PlayerCookieKeys.ORG_ID -> assessment.orgId.get.toString)
     )
   }
 
-  private def update(quiz: LtiQuiz): LtiQuiz = {
-    val action = basiclti.controllers.LtiQuizzes.update(quiz.id)
-    val jsValue = toJson(quiz)
+  private def update(assessment: LtiAssessment): LtiAssessment = {
+    val action = basiclti.controllers.LtiAssessments.update(assessment.id)
+    val jsValue = toJson(assessment)
     val request = FakeRequest("ignore", "ignore", FakeHeaders(), AnyContentAsJson(jsValue))
-    val result = action(addSessionInfo(quiz,request))
+    val result = action(addSessionInfo(assessment,request))
     val json = parse(contentAsString(result))
-    json.as[LtiQuiz]
+    json.as[LtiAssessment]
   }
 
   "launch config" should {

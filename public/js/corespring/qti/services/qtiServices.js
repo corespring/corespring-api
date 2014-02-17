@@ -6,10 +6,10 @@ angular.module('qti.services').factory('AggregateService', ['$resource', functio
   var api = PlayerRoutes;
 
   var calls = {
-    aggregate: api.aggregate(":quizId", ":itemId")
+    aggregate: api.aggregate(":assessmentId", ":itemId")
   };
 
-  calls.aggregate.params = {"quizId": '@quizId', 'itemId': '@itemId'};
+  calls.aggregate.params = {"assessmentId": '@assessmentId', 'itemId': '@itemId'};
 
   return $resource(
     calls.aggregate.url,

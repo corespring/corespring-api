@@ -5,5 +5,5 @@ import org.corespring.platform.data.mongo.models.VersionedId
 trait ItemLookup {
   def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean
 }
-trait QuizItemLookup extends ItemLookup
+trait AssessmentItemLookup extends ItemLookup
 trait SessionItemLookup extends ItemLookup
