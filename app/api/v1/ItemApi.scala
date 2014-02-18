@@ -195,7 +195,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     request =>
       for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-        cloned <- service.cloneItem(item).toSuccess("Error cloning")
+        cloned <- service.clone(item).toSuccess("Error cloning")
       } yield cloned
   }
 

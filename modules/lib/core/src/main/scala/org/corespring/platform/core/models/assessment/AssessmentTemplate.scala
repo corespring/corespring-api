@@ -8,11 +8,15 @@ import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.TypeImports.ObjectId
+import org.corespring.platform.core.models.item.Content
 
-case class AssessmentTemplate(id: VersionedId[ObjectId] = VersionedId(ObjectId.get()),
+case class AssessmentTemplate(var id: VersionedId[ObjectId] = VersionedId(ObjectId.get()),
+                              var collectionId: String = "",
                               orgId: Option[ObjectId] = None,
                               metadata: Map[String, String] = Map(),
-                              questions: Seq[Question] = Seq()) extends EntityWithVersionedId[ObjectId]
+                              questions: Seq[Question] = Seq()) extends Content with EntityWithVersionedId[ObjectId] {
+  var contentType = "assessmentTemplate"
+}
 
 object AssessmentTemplate extends JsonUtil {
 

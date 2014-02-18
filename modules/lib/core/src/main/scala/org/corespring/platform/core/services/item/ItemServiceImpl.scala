@@ -15,7 +15,7 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
-import org.corespring.platform.core.models.item.{ Item, FieldValue }
+import org.corespring.platform.core.models.item.{Content, Item, FieldValue}
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.core.models.{Organization, ContentCollection, error}
 import org.corespring.platform.data.mongo.SalatVersioningDao
@@ -27,6 +27,7 @@ import scala.Some
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
+import com.mongodb.casbah.Imports
 
 class ItemServiceImpl(
   val s3service: CorespringS3Service,
@@ -44,7 +45,7 @@ class ItemServiceImpl(
 
   lazy val fieldValues = FieldValue.current
 
-  def cloneItem(item: Item): Option[Item] = {
+  def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
     result match {
@@ -58,7 +59,7 @@ class ItemServiceImpl(
     }
   }
 
-  def countItems(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(query).toInt
+  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
@@ -156,6 +157,7 @@ class ItemServiceImpl(
   }
 
   def bucket: String = AppConfig.assetsBucket
+
 }
 
 object ItemVersioningDao extends SalatVersioningDao[Item] {
