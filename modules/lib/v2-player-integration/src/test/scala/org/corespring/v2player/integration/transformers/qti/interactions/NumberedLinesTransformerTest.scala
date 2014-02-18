@@ -10,7 +10,9 @@ class NumberedLinesTransformerTest extends Specification {
         {
           lines.map(lineSet => {
             <div class="numbered-lines">
-              {lineSet.map(line => <line>{line}</line>)}
+              <p class="some container para">
+                {lineSet.map(line => <line>{line}</line>)}
+              </p>
             </div>
           })
         }

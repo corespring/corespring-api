@@ -14,11 +14,11 @@ object NumberedLinesTransformer extends Transformer {
 
   def interactionJs(qti: Node) =
     (qti \\ "_").filter(isNumberedLinesNode(_)).zipWithIndex.map{ case(node, index) => {
-      id(index+1) -> Json.obj(
+      id(index + 1) -> Json.obj(
         "componentType" -> "corespring-numbered-lines",
         "weight" -> 0,
         "model" -> Json.obj(
-          "lines" -> (node \ "line").map(_.child.mkString)
+          "lines" -> (node \\ "line").map(_.child.mkString)
         )
       )
     }}.toMap
