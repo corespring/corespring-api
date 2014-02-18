@@ -14,7 +14,7 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
       Json.obj(
         "componentType" -> "corespring-select-text",
         "model" -> Json.obj(
-          "text" -> node.child.mkString,
+          "text" -> clearNamespace(node.child).mkString,
           "config" -> partialObj(
             "selectionUnit" -> optForAttr[JsString]("selectionType"),
             "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
@@ -28,7 +28,7 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "selectTextInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-        <corespring-select-text id={identifier}>{elem.child}</corespring-select-text>
+        <corespring-select-text id={identifier}>{clearNamespace(elem.child)}</corespring-select-text>
     }
     case _ => node
   }

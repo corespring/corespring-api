@@ -4,9 +4,11 @@ import scala.xml.{TopScope, Elem, Node}
 
 trait XMLNamespaceClearer {
 
-  def clearNamespace(x: Node):Node = x match {
-    case e:Elem => e.copy(scope=TopScope, child = e.child.map(clearNamespace))
-    case o => o
+  def clearNamespace(node: Node): Node = node match {
+    case elem: Elem => elem.copy(scope = TopScope, child = elem.child.map(clearNamespace))
+    case _ => node
   }
+
+  def clearNamespace(seq: Seq[Node]): Seq[Node] = seq.map(clearNamespace)
 
 }
