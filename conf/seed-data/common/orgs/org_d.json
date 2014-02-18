@@ -11,7 +11,8 @@
     "collectionId": {
       "$oid": "5001a66ce4b0d7c9ec320f2e"
     },
-    "pval": 1
+    "pval": 1,
+    "enabled": true
   }
 ], "_id": {
   "$oid": "502404dd0364dc35bb39339b"

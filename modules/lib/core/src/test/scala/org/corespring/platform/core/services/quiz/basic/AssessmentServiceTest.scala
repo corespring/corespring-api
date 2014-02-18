@@ -1,26 +1,26 @@
-package org.corespring.platform.core.services.quiz.basic
+package org.corespring.platform.core.services.assessment.basic
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.itemSession.ItemSessionSettings
-import org.corespring.platform.core.models.quiz.basic.{ Answer, Participant, Question, Quiz }
+import org.corespring.platform.core.models.assessment.basic.{ Answer, Participant, Question, Assessment }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.{ PlaySingleton, BaseTest }
 import play.api.libs.json.Json
 import org.corespring.test.utils.JsonToModel
 
-class QuizServiceTest extends BaseTest with JsonToModel {
+class AssessmentServiceTest extends BaseTest with JsonToModel {
 
-  val service = QuizService
+  val service = AssessmentService
 
   sequential
 
   PlaySingleton.start()
 
-  "Quiz" should {
+  "Assessment" should {
     "save" in {
 
       val count = service.count()
-      val q = Quiz()
+      val q = Assessment()
       service.create(q)
       service.count() === (count + 1)
       service.remove(q)
@@ -29,7 +29,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
 
     "parse json" in {
 
-      val q = new Quiz(
+      val q = new Assessment(
         id = new ObjectId(),
         orgId = Some(new ObjectId()),
         metadata = Map("hello" -> "there"),
@@ -43,7 +43,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
             externalUid = "blah")))
 
       val json = Json.toJson(q)
-      val newQ: Quiz = getData(Json.fromJson[Quiz](json))
+      val newQ: Assessment = getData(Json.fromJson[Assessment](json))
       q.id === newQ.id
       q.orgId === newQ.orgId
       q.questions === newQ.questions
@@ -52,7 +52,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
 
     "add answer" in {
 
-      val q = Quiz(questions = Seq(), participants = Seq(
+      val q = Assessment(questions = Seq(), participants = Seq(
         Participant(externalUid = "sam.smith@gmail.com", answers = Seq())))
       service.create(q)
       val answer = Answer(new ObjectId(), VersionedId(new ObjectId()))
@@ -81,22 +81,22 @@ class QuizServiceTest extends BaseTest with JsonToModel {
 
     "find by ids" in {
 
-      val quizOne = Quiz(
+      val assessmentOne = Assessment(
         questions = Seq(),
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
             answers = Seq())))
-      service.create(quizOne)
+      service.create(assessmentOne)
 
-      val quizTwo = Quiz(
+      val assessmentTwo = Assessment(
         questions = Seq(),
         participants = Seq(
           Participant(
             externalUid = "sam.smith@gmail.com",
             answers = Seq())))
-      service.create(quizTwo)
-      val result = service.findByIds(List(quizOne.id, quizTwo.id))
+      service.create(assessmentTwo)
+      val result = service.findByIds(List(assessmentOne.id, assessmentTwo.id))
       result.length === 2
     }
 
@@ -109,17 +109,17 @@ class QuizServiceTest extends BaseTest with JsonToModel {
           i.taskInfo match {
             case Some(info) => {
 
-              val quizOne = Quiz(
+              val assessmentOne = Assessment(
                 questions = Seq(Question(itemId = i.id)),
                 participants = Seq(
                   Participant(
                     externalUid = "sam.smith@gmail.com",
                     answers = Seq())))
-              service.create(quizOne)
+              service.create(assessmentOne)
 
-              service.findOneById(quizOne.id) match {
-                case Some(updatedQuiz) => {
-                  updatedQuiz.questions(0).title === info.title
+              service.findOneById(assessmentOne.id) match {
+                case Some(updatedAssessment) => {
+                  updatedAssessment.questions(0).title === info.title
                   success
                 }
                 case _ => failure
@@ -138,9 +138,9 @@ class QuizServiceTest extends BaseTest with JsonToModel {
       def assertCompleteAndScore(id: ObjectId, expected: (Boolean, Int)*): org.specs2.execute.Result = {
 
         service.findOneById(id) match {
-          case Some(quiz) => {
+          case Some(assessment) => {
 
-            val participant = quiz.participants(0)
+            val participant = assessment.participants(0)
 
             val completeAndScore: Seq[(Boolean, Int)] = participant.answers.map(a => {
               val json = Json.toJson(a)
@@ -151,7 +151,7 @@ class QuizServiceTest extends BaseTest with JsonToModel {
             success
           }
           case _ => {
-            failure("can't find quiz with id: 000000000000000000000001")
+            failure("can't find assessment with id: 000000000000000000000001")
             failure
           }
         }

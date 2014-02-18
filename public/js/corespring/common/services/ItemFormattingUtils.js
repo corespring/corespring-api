@@ -40,6 +40,15 @@ angular.module('corespring-utils')
   }]);
 
 angular.module('corespring-utils')
+  .factory('BrowserUtils', [function() {
+    return {
+      isFirefox: function() {
+        return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+      }
+    }
+  }]);
+
+angular.module('corespring-utils')
   .factory('ItemFormattingUtils', [function () {
 
     return {

@@ -14,7 +14,7 @@ object ItemHelper {
 
   // It would be great if this could return the item id
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
-    ItemServiceImpl.insert(Item(collectionId = collectionId.toString())) match {
+    ItemServiceImpl.insert(Item(collectionId = collectionId.toString(), published = true)) match {
       case Some(versionedId) => versionedId
       case _ => throw new Exception("Error creating item")
     }

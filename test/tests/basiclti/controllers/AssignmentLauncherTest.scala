@@ -2,7 +2,7 @@ package tests.basiclti.controllers
 
 
 import basiclti.controllers.AssignmentLauncher
-import basiclti.models.{LtiQuestion, LtiQuiz, LtiOAuthConsumer, LtiData}
+import basiclti.models.{LtiQuestion, LtiAssessment, LtiOAuthConsumer, LtiData}
 import com.mongodb.casbah.commons.MongoDBObject
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
@@ -86,21 +86,21 @@ class AssignmentLauncherTest extends Specification {
     basiclti.controllers.AssignmentLauncher.launch()(finalRequest)
   }
 
-  def configureLaunchConfig(resourceLinkId: String, itemId: VersionedId[ObjectId], client: ApiClient): LtiQuiz = {
-    LtiQuiz.findByResourceLinkId(resourceLinkId) match {
+  def configureLaunchConfig(resourceLinkId: String, itemId: VersionedId[ObjectId], client: ApiClient): LtiAssessment = {
+    LtiAssessment.findByResourceLinkId(resourceLinkId) match {
       case Some(config) => {
         val newConfig = config.copy(question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()))
-        LtiQuiz.update(newConfig, client.orgId)
+        LtiAssessment.update(newConfig, client.orgId)
         newConfig
       }
       case _ => {
 
-        val newConfig = LtiQuiz(
+        val newConfig = LtiAssessment(
           resourceLinkId = resourceLinkId,
           question = LtiQuestion(itemId = Some(itemId), ItemSessionSettings()),
           participants = Seq(),
           orgId = Some(client.orgId))
-        LtiQuiz.insert(newConfig)
+        LtiAssessment.insert(newConfig)
         newConfig
       }
     }
@@ -119,7 +119,7 @@ class AssignmentLauncherTest extends Specification {
         (LtiData.Keys.Roles, "Instructor"),
         (LtiData.Keys.ResourceLinkId, uid))
 
-      LtiQuiz.findByResourceLinkId(uid).map {
+      LtiAssessment.findByResourceLinkId(uid).map {
         config =>
           config.orgId === Some(apiClient.orgId)
           config.question.itemId === None

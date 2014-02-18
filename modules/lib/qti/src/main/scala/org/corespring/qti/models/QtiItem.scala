@@ -235,6 +235,11 @@ case class ResponseDeclaration(identifier: String, cardinality: String, baseType
     case false => response.replaceAllLiterally(" ", "").toLowerCase
   }
 
+  def hasDefaultCorrectResponse = correctResponse match {
+    case None => false
+    case _ => true
+  }
+
 }
 
 object ResponseDeclaration {

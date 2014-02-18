@@ -1,7 +1,7 @@
-@(params: _root_.player.views.models.PlayerParams, quizId:String)
+@(params: _root_.player.views.models.PlayerParams, assessmentId:String)
 
 @scripts = {
-   @player.views.html.partials.angularConfig(params, ("quizId" -> quizId))
+   @player.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId))
 }
 
 @bodyAttributes = @{ "ng-controller=AggregateAppController" }

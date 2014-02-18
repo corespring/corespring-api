@@ -186,7 +186,6 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
   /**
    * Update the itemSession model - this is not counted as the item being processed.
-   * ItemSession can only be updated if its not started.
    * The only part of the session that is update-able is the settings.
    * @param update
    * @return
@@ -196,16 +195,13 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       dbSession =>
 
         val dbo: BasicDBObject = new BasicDBObject()
+        dbo.put(settings, grater[ItemSessionSettings].asDBObject(update.settings))
 
-        if (!dbSession.isStarted) {
-          dbo.put(settings, grater[ItemSessionSettings].asDBObject(update.settings))
-        }
-
-        if (dbo.size() > 0)
+        if (dbo.size() > 0) {
           updateFromDbo(update.id, MongoDBObject(("$set", dbo)))
-        else
+        } else {
           Right(dbSession)
-
+        }
     }
 
   /**
@@ -224,8 +220,8 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
     try {
       logger.debug(this + ":: update into : " + this.collection.getFullName())
-      //TODO: only update session if date modified is greater than date modified in db
-      val wr = update(unfinishedSession(id), dbo, false, false, collection.writeConcern)
+
+      val wr = update(MongoDBObject("_id" -> id), dbo, false, false, collection.writeConcern)
       if(wr.getN() == 0){
         Left(InternalError("no open session could be updated"))
       } else {
@@ -375,8 +371,6 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   private def addResponses(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
-
-  private def unfinishedSession(id: ObjectId): MongoDBObject = MongoDBObject("_id" -> id, finish -> MongoDBObject("$exists" -> false))
 
 }
 

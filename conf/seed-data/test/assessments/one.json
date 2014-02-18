@@ -1,6 +1,9 @@
 {
   "_id": {
-    "$oid": "000000000000000000000002"
+    "$oid": "000000000000000000000001"
+  },
+  "metadata": {
+    "authorId": "fd707fc3c"
   },
   "orgId": {
     "$oid": "51114b307fc1eaa866444648"
@@ -13,7 +16,7 @@
         },
         "version": 0
       },
-      "title": "Test Quiz"
+      "title": "Test Assessment"
     }
   ],
   "participants": [
@@ -21,7 +24,7 @@
       "answers": [
         {
           "sessionId": {
-            "$oid": "51541d93eea49124561ee824"
+            "$oid": "5153effbaa2eefdc1b7a5571"
           },
           "itemId": {
             "_id": {

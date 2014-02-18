@@ -1,6 +1,27 @@
-function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
+function CreateCollection($scope, CollectionManager, UserInfo, Logger, GetOrgsWithSharedCollection) {
 
   $scope.orgName = UserInfo.org.name;
+  $scope.viewState = "org";
+
+  $scope.disableCollection = function(collection) {
+    CollectionManager.disableCollection(collection.id,
+      function onSuccess(success){
+        $scope.setAlertClassAndMessage('success', "disabled collection: " + collection.name);
+    },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error disabling collection: " + collection.name);
+    });
+
+  };
+
+  $scope.enableCollection = function(collection) {
+    CollectionManager.enableCollection(collection.id, function onSuccess(success){
+        $scope.setAlertClassAndMessage('success', "enabled collection: " + collection.name);
+      },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error enabling collection: " + collection.name);
+      });
+  };
 
   $scope.hideAlertMessage = function () {
     $scope.alertMessage = null;
@@ -65,6 +86,37 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
     CollectionManager.renameCollection(collectionId, change, onSuccess, onError, onNoChange);
   }
 
+  $scope.updateOrgsForSharedCollection = function(collection) {
+    var orgs = GetOrgsWithSharedCollection.get({collId: collection.id}, function onSuccess(success){
+        $scope.orgsForSharedCollection =  _.filter(orgs,function(org){
+          return org.id != UserInfo.org.id;
+        });
+      },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error getting shared orgs: ");
+      });
+
+  }
+
+  $scope.openCollectionSharing = function(collection){
+    $scope.viewState = "collectionSharing";
+    $scope.activeCollection = collection;
+    $scope.updateOrgsForSharedCollection(collection);
+
+  };
+
+  $scope.shareCollection = function(orgId, coll){
+    CollectionManager.shareCollection(coll.id, orgId,  function onSuccess(success) {
+        $scope.setAlertClassAndMessage('success', "shared collection: " + coll.name);
+        $scope.updateOrgsForSharedCollection(coll);
+        $scope.sharedOrgId = '';
+      },
+      function onError(error){
+        $scope.setAlertClassAndMessage('error', "error enabling collection: " + coll.name);
+      });
+  };
+
+
   $scope.$watch(
     function () {
       return CollectionManager.sortedCollections;
@@ -72,7 +124,8 @@ function CreateCollection($scope, CollectionManager, UserInfo, Logger) {
     function (newValue) {
       if (newValue) {
         $scope.collections = newValue[0].collections;
+        $scope.sharedCollections = newValue[1].collections;
       }
     }, true);
 }
-CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo', 'Logger'];
+CreateCollection.$inject = ['$scope', 'CollectionManager', 'UserInfo', 'Logger', 'GetOrgsWithSharedCollection'];

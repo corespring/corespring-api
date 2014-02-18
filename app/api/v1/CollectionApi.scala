@@ -2,26 +2,23 @@ package api.v1
 
 import api.ApiError
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons.TypeImports.ObjectId
+import com.mongodb.casbah.map_reduce._
+import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.search.SearchCancelled
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
+import org.corespring.platform.core.services.item.ItemServiceImpl
+import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.Result
-import org.corespring.platform.core.models.error.InternalError
-import com.mongodb.casbah.map_reduce._
-import org.corespring.platform.core.services.item.ItemServiceImpl
-import com.mongodb.DBObject
-import org.corespring.platform.core.models.search.SearchCancelled
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsUndefined
-import scalaz.Failure
-import play.api.libs.json.JsString
-import com.mongodb.casbah.map_reduce.MapReduceCommand
 import scala.Some
-import play.api.libs.json.JsNumber
-import com.novus.salat.dao.SalatMongoCursor
+import scalaz.Failure
 import scalaz.Success
-import play.api.libs.json.JsObject
+import com.mongodb.casbah.map_reduce.MapReduceCommand
 import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
 
 /**
@@ -154,7 +151,7 @@ object CollectionApi extends BaseApi {
             if (name.isEmpty) {
               BadRequest(Json.toJson(ApiError.CollectionNameMissing))
             } else {
-              val collection = ContentCollection(id = newId, name = name.get)
+              val collection = ContentCollection(id = newId, name = name.get, ownerOrgId = request.ctx.organization)
               ContentCollection.insertCollection(request.ctx.organization, collection, Permission.Write) match {
                 case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll, Permission.Write.value)))
                 case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
@@ -189,7 +186,7 @@ object CollectionApi extends BaseApi {
         request.body.asJson match {
           case Some(json) => {
             val name = (json \ "name").asOpt[String].getOrElse(original.name)
-            val toUpdate = ContentCollection(name, id = original.id)
+            val toUpdate = ContentCollection(name, id = original.id, ownerOrgId = original.ownerOrgId)
             if ((Organization.getPermissions(request.ctx.organization, original.id).value & Permission.Read.value) == Permission.Read.value) {
               ContentCollection.updateCollection(toUpdate) match {
                 case Right(coll) => (json \ "organizations") match {
@@ -209,6 +206,38 @@ object CollectionApi extends BaseApi {
       }).getOrElse(unknownCollection)
   }
 
+  def setEnabledStatus(id: ObjectId, enabled: Boolean) = ApiActionWrite { request =>
+    Organization.setCollectionEnabledStatus(request.ctx.organization, id, enabled) match {
+      case Left(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
+      case Right(collRef) => {
+        Ok(Json.toJson(s"updated ${collRef.collectionId.toString}"))
+      }
+    }
+  }
+
+  /**
+   * Shares a collection with an organization, will fail if the context organization is not the same as
+   * the owner organization for the collection
+   * @param collectionId
+   * @param destinationOrgId
+   * @return
+   */
+  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite {  request =>
+    ContentCollection.findOneById(collectionId) match {
+      case Some(collection) =>
+        if (collection.ownerOrgId == request.ctx.organization) {
+          Organization.addCollection(destinationOrgId,collectionId, Permission.Read) match {
+            case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(error.clientOutput)))
+            case Right(collRef) =>  Ok(Json.toJson("updated" + collRef.collectionId.toString))
+          }
+        } else {
+          InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("context org does not own collection"))))
+        }
+
+      case None =>  InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("collection not found"))))
+    }
+  }
+
   /**
    * Deletes a collection
    */
@@ -225,4 +254,80 @@ object CollectionApi extends BaseApi {
       case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
     }
   }
+
+  /**
+   * Add items to the collection specified.
+   * receives list of items in json in request body
+   * @param collectionId
+   * @return
+   */
+  def shareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
+    request =>
+      request.body.asJson match {
+        case Some(json) => {
+          if ((json \ "items").asOpt[Array[String]].isEmpty) {
+            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
+          } else {
+            val itemIds = (json \ "items").as[Seq[String]]
+            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
+            ContentCollection.shareItems(request.ctx.organization, versionedItemIds, collectionId) match {
+              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+            }
+          }
+        }
+        case _ => jsonExpected
+      }
+  }
+
+  /**
+   * Unshare items from the collection specified.
+   * receives list of items in json in request body
+   * @param collectionId
+   * @return
+   */
+  def unShareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
+    request =>
+      request.body.asJson match {
+        case Some(json) => {
+          if ((json \ "items").asOpt[Array[String]].isEmpty) {
+            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
+          } else {
+            val itemIds = (json \ "items").as[Seq[String]]
+            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
+            ContentCollection.unShareItems(request.ctx.organization, versionedItemIds, Seq(collectionId)) match {
+              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+            }
+          }
+        }
+        case _ => jsonExpected
+      }
+  }
+
+  /**
+   * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
+   * @param q - the query to select items to add to the collection
+   * @param id  - collection to add the items to
+   * @return  - json with success or error response
+   */
+  def shareFilteredItemsWithCollection(id: ObjectId,q: Option[String]) = ApiActionWrite {  request =>
+    ContentCollection.findOneById(id) match {
+      case Some(coll) => if (ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+        if (q.isDefined) {
+          ContentCollection.shareItemsMatchingQuery(request.ctx.organization,q.get,id) match {
+            case Right(itemsAdded) => Ok(toJson(itemsAdded.size))
+            case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+          }
+        } else {
+          BadRequest(Json.toJson(ApiError.ItemSharingError(Some("q is required parameter"))))
+        }
+
+      } else {
+        Forbidden(Json.toJson(ApiError.ItemSharingError(Some("permission not granted"))))
+      }
+      case None => BadRequest(Json.toJson(ApiError.ItemSharingError(Some("collection not found"))))
+    }
+  }
+
 }

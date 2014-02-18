@@ -1,8 +1,8 @@
-@(params: _root_.player.views.models.PlayerParams, quizId:String, resultSourcedId:String)
+@(params: _root_.player.views.models.PlayerParams, assessmentId:String, resultSourcedId:String)
 
 @scripts = {
 
-  @player.views.html.partials.angularConfig(params, ("quizId" -> quizId), ("resultSourcedId" -> resultSourcedId) )
+  @player.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId), ("resultSourcedId" -> resultSourcedId) )
   <!-- need to override the config to add the Lti Params
   <script type="text/javascript">
     angular.module('qti.services').factory('Config', [function(){
