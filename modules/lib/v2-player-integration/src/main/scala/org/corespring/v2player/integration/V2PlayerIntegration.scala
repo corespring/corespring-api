@@ -4,7 +4,7 @@ import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.component.ComponentUrls
+import org.corespring.container.client.component.{ PlayerGenerator, EditorGenerator, SourceGenerator, ComponentUrls }
 import org.corespring.container.client.controllers._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.Library
@@ -148,7 +148,11 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     import play.api.Play.current
 
     override def allComponents: Seq[Component] = comps
-    override def resource(context: String, directive: String, suffix: String): EssentialAction = Cached(s"$context-$directive-$suffix") { super.resource(context, directive, suffix) }
+    override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = Cached(s"$context-$directive-$suffix") { super.resource(context, directive, suffix) }
+
+    override def editorGenerator: SourceGenerator = new EditorGenerator
+
+    override def playerGenerator: SourceGenerator = new PlayerGenerator
   }
 
   private lazy val playerHooks = new PlayerWithActions {
