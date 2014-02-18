@@ -3,7 +3,7 @@ package org.corespring.v2player.integration.controllers.player
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.container.client.actions._
-import org.corespring.container.client.controllers.hooks.PlayerHooks
+import org.corespring.container.client.controllers.Player
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -16,7 +16,7 @@ import scala.Some
 import scalaz.Scalaz._
 import scalaz._
 
-trait PlayerHooksWithActions extends PlayerHooks with PackageLogging {
+trait PlayerWithActions extends Player with PackageLogging {
 
   def sessionService: MongoService
 

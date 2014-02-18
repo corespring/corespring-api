@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.2.7-SNAPSHOT"
+  val containerVersion = "0.2.8-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
   val componentLoader = "org.corespring" %% "component-loader" % containerVersion
@@ -49,6 +49,7 @@ object Dependencies {
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
 
   val all = Seq(
+    play.Keys.cache,
     amapClient,
     assetsLoader,
     aws,
