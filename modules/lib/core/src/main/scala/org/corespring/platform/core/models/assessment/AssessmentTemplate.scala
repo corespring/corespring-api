@@ -96,6 +96,7 @@ object AssessmentTemplate extends JsonUtil {
 
     def writes(assessmentTemplate: AssessmentTemplate): JsValue = partialObj(
       id -> Some(JsString(assessmentTemplate.id.toString)),
+      collectionId -> assessmentTemplate.collectionId.map(JsString(_)),
       metadata -> (assessmentTemplate.metadata match {
         case nonEmpty: Map[String, String] if nonEmpty.nonEmpty => Some(Json.toJson(nonEmpty))
         case _ => None
