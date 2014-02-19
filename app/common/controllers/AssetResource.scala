@@ -51,9 +51,9 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
     }
   }
 
-  def getDataFile(itemId: String, filename: String) = getFile(itemId, Resource.QtiPath, Some(filename))
+  def getDataFile(itemId: String, filename: String) = getFile(itemId, Resource.DataPath, Some(filename))
 
-  def renderDataResource(itemId: String) = getDefaultResourceFile(itemId, Resource.QtiPath)
+  def renderDataResource(itemId: String) = getDefaultResourceFile(itemId, Resource.DataPath)
 
   protected def addDefaultCss(html: String): String = {
     val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
@@ -85,7 +85,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
       }
     }
 
-  private def getResource(item: Item, name: String): Option[(Boolean, Resource)] = if (name == Resource.QtiPath) {
+  private def getResource(item: Item, name: String): Option[(Boolean, Resource)] = if (name == Resource.DataPath) {
     item.data.map((true, _))
   } else {
     item.supportingMaterials.find(_.name == name).map((false, _))

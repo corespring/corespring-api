@@ -87,7 +87,7 @@ object ShowResource
         }
     }
 
-  private def isQti(f: BaseFile) = f.contentType == BaseFile.ContentTypes.XML && f.name == Resource.QtiXml
+  private def isQti(f: BaseFile) = f.contentType == BaseFile.ContentTypes.XML && f.name == Item.QtiResource.QtiXml
 
   override def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(
     if (isDataResource && isQti(f))

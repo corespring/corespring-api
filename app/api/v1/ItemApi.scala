@@ -195,7 +195,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     request =>
       for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-        cloned <- service.cloneItem(item).toSuccess("Error cloning")
+        cloned <- service.clone(item).toSuccess("Error cloning")
       } yield cloned
   }
 
@@ -299,7 +299,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     request =>
       service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
         case Some(o) => o.get(collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
+          case collId: Some[String] => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
             Content.moveToArchive(id) match {
               case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
               case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
@@ -331,7 +331,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
               if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
-                    i.collectionId = default.id.toString
+                    i.collectionId = Option(default.id.toString)
                     service.insert(i) match {
                       case Some(_) => Ok(toJson(i))
                       case None => InternalServerError(toJson(ApiError.CantSave))

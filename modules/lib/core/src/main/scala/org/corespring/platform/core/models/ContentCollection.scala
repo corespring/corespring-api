@@ -198,7 +198,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
       // get a list of any items that were not authorized to be added
       val itemsNotAuthorized = ItemServiceImpl.find(query).filterNot(item => {
         // get the collections to test auth on (owner collection for item, and shared-in collections)
-        val collectionsToAuth = Seq(item.collectionId) ++ item.sharedInCollections
+        val collectionsToAuth = item.collectionId.map(Seq(_)).getOrElse(Seq.empty) ++ item.sharedInCollections
         // does org have read access to any of these collections
         val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
         collectionsAuthorized.size > 0

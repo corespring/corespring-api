@@ -14,7 +14,7 @@ object ItemHelper {
 
   // It would be great if this could return the item id
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
-    ItemServiceImpl.insert(Item(collectionId = collectionId.toString(), published = true)) match {
+    ItemServiceImpl.insert(Item(collectionId = Some(collectionId.toString()), published = true)) match {
       case Some(versionedId) => versionedId
       case _ => throw new Exception("Error creating item")
     }
@@ -23,8 +23,8 @@ object ItemHelper {
   def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
     collectionIds match {
       case Some(ids) =>
-        ItemServiceImpl.countItems(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString))))
-      case _ => ItemServiceImpl.countItems(MongoDBObject())
+        ItemServiceImpl.count(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString))))
+      case _ => ItemServiceImpl.count(MongoDBObject())
     }
   }
 

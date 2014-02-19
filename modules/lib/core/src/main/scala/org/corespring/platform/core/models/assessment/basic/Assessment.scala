@@ -26,7 +26,8 @@ object Answer {
       JsSuccess(
         Answer(
           sessionId = new ObjectId((json \ "sessionId").as[String]),
-          itemId = (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads).getOrElse(throw new JsonValidationException("You must have an item id"))
+          itemId = (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads)
+            .getOrElse(throw new JsonValidationException("You must have an item id"))
         )
       )
     }
@@ -110,29 +111,7 @@ case class Question(itemId: VersionedId[ObjectId],
 trait QuestionLike {
   self: ItemServiceClient =>
 
-  implicit object Reads extends Reads[Question] {
-    def reads(json: JsValue): JsResult[Question] = {
-
-      import VersionedIdImplicits.{ Reads => IdReads }
-
-      JsSuccess(Question(
-        (json \ "itemId").as[VersionedId[ObjectId]](IdReads),
-        (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())))
-    }
-  }
-
-  implicit object Writes extends Writes[Question] {
-    def writes(q: Question): JsValue = {
-
-      import VersionedIdImplicits.{ Writes => IdWrites }
-      JsObject(
-        Seq(
-          Some("itemId" -> toJson(q.itemId)(IdWrites)),
-          if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
-          q.title.map("title" -> JsString(_)),
-          Some("standards" -> JsArray(q.standards.map(JsString(_))))).flatten)
-    }
-  }
+  implicit val QuestionReads = Question.Format
 
   def bindItemToQuestion(question: Question): Question = {
     itemService.findFieldsById(
@@ -156,6 +135,29 @@ trait QuestionLike {
 
 object Question extends QuestionLike with ItemServiceClient {
   def itemService: ItemService = ItemServiceImpl
+
+  object Format extends Format[Question] {
+    def reads(json: JsValue): JsResult[Question] = {
+
+      import VersionedIdImplicits.{ Reads => IdReads }
+
+      JsSuccess(Question(
+        (json \ "itemId").as[VersionedId[ObjectId]](IdReads),
+        (json \ "settings").asOpt[ItemSessionSettings].getOrElse(ItemSessionSettings())))
+    }
+
+    def writes(q: Question): JsValue = {
+
+      import VersionedIdImplicits.{ Writes => IdWrites }
+      JsObject(
+        Seq(
+          Some("itemId" -> toJson(q.itemId)(IdWrites)),
+          if (q.settings != null) Some("settings" -> toJson(q.settings)) else None,
+          q.title.map("title" -> JsString(_)),
+          Some("standards" -> JsArray(q.standards.map(JsString(_))))).flatten)
+    }
+  }
+
 }
 
 case class Assessment(orgId: Option[ObjectId] = None,
