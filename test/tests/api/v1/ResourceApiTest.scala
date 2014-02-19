@@ -2,7 +2,6 @@ package tests.api.v1
 
 import api.ApiError
 import api.v1.ResourceApi
-import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.item.Item
@@ -37,7 +36,7 @@ class ResourceApiTest extends BaseTest with PackageLogging {
       logger.debug("[testItem] Can't find item - create it")
       val item = Item(
         id = itemId,
-        collectionId = TEST_COLLECTION_ID,
+        collectionId = Some(TEST_COLLECTION_ID),
         supportingMaterials = Seq(
           Resource("Rubric", files = Seq(VirtualFile("Rubric", "text/html", true, "<html/>")))),
         data = Some(Resource("data", files = Seq(VirtualFile("qti.xml", "text/xml", true, "<root/>")))))

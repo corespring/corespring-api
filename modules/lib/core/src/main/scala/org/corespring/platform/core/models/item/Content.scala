@@ -43,7 +43,7 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
     val ids = ContentCollection.getCollectionIds(orgId, p)
     logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
     collectionId match {
-      case Some(id) => ids.exists(_.toString == collectionId)
+      case Some(id) => ids.exists(_.toString == id)
       case _ => false
     }
   }

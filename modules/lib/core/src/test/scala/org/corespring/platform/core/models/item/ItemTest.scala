@@ -147,11 +147,11 @@ class ItemTest extends BaseTest {
 
     "work" in {
 
-      val item = Item(collectionId = "1234567")
-      val clonedItem = itemService.cloneItem(item)
+      val item = Item(collectionId = Some("1234567"))
+      val clonedItem = itemService.clone(item)
       item.collectionId === clonedItem.get.collectionId
 
-      item.collectionId = "0987654321"
+      item.collectionId = Some("0987654321")
       itemService.save(item)
 
       itemService.findOneById(clonedItem.get.id) match {
@@ -161,20 +161,20 @@ class ItemTest extends BaseTest {
     }
 
     "prepend [copy] to title" in {
-      val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo(title = Some("something"))))
-      val clonedItem = itemService.cloneItem(item)
+      val item = Item(collectionId = Some("1234567"), taskInfo = Some(TaskInfo(title = Some("something"))))
+      val clonedItem = itemService.clone(item)
       clonedItem.get.taskInfo.get.title.get === "[copy] " + item.taskInfo.get.title.get
     }
 
     "prepend [copy] to empty taskinfo" in {
-      val item = Item(collectionId = "1234567")
-      val clonedItem = itemService.cloneItem(item)
+      val item = Item(collectionId = Some("1234567"))
+      val clonedItem = itemService.clone(item)
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
     "prepend [copy] to empty title" in {
-      val item = Item(collectionId = "1234567", taskInfo = Some(TaskInfo()))
-      val clonedItem = itemService.cloneItem(item)
+      val item = Item(collectionId = Some("1234567"), taskInfo = Some(TaskInfo()))
+      val clonedItem = itemService.clone(item)
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
