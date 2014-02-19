@@ -35,11 +35,12 @@ import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.cache.Cached
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import play.api.{ Logger, Configuration }
+import play.api.{ Mode, Play, Logger, Configuration }
 import scala.Some
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 
 class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
 
@@ -148,7 +149,13 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     import play.api.Play.current
 
     override def allComponents: Seq[Component] = comps
-    override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = Cached(s"$context-$directive-$suffix") { super.resource(context, directive, suffix) }
+    override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = {
+      if (Play.current.mode == Mode.Dev) {
+        super.resource(context, directive, suffix)
+      } else {
+        Cached(s"$context-$directive-$suffix") { super.resource(context, directive, suffix) }
+      }
+    }
 
     override def editorGenerator: SourceGenerator = new EditorGenerator
 
