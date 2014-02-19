@@ -15,7 +15,7 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
       parsed[AssessmentTemplate](request.body.asJson, {
         assessmentTemplate =>
           val copy = assessmentTemplate.copy(orgId = Some(request.ctx.organization))
-          assessmentTemplateService.save(copy)
+          assessmentTemplateService.save(copy.forSalat)
           Ok(toJson(copy))
       })
   }

@@ -12,7 +12,7 @@ import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService
 trait Content {
   var id: VersionedId[ObjectId]
   var contentType: String
-  var collectionId: String
+  var collectionId: Option[String]
 }
 
 class ContentHelper(itemService: ItemService) extends PackageLogging {
@@ -39,10 +39,13 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
     }
   }
 
-  def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
+  def isCollectionAuthorized(orgId: ObjectId, collectionId: Option[String], p: Permission): Boolean = {
     val ids = ContentCollection.getCollectionIds(orgId, p)
     logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
-    ids.exists(_.toString == collectionId)
+    collectionId match {
+      case Some(id) => ids.exists(_.toString == collectionId)
+      case _ => false
+    }
   }
 }
 

@@ -21,15 +21,13 @@ object Resource extends PackageLogging {
 
   val DataPath = "data"
 
-  implicit object ResourceWrites extends Writes[Resource] {
+  implicit object Format extends Format[Resource] {
     def writes(res: Resource): JsValue = {
       JsObject(List(
         "name" -> JsString(res.name),
         "files" -> Json.toJson(res.files)))
     }
-  }
 
-  implicit object ResourceReads extends Reads[Resource] {
     def reads(json: JsValue): JsResult[Resource] = {
 
       json match {

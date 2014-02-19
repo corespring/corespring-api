@@ -8,13 +8,11 @@ import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, Versio
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
-import com.novus.salat._
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.resource.Resource
 
 case class Item(
-  var collectionId: String = "",
+  var collectionId: Option[String] = None,
   var contributorDetails: Option[ContributorDetails] = None,
   var contentType: String = "item",
   var priorUse: Option[String] = None,
@@ -124,7 +122,7 @@ object Item {
     def reads(json: JsValue): JsResult[Item] = {
       val item = Item()
 
-      item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
+      item.collectionId = (json \ collectionId).asOpt[String]
 
       item.taskInfo = json.asOpt[TaskInfo]
       item.otherAlignments = json.asOpt[Alignments]
