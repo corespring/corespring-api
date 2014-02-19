@@ -9,8 +9,8 @@ import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 
-trait Content {
-  var id: VersionedId[ObjectId]
+trait Content[Id] {
+  var id: Id
   var contentType: String
   var collectionId: Option[String]
 }

@@ -30,7 +30,8 @@ case class Item(
   var dateModified: Option[DateTime] = Some(new DateTime()),
   var taskInfo: Option[TaskInfo] = None,
   var otherAlignments: Option[Alignments] = None,
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())
+) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")

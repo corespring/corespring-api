@@ -4,21 +4,18 @@ import org.corespring.platform.core.models.assessment.basic.Question
 import org.corespring.platform.core.models.JsonUtil
 import play.api.libs.json._
 import play.api.libs.json.JsSuccess
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.data.mongo.models.{EntityWithVersionedId, VersionedId}
 import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.TypeImports.ObjectId
 import org.corespring.platform.core.models.item.Content
 import org.joda.time.DateTime
-import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, VirtualFile}
 
-case class AssessmentTemplate(var id: VersionedId[ObjectId] = VersionedId(ObjectId.get()),
+case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
                               var collectionId: Option[String] = None,
                               orgId: Option[ObjectId] = None,
                               metadata: Map[String, String] = Map(),
                               dateModified: Option[DateTime] = Some(new DateTime()),
-                              questions: Seq[Question] = Seq()) extends Content with EntityWithVersionedId[ObjectId] {
+                              questions: Seq[Question] = Seq()) extends Content[ObjectId] {
 
   import AssessmentTemplate._
 
@@ -47,12 +44,12 @@ case class AssessmentTemplate(var id: VersionedId[ObjectId] = VersionedId(Object
 
 }
 
-case class SalatAssessmentTemplate(var id: VersionedId[ObjectId],
+case class SalatAssessmentTemplate(var id: ObjectId,
                                  var contentType: String = "",
                                  var collectionId: Option[String] = None,
                                  orgId: Option[ObjectId] = None,
                                  dateModified: Option[DateTime] = None,
-                                 data: Option[Resource] = None) extends Content with EntityWithVersionedId[ObjectId]
+                                 data: Option[Resource] = None) extends Content[ObjectId]
 
 object AssessmentTemplate extends JsonUtil {
 
@@ -73,19 +70,12 @@ object AssessmentTemplate extends JsonUtil {
   object Format extends Format[AssessmentTemplate] {
 
     import Keys._
-    implicit val VersionedIdWrites = VersionedIdImplicits.Writes
-    implicit val VersionedIdReads = VersionedIdImplicits.Reads
     implicit val QuestionFormat = Question.Format
 
     def reads(json: JsValue): JsResult[AssessmentTemplate] = {
       JsSuccess(
         AssessmentTemplate(
-          id = (try {
-            import VersionedIdImplicits.{ Reads => IdReads }
-            (json \ id).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(VersionedId(new ObjectId()))
-          } catch {
-            case e: Throwable => throw new JsonValidationException(id)
-          }),
+          id = (json \ id).asOpt[String].map(new ObjectId(_)).getOrElse(new ObjectId()),
           collectionId = (json \ collectionId).asOpt[String],
           orgId = (json \ orgId).asOpt[String].map(new ObjectId(_)),
           metadata = (json \ metadata).asOpt[Map[String, String]].getOrElse(Map.empty),
