@@ -59,6 +59,10 @@ object Item {
 
   val FieldValuesVersion = "0.0.1"
 
+  object QtiResource {
+    val QtiXml = "qti.xml"
+  }
+
   object Keys {
 
     val id = "id"

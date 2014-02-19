@@ -14,4 +14,6 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem]
 
+  def sessionCount(item: Item): Long
+
 }

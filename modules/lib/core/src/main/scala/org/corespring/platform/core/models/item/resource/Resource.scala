@@ -12,14 +12,14 @@ import org.corespring.common.log.PackageLogging
 case class Resource(name: String, var files: Seq[BaseFile]) {
 
   def defaultFile = files.find(_.isMain)
+
 }
 
 object Resource extends PackageLogging {
   val name = "name"
   val files = "files"
 
-  val QtiXml = "qti.xml"
-  val QtiPath = "data"
+  val DataPath = "data"
 
   implicit object ResourceWrites extends Writes[Resource] {
     def writes(res: Resource): JsValue = {

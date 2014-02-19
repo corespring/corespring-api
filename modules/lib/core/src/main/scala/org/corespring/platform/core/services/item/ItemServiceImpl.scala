@@ -73,39 +73,6 @@ class ItemServiceImpl(
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
-
-  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = {
-    // filter the collections to exclude any that are not currently enabled for the organization
-    val org = Organization.findOneById(orgId)
-    val disabledCollections: Seq[ObjectId] = org match {
-      case Some(organization) => organization.contentcolls.filterNot(collRef => collRef.enabled).map(_.collectionId)
-      case None => Seq()
-    }
-    val enabledCollections = collections.filterNot(disabledCollections.contains(_))
-    val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> enabledCollections.map(_.toString)))
-    val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> enabledCollections))
-    val initSearch: MongoDBObject = MongoDBObject("$or" -> MongoDBList(collectionIdQry, sharedInCollectionsQry))
-    initSearch
-  }
-
-  def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
-    case dbo: BasicDBObject => dbo.toSeq.headOption match {
-      case Some((key, dblist)) => if (key == "$in") {
-        if (dblist.isInstanceOf[BasicDBList]) {
-          try {
-            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read)))
-              Right(value)
-            else Left(InternalError("attempted to access a collection that you are not authorized to"))
-          } catch {
-            case e: IllegalArgumentException => Left(InternalError("could not parse collectionId into an object id", e))
-          }
-        } else Left(InternalError("invalid value for collectionId key. could not cast to array"))
-      } else Left(InternalError("can only use $in special operator when querying on collectionId"))
-      case None => Left(InternalError("empty db object as value of collectionId key"))
-    }
-    case _ => Left(InternalError("invalid value for collectionId"))
-  }
-
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   def save(item: Item, createNewVersion: Boolean = false) = {
@@ -146,8 +113,6 @@ class ItemServiceImpl(
       virtualFile: VirtualFile <- if (mainFile.isInstanceOf[VirtualFile]) Some(mainFile.asInstanceOf[VirtualFile]) else None
     } yield scala.xml.XML.loadString(CDataHandler.addCDataTags(virtualFile.content))
   }
-
-  def currentVersion(id: VersionedId[ObjectId]): Option[Int] = throw new RuntimeException("to be implemented?")
 
   def sessionCount(item: Item): Long = {
     import com.novus.salat._
