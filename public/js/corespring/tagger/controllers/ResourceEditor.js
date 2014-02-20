@@ -137,7 +137,10 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
   $scope.onFileSizeGreaterThanMax = function (file, maxSize) {
-    alert("File: " + file.name + " is too big (max: " + maxSize + ")");
+      function kbToMb(size) {
+          return Math.round(size/1024 * 100) / 100
+      }
+      alert("The file size is too big. CoreSpring limits the size of files that you may upload to " + kbToMb(maxSize) + "MB.");
   };
 
   $scope.renameFile = function (f) {

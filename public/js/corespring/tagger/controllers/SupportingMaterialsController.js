@@ -96,7 +96,10 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
     };
 
     $scope.greaterThanMax = function(file,size) {
-      alert("The file size is too big (>"+size+"k)");
+      function kbToMb(size) {
+          return Math.round(size/1024 * 100) / 100
+      }
+      alert("The file size is too big. CoreSpring limits the size of files that you may upload to " + kbToMb(size) + "MB.");
     }
 
     $scope.calculateResourceUploadUrl = function (file) {
