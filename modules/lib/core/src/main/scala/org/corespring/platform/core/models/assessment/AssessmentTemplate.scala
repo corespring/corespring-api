@@ -49,7 +49,24 @@ case class SalatAssessmentTemplate(var id: ObjectId,
                                  var collectionId: Option[String] = None,
                                  orgId: Option[ObjectId] = None,
                                  dateModified: Option[DateTime] = None,
-                                 data: Option[Resource] = None) extends Content[ObjectId]
+                                 data: Option[Resource] = None) extends Content[ObjectId] {
+
+  implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
+
+  private def json: JsObject = data match {
+    case Some(resource) => resource.files.find(_.isMain) match {
+      case Some(jsonFile: VirtualFile) => Json.parse(jsonFile.content).as[JsObject]
+      case _ => Json.obj()
+    }
+    case _ => Json.obj()
+  }
+
+  def toAssessmentTemplate: AssessmentTemplate = Json.fromJson[AssessmentTemplate](json) match {
+    case success: JsSuccess[AssessmentTemplate] => success.get.copy(id = id)
+    case _ => throw new IllegalArgumentException(s"Could not deserialize JSON to AssessmentTemplate:\n$json")
+  }
+
+}
 
 object AssessmentTemplate extends JsonUtil {
 
