@@ -16,7 +16,7 @@ object PlayerLauncherActions {
 
   import play.api.http.Status._
 
-  sealed abstract case class LaunchError(val code: Int, val message: String)
+  sealed abstract class LaunchError(val code: Int, val message: String)
 
   case object noClientId extends LaunchError(BAD_REQUEST, "You must specify 'apiClient'")
 

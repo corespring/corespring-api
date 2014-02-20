@@ -82,7 +82,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     val json: JsValue = ToJsValue(b.get("components"))
     import com.mongodb.casbah.Implicits._
 
-    val l = b.get("files").asInstanceOf[BasicDBList]
+    val l = b.get("files").asInstanceOf[MongoDBList]
     val prepped: Seq[BaseFile] = l.toList.map {
       dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
     }

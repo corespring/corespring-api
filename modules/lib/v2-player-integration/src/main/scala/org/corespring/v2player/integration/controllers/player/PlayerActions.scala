@@ -83,7 +83,6 @@ trait PlayerActions extends ContainerPlayerActions[AnyContent] {
       }
   } {
     (r, code, msg) =>
-      logger.warn(s"create session failed: $msg")
       if (code == UNAUTHORIZED) Redirect("/login") else Status(code)(msg)
   }
 

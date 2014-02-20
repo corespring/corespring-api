@@ -14,6 +14,9 @@ import scala.concurrent.Future
 class LoadPlayerJsThenLoadPlayerTest
   extends IntegrationSpecification {
 
+  import org.corespring.container.client.controllers.apps.Player
+  import org.corespring.container.client.controllers.PlayerLauncher
+
   "when I load the player js with orgId and options" should {
 
     "load js with no errors" in new LoadJsAndCreateSession("js no errors") {
@@ -44,13 +47,13 @@ class LoadPlayerJsThenLoadPlayerTest
 
     lazy val jsResult = {
       val url = urlWithEncryptedOptions("", apiClient)
-      val launcher = global.getControllerInstance(classOf[org.corespring.container.client.controllers.PlayerLauncher])
+      val launcher = global.getControllerInstance(classOf[PlayerLauncher])
       launcher.playerJs(FakeRequest(GET, url))
     }
 
     lazy val createSessionResult: Future[SimpleResult] = {
-      val hooks = global.getControllerInstance(classOf[org.corespring.container.client.controllers.hooks.PlayerHooks])
-      val createSession = hooks.createSessionForItem(itemId.toString)
+      val player = global.getControllerInstance(classOf[Player])
+      val createSession = player.createSessionForItem(itemId.toString)
       val jsCookies = if (addCookies) cookies(jsResult) else Cookies(None)
       createSession(FakeRequest("", "").withCookies(jsCookies.toSeq: _*))
     }
@@ -69,7 +72,7 @@ class LoadPlayerJsThenLoadPlayerTest
       val Regex = """/v2/player/session/(.*?)/.*""".r
       val Regex(id) = redirect
       logger.debug(s" id is: $id")
-      val c = global.getControllerInstance(classOf[org.corespring.container.client.controllers.hooks.PlayerHooks])
+      val c = global.getControllerInstance(classOf[Player])
       val out = c.loadPlayerForSession(id)(FakeRequest(GET, redirect).withCookies(cookies(jsResult).toSeq: _*))
       out
     }
