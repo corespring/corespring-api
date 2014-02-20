@@ -11,9 +11,9 @@ import org.corespring.container.components.model.Library
 import org.corespring.container.components.model.UiComponent
 import org.corespring.container.components.outcome.{ DefaultScoreProcessor, ScoreProcessor }
 import org.corespring.container.components.processing.PlayerItemPreProcessor
-import org.corespring.container.components.processing.rhino.{ PlayerItemPreProcessor => RhinoPreProcessor }
+import org.corespring.container.js.processing.rhino.{ PlayerItemPreProcessor => RhinoPreProcessor }
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.container.components.response.rhino.{ OutcomeProcessor => RhinoProcessor }
+import org.corespring.container.js.response.rhino.{ OutcomeProcessor => RhinoProcessor }
 import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.Organization
@@ -24,12 +24,11 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ UserService, UserServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders._
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.controllers.PlayerLauncher
-import org.corespring.v2player.integration.controllers.editor.{ AuthEditorActions, ItemWithActions, EditorWithActions }
-import org.corespring.v2player.integration.controllers.player.{ ClientSessionWithActions, PlayerWithActions }
+import org.corespring.v2player.integration.controllers.DefaultPlayerLauncherActions
+import org.corespring.v2player.integration.controllers.editor._
+import org.corespring.v2player.integration.controllers.player.{ SessionActions, PlayerActions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.cache.Cached
@@ -41,8 +40,20 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.container.client.actions
+import org.bson.types.ObjectId
+import org.corespring.common.encryption.{ NullCrypto, AESCrypto }
+import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.models.auth.ApiClient
+import scalaz.Failure
+import scala.Some
+import play.api.mvc.SimpleResult
+import scalaz.Success
+import org.corespring.container.components.model.Library
+import org.corespring.container.components.model.UiComponent
 
-class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB) {
+class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, db: MongoDB)
+  extends org.corespring.container.client.integration.DefaultIntegration {
 
   lazy val logger = Logger("v2player.integration")
 
@@ -56,9 +67,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
 
   def itemService: ItemService = ItemServiceWired
 
-  lazy val controllers: Seq[Controller] = Seq(componentSets, playerHooks, editorHooks, items, sessions, assets, icons, rig, libs, playerLauncher)
-
-  private lazy val playerLauncher: PlayerLauncher = new PlayerLauncher(
+  private lazy val playerActions: PlayerLauncherActions = new DefaultPlayerLauncherActions(
     mainSecureSocialService,
     UserServiceWired,
     rootConfig)
@@ -86,24 +95,24 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     authActions
   }
 
-  private lazy val icons = new Icons {
+  /*private lazy val icons = new Icons {
     def loadedComponents: Seq[Component] = comps
-  }
+  }*/
 
-  private lazy val rig = new Rig {
+  /*private lazy val rig = new Rig {
 
     override def urls: ComponentUrls = componentSets
 
     override def components: Seq[Component] = comps
-  }
+  }*/
 
-  private lazy val libs = new ComponentsFileController {
+  /*private lazy val libs = new ComponentsFileController {
     def componentsPath: String = rootConfig.getString("components.path").getOrElse("components")
 
     def defaultCharSet: String = rootConfig.getString("default.charset").getOrElse("utf-8")
-  }
+  }*/
 
-  private lazy val assets = new Assets {
+  lazy val assets = new Assets {
 
     private lazy val key = AppConfig.amazonKey
     private lazy val secret = AppConfig.amazonSecret
@@ -144,9 +153,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val componentSets: ComponentSets = new ComponentSets {
-
-    import play.api.Play.current
+  lazy val componentUrls: ComponentSets = new ComponentSets {
 
     override def allComponents: Seq[Component] = comps
     override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = {
@@ -162,7 +169,37 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     override def playerGenerator: SourceGenerator = new PlayerGenerator
   }
 
-  private lazy val playerHooks = new PlayerWithActions {
+  override def playerLauncherActions: PlayerLauncherActions =
+    new PlayerLauncherActions(mainSecureSocialService, UserServiceWired) {
+
+      def encryptionEnabled(r: Request[AnyContent]): Boolean = {
+        val acceptsFlag = Play.current.mode == Mode.Dev || rootConfig.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+
+        val enabled = if (acceptsFlag) {
+          val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
+          !disable
+        } else true
+        enabled
+      }
+
+      def decrypt(request: Request[AnyContent], orgId: ObjectId, contents: String): Option[String] = for {
+        encrypter <- Some(if (encryptionEnabled(request)) AESCrypto else NullCrypto)
+        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
+        out <- orgEncrypter.decrypt(contents)
+      } yield out
+
+      def toOrgId(apiClientId: String): Option[ObjectId] = {
+        logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
+        val client = ApiClient.findByKey(apiClientId)
+
+        if (client.isEmpty) {
+          logger.warn(s"[toOrgId] can't find org for $apiClientId")
+        }
+        client.map(_.orgId)
+      }
+    }
+
+  lazy val playerActions = new PlayerActions {
 
     override def sessionService: MongoService = mainSessionService
 
@@ -171,21 +208,13 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     override def transformItem = ItemTransformer.transformToV2Json
 
     override def auth: AuthenticatedSessionActions = authenticatedSessionActions
-
-    override def urls: ComponentUrls = componentSets
-
-    override def components: Seq[Component] = comps
   }
 
-  private lazy val editorHooks = new EditorWithActions {
+  lazy val editorActions = new EditorActions {
 
     override def itemService: ItemService = ItemServiceWired
 
     override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
-
-    override def urls: ComponentUrls = componentSets
-
-    override def components: Seq[Component] = comps
 
     override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
       mainSecureSocialService,
@@ -203,11 +232,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     }
   }
 
-  private lazy val items = new ItemWithActions {
-
-    override def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
-
-    override def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
+  lazy val itemActions = new ItemActions {
 
     override def itemService: ItemService = ItemServiceWired
 
@@ -220,11 +245,7 @@ class V2PlayerIntegration(comps: => Seq[Component], rootConfig: Configuration, d
     override def secureSocialService: SecureSocialService = mainSecureSocialService
   }
 
-  private lazy val sessions = new ClientSessionWithActions {
-
-    def outcomeProcessor: OutcomeProcessor = new RhinoProcessor(rootUiComponents, rootLibs)
-
-    def scoreProcessor: ScoreProcessor = DefaultScoreProcessor
+  lazy val sessionActions = new SessionActions {
 
     def sessionService: MongoService = mainSessionService
 
