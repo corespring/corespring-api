@@ -89,7 +89,6 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
         }
         seedStaticData()
         seedDemoData()
-        initializeReports
         reportingDaemon(app)
       }
     }
@@ -136,10 +135,6 @@ object Global extends WithFilters(AjaxFilter, AccessControlFilter, IEHeaders) wi
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
-  }
-
-  private def initializeReports() {
-    ReportGenerator.generateAllReports
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */
