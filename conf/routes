@@ -144,6 +144,7 @@ POST    /api/v1/assessments                             api.v1.AssessmentApi.cre
 GET     /api/v1/assessments                             api.v1.AssessmentApi.list()
 
 POST    /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.create()
+PUT     /api/v1/assessments/templates/:id               api.v1.AssessmentTemplateApi.update(id: ObjectId)
 
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
