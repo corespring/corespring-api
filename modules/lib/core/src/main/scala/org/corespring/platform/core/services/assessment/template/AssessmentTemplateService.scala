@@ -12,10 +12,14 @@ import com.mongodb.casbah.commons.TypeImports.ObjectId
 import play.api.Play.current
 import org.corespring.platform.core.models.mongoContext.context
 
-trait AssessmentTemplateService extends BaseContentService[SalatAssessmentTemplate, ObjectId]
+trait AssessmentTemplateService extends BaseContentService[SalatAssessmentTemplate, ObjectId] {
+  def find(): SalatMongoCursor[SalatAssessmentTemplate]
+}
 
 class AssessmentTemplateServiceImpl(salatDao: SalatDAO[SalatAssessmentTemplate, ObjectId])
   extends AssessmentTemplateService {
+
+  private val baseAssessmentTemplateQuery = MongoDBObject("data.name" -> "template")
 
   private object Dao extends ModelCompanion[SalatAssessmentTemplate, ObjectId] {
     val dao = salatDao
@@ -27,7 +31,10 @@ class AssessmentTemplateServiceImpl(salatDao: SalatDAO[SalatAssessmentTemplate, 
 
   def count(query: DBObject, fields: Option[String] = None): Int = salatDao.count(query).toInt
 
-  def find(query: DBObject, fields: DBObject): SalatMongoCursor[SalatAssessmentTemplate] = salatDao.find(query, fields)
+  def find(): SalatMongoCursor[SalatAssessmentTemplate] = find(MongoDBObject())
+
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[SalatAssessmentTemplate] =
+    salatDao.find(baseAssessmentTemplateQuery ++ query, fields)
 
   def findOneById(id: ObjectId): Option[SalatAssessmentTemplate] = salatDao.findOneById(id)
 

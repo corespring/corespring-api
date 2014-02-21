@@ -1,17 +1,18 @@
 package api.v1
 
 import play.api.libs.json.Json._
-import scala.Some
 import controllers.auth.BaseApi
 import org.corespring.platform.core.services.assessment.template._
 import org.corespring.platform.core.models.assessment.AssessmentTemplate
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.Assessment
 import scala.Some
-import play.api.mvc.Result
+import play.api.mvc.{AnyContent, Action, Result}
 import play.api.libs.json.Json
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.MongoDBObject
 
-class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService) extends BaseApi {
+class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
+  extends ContentApi[AssessmentTemplate] {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
@@ -51,6 +52,23 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
     }
   }
 
+  def list(query: Option[String], fields: Option[String], count: String, skip: Int, limit: Int,
+           sort: Option[String]): Action[AnyContent] = ApiAction { request =>
+    val templates = assessmentTemplateService.find().toSeq.map(_.toAssessmentTemplate)
+    count match {
+      case "true" => Ok(Json.obj("count" -> templates.length))
+      case _ => Ok(Json.toJson(templates))
+    }
+  }
+
+  def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
+                   sort: Option[String]): Action[AnyContent] = ApiAction { request =>
+    val templates = assessmentTemplateService.find().toSeq.map(_.toAssessmentTemplate)
+    Ok(Json.obj(
+      "count" -> templates.length,
+      "data" -> Json.toJson(templates)
+    ))
+  }
 }
 
 object AssessmentTemplateApi extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)

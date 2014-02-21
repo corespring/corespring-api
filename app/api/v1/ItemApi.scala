@@ -33,7 +33,8 @@ import scalaz._
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
+  extends ContentApi[Item] with PackageLogging {
 
   import Item.Keys._
 
@@ -53,22 +54,31 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   /**
    * List query implementation for Items
    */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
+  def list(query: Option[String],
+           fields: Option[String],
+           count: String,
+           skip: Int,
+           limit: Int,
+           sort: Option[String]) = ApiAction {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
-      val jsonBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
-      itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
+      val jsonBuilder = if (count == "true") countOnlyJson _ else itemOnlyJson _
+      itemList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
         case Left(apiError) => BadRequest(toJson(apiError))
         case Right(json) => Ok(json)
       }
   }
 
-  def listAndCount(q: Option[String], f: Option[String], sk: Int, l: Int, sort: Option[String]) = ApiAction {
+  def listAndCount(query: Option[String],
+                   fields: Option[String],
+                   skip: Int,
+                   limit: Int,
+                   sort: Option[String]) = ApiAction {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
-      itemList(q, f, sk, l, sort, collections, true, countAndListJson) match {
+      itemList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
         case Left(apiError) => BadRequest(toJson(apiError))
         case Right(json) => Ok(json)
       }
@@ -86,8 +96,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     val itemViews: Seq[ItemView] = cursor.toList.map(ItemView(_, Some(searchFields)))
     toJson(itemViews)
   }
-
-
 
   private def itemList[A](
     q: Option[String],
