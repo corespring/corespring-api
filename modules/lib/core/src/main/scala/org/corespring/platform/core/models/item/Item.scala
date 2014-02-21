@@ -15,7 +15,7 @@ import org.corespring.platform.core.models.item.json.ContentView
 case class Item(
   var collectionId: Option[String] = None,
   var contributorDetails: Option[ContributorDetails] = None,
-  var contentType: String = "item",
+  var contentType: String = Item.contentType,
   var priorUse: Option[String] = None,
   var priorGradeLevel: Seq[String] = Seq(),
   var reviewsPassed: Seq[String] = Seq(),
@@ -62,6 +62,8 @@ object Item {
   object QtiResource {
     val QtiXml = "qti.xml"
   }
+
+  val contentType = "item"
 
   object Keys {
 
@@ -111,17 +113,15 @@ object Item {
 
   lazy val fieldValues = FieldValue.current
 
-  implicit object ItemWrites extends Writes[Item] {
-    def writes(item: Item) = {
-      ItemView.ItemViewWrites.writes(ContentView[Item](item, None)(ItemView.ItemViewWrites))
-    }
-  }
-
-  implicit object Reads extends Reads[Item] {
+  implicit object ItemFormat extends Format[Item] {
 
     import Keys._
 
-    def reads(json: JsValue): JsResult[Item] = {
+    implicit val ItemViewWrites = ItemView.Writes
+
+    def writes(item: Item) = Json.toJson(ContentView[Item](item, None))
+
+    def reads(json: JsValue) = {
       val item = Item()
 
       item.collectionId = (json \ collectionId).asOpt[String]

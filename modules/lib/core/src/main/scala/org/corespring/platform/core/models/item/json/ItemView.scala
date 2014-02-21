@@ -13,7 +13,7 @@ object ItemView {
 
   import Item.Keys._
 
-  implicit object ItemViewWrites extends Writes[ContentView[Item]] {
+  implicit object Writes extends Writes[ContentView[Item]] {
     def writes(itemView: ContentView[Item]): JsValue = {
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
@@ -40,14 +40,14 @@ object ItemView {
 
     private def writeMainItem(item: Item): JsObject = {
 
-      import VersionedIdImplicits.Writes
+      implicit val VersionedIdWrites = VersionedIdImplicits.Writes
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> Json.toJson(item.id))),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
         item.collectionId.map(collectionId -> JsString(_)),
-        Some(contentType -> JsString(ContentType.item)),
+        Some(contentType -> JsString(Item.contentType)),
         Some(published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item))))
 

@@ -20,7 +20,7 @@ case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
 
   import AssessmentTemplate._
 
-  var contentType = "assessmentTemplate"
+  var contentType = AssessmentTemplate.contentType
 
   /**
    * Represent the AssessmentTemplate as a Resource
@@ -71,6 +71,7 @@ case class SalatAssessmentTemplate(var id: ObjectId,
 
 object AssessmentTemplate extends JsonUtil {
 
+  val contentType = "assessmentTemplate"
   protected val filename = "template.json"
   protected val nameOfFile = "template"
 
@@ -83,13 +84,6 @@ object AssessmentTemplate extends JsonUtil {
     val id = "id"
     val data = "data"
     val files = "files"
-  }
-
-
-  object ContentViewWrites extends Writes[ContentView[SalatAssessmentTemplate]] {
-    def writes(contentView: ContentView[SalatAssessmentTemplate]) = {
-      Json.obj()
-    }
   }
 
   object Format extends Format[AssessmentTemplate] {
@@ -121,6 +115,13 @@ object AssessmentTemplate extends JsonUtil {
         case _ => None
       })
     )
+  }
+
+  object ContentViewWrites extends Writes[ContentView[SalatAssessmentTemplate]] {
+    implicit val AssessmentTempalteFormat = AssessmentTemplate.Format
+
+    def writes(contentView: ContentView[SalatAssessmentTemplate]) =
+      Json.toJson(contentView.content.toAssessmentTemplate)
 
   }
 

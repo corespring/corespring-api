@@ -15,8 +15,7 @@ import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.json.ContentView
 
 class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
-                           (implicit writes: Writes[ContentView[SalatAssessmentTemplate]])
-  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService) {
+  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService)(AssessmentTemplate.ContentViewWrites) {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
@@ -56,31 +55,9 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
     }
   }
 
-  def list(query: Option[String],
-           fields: Option[String],
-           count: String,
-           skip: Int,
-           limit: Int,
-           sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+  def contentType: String = AssessmentTemplate.contentType
 
-      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
-      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
-
-  def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
-                   sort: Option[String]): Action[AnyContent] = ApiAction { request =>
-    val templates = assessmentTemplateService.find().toSeq.map(_.toAssessmentTemplate)
-    Ok(Json.obj(
-      "count" -> templates.length,
-      "data" -> Json.toJson(templates)
-    ))
-  }
 }
 
 object AssessmentTemplateApi
-  extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)(AssessmentTemplate.ContentViewWrites)
+  extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)

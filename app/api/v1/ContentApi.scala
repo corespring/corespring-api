@@ -1,6 +1,6 @@
 package api.v1
 
-import org.corespring.platform.core.models.item.{Alignments, TaskInfo, Item, Content}
+import org.corespring.platform.core.models.item._
 import controllers.auth.BaseApi
 import play.api.mvc._
 import com.mongodb.casbah.Imports._
@@ -20,6 +20,9 @@ import org.corespring.platform.core.models.search.SearchFields
 import controllers.auth.ApiRequest
 import org.corespring.platform.core.models.item.json.ContentView
 import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.item.Content
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.auth.Permission
 
 abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService[ContentType, _])
                                                     (implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
@@ -38,6 +41,9 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     TaskInfo.Keys.title,
     published)
 
+  def contentType: String
+  private def baseQuery = MongoDBObject("contentType" -> contentType)
+
   protected def countOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
                               current: Boolean = true): JsValue = JsObject(Seq("count" -> JsNumber(count)))
 
@@ -53,12 +59,31 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     toJson(contentViews)
   }
 
-  def list(query: Option[String], fields: Option[String], count: String, skip: Int, limit: Int,
-           sort: Option[String]): Action[AnyContent]
+  def list(query: Option[String],
+           fields: Option[String],
+           count: String,
+           skip: Int,
+           limit: Int,
+           sort: Option[String]) = ApiAction {
+    implicit request =>
+      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+
+      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
+      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
+        case Left(apiError) => BadRequest(toJson(apiError))
+        case Right(json) => Ok(json)
+      }
+  }
 
   def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
-                   sort: Option[String]): Action[AnyContent]
+                   sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
+    val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
+    contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
+      case Left(apiError) => BadRequest(toJson(apiError))
+      case Right(json) => Ok(json)
+    }
+  }
 
   protected def contentList[A](q: Option[String],
                                f: Option[String],
@@ -72,7 +97,9 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections, request.ctx.organization)
+      val initSearch: MongoDBObject = baseQuery.iterator.toSeq
+        .foldLeft(service.createDefaultCollectionsQuery(collections, request.ctx.organization)){ (query, entry) =>
+          query ++ entry }
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),

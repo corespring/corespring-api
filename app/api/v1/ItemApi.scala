@@ -4,7 +4,6 @@ import api.ApiError
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
-import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.ApiRequest
 import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.common.log.PackageLogging
@@ -30,42 +29,9 @@ import scalaz._
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.ItemViewWrites) with PackageLogging {
+  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
   import Item.Keys._
-
-  /**
-   * List query implementation for Items
-   */
-  def list(query: Option[String],
-           fields: Option[String],
-           count: String,
-           skip: Int,
-           limit: Int,
-           sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
-      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
-
-  def listAndCount(query: Option[String],
-                   fields: Option[String],
-                   skip: Int,
-                   limit: Int,
-                   sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-      contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
@@ -362,6 +328,8 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       case None => NotFound(Json.toJson(ApiError.IdNotFound))
     }
   }
+
+  def contentType = Item.contentType
 
 }
 object dependencies {
