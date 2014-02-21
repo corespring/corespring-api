@@ -7,22 +7,21 @@ import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.{ Item, ContentType }
 import org.corespring.platform.core.services.item.ItemServiceImpl
-
-case class ItemView(item: Item, searchFields: Option[SearchFields])
+import org.corespring.platform.core.models.item.json.ContentView
 
 object ItemView {
 
   import Item.Keys._
 
-  implicit object ItemViewWrites extends Writes[ItemView] {
-    def writes(itemView: ItemView): JsValue = {
+  implicit object ItemViewWrites extends Writes[ContentView[Item]] {
+    def writes(itemView: ContentView[Item]): JsValue = {
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
 
-      val mainItem: JsObject = writeMainItem(itemView.item)
-      val details: Option[JsObject] = toJsObject(itemView.item.contributorDetails)
-      val taskInfo: Option[JsObject] = toJsObject(itemView.item.taskInfo)
-      val alignments: Option[JsObject] = toJsObject(itemView.item.otherAlignments)
+      val mainItem: JsObject = writeMainItem(itemView.content)
+      val details: Option[JsObject] = toJsObject(itemView.content.contributorDetails)
+      val taskInfo: Option[JsObject] = toJsObject(itemView.content.taskInfo)
+      val alignments: Option[JsObject] = toJsObject(itemView.content.otherAlignments)
 
       val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)

@@ -9,6 +9,7 @@ import com.mongodb.casbah.commons.TypeImports.ObjectId
 import org.corespring.platform.core.models.item.Content
 import org.joda.time.DateTime
 import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, VirtualFile}
+import org.corespring.platform.core.models.item.json.ContentView
 
 case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
                               var collectionId: Option[String] = None,
@@ -82,6 +83,13 @@ object AssessmentTemplate extends JsonUtil {
     val id = "id"
     val data = "data"
     val files = "files"
+  }
+
+
+  object ContentViewWrites extends Writes[ContentView[SalatAssessmentTemplate]] {
+    def writes(contentView: ContentView[SalatAssessmentTemplate]) = {
+      Json.obj()
+    }
   }
 
   object Format extends Format[AssessmentTemplate] {

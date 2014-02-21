@@ -3,16 +3,20 @@ package api.v1
 import play.api.libs.json.Json._
 import controllers.auth.BaseApi
 import org.corespring.platform.core.services.assessment.template._
-import org.corespring.platform.core.models.assessment.AssessmentTemplate
+import org.corespring.platform.core.models.assessment.{SalatAssessmentTemplate, AssessmentTemplate}
 import org.bson.types.ObjectId
 import scala.Some
 import play.api.mvc.{AnyContent, Action, Result}
-import play.api.libs.json.Json
+import play.api.libs.json.{Writes, Json}
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.item.json.ContentView
 
 class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
-  extends ContentApi[AssessmentTemplate] {
+                           (implicit writes: Writes[ContentView[SalatAssessmentTemplate]])
+  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService) {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
@@ -52,13 +56,20 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
     }
   }
 
-  def list(query: Option[String], fields: Option[String], count: String, skip: Int, limit: Int,
-           sort: Option[String]): Action[AnyContent] = ApiAction { request =>
-    val templates = assessmentTemplateService.find().toSeq.map(_.toAssessmentTemplate)
-    count match {
-      case "true" => Ok(Json.obj("count" -> templates.length))
-      case _ => Ok(Json.toJson(templates))
-    }
+  def list(query: Option[String],
+           fields: Option[String],
+           count: String,
+           skip: Int,
+           limit: Int,
+           sort: Option[String]) = ApiAction {
+    implicit request =>
+      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+
+      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
+      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
+        case Left(apiError) => BadRequest(toJson(apiError))
+        case Right(json) => Ok(json)
+      }
   }
 
   def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
@@ -71,4 +82,5 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
   }
 }
 
-object AssessmentTemplateApi extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)
+object AssessmentTemplateApi
+  extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)(AssessmentTemplate.ContentViewWrites)

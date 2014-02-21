@@ -10,6 +10,7 @@ import play.api.libs.json._
 import scala._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.item.json.ContentView
 
 case class Item(
   var collectionId: Option[String] = None,
@@ -112,7 +113,7 @@ object Item {
 
   implicit object ItemWrites extends Writes[Item] {
     def writes(item: Item) = {
-      ItemView.ItemViewWrites.writes(ItemView(item, None))
+      ItemView.ItemViewWrites.writes(ContentView[Item](item, None)(ItemView.ItemViewWrites))
     }
   }
 
