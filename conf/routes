@@ -143,6 +143,8 @@ PUT     /api/v1/assessments/:assessmentId/add-participants    api.v1.AssessmentA
 POST    /api/v1/assessments                             api.v1.AssessmentApi.create()
 GET     /api/v1/assessments                             api.v1.AssessmentApi.list()
 
+POST    /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.create()
+
 GET    /scorm-player.js                                 scorm.controllers.AssetLoading.itemPlayerJavascript
 GET    /scorm-player/item/:itemId/administer            scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
 GET    /scorm-player/item/:itemId/:filename             scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)

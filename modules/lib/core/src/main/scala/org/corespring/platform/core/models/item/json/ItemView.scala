@@ -47,7 +47,7 @@ object ItemView {
         Some(("id" -> Json.toJson(item.id))),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
-        Some((collectionId -> JsString(item.collectionId))),
+        item.collectionId.map(collectionId -> JsString(_)),
         Some(contentType -> JsString(ContentType.item)),
         Some(published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item))))

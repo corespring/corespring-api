@@ -8,13 +8,11 @@ import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, Versio
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
-import com.novus.salat._
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.models.item.resource.Resource
 
 case class Item(
-  var collectionId: String = "",
+  var collectionId: Option[String] = None,
   var contributorDetails: Option[ContributorDetails] = None,
   var contentType: String = "item",
   var priorUse: Option[String] = None,
@@ -32,7 +30,8 @@ case class Item(
   var dateModified: Option[DateTime] = Some(new DateTime()),
   var taskInfo: Option[TaskInfo] = None,
   var otherAlignments: Option[Alignments] = None,
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())
+) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
@@ -58,6 +57,10 @@ object Item {
   }
 
   val FieldValuesVersion = "0.0.1"
+
+  object QtiResource {
+    val QtiXml = "qti.xml"
+  }
 
   object Keys {
 
@@ -120,7 +123,7 @@ object Item {
     def reads(json: JsValue): JsResult[Item] = {
       val item = Item()
 
-      item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
+      item.collectionId = (json \ collectionId).asOpt[String]
 
       item.taskInfo = json.asOpt[TaskInfo]
       item.otherAlignments = json.asOpt[Alignments]

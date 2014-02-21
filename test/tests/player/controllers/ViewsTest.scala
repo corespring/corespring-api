@@ -36,10 +36,10 @@ class ViewsTest extends Specification with Mockito {
   PlaySingleton.start()
 
   val mockService = new ItemService{
-    def cloneItem(item: Item): Option[Item] = ???
+    def clone(item: Item): Option[Item] = ???
     def findFieldsById(id: VersionedId[ObjectId], fields: DBObject): Option[DBObject] = ???
-    def currentVersion(id: VersionedId[ObjectId]): Option[Int] = ???
-    def countItems(query: DBObject, fields: Option[String]): Int = ???
+    override def currentVersion(id: VersionedId[ObjectId]): Option[Int] = ???
+    def count(query: DBObject, fields: Option[String]): Int = ???
     def find(query: DBObject, fields: DBObject): SalatMongoCursor[Item] = ???
     def findOneById(id: VersionedId[ObjectId]): Option[Item] = ???
     def findOne(query: DBObject): Option[Item] = ???
@@ -49,8 +49,8 @@ class ViewsTest extends Specification with Mockito {
     def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = ???
     def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = Some( MockXml.AllItems )
     def sessionCount(item: Item): Long = ???
-    def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = ???
-    def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = ???
+    override def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = ???
+    override def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = ???
   }
 
   val assessmentService = new AssessmentService{

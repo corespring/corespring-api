@@ -26,7 +26,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
    * Item.data has at least one file that is always default its name is set here.
    * TODO: move this elsewhere
    */
-  private val DEFAULT_DATA_FILE_NAME: String = Resource.QtiXml
+  private val DEFAULT_DATA_FILE_NAME: String = Item.QtiResource.QtiXml
 
   /**
    * A class that adds an AuthorizationContext to the Request object
