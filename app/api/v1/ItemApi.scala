@@ -298,10 +298,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   def delete(id: VersionedId[ObjectId]) = ApiAction {
     request =>
       service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
-        case Some(o) => o.get(collectionId) match {
-          case collId: Some[String] => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
+        case Some(dbObject) => dbObject.get(collectionId) match {
+          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, Some(collId), Permission.Write)) {
             Content.moveToArchive(id) match {
-              case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
+              case Right(_) => Ok(com.mongodb.util.JSON.serialize(dbObject))
               case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
             }
           } else {

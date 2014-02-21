@@ -249,7 +249,7 @@ class ItemApiTest extends BaseTest with Mockito {
       case Some(deleteResult) => {
         status(deleteResult) === OK
         ItemServiceImpl.findOneById(item.id) match {
-          case Some(deletedItem) => deletedItem.collectionId === ContentCollection.archiveCollId.toString
+          case Some(deletedItem) => deletedItem.collectionId === Some(ContentCollection.archiveCollId.toString)
           case _ => failure("couldn't find deleted item")
         }
       }
