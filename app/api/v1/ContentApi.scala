@@ -24,8 +24,17 @@ import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 
+/**
+ * This is a superclass for any API Controller that manages Content. ContentApi should provide any functionality that
+ * is common to routes associated for various Content subclasses. An implicit Writes for the Content subclass must be
+ * provided so that the controller can serialize Content.
+ */
 abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService[ContentType, _])
                                                     (implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
+
+
+  /** Subclasses must define the contentType of the Content in the database **/
+  def contentType: String
 
   val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
 
@@ -41,7 +50,47 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     TaskInfo.Keys.title,
     published)
 
-  def contentType: String
+  /**
+   * An API action to list JSON representations of Content, using pagination parameters for skipping, offset, and
+   * sorting.
+   */
+  def list(query: Option[String],
+           fields: Option[String],
+           count: String,
+           skip: Int,
+           limit: Int,
+           sort: Option[String]) = ApiAction {
+    implicit request =>
+      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+
+      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
+      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
+        case Left(apiError) => BadRequest(toJson(apiError))
+        case Right(json) => Ok(json)
+      }
+  }
+
+  /**
+   * An API action that lists paginated JSON representations Content, but also includes a count of overall number of
+   * results in available. JSON matches the form:
+   *
+   * <pre>
+   *  {
+   *    count: X,
+   *    data: { ... }
+   *  }
+   * </pre>
+   */
+  def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
+                   sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
+    val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+
+    contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
+      case Left(apiError) => BadRequest(toJson(apiError))
+      case Right(json) => Ok(json)
+    }
+  }
+
   private def baseQuery = MongoDBObject("contentType" -> contentType)
 
   protected def countOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
@@ -59,31 +108,6 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     toJson(contentViews)
   }
 
-  def list(query: Option[String],
-           fields: Option[String],
-           count: String,
-           skip: Int,
-           limit: Int,
-           sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-      val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
-      contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
-
-  def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
-                   sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
-    val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-    contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
-      case Left(apiError) => BadRequest(toJson(apiError))
-      case Right(json) => Ok(json)
-    }
-  }
 
   protected def contentList[A](q: Option[String],
                                f: Option[String],
