@@ -163,8 +163,13 @@ GET    /player/routes.js                                   player.controllers.Se
 GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
 ## JS Routes
 GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
-## Encrypt
-POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
+
+## encrypt
+POST    /player/token                                      player.controllers.Encrypter.encryptOptions
+### Support legacy route with 302. Should remove this when clients have been sufficiently notified of updated route
+POST    /player/encrypt-options                            controllers.Default.redirect(to = "/player/token")
+POST    /api/v1/player/token                               controllers.Default.redirect(to = "/player/token")
+
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:VersionedId[ObjectId])
 GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:VersionedId[ObjectId])
