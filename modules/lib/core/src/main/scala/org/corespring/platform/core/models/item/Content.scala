@@ -52,7 +52,6 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
 object Content extends ContentHelper(ItemServiceImpl)
 
 object ContentType {
-  val item = "item"
   val assessment = "assessment"
   val materials = "materials"
 }

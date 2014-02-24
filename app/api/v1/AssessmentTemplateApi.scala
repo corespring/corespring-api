@@ -1,17 +1,21 @@
 package api.v1
 
 import play.api.libs.json.Json._
-import scala.Some
 import controllers.auth.BaseApi
 import org.corespring.platform.core.services.assessment.template._
-import org.corespring.platform.core.models.assessment.AssessmentTemplate
+import org.corespring.platform.core.models.assessment.{SalatAssessmentTemplate, AssessmentTemplate}
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.Assessment
 import scala.Some
-import play.api.mvc.Result
-import play.api.libs.json.Json
+import play.api.mvc.{AnyContent, Action, Result}
+import play.api.libs.json.{Writes, Json}
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.item.json.ContentView
 
-class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService) extends BaseApi {
+class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
+  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService)(AssessmentTemplate.ContentViewWrites) {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
@@ -51,6 +55,9 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
     }
   }
 
+  def contentType: String = AssessmentTemplate.contentType
+
 }
 
-object AssessmentTemplateApi extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)
+object AssessmentTemplateApi
+  extends AssessmentTemplateApi(AssessmentTemplateServiceImpl)
