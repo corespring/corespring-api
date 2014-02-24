@@ -1,18 +1,13 @@
 package api.v1
 
 import play.api.libs.json.Json._
-import controllers.auth.BaseApi
 import org.corespring.platform.core.services.assessment.template._
 import org.corespring.platform.core.models.assessment.{SalatAssessmentTemplate, AssessmentTemplate}
 import org.bson.types.ObjectId
 import scala.Some
-import play.api.mvc.{AnyContent, Action, Result}
-import play.api.libs.json.{Writes, Json}
-import com.mongodb.DBObject
-import com.mongodb.casbah.commons.MongoDBObject
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.json.ContentView
+import play.api.mvc.Result
+import play.api.libs.json.Json
+
 
 class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
   extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService)(AssessmentTemplate.ContentViewWrites) {

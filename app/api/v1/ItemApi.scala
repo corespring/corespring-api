@@ -331,6 +331,18 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
   def contentType = Item.contentType
 
+  override def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) = {
+    if (!isLoggedIn && searchFields.dbfields.isEmpty) {
+      dbExtraFields.foreach(extraField =>
+        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
+      jsExtraFields.foreach(extraField =>
+        searchFields.jsfields = searchFields.jsfields :+ extraField)
+    }
+    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) {
+      searchFields.dbfields = searchFields.dbfields
+    }
+  }
+
 }
 object dependencies {
 

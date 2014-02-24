@@ -103,7 +103,8 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     JsObject(Seq("count" -> JsNumber(count), "data" -> toJson(contentViews)))
   }
 
-  protected def contentOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields, current: Boolean = true): JsValue = {
+  protected def contentOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
+                                current: Boolean = true): JsValue = {
     val contentViews: Seq[ContentView[ContentType]] = cursor.toList.map(ContentView[ContentType](_, Some(searchFields)))
     toJson(contentViews)
   }
@@ -127,10 +128,12 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
 
       val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
+        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))
+      ) match {
         case Some(result) => result
         case None => Right(initSearch)
       }
+
       val fieldResult: Either[InternalError, SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
         case Some(result) => result
         case None => Right(SearchFields(method = 1))
@@ -163,14 +166,6 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     }
   }
 
-  protected def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
-    if (!isLoggedIn && searchFields.dbfields.isEmpty) {
-      dbExtraFields.foreach(extraField =>
-        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
-      jsExtraFields.foreach(extraField =>
-        searchFields.jsfields = searchFields.jsfields :+ extraField)
-    }
-    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) searchFields.dbfields = searchFields.dbfields
-  }
+  def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) = {}
 
 }

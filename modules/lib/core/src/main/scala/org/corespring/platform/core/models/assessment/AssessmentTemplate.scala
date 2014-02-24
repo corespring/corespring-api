@@ -118,11 +118,10 @@ object AssessmentTemplate extends JsonUtil {
   }
 
   object ContentViewWrites extends Writes[ContentView[SalatAssessmentTemplate]] {
-    implicit val AssessmentTempalteFormat = AssessmentTemplate.Format
+    implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
     def writes(contentView: ContentView[SalatAssessmentTemplate]) =
       Json.toJson(contentView.content.toAssessmentTemplate)
-
   }
 
 }

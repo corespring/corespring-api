@@ -31,10 +31,11 @@ class AssessmentTemplateServiceImpl(salatDao: SalatDAO[SalatAssessmentTemplate, 
 
   def count(query: DBObject, fields: Option[String] = None): Int = salatDao.count(query).toInt
 
-  def find(): SalatMongoCursor[SalatAssessmentTemplate] = find(MongoDBObject())
+  def find(): SalatMongoCursor[SalatAssessmentTemplate] = find(baseAssessmentTemplateQuery)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[SalatAssessmentTemplate] =
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[SalatAssessmentTemplate] = {
     salatDao.find(baseAssessmentTemplateQuery ++ query, fields)
+  }
 
   def findOneById(id: ObjectId): Option[SalatAssessmentTemplate] = salatDao.findOneById(id)
 
