@@ -45,6 +45,8 @@ class ItemServiceImpl(
 
   lazy val fieldValues = FieldValue.current
 
+  private val baseQuery = MongoDBObject("contentType" -> "item")
+
   def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
@@ -59,15 +61,15 @@ class ItemServiceImpl(
     }
   }
 
-  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(query).toInt
+  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(query, fields)
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
 
   def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
-  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(query)
+  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
   def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = dao.update(id, dbo, createNewVersion)
 
@@ -99,7 +101,7 @@ class ItemServiceImpl(
 
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
     val oids = ids.map(i => i.id)
-    val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+    val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
     val out = dao.findCurrent(query, keys).toSeq
     out
   }
