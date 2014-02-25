@@ -35,7 +35,8 @@ object Global
     out
   }
 
-  def controllers: Seq[Controller] = new V2PlayerIntegration(componentLoader.all, current.configuration, SeedDb.salatDb()).controllers
+  lazy val integration = new V2PlayerIntegration(componentLoader.all, current.configuration, SeedDb.salatDb())
+  def controllers: Seq[Controller] = integration.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
@@ -75,6 +76,11 @@ object Global
         logger.info("reload components!")
         componentLoader.reload
       }
+    }
+
+    integration.validate match {
+      case Left(err) => throw new RuntimeException(err)
+      case Right(_) => Unit
     }
 
     RegisterJodaTimeConversionHelpers()
