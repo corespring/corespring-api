@@ -42,6 +42,10 @@ class AssessmentTemplateApiTest extends BaseTest with RequestCalling {
       savedAssessmentTemplate.collectionId must be equalTo assessmentTemplate.collectionId
     }
 
+    "set organization id" in {
+      savedAssessmentTemplate.orgId must not beEmpty
+    }
+
     "persist questions" in {
       (savedAssessmentTemplate.questions diff assessmentTemplate.questions) must beEmpty
     }
@@ -80,6 +84,14 @@ class AssessmentTemplateApiTest extends BaseTest with RequestCalling {
 
     "not change assessment template id" in {
       updatedAssessmentTemplate.id must be equalTo persistedId
+    }
+
+    "preserve collection id" in {
+      updatedAssessmentTemplate.collectionId must be equalTo savedAssessmentTemplate.collectionId
+    }
+
+    "preserve organization id" in {
+      updatedAssessmentTemplate.orgId must be equalTo savedAssessmentTemplate.orgId
     }
 
     "update metadata" in {

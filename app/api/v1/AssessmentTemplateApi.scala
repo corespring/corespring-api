@@ -30,10 +30,14 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
   def create() = ApiAction {
     request =>
       parsed[AssessmentTemplate](request.body.asJson, {
-        assessmentTemplate =>
-          val copy = assessmentTemplate.copy(orgId = Some(request.ctx.organization))
-          assessmentTemplateService.save(copy.forSalat)
-          Ok(toJson(copy))
+        assessmentTemplate => Option(request.ctx.organization) match {
+          case Some(organizationId) => {
+            val copy = assessmentTemplate.copy(orgId = Some(organizationId))
+            assessmentTemplateService.save(copy.forSalat)
+            Ok(Json.prettyPrint(toJson(copy)))
+          }
+          case _ => BadRequest("You cannot create an assessment template without an organization")
+        }
       })
   }
 
@@ -45,7 +49,7 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
           metadata = (dbTemplate.metadata ++ requestTemplate.metadata)
         )
         assessmentTemplateService.save(newTemplate.forSalat)
-        Ok(Json.toJson(newTemplate))
+        Ok(Json.prettyPrint(Json.toJson(newTemplate)))
       })
     }
   }

@@ -13,7 +13,7 @@ import org.corespring.platform.core.models.item.json.ContentView
 
 case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
                               var collectionId: Option[String] = None,
-                              orgId: Option[ObjectId] = None,
+                              var orgId: Option[ObjectId] = None,
                               metadata: Map[String, String] = Map(),
                               dateModified: Option[DateTime] = Some(new DateTime()),
                               questions: Seq[Question] = Seq()) extends Content[ObjectId] {
@@ -105,6 +105,7 @@ object AssessmentTemplate extends JsonUtil {
 
     def writes(assessmentTemplate: AssessmentTemplate): JsValue = partialObj(
       id -> Some(JsString(assessmentTemplate.id.toString)),
+      orgId -> assessmentTemplate.orgId.map(id => JsString(id.toString)),
       collectionId -> assessmentTemplate.collectionId.map(JsString(_)),
       metadata -> (assessmentTemplate.metadata match {
         case nonEmpty: Map[String, String] if nonEmpty.nonEmpty => Some(Json.toJson(nonEmpty))

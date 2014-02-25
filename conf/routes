@@ -133,10 +133,10 @@ PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
 # Assessment Templates API
+PUT     /api/v1/assessments/templates/:id               api.v1.AssessmentTemplateApi.update(id: ObjectId)
 GET     /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/assessments/templates/query             api.v1.AssessmentTemplateApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 POST    /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.create()
-PUT     /api/v1/assessments/templates/:id               api.v1.AssessmentTemplateApi.update(id: ObjectId)
 
 # Assessments API
 GET     /api/v1/assessments/author/:authorId                       api.v1.AssessmentApi.getByAuthor(authorId: String)
@@ -171,8 +171,8 @@ GET    /player/item/routes.js                              player.controllers.It
 ## encrypt
 POST    /player/token                                      player.controllers.Encrypter.encryptOptions
 ### Support legacy route with 302. Should remove this when clients have been sufficiently notified of updated route
-POST    /player/encrypt-options                            controllers.Default.redirect(to = "/player/token")
-POST    /api/v1/player/token                               controllers.Default.redirect(to = "/player/token")
+POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
+POST    /api/v1/player/token                               player.controllers.Encrypter.encryptOptions
 
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:VersionedId[ObjectId])
