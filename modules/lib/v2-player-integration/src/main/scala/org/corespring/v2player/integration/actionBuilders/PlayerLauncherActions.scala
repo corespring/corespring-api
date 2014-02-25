@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.actions.PlayerJsRequest
 import org.corespring.container.client.actions.{ PlayerLauncherActions => LaunchActions }
 import org.corespring.platform.core.services.UserService
-import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActionBuilder._
+import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
 import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieWriter, PlayerOptions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc._
@@ -12,7 +12,7 @@ import scala.Some
 import scalaz.Scalaz._
 import scalaz._
 
-object PlayerLauncherActionBuilder {
+object PlayerLauncherActions {
 
   import play.api.http.Status._
 
@@ -29,7 +29,7 @@ object PlayerLauncherActionBuilder {
   case object badJson extends LaunchError(BAD_REQUEST, "Error reading json")
 }
 
-abstract class PlayerLauncherActionBuilder(
+abstract class PlayerLauncherActions(
   val secureSocialService: SecureSocialService,
   val userService: UserService)
   extends LaunchActions[AnyContent]

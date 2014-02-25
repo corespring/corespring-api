@@ -5,7 +5,7 @@ import org.corespring.container.client.actions.PlayerJsRequest
 import org.corespring.platform.core.services.UserService
 import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
-import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActionBuilder._
+import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
 import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieKeys
 import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
@@ -36,7 +36,7 @@ class PlayerLauncherActionBuilderTest
   }
 
   case class scope(orgId: Option[ObjectId] = Some(mockOrgId), decryptEnabled: Boolean = true) extends Scope {
-    val builder = new PlayerLauncherActionBuilder(mockSecureSocial, mock[UserService]) {
+    val builder = new PlayerLauncherActions(mockSecureSocial, mock[UserService]) {
       def toOrgId(s: String): Option[ObjectId] = orgId
 
       def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None

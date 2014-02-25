@@ -1,20 +1,21 @@
 package org.corespring.v2player.integration.controllers.player
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions._
-import org.corespring.container.client.controllers.resources.Session
+import org.corespring.container.client.actions.{ SessionActions => ContainerSessionActions, SaveSessionRequest, SessionOutcomeRequest, FullSessionRequest, SubmitSessionRequest }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
 import play.api.libs.json.{ JsString, JsValue, Json }
-import play.api.mvc.{ Action, Result, AnyContent }
+import play.api.mvc.{ Request, Action, Result, AnyContent }
+import play.api.mvc.Results._
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieReader
 
-trait ClientSessionWithActions extends Session {
+trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCookieReader {
 
   def itemService: ItemService
 
@@ -56,43 +57,37 @@ trait ClientSessionWithActions extends Session {
     case Success(r) => r
   }
 
-  override def actions: SessionActions[AnyContent] = new SessionActions[AnyContent] {
-
-    def submitAnswers(id: String)(block: (SubmitSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-      request =>
-        handleValidationResult {
-          loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save, request)))
-        }
-    }
-
-    def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id) {
-      request =>
-        handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
-    }
-
-    /*Action {
-      request =>
-        //TODO: Add secure mode
-        handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, false, request))))
-    }*/
-
-    def load(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
-
-    def loadOutcome(id: String)(block: (SessionOutcomeRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-      request =>
-        //TODO: Plugin in secure mode and complete
-        handleValidationResult(loadItemAndSession(id).map(tuple => block(SessionOutcomeRequest(tuple._1, tuple._2, false, false, request))))
-    }
-
-    def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-      request =>
-        //TODO: Add secure mode
-        handleValidationResult {
-          loadSession(id)
-            .map(s => SaveSessionRequest(s, false, false, sessionService.save, request))
-            .map(block)
-        }
-
-    }
+  override def submitAnswers(id: String)(block: (SubmitSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+      handleValidationResult {
+        loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save, request)))
+      }
   }
+
+  private def isSecure(r: Request[AnyContent]) = renderOptions(r).map { ro => ro.secure }.getOrElse(true)
+
+  override def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id) {
+    request =>
+      handleValidationResult(loadEverythingJson(id).map(json => block(FullSessionRequest(json, isSecure(request), request))))
+  }
+
+  override def load(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action(Ok("TODO"))
+
+  override def loadOutcome(id: String)(block: (SessionOutcomeRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+      //TODO: Plugin in secure mode and complete
+      handleValidationResult(loadItemAndSession(id).map(tuple => block(SessionOutcomeRequest(tuple._1, tuple._2, false, false, request))))
+  }
+
+  override def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+      //TODO: Add secure mode
+      handleValidationResult {
+        loadSession(id)
+          .map(s => SaveSessionRequest(s, false, false, sessionService.save, request))
+          .map(block)
+      }
+
+  }
+
 }

@@ -30,9 +30,9 @@ class LoadEditorJsThenEditorTest
     lazy val result = {
       val url = urlWithEncryptedOptions(PlayerLauncher.editorJs, apiClient)
 
-      import org.corespring.container.client.controllers.hooks.routes.EditorHooks
+      import org.corespring.container.client.controllers.apps.routes.Editor
 
-      val editItemCall = EditorHooks.editItem(itemId.toString)
+      val editItemCall = Editor.editItem(itemId.toString)
 
       val r = for {
         jsResult <- getResultFor(FakeRequest("GET", url))
