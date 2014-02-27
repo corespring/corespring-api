@@ -92,6 +92,10 @@ Note that you can point to a file that is not on the class path if you want:
 version of play.*
 
 
+#### Indexing
+
+See the [indexing documentation](app/index/README.md) for information about how content is indexed in Corespring API.
+
 
 #### Localhost
 
