@@ -3,7 +3,6 @@ package org.corespring.test
 import play.api.Play
 import play.api.test.FakeApplication
 import scala.Some
-import scala.Some
 import java.io.File
 
 /**

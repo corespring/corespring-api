@@ -1,56 +1,90 @@
 package index
 
-import org.elasticsearch.node.NodeBuilder._
-import org.elasticsearch.client._
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.libs.ws.WS
+import com.mongodb.casbah.MongoURI
+import org.corespring.platform.core.models.JsonUtil
+import scala.io.Source
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
  * A helper object to generate rivers and indexes for elasticsearch.
  */
-object ElasticSearch extends UsingClient {
+object ElasticSearch extends JsonUtil {
 
-  import Requests._
+  val mongoURI = MongoURI(play.api.Play.current.configuration.getString("mongodb.default.uri")
+    .getOrElse(throw failedRequirement("mongo URI")))
 
-  val mongoURI = play.api.Play.current.configuration.getString("mongodb.default.uri")
-  val collectionsToSlurp = Seq("content", "ccstandards")
+  val elasticSearchHost = play.api.Play.current.configuration.getString("elasticsearch.default.host")
 
-  def initialize = {
-    run { implicit client =>
-      collectionsToSlurp.foreach(createRiver(_))
-    }
+  val database = mongoURI.database.getOrElse(throw failedRequirement("database"))
+  val mongoHosts = mongoURI.hosts match {
+    case nonEmpty: Seq[String] if nonEmpty.nonEmpty => nonEmpty
+    case _ => throw failedRequirement("host(s)")
   }
 
-  private def createRiver(collection: String)(implicit client: Client) = {
+  val rivers = Seq(
+    River(name = "content", typ = "content", collection = "content"),
+    River(name = "standards", typ = "standard", collection = "ccstandards"))
+
+  /**
+   * Initializes all the rivers and indexes
+   */
+  def initialize() = {
+    dropAll()
+    importMapping()
+    createRivers()
+  }
+
+  /**
+   * TODO: This should only drop collectionsToSlurp, but this seemed to be nontrivial
+   */
+  private def dropAll() = WS.url(s"http://$elasticSearchHost/_all").delete()
+
+  private def importMapping() = {
+    val mappingJson = Source.fromFile("app/index/mapping.json").mkString
+    Await.result(WS.url(s"http://$elasticSearchHost/content").put(mappingJson), Duration.Inf)
+  }
+
+ def createRivers() = rivers.map(createRiver(_))
+
+  /**
+   * Creates a River for the provided collection
+   */
+  private def createRiver(river: River) = {
     val source = Json.obj(
       "type" -> "mongodb",
-      "mongodb" -> Json.obj(
-        "db" -> "api", // TODO: Parse from Mongo URI
-        "collection" -> collection,
-        "gridfs" -> false
+      "mongodb" -> partialObj(
+        "servers" -> Some(JsArray(mongoHosts.map(host => Json.obj(
+          "host" -> host.split(":").head,
+          "port" -> host.split(":").last
+        )))),
+        "credentials" -> ((mongoURI.username, mongoURI.password) match {
+          case (Some(username), Some(password)) => {
+            Some(Json.obj(
+              "db" -> database,
+              "user" -> username,
+              "password" -> password.toString
+            ))
+          }
+          case (None, None) => None
+          case _ => throw failedRequirement("username xor password")
+        }),
+        "db" -> Some(JsString(database)),
+        "collection" -> Some(JsString(river.collection)),
+        "gridfs" -> Some(JsBoolean(false))
       ),
       "index" -> Json.obj(
-        "name" -> collection,
-        "type" -> "documents"
+        "name" -> river.name,
+        "type" -> river.typ
       )
-    )
-    client.index(indexRequest("_river").`type`("_myriver").id(collection).source(source.toString)).actionGet()
+    ).toString
+
+    WS.url(s"http://$elasticSearchHost/_river/${river.name}/_meta").put(source)
   }
 
-}
-
-/**
- *
- */
-trait UsingClient {
-
-  def run(block: (Client => Unit)) = {
-    val node = nodeBuilder.node()
-    val client = node.client()
-    try {
-      block(client)
-    } finally {
-      client.close()
-    }
-  }
+  private def failedRequirement(requirement: String) =
+    new IllegalArgumentException(s"ElasticSearch requires $requirement")
 
 }

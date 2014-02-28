@@ -50,6 +50,11 @@ If you're on a Mac using OS X, you can install elasticsearch from Homebrew:
 It's recommended to follow the post-installation to set up a daemon to run elasticsearch on boot/when it goes down.
 
 
+### Install the Javascript Plugin
+
+    $ plugin -install elasticsearch/elasticsearch-lang-javascript/2.0.0.RC1
+
+
 ### Install MongoDB River Plugin
 
 Install the Corespring-specific version of the plugin from our [Github repository](https://github.com/corespring/elasticsearch-river-monogdb):
