@@ -43,7 +43,7 @@ class TexRewriteRuleTest extends Specification {
     "return children surrounded with $$" in {
       val input = <tex>{tex}</tex>
       val output = blockTex(input)
-      output.text must be equalTo s"$$$tex$$"
+      output.text must be equalTo s"$$$$$tex$$$$"
     }
 
   }

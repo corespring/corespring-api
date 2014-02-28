@@ -20,7 +20,7 @@ object TexRewriteRule extends RewriteRule {
     case _ => blockTex(node)
   }
 
-  def blockTex(node: Node) = Text(s"$$${node.child.mkString}$$")
+  def blockTex(node: Node) = Text(s"$$$$${node.child.mkString}$$$$")
   def inlineTex(node: Node) = Text(s"\\(${node.child.mkString}\\)")
 
 }
