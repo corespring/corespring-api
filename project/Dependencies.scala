@@ -41,7 +41,6 @@ object Dependencies {
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
-  val elasticSearch = "org.elasticsearch" % "elasticsearch" % "1.0.1"
 
   val all = Seq(
     amapClient,
@@ -61,8 +60,7 @@ object Dependencies {
     playMemcached,
     playPluginMailer,
     playPluginUtil,
-    simplecsv,
-    elasticSearch
+    simplecsv
   )
 
   object Resolvers {

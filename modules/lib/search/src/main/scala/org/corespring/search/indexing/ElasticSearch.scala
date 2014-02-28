@@ -44,7 +44,7 @@ object ElasticSearch extends JsonUtil {
   private def dropAll() = WS.url(s"http://$elasticSearchHost/_all").delete()
 
   private def importMapping() = {
-    val mappingJson = Source.fromFile("app/index/mapping.json").mkString
+    val mappingJson = Source.fromFile("modules/lib/search/src/main/scala/org/corespring/serach/indexing/mapping.json").mkString
     Await.result(WS.url(s"http://$elasticSearchHost/content").put(mappingJson), Duration.Inf)
   }
 

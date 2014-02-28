@@ -97,7 +97,7 @@ object Build extends sbt.Build {
     .settings(disableDocsSettings: _*)
 
   val search = builders.lib("search").settings(
-    libraryDependencies ++= Seq(playFramework, elasticSearch)
+    libraryDependencies ++= Seq(playFramework)
   ).dependsOn(core)
 
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
