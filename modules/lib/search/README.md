@@ -1,4 +1,6 @@
-## Indexing for corespring-api
+# Corespring Search
+
+## Indexing
 
 Indexing is managed through [elasticsearch](http://www.elasticsearch.org/).
 

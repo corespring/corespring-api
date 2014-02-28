@@ -94,7 +94,7 @@ version of play.*
 
 #### Indexing
 
-See the [indexing documentation](app/index/README.md) for information about how content is indexed in Corespring API.
+See the [search documentation](modules/lib/search/README.md) for information about how content is indexed in Corespring API.
 
 
 #### Localhost

@@ -1,3 +1,3 @@
-package index
+package org.corespring.search.indexing
 
 case class River(name: String, typ: String, collection: String, script: Option[String] = None)

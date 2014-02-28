@@ -1,12 +1,13 @@
-package index
+package org.corespring.search.indexing
 
 import play.api.libs.json._
-import play.api.libs.ws.WS
-import com.mongodb.casbah.MongoURI
-import org.corespring.platform.core.models.JsonUtil
 import scala.io.Source
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.Some
+import org.corespring.platform.core.models.JsonUtil
+import play.api.libs.ws.WS
+import com.mongodb.casbah.MongoURI
 
 /**
  * A helper object to generate rivers and indexes for elasticsearch.

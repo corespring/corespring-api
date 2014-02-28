@@ -96,6 +96,9 @@ object Build extends sbt.Build {
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 
+  val search = builders.lib("search").settings(
+    libraryDependencies ++= Seq(playFramework, elasticSearch)
+  ).dependsOn(core)
 
   val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
 
@@ -145,7 +148,7 @@ object Build extends sbt.Build {
      )
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
-    .dependsOn(qti, public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
+    .dependsOn(qti, public, playerLib, core % "compile->compile;test->test", apiUtils, commonViews, search, testLib % "test->compile", clientLogging % "compile->compile;test->test" )
     .aggregate(qti, public, playerLib, core, apiUtils, commonViews, testLib, clientLogging)
     .settings(disableDocsSettings: _*)
 
