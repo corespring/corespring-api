@@ -3,6 +3,7 @@ package tests.player.controllers.qti.rewrites
 import org.specs2.mutable.Specification
 import player.controllers.qti.rewrites.TexRewriteRule
 import scala.xml._
+import org.apache.commons.lang3.StringEscapeUtils
 
 class TexRewriteRuleTest extends Specification {
 
@@ -46,6 +47,13 @@ class TexRewriteRuleTest extends Specification {
       output.text must be equalTo s"$$$$$tex$$$$"
     }
 
+    "return children HTML encoded" in {
+      val tex = "3 &gt; 4"
+      val input = <tex>{tex}</tex>
+      val output = blockTex(input)
+      output.toString must be equalTo s"$$$$${StringEscapeUtils.escapeHtml4(tex)}$$$$"
+    }
+
   }
 
   "inlineTex" should {
@@ -54,6 +62,13 @@ class TexRewriteRuleTest extends Specification {
       val input = <tex>{tex}</tex>
       val output = inlineTex(input)
       output.text must be equalTo s"\\($tex\\)"
+    }
+
+    "return children HTML encoded" in {
+      val tex = "3 &gt; 4"
+      val input = <tex>{tex}</tex>
+      val output = inlineTex(input)
+      output.toString must be equalTo s"\\(${StringEscapeUtils.escapeHtml4(tex)}\\)"
     }
 
   }
