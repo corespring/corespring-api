@@ -24,7 +24,7 @@ object ElasticSearchItemSearch extends ItemSearch {
       baseSearch.withQuery(searchText).withCollectionIds(collectionIds).skip(skip).limit(limit).sort(sort)
     }.map(searchResponse => fromElasticResults(searchResponse, fields) match {
       case Left(jsObject: JsArray) => jsObject
-      case _ => Json.obj("error" -> "there was a problem querying elastic search")
+      case _ => Json.arr()
     })
   }
 

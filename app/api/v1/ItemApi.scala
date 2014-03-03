@@ -23,13 +23,14 @@ import play.api.libs.json._
 import play.api.mvc.{ Result, Action, AnyContent }
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.search.elasticsearch.ElasticSearchItemSearch
 
 /**
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
+  extends ContentApi[Item](service, Some(ElasticSearchItemSearch))(ItemView.Writes) with PackageLogging {
 
   import Item.Keys._
 

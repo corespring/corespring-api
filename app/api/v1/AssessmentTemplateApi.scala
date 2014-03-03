@@ -10,7 +10,7 @@ import play.api.libs.json.Json
 
 
 class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService)
-  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService)(AssessmentTemplate.ContentViewWrites) {
+  extends ContentApi[SalatAssessmentTemplate](assessmentTemplateService, None)(AssessmentTemplate.ContentViewWrites) {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 

@@ -65,8 +65,6 @@ PUT     /api/v1/collections/:id/share-with-org/:orgId                           
 
 
 
-
-
 # Users
 GET     /api/v1/users                           api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/users/:id                       api.v1.UserApi.getUser(id: ObjectId)
@@ -76,6 +74,8 @@ DELETE  /api/v1/users/:id                       api.v1.UserApi.deleteUser(id: Ob
 GET     /api/v1/organizations/:orgId/users      api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
+
+GET     /api/v1/ben                             api.v1.ItemSearchApi.find(q: Option[String] ?= None)
 GET     /api/v1/items                           api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/items/query                     api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/v1/organizations/:orgId/items      api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)

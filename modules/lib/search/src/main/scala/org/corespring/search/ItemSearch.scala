@@ -1,6 +1,6 @@
 package org.corespring.search.indexing
 
-import play.api.libs.json.JsValue
+import play.api.libs.json.JsArray
 import scala.concurrent.Future
 import org.bson.types.ObjectId
 
@@ -11,6 +11,6 @@ trait ItemSearch {
            fields: Seq[String] = Seq.empty,
            skip: Option[Int] = None,
            limit: Option[Int] = None,
-           sort: Option[String]): Future[JsValue]
+           sort: Option[String]): Future[JsArray]
 
 }

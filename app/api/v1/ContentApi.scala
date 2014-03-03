@@ -23,13 +23,17 @@ import play.api.libs.json.JsObject
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
+import org.corespring.search.indexing.ItemSearch
+import org.corespring.platform.core.models.search.ItemSearch
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 /**
  * This is a superclass for any API Controller that manages Content. ContentApi should provide any functionality that
  * is common to routes associated for various Content subclasses. An implicit Writes for the Content subclass must be
  * provided so that the controller can serialize Content.
  */
-abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService[ContentType, _])
+abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService[ContentType, _], itemSearch: Option[ItemSearch])
                                                     (implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
 
 
@@ -122,46 +126,17 @@ abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
-      val initSearch: MongoDBObject = baseQuery.iterator.toSeq
-        .foldLeft(service.createDefaultCollectionsQuery(collections, request.ctx.organization)){ (query, entry) =>
-          query ++ entry }
-
-      val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
-        Some(initSearch),
-        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))
-      ) match {
-        case Some(result) => result
-        case None => Right(initSearch)
-      }
-
-      val fieldResult: Either[InternalError, SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
-        case Some(result) => result
-        case None => Right(SearchFields(method = 1))
-      }
-
-      def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        val cursor = service.find(query, fields.dbfields)
-        val count = cursor.count
-        val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
-        jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
-      }
-
-      queryResult match {
-        case Right(query) => fieldResult match {
-          case Right(searchFields) => {
-            cleanDbFields(searchFields, request.ctx.isLoggedIn)
-            sort.map(ItemSearch.toSortObj(_)) match {
-              case Some(Right(sortField)) => Right(runQueryAndMakeJson(query, searchFields, sk, l, Some(sortField)))
-              case None => Right(runQueryAndMakeJson(query, searchFields, sk, l))
-              case Some(Left(error)) => Left(ApiError.InvalidFields(error.clientOutput))
-            }
-          }
-          case Left(error) => Left(ApiError.InvalidFields(error.clientOutput))
+      itemSearch match {
+        case Some(search) => {
+          Right(Await.result(search.find(
+            queryString = q,
+            collectionIds = collections,
+            fields = Seq.empty,
+            skip = Option(sk),
+            limit = Option(l),
+            sort = sort), Duration.Inf))
         }
-        case Left(sc) => sc.error match {
-          case None => Right(JsArray(Seq()))
-          case Some(error) => Left(ApiError.InvalidQuery(error.clientOutput))
-        }
+        case _ => Left(ApiError.BadJson)
       }
     }
   }

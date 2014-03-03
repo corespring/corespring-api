@@ -43,6 +43,12 @@ You can check that this worked:
     }
   
 
+import play.api.Play
+import play.api.test.FakeApplication
+import index.Indexer
+Play.start(FakeApplication())
+Indexer.initialize()
+
 #### Install ElasticSearch
 
 If you're on a Mac using OS X, you can install elasticsearch from Homebrew:
