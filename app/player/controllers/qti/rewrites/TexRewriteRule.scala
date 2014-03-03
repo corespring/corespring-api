@@ -2,6 +2,8 @@ package player.controllers.qti.rewrites
 
 import scala.xml.transform.RewriteRule
 import scala.xml._
+import java.net.URLDecoder
+import org.apache.commons.lang3.StringEscapeUtils
 
 object TexRewriteRule extends RewriteRule {
 
@@ -20,7 +22,9 @@ object TexRewriteRule extends RewriteRule {
     case _ => blockTex(node)
   }
 
-  def blockTex(node: Node) = Text(s"$$$$${node.child.mkString}$$$$")
-  def inlineTex(node: Node) = Text(s"\\(${node.child.mkString}\\)")
+  def blockTex(node: Node) = Text(s"$$$$${nodeText(node)}$$$$")
+  def inlineTex(node: Node) = Text(s"\\(${nodeText(node)}\\)")
+
+  private def nodeText(node: Node) = StringEscapeUtils.unescapeHtml4(node.child.mkString)
 
 }
