@@ -51,6 +51,12 @@ If you're on a Mac using OS X, you can install elasticsearch from Homebrew:
 
 It's recommended to follow the post-installation to set up a daemon to run elasticsearch on boot/when it goes down.
 
+You also need to set the cluster name in your `elasticsearch.yml` file. Using Homebrew, this file will be in
+`/usr/local/Cellar/elasticsearch/1.0.0/config/elasticsearch.yml`. You should set the `cluster.name` value to
+`corespring_elasticsearch`:
+
+  cluster.name: corespring_elasticsearch
+
 
 ### Install the Javascript Plugin
 
@@ -84,7 +90,7 @@ After you have installed the plugin, and restarted elasticsearch, you can visit 
 
 ### Configuration
 
-Note that these configuration examples are for demonstration purposes only. The [ElasticSearch](ElasticSearch.scala) object's `initialize` method should generate all the necessary rivers and indexes.
+Note that these configuration examples are for demonstration purposes only. The [ElasticSearch](Indexer.scala) object's `initialize` method should generate all the necessary rivers and indexes.
 
 #### Creating a MongoDB River
 

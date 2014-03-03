@@ -20,7 +20,7 @@ object Indexer extends JsonUtil {
     .getOrElse(throw failedRequirement("mongo URI")))
 
   val elasticSearchHost = play.api.Play.current.configuration.
-    getString("elasticsearch.default.host").getOrElse(throw failedRequirement("elastic search host"))
+    getString("elasticsearch.host").getOrElse(throw failedRequirement("elastic search host"))
 
   val database = mongoURI.database.getOrElse(throw failedRequirement("database"))
   val mongoHosts = mongoURI.hosts match {

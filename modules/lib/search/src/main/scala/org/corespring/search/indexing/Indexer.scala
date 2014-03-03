@@ -24,7 +24,7 @@ object Indexer extends JsonUtil {
   val mongoURI = MongoURI(play.api.Play.current.configuration.getString("mongodb.default.uri")
     .getOrElse(throw failedRequirement("mongo URI")))
 
-  val elasticSearchHost = play.api.Play.current.configuration.getString("elasticsearch.default.host")
+  val elasticSearchHost = play.api.Play.current.configuration.getString("elasticsearch.host")
 
   val database = mongoURI.database.getOrElse(throw failedRequirement("database"))
   val mongoHosts = mongoURI.hosts match {
