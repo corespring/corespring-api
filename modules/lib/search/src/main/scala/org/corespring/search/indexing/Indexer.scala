@@ -8,11 +8,18 @@ import scala.Some
 import org.corespring.platform.core.models.JsonUtil
 import play.api.libs.ws.WS
 import com.mongodb.casbah.MongoURI
+import play.api.Play
+import play.api.test.FakeApplication
+
 
 /**
  * A helper object to generate rivers and indexes for elasticsearch.
  */
-object ElasticSearch extends JsonUtil {
+object Indexer extends JsonUtil {
+
+  def fakePlay() = {
+    Play.start(FakeApplication())
+  }
 
   val mongoURI = MongoURI(play.api.Play.current.configuration.getString("mongodb.default.uri")
     .getOrElse(throw failedRequirement("mongo URI")))

@@ -1,10 +1,10 @@
 package org.corespring.search.indexing
 
 import play.api.libs.json.JsValue
+import scala.concurrent.Future
 
 trait ItemSearch {
 
-  def search(query: String): JsValue
-
+  def find(query: String): Future[JsValue]
 
 }
