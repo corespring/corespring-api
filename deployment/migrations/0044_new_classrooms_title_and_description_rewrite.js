@@ -46,7 +46,7 @@ function down() {
   newClassroomsContent.forEach(function(content) {
     var description = ContentHelper.getDescription(content);
     if (description) {
-      content.taskInfo.tite = content.taskInfo.description;
+      content.taskInfo.title = content.taskInfo.description;
       delete content.taskInfo.description;
       db.content.save(content);
     }
