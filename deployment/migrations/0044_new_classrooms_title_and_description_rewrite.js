@@ -25,7 +25,7 @@ var ContentHelper = {
   },
   getSkillDescription: function(content) {
     var skillNumber = this._getSkillNumber(content);
-    return (this.SKILLS[skillNumber]) ? this.SKILLS[skillNumber] : undefined;
+    return skillNumber ? this.SKILLS[skillNumber] : undefined;
   }
 }
 
