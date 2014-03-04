@@ -248,6 +248,7 @@ GET    /reports/standard-item-report.csv            reporting.controllers.Report
 GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
 GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
 GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+GET    /reports/standards-by-collection-report.csv  reporting.controllers.Reports.getStandardsByCollectionReport
 
 
 #
@@ -283,4 +284,3 @@ POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 # Regression test endpoints
 GET     /regression/:orgId/:itemSessionId/render            regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
 GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
-

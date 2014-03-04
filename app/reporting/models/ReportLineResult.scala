@@ -25,7 +25,7 @@ object ReportLineResult extends CsvWriter {
     (List(header) ::: lines).toCsv
   }
 
-  private def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key <= b.key) =
+  def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key <= b.key) =
     l.sortWith(sorter).map(_.count.toString)
 
   private def buildLine(result: LineResult): List[String] = {

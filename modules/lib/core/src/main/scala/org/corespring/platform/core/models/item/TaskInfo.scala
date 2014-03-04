@@ -34,6 +34,8 @@ object TaskInfo extends ValueGetter {
     val extended = "extended"
   }
 
+  val standardsSorter: (String, String) => Boolean = (a,b) => a <= b
+
   val gradeLevelSorter: (String, String) => Boolean = (a,b) => {
     val reference = List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09",
       "10", "11", "12", "13", "PS", "AP", "UG")
