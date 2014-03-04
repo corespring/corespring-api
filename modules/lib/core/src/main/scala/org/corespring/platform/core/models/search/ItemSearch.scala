@@ -61,6 +61,7 @@ object ItemSearch extends Searchable {
           case `standards` => toSearchFieldObj(searchFields, field)
           case key if key.startsWith(standards) => toSearchFieldObj(searchFields, field, false)
           case `title` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.title)
+          case `description` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.description)
           case `published` => toSearchFieldObj(searchFields, field)
           case key if key.startsWith(extended) => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + key)
           case _ => Left(InternalError("unknown key contained in fields: " + field._1))
@@ -186,6 +187,7 @@ object ItemSearch extends Searchable {
                 case `reviewsPassed` => formatQuery(reviewsPassed, field._2, searchobj)
                 case key if key.startsWith(standards) => Right(searchobj)
                 case `title` => formatQuery(taskInfo + "." + TaskInfo.Keys.title, field._2, searchobj)
+                case `description` => formatQuery(taskInfo + "." + TaskInfo.Keys.description, field._2, searchobj)
                 case key if key.startsWith(extended) => formatQuery(taskInfo + "." + key, field._2, searchobj)
                 case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: " + field._1))))
               }
@@ -236,6 +238,7 @@ object ItemSearch extends Searchable {
       case `reviewsPassed` => formatSortField(reviewsPassed, field._2)
       case key if key == standards + "." + Standard.DotNotation => formatSortField(standards, field._2)
       case `title` => formatSortField(taskInfo + "." + TaskInfo.Keys.title, field._2)
+      case `description` => formatSortField(taskInfo + "." + TaskInfo.Keys.description, field._2)
       case `collectionId` => formatSortField(collectionId, field._2)
       case `published` => formatSortField(published, field._2)
       case key if key.startsWith(extended) => formatSortField(taskInfo + "." + key, field._2)
