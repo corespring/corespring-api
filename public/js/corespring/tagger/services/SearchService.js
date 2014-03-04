@@ -144,6 +144,7 @@ angular.module('tagger.services').factory('SearchService',
       ],
       searchFields: [
         'title',
+        'description',
         'standards.dotNotation',
         'copyrightOwner',
         'contributor',

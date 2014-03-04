@@ -100,6 +100,7 @@ object Item {
     val sourceUrl = "sourceUrl"
     val standards = "standards"
     val title = "title"
+    val description = "description"
     val lexile = "lexile"
     val data = "data"
     val supportingMaterials = "supportingMaterials"
