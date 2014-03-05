@@ -116,3 +116,9 @@ You have to configure the River plugin to point to your local MongoDB instance:
     }'
     
     {"_index":"_river","_type":"content","_id":"_meta","_version":1,"created":true}
+
+
+### Troubleshooting
+
+Stream Corruption Error: Make sure you are talking to the right port. Web access goes through port 9200. Port 9300 is
+for binary communication. See http://stackoverflow.com/questions/17854910/elasticsearch-0-90-2-streamcorruptedexception-on-asking-port-9300

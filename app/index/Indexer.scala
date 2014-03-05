@@ -19,6 +19,9 @@ object Indexer extends JsonUtil {
   val mongoURI = MongoURI(play.api.Play.current.configuration.getString("mongodb.default.uri")
     .getOrElse(throw failedRequirement("mongo URI")))
 
+  //This should be the web host, usually on port 9200
+  //The port 9300 is for internal node-to-node communication only and gives you a stream corrupted error if you
+  //try to use it
   val elasticSearchHost = play.api.Play.current.configuration.
     getString("elasticsearch.host").getOrElse(throw failedRequirement("elastic search host"))
 
