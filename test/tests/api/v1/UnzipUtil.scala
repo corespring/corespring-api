@@ -8,7 +8,7 @@ class UnzipUtil {
 
   val logger = Logger("UnzipUtil")
 
-  def externalUnzip(path:String, folder:String){
+  def externalUnzip(path: String, folder: String) {
     import sys.process._
     Seq("unzip", path, "-d", folder).!
   }
@@ -20,14 +20,14 @@ class UnzipUtil {
   def unzip(file: File, todir: File): Unit = {
     todir.mkdirs()
 
-    logger.info("Extracting " + file + " to " + todir)
+    logger.info(s"Extracting $file to $todir")
     val jar = new JarFile(file)
     val enu = jar.entries
     while (enu.hasMoreElements) {
       val entry = enu.nextElement
       val entryPath = entry.getName
 
-      logger.info("Extracting to " + todir + "/" + entryPath)
+      logger.info(s"Extracting to $todir/$entryPath")
       if (entry.isDirectory) {
         new File(todir, entryPath).mkdirs
       } else {
@@ -46,8 +46,9 @@ class UnzipUtil {
     while ( {
       len = istream.read(bytes, 0, 1024);
       len != -1
-    })
+    }) {
       ostream.write(bytes, 0, len)
+    }
   }
 
 
