@@ -9,10 +9,18 @@ import scala.xml.Node
 object ItemTransformer extends ItemTransformationCache {
 
   def transformToV2Json(item: Item): JsValue = {
-    item.playerDefinition.map(Json.toJson(_)).getOrElse(createFromQti(item))
+    val rootJson: JsObject = item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+    val profile = toProfile(item)
+    rootJson + ("profile" -> profile)
   }
 
-  private def createFromQti(item: Item): JsValue = {
+  private def toProfile(item: Item): JsValue = {
+    item.taskInfo.map { info =>
+      Json.obj("taskInfo" -> Json.toJson(info))
+    }.getOrElse(Json.obj("taskInfo" -> Json.obj()))
+  }
+
+  private def createFromQti(item: Item): JsObject = {
     val (xhtml, components) = getTransformation(item)
 
     Json.obj(
@@ -28,9 +36,9 @@ object ItemTransformer extends ItemTransformationCache {
       "components" -> components)
   }
 
-  private def getTransformation(item: Item): (Node, JsValue) =
+  private def getTransformation(item: Item): (Node, JsObject) =
     getCachedTransformation(item) match {
-      case Some((node: Node, json: JsValue)) => (node, json)
+      case Some((node: Node, json: JsValue)) => (node, json.as[JsObject])
       case _ => {
         val qti = for {
           data <- item.data
@@ -42,7 +50,7 @@ object ItemTransformer extends ItemTransformationCache {
         val (node, json) = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
         setCachedTransformation(item, (node, json))
 
-        (node, json)
+        (node, json.as[JsObject])
       }
     }
 

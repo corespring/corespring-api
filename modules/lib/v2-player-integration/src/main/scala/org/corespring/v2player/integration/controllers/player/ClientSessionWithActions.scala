@@ -7,13 +7,14 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.AuthenticatedSessionActions
+import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieReader
 import play.api.libs.json.{ JsString, JsValue, Json }
-import play.api.mvc.{ Request, Action, Result, AnyContent }
 import play.api.mvc.Results._
+import play.api.mvc.{ Request, Action, Result, AnyContent }
 import scala.Some
+import scala.language.implicitConversions
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieReader
 
 trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCookieReader {
 
@@ -52,7 +53,7 @@ trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCo
     case Success(tuple) => Success(Json.obj("item" -> tuple._1, "session" -> tuple._2))
   }
 
-  private def handleValidationResult(v: Validation[String, Result]) = v match {
+  private implicit def handleValidationResult(v: Validation[String, Result]) = v match {
     case Failure(err) => BadRequest(Json.obj("error" -> JsString(err)))
     case Success(r) => r
   }
@@ -64,7 +65,11 @@ trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCo
       }
   }
 
-  private def isSecure(r: Request[AnyContent]) = renderOptions(r).map { ro => ro.secure }.getOrElse(true)
+  private def isSecure(r: Request[AnyContent]) = renderOptions(r).map {
+    ro => ro.secure
+  }.getOrElse(true)
+
+  private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
   override def loadEverything(id: String)(block: (FullSessionRequest[AnyContent]) => Result): Action[AnyContent] = auth.read(id) {
     request =>
@@ -75,19 +80,28 @@ trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCo
 
   override def loadOutcome(id: String)(block: (SessionOutcomeRequest[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
-      //TODO: Plugin in secure mode and complete
-      handleValidationResult(loadItemAndSession(id).map(tuple => block(SessionOutcomeRequest(tuple._1, tuple._2, false, false, request))))
+      loadItemAndSession(id).map {
+        tuple =>
+          block(SessionOutcomeRequest(tuple._1, tuple._2, isSecure(request), isComplete(tuple._2), request))
+      }
   }
 
   override def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
-      //TODO: Add secure mode
-      handleValidationResult {
-        loadSession(id)
-          .map(s => SaveSessionRequest(s, false, false, sessionService.save, request))
-          .map(block)
-      }
+      loadSession(id)
+        .map(s => SaveSessionRequest(s, isSecure(request), isComplete(s), sessionService.save, request))
+        .map(block)
 
   }
 
+  override def getScore(id: String)(block: (SessionOutcomeRequest[AnyContent]) => Result): Action[AnyContent] = Action {
+    request =>
+
+      loadItemAndSession(id)
+        .map((t) => {
+          val (item, session) = t
+          block(SessionOutcomeRequest(item, session, isSecure(request), isComplete(session), request))
+        })
+
+  }
 }
