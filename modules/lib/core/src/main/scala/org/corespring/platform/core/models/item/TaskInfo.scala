@@ -16,6 +16,7 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   subjects: Option[Subjects] = None,
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
+  description: Option[String] = None,
   itemType: Option[String] = None) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
@@ -26,6 +27,7 @@ object TaskInfo extends ValueGetter {
 
   object Keys {
     val title = "title"
+    val description = "description"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
     val subjects = "subjects"
@@ -49,6 +51,7 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
         if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
         info.title.map((title -> JsString(_))),
+        info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
@@ -109,6 +112,7 @@ object TaskInfo extends ValueGetter {
     getSubjects and
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
+    (__ \ Keys.description).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String])(TaskInfo.apply _)
 }
 
