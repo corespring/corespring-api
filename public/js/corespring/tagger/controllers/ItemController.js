@@ -19,7 +19,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger) {
 
 
-  $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/run";
+  $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
