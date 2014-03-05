@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import play.Project._
 import MongoDbSeederPlugin._
+import java.net.URLClassLoader
 
 object Build extends sbt.Build {
 
@@ -134,6 +135,19 @@ object Build extends sbt.Build {
     Keys.fork.in(Test) := forkInTests).dependsOn(commonViews, core % "compile->compile;test->test", playerLib, testLib % "test->compile")
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
+  def registerTask(name: String, taskClass: String, description: String) = {
+    val sbtTask = (dependencyClasspath in Runtime) map { (deps) =>
+      val depURLs = deps.map(_.data.toURI.toURL).toArray
+      val classLoader = new URLClassLoader(depURLs, null)
+      val task = classLoader.
+        loadClass(taskClass).
+        newInstance().
+        asInstanceOf[Runnable]
+      task.run()
+    }
+    TaskKey[Unit](name, description) <<= sbtTask.dependsOn(compile in Compile)
+  }
+
   val main = play.Project(appName, appVersion, Dependencies.all)
     .settings(
       scalaVersion := ScalaVersion,
@@ -144,7 +158,8 @@ object Build extends sbt.Build {
       credentials += cred,
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
-      (test in Test) <<= (test in Test).map(Commands.runJsTests)
+      (test in Test) <<= (test in Test).map(Commands.runJsTests),
+      registerTask("run-indexer","index.IndexerTask", "recreate search index")
      )
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)

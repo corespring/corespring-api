@@ -5,26 +5,23 @@ import scala.io.Source
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.Some
-import org.corespring.platform.core.models.JsonUtil
 import play.api.libs.ws.WS
 import com.mongodb.casbah.MongoURI
-import play.api.Play
-import play.api.test.FakeApplication
-
+import org.corespring.platform.core.models.JsonUtil
 
 /**
  * A helper object to generate rivers and indexes for elasticsearch.
  */
 object Indexer extends JsonUtil {
 
-  def fakePlay() = {
-    Play.start(FakeApplication())
-  }
-
   val mongoURI = MongoURI(play.api.Play.current.configuration.getString("mongodb.default.uri")
     .getOrElse(throw failedRequirement("mongo URI")))
 
-  val elasticSearchHost = play.api.Play.current.configuration.getString("elasticsearch.host")
+  //This should be the web host, usually on port 9200
+  //The port 9300 is for internal node-to-node communication only and gives you a stream corrupted error if you
+  //try to use it
+  val elasticSearchHost = play.api.Play.current.configuration.
+    getString("elasticsearch.host").getOrElse(throw failedRequirement("elastic search host"))
 
   val database = mongoURI.database.getOrElse(throw failedRequirement("database"))
   val mongoHosts = mongoURI.hosts match {
@@ -51,11 +48,11 @@ object Indexer extends JsonUtil {
   private def dropAll() = WS.url(s"http://$elasticSearchHost/_all").delete()
 
   private def importMapping() = {
-    val mappingJson = Source.fromFile("modules/lib/search/src/main/scala/org/corespring/serach/indexing/mapping.json").mkString
+    val mappingJson = Source.fromFile("modules/lib/search/src/main/scala/org/corespring/search/indexing/mapping.json").mkString
     Await.result(WS.url(s"http://$elasticSearchHost/content").put(mappingJson), Duration.Inf)
   }
 
- def createRivers() = rivers.map(createRiver(_))
+  def createRivers() = rivers.map(createRiver(_))
 
   /**
    * Creates a River for the provided collection
