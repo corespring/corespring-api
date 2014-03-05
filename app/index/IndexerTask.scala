@@ -1,11 +1,11 @@
 package index
 
-import org.corespring.search.indexing.Indexer
+import org.corespring.search.indexing.IndexerWs
 
 class IndexerTask extends Task {
 
   def run {
-    Indexer.initialize()
+    IndexerWs.initialize()
   }
 
 }

@@ -1,0 +1,44 @@
+{
+    "settings": {
+        "number_of_shards": 1,
+        "mapper": {
+            "dynamic": false
+        },
+        "analysis": {
+            "analyzer": {
+                "ngram_index_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": ["standard", "lowercase", "ngram"]
+                },
+                "ngram_search_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": ["standard", "lowercase"]
+                }
+            },
+            "filter": {
+                "ngram": {
+                    "type": "nGram",
+                    "min_gram": 2,
+                    "max_gram": 50
+                }
+            }
+        }
+    },
+    "mappings": {
+        "content": {
+            "properties": {
+                "taskInfo": {
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "index_analyzer": "ngram_index_analyzer",
+                            "search_analyzer": "ngram_search_analyzer"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
