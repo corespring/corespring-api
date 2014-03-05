@@ -1,0 +1,1 @@
+java -jar bin/libs/scalariform.jar ""%*""

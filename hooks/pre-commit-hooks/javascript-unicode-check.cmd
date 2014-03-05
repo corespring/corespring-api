@@ -1,0 +1,1 @@
+ruby hooks/pre-commit-hooks/javascript-unicode-check

@@ -22,11 +22,14 @@ module Utils
       IO.popen('pbcopy', 'w+') do |clipboard|
         clipboard.write msg
       end
+      true
     elsif RUBY_PLATFORM.downcase.include?("linux")
       IO.popen('xsel --clipboard --input', 'r+') do |clipboard|
         clipboard.puts msg
       end
+      true
     end
+    false
   end
 
 end
@@ -46,7 +49,12 @@ if files.length > 0
         puts "You need to format your scala code!"
         puts "run:"
         puts format_cmd
-        puts "its been copied to your clipboard for your convenience"
+        if Utils.clip format_cmd
+          puts "It has been copied to your clipboard for your convenience"
+        else
+          puts "It has been written to file target/clipboard.txt for your convenience"
+          File.open('target/clipboard.txt', 'w') { |file| file.write(format_cmd) }
+        end
         abort "--------------------------------------------------"
     end
 end
