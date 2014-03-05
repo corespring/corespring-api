@@ -8,7 +8,7 @@ import reporting.models.ReportLineResult.KeyCount
 import reporting.models.ReportLineResult
 import org.bson.types.ObjectId
 
-import org.corespring.platform.core.models.{Organization, Standard, Subject, ContentCollection}
+import org.corespring.platform.core.models.{Standard, Subject, ContentCollection}
 import org.corespring.common.utils.string
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import reporting.models.ReportLineResult.LineResult
