@@ -14,6 +14,7 @@ import org.corespring.platform.core.services.item.ItemServiceImpl
 import reporting.models.ReportLineResult.LineResult
 import scala.Some
 import org.corespring.platform.core.models.item.TaskInfo
+import reporting.utils.CsvWriter
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
@@ -21,7 +22,7 @@ object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
   CollectionsCollection: MongoCollection,
-  StandardCollection: MongoCollection) {
+  StandardCollection: MongoCollection) extends CsvWriter {
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
@@ -83,18 +84,18 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
+  val defaultSorter = (a: String, b: String) => a < b
+
+  def mapToDistinctList(field: String, sorter: (String, String) => Boolean = defaultSorter): List[String] = {
+    val distResult = ItemCollection.distinct(field)
+    if (distResult == null) return List()
+    val distStringResult = distResult.map(p => if (p != null) p.toString else "")
+    if (distStringResult == null) return List()
+
+    distStringResult.filter(_ != "").toList.sortWith(sorter)
+  }
+
   def populateHeaders {
-    val defaultSorter = (a: String, b: String) => a < b
-
-    def mapToDistinctList(field: String, sorter: (String, String) => Boolean = defaultSorter): List[String] = {
-      val distResult = ItemCollection.distinct(field)
-      if (distResult == null) return List()
-      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
-      if (distStringResult == null) return List()
-
-      distStringResult.filter(_ != "").toList.sortWith(sorter)
-    }
-
     ReportLineResult.ItemTypes = mapToDistinctList("taskInfo.itemType")
     ReportLineResult.GradeLevel = mapToDistinctList("taskInfo.gradeLevel", TaskInfo.gradeLevelSorter)
     ReportLineResult.PriorUse = mapToDistinctList("priorUse")
@@ -195,12 +196,17 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
-  /**
-   * Cached data for all reports.
-   *
-   * TODO: These should be written to the filesystem if they start to take up too much memory.
-   */
-  private var reportCache = Map.empty[String, String]
+  def buildStandardsByCollectionReport() = {
+    val collections = CollectionsCollection.find().toIterator.toSeq
+    val header = "Standards" :: collections.map(_.get("name").asInstanceOf[String]).toList
+    val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
+    val lines = mapToDistinctList("standards", TaskInfo.standardsSorter).map(standard => {
+      val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
+      runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
+      standard +: ReportLineResult.createValueList(collectionsKeyCounts)
+    })
+    (List(header) ++ lines).toCsv
+  }
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)

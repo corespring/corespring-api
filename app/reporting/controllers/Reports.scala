@@ -44,6 +44,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def getStandardItemReport = ApiAction(request => getReport(ReportKeys.standards))
   def getContributorReport = ApiAction(request => getReport(ReportKeys.contributor))
   def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
+  def getStandardsByCollectionReport = ApiAction(request => getReport(ReportKeys.standardsByCollection))
 
   private def getReport(reportKey: String): SimpleResult = generator.getReport(reportKey) match {
     case Some((date, Some(string), inProgress)) =>
