@@ -10,10 +10,9 @@ var StandardsHelper = require('./standards_helper');
   fs.readFileSync('../../conf/seed-data/common/ccstandards.json').toString().split('\n').forEach(function(line) {
     if (line) {
       var standard = JSON.parse(line);
-      if (StandardsHelper.getGrades(standard.dotNotation)) {
-        standard.grades = StandardsHelper.getGrades(standard.dotNotation);
+      if (!StandardsHelper.isCCRA(standard.dotNotation)) {
+        newStandards.push(JSON.stringify(standard));
       }
-      newStandards.push(JSON.stringify(standard));
     }
   });
 
@@ -21,7 +20,7 @@ var StandardsHelper = require('./standards_helper');
     if (err) {
       console.log(err);
     } else {
-      console.log("Added grades to standards.");
+      console.log("Removed CCRA from standards.");
     }
   });
 
