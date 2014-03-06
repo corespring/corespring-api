@@ -3,11 +3,6 @@ package org.corespring.platform.core.models.item
 import com.mongodb.casbah.Imports._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsUndefined
 import play.api.libs.json._
 import scala.Some
 import scala.collection.mutable.Map
@@ -34,7 +29,6 @@ object TaskInfo extends ValueGetter {
     val extended = "extended"
   }
 
-  val standardsSorter: (String, String) => Boolean = (a,b) => a <= b
 
   val gradeLevelSorter: (String, String) => Boolean = (a,b) => {
     val reference = List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09",

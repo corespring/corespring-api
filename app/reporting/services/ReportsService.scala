@@ -145,7 +145,8 @@ class ReportsService(ItemCollection: MongoCollection,
       query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
-    ReportLineResult.buildCsv("Standards", lineResults)
+    ReportLineResult.buildCsv("Standards", lineResults,
+      (a: String, b: String) => Standard.sorter(a.split(":").head ,b.split(":").head))
 
   }
 
@@ -188,11 +189,11 @@ class ReportsService(ItemCollection: MongoCollection,
     ReportLineResult.buildCsv("Collection", lineResults)
   }
 
-  def buildLineResult(query: BasicDBObject, finalKey: String) = {
+  def buildLineResult(query: BasicDBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
 
     ItemCollection.count(query) match {
       case 0 => new LineResult(finalKey)
-      case c: Long if c > 0 => buildLineResultFromQuery(query, c.toInt, finalKey)
+      case c: Long if c > 0 => buildLineResultFromQuery(query, c.toInt, finalKey, sorter)
     }
   }
 
@@ -200,7 +201,7 @@ class ReportsService(ItemCollection: MongoCollection,
     val collections = CollectionsCollection.find().toIterator.toSeq
     val header = "Standards" :: collections.map(_.get("name").asInstanceOf[String]).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
-    val lines = mapToDistinctList("standards", TaskInfo.standardsSorter).map(standard => {
+    val lines = mapToDistinctList("standards", Standard.sorter).map(standard => {
       val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
       runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
       standard +: ReportLineResult.createValueList(collectionsKeyCounts)
@@ -306,7 +307,8 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param key
    * @return
    */
-  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String): LineResult = {
+  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String,
+                               sorter: (String, String) => Boolean): LineResult = {
 
     val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.ItemTypes)
     runMapReduceForProperty(itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
