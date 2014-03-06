@@ -7,6 +7,8 @@ import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
+import play.api.cache.Cache
+import scala.concurrent.duration.Duration
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -25,6 +27,8 @@ case class Standard(var dotNotation: Option[String] = None,
     case abbrev(a) => Some(a)
     case _ => None
   })
+
+
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
@@ -46,7 +50,25 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
-  implicit object StandardWrites extends Writes[Standard] {
+  lazy val sorter: (String, String) => Boolean = (a,b) => {
+    val cacheKey = "standards_sort"
+    val standards = Cache.get(cacheKey) match {
+      case Some(standards) => standards.asInstanceOf[Seq[Standard]]
+      case _ => {
+        val standards = findAll().toSeq
+        Cache.set(cacheKey, standards)
+        standards
+      }
+    }
+    ((standards.find(_.dotNotation == a), standards.find(_.dotNotation == b)) match {
+      case (Some(one), Some(two)) => StandardOrdering.compare(one, two)
+      case (None, Some(_)) => -1
+      case (Some(_), None) => 1
+      case _ => 0
+    }) < 0
+  }
+
+  implicit object StandardFormat extends Format[Standard] {
 
     def writes(obj: Standard) = {
       partialObj(
@@ -62,9 +84,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
         })
       )
     }
-  }
 
-  implicit object StandardReads extends Reads[Standard] {
     def reads(json: JsValue) = {
       val standard = new Standard()
       standard.dotNotation = (json \ DotNotation).asOpt[String]
@@ -77,6 +97,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       JsSuccess(standard)
     }
   }
+
   val description = "common core state standards"
   override val searchableFields = Seq(
     DotNotation,

@@ -18,10 +18,11 @@ object ReportLineResult extends CsvWriter {
 
   def zeroedKeyCountList(l: List[String]): List[KeyCount] = l.map((s: String) => new KeyCount(s, 0))
 
-  def buildCsv(title: String, list: List[LineResult]): String = {
+  def buildCsv(title: String, list: List[LineResult],
+               sorter: (String, String) => Boolean = (a, b) => a <= b): String = {
     val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel.sortWith(TaskInfo.gradeLevelSorter),
       PriorUse, Credentials, LicenseType).flatten
-    val lines: List[List[String]] = list.map(buildLine)
+    val lines: List[List[String]] = list.map(buildLine).sortWith((a,b) => sorter(a.head, b.head))
     (List(header) ::: lines).toCsv
   }
 
