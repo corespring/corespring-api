@@ -269,12 +269,14 @@ class ReportsService(ItemCollection: MongoCollection,
     def SimplePropertyMapFnTemplate(property: String): JSFunction =
       s"""function m() {
         try {
-          if (this.$property) {
-            emit(this.$property, 1);
+          if (this.$property !== undefined) {
+            emit(this.$property.toString(), 1);
+          } else {
+            emit("false", 1);
           }
         } catch (e) {
         }
-      };"""
+      }"""
 
     def ArrayPropertyMapTemplateFn(property: String): JSFunction = {
       val fieldCheck =
@@ -324,13 +326,17 @@ class ReportsService(ItemCollection: MongoCollection,
     val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.LicenseType)
     runMapReduceForProperty[String](licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
 
+    val publishedKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.Published)
+    runMapReduceForProperty[String](publishedKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("published"))
+
     new LineResult(key,
       total,
       itemTypeKeyCounts,
       gradeLevelKeyCounts,
       priorUseKeyCounts,
       credentialsKeyCount,
-      licenseTypeKeyCount)
+      licenseTypeKeyCount,
+      publishedKeyCount)
   }
 
   private def interpolate(text: String, vars: Map[String, String]) = {

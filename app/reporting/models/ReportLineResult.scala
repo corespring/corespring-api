@@ -11,6 +11,7 @@ object ReportLineResult extends CsvWriter {
   var PriorUse: List[String] = List.empty[String]
   var LicenseType: List[String] = List.empty[String]
   var Credentials: List[String] = List.empty[String]
+  var Published: List[String] = List("false", "true")
 
   class KeyCount[T](var key: T, var count: Int) {
     override def toString = key + "," + count
@@ -21,7 +22,7 @@ object ReportLineResult extends CsvWriter {
   def buildCsv(title: String, list: List[LineResult],
                sorter: (String, String) => Boolean = (a, b) => a <= b): String = {
     val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel.sortWith(TaskInfo.gradeLevelSorter),
-      PriorUse, Credentials, LicenseType).flatten
+      PriorUse, Credentials, LicenseType, List("Unpublished", "Published")).flatten
     val lines: List[List[String]] = list.map(buildLine).sortWith((a,b) => sorter(a.head, b.head))
     (List(header) ::: lines).toCsv
   }
@@ -38,7 +39,8 @@ object ReportLineResult extends CsvWriter {
       createValueList(result.gradeLevel, (a: KeyCount[String], b: KeyCount[String]) => { TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
       createValueList(result.priorUse),
       createValueList(result.credentials),
-      createValueList(result.licenseType)).flatten
+      createValueList(result.licenseType),
+      createValueList(result.published)).flatten
   }
 
   case class LineResult(subject: String,
@@ -47,7 +49,8 @@ object ReportLineResult extends CsvWriter {
     gradeLevel: List[KeyCount[String]] = zeroedKeyCountList(GradeLevel),
     priorUse: List[KeyCount[String]] = zeroedKeyCountList(PriorUse),
     credentials: List[KeyCount[String]] = zeroedKeyCountList(Credentials),
-    licenseType: List[KeyCount[String]] = zeroedKeyCountList(LicenseType))
+    licenseType: List[KeyCount[String]] = zeroedKeyCountList(LicenseType),
+    published: List[KeyCount[String]] = zeroedKeyCountList(Published))
 
 }
 
