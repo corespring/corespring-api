@@ -3,6 +3,10 @@ var module = module || {};
 
 module.exports = {
 
+  isCCRA: function(dotNotation) {
+    return dotNotation.indexOf("CCRA") == 0;
+  },
+
   getGrades: function(dotNotation) {
 
     function isHs(dotNotation) {

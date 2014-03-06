@@ -1,4 +1,4 @@
-load("bin/javascript.scripts/get_grades.js");
+load("bin/javascript.scripts/standards_helper.js");
 
 function up() {
   var grades = module.exports;
