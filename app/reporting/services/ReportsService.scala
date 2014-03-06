@@ -219,7 +219,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param keyCounts
    * @param query
    */
-  private def runMapReduceForProperty(keyCounts: List[KeyCount],
+  private def runMapReduceForProperty[T](keyCounts: List[KeyCount[T]],
     query: BasicDBObject,
     mapFn: JSFunction) {
 
@@ -237,9 +237,8 @@ class ReportsService(ItemCollection: MongoCollection,
      * @param key
      * @param value
      */
-    def putValueIntoKeyCount(keyCounts: List[KeyCount], key: String, value: Int) = {
-
-      val keyCountList = keyCounts.filter((kc: KeyCount) => kc.key == key)
+    def putValueIntoKeyCount[T](keyCounts: List[KeyCount[T]], key: T, value: Int) = {
+      val keyCountList = keyCounts.filter((kc: KeyCount[T]) => kc.key == key)
 
       keyCountList.length match {
         case 0 => //do nothing
@@ -255,12 +254,12 @@ class ReportsService(ItemCollection: MongoCollection,
       if (id.isInstanceOf[Double]) {
         val d = id.asInstanceOf[Double]
         if (d < 10) {
-          putValueIntoKeyCount(keyCounts, d.toInt.toString, intValue)
+          putValueIntoKeyCount[T](keyCounts, d.toInt.toString.asInstanceOf[T], intValue)
         } else {
-          putValueIntoKeyCount(keyCounts, "0" + d.toInt, intValue)
+          putValueIntoKeyCount[T](keyCounts, ("0" + d.toInt.toString).asInstanceOf[T], intValue)
         }
       } else if (id.isInstanceOf[String]) {
-        putValueIntoKeyCount(keyCounts, id.asInstanceOf[String], intValue)
+        putValueIntoKeyCount[T](keyCounts, id.asInstanceOf[T], intValue)
       }
     })
   }
@@ -310,20 +309,20 @@ class ReportsService(ItemCollection: MongoCollection,
   def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String,
                                sorter: (String, String) => Boolean): LineResult = {
 
-    val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.ItemTypes)
-    runMapReduceForProperty(itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
+    val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.ItemTypes)
+    runMapReduceForProperty[String](itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
 
-    val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.GradeLevel)
-    runMapReduceForProperty(gradeLevelKeyCounts, query, JSFunctions.ArrayPropertyMapTemplateFn("taskInfo.gradeLevel"))
+    val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.GradeLevel)
+    runMapReduceForProperty[String](gradeLevelKeyCounts, query, JSFunctions.ArrayPropertyMapTemplateFn("taskInfo.gradeLevel"))
 
-    val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.PriorUse)
-    runMapReduceForProperty(priorUseKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("priorUse"))
+    val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.PriorUse)
+    runMapReduceForProperty[String](priorUseKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("priorUse"))
 
-    val credentialsKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.Credentials)
-    runMapReduceForProperty(credentialsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.credentials"))
+    val credentialsKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.Credentials)
+    runMapReduceForProperty[String](credentialsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.credentials"))
 
-    val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.LicenseType)
-    runMapReduceForProperty(licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
+    val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.LicenseType)
+    runMapReduceForProperty[String](licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
 
     new LineResult(key,
       total,
