@@ -199,7 +199,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
   def buildStandardsByCollectionReport() = {
     val collections = CollectionsCollection.find().toIterator.toSeq
-    val header = "Standards" :: collections.map(_.get("name").asInstanceOf[String]).toList
+    val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
     val lines = mapToDistinctList("standards", Standard.sorter).map(standard => {
       val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
