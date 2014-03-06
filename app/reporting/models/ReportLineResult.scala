@@ -12,11 +12,11 @@ object ReportLineResult extends CsvWriter {
   var LicenseType: List[String] = List.empty[String]
   var Credentials: List[String] = List.empty[String]
 
-  class KeyCount(var key: String, var count: Int) {
+  class KeyCount[T](var key: T, var count: Int) {
     override def toString = key + "," + count
   }
 
-  def zeroedKeyCountList(l: List[String]): List[KeyCount] = l.map((s: String) => new KeyCount(s, 0))
+  def zeroedKeyCountList[T](l: List[T]): List[KeyCount[T]] = l.map((t: T) => new KeyCount(t, 0))
 
   def buildCsv(title: String, list: List[LineResult],
                sorter: (String, String) => Boolean = (a, b) => a <= b): String = {
@@ -26,13 +26,16 @@ object ReportLineResult extends CsvWriter {
     (List(header) ::: lines).toCsv
   }
 
-  def createValueList(l: List[KeyCount], sorter: (KeyCount, KeyCount) => Boolean = (a,b) => a.key <= b.key) =
+  def createValueList(l: List[KeyCount[String]]): List[String] =
+    createValueList(l, (a: KeyCount[String], b: KeyCount[String]) => a.key <= b.key)
+
+  def createValueList[T](l: List[KeyCount[T]], sorter: (KeyCount[T], KeyCount[T]) => Boolean) =
     l.sortWith(sorter).map(_.count.toString)
 
   private def buildLine(result: LineResult): List[String] = {
     List(List(result.subject), List(result.total.toString),
       createValueList(result.itemType),
-      createValueList(result.gradeLevel, (a: KeyCount, b: KeyCount) => {TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
+      createValueList(result.gradeLevel, (a: KeyCount[String], b: KeyCount[String]) => { TaskInfo.gradeLevelSorter(a.key, b.key) }) :::
       createValueList(result.priorUse),
       createValueList(result.credentials),
       createValueList(result.licenseType)).flatten
@@ -40,11 +43,11 @@ object ReportLineResult extends CsvWriter {
 
   case class LineResult(subject: String,
     total: Int = 0,
-    itemType: List[KeyCount] = zeroedKeyCountList(ItemTypes),
-    gradeLevel: List[KeyCount] = zeroedKeyCountList(GradeLevel),
-    priorUse: List[KeyCount] = zeroedKeyCountList(PriorUse),
-    credentials: List[KeyCount] = zeroedKeyCountList(Credentials),
-    licenseType: List[KeyCount] = zeroedKeyCountList(LicenseType))
+    itemType: List[KeyCount[String]] = zeroedKeyCountList(ItemTypes),
+    gradeLevel: List[KeyCount[String]] = zeroedKeyCountList(GradeLevel),
+    priorUse: List[KeyCount[String]] = zeroedKeyCountList(PriorUse),
+    credentials: List[KeyCount[String]] = zeroedKeyCountList(Credentials),
+    licenseType: List[KeyCount[String]] = zeroedKeyCountList(LicenseType))
 
 }
 
