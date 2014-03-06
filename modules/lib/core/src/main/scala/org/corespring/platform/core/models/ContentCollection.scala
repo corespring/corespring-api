@@ -123,28 +123,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
       case e: SalatRemoveError => Failure(InternalError(e.getMessage))
     }
   }
-  //  def moveToArchive(collId:ObjectId):Either[InternalError,Unit] = {
-  //    //todo: roll backs after detecting error in organization update
-  //    try{
-  //      Content.collection.update(MongoDBObject(Content.collectionId -> collId), MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString)),
-  //        false, false, Content.collection.writeConcern)
-  //      ContentCollection.removeById(collId)
-  //      Organization.find(MongoDBObject(Organization.contentcolls+"."+ContentCollRef.collectionId -> collId)).foldRight[Either[InternalError,Unit]](Right(()))((org,result) => {
-  //        if (result.isRight){
-  //          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-  //          try {
-  //            Organization.update(MongoDBObject("_id" -> org.id),org,false,false,Organization.defaultWriteConcern)
-  //            Right(())
-  //          }catch {
-  //            case e:SalatDAOUpdateError => Left(InternalError(e.getMessage))
-  //          }
-  //        }else result
-  //      })
-  //    }catch{
-  //      case e:SalatDAOUpdateError => Left(InternalError("failed to transfer collection to archive", e))
-  //      case e:SalatRemoveError => Left(InternalError(e.getMessage))
-  //    }
-  //  }
+
   def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
     val cursor = if (deep) Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId)) //find the tree of the given organization
     var seqcollid: Seq[ContentCollRef] = cursor.foldRight[Seq[ContentCollRef]](Seq())((o, acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval & p.value) == p.value)) //filter the collections that don't have the given permission
