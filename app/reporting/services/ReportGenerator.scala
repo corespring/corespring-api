@@ -6,7 +6,6 @@ import play.Logger
 import play.cache.Cache
 import reporting.services.ReportGenerator.ReportKeys
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import common.ExecutionContexts
 
 class ReportGenerator(reportsService: ReportsService) {
