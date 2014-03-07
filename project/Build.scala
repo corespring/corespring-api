@@ -145,7 +145,7 @@ object Build extends sbt.Build {
         asInstanceOf[Runnable]
       task.run()
     }
-    TaskKey[Unit](name, description) <<= sbtTask.dependsOn(compile in Compile)
+    TaskKey[Unit](name, description) <<= sbtTask
   }
 
   val main = play.Project(appName, appVersion, Dependencies.all)
