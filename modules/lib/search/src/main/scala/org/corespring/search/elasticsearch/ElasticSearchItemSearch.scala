@@ -1,6 +1,6 @@
 package org.corespring.search.elasticsearch
 
-import org.corespring.search.indexing.ItemSearch
+import org.corespring.search.ItemSearch
 import play.api.libs.json._
 import com.sksamuel.elastic4s.ElasticDsl._
 import scala.concurrent.ExecutionContext

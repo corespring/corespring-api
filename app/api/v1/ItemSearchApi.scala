@@ -1,6 +1,6 @@
 package api.v1
 
-import org.corespring.search.indexing.ItemSearch
+import org.corespring.search.ItemSearch
 import org.corespring.search.elasticsearch.ElasticSearchItemSearch
 import controllers.auth.BaseApi
 import play.api.mvc.Action

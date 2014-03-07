@@ -1,4 +1,4 @@
-package org.corespring.search.indexing
+package org.corespring.search
 
 import play.api.libs.json.JsArray
 import scala.concurrent.Future

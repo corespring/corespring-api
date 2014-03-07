@@ -6,17 +6,11 @@ import com.sksamuel.elastic4s.ElasticClient
 /**
  * A helper Object to configure the ElasticSearch client from application configuration parameters.
  */
-object ElasticSearchClient {
+object ElasticSearchClient extends ElasticSearchConfig {
 
-  import play.api.Play._
+  val settings = ImmutableSettings.settingsBuilder().put("cluster.name", elasticSearchClusterName).build()
 
-  val Array(host, port) = current.configuration.getString("elasticsearch.host")
-    .getOrElse(throw new IllegalStateException("elasticsearch.host not found")).split(":")
-
-  val clusterName = current.configuration.getString("elasticsearch.cluster_name")
-    .getOrElse(throw new IllegalStateException("elasticsearch.cluster_name not found"))
-
-  val settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build()
+  val Array(host, port) = elasticSearchHost.split(":")
 
   lazy val client = ElasticClient.remote(settings, (host, port.toInt))
 

@@ -23,7 +23,7 @@ import play.api.libs.json.JsObject
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.search.indexing.ItemSearch
+import org.corespring.search.ItemSearch
 import org.corespring.platform.core.models.search.ItemSearch
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

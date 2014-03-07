@@ -1,22 +1,27 @@
-package org.corespring.search.indexing
+package org.corespring.search.elasticsearch.indexing
 
 
 import com.sksamuel.elastic4s.mapping.FieldType._
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.mapping.Strict
 import com.sksamuel.elastic4s.{LowercaseTokenFilter, StandardTokenFilter, StandardTokenizer, CustomAnalyzerDefinition}
+import scala.io.Source
+import java.io.File
 
 
 object ContentMapping {
 
-  def generate = {
-    create.index("content").shards(1).mappings(
+  def readJson = Source.fromFile("modules/lib/search/src/main/scala/org/corespring/search/elasticsearch/indexing/mapping.json").mkString
+
+  def generateCreateIndexDefinition : CreateIndexDefinition = {
+    create.index("content").shards(1).replicas(0
+    ) mappings (
       "content" as (
         "taskInfo" typed ObjectType as (
           "title" typed StringType searchAnalyzer "ngram_seach_analyzer" indexAnalyzer "ngram_index_analyzer"
           )
         ) dynamic (Strict)
-    ) analysis(
+    ) analysis (
       CustomAnalyzerDefinition(
         "ngram_index_analyzer",
         StandardTokenizer,
@@ -30,6 +35,6 @@ object ContentMapping {
         StandardTokenFilter,
         LowercaseTokenFilter
       )
-      )
+    )
   }
 }

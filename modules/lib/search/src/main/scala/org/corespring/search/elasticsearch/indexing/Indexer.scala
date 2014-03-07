@@ -1,4 +1,5 @@
-package org.corespring.search.indexing
+package org.corespring.search.elasticsearch.indexing
+
 
 trait Indexer {
 

@@ -1,4 +1,4 @@
-package org.corespring.search.indexing
+package org.corespring.search.elasticsearch.indexing
 
 import com.sksamuel.elastic4s.CustomizedTokenFilter
 import org.elasticsearch.common.xcontent.XContentBuilder
