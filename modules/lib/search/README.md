@@ -58,10 +58,19 @@ If you're on a Mac using OS X, you can install elasticsearch from Homebrew:
 It's recommended to follow the post-installation to set up a daemon to run elasticsearch on boot/when it goes down.
 
 You also need to set the cluster name in your `elasticsearch.yml` file. Using Homebrew, this file will be in
-`/usr/local/Cellar/elasticsearch/1.0.0/config/elasticsearch.yml`. You should set the `cluster.name` value to
-`corespring_elasticsearch`:
+`/usr/local/Cellar/elasticsearch/1.0.0/config/elasticsearch.yml`.
+
+You should set the `cluster.name` value to `corespring_elasticsearch`:
 
   cluster.name: corespring_elasticsearch
+
+This name should match what is set in application.conf or in the environment
+
+You should set the `node.name` value to `Corespring Test`.
+
+   node.name: "Corespring Test"
+
+This name should match what is set in application.conf or in the environment
 
 
 ### Install the Javascript Plugin

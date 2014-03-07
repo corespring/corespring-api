@@ -8,8 +8,11 @@ trait ElasticSearchConfig {
   val elasticSearchHost = getConfig("elasticsearch.host")
     .getOrElse(throw failedRequirement("elastic search host"))
 
-  val elasticSearchWebserviceHost = getConfig("elasticsearch.webservice.host")
+  val elasticSearchWebserviceHost = getConfig("elasticsearch.webservice_host")
     .getOrElse(throw failedRequirement("elastic search webservice host"))
+
+  val elasticSearchName = getConfig("elasticsearch.name")
+    .getOrElse(throw failedRequirement("elasticsearch.name not found"))
 
   val elasticSearchClusterName = getConfig("elasticsearch.cluster_name")
     .getOrElse(throw failedRequirement("elasticsearch.cluster_name not found"))

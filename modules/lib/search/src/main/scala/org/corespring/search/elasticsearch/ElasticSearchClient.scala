@@ -8,7 +8,10 @@ import com.sksamuel.elastic4s.ElasticClient
  */
 object ElasticSearchClient extends ElasticSearchConfig {
 
-  val settings = ImmutableSettings.settingsBuilder().put("cluster.name", elasticSearchClusterName).build()
+  val settings = ImmutableSettings.settingsBuilder()
+    .put("cluster.name", elasticSearchClusterName)
+    .put("name", elasticSearchName)
+    .build()
 
   val Array(host, port) = elasticSearchHost.split(":")
 
