@@ -76,6 +76,8 @@ class ReportGenerator(reportsService: ReportsService) {
           e.printStackTrace
           None
         }
+      } finally {
+        Logger.info(s"Finished attempt to generate $reportKey report")
       }
     }
   }
