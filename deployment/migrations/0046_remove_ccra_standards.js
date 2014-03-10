@@ -1,9 +1,10 @@
-load("bin/javascript.scripts/standards_helper.js");
+function isCCRA(dotNotation) {
+  return dotNotation.indexOf("CCRA") == 0;
+}
 
 function up() {
-  var StandardsHelper = module.exports;
   db.ccstandards.find().forEach(function(standard) {
-    if (StandardsHelper.isCCRA(standard.dotNotation)) {
+    if (isCCRA(standard.dotNotation)) {
       db.ccstandards.remove(standard);
     }
   });
