@@ -8,6 +8,8 @@ function getGrades(dotNotation) {
     function toString(grade) {
       if (!isNaN(grade)) {
         return (grade.toString().length == 1) ? "0" + grade.toString() : grade.toString();
+      } else if (grade instanceof Function) {
+        return undefined;
       } else {
         return grade.toString();
       }
@@ -15,7 +17,9 @@ function getGrades(dotNotation) {
 
     var r = [];
     for (var i in arr) {
-      r.push(toString(arr[i]));
+      if (toString(arr[i]) !== undefined) {
+        r.push(toString(arr[i]));
+      }
     }
     return r;
   }
@@ -90,5 +94,3 @@ function down() {
     db.ccstandards.save(standard);
   });
 }
-
-up();
