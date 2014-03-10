@@ -79,18 +79,17 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
 
   lazy val sorter: (String, String) => Boolean = (a,b) => {
     val cacheKey = "standards_sort"
-    val standards = Cache.get(cacheKey) match {
+    val standards: Seq[Standard] = Cache.get(cacheKey) match {
       case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
       case _ => {
         val standards = findAll().toSeq
         Cache.set(cacheKey, Json.toJson(standards).toString)
-        standards
+        standards.toList
       }
     }
-    ((standards.find(_.dotNotation == a), standards.find(_.dotNotation == b)) match {
+    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
       case (Some(one), Some(two)) => standardSorter(one, two)
-      case (None, Some(_)) => false
-      case _ => true
+      case _ => println(a, b); throw new IllegalArgumentException("BAD")
     })
   }
 

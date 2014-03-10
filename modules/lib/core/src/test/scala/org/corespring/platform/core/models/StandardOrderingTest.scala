@@ -54,7 +54,7 @@ class StandardOrderingTest extends Specification {
       standards.head must be equalTo first
       standards.last must be equalTo last
     }
-    
+
   }
 
 }
