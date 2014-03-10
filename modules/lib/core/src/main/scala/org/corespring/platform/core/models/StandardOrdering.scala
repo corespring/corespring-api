@@ -6,7 +6,7 @@ package org.corespring.platform.core.models
  */
 object StandardOrdering extends Ordering[Standard] {
 
-  val subjectOrdering = List("ELA-Literacy", "Math")
+  val subjectOrdering = List("ELA", "Math")
 
   val gradeOrdering =
     List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "AP", "PS", "UG")
@@ -16,18 +16,24 @@ object StandardOrdering extends Ordering[Standard] {
     "HSA-CED", "HSA-REI", "HSF-IF", "HSF-BF", "HSF-LE", "HSF-TF", "HSG-CO", "HSG-SRT", "HSG-C", "HSG-GPE", "HSG-GMD",
     "HSG-MG", "HSS-ID", "HSS-IC", "HSS-CP", "HSS-MD")
 
+  private def normalizeSubject(standard: Standard): Standard =
+    standard.copy(subject = standard.subject.map(subject => if (subject == "ELA-Literacy") "ELA" else subject))
+
   def compare(standard: Standard, other: Standard): Int = {
-    compare(standard.subject, other.subject, subjectOrdering)(() => {
-      compare(standard.grades.headOption, other.grades.headOption ,gradeOrdering)(() => {
-        standard.category.compareTo(other.subCategory) match {
-          case 0 => standard.subCategory.compareTo(other.subCategory) match {
-            case 0 => compare(standard.abbreviation, other.abbreviation, abbreviationOrdering)(() => 0)
+    val one = normalizeSubject(standard)
+    val two = normalizeSubject(other)
+    compare(one.subject, two.subject, subjectOrdering)(() =>
+      gradesCompare(one.grades, two.grades)(() => {
+        one.category.compareOpt(two.category) match {
+          case 0 => one.subCategory.compareOpt(two.subCategory) match {
+            case 0 => compare(one.abbreviation, two.abbreviation, abbreviationOrdering)(() =>
+              one.dotNotation.compareOpt(two.dotNotation))
             case int: Int => int
           }
           case int: Int => int
         }
       })
-    })
+    )
   }
 
   /**
@@ -35,18 +41,26 @@ object StandardOrdering extends Ordering[Standard] {
    * same, execute a block yielding a result. If either is None, the other takes precedence. If both are None, execute
    * the block yielding a result.
    */
-  private def compare[T](one: Option[T], two: Option[T], list: List[T])(block: () => Int) = (one, two) match {
-    case (Some(valueOne), Some(valueTwo)) => list.indexOf(valueOne) - list.indexOf(valueTwo) match {
+  private def compare[T](one: Option[T], two: Option[T], list: List[T])(block: () => Int) = {
+    (one, two) match {
+      case (Some(valueOne), Some(valueTwo)) => list.indexOf(valueOne) - list.indexOf(valueTwo) match {
+        case 0 => block()
+        case int: Int => if (int > 0) 1 else -1
+      }
+      case (None, Some(_)) => -1
+      case (Some(_), None) => 1
+      case _ => block()
+    }
+  }
+
+  private def gradesCompare(one: Seq[String], two: Seq[String])(block: () => Int) =
+    compare(one.headOption, two.headOption, gradeOrdering)(() => one.length.compare(two.length)) match {
       case 0 => block()
       case int: Int => int
     }
-    case (None, Some(_)) => -1
-    case (Some(_), None) => 1
-    case _ => block()
-  }
 
   implicit class StringThing(stringOpt: Option[String]) {
-    def compareTo(other: Option[String]) = stringOpt.getOrElse("").compareTo(other.getOrElse(""))
+    def compareOpt(other: Option[String]) = stringOpt.getOrElse("").compare(other.getOrElse(""))
   }
 
 }

@@ -8,7 +8,6 @@ import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
-import scala.concurrent.duration.Duration
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -26,9 +25,7 @@ case class Standard(var dotNotation: Option[String] = None,
     case kAbbrev(a) => Some(a)
     case abbrev(a) => Some(a)
     case _ => None
-  })
-
-
+  }).flatten
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
@@ -91,11 +88,14 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       }
     }
     ((standards.find(_.dotNotation == a), standards.find(_.dotNotation == b)) match {
-      case (Some(one), Some(two)) => StandardOrdering.compare(one, two)
-      case (None, Some(_)) => -1
-      case (Some(_), None) => 1
-      case _ => 0
-    }) < 0
+      case (Some(one), Some(two)) => standardSorter(one, two)
+      case (None, Some(_)) => false
+      case _ => true
+    })
+  }
+
+  lazy val standardSorter: (Standard, Standard) => Boolean = (one,two) => {
+    StandardOrdering.compare(one, two) < 0
   }
 
 

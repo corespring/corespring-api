@@ -54,17 +54,7 @@ class StandardOrderingTest extends Specification {
       standards.head must be equalTo first
       standards.last must be equalTo last
     }
-
-    "order by standard abbreviation when all else is equal" in {
-      val baseStandard = Standard(subject = mathSubject, grades = firstGrade, category = firstCategory, subCategory = firstSubcategory)
-      val first = baseStandard.copy(dotNotation = Some("RL.11-12.5"))
-      val last = baseStandard.copy(dotNotation = Some("HSS-MD.B.5b"))
-      val standards = Array(last, first)
-      Sorting.quickSort(standards)(StandardOrdering)
-      standards.head must be equalTo first
-      standards.last must be equalTo last
-    }
-
+    
   }
 
 }
