@@ -50,24 +50,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
-  lazy val sorter: (String, String) => Boolean = (a,b) => {
-    val cacheKey = "standards_sort"
-    val standards = Cache.get(cacheKey) match {
-      case Some(standards) => standards.asInstanceOf[Seq[Standard]]
-      case _ => {
-        val standards = findAll().toSeq
-        Cache.set(cacheKey, standards)
-        standards
-      }
-    }
-    ((standards.find(_.dotNotation == a), standards.find(_.dotNotation == b)) match {
-      case (Some(one), Some(two)) => StandardOrdering.compare(one, two)
-      case (None, Some(_)) => -1
-      case (Some(_), None) => 1
-      case _ => 0
-    }) < 0
-  }
-
   implicit object StandardFormat extends Format[Standard] {
 
     def writes(obj: Standard) = {
@@ -97,6 +79,25 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       JsSuccess(standard)
     }
   }
+
+  lazy val sorter: (String, String) => Boolean = (a,b) => {
+    val cacheKey = "standards_sort"
+    val standards = Cache.get(cacheKey) match {
+      case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
+      case _ => {
+        val standards = findAll().toSeq
+        Cache.set(cacheKey, Json.toJson(standards).toString)
+        standards
+      }
+    }
+    ((standards.find(_.dotNotation == a), standards.find(_.dotNotation == b)) match {
+      case (Some(one), Some(two)) => StandardOrdering.compare(one, two)
+      case (None, Some(_)) => -1
+      case (Some(_), None) => 1
+      case _ => 0
+    }) < 0
+  }
+
 
   val description = "common core state standards"
   override val searchableFields = Seq(
