@@ -42,7 +42,7 @@ function up() {
                 "pval" : NumberLong(3),
                 "enabled" : true
         };
-        db.orgs.update({_id: ObjectId(corespringOrgId)}, { $push: { contentcolls: contentCollRef} });
+        db.orgs.update({_id: ObjectId(corespringOrgId)}, { $addToSet: { contentcolls: contentCollRef} });
 
     });
 
