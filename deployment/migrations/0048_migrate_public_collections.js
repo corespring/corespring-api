@@ -49,4 +49,3 @@ function up() {
 
 }
 
-up();
