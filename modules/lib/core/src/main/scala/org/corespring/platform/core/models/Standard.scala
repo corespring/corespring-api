@@ -18,14 +18,17 @@ case class Standard(var dotNotation: Option[String] = None,
   var id: ObjectId = new ObjectId(),
   var grades: Seq[String] = Seq.empty[String]){
 
-  val kAbbrev = "K.(\\w+)\\..*".r
-  val abbrev = "(\\w+)\\..*".r
+  val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
+  val abbrev = "([\\w|-]+)..*".r
 
-  def abbreviation = dotNotation.map(_ match {
-    case kAbbrev(a) => Some(a)
-    case abbrev(a) => Some(a)
+  def abbreviation: Option[String] = dotNotation match {
+    case Some(notation) => notation match {
+      case kAbbrev(a) => Some(a)
+      case abbrev(a) => Some(a)
+      case _  => None
+    }
     case _ => None
-  }).flatten
+  }
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
