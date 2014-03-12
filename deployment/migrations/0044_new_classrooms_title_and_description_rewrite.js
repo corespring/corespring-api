@@ -1,5 +1,4 @@
-var NEW_CLASSROOMS_COLLECTION_ID = "51df104fe4b073dbbb1c84fa";
-var newClassroomsContent = db.content.find({"collectionId": NEW_CLASSROOMS_COLLECTION_ID});
+var newClassroomsContent = db.content.find({"taskInfo.extended.new_classrooms.skillNumber": {$exists: 1}});
 
 var ContentHelper = {
   // Skills come from CC-Skills--2014-02-13.csv in Google Drive
@@ -27,8 +26,8 @@ var ContentHelper = {
     var skillNumber = this._getSkillNumber(content);
     return skillNumber ? this.SKILLS[skillNumber] : undefined;
   },
-  titleStartsWithSkillNumber: function(content) {
-    return (this.getTitle(content) && this.getTitle(content).indexOf(this._getSkillNumber(content)) == 0);
+  hasCorrectTitle: function(content) {
+    return (this.getTitle(content) == this.getSkillDescription(content));
   }
 }
 
@@ -36,8 +35,8 @@ function up() {
 
   newClassroomsContent.forEach(function(content) {
     var oldTitle = ContentHelper.getTitle(content);
-    // Check that the title starts with the item's skill number
-    if (oldTitle && ContentHelper.titleStartsWithSkillNumber(content)) {
+    // Check that the title is not equal to the skill description
+    if (oldTitle && !ContentHelper.hasCorrectTitle(content)) {
       content.taskInfo.description = oldTitle;
       content.taskInfo.title = ContentHelper.getSkillDescription(content);
       db.content.save(content);
