@@ -132,6 +132,13 @@ GET     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessio
 PUT     /api/v1/items/:itemId/sessions/:sessionId              api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
 PUT     /api/v1/items/:itemId/sessions/:sessionId/reopen       api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
+# Assessment Templates API
+PUT     /api/v1/assessments/templates/:id               api.v1.AssessmentTemplateApi.update(id: ObjectId)
+GET     /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/v1/assessments/templates/query             api.v1.AssessmentTemplateApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+POST    /api/v1/assessments/templates                   api.v1.AssessmentTemplateApi.create()
+
+# Assessments API
 GET     /api/v1/assessments/author/:authorId                       api.v1.AssessmentApi.getByAuthor(authorId: String)
 PUT     /api/v1/assessments/:assessmentId/:externalUid/add-answer        api.v1.AssessmentApi.addAnswerForParticipant(assessmentId:ObjectId,externalUid:String)
 GET     /api/v1/assessments/:assessmentId                     api.v1.AssessmentApi.get(assessmentId:ObjectId)
@@ -160,8 +167,13 @@ GET    /player/routes.js                                   player.controllers.Se
 GET    /player/api/:itemId/details                         player.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
 ## JS Routes
 GET    /player/item/routes.js                              player.controllers.Item.jsRoutes
-## Encrypt
+
+## encrypt
+POST    /player/token                                      player.controllers.Encrypter.encryptOptions
+### Support legacy route with 302. Should remove this when clients have been sufficiently notified of updated route
 POST    /player/encrypt-options                            player.controllers.Encrypter.encryptOptions
+POST    /api/v1/player/token                               player.controllers.Encrypter.encryptOptions
+
 ## Views
 GET    /player/item/:itemId/preview                        player.controllers.Views.preview(itemId:VersionedId[ObjectId])
 GET    /player/item/:itemId/administer                     player.controllers.Views.administerItem(itemId:VersionedId[ObjectId])
@@ -236,6 +248,7 @@ GET    /reports/standard-item-report.csv            reporting.controllers.Report
 GET    /reports/primary-subject-item-report.csv     reporting.controllers.Reports.getPrimarySubjectItemReport
 GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
 GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
+GET    /reports/standards-by-collection-report.csv  reporting.controllers.Reports.getStandardsByCollectionReport
 
 
 #
@@ -271,4 +284,3 @@ POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 # Regression test endpoints
 GET     /regression/:orgId/:itemSessionId/render            regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
 GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
-

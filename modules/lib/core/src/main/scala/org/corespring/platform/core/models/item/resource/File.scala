@@ -23,6 +23,7 @@ object BaseFile {
     val HTML: String = "text/html"
     val TXT: String = "text/txt"
     val JS: String = "text/javascript"
+    val JSON: String = "application/json"
     val UNKNOWN : String = "unknown"
   }
 
@@ -38,6 +39,7 @@ object BaseFile {
     "css" -> ContentTypes.CSS,
     "html" -> ContentTypes.HTML,
     "txt" -> ContentTypes.TXT,
+    "json" -> ContentTypes.JSON,
     "js" -> ContentTypes.JS)
 
   def getContentType(filename: String): String = {

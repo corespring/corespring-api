@@ -1,14 +1,13 @@
 package org.corespring.platform.core.models
 
 import play.api.Play.current
-import org.bson.types.ObjectId
 import play.api.libs.json._
 import play.api.libs.json.JsString
-import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
+import play.api.cache.Cache
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -16,9 +15,23 @@ case class Standard(var dotNotation: Option[String] = None,
   var category: Option[String] = None,
   var subCategory: Option[String] = None,
   var standard: Option[String] = None,
-  var id: ObjectId = new ObjectId())
+  var id: ObjectId = new ObjectId(),
+  var grades: Seq[String] = Seq.empty[String]){
 
-object Standard extends ModelCompanion[Standard, ObjectId] with Searchable {
+  val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
+  val abbrev = "([\\w|-]+)..*".r
+
+  def abbreviation: Option[String] = dotNotation match {
+    case Some(notation) => notation match {
+      case kAbbrev(a) => Some(a)
+      case abbrev(a) => Some(a)
+      case _  => None
+    }
+    case _ => None
+  }
+}
+
+object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
 
   val collection = mongoCollection("ccstandards")
 
@@ -32,29 +45,28 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable {
   val SubCategory = "subCategory"
   val Standard = "standard"
   val guid = "guid"
+  val grades = "grades"
 
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
-  //import org.corespring.platform.core.models.json._
-  //implicit val reads = Json.reads[Standard]
-  //implicit val writes = Json.writes[Standard]
-
-  implicit object StandardWrites extends Writes[Standard] {
+  implicit object StandardFormat extends Format[Standard] {
 
     def writes(obj: Standard) = {
-      JsObject(
-        List(
-          Id -> JsString(obj.id.toString),
-          DotNotation -> JsString(obj.dotNotation.getOrElse("")),
-          Subject -> JsString(obj.subject.getOrElse("")),
-          Category -> JsString(obj.category.getOrElse("")),
-          SubCategory -> JsString(obj.subCategory.getOrElse("")),
-          Standard -> JsString(obj.standard.getOrElse(""))))
+      partialObj(
+        Id -> Some(JsString(obj.id.toString)),
+        DotNotation -> Some(JsString(obj.dotNotation.getOrElse(""))),
+        Subject -> Some(JsString(obj.subject.getOrElse(""))),
+        Category -> Some(JsString(obj.category.getOrElse(""))),
+        SubCategory -> Some(JsString(obj.subCategory.getOrElse(""))),
+        Standard -> Some(JsString(obj.standard.getOrElse(""))),
+        grades -> (obj.grades match {
+          case nonEmpty if grades.nonEmpty => Some(JsArray(obj.grades.map(JsString(_))))
+          case _ => None
+        })
+      )
     }
-  }
 
-  implicit object StandardReads extends Reads[Standard] {
     def reads(json: JsValue) = {
       val standard = new Standard()
       standard.dotNotation = (json \ DotNotation).asOpt[String]
@@ -63,9 +75,32 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable {
       standard.category = (json \ Category).asOpt[String]
       standard.subCategory = (json \ SubCategory).asOpt[String]
       standard.standard = (json \ Standard).asOpt[String]
+      standard.grades = (json \ grades).as[Seq[String]]
       JsSuccess(standard)
     }
   }
+
+  lazy val sorter: (String, String) => Boolean = (a,b) => {
+    val cacheKey = "standards_sort"
+    val standards: Seq[Standard] = Cache.get(cacheKey) match {
+      case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
+      case _ => {
+        val standards = findAll().toSeq
+        Cache.set(cacheKey, Json.toJson(standards).toString)
+        standards.toList
+      }
+    }
+    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
+      case (Some(one), Some(two)) => standardSorter(one, two)
+      case _ => println(a, b); throw new IllegalArgumentException("BAD")
+    })
+  }
+
+  lazy val standardSorter: (Standard, Standard) => Boolean = (one,two) => {
+    StandardOrdering.compare(one, two) < 0
+  }
+
+
   val description = "common core state standards"
   override val searchableFields = Seq(
     DotNotation,

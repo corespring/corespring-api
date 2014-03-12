@@ -193,7 +193,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val updateResult = route(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
     val item: Item = parsed[Item](updateResult)
-    item.collectionId must equalTo(TEST_COLLECTION_ID)
+    item.collectionId must equalTo(Some(TEST_COLLECTION_ID))
   }
 
 
@@ -212,7 +212,7 @@ class ItemApiTest extends BaseTest with Mockito {
     status(updateResult) must equalTo(OK)
     val item: Item = parsed[Item](updateResult)
 
-    item.collectionId must equalTo(TEST_COLLECTION_ID)
+    item.collectionId must equalTo(Some(TEST_COLLECTION_ID))
   }
 
   val STATE_DEPT: String = "State Department of Education"
@@ -241,7 +241,7 @@ class ItemApiTest extends BaseTest with Mockito {
 
   "delete moves item to the archived collection" in {
 
-    val item = Item(collectionId = TEST_COLLECTION_ID)
+    val item = Item(collectionId = Some(TEST_COLLECTION_ID))
     ItemServiceImpl.save(item)
     val deleteItemCall = api.v1.routes.ItemApi.delete(item.id)
 
@@ -249,7 +249,7 @@ class ItemApiTest extends BaseTest with Mockito {
       case Some(deleteResult) => {
         status(deleteResult) === OK
         ItemServiceImpl.findOneById(item.id) match {
-          case Some(deletedItem) => deletedItem.collectionId === ContentCollection.archiveCollId.toString
+          case Some(deletedItem) => deletedItem.collectionId === Some(ContentCollection.archiveCollId.toString)
           case _ => failure("couldn't find deleted item")
         }
       }

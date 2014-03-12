@@ -14,6 +14,7 @@ import org.corespring.platform.core.services.item.ItemServiceImpl
 import reporting.models.ReportLineResult.LineResult
 import scala.Some
 import org.corespring.platform.core.models.item.TaskInfo
+import reporting.utils.CsvWriter
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
@@ -21,7 +22,7 @@ object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
   CollectionsCollection: MongoCollection,
-  StandardCollection: MongoCollection) {
+  StandardCollection: MongoCollection) extends CsvWriter {
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
@@ -83,18 +84,18 @@ class ReportsService(ItemCollection: MongoCollection,
     }
   }
 
+  val defaultSorter = (a: String, b: String) => a < b
+
+  def mapToDistinctList(field: String, sorter: (String, String) => Boolean = defaultSorter): List[String] = {
+    val distResult = ItemCollection.distinct(field)
+    if (distResult == null) return List()
+    val distStringResult = distResult.map(p => if (p != null) p.toString else "")
+    if (distStringResult == null) return List()
+
+    distStringResult.filter(_ != "").toList.sortWith(sorter)
+  }
+
   def populateHeaders {
-    val defaultSorter = (a: String, b: String) => a < b
-
-    def mapToDistinctList(field: String, sorter: (String, String) => Boolean = defaultSorter): List[String] = {
-      val distResult = ItemCollection.distinct(field)
-      if (distResult == null) return List()
-      val distStringResult = distResult.map(p => if (p != null) p.toString else "")
-      if (distStringResult == null) return List()
-
-      distStringResult.filter(_ != "").toList.sortWith(sorter)
-    }
-
     ReportLineResult.ItemTypes = mapToDistinctList("taskInfo.itemType")
     ReportLineResult.GradeLevel = mapToDistinctList("taskInfo.gradeLevel", TaskInfo.gradeLevelSorter)
     ReportLineResult.PriorUse = mapToDistinctList("priorUse")
@@ -144,7 +145,8 @@ class ReportsService(ItemCollection: MongoCollection,
       query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
-    ReportLineResult.buildCsv("Standards", lineResults)
+    ReportLineResult.buildCsv("Standards", lineResults,
+      (a: String, b: String) => Standard.sorter(a.split(":").head ,b.split(":").head))
 
   }
 
@@ -187,20 +189,25 @@ class ReportsService(ItemCollection: MongoCollection,
     ReportLineResult.buildCsv("Collection", lineResults)
   }
 
-  def buildLineResult(query: BasicDBObject, finalKey: String) = {
+  def buildLineResult(query: BasicDBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
 
     ItemCollection.count(query) match {
       case 0 => new LineResult(finalKey)
-      case c: Long if c > 0 => buildLineResultFromQuery(query, c.toInt, finalKey)
+      case c: Long if c > 0 => buildLineResultFromQuery(query, c.toInt, finalKey, sorter)
     }
   }
 
-  /**
-   * Cached data for all reports.
-   *
-   * TODO: These should be written to the filesystem if they start to take up too much memory.
-   */
-  private var reportCache = Map.empty[String, String]
+  def buildStandardsByCollectionReport() = {
+    val collections = CollectionsCollection.find().toIterator.toSeq
+    val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
+    val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
+    val lines = mapToDistinctList("standards", Standard.sorter).map(standard => {
+      val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
+      runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
+      standard +: ReportLineResult.createValueList(collectionsKeyCounts)
+    })
+    (List(header) ++ lines).toCsv
+  }
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
     c => (c.name.toString, c.id.toString)
@@ -212,7 +219,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param keyCounts
    * @param query
    */
-  private def runMapReduceForProperty(keyCounts: List[KeyCount],
+  private def runMapReduceForProperty[T](keyCounts: List[KeyCount[T]],
     query: BasicDBObject,
     mapFn: JSFunction) {
 
@@ -230,9 +237,8 @@ class ReportsService(ItemCollection: MongoCollection,
      * @param key
      * @param value
      */
-    def putValueIntoKeyCount(keyCounts: List[KeyCount], key: String, value: Int) = {
-
-      val keyCountList = keyCounts.filter((kc: KeyCount) => kc.key == key)
+    def putValueIntoKeyCount[T](keyCounts: List[KeyCount[T]], key: T, value: Int) = {
+      val keyCountList = keyCounts.filter((kc: KeyCount[T]) => kc.key == key)
 
       keyCountList.length match {
         case 0 => //do nothing
@@ -248,12 +254,12 @@ class ReportsService(ItemCollection: MongoCollection,
       if (id.isInstanceOf[Double]) {
         val d = id.asInstanceOf[Double]
         if (d < 10) {
-          putValueIntoKeyCount(keyCounts, d.toInt.toString, intValue)
+          putValueIntoKeyCount[T](keyCounts, d.toInt.toString.asInstanceOf[T], intValue)
         } else {
-          putValueIntoKeyCount(keyCounts, "0" + d.toInt, intValue)
+          putValueIntoKeyCount[T](keyCounts, ("0" + d.toInt.toString).asInstanceOf[T], intValue)
         }
       } else if (id.isInstanceOf[String]) {
-        putValueIntoKeyCount(keyCounts, id.asInstanceOf[String], intValue)
+        putValueIntoKeyCount[T](keyCounts, id.asInstanceOf[T], intValue)
       }
     })
   }
@@ -263,12 +269,14 @@ class ReportsService(ItemCollection: MongoCollection,
     def SimplePropertyMapFnTemplate(property: String): JSFunction =
       s"""function m() {
         try {
-          if (this.$property) {
-            emit(this.$property, 1);
+          if (this.$property !== undefined) {
+            emit(this.$property.toString(), 1);
+          } else {
+            emit("false", 1);
           }
         } catch (e) {
         }
-      };"""
+      }"""
 
     def ArrayPropertyMapTemplateFn(property: String): JSFunction = {
       val fieldCheck =
@@ -300,22 +308,26 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param key
    * @return
    */
-  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String): LineResult = {
+  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String,
+                               sorter: (String, String) => Boolean): LineResult = {
 
-    val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.ItemTypes)
-    runMapReduceForProperty(itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
+    val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.ItemTypes)
+    runMapReduceForProperty[String](itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
 
-    val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.GradeLevel)
-    runMapReduceForProperty(gradeLevelKeyCounts, query, JSFunctions.ArrayPropertyMapTemplateFn("taskInfo.gradeLevel"))
+    val gradeLevelKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.GradeLevel)
+    runMapReduceForProperty[String](gradeLevelKeyCounts, query, JSFunctions.ArrayPropertyMapTemplateFn("taskInfo.gradeLevel"))
 
-    val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList(ReportLineResult.PriorUse)
-    runMapReduceForProperty(priorUseKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("priorUse"))
+    val priorUseKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.PriorUse)
+    runMapReduceForProperty[String](priorUseKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("priorUse"))
 
-    val credentialsKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.Credentials)
-    runMapReduceForProperty(credentialsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.credentials"))
+    val credentialsKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.Credentials)
+    runMapReduceForProperty[String](credentialsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.credentials"))
 
-    val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList(ReportLineResult.LicenseType)
-    runMapReduceForProperty(licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
+    val licenseTypeKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.LicenseType)
+    runMapReduceForProperty[String](licenseTypeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("contributorDetails.licenseType"))
+
+    val publishedKeyCount = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.Published)
+    runMapReduceForProperty[String](publishedKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("published"))
 
     new LineResult(key,
       total,
@@ -323,7 +335,8 @@ class ReportsService(ItemCollection: MongoCollection,
       gradeLevelKeyCounts,
       priorUseKeyCounts,
       credentialsKeyCount,
-      licenseTypeKeyCount)
+      licenseTypeKeyCount,
+      publishedKeyCount)
   }
 
   private def interpolate(text: String, vars: Map[String, String]) = {

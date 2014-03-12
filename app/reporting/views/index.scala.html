@@ -244,6 +244,23 @@
                     </a>
                 </td>
             </tr>
+            <tr>
+                <td class="name">Standards by Collection Report</td>
+                <td class="date">@timestamps.get("standardsByCollection").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("standardsByCollection").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/standardsByCollection/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+              <td>
+                <a href="/reports/standards-by-collection-report.csv" class="@(if (timestamps.contains("standardsByCollection")) "enabled" else "disabled")">
+                  <img src="assets/images/download.png" />
+                  <span>Download</span>
+                </a>
+              </td>
+            </tr>
         </tbody>
     </table>
 

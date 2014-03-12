@@ -3,11 +3,6 @@ package org.corespring.platform.core.models.item
 import com.mongodb.casbah.Imports._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsUndefined
 import play.api.libs.json._
 import scala.Some
 import scala.collection.mutable.Map
@@ -16,6 +11,7 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   subjects: Option[Subjects] = None,
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
+  description: Option[String] = None,
   itemType: Option[String] = None) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
@@ -26,11 +22,13 @@ object TaskInfo extends ValueGetter {
 
   object Keys {
     val title = "title"
+    val description = "description"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
     val subjects = "subjects"
     val extended = "extended"
   }
+
 
   val gradeLevelSorter: (String, String) => Boolean = (a,b) => {
     val reference = List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09",
@@ -49,6 +47,7 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
         if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
         info.title.map((title -> JsString(_))),
+        info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
@@ -109,6 +108,7 @@ object TaskInfo extends ValueGetter {
     getSubjects and
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
+    (__ \ Keys.description).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String])(TaskInfo.apply _)
 }
 

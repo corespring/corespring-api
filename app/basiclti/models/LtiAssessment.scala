@@ -128,7 +128,6 @@ object LtiAssessment {
   private object Dao extends ModelCompanion[LtiAssessment, ObjectId] {
     val collection = mongoCollection("lti_assessments")
     import org.corespring.platform.core.models.mongoContext.context
-    import org.corespring.platform.core.models.mongoContext.context
     val dao = new SalatDAO[LtiAssessment, ObjectId](collection = collection) {}
   }
 

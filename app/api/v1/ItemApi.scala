@@ -4,20 +4,15 @@ import api.ApiError
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
-import com.novus.salat.dao.SalatMongoCursor
 import controllers.auth.ApiRequest
-import controllers.auth.BaseApi
 import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.mongoContext.context
-import org.corespring.platform.core.models.search.ItemSearch
-import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
 import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
@@ -33,133 +28,17 @@ import scalaz._
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService) extends BaseApi with PackageLogging {
+class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
+  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
   import Item.Keys._
-
-  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
-  val jsonSummaryFields: Seq[String] = Seq("id",
-    collectionId,
-    TaskInfo.Keys.gradeLevel,
-    TaskInfo.Keys.itemType,
-    Alignments.Keys.keySkills,
-    primarySubject,
-    relatedSubject,
-    standards,
-    author,
-    TaskInfo.Keys.title,
-    published)
-
-  /**
-   * List query implementation for Items
-   */
-  def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-      val jsonBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
-      itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
-
-  def listAndCount(q: Option[String], f: Option[String], sk: Int, l: Int, sort: Option[String]) = ApiAction {
-    implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
-
-      itemList(q, f, sk, l, sort, collections, true, countAndListJson) match {
-        case Left(apiError) => BadRequest(toJson(apiError))
-        case Right(json) => Ok(json)
-      }
-  }
-
-  def countAndListJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
-    val itemViews: Seq[ItemView] = cursor.toList.map(ItemView(_, Some(searchFields)))
-    JsObject(Seq("count" -> JsNumber(count), "data" -> toJson(itemViews)))
-  }
-
-  def countOnlyJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
-    JsObject(Seq("count" -> JsNumber(count)))
-  }
-  def itemOnlyJson(count: Int, cursor: SalatMongoCursor[Item], searchFields: SearchFields, current: Boolean = true): JsValue = {
-    val itemViews: Seq[ItemView] = cursor.toList.map(ItemView(_, Some(searchFields)))
-    toJson(itemViews)
-  }
-
-
-
-  private def itemList[A](
-    q: Option[String],
-    f: Option[String],
-    sk: Int,
-    l: Int,
-    sort: Option[String],
-    collections: Seq[ObjectId],
-    current: Boolean = true,
-    jsBuilder: (Int, SalatMongoCursor[Item], SearchFields, Boolean) => JsValue)(implicit request: ApiRequest[A]): Either[ApiError, JsValue] = {
-    if (collections.isEmpty) {
-      Right(JsArray(Seq()))
-    } else {
-      val initSearch: MongoDBObject = service.createDefaultCollectionsQuery(collections, request.ctx.organization)
-
-      val queryResult: Either[SearchCancelled, MongoDBObject] = q.map(query => ItemSearch.toSearchObj(query,
-        Some(initSearch),
-        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
-        case Some(result) => result
-        case None => Right(initSearch)
-      }
-      val fieldResult: Either[InternalError, SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
-        case Some(result) => result
-        case None => Right(SearchFields(method = 1))
-      }
-
-      def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        val cursor = service.find(query, fields.dbfields)
-        val count = cursor.count
-        val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
-        jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
-      }
-
-      queryResult match {
-        case Right(query) => fieldResult match {
-          case Right(searchFields) => {
-            cleanDbFields(searchFields, request.ctx.isLoggedIn)
-            sort.map(ItemSearch.toSortObj(_)) match {
-              case Some(Right(sortField)) => Right(runQueryAndMakeJson(query, searchFields, sk, l, Some(sortField)))
-              case None => Right(runQueryAndMakeJson(query, searchFields, sk, l))
-              case Some(Left(error)) => Left(ApiError.InvalidFields(error.clientOutput))
-            }
-          }
-          case Left(error) => Left(ApiError.InvalidFields(error.clientOutput))
-        }
-        case Left(sc) => sc.error match {
-          case None => Right(JsArray(Seq()))
-          case Some(error) => Left(ApiError.InvalidQuery(error.clientOutput))
-        }
-      }
-    }
-  }
-
-
-
-
-  private def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) {
-    if (!isLoggedIn && searchFields.dbfields.isEmpty) {
-      dbExtraFields.foreach(extraField =>
-        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
-      jsExtraFields.foreach(extraField =>
-        searchFields.jsfields = searchFields.jsfields :+ extraField)
-    }
-    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) searchFields.dbfields = searchFields.dbfields
-  }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
         val collections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-        val jsonBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
-        itemList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
+        val jsonBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
+        contentList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
         }
@@ -169,8 +48,8 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
-        val jsBuilder = if (c == "true") countOnlyJson _ else itemOnlyJson _
-        itemList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
+        val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
+        contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
           case Left(apiError) =>
             BadRequest(toJson(apiError))
           case Right(json) => Ok(json)
@@ -195,7 +74,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     request =>
       for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-        cloned <- service.cloneItem(item).toSuccess("Error cloning")
+        cloned <- service.clone(item).toSuccess("Error cloning")
       } yield cloned
   }
 
@@ -298,10 +177,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   def delete(id: VersionedId[ObjectId]) = ApiAction {
     request =>
       service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
-        case Some(o) => o.get(collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, collId, Permission.Write)) {
+        case Some(dbObject) => dbObject.get(collectionId) match {
+          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, Some(collId), Permission.Write)) {
             Content.moveToArchive(id) match {
-              case Right(_) => Ok(com.mongodb.util.JSON.serialize(o))
+              case Right(_) => Ok(com.mongodb.util.JSON.serialize(dbObject))
               case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
             }
           } else {
@@ -331,7 +210,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
               if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
                 Organization.getDefaultCollection(request.ctx.organization) match {
                   case Right(default) => {
-                    i.collectionId = default.id.toString
+                    i.collectionId = Option(default.id.toString)
                     service.insert(i) match {
                       case Some(_) => Ok(toJson(i))
                       case None => InternalServerError(toJson(ApiError.CantSave))
@@ -450,6 +329,20 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     }
   }
 
+  def contentType = Item.contentType
+
+  override def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) = {
+    if (!isLoggedIn && searchFields.dbfields.isEmpty) {
+      dbExtraFields.foreach(extraField =>
+        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
+      jsExtraFields.foreach(extraField =>
+        searchFields.jsfields = searchFields.jsfields :+ extraField)
+    }
+    if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) {
+      searchFields.dbfields = searchFields.dbfields
+    }
+  }
+
 }
 object dependencies {
 
@@ -460,5 +353,6 @@ object dependencies {
   }
 }
 
-object ItemApi extends api.v1.ItemApi(CorespringS3ServiceImpl, ItemServiceImpl, dependencies.metadataSetService)
+object ItemApi
+  extends ItemApi(CorespringS3ServiceImpl, ItemServiceImpl, dependencies.metadataSetService)
 

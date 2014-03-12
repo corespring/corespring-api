@@ -5,8 +5,8 @@
                 title="" adaptive="false" timeDependent="false">
 <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="identifier">
 
-    <correctResponseFeedback>Correct!</correctResponseFeedback>
-    <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+    <correctResponseFeedback>Correct Answer</correctResponseFeedback>
+    <incorrectResponseFeedback>Your Answer</incorrectResponseFeedback>
 
 
     <correctResponse>

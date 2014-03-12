@@ -6,7 +6,6 @@ import play.Logger
 import play.cache.Cache
 import reporting.services.ReportGenerator.ReportKeys
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import common.ExecutionContexts
 
 class ReportGenerator(reportsService: ReportsService) {
@@ -15,7 +14,8 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.primarySubject -> reportsService.buildPrimarySubjectReport _,
     ReportKeys.standards -> reportsService.buildStandardsReport _,
     ReportKeys.contributor -> reportsService.buildContributorReport _,
-    ReportKeys.collection -> reportsService.buildCollectionReport _
+    ReportKeys.collection -> reportsService.buildCollectionReport _,
+    ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _
   )
 
   /**
@@ -76,6 +76,8 @@ class ReportGenerator(reportsService: ReportsService) {
           e.printStackTrace
           None
         }
+      } finally {
+        Logger.info(s"Finished attempt to generate $reportKey report")
       }
     }
   }
@@ -89,8 +91,9 @@ object ReportGenerator extends ReportGenerator(ReportsService) {
     val standards = "standards"
     val collection = "collection"
     val contributor = "contributor"
+    val standardsByCollection = "standardsByCollection"
 
-    val keys = Seq(primarySubject, standards, collection, contributor)
+    val keys = Seq(primarySubject, standards, collection, contributor, standardsByCollection)
   }
 
 }
