@@ -61,7 +61,7 @@ trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCo
   override def submitAnswers(id: String)(block: (SubmitSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
       handleValidationResult {
-        loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save, request)))
+        loadEverythingJson(id).map(json => block(SubmitSessionRequest(json, sessionService.save(_, _, None), request)))
       }
   }
 
@@ -89,7 +89,7 @@ trait SessionActions extends ContainerSessionActions[AnyContent] with V2PlayerCo
   override def save(id: String)(block: (SaveSessionRequest[AnyContent]) => Result): Action[AnyContent] = Action {
     request =>
       loadSession(id)
-        .map(s => SaveSessionRequest(s, isSecure(request), isComplete(s), sessionService.save, request))
+        .map(s => SaveSessionRequest(s, isSecure(request), isComplete(s), sessionService.save(_, _, None), request))
         .map(block)
 
   }
