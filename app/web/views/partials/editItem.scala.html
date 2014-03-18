@@ -1,3 +1,5 @@
+@(useV2: Boolean)
+
 <div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px" xmlns="http://www.w3.org/1999/html">
     <h2>Delete Item</h2>
     <br/>
@@ -208,25 +210,33 @@
 
     </div>
 
-    <div class="preview" ng-class="previewClassName">
-        <div class="inner">
+    @if(useV2) {
+        <div class="preview" ng-class="previewClassName">
+            <div class="inner">
 
-            <div class="well">
-                <ul>
-                    <li><a ng-click="launchV1Player()">V1 Player</a></li>
-                    <li><a ng-click="launchV2Player()">V2 Player</a></li>
-                    <li><a ng-href="{{v2Editor}}" target="_blank">V2 Editor</a></li>
-                </ul>
-                <div class="preview-container" id="item-preview-target"></div>
+                <div class="well">
+                    <ul>
+                        <li><a ng-click="launchV1Player()">V1 Player</a></li>
+                        <li><a ng-click="launchV2Player()">V2 Player</a></li>
+                        <li><a ng-href="{{v2Editor}}" target="_blank">V2 Editor</a></li>
+                    </ul>
+                    <div class="preview-container" id="item-preview-target"></div>
+                </div>
             </div>
-            <!--
-            <a ng-click="refreshPreview()">Refresh</a>
-                &nbsp;&nbsp;
-            <a href="{{fullPreviewUrl}}" target="_blank">Preview in new window</a>
-
-            -->
         </div>
-    </div>
+    } else {
+        <div class="preview" ng-class="previewClassName">
+            <div class="inner">
+                <a ng-click="launchV1Player()">Refresh</a>
+                &nbsp;&nbsp;
+                <a href="{{fullPreviewUrl}}" target="_blank">Preview in new window</a>
+
+                <div class="preview-container" id="item-preview-target">
+                </div>
+            </div>
+        </div>
+    }
+
 
 
 </div>
