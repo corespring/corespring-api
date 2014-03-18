@@ -5,22 +5,22 @@ import com.mongodb.casbah.MongoDB
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.component.{ PlayerGenerator, EditorGenerator, SourceGenerator }
-import org.corespring.container.client.controllers._
+import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQuery, ComponentSets, Assets }
 import org.corespring.container.components.model.Component
 import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.{ Subject, Organization }
+import org.corespring.platform.core.models.item.{ FieldValue, Item }
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.core.services.{ UserService, UserServiceWired }
+import org.corespring.platform.core.services.{ SubjectQueryService, QueryService, UserService, UserServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders._
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.controllers.DefaultPlayerLauncherActions
+import org.corespring.v2player.integration.controllers.{ DataQuery, DefaultPlayerLauncherActions }
 import org.corespring.v2player.integration.controllers.editor._
 import org.corespring.v2player.integration.controllers.player.{ PlayerActions, SessionActions }
 import org.corespring.v2player.integration.securesocial.SecureSocialService
@@ -45,6 +45,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   override def components: Seq[Component] = comps
 
   private lazy val mainSecureSocialService = new SecureSocialService {
+
     def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
   }
 
@@ -193,4 +194,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
     def auth: AuthenticatedSessionActions = authenticatedSessionActions
   }
 
+  override def dataQuery: ContainerDataQuery = new DataQuery() {
+    override def subjectQueryService: QueryService[Subject] = SubjectQueryService
+    override def fieldValues: FieldValue = FieldValue.findAll().toSeq.head
+  }
 }

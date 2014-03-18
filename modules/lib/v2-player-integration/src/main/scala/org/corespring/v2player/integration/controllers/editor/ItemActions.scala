@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.actions.{ ItemActions => ContainerItemActions, SaveItemRequest, ItemRequest, ScoreItemRequest, NewItemRequest }
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.platform.core.models.item.{ Item => ModelItem, Subjects, TaskInfo, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -22,6 +22,7 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 import play.api.http.Status._
+import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
 
 trait ItemActions
   extends ContainerItemActions[AnyContent]
@@ -65,10 +66,16 @@ trait ItemActions
       } yield {
 
         /** an implementation for the container to save its definition */
-        def save(itemId: String, playerJson: JsValue): Option[JsValue] = {
-          val playerDef = playerJson.as[PlayerDefinition]
-          val update = item.copy(playerDefinition = Some(playerDef))
-          itemService.save(update, false)
+        def save(itemId: String, playerJson: JsValue, property: Option[String]): Option[JsValue] = {
+
+          val updatedItem = property match {
+            case None => PlayerJsonToItem.all(item, playerJson)
+            case Some("profile") => PlayerJsonToItem.profile(item, playerJson)
+            case Some("components") => PlayerJsonToItem.playerDef(item, playerJson)
+            case _ => throw new RuntimeException(s"unknown property: $property - can't save the json")
+          }
+
+          itemService.save(updatedItem, false)
           Some(playerJson)
         }
 
@@ -84,8 +91,6 @@ trait ItemActions
         case Failure(err) => Status(err.code)(err.message)
       }
   }
-
-  def getScore(itemId: String)(block: (ScoreItemRequest[AnyContent]) => Result): Action[AnyContent] = ???
 
   private def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
 
