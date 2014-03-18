@@ -57,10 +57,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
   }
 
-  $scope.refreshPreview = function () {
-    throw new Error("deprecated");
-  };
-
   $scope.launchV1Player = function(){
     new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
@@ -85,6 +81,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.togglePreview = function () {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
+    $scope.launchV1Player();
   };
 
   $scope.$watch("previewVisible", function (newValue) {
