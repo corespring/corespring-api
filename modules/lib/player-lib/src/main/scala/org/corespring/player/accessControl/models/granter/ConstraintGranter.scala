@@ -10,7 +10,7 @@ import org.corespring.player.accessControl.models.granter.constraints._
 import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 
 /** An AccessGranter that creates a list of Constraints based on the rendering options */
-class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLookup) extends ConstraintChecker with AccessGranter {
+class ConstraintGranter(sessionLookup: SessionItemLookup, assessmentLookup: AssessmentItemLookup) extends ConstraintChecker with AccessGranter {
 
   def grant(currentMode: Option[Mode], request: RequestedAccess, options: RenderOptions): Boolean = {
     val mode: Option[Mode] = if (request.mode.isDefined) request.mode else currentMode
@@ -113,7 +113,7 @@ class ConstraintGranter(sessionLookup: SessionItemLookup, quizLookup: QuizItemLo
   }
 
   private def assessmentConstraints(assessment: ContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {
-    boundConstraints(options.itemId, options.assessmentId, quizLookup)
+    boundConstraints(options.itemId, options.assessmentId, assessmentLookup)
   }
 
   private def itemConstraints(item: VersionedContentRequest)(implicit options: RenderOptions): List[Constraint[Any]] = {

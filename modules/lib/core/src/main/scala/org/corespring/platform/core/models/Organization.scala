@@ -187,16 +187,65 @@ trait OrganizationImpl
     }
   }
 
+  def setCollectionEnabledStatus(orgId: ObjectId, collectionId: ObjectId, enabledState: Boolean) : Either[InternalError, ContentCollRef] = {
+    val orgOpt = findOneById(orgId)
+    orgOpt match {
+      case Some(org) =>
+        val collrefOpt = org.contentcolls.find(ref => ref.collectionId == collectionId)
+        collrefOpt match {
+          case Some(ref) =>
+            ref.enabled = enabledState
+            updateCollection(orgId, ref)
+          case None => Left(InternalError("collection reference not found"))
+        }
+
+      case None => Left(InternalError("organization not found"))
+    }
+  }
+
+  def updateCollection(orgId: ObjectId, collRef: ContentCollRef) : Either[InternalError, ContentCollRef] = {
+    if (!hasCollRef(orgId, collRef)) {
+      Left(InternalError("can't update collection, it does not exist in this organization"))
+    } else {
+      // pull the old collection
+      try {
+        update(
+          MongoDBObject("_id" -> orgId),
+          MongoDBObject("$pull" -> MongoDBObject(contentcolls -> MongoDBObject("collectionId" -> collRef.collectionId)) ),
+          false,
+          false,
+          collection.writeConcern
+        )
+      } catch {
+        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+      }
+      // add the updated one
+      try {
+        update(
+          MongoDBObject("_id" -> orgId),
+          MongoDBObject("$addToSet" -> MongoDBObject(contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
+          false,
+          false,
+          collection.writeConcern
+        )
+      } catch {
+        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+      }
+
+      Right(collRef)
+    }
+  }
+
   def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
     if (collections.isEmpty) {
-      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT), Permission.Write);
+      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId ), Permission.Write);
     } else {
       ContentCollection.findOne(
         MongoDBObject("_id" -> MongoDBObject("$in" -> collections), ContentCollection.name -> ContentCollection.DEFAULT)) match {
           case Some(default) => Right(default)
           case None =>
-            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT), Permission.Write);
+            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId ), Permission.Write);
         }
     }
   }
@@ -238,7 +287,10 @@ trait OrganizationImpl
         JsObject(
           Seq(
             "collectionId" -> JsString(ref.collectionId.toString),
-            "permission" -> JsString(Permission.toHumanReadable(ref.pval))))
+            "permission" -> JsString(Permission.toHumanReadable(ref.pval)),
+            "enabled" -> JsBoolean(ref.enabled)
+          )
+        )
       }
     }
 
@@ -261,8 +313,7 @@ trait OrganizationImpl
     }
   }
 
-  override val searchableFields = Seq(
-    name)
+  override val searchableFields = Seq( name)
 
 }
 
@@ -272,11 +323,12 @@ object Organization extends OrganizationImpl {
   }
 }
 
-case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value)
 
+case class ContentCollRef(var collectionId: ObjectId, var pval: Long = Permission.Read.value, var enabled: Boolean = false)
 object ContentCollRef {
   val pval: String = "pval"
   val collectionId: String = "collectionId"
+  val enabled: String = "enabled"
 }
 
 case class MetadataSetRef(var metadataId: ObjectId, var isOwner: Boolean)

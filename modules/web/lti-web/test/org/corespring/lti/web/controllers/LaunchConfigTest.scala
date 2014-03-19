@@ -1,7 +1,7 @@
 package org.corespring.lti.web.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.lti.models.{LtiQuestion, LtiQuiz}
+import org.corespring.lti.models.{LtiAssessment, LtiQuestion}
 import org.corespring.lti.web.accessControl.cookies.LtiCookieKeys
 import org.corespring.lti.web.controllers
 import org.corespring.platform.core.models.Organization
@@ -19,44 +19,44 @@ class LaunchConfigTest extends Specification{
 
   PlaySingleton.start()
 
-  val Routes = org.corespring.lti.web.controllers.routes.LtiQuizzes
+  val Routes = org.corespring.lti.web.controllers.routes.LtiAssessments
   val MockOrgId: ObjectId = new ObjectId("51114b307fc1eaa866444648")
 
   private def getOrg: Organization = Organization.findOneById(MockOrgId).get
 
-  private def getMockConfig: LtiQuiz = {
-    val c = new LtiQuiz(id = new ObjectId(),
+  private def getMockConfig: LtiAssessment = {
+    val c = new LtiAssessment(id = new ObjectId(),
       resourceLinkId = "some link id",
       question = LtiQuestion(None, ItemSessionSettings()),
       participants = Seq(),
       orgId = Some(getOrg.id))
-    LtiQuiz.insert(c)
+    LtiAssessment.insert(c)
     c
   }
 
-  private def get(quiz:LtiQuiz): LtiQuiz = {
-    val action = LtiQuizzes.get(quiz.id)
+  private def get(assessment:LtiAssessment): LtiAssessment = {
+    val action = LtiAssessments.get(assessment.id)
     val request = FakeRequest("ignore", "ignore")
-    val result = action(addSessionInfo(quiz,request))
+    val result = action(addSessionInfo(assessment,request))
     val json = parse(contentAsString(result))
-    json.as[LtiQuiz]
-    //callAndReturnModel(addSessionInfo(quiz,request))
+    json.as[LtiAssessment]
+    //callAndReturnModel(addSessionInfo(assessment,request))
   }
 
-  private def addSessionInfo[A](quiz: LtiQuiz, r: FakeRequest[A]): FakeRequest[A] = {
+  private def addSessionInfo[A](assessment: LtiAssessment, r: FakeRequest[A]): FakeRequest[A] = {
     r.withSession(
-      (LtiCookieKeys.QUIZ_ID -> quiz.id.toString),
-      (PlayerCookieKeys.orgId -> quiz.orgId.get.toString)
+      (LtiCookieKeys.ASSESSMENT_ID -> assessment.id.toString),
+      (PlayerCookieKeys.orgId -> assessment.orgId.get.toString)
     )
   }
 
-  private def update(quiz: LtiQuiz): LtiQuiz = {
-    val action = controllers.LtiQuizzes.update(quiz.id)
-    val jsValue = toJson(quiz)
+  private def update(assessment: LtiAssessment): LtiAssessment = {
+    val action = controllers.LtiAssessments.update(assessment.id)
+    val jsValue = toJson(assessment)
     val request = FakeRequest("ignore", "ignore", FakeHeaders(), AnyContentAsJson(jsValue))
-    val result = action(addSessionInfo(quiz,request))
+    val result = action(addSessionInfo(assessment,request))
     val json = parse(contentAsString(result))
-    json.as[LtiQuiz]
+    json.as[LtiAssessment]
   }
 
   "launch config" should {
@@ -80,7 +80,7 @@ class LaunchConfigTest extends Specification{
       val jsValue = toJson(copiedConfig)
       val request = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(jsValue))
       val requestWithSession = addSessionInfo(copiedConfig, request)
-      val result = LtiQuizzes.update(copiedConfig.id)(requestWithSession)
+      val result = LtiAssessments.update(copiedConfig.id)(requestWithSession)
       status(result) === BAD_REQUEST
     }
   }

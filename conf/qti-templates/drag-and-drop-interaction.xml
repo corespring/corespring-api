@@ -50,7 +50,7 @@
 
                 <landingPlace cardinality="multiple" identifier='target1' label='Basket'/>
                 <p/>
-                <p>Drag the ingredient that could also be called 'chicken' in on the spot below.</p>
+                <p>Drag the ingredient that could also be called 'chicken' into the spot below.</p>
                 <landingPlace cardinality='single' identifier='target2' label='Ingredient'/>
                 <p>Organize the remaining items in alphabetical order.</p>
 

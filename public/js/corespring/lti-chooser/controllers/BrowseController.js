@@ -16,15 +16,15 @@ function BrowseController($scope, $rootScope, $location, Config, LaunchConfigSer
   $scope.settings = Config.settings;
 
   $scope.saveItem = function (onSaveCompleteCallback) {
-    LaunchConfigService.save({id: $scope.quiz.id}, $scope.quiz, function (data) {
-      $scope.quiz = data;
+    LaunchConfigService.save({id: $scope.assessment.id}, $scope.assessment, function (data) {
+      $scope.assessment = data;
 
       if (onSaveCompleteCallback) onSaveCompleteCallback();
     });
   };
 
   $scope.change = function () {
-    $scope.quiz.question.itemId = null;
+    $scope.assessment.question.itemId = null;
     $scope.mode = 'start';
   };
 

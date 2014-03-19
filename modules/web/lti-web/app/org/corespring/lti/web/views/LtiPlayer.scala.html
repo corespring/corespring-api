@@ -1,8 +1,8 @@
-@(params: org.corespring.player.v1.views.models.PlayerParams, quizId:String, resultSourcedId:String)
+@(params: org.corespring.player.v1.views.models.PlayerParams, assessmentId:String, resultSourcedId:String)
 
     @scripts = {
 
-  @org.corespring.player.v1.views.html.partials.angularConfig(params, ("quizId" -> quizId), ("resultSourcedId" -> resultSourcedId) )
+  @org.corespring.player.v1.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId), ("resultSourcedId" -> resultSourcedId) )
   <!-- need to override the config to add the Lti Params
   <script type="text/javascript">
     angular.module('qti.services').factory('Config', [function(){

@@ -4,10 +4,10 @@ import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, PreviewItemSessionCompanion, DefaultItemSession }
-import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
-import org.corespring.player.accessControl.models.granter.{ QuizItemLookup, SessionItemLookup, ConstraintGranter }
+import org.corespring.player.accessControl.models.granter.{ AssessmentItemLookup, SessionItemLookup, ConstraintGranter }
 import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 
 /**
@@ -33,17 +33,17 @@ object CheckSessionAccess extends CheckSession with PackageLogging {
     }
   }
 
-  val quizLookup: QuizItemLookup = new QuizItemLookup {
+  val assessmentLookup: AssessmentItemLookup = new AssessmentItemLookup {
     def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = {
-      QuizService.findOneById(id) match {
+      AssessmentService.findOneById(id) match {
         case Some(q) => q.questions.exists(_.itemId == itemId)
         case _ => false
       }
     }
   }
 
-  /** a ConstraintGranter with a session and quiz lookup implementation */
-  val granter: ConstraintGranter = new ConstraintGranter(sessionLookup, quizLookup)
+  /** a ConstraintGranter with a session and assessment lookup implementation */
+  val granter: ConstraintGranter = new ConstraintGranter(sessionLookup, assessmentLookup)
 
   /**
    * This implementation delegates to <link>org.corespring.player.accessControl.models.granter.ConstraintGranter</link>

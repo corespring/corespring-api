@@ -12,7 +12,6 @@ import org.corespring.test.BaseTest
 import org.corespring.test.helpers.FixtureData
 import org.corespring.test.helpers.models.ItemHelper
 import org.specs2.mock.Mockito
-import play.api.libs.json.JsObject
 import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.FakeHeaders
@@ -36,7 +35,7 @@ class NewItemApiTest extends BaseTest{
     assertResult(result)
     val items = parsed[List[JsValue]](result)
     items.size must beEqualTo(itemIds.length)
-  }//.pendingUntilFixed("The fixture data isn't always ready for the spec body")
+  }
 }
 
 
@@ -190,7 +189,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val updateResult = route(FakeRequest(updateCall.method, tokenize(updateCall.url), FakeHeaders(), AnyContentAsJson(toUpdate))).get
     status(updateResult) must equalTo(OK)
     val item: Item = parsed[Item](updateResult)
-    item.collectionId must equalTo(TEST_COLLECTION_ID)
+    item.collectionId must equalTo(Some(TEST_COLLECTION_ID))
   }
 
 
@@ -209,7 +208,7 @@ class ItemApiTest extends BaseTest with Mockito {
     status(updateResult) must equalTo(OK)
     val item: Item = parsed[Item](updateResult)
 
-    item.collectionId must equalTo(TEST_COLLECTION_ID)
+    item.collectionId must equalTo(Some(TEST_COLLECTION_ID))
   }
 
   val STATE_DEPT: String = "State Department of Education"

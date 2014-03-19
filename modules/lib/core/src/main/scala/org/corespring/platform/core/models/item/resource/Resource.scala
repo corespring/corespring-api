@@ -9,24 +9,22 @@ import scala.Some
  */
 case class Resource(name: String, var files: Seq[BaseFile]) {
   def defaultFile = files.find(_.isMain)
+
 }
 
 object Resource extends PackageLogging {
   val name = "name"
   val files = "files"
 
-  val QtiXml = "qti.xml"
-  val QtiPath = "data"
+  val DataPath = "data"
 
-  implicit object ResourceWrites extends Writes[Resource] {
+  implicit object Format extends Format[Resource] {
     def writes(res: Resource): JsValue = {
       JsObject(List(
         "name" -> JsString(res.name),
         "files" -> Json.toJson(res.files)))
     }
-  }
 
-  implicit object ResourceReads extends Reads[Resource] {
     def reads(json: JsValue): JsResult[Resource] = {
 
       json match {

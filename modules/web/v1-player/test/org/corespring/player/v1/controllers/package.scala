@@ -23,7 +23,7 @@ package object controllers {
   object TestIds{
     val testId = VersionedId(new ObjectId("50b653a1e4b0ec03f29344b0"))
     val testSessionId = new ObjectId("51116bc7a14f7b657a083c1d")
-    val testQuizId = new ObjectId("000000000000000000000001")
-    val testQuizItemId = VersionedId(new ObjectId("5153eee1aa2eefdc1b7a5570"))
+    val testAssessmentId = new ObjectId("000000000000000000000001")
+    val testAssessmentItemId = VersionedId(new ObjectId("5153eee1aa2eefdc1b7a5570"))
   }
 }

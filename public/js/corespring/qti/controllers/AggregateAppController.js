@@ -27,7 +27,7 @@ function AggregateAppController($scope, $timeout, AggregateService, Config, Mess
   $scope.init = function () {
     $scope.formSubmitted = true;
 
-    AggregateService.aggregate({quizId: Config.quizId, itemId: Config.itemId},
+    AggregateService.aggregate({assessmentId: Config.assessmentId, itemId: Config.itemId},
       function onLoad(data) {
         $scope.aggregate = data;
       }

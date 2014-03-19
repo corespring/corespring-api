@@ -3,8 +3,8 @@ package org.corespring.dev.tools.controllers
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
@@ -60,12 +60,8 @@ object DevActionBuilder extends TokenizedRequestActionBuilder[RequestedAccess] w
 }
 
 
-object DevViews extends Views(DevActionBuilder, ItemServiceWired, QuizService){
-
-
+object DevViews extends Views(DevActionBuilder, ItemServiceWired, AssessmentService){
   override def defaultTemplate: (PlayerParams => Html) = (p) => org.corespring.dev.tools.views.html.DevPlayer(p)
-
-
 }
 
 

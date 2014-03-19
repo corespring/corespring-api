@@ -1,15 +1,15 @@
-{ "name" : "Collection A" , "isPublic" : false , "_id" : { "$oid" : "5021814ce4b03e00504e4741"}}
-{ "name" : "Collection B" , "isPublic" : false , "_id" : { "$oid" : "50218190e4b03e00504e4742"}}
-{ "name" : "Collection C" , "isPublic" : false , "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"}}
-{ "name" : "Collection D" , "isPublic" : false , "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"}}
-{ "name" : "Collection E" , "isPublic" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}}
-{ "name" : "Collection F" , "isPublic" : true , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}}
-{ "name" : "Collection G" , "isPublic" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}}
-{ "name" : "Beta Items" , "isPublic" : true , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}}
-{ "name" : "Items from Production" , "isPublic" : false , "_id" : { "$oid" : "51baf73da196d2f175140218"}}
-{ "name" : "Temporary Collection" , "isPublic" : false , "_id" : { "$oid" : "5072e73b1c00df6fdd627594"}}
-{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ac"}, "name" : "default", "isPublic" : false }
-{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ad"}, "name" : "default", "isPublic" : false }
-{ "_id" : { "$oid" : "5ff2e4cae4b077b9e31689fd"}, "name" : "New classrooms collection", "isPublic" : false }
-{ "_id" : { "$oid" : "4ff2e4cae4b077b9e31689fd" }, "name" : "CoreSpring ELA", "description" : "Corespring Literacy Items", "isPrivate" : false }
-{ "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05" }, "name" : "CoreSpring Mathematics", "description" : "Corespring Math Items", "isPrivate" : false }
+{ "name" : "Collection A" , "isPublic" : false , "_id" : { "$oid" : "5021814ce4b03e00504e4741"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Collection B" , "isPublic" : false , "_id" : { "$oid" : "50218190e4b03e00504e4742"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Collection C" , "isPublic" : false , "_id" : { "$oid" : "5001a66ce4b0d7c9ec320f2e"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339b"}}
+{ "name" : "Collection D" , "isPublic" : false , "_id" : { "$oid" : "5001b6f3e4b0d7c9ec321065"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339d"}}
+{ "name" : "Collection E" , "isPublic" : false , "_id" : { "$oid" : "5001b7ade4b0d7c9ec321070"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339e"}}
+{ "name" : "Collection F" , "isPublic" : true , "_id" : { "$oid" : "5001b9b9e4b035d491c268c3"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Collection G" , "isPublic" : false , "_id" : { "$oid" : "5001bb0ee4b0d7c9ec3210a2"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Beta Items" , "isPublic" : true , "_id" : { "$oid" : "505777f5e4b05f7845735bc1"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Items from Production" , "isPublic" : false , "_id" : { "$oid" : "51baf73da196d2f175140218"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "name" : "Temporary Collection" , "isPublic" : false , "_id" : { "$oid" : "5072e73b1c00df6fdd627594"}, "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ac"}, "name" : "default", "isPublic" : false , "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "_id" : { "$oid" : "50a22ccc300479fa2a5a66ad"}, "name" : "default", "isPublic" : false , "ownerOrgId": {"$oid":"502404dd0364dc35bb39339c"}}
+{ "_id" : { "$oid" : "5ff2e4cae4b077b9e31689fd"}, "name" : "New classrooms collection", "isPublic" : false , "ownerOrgId": {"$oid":"502404dd0364dc35bb39339c"}}
+{ "_id" : { "$oid" : "4ff2e4cae4b077b9e31689fd" }, "name" : "CoreSpring ELA", "description" : "Corespring Literacy Items", "isPrivate" : false , "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}
+{ "_id" : { "$oid" : "4ff2e56fe4b077b9e3168a05" }, "name" : "CoreSpring Mathematics", "description" : "Corespring Math Items", "isPrivate" : false , "ownerOrgId": {"$oid":"502404dd0364dc35bb39339a"}}

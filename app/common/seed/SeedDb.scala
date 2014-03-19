@@ -36,9 +36,9 @@ object SeedDb {
     User.collection,
     salatDb()(current)("orgs"),
     salatDb()(current)("templates"),
-    salatDb()(current)("lti_quizzes"),
+    salatDb()(current)("lti_assessments"),
     salatDb()(current)("regtokens"),
-    salatDb()(current)("quizzes"),
+    salatDb()(current)("assessments"),
     salatDb()(play.api.Play.current)("metadataSets"))
 
   def emptyData() {

@@ -1,5 +1,5 @@
-GET     /launch-config/:id                  org.corespring.lti.web.controllers.LtiQuizzes.get(id:ObjectId)
-PUT     /launch-config/:id                  org.corespring.lti.web.controllers.LtiQuizzes.update(id:ObjectId)
+GET     /launch-config/:id                  org.corespring.lti.web.controllers.LtiAssessments.get(id:ObjectId)
+PUT     /launch-config/:id                  org.corespring.lti.web.controllers.LtiAssessments.update(id:ObjectId)
 GET     /dev/test-harness                   org.corespring.lti.web.controllers.dev.TestHarness.begin
 POST    /dev/prepare                        org.corespring.lti.web.controllers.dev.TestHarness.prepare
 POST    /dev/grade-passback                 org.corespring.lti.web.controllers.dev.TestHarness.gradePassback

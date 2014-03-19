@@ -1,9 +1,8 @@
-@(params: org.corespring.player.v1.views.models.PlayerParams, quizId:String)
-
+@(params: _root_.player.views.models.PlayerParams, assessmentId:String)
 
 @scripts = {
-   @partials.angularConfig(params, ("quizId" -> quizId))
+@player.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId))
 }
 
 @bodyAttributes = @{ "ng-controller=AggregateAppController" }
-@basePlayer( params, bodyAttributes, Some(scripts) )
+@_root_.player.views.html.basePlayer( params, bodyAttributes, Some(scripts) )

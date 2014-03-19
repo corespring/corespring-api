@@ -1,4 +1,4 @@
-@(isPrintMode:Boolean, tab:String)(params: org.corespring.player.v1.views.models.PlayerParams)
+@(isPrintMode:Boolean, tab:String, selectedTab:String)(params: org.corespring.player.v1.views.models.PlayerParams)
 
 @import org.corespring.player.v1.views.qti.QtiAssetsLoaderImpl
 
@@ -21,7 +21,7 @@
         <script src="/assets/js/corespring/common/services/Item.js"></script>
         <script src="/assets/js/corespring/ProfileController.js"></script>
 
-        @partials.angularConfig(params, ("tab" -> tab))
+        @partials.angularConfig(params, ("tab" -> tab, "selectedTab" -> selectedTab))
 
         <script src="/assets/js/corespring/qti/controllers/QtiAppController.js"></script>
 
@@ -91,15 +91,8 @@
                     @org.corespring.web.common.views.html.viewItem.history()
                 </div>
             </div>
-
-
-
         </div>
-
     </div>
-
-
-
 </body>
 
 

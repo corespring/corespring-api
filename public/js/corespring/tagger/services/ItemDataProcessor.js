@@ -122,6 +122,10 @@ com.corespring.model.ItemDataProcessor = function () {
             item.standards = [];
         }
 
+        if (item.demonstratedKnowledge == null) {
+            item.demonstratedKnowledge = "None";
+        }
+
         if (item.primaryStandard != null) {
             throw "Data model contains a 'primaryStandard' - need to move these to the 'standards' array";
         }

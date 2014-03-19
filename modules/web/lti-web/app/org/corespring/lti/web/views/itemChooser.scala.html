@@ -1,4 +1,4 @@
-@(quizId: ObjectId, selectionDirective: String, returnUrl: String)(implicit assetsLoader:org.corespring.web.common.controllers.deployment.AssetsLoader = org.corespring.web.common.controllers.deployment.AssetsLoaderImpl)
+@(assessmentId: ObjectId, selectionDirective: String, returnUrl: String)(implicit assetsLoader:org.corespring.web.common.controllers.deployment.AssetsLoader = org.corespring.web.common.controllers.deployment.AssetsLoaderImpl)
 
 @import org.bson.types.ObjectId
 <!doctype html>
@@ -36,7 +36,7 @@
           angular.module('lti-chooser')
             .factory("Config", function () {
                 return {
-                  quizId: "@quizId",
+                  assessmentId: "@assessmentId",
                   selectionDirective: "@selectionDirective",
                   returnUrl: "@returnUrl"
                 };
@@ -47,7 +47,7 @@
   <body style="padding:0px;" ng-controller="LtiChooserController">
 
     <div confirm-popup
-      ng-model="quiz.question.itemId"
+      ng-model="assessment.question.itemId"
       confirmed="onUnassignConfirmed" class="confirm-popup">
       <span class="unassign-icon"><img src="/assets/images/warning-icon-37x37.png" width="37" height="37" alt="Warning"> </span>
       <p>Are you sure you want to remove this item from the current assignment?</p>

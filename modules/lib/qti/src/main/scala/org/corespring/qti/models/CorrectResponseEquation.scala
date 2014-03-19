@@ -3,8 +3,9 @@ package org.corespring.qti.models
 import java.util.regex.{Matcher, Pattern}
 import util.Random
 import xml.Node
-import org.mozilla.javascript.Context
+import org.mozilla.javascript.{EvaluatorException, Context}
 import org.mozilla.javascript.tools.shell.Global
+import scalaz._
 
 class Domain(var include:Seq[(Int,Int)] = Seq(-10 -> 10), var notInclude: Seq[Int] = Seq())
 object Domain{
@@ -143,17 +144,20 @@ object CorrectResponseEquation {
     /**
      * find coordinates on the graph that fall on the line
      */
-    def getTestPoints: Array[(Double, Double)] = {
+    def getTestPoints: Validation[String, Array[(Double, Double)]] = {
       val rhs = value.split("=")(1)
-      var testCoords: Array[(Double, Double)] = Array()
-      getRandomValues(numOfTestPoints,domain).foreach(rvalue => {
-        val xcoord: Double = rvalue
-        val expr = formatExpression(rhs, Seq(variables._1 -> xcoord))
-        val evalResult = ctx.evaluateString(scope, expr, "?", 1, null)
-        val ycoord: Double = evalResult.toString.toDouble
-        testCoords = testCoords :+ (xcoord,ycoord)
-      })
-      testCoords
+      Success(getRandomValues(numOfTestPoints,domain).map(x => {
+        try {
+          val expr = formatExpression(rhs, Seq(variables._1 -> x))
+          val y = ctx.evaluateString(scope, expr, "?", 1, null).toString.toDouble
+          (x, y)
+        } catch {
+          case e: EvaluatorException => {
+            e.printStackTrace()
+            return Failure("Error processing javascript")
+          }
+        }
+      }).toArray)
     }
     def round(num:Double):Double = {
       val multiplier: Double = scala.math.pow(10, sigfigs)
@@ -173,16 +177,21 @@ object CorrectResponseEquation {
       //round upper and lower bounds as a result of some funky things that occur to double's
       (round(center - bound), center, round(center + bound))
     }
-    def isEquivalent(lhs:String, rhs:String):Boolean = {
+    def isEquivalent(lhs:String, rhs:String): Boolean = {
       try {
-        getTestPoints.foldRight[Boolean](true)((testPoint, acc) => if (acc) {
-          val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
-          val (llowerBound,lcenter,lupperBound) = evaluate(lhs,variableValues)
-          val (rlowerBound, rcenter, rupperBound) = evaluate(rhs,variableValues)
-          //don't compare directly as there are some trailing decimal places that can cause issues.
-          // Instead, compare upper and lower bounds
-          (lcenter <= rupperBound && lcenter >= rlowerBound) || (rcenter <= lupperBound && rcenter >= llowerBound)
-        } else false)
+        getTestPoints match {
+          case Success(testPoints) => {
+            testPoints.foldRight[Boolean](true)((testPoint, acc) => if (acc) {
+              val variableValues = Seq(variables._1 -> testPoint._1, variables._2 -> testPoint._2)
+              val (llowerBound,lcenter,lupperBound) = evaluate(lhs,variableValues)
+              val (rlowerBound, rcenter, rupperBound) = evaluate(rhs,variableValues)
+              //don't compare directly as there are some trailing decimal places that can cause issues.
+              // Instead, compare upper and lower bounds
+              (lcenter <= rupperBound && lcenter >= rlowerBound) || (rcenter <= lupperBound && rcenter >= llowerBound)
+            } else false)
+          }
+          case _ => false
+        }
       } catch {
         case e: javax.script.ScriptException => false
         case e: NumberFormatException => false

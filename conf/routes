@@ -31,12 +31,11 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 ->     /api/v1                v1Api.Routes
 ->     /logger                clientlogging.Routes
 ->     /player                v1Player.Routes
+
 # Note: You can't assign the same routes file to different paths as the object will get overwritten
 # ->     /v1/player             v1Player.Routes
 
 ->     /v2/player             v2Player.Routes
-
-
 ->     /lti                   lti.Routes
 ->     /reports               reports.Routes
 ->     /scorm                 scorm.Routes
@@ -91,4 +90,3 @@ POST    /internal/utils/qti-search  internal.controllers.QtiSearch.qtiSearch()
 # Regression test endpoints
 GET     /regression/:orgId/:itemSessionId/render            regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
 GET     /regression/:orgId/:itemId/:requestedAccess         regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])
-

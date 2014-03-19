@@ -31,6 +31,12 @@ object OrganizationApi extends BaseApi {
     doList(request.ctx.organization, q, f, c, sk, l, sort)
   }
 
+  def getOrgsWithSharedCollection(collId: ObjectId) = ApiActionRead { request =>
+    val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collId)))
+    val orgs = Organization.find(query)
+    Ok(Json.toJson(orgs.toSeq))
+  }
+
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead { request =>
     if (orgId == request.ctx.organization || Organization.isChild(request.ctx.organization, orgId))
       doList(orgId, q, f, c, sk, l, sort)

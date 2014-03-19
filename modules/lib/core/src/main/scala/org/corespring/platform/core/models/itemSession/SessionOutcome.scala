@@ -50,27 +50,37 @@ object SessionOutcome extends ClassLogging {
     (__ \ "identifierOutcomes").read[Map[String,IdentifierOutcome]]
   )((score,isCorrect,isComplete,identifierOutcomes) => SessionOutcome.apply(score,isCorrect,isComplete,identifierOutcomes))
 
-  def fromJsObject(json:JsValue, responseDeclarations: Seq[ResponseDeclaration] = Seq()): JsResult[SessionOutcome] = {
-      def computeIdentifierOutcomes(json:JsValue):JsResult[Map[String,IdentifierOutcome]] = {
-        responseDeclarations.map(d =>
-          d.identifier -> Json.fromJson[IdentifierOutcome]((json \ "identifierOutcomes" \ d.identifier)))
-          .foldLeft[JsResult[Map[String,IdentifierOutcome]]](JsSuccess(Map()))((result,input) => {
-            result.fold[JsResult[Map[String,IdentifierOutcome]]](
-              JsError(_),
-              identifierOutcomes => input._2.fold[JsResult[Map[String,IdentifierOutcome]]](
-                e => JsError(e),
-                io => JsSuccess(identifierOutcomes + (input._1 ->  io))
-              )
+  def fromJsObject(json: JsValue, responseDeclarations: Seq[ResponseDeclaration] = Seq()): JsResult[SessionOutcome] = {
+
+    /**
+     * Outcomes should only be serialized if:
+     *   1. There is a default correctness in the response declaration OR
+     *   2. There is a value for the identifier in the provided JSON
+     */
+    def useOutcome(responseDeclaration: ResponseDeclaration) =
+      responseDeclaration.hasDefaultCorrectResponse ||
+        !((json \ "identifierOutcomes" \ responseDeclaration.identifier).isInstanceOf[JsUndefined])
+
+    def computeIdentifierOutcomes(json:JsValue):JsResult[Map[String,IdentifierOutcome]] = {
+      responseDeclarations.filter(useOutcome(_)).map(d =>
+        d.identifier -> Json.fromJson[IdentifierOutcome]((json \ "identifierOutcomes" \ d.identifier)))
+        .foldLeft[JsResult[Map[String,IdentifierOutcome]]](JsSuccess(Map()))((result,input) => {
+          result.fold[JsResult[Map[String,IdentifierOutcome]]](
+            JsError(_),
+            identifierOutcomes => input._2.fold[JsResult[Map[String,IdentifierOutcome]]](
+              e => JsError(e),
+              io => JsSuccess(identifierOutcomes + (input._1 ->  io))
             )
-          })
-      }
-      (
-        (__ \ "score").read[Double] and
-        (__ \ "isCorrect").read[Boolean] and
-        (__ \ "isComplete").read[Boolean] and
-        Reads.apply(computeIdentifierOutcomes) and
-        (__ \ "script").readNullable[String]
-      )(SessionOutcome.apply _).reads(json)
+          )
+        })
+    }
+    (
+      (__ \ "score").read[Double] and
+      (__ \ "isCorrect").read[Boolean] and
+      (__ \ "isComplete").read[Boolean] and
+      Reads.apply(computeIdentifierOutcomes) and
+      (__ \ "script").readNullable[String]
+    )(SessionOutcome.apply _).reads(json)
   }
 
   private def responseProcessingScoring(

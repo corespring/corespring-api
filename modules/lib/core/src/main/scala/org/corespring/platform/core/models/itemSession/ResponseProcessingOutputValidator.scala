@@ -41,7 +41,7 @@ object ResponseProcessingOutputValidator {
     validateJsValue(jsValue) match {
       case Some(internalError) => Some(internalError)
       case _ => {
-        val identifiers = responseDeclarations.map(_.identifier)
+        val identifiers = responseDeclarations.filter(_.hasDefaultCorrectResponse).map(_.identifier)
         identifiers.find(identifier => (jsValue \ "identifierOutcomes" \ identifier).isInstanceOf[JsUndefined]) match {
           case Some(identifier) =>
             Some(InternalError(s"""Response for identifier $identifier is required in JsObject"""))

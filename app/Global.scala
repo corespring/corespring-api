@@ -6,18 +6,17 @@ import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
-import org.corespring.play.utils._
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.play.utils._
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeZone, DateTime}
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -123,7 +122,6 @@ object Global
         }
         seedStaticData()
         seedDemoData()
-        initializeReports
         reportingDaemon(app)
       }
     }
@@ -143,10 +141,10 @@ object Global
     uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
-  private def timeLeftUntilMidnight = {
+  private def timeLeftUntil2am = {
     implicit val postfixOps = scala.language.postfixOps
-    (new DateTime().plusDays(1).withTimeAtStartOfDay().minusMinutes(1).getMinuteOfDay + 1
-      - new DateTime().getMinuteOfDay) minutes
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(2).withZone(DateTimeZone.forID("America/New_York"))
+      .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
   }
 
   private def reportingDaemon(app: Application) = {
@@ -155,7 +153,7 @@ object Global
     Logger.info("Scheduling the reporting daemon")
 
     val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
-    Akka.system(app).scheduler.schedule(timeLeftUntilMidnight, 24 hours, reportingActor, "reportingDaemon")
+    Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
   }
 
   /**
@@ -169,10 +167,6 @@ object Global
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
-  }
-
-  private def initializeReports() {
-    ReportGenerator.generateAllReports
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */

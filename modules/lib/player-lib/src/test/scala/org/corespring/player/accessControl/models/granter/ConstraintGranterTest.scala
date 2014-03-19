@@ -20,15 +20,15 @@ class ConstraintGranterTest extends Specification {
 
   def noSession = sessionLookup(contains = false)
 
-  def yesQuiz = quizLookup(contains = true)
+  def yesAssessment = assessmentLookup(contains = true)
 
-  def noQuiz = quizLookup(contains = false)
+  def noAssessment = assessmentLookup(contains = false)
 
-  def quizLookup(contains: Boolean): QuizItemLookup = new QuizItemLookup {
+  def assessmentLookup(contains: Boolean): AssessmentItemLookup = new AssessmentItemLookup {
     def containsItem(id: ObjectId, itemId: VersionedId[ObjectId]): Boolean = contains
   }
 
-  def granter(session: SessionItemLookup = yesSession, quiz: QuizItemLookup = yesQuiz) = new ConstraintGranter(session, quiz)
+  def granter(session: SessionItemLookup = yesSession, assessment: AssessmentItemLookup = yesAssessment) = new ConstraintGranter(session, assessment)
 
   private def ra(m: Mode, itemId: Option[VersionedId[ObjectId]] = None, sessionId: Option[ObjectId] = None, assessmentId: Option[ObjectId] = None): RequestedAccess = {
     RequestedAccess.asRead(mode = Some(m), itemId = itemId, sessionId = sessionId, assessmentId = assessmentId)
@@ -44,13 +44,13 @@ class ConstraintGranterTest extends Specification {
 
   def randomVersionedId = Some(VersionedId(ObjectId.get))
 
-  case class GrantAssert(r: RequestedAccess, expected: Boolean, session: SessionItemLookup = yesSession, quiz: QuizItemLookup = yesQuiz)
+  case class GrantAssert(r: RequestedAccess, expected: Boolean, session: SessionItemLookup = yesSession, assessment: AssessmentItemLookup = yesAssessment)
 
   def assertGrant(options: RenderOptions, mode: Mode, assertions: GrantAssert*): Result = {
 
     val results: Seq[MatchResult[Any]] = assertions.map {
       (a) =>
-        granter(a.session, a.quiz).grant(a.r, options) === a.expected
+        granter(a.session, a.assessment).grant(a.r, options) === a.expected
     }
     results.filterNot(m => m.isSuccess).length === 0
   }
@@ -115,45 +115,45 @@ class ConstraintGranterTest extends Specification {
       "and a session is requested" in {
 
         "don't allow access" in {
-          val quizOne = aggregateOptions()
-          granter().grant(ra(Aggregate, sessionId = sOid()), quizOne) === false
+          val assessmentOne = aggregateOptions()
+          granter().grant(ra(Aggregate, sessionId = sOid()), assessmentOne) === false
         }
       }
 
-      "and when not bound to a quiz" in {
+      "and when not bound to a assessment" in {
         "allow access to any item" in {
-          val quizOne = aggregateOptions()
-          granter().grant(ra(Aggregate, assessmentId = randomId, itemId = randomVersionedId), quizOne) === true
-          granter(noSession, noQuiz).grant(ra(Aggregate, assessmentId = randomId, itemId = randomVersionedId), quizOne) === true
+          val assessmentOne = aggregateOptions()
+          granter().grant(ra(Aggregate, assessmentId = randomId, itemId = randomVersionedId), assessmentOne) === true
+          granter(noSession, noAssessment).grant(ra(Aggregate, assessmentId = randomId, itemId = randomVersionedId), assessmentOne) === true
         }
       }
 
-      "and when bound to a quiz" in {
+      "and when bound to a assessment" in {
 
-        val quizId = "000000000000000000000001"
+        val assessmentId = "000000000000000000000001"
         val itemId = "000000000000000000000002"
 
-        "only allow access to that quiz id" in {
-          val quizOne = aggregateOptions(Some(quizId))
-          granter().grant(ra(Aggregate, assessmentId = randomId, itemId = sVersionedId()), quizOne) === false
-          granter(quiz = noQuiz).grant(ra(Aggregate, assessmentId = randomId, itemId = sVersionedId()), quizOne) === false
+        "only allow access to that assessment id" in {
+          val assessmentOne = aggregateOptions(Some(assessmentId))
+          granter().grant(ra(Aggregate, assessmentId = randomId, itemId = sVersionedId()), assessmentOne) === false
+          granter(assessment = noAssessment).grant(ra(Aggregate, assessmentId = randomId, itemId = sVersionedId()), assessmentOne) === false
         }
 
-        "bound quiz id, bound item id" in {
-          val ro = RenderOptions(assessmentId = quizId, itemId = itemId, expires = 0, mode = Mode.Aggregate)
-          val request = ra(Aggregate, assessmentId = sOid(quizId), itemId = sVersionedId(itemId))
+        "bound assessment id, bound item id" in {
+          val ro = RenderOptions(assessmentId = assessmentId, itemId = itemId, expires = 0, mode = Mode.Aggregate)
+          val request = ra(Aggregate, assessmentId = sOid(assessmentId), itemId = sVersionedId(itemId))
           granter().grant(request, ro) === true
-          granter(quiz = noQuiz).grant(request, ro) === false
+          granter(assessment = noAssessment).grant(request, ro) === false
 
-          val request2 = ra(Aggregate, assessmentId = sOid(quizId), itemId = randomVersionedId)
+          val request2 = ra(Aggregate, assessmentId = sOid(assessmentId), itemId = randomVersionedId)
           granter().grant(request2, ro) === false
-          granter(quiz = noQuiz).grant(request2, ro) === false
+          granter(assessment = noAssessment).grant(request2, ro) === false
         }
 
-        "wildcard quiz id - bound item id" in {
+        "wildcard assessment id - bound item id" in {
           val ro = RenderOptions(assessmentId = "*", itemId = itemId, expires = 0, mode = Mode.Aggregate)
           val request = ra(Aggregate, assessmentId = randomId, itemId = sVersionedId(itemId))
-          granter(quiz = noQuiz).grant(request, ro) === false
+          granter(assessment = noAssessment).grant(request, ro) === false
           granter().grant(request, ro) === true
         }
       }

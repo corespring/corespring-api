@@ -25,7 +25,7 @@ trait QtiResource { self: ItemServiceClient =>
   def getItemXMLByObjectId(item: Item, orgId: ObjectId): Option[Elem] = if (authorized(item, orgId)) {
     item.data.map {
       d =>
-        d.files.find(_.name == Resource.QtiXml).map {
+        d.files.find(_.name == Item.QtiResource.QtiXml).map {
           case VirtualFile(_, _, _, xml) => scala.xml.XML.loadString(xml)
         }.getOrElse(throw new RuntimeException("The qti xml file has a bad format and cannot be retrieved: itemId: " + item.id))
     }

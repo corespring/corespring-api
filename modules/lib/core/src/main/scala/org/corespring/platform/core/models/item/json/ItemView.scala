@@ -1,12 +1,13 @@
 package org.corespring.platform.core.models.json
 
-import play.api.libs.json._
-import scala.Some
 import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{ Item, ContentType }
 import org.corespring.platform.core.services.item.ItemServiceWired
+import play.api.libs.json._
+import scala.Some
 
 case class ItemView(item: Item, searchFields: Option[SearchFields])
 
@@ -14,15 +15,15 @@ object ItemView {
 
   import Item.Keys._
 
-  implicit object ItemViewWrites extends Writes[ItemView] {
-    def writes(itemView: ItemView): JsValue = {
+  implicit object Writes extends Writes[ContentView[Item]] {
+    def writes(itemView: ContentView[Item]): JsValue = {
 
       def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
 
-      val mainItem: JsObject = writeMainItem(itemView.item)
-      val details: Option[JsObject] = toJsObject(itemView.item.contributorDetails)
-      val taskInfo: Option[JsObject] = toJsObject(itemView.item.taskInfo)
-      val alignments: Option[JsObject] = toJsObject(itemView.item.otherAlignments)
+      val mainItem: JsObject = writeMainItem(itemView.content)
+      val details: Option[JsObject] = toJsObject(itemView.content.contributorDetails)
+      val taskInfo: Option[JsObject] = toJsObject(itemView.content.taskInfo)
+      val alignments: Option[JsObject] = toJsObject(itemView.content.otherAlignments)
 
       val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)
@@ -41,14 +42,14 @@ object ItemView {
 
     private def writeMainItem(item: Item): JsObject = {
 
-      import VersionedIdImplicits.Writes
+      implicit val VersionedIdWrites = VersionedIdImplicits.Writes
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> Json.toJson(item.id))),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
-        Some((collectionId -> JsString(item.collectionId))),
-        Some(contentType -> JsString(ContentType.item)),
+        item.collectionId.map(collectionId -> JsString(_)),
+        Some(contentType -> JsString(Item.contentType)),
         Some(published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(ItemServiceWired.sessionCount(item))))
 

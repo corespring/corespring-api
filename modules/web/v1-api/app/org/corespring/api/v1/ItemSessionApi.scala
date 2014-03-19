@@ -6,8 +6,9 @@ import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
-import org.corespring.platform.core.services.quiz.basic.QuizService
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
+import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.qti.models.responses.ArrayResponse
@@ -24,12 +25,12 @@ import scala.Some
  * API for managing item sessions
  */
 
-class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, quizService: QuizService) extends BaseApi with PlayerCookieReader {
+class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService, assessmentService: AssessmentService) extends BaseApi with PlayerCookieReader {
 
-  def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
+  def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
 
-      quizService.findOneById(quizId) match {
+      assessmentService.findOneById(assessmentId) match {
         case Some(q) =>
           val sessions = q.participants.map(_.answers.filter(_.itemId.toString == itemId.toString).map(_.sessionId.toString)).flatten
           Ok(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2)))))
@@ -276,4 +277,4 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
   }
 }
 
-object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceWired, QuizService)
+object ItemSessionApi extends ItemSessionApi(DefaultItemSession, ItemServiceWired, AssessmentService)

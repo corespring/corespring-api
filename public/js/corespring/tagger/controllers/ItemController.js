@@ -27,9 +27,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
   }
 
-  function loadCollections() {
+  function loadWritableCollections() {
+    function writable(collections) {
+      return _.filter(collections, function(collection) {
+         return collection.permission == "write";
+      });
+    }
+
     Collection.get({}, function (data) {
-        $scope.collections = data;
+        $scope.collections = writable(data);
       },
       function (err) {
         Logger.error("error when loading collections in ItemController: "+JSON.stringify(err))
@@ -44,7 +50,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
     $scope.changePanel(panelName);
     loadStandardsSelectionData();
-    loadCollections();
+    loadWritableCollections();
     $scope.$watch(
       function () {
         return $location.url();

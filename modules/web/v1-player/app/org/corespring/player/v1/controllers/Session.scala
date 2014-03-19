@@ -3,8 +3,8 @@ package org.corespring.player.v1.controllers
 import org.bson.types.ObjectId
 import org.corespring.api.v1.ItemSessionApi
 import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
@@ -17,7 +17,7 @@ import scala.Some
 class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes with PlayerCookieReader {
 
   val DefaultApi = ItemSessionApi
-  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceWired, QuizService)
+  val PreviewApi = new ItemSessionApi(PreviewItemSessionCompanion, ItemServiceWired, AssessmentService)
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {
@@ -41,8 +41,8 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
     )
   }
 
-  def aggregate(quizId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
-    RequestedAccess.asRead(Some(itemId), assessmentId = Some(quizId)))(implicit request => api.aggregate(quizId, itemId)(request))
+  def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
+    RequestedAccess.asRead(Some(itemId), assessmentId = Some(assessmentId)))(implicit request => api.aggregate(assessmentId, itemId)(request))
 
   def jsRoutes = Action {
     implicit request =>

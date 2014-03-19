@@ -22,8 +22,9 @@ class ExporterApiTest extends BaseTest {
   }
 
   private def unzip(path:String, folder:String){
-    import sys.process._
-    Seq("unzip", path, "-d", folder).!
+    //import sys.process._
+    //Seq("unzip", path, "-d", folder).!
+    new UnzipUtil().unzip(path,folder)
   }
 
   "Exporter api" should {

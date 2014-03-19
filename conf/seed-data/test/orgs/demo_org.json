@@ -13,13 +13,15 @@
       "collectionId": {
         "$oid": "51114b127fc1eaa866444647"
       },
-      "pval": 3
+      "pval": 3,
+      "enabled": true
     },
     {
       "collectionId": {
         "$oid": "511276834924c9ca07b97044"
       },
-      "pval": 3
+      "pval": 3,
+      "enabled": true
     }
   ],
   "metadataSets": [

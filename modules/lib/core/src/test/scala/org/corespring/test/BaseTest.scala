@@ -14,7 +14,7 @@ import scala.concurrent.Future
 
 trait BaseTest extends Specification with Assertions {
 
-  val TEST_COLLECTION_ID: String = "51114b127fc1eaa866444647"
+  val TEST_COLLECTION_ID = "51114b127fc1eaa866444647"
   // From standard fixture data
   val token = "test_token"
 

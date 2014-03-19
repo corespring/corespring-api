@@ -9,32 +9,22 @@ import org.corespring.qti.processors.FeedbackProcessor
 
 trait QtiRenderer {
 
-  val NamespaceRegex = """xmlns.*?=".*?"""".r
+
+  val xmlRewrites = Seq(
+    NamespaceRewriteRule,
+    TexRewriteRule
+  )
 
   /**
    * Prepare the raw qti xml for rendering. Remove answers and add csFeedbackIds
    */
   def prepareQti(qti: Elem, renderMode: RenderingMode = Web): String = {
-    val processedQti = new RuleTransformer(new PreprocessXml).transform(qti).asInstanceOf[Elem]
-    val (xmlWithCsFeedbackIds, _) = FeedbackProcessor.addFeedbackIds(processedQti)
-    val itemBody = FeedbackProcessor.filterFeedbackContent(xmlWithCsFeedbackIds \ "itemBody")
+    val processedQti = new RuleTransformer(xmlRewrites: _*).transform(qti).asInstanceOf[Elem]
+    val (xmlWithCsFeedbackIds, _) = addFeedbackIds(processedQti)
+    val itemBody = filterFeedbackContent(xmlWithCsFeedbackIds \ "itemBody");
     //TODO remember after refactor, filter feedback content for feedbackBlock and modalFeedback, feedbackInline's have already been done in the interactions
     val qtiXml = <assessmentItem mode={ renderMode.toString }>{ itemBody }</assessmentItem>
     val string = Xhtml.toXhtml(qtiXml)
-    removeNamespaces(string)
-  }
-
-  /**
-   * remove the namespaces - Note: this is necessary to support correct rendering in IE8
-   */
-  private def removeNamespaces(xml: String): String = NamespaceRegex.replaceAllIn(xml, "")
-  private class PreprocessXml extends RewriteRule {
-    override def transform(node: Node): Seq[Node] = node match {
-      case e: Elem => QtiItem.interactionModels.find(i => i.interactionMatch(e)) match {
-        case Some(i) => i.preProcessXml(e)
-        case None => e
-      }
-      case other => other
-    }
+    NamespaceRewriteRule.removeNamespaces(string)
   }
 }

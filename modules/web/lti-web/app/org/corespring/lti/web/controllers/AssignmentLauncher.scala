@@ -89,7 +89,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       LtiData(request) match {
         case Some(data) => {
 
-          val quiz: LtiQuiz = getOrCreateQuiz(data)
+          val assessment: LtiAssessment = getOrCreateAssessment(data)
 
           getOrgFromOauthSignature(request) match {
             case Some(org) => {
@@ -104,7 +104,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
                 s +
                   (PlayerCookieKeys.renderOptions -> Json.toJson(RenderOptions.ANYTHING).toString) +
-                  (LtiCookieKeys.QUIZ_ID -> quiz.id.toString) +
+                  (LtiCookieKeys.ASSESSMENT_ID -> assessment.id.toString) +
                   (PlayerCookieKeys.orgId -> org.id.toString) +
                   (PlayerCookieKeys.activeMode -> mode)
               }
@@ -114,18 +114,18 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
               if (isInstructor) {
 
                 Ok(_root_.org.corespring.lti.web.views.html.itemChooser(
-                  quiz.id,
+                  assessment.id,
                   data.selectionDirective.getOrElse(""),
                   data.returnUrl.getOrElse("")))
                   .withSession(buildSession(request.session, RequestedAccess.Mode.Preview.toString))
                   .withHeaders(p3pHeaders)
               } else {
-                if (quiz.question.itemId.isDefined) {
-                  require(data.outcomeUrl.isDefined, "outcome url must be defined: quiz id: " + quiz.id)
-                  require(data.resultSourcedId.isDefined, "sourcedid must be defined: quiz id: " + quiz.id)
-                  require(data.returnUrl.isDefined, "return url must be defined: quiz id: " + quiz.id)
+                if (assessment.question.itemId.isDefined) {
+                  require(data.outcomeUrl.isDefined, "outcome url must be defined: assessment id: " + assessment.id)
+                  require(data.resultSourcedId.isDefined, "sourcedid must be defined: assessment id: " + assessment.id)
+                  require(data.returnUrl.isDefined, "return url must be defined: assessment id: " + assessment.id)
 
-                  val updatedConfig = quiz.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
+                  val updatedConfig = assessment.addParticipantIfNew(data.resultSourcedId.get, data.outcomeUrl.get, data.returnUrl.get)
                   val call = _root_.org.corespring.lti.web.controllers.routes.AssignmentPlayer.run(updatedConfig.id, data.resultSourcedId.get)
                   Redirect(call.url)
                     .withSession(buildSession(request.session, RequestedAccess.Mode.Administer.toString))
@@ -142,7 +142,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       }
   }
 
-  private def getOrCreateQuiz(data: LtiData): LtiQuiz = {
+  private def getOrCreateAssessment(data: LtiData): LtiAssessment = {
 
     require(data.resourceLinkId.isDefined)
 
@@ -151,7 +151,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
      * @param linkId
      * @return
      */
-    def newQuiz(linkId: String): LtiQuiz = data.oauthConsumerKey.map { key =>
+    def newAssessment(linkId: String): LtiAssessment = data.oauthConsumerKey.map { key =>
 
       require(ObjectId.isValid(key.trim), "the consumer key must be a valid object id")
 
@@ -159,32 +159,32 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
       require(client.isDefined, "the api client must be defined")
 
-      val quiz = LtiQuiz(
+      val assessment = LtiAssessment(
         linkId,
         LtiQuestion(None, ItemSessionSettings()),
         Seq(),
         client.map(_.orgId))
-      LtiQuiz.insert(quiz)
-      quiz
+      LtiAssessment.insert(assessment)
+      assessment
     }.getOrElse {
       throw new IllegalArgumentException("The consumer key must be defined")
     }
 
-    def findByCanvasConfigId(id: String): LtiQuiz = LtiQuiz.findOneById(new ObjectId(id)) match {
+    def findByCanvasConfigId(id: String): LtiAssessment = LtiAssessment.findOneById(new ObjectId(id)) match {
       case Some(c) => c
       case _ => throw new RuntimeException("A canvas id was specified but can't be found")
     }
 
     if (data.selectionDirective == Some("select_link")) {
-      newQuiz("select_link")
+      newAssessment("select_link")
     } else {
       data.canvasConfigId match {
         case Some(canvasId) => findByCanvasConfigId(canvasId)
         case _ => {
           val rId = data.resourceLinkId.get
-          LtiQuiz.findByResourceLinkId(rId) match {
-            case Some(quiz) => quiz
-            case _ => newQuiz(rId)
+          LtiAssessment.findByResourceLinkId(rId) match {
+            case Some(assessment) => assessment
+            case _ => newAssessment(rId)
           }
         }
       }
@@ -226,9 +226,9 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
     out
   }
   private def session(id: ObjectId, resultSourcedId: String): Either[String, ItemSession] =
-    LtiQuiz.findOneById(id) match {
-      case Some(quiz) => {
-        quiz.participants.find(_.resultSourcedId == resultSourcedId) match {
+    LtiAssessment.findOneById(id) match {
+      case Some(assessment) => {
+        assessment.participants.find(_.resultSourcedId == resultSourcedId) match {
           case Some(participant) => {
             DefaultItemSession.findOneById(participant.itemSession) match {
               case Some(session) => Right(session)
@@ -238,24 +238,24 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
           case _ => Left("Can't find assignment")
         }
       }
-      case _ => Left("Can't find quiz")
+      case _ => Left("Can't find assessment")
     }
 
-  def process(quizId: ObjectId, resultSourcedId: String) = session(quizId, resultSourcedId) match {
+  def process(assessmentId: ObjectId, resultSourcedId: String) = session(assessmentId, resultSourcedId) match {
     case Left(msg) => Action { request =>
       logger.warn("Error processing response: " + msg)
       BadRequest(msg)
     }
     case Right(session) => {
 
-      auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(quizId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
+      auth.ValidatedAction(RequestedAccess.asRead(assessmentId = Some(assessmentId), itemId = Some(session.itemId), sessionId = Some(session.id))) {
         request =>
           import scalaz._
 
           val result: Validation[String, Future[SimpleResult]] = for {
-            q <- LtiQuiz.findOneById(quizId).toSuccess("Can't find Quiz")
+            q <- LtiAssessment.findOneById(assessmentId).toSuccess("Can't find Assessment")
             p <- q.participants.find(_.resultSourcedId == resultSourcedId).toSuccess("Can't find participant")
-            orgId <- q.orgId.toSuccess("Quiz has no orgId")
+            orgId <- q.orgId.toSuccess("Assessment has no orgId")
             apiClient <- ApiClient.findOneByOrgId(orgId).toSuccess("Can't find ApiClient for org")
           } yield sendScore(session, p, apiClient)
 

@@ -2,6 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.json.JsonValidationException
@@ -12,12 +13,13 @@ import play.api.libs.json._
 import scala._
 
 case class Item(
-  var collectionId: String = "",
+  var collectionId: Option[String] = None,
   var contributorDetails: Option[ContributorDetails] = None,
-  var contentType: String = "item",
+  var contentType: String = Item.contentType,
   var priorUse: Option[String] = None,
   var priorGradeLevel: Seq[String] = Seq(),
   var reviewsPassed: Seq[String] = Seq(),
+  var sharedInCollections: Seq[String] = Seq(),
   var standards: Seq[String] = Seq(),
   var pValue: Option[String] = None,
   var lexile: Option[String] = None,
@@ -30,7 +32,8 @@ case class Item(
   var dateModified: Option[DateTime] = Some(new DateTime()),
   var taskInfo: Option[TaskInfo] = None,
   var otherAlignments: Option[Alignments] = None,
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content with EntityWithVersionedId[ObjectId] {
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())
+) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
@@ -56,6 +59,12 @@ object Item {
   }
 
   val FieldValuesVersion = "0.0.1"
+
+  object QtiResource {
+    val QtiXml = "qti.xml"
+  }
+
+  val contentType = "item"
 
   object Keys {
 
@@ -87,10 +96,12 @@ object Item {
     val pValue = "pValue"
     val priorUse = "priorUse"
     val reviewsPassed = "reviewsPassed"
+    val sharedInCollections = "sharedInCollections"
     val demonstratedKnowledge = "demonstratedKnowledge"
     val sourceUrl = "sourceUrl"
     val standards = "standards"
     val title = "title"
+    val description = "description"
     val lexile = "lexile"
     val data = "data"
     val supportingMaterials = "supportingMaterials"
@@ -104,20 +115,18 @@ object Item {
 
   lazy val fieldValues = FieldValue.current
 
-  implicit object ItemWrites extends Writes[Item] {
-    def writes(item: Item) = {
-      ItemView.ItemViewWrites.writes(ItemView(item, None))
-    }
-  }
-
-  implicit object Reads extends Reads[Item] {
+  implicit object ItemFormat extends Format[Item] {
 
     import Keys._
 
-    def reads(json: JsValue): JsResult[Item] = {
+    implicit val ItemViewWrites = ItemView.Writes
+
+    def writes(item: Item) = Json.toJson(ContentView[Item](item, None))
+
+    def reads(json: JsValue) = {
       val item = Item()
 
-      item.collectionId = (json \ collectionId).asOpt[String].getOrElse("")
+      item.collectionId = (json \ collectionId).asOpt[String]
 
 
       item.playerDefinition = (json \ "playerDefinition").asOpt[PlayerDefinition]
@@ -136,6 +145,7 @@ object Item {
       item.priorGradeLevel = (json \ priorGradeLevel).asOpt[Seq[String]].
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)

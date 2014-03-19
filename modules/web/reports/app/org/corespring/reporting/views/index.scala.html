@@ -1,4 +1,5 @@
-@(collections : List[(String,String)])
+
+@(collections : List[(String,String)], timestamps: Map[String, String], inProgress: Map[String, Boolean])
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
@@ -26,18 +27,53 @@
             margin: 0;
         }
 
-        .main-reports a {
-            display: inline-block;
-            vertical-align: middle;
+        .main-reports .name {
+            width: 295px;
         }
 
-        .loading .indicator {
+        .main-reports .date {
+            width: 190px;
+        }
+
+        .main-reports thead {
+            font-weight: bold;
+        }
+
+        .main-reports tr {
+            margin: 20px 0;
+        }
+
+        .main-reports a {
             display: inline-block;
-            vertical-align: middle;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .main-reports a.disabled {
+            cursor: default;
+            opacity: 0.3;
+        }
+
+        .main-reports a.disabled:hover {
+            text-decoration: none;
+            color: #4e6d0b;
+        }
+
+        .main-reports span {
+            display: block;
+        }
+
+        .main-reports .loading a {
+            display: none;
+        }
+
+        .main-reports .loading .indicator {
+            display: inline-block;
             background: url('/assets/images/ajax-loader.gif') no-repeat center center;
-            background-size: 12px 12px;
-            height: 12px;
-            width: 12px;
+            background-size: 32px 32px;
+            height: 32px;
+            width: 32px;
+            margin: 16px;
         }
     </style>
 
@@ -64,46 +100,65 @@
 
             updateLinks($("#collectionSelect").val());
 
-            function pollReport(href, li) {
+            function pollReport(href, td) {
+                var tr = $(td).closest('tr');
                 $.ajax({
                     method: 'GET',
                     url: href,
                     success: function(data, textStatus, xhr) {
                         if (xhr.status == 202) {
                             setTimeout(function() {
-                                pollReport(href, li);
+                                pollReport(href, td);
                             }, 5000);
                         } else {
-                            $(li).toggleClass('loading');
+                            if (data.timestamp) {
+                                $('.date', tr).html(data.timestamp);
+                            }
+                            $('.disabled', tr).removeClass('disabled');
+                            $(td).toggleClass('loading');
                         }
                     },
                     error: function() {
                         alert("There was an error generating the report");
-                        $(li).toggleClass('loading');
+                        $(td).toggleClass('loading');
                     }
                 });
             }
 
+            $('.main-reports').on('click', '.disabled', function() {
+                return false;
+            });
+
+            $('.loading').each(function(i, td) {
+                pollReport($('.generate', td).attr('href').replace('generate', 'status'), td);
+            });
+
             $('.generate').on('click', function() {
                 var url = $(this).attr('href');
-                var li = $(this).closest('li');
+                var td = $(this).closest('td');
+                var tr = $(td).closest('tr');
 
-                $(li).toggleClass('loading');
+                $(td).toggleClass('loading');
+
                 $.ajax({
                     method: 'GET',
                     url: url,
                     success: function(data, textStatus, xhr) {
                         if (xhr.status == 202) {
-                            pollReport(url.replace('generate', 'status'), li);
+                            pollReport(url.replace('generate', 'status'), td);
                         } else {
-                            $(li).toggleClass('loading');
+                            if (data.timestamp) {
+                                $('.date', tr).html(data.timestamp);
+                            }
+                            $('.disabled', tr).removeClass('disabled');
+                            $(td).toggleClass('loading');
                         }
                     },
                     error: function() {
                         alert("There was an error generating the report");
-                        $(li).toggleClass('loading');
+                        $(td).toggleClass('loading');
                     }
-                })
+                });
                 return false;
             });
 
@@ -116,29 +171,98 @@
 
 <div class="container" style="position:relative; top: 100px;">
     <h2>Main Reports</h2>
-    <p>Main reports take a while to generate, so are generated automatically every 24 hours. If you require an immediate up-to-date version of the report, click the generate button.</p>
-    <ul class="main-reports">
-        <li>
-            <a href="/reports/primary-subject-item-report.csv">Primary Subject Report</a>&nbsp;
-            [<a href="/reports/primarySubject/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/standard-item-report.csv">Standard Report</a>&nbsp;
-            [<a href="/reports/standards/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/contributor-item-report.csv">Contributor Report</a>&nbsp;
-            [<a href="/reports/contributor/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-        <li>
-            <a href="/reports/collection-item-report.csv">Collection Report</a>&nbsp;
-            [<a href="/reports/collection/generate" class="generate">generate</a>]
-            <div class="indicator"/>
-        </li>
-    </ul>
+    <p>Due to the size of these reports, they are automatically generated every day. Click 'download' to open a report in .csv format. If you need a more recent report, click 'update' to generate a new report.</p>
+    <table class="main-reports">
+        <thead>
+            <tr>
+                <td class="name">Report Name</td>
+                <td colspan="3">Date Created</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="name">Primary Subject Report</td>
+                <td class="date">@timestamps.get("primarySubject").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("primarySubject").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/primarySubject/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td><a href="/reports/primary-subject-item-report.csv" class="@(if (timestamps.contains("primarySubject")) "enabled" else "disabled")">
+                    <img src="assets/images/download.png" />
+                    <span>Download</span>
+                </a></td>
+            </tr>
+            <tr>
+                <td class="name">Standard Report</td>
+                <td class="date">@timestamps.get("standards").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("standards").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/standards/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td><a href="/reports/standard-item-report.csv" class="@(if (timestamps.contains("standards")) "enabled" else "disabled")">
+                    <img src="assets/images/download.png" />
+                    <span>Download</span>
+                </a></td>
+            </tr>
+            <tr>
+                <td class="name">Contributor Report</td>
+                <td class="date">@timestamps.get("contributor").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("contributor").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/contributor/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td>
+                    <a href="/reports/contributor-item-report.csv" class="@(if (timestamps.contains("contributor")) "enabled" else "disabled")">
+                        <img src="assets/images/download.png" />
+                        <span>Download</span>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td class="name">Collection Report</td>
+                <td class="date">@timestamps.get("collection").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("collection").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/collection/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td>
+                    <a href="/reports/collection-item-report.csv" class="@(if (timestamps.contains("collection")) "enabled" else "disabled")">
+                        <img src="assets/images/download.png" />
+                        <span>Download</span>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <td class="name">Standards by Collection Report</td>
+                <td class="date">@timestamps.get("standardsByCollection").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("standardsByCollection").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/standardsByCollection/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+              <td>
+                <a href="/reports/standards-by-collection-report.csv" class="@(if (timestamps.contains("standardsByCollection")) "enabled" else "disabled")">
+                  <img src="assets/images/download.png" />
+                  <span>Download</span>
+                </a>
+              </td>
+            </tr>
+        </tbody>
+    </table>
 
     <br/>
     <br/>

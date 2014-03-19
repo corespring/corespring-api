@@ -1,10 +1,11 @@
 package org.corespring.reporting.services
 
+import org.corespring.reporting.services.ReportGenerator.ReportKeys
+import org.joda.time.DateTime
 import play.Logger
 import play.cache.Cache
 import scala.Some
 import scala.concurrent._
-import org.corespring.reporting.services.ReportGenerator.ReportKeys
 
 class ReportGenerator(reportsService: ReportsService) {
 
@@ -12,7 +13,8 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.primarySubject -> reportsService.buildPrimarySubjectReport _,
     ReportKeys.standards -> reportsService.buildStandardsReport _,
     ReportKeys.contributor -> reportsService.buildContributorReport _,
-    ReportKeys.collection -> reportsService.buildCollectionReport _
+    ReportKeys.collection -> reportsService.buildCollectionReport _,
+    ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _
   )
 
   /**
@@ -20,9 +22,23 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
-  def getReport(reportKey: String): Option[String] = Option(Cache.get(reportKey)) match {
-    case Some(report: String) => Some(report)
+  def getReport(reportKey: String): Option[(DateTime, Option[String], Boolean)] = Option(Cache.get(reportKey)) match {
+    case Some((date: DateTime, report: Option[String], inProgress: Boolean)) => Some(date, report, inProgress)
     case _ => None
+  }
+
+  def inProgress(reportKey: String): Boolean = getReport(reportKey) match {
+    case Some((_, _, inProgress)) => inProgress
+    case None => false
+  }
+
+  def inProgress(): Map[String, Boolean] = ReportKeys.keys.map(key => (key, inProgress(key))).toMap
+
+  def timestamps: Map[String, String] = {
+    ReportKeys.keys.map(key => (key, (getReport(key) match {
+      case Some((date: DateTime, Some(report), _)) => Some(date.toString("MM/dd/YYYY hh:mm aa z"))
+      case _ => None
+    }))).filter{ case (a,b) => b.nonEmpty }.map{ case (a,b) => (a, b.get) }.toMap
   }
 
   /**
@@ -31,9 +47,12 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateReport(reportKey: String): Future[Option[String]] = {
 
-    import ExecutionContext.Implicits.global
+    implicit val executionContext = ExecutionContexts.reportGeneration
 
-    Cache.remove(reportKey)
+    Option(Cache.get(reportKey)) match {
+      case Some((date, report, _)) => Cache.set(reportKey, (date, report, true))
+      case _ => Cache.set(reportKey, (new DateTime, None, true))
+    }
 
     future {
       Logger.info(s"Starting to generate report $reportKey")
@@ -41,7 +60,7 @@ class ReportGenerator(reportsService: ReportsService) {
         generatorFunctions.get(reportKey) match {
           case Some(generator: (() => String)) => {
             val report = generator()
-            Cache.set(reportKey, report)
+            Cache.set(reportKey, (new DateTime, Some(report), false))
             Logger.info(s"Generated $reportKey report")
             Some(report)
           }
@@ -56,6 +75,8 @@ class ReportGenerator(reportsService: ReportsService) {
           e.printStackTrace
           None
         }
+      } finally {
+        Logger.info(s"Finished attempt to generate $reportKey report")
       }
     }
   }
@@ -69,6 +90,9 @@ object ReportGenerator extends ReportGenerator(ReportsService) {
     val standards = "standards"
     val collection = "collection"
     val contributor = "contributor"
+    val standardsByCollection = "standardsByCollection"
+
+    val keys = Seq(primarySubject, standards, collection, contributor, standardsByCollection)
   }
 
 }

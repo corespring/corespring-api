@@ -1,25 +1,27 @@
 package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah
-import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.{ BasicDBObject, DBObject }
 import com.novus.salat._
-import dao.SalatMongoCursor
+import com.novus.salat.dao.SalatMongoCursor
 import org.bson.types.ObjectId
-import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
+import org.corespring.assets.CorespringS3Service
+import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.files.{ CloneFileResult, ItemFiles }
+import org.corespring.platform.core.files.CloneFileResult
+import org.corespring.platform.core.files.ItemFiles
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
-import org.corespring.platform.core.models.item.{ Item, FieldValue }
+import org.corespring.platform.core.models.item.{Item, FieldValue}
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Application
 import play.api.PlayException
+import scala.Some
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
@@ -40,7 +42,9 @@ class ItemServiceWired(
 
   lazy val fieldValues = FieldValue.current
 
-  def cloneItem(item: Item): Option[Item] = {
+  private val baseQuery = MongoDBObject("contentType" -> "item")
+
+  def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
     result match {
@@ -54,15 +58,15 @@ class ItemServiceWired(
     }
   }
 
-  def countItems(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(query).toInt
+  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(query, fields)
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
 
   def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
-  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(query)
+  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
   def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = dao.update(id, dbo, createNewVersion)
 
@@ -94,7 +98,7 @@ class ItemServiceWired(
 
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
     val oids = ids.map(i => i.id)
-    val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
+    val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
     val out = dao.findCurrent(query, keys).toSeq
     out
   }
@@ -109,8 +113,6 @@ class ItemServiceWired(
     } yield scala.xml.XML.loadString(CDataHandler.addCDataTags(virtualFile.content))
   }
 
-  def currentVersion(id: VersionedId[ObjectId]): Option[Int] = throw new RuntimeException("to be implemented?")
-
   def sessionCount(item: Item): Long = {
     import com.novus.salat._
     val dbo = grater[VersionedId[ObjectId]].asDBObject(item.id)
@@ -119,6 +121,7 @@ class ItemServiceWired(
   }
 
   def bucket: String = AppConfig.assetsBucket
+
 }
 
 object ItemVersioningDao extends SalatVersioningDao[Item] {

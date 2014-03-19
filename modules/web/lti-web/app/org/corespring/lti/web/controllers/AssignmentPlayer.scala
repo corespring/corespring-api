@@ -1,18 +1,18 @@
 package org.corespring.lti.web.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.lti.models.LtiQuiz
+import org.corespring.lti.models.LtiAssessment
 import org.corespring.platform.core.controllers.AssetResource
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.quiz.basic.QuizService
 import org.corespring.player.accessControl.auth.CheckSessionAccess
 import org.corespring.player.accessControl.models.RequestedAccess
-import play.api.mvc.Action
 import org.corespring.player.v1.controllers.Views
 import org.corespring.player.v1.views.models.PlayerParams
+import play.api.mvc.Action
 
-object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceWired, QuizService) with AssetResource {
+object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceWired, AssessmentService) with AssetResource {
 
   def run(configId: ObjectId, resultSourcedId: String) = {
     session(configId, resultSourcedId) match {
@@ -28,7 +28,7 @@ object AssignmentPlayer extends Views(CheckSessionAccess, ItemServiceWired, Quiz
     }
   }
 
-  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiQuiz.findOneById(configId) match {
+  private def session(configId: ObjectId, resultSourcedId: String): Either[String, ItemSession] = LtiAssessment.findOneById(configId) match {
     case Some(config) => {
 
       config.participants.find(_.resultSourcedId == resultSourcedId) match {

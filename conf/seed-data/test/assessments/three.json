@@ -1,0 +1,37 @@
+{
+  "_id": {
+    "$oid": "000000000000000000000003"
+  },
+  "orgId": {
+    "$oid": "51114b307fc1eaa866444648"
+  },
+  "questions": [
+    {
+      "itemId": {
+        "_id": {
+          "$oid": "5153eee1aa2eefdc1b7a5570"
+        },
+        "version": 0
+      },
+      "title": "Test Assessment"
+    }
+  ],
+  "participants": [
+    {
+      "answers": [
+        {
+          "sessionId": {
+            "$oid": "5154236deea49124561ee825"
+          },
+          "itemId": {
+            "_id": {
+              "$oid": "5153eee1aa2eefdc1b7a5570"
+            },
+            "version": 0
+          }
+        }
+      ],
+      "externalUid": "hello"
+    }
+  ]
+}
