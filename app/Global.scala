@@ -75,6 +75,10 @@ object Global
       if (componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
         logger.info("reload components!")
         componentLoader.reload
+
+        if (componentLoader.all.length == 0) {
+          throw new RuntimeException("No components loaded - check your component path configuration: 'components.path'")
+        }
       }
     }
 
