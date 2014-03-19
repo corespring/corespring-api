@@ -20,6 +20,7 @@ case class Standard(var dotNotation: Option[String] = None,
 
   val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
   val abbrev = "([\\w|-]+)..*".r
+  val last = ".*\\.(\\w+)$".r
 
   def abbreviation: Option[String] = dotNotation match {
     case Some(notation) => notation match {
@@ -29,6 +30,14 @@ case class Standard(var dotNotation: Option[String] = None,
     }
     case _ => None
   }
+
+  def code: Option[String] = dotNotation match {
+    case Some(notation) => notation match {
+      case last(code) => Some(code)
+      case _ => None
+    }
+  }
+
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {

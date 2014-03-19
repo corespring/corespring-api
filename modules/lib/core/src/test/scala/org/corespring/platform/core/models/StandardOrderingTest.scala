@@ -14,8 +14,8 @@ class StandardOrderingTest extends Specification {
   val underGrad = Seq("UG")
   val firstCategory = Some("AAA - This should be first")
   val lastCategory = Some("ZZZ - Because this is a lexographic sort")
-  val firstSubcategory = Some("A - This is first")
-  val lastSubcategory = Some("Z - This is last")
+  val firstDotNotation = Some("Test.1")
+  val secondDotNotation = Some("Test.1a")
 
   "compare" should {
 
@@ -46,9 +46,9 @@ class StandardOrderingTest extends Specification {
       standards.last must be equalTo last
     }
 
-    "order by subcategory when subject, grade, and category are equal" in {
-      val first = Standard(subject = mathSubject, grades = firstGrade, category = firstCategory, subCategory = firstSubcategory)
-      val last = Standard(subject = mathSubject, grades = firstGrade, category = firstCategory, subCategory = lastSubcategory)
+    "order by code when subject, grade, and category are equal" in {
+      val first = Standard(dotNotation = firstDotNotation, subject = mathSubject, grades = firstGrade, category = firstCategory)
+      val last = Standard(dotNotation = secondDotNotation, subject = mathSubject, grades = firstGrade, category = firstCategory)
       val standards = Array(last, first)
       Sorting.quickSort(standards)(StandardOrdering)
       standards.head must be equalTo first
