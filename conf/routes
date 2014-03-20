@@ -34,6 +34,7 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 
 # Note: You can't assign the same routes file to different paths as the object will get overwritten
 # ->     /v1/player             v1Player.Routes
+->     /logger/                clientlogging.Routes
 
 ->     /v2/player             v2Player.Routes
 ->     /lti                   lti.Routes
@@ -59,7 +60,7 @@ GET    /web/print-resource/:itemId/data/main                web.controllers.Show
 
 #
 # SecureSocial routes
-#
+
 # Login page
 GET     /login                      securesocial.controllers.LoginPage.login
 GET     /logout                     common.controllers.UserSession.logout

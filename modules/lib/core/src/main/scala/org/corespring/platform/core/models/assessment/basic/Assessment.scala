@@ -6,6 +6,7 @@ import org.corespring.platform.core.models.assessment._
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession._
 import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.platform.core.models.assessment._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -27,9 +28,7 @@ object Answer {
         Answer(
           sessionId = new ObjectId((json \ "sessionId").as[String]),
           itemId = (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads)
-            .getOrElse(throw new JsonValidationException("You must have an item id"))
-        )
-      )
+            .getOrElse(throw new JsonValidationException("You must have an item id"))))
     }
   }
 

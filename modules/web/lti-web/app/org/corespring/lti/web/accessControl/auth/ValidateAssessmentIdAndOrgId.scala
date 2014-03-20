@@ -5,7 +5,7 @@ import org.corespring.lti.web.accessControl.cookies.LtiCookieKeys
 import org.corespring.player.accessControl.auth.ActionBuilder
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import play.api.mvc._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Builds an action using the given block, if the query returns true.
@@ -24,7 +24,6 @@ abstract class ValidateAssessmentIdAndOrgId[REQUEST <: Request[AnyContent]]
   /** Build the request to be passed into the block */
   def makeRequest(orgId: ObjectId, r: Request[AnyContent]): Option[REQUEST]
 
-
   def ValidatedAction(query: OrgIdAndAssessmentIdAreValid)(block: (REQUEST) => Future[SimpleResult]): Action[AnyContent] =
     ValidatedAction(play.api.mvc.BodyParsers.parse.anyContent)(query)(block)
 
@@ -41,3 +40,4 @@ abstract class ValidateAssessmentIdAndOrgId[REQUEST <: Request[AnyContent]]
   }
 
 }
+

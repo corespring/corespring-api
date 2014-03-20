@@ -32,8 +32,7 @@ case class Item(
   var dateModified: Option[DateTime] = Some(new DateTime()),
   var taskInfo: Option[TaskInfo] = None,
   var otherAlignments: Option[Alignments] = None,
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())
-) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
@@ -127,7 +126,6 @@ object Item {
       val item = Item()
 
       item.collectionId = (json \ collectionId).asOpt[String]
-
 
       item.playerDefinition = (json \ "playerDefinition").asOpt[PlayerDefinition]
       item.taskInfo = json.asOpt[TaskInfo]

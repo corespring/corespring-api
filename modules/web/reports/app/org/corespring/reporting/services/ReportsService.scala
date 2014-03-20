@@ -7,20 +7,19 @@ import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.utils.string
 import org.corespring.platform.core.models.item.TaskInfo
-import org.corespring.platform.core.models.{Subject, Standard, ContentCollection}
+import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.reporting.models.ReportLineResult
-import org.corespring.reporting.models.ReportLineResult.{KeyCount, LineResult}
+import org.corespring.reporting.models.ReportLineResult.{ KeyCount, LineResult }
 import org.corespring.reporting.utils.CsvWriter
 import scala.Some
 
 object ReportsService extends ReportsService(ItemServiceWired.collection, Subject.collection, ContentCollection.collection, Standard.collection)
 
 class ReportsService(ItemCollection: MongoCollection,
-                     SubjectCollection: MongoCollection,
-                     CollectionsCollection: MongoCollection,
-                     StandardCollection: MongoCollection) extends CsvWriter{
-
+  SubjectCollection: MongoCollection,
+  CollectionsCollection: MongoCollection,
+  StandardCollection: MongoCollection) extends CsvWriter {
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
@@ -62,10 +61,10 @@ class ReportsService(ItemCollection: MongoCollection,
       case _ => collectionIdToName(collectionId)
     }
 
-    val loadValues : PartialFunction[DBObject,(String, String)] = if (queryType.toLowerCase == "collectionid") {
-      case o:DBObject => (collectionIdToName(o.get("_id").toString), o.get("value").toString)
+    val loadValues: PartialFunction[DBObject, (String, String)] = if (queryType.toLowerCase == "collectionid") {
+      case o: DBObject => (collectionIdToName(o.get("_id").toString), o.get("value").toString)
     } else {
-      case foundDbo: DBObject =>  (foundDbo.get("_id").toString, foundDbo.get("value").toString)
+      case foundDbo: DBObject => (foundDbo.get("_id").toString, foundDbo.get("value").toString)
     }
 
     val values = inlineResult.toList.map(loadValues)
@@ -130,12 +129,12 @@ class ReportsService(ItemCollection: MongoCollection,
       val category = dbo.get("category").asInstanceOf[String]
       val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
-      val query = baseQuery
+      val query = Standard.baseQuery(baseQuery)
       query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
     ReportLineResult.buildCsv("Standards", lineResults,
-      (a: String, b: String) => Standard.sorter(a.split(":").head ,b.split(":").head))
+      (a: String, b: String) => Standard.sorter(a.split(":").head, b.split(":").head))
 
   }
 
@@ -179,7 +178,7 @@ class ReportsService(ItemCollection: MongoCollection,
     ReportLineResult.buildCsv("Collection", lineResults)
   }
 
-  def buildLineResult(query: BasicDBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
+  def buildLineResult(query: DBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
 
     ItemCollection.count(query) match {
       case 0 => new LineResult(finalKey)
@@ -191,11 +190,13 @@ class ReportsService(ItemCollection: MongoCollection,
     val collections = CollectionsCollection.find().toIterator.toSeq
     val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
-    val lines = mapToDistinctList("standards", Standard.sorter).map(standard => {
-      val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
-      runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
-      standard +: ReportLineResult.createValueList(collectionsKeyCounts)
-    })
+    val lines = mapToDistinctList("standards", Standard.sorter)
+      .filterNot(Standard.legacy.map(_.dotNotation).flatten.contains(_))
+      .map(standard => {
+        val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
+        runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
+        standard +: ReportLineResult.createValueList(collectionsKeyCounts)
+      })
     (List(header) ++ lines).toCsv
   }
 
@@ -208,8 +209,8 @@ class ReportsService(ItemCollection: MongoCollection,
    * the KeyCount that matches the item.
    */
   private def runMapReduceForProperty[T](keyCounts: List[KeyCount[T]],
-    query: BasicDBObject,
-    mapTemplateFn: JSFunction ) {
+    query: DBObject,
+    mapTemplateFn: JSFunction) {
     val cmd = MapReduceCommand(ItemCollection.name, mapTemplateFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
     val result: MapReduceResult = ItemCollection.mapReduce(cmd)
     val inlineResult: MapReduceInlineResult = result.asInstanceOf[MapReduceInlineResult]
@@ -287,8 +288,8 @@ class ReportsService(ItemCollection: MongoCollection,
   /**
    * Build a single line of counts for the given query.
    */
-  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String,
-                               sorter: (String, String) => Boolean): LineResult = {
+  def buildLineResultFromQuery(query: DBObject, total: Int, key: String,
+    sorter: (String, String) => Boolean): LineResult = {
 
     val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.ItemTypes)
     runMapReduceForProperty[String](itemTypeKeyCounts, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))

@@ -1,6 +1,6 @@
 package org.corespring.api.v1
 
-import com.mongodb.{DBObject, BasicDBObject}
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
@@ -23,11 +23,10 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.Json._
 import play.api.libs.json._
-import play.api.mvc.{Action, Result, AnyContent}
+import play.api.mvc.{ Action, Result, AnyContent }
 import scala.Some
-import scalaz.{Failure, Success, Validation}
 import scalaz.Scalaz._
-import com.mongodb.casbah.Imports
+import scalaz._
 
 /**
  * Items API
@@ -36,9 +35,8 @@ import com.mongodb.casbah.Imports
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging with ItemTransformationCache {
 
-  import org.corespring.platform.core.models.mongoContext.context
-
   import Item.Keys._
+  import org.corespring.platform.core.models.mongoContext.context
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
@@ -68,8 +66,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
   def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
-
-
 
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
@@ -251,7 +247,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
   }
   def updateMetadata(id: VersionedId[ObjectId], property: String) = ApiAction { request =>
-
     service.findOneById(id) match {
       case Some(item) => {
         val splitprops = property.split("\\.")
@@ -290,13 +285,12 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
           //since property does not have a period delimeter, we assume property is the metadata key
           // and the user is attempting to update an entire metadata set within the item
 
-
           val incomingData = for (json <- request.body.asJson; map <- json.asOpt[scala.collection.immutable.Map[String, String]]) yield map
 
           incomingData.map { m =>
 
             import scala.collection.JavaConversions._
-            val mutableMap  = collection.mutable.Map(m.toSeq: _*)
+            val mutableMap = collection.mutable.Map(m.toSeq: _*)
 
             metadataSetService.findByKey(property) match {
               case Some(ms) => { //check to make sure the given properties matches the schema, if there is a a schema
@@ -349,7 +343,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
   override def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) = {
 
-    val mongoDbFields : MongoDBObject = searchFields.dbfields
+    val mongoDbFields: MongoDBObject = searchFields.dbfields
 
     if (!isLoggedIn && mongoDbFields.isEmpty) {
       dbExtraFields.foreach(extraField =>

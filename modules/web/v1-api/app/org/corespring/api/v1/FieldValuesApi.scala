@@ -2,9 +2,9 @@ package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.casbah.map_reduce.{MapReduceInlineOutput, MapReduceCommand}
+import com.mongodb.casbah.map_reduce.{ MapReduceInlineOutput, MapReduceCommand }
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.api.v1.fieldValues.{QueryOptions, Options}
+import org.corespring.api.v1.fieldValues.{ QueryOptions, Options }
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.models.search.SearchCancelled
@@ -17,7 +17,6 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.Action
 import scala.Some
-
 
 object FieldValuesApi extends BaseApi {
 
@@ -54,8 +53,6 @@ object FieldValuesApi extends BaseApi {
       val jsValue = getFieldValuesAsJsValue(fieldName, q, f, c, sk, l)
       Ok(toJson(jsValue))
   }
-
-
 
   /**
    * @param fieldOptions -  a map of options for each field, will be extracted by [[org.corespring.api.v1.fieldValues.QueryOptions]]
@@ -118,10 +115,10 @@ object FieldValuesApi extends BaseApi {
       case "cc-standard" => {
         q.map(Standard.toSearchObj(_, None)).getOrElse[Either[SearchCancelled, DBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Standard.toFieldsObj(_)) match {
-            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query, searchFields.dbfields).toSeq.map(Json.toJson(_)))
+            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(Standard.baseQuery(query)).count)))
+            else JsArray(Standard.find(Standard.baseQuery(query), searchFields.dbfields).toSeq.map(Json.toJson(_)))
             case None => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query).toSeq.map(Json.toJson(_)))
+            else JsArray(Standard.find(Standard.baseQuery(query)).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
           case Left(sc) => sc.error match {
@@ -215,8 +212,7 @@ object FieldValuesApi extends BaseApi {
                  return {exists: 1};
                }""",
       query = Option(query),
-      output = MapReduceInlineOutput
-    )
+      output = MapReduceInlineOutput)
 
     ItemServiceWired.collection.mapReduce(cmd) match {
       case result: MapReduceInlineResult => {
