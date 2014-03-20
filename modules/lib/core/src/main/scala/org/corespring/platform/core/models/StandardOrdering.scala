@@ -61,10 +61,12 @@ object StandardOrdering extends Ordering[Standard] {
     val two = normalizeSubject(other)
     compare(one.subject, two.subject, subjectOrdering)(() =>
       gradesCompare(one.grades, two.grades)(() => {
-        one.category.compareOpt(two.category) match {
-          case 0 => compare(one.abbreviation, two.abbreviation, abbreviationOrdering)(() => one.compareCode(two))
-          case int: Int => int
-        }
+        compare(one.abbreviation, two.abbreviation, abbreviationOrdering)(() => {
+          one.category.compareOpt(two.category) match {
+            case 0 => one.compareCode(two)
+            case int: Int => int
+          }
+        })
       })
     )
   }
