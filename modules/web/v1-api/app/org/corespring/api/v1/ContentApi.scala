@@ -135,6 +135,8 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
         case None => Right(SearchFields(method = 1))
       }
 
+      logger.trace(s"fieldResult: $fieldResult")
+
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
         val cursor = service.find(query, fields.dbfields)
         val count = cursor.count

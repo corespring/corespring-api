@@ -204,6 +204,7 @@ case class SearchCancelled(error: Option[InternalError])
  * @param dbfields
  * @param jsfields
  */
+//TODO - remove mutability
 case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[String] = Seq(), method: Int) {
   val inclusion = method == 1
   val exclusion = method == 0

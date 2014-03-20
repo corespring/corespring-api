@@ -345,15 +345,18 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
     val mongoDbFields: MongoDBObject = searchFields.dbfields
 
+    logger.trace(s"[cleanDbFields] logged in: ${isLoggedIn}, db fields empty: ${mongoDbFields.isEmpty}")
+
     if (!isLoggedIn && mongoDbFields.isEmpty) {
       dbExtraFields.foreach(extraField =>
-        searchFields.dbfields = mongoDbFields ++ MongoDBObject(extraField -> searchFields.method))
+        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
       jsExtraFields.foreach(extraField =>
         searchFields.jsfields = searchFields.jsfields :+ extraField)
     }
     if (searchFields.method == 1 && searchFields.dbfields.nonEmpty) {
       searchFields.dbfields = searchFields.dbfields
     }
+    logger.trace(s"[cleanDbFields] search fields now: ${searchFields.toString}")
   }
 
 }
