@@ -18,55 +18,14 @@ import play.api.libs.json.JsNumber
 import play.api.test.FakeHeaders
 import play.api.mvc.AnyContentAsJson
 
+@deprecated("Move the assertions to CollectionApiIntegrationTest (Work in progress)", "")
 class CollectionApiTest extends BaseTest {
 
   val INITIAL_COLLECTION_SIZE: Int = 2
 
   val routes = org.corespring.api.v1.routes.CollectionApi
   val orgId = "51114b307fc1eaa866444648"
-
-  //todo: fix these. occasionally, when ItemApiTest is run before this, a collection will be created (when storing to an item without a collection. a default collection is generated.). We should clear the database for each test that is run
-  "list all collections" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(token))
-    val Some(result) = route(fakeRequest)
-    assertResult(result)
-    val collections = parsed[List[JsValue]](result)
-    collections.size must beGreaterThanOrEqualTo(INITIAL_COLLECTION_SIZE)
-  }
-
-  "list all collections skipping the first result" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s&sk=1".format(token))
-    val Some(result) = route(fakeRequest)
-    assertResult(result)
-    val collections = parsed[List[JsValue]](result)
-    collections.size must beGreaterThanOrEqualTo(INITIAL_COLLECTION_SIZE - 1)
-  }
-
-  "list all collections limit results to 1" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s&l=1".format(token))
-    val Some(result) = route(fakeRequest)
-    assertResult(result)
-    val collections = parsed[List[JsValue]](result)
-    collections must have size 1
-  }
-
-  "find a collection with name 'Demo Collection 2'" in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s&q={\"name\":\"Demo Collection 2\"}".format(token))
-    val Some(result) = route(fakeRequest)
-    assertResult(result)
-    val collections = parsed[List[JsValue]](result)
-    collections must have size 1
-    (collections(0) \ "name").as[String] must beEqualTo("Demo Collection 2")
-  }
-
   val collectionId = "51114b127fc1eaa866444647"
-  "get a collection by id '%s'".format(collectionId) in {
-    val fakeRequest = FakeRequest(GET, "/api/v1/collections/%s?access_token=%s".format(collectionId, token))
-    val Some(result) = route(fakeRequest)
-    assertResult(result)
-    val collection = parsed[JsValue](result)
-    (collection \ "id").as[String] must beEqualTo(collectionId)
-  }
 
   //  s"return itemType values and counts for $collectionId" in {
   //    skipped("these results are not accurate")

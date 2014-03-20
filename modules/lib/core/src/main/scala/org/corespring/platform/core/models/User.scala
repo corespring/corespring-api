@@ -164,7 +164,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
   def getPermissions(username: String, orgId: ObjectId): Either[InternalError, Permission] = {
     User.findOne(MongoDBObject(User.userName -> username, "org.orgId" -> orgId)) match {
       case Some(u) => getPermissions(u, orgId)
-      case None => Left(InternalError("could not find user with access to given organization"))
+      case None => Left(InternalError(s"could not find user $username with access to given organization: $orgId"))
     }
   }
 

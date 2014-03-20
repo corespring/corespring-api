@@ -4,7 +4,7 @@ import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
-import org.corespring.v2player.integration.scopes.data
+import org.corespring.v2player.integration.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -14,8 +14,8 @@ import scala.concurrent.Future
 class LoadPlayerJsThenLoadPlayerTest
   extends IntegrationSpecification {
 
-  import org.corespring.container.client.controllers.apps.Player
   import org.corespring.container.client.controllers.PlayerLauncher
+  import org.corespring.container.client.controllers.apps.Player
 
   "when I load the player js with orgId and options" should {
 
@@ -41,7 +41,7 @@ class LoadPlayerJsThenLoadPlayerTest
     }
   }
 
-  class LoadJsAndCreateSession(name: String, addCookies: Boolean = false) extends data {
+  class LoadJsAndCreateSession(name: String, addCookies: Boolean = false) extends orgWithAccessTokenAndItem {
 
     protected def global: GlobalSettings = Play.current.global
 

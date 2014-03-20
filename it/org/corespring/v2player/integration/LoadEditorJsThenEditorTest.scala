@@ -3,7 +3,7 @@ package org.corespring.v2player.integration
 import org.corespring.container.client.controllers.routes.PlayerLauncher
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
-import org.corespring.v2player.integration.scopes.data
+import org.corespring.v2player.integration.scopes.orgWithAccessTokenAndItem
 import org.slf4j.LoggerFactory
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -25,7 +25,7 @@ class LoadEditorJsThenEditorTest
     }
   }
 
-  class loader(val addCookies: Boolean) extends data {
+  class loader(val addCookies: Boolean) extends orgWithAccessTokenAndItem {
 
     lazy val result = {
       val url = urlWithEncryptedOptions(PlayerLauncher.editorJs, apiClient)

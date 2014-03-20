@@ -14,16 +14,31 @@ object CollectionHelper {
       case _ => throw new Exception("Failed to create collection")
     }
 
+  def createMultiple(orgId: ObjectId, count: Int = 1, clear: Boolean = true): Seq[ObjectId] = {
+
+    if (clear) {
+      ContentCollection.collection.dropCollection()
+    }
+
+    (1 to count).map { i =>
+      create(orgId)
+    }
+  }
+
   /**
    * Provides ObjectIds for all public collections
    */
   def public: Seq[ObjectId] = {
     ContentCollection.getPublicCollections match {
-      case stream: Stream[ContentCollection] => stream.foldLeft(Seq.empty[ObjectId])({(acc, collection) => acc :+ collection.id})
+      case stream: Stream[ContentCollection] => stream.foldLeft(Seq.empty[ObjectId])({ (acc, collection) => acc :+ collection.id })
       case seq: Seq[ContentCollection] => seq.map(_.id)
     }
   }
 
-  def delete(collectionId: ObjectId) = ContentCollection.delete(collectionId)
+  def delete(collectionIds: ObjectId*) = {
+    collectionIds.foreach {
+      ContentCollection.delete(_)
+    }
+  }
 
 }

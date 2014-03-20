@@ -9,11 +9,11 @@ package object scopes {
 
   val logger = Logger("it.scopes")
 
-  trait data extends BeforeAfter {
+  trait orgWithAccessToken extends BeforeAfter {
     val orgId = OrganizationHelper.create("org")
     val apiClient = ApiClientHelper.create(orgId)
-    val collectionId = CollectionHelper.create(orgId)
-    val itemId = ItemHelper.create(collectionId)
+    val user = UserHelper.create(orgId, "test_user")
+    val accessToken = AccessTokenHelper.create(orgId, "test_user")
 
     def before: Any = {
       logger.debug(s"[before] apiClient ready: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
@@ -23,13 +23,25 @@ package object scopes {
       logger.trace(s"[after] deleting db data: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
       ApiClientHelper.delete(apiClient)
       OrganizationHelper.delete(orgId)
+      AccessTokenHelper.delete(accessToken)
+      UserHelper.delete(user.id)
+    }
+  }
+
+  trait orgWithAccessTokenAndItem extends orgWithAccessToken {
+
+    val collectionId = CollectionHelper.create(orgId)
+    val itemId = ItemHelper.create(collectionId)
+
+    override def after: Any = {
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
     }
   }
 
-  trait sessionData extends data {
-
+  trait sessionData extends orgWithAccessToken {
+    val collectionId = CollectionHelper.create(orgId)
+    val itemId = ItemHelper.create(collectionId)
     val sessionId: ObjectId = V2SessionHelper.create(itemId)
 
     override def before: Any = {
@@ -38,6 +50,8 @@ package object scopes {
 
     override def after: Any = {
       super.after
+      CollectionHelper.delete(collectionId)
+      ItemHelper.delete(itemId)
       V2SessionHelper.delete(sessionId)
     }
   }
