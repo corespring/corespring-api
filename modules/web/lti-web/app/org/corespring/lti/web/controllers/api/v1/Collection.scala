@@ -1,6 +1,7 @@
 package org.corespring.lti.web.controllers.api.v1
 
 import org.bson.types.ObjectId
+import org.corespring.lti.web.accessControl.auth.ValidateAssessmentIdAndOrgId
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.web.common.controllers.SimpleJsRoutes

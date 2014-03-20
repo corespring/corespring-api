@@ -17,15 +17,16 @@ import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
-import reporting.services.ReportGenerator
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future }
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
   with ControllerInstanceResolver
   with GlobalSettings
   with ClassLogging {
+
+  import ExecutionContext.Implicits.global
 
   val INIT_DATA: String = "INIT_DATA"
 
