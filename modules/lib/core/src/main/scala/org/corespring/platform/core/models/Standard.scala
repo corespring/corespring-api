@@ -8,6 +8,7 @@ import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
+import com.mongodb.casbah.commons.MongoDBObject
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -16,7 +17,8 @@ case class Standard(var dotNotation: Option[String] = None,
   var subCategory: Option[String] = None,
   var standard: Option[String] = None,
   var id: ObjectId = new ObjectId(),
-  var grades: Seq[String] = Seq.empty[String]){
+  var grades: Seq[String] = Seq.empty[String],
+  var legacyItem: Boolean = false) {
 
   val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
   val abbrev = "([\\w|-]+)..*".r
@@ -36,6 +38,7 @@ case class Standard(var dotNotation: Option[String] = None,
       case last(code) => Some(code)
       case _ => None
     }
+    case _ => None
   }
 
 }
@@ -101,9 +104,11 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     }
     ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
       case (Some(one), Some(two)) => standardSorter(one, two)
-      case _ => println(a, b); throw new IllegalArgumentException("BAD")
+      case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
     })
   }
+
+  lazy val legacy = findAll().filter(_.legacyItem).toSeq
 
   lazy val standardSorter: (Standard, Standard) => Boolean = (one,two) => {
     StandardOrdering.compare(one, two) < 0
@@ -118,6 +123,13 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     SubCategory,
     Standard,
     guid)
+
+  def baseQuery: DBObject = new BasicDBObject("legacyItem", new BasicDBObject("$ne", true))
+  def baseQuery(mongo: DBObject): DBObject = {
+    val base = baseQuery
+    base.putAll(mongo.toMap)
+    base
+  }
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 

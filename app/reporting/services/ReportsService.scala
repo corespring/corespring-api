@@ -141,7 +141,7 @@ class ReportsService(ItemCollection: MongoCollection,
       val category = dbo.get("category").asInstanceOf[String]
       val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
-      val query = baseQuery
+      val query = Standard.baseQuery(baseQuery)
       query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
       buildLineResult(query, finalKey)
     }).toList
@@ -189,7 +189,7 @@ class ReportsService(ItemCollection: MongoCollection,
     ReportLineResult.buildCsv("Collection", lineResults)
   }
 
-  def buildLineResult(query: BasicDBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
+  def buildLineResult(query: DBObject, finalKey: String, sorter: (String, String) => Boolean = defaultSorter) = {
 
     ItemCollection.count(query) match {
       case 0 => new LineResult(finalKey)
@@ -201,11 +201,13 @@ class ReportsService(ItemCollection: MongoCollection,
     val collections = CollectionsCollection.find().toIterator.toSeq
     val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
-    val lines = mapToDistinctList("standards", Standard.sorter).map(standard => {
-      val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
-      runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
-      standard +: ReportLineResult.createValueList(collectionsKeyCounts)
-    })
+    val lines = mapToDistinctList("standards", Standard.sorter)
+      .filterNot(Standard.legacy.map(_.dotNotation).flatten.contains(_))
+      .map(standard => {
+        val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
+        runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
+        standard +: ReportLineResult.createValueList(collectionsKeyCounts)
+      })
     (List(header) ++ lines).toCsv
   }
 
@@ -220,7 +222,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param query
    */
   private def runMapReduceForProperty[T](keyCounts: List[KeyCount[T]],
-    query: BasicDBObject,
+    query: DBObject,
     mapFn: JSFunction) {
 
     val cmd = MapReduceCommand(ItemCollection.name, mapFn, JSFunctions.ReduceFn, MapReduceInlineOutput, Some(query))
@@ -308,7 +310,7 @@ class ReportsService(ItemCollection: MongoCollection,
    * @param key
    * @return
    */
-  def buildLineResultFromQuery(query: BasicDBObject, total: Int, key: String,
+  def buildLineResultFromQuery(query: DBObject, total: Int, key: String,
                                sorter: (String, String) => Boolean): LineResult = {
 
     val itemTypeKeyCounts = ReportLineResult.zeroedKeyCountList[String](ReportLineResult.ItemTypes)

@@ -123,10 +123,10 @@ object FieldValuesApi extends BaseApi {
       case "cc-standard" => {
         q.map(Standard.toSearchObj(_, None)).getOrElse[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Standard.toFieldsObj(_)) match {
-            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query, searchFields.dbfields).toSeq.map(Json.toJson(_)))
+            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(Standard.baseQuery(query)).count)))
+            else JsArray(Standard.find(Standard.baseQuery(query), searchFields.dbfields).toSeq.map(Json.toJson(_)))
             case None => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query).toSeq.map(Json.toJson(_)))
+            else JsArray(Standard.find(Standard.baseQuery(query)).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
           case Left(sc) => sc.error match {
