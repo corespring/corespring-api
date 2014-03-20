@@ -3,22 +3,24 @@ package org.corespring.api.v1
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{Organization, ContentCollection}
+import org.corespring.platform.core.models.{ Organization, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.test.BaseTest
-import org.corespring.test.helpers.models.{CollectionHelper, AccessTokenHelper, UserHelper, OrganizationHelper}
+import org.corespring.test.helpers.models._
 import org.specs2.mutable.BeforeAfter
-import play.api.libs.json.{JsNumber, Json, JsValue}
+import play.api.libs.json.{ JsNumber, Json, JsValue }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
 import play.api.test._
 import scala._
-import tests.helpers.models._
-
+import scala.Some
+import play.api.libs.json.JsNumber
+import play.api.test.FakeHeaders
+import play.api.mvc.AnyContentAsJson
 
 class CollectionApiTest extends BaseTest {
 
-  val INITIAL_COLLECTION_SIZE : Int = 2
+  val INITIAL_COLLECTION_SIZE: Int = 2
 
   val routes = org.corespring.api.v1.routes.CollectionApi
   val orgId = "51114b307fc1eaa866444648"
@@ -66,42 +68,42 @@ class CollectionApiTest extends BaseTest {
     (collection \ "id").as[String] must beEqualTo(collectionId)
   }
 
-//  s"return itemType values and counts for $collectionId" in {
-//    skipped("these results are not accurate")
-//    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/itemType?access_token=$token")
-//    val Some(result) = route(fakeRequest)
-//    val json = parsed[JsValue](result)
-//    (json \ "Constructed Response - Short Answer") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
-//      case _ => failure("Json was missing constructed response value")
-//    }
-//    (json \ "Multiple Choice") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 5.0
-//      case _ => failure("Json was missing multiple choice value")
-//    }
-//    (json \ "Text with Questions") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
-//      case _ => failure("Json was missing text with questions value")
-//    }
-//  }
-//
-//  s"return contributor values and counts for $collectionId" in {
-//    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/contributor?access_token=$token")
-//    val Some(result) = route(fakeRequest)
-//    val json = parsed[JsValue](result)
-//    (json \ "New England Common Assessment Program") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 2.0
-//      case _ => failure("Json was msising New England Common Assessment Program value")
-//    }
-//    (json \ "New York State Education Department") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
-//      case _ => failure("Json was missing New York State Education Department value")
-//    }
-//    (json \ "State of New Jersey Department of Education") match {
-//      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
-//      case _ => failure("Json was missing State of New Jersey Department of Education value")
-//    }
-//  }
+  //  s"return itemType values and counts for $collectionId" in {
+  //    skipped("these results are not accurate")
+  //    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/itemType?access_token=$token")
+  //    val Some(result) = route(fakeRequest)
+  //    val json = parsed[JsValue](result)
+  //    (json \ "Constructed Response - Short Answer") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+  //      case _ => failure("Json was missing constructed response value")
+  //    }
+  //    (json \ "Multiple Choice") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 5.0
+  //      case _ => failure("Json was missing multiple choice value")
+  //    }
+  //    (json \ "Text with Questions") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+  //      case _ => failure("Json was missing text with questions value")
+  //    }
+  //  }
+  //
+  //  s"return contributor values and counts for $collectionId" in {
+  //    val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/contributor?access_token=$token")
+  //    val Some(result) = route(fakeRequest)
+  //    val json = parsed[JsValue](result)
+  //    (json \ "New England Common Assessment Program") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 2.0
+  //      case _ => failure("Json was msising New England Common Assessment Program value")
+  //    }
+  //    (json \ "New York State Education Department") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+  //      case _ => failure("Json was missing New York State Education Department value")
+  //    }
+  //    (json \ "State of New Jersey Department of Education") match {
+  //      case jsNumber: JsNumber => jsNumber.value must be equalTo 1.0
+  //      case _ => failure("Json was missing State of New Jersey Department of Education value")
+  //    }
+  //  }
 
   "return bad request for invalid fieldValue property" in {
     val fakeRequest = FakeRequest(GET, s"/api/v1/collections/$collectionId/fieldValues/NotLegit?access_token=$token")
@@ -118,7 +120,6 @@ class CollectionApiTest extends BaseTest {
     val collection = parsed[JsValue](createResult)
     (collection \ "name").as[String] must beEqualTo(name)
     (collection \ "ownerOrgId").as[String] must beEqualTo(orgId)
-
 
     // update
     val name2 = "a new name"
@@ -138,10 +139,8 @@ class CollectionApiTest extends BaseTest {
     assertResult(deleteResult)
 
     val getResult = CollectionApi.getCollection(oid)(FakeRequest(GET, tokenize("b")))
-    status(getResult)  === NOT_FOUND
+    status(getResult) === NOT_FOUND
   }
-
-
 
   "share items to a collection" in new CollectionSharingScope {
     // share some existing items with a collection
@@ -158,7 +157,7 @@ class CollectionApiTest extends BaseTest {
 
   "un-share items from a collection" in new CollectionSharingScope {
     // share. then un-share some items
-    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+    ContentCollection.shareItems(organizationA, collectionB1ItemIds, collectionA1) match {
       case Left(error) => failure
       case Right(savedIds) =>
         val jsonBody = Map("items" -> collectionB1ItemIds.map(_.toString()))
@@ -170,34 +169,31 @@ class CollectionApiTest extends BaseTest {
 
     }
 
-
-
-
   }
 
-  "add filtered items to a collection" in  new CollectionSharingScope {
+  "add filtered items to a collection" in new CollectionSharingScope {
     // this is to support a user searching for a set of items, then adding that set of items to a collection
     // share items in collection b1 that are published with collection a1...
     val query = s""" {"published":true, "collectionId":{"$$in":["$collectionB1"]} } """
     val addFilteredItemsReq = FakeRequest(GET, s"/api/v1/items?q=$query&access_token=%s".format(accessTokenA))
-    val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1,Some(query))(addFilteredItemsReq)
+    val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1, Some(query))(addFilteredItemsReq)
     assertResult(shareItemsResult)
     val response = parsed[JsNumber](shareItemsResult)
-    response.toString mustEqual  "3"
+    response.toString mustEqual "3"
     // check how many items are now available in a1. There should be 6: 3 owned by a1 and 3 shared with a1 from b1
     val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
-    val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,10,None)(listReq)
+    val listResult = ItemApi.listWithColl(collectionA1, None, None, "10", 0, 10, None)(listReq)
     assertResult(listResult)
     val itemsList = parsed[List[JsValue]](listResult)
     itemsList.size must beEqualTo(6)
   }
 
   "find/list items should include shared items" in new CollectionSharingScope {
-    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+    ContentCollection.shareItems(organizationA, collectionB1ItemIds, collectionA1) match {
       case Left(error) => failure
       case Right(savedIds) =>
         val findRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
-        val findResult = ItemApi.list(None,None,"10",0,200,None)(findRequest)
+        val findResult = ItemApi.list(None, None, "10", 0, 200, None)(findRequest)
         assertResult(findResult)
         // result should contain the b1 items
         val b1ItemsIdStrings = collectionB1ItemIds.map(_.id.toString)
@@ -207,7 +203,7 @@ class CollectionApiTest extends BaseTest {
         itemsFound.size must beEqualTo(3)
 
         val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
-        val listResult = ItemApi.listWithColl(collectionA1,None,None,"10",0,200,None)(listReq)
+        val listResult = ItemApi.listWithColl(collectionA1, None, None, "10", 0, 200, None)(listReq)
         assertResult(listResult)
         val itemsList = parsed[List[JsValue]](listResult)
         val listItemIdStrings = foundItems.map(jsVal => ((jsVal \ "id").as[String]).split(":")(0))
@@ -217,9 +213,8 @@ class CollectionApiTest extends BaseTest {
 
   }
 
-
   "delete collection should remove collection id from shared items" in new CollectionSharingScope {
-    ContentCollection.shareItems(organizationA,collectionB1ItemIds,collectionA1) match {
+    ContentCollection.shareItems(organizationA, collectionB1ItemIds, collectionA1) match {
       case Left(error) => failure
       case Right(savedIds) =>
         // now delete collection a1 and make sure that collectionB1 items don't still have a refernce to it
@@ -235,10 +230,9 @@ class CollectionApiTest extends BaseTest {
 
   }
 
-
   "org can enable / disable a collection" in new CollectionSharingScope {
     // in the scope, collection b1 should have been enabled
-    val orgA =  Organization.findOneById(organizationA).get
+    val orgA = Organization.findOneById(organizationA).get
     val b1Collref = orgA.contentcolls.find(_.collectionId == collectionB1).get
     b1Collref.enabled must beTrue
     val disableCollectionRequest =
@@ -246,7 +240,7 @@ class CollectionApiTest extends BaseTest {
     val disableCollectionResult = CollectionApi.setEnabledStatus(collectionB1, false)(disableCollectionRequest)
     assertResult(disableCollectionResult)
 
-    val orgAAfterUpdate =  Organization.findOneById(organizationA).get
+    val orgAAfterUpdate = Organization.findOneById(organizationA).get
     val b1CollrefAfterUpdate = orgAAfterUpdate.contentcolls.find(_.collectionId == collectionB1).get
     b1CollrefAfterUpdate.enabled must beFalse
   }
@@ -254,13 +248,13 @@ class CollectionApiTest extends BaseTest {
   "find items/list items should only find items in 'enabled' collections for an org" in new CollectionSharingScope {
     // in the scope b1 should be enabled, try a search, then disable b1 - the results should be different
     val findRequest = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
-    val findResult = ItemApi.list(None,None,"10",0,200,None)(findRequest)
+    val findResult = ItemApi.list(None, None, "10", 0, 200, None)(findRequest)
     val foundItems = parsed[List[JsValue]](findResult)
 
     Organization.setCollectionEnabledStatus(organizationA, collectionB1, false)
 
     val findRequestTwo = FakeRequest(GET, "/api/v1/items?access_token=%s".format(accessTokenA))
-    val findResultTwo = ItemApi.list(None,None,"10",0,200,None)(findRequestTwo)
+    val findResultTwo = ItemApi.list(None, None, "10", 0, 200, None)(findRequestTwo)
     val foundItemsTwo = parsed[List[JsValue]](findResultTwo)
 
     foundItems.size must beEqualTo(6)
@@ -284,7 +278,7 @@ class CollectionApiTest extends BaseTest {
   "json returned for content coll ref should include owner id" in new CollectionSharingScope {
     val fakeRequest = FakeRequest(GET, "/api/v1/collections?access_token=%s".format(accessTokenA))
     //val Some(result) = route(fakeRequest)
-    val result = CollectionApi.list(None,None,"10",0,200,None)(fakeRequest)
+    val result = CollectionApi.list(None, None, "10", 0, 200, None)(fakeRequest)
     assertResult(result)
     val collections = parsed[List[JsValue]](result)
     val ownedByA = collections.filter(jsVal => (jsVal \ "ownerOrgId").as[String] == organizationA.toString)
@@ -300,9 +294,7 @@ class CollectionApiTest extends BaseTest {
     foundItems.size must beEqualTo(2)
   }
 
-
 }
-
 
 trait CollectionSharingScope extends BeforeAfter {
 
@@ -323,26 +315,23 @@ trait CollectionSharingScope extends BeforeAfter {
   val collectionB1ItemIds = 1.to(3).map(i => ItemHelper.create(collectionB1))
   val collectionB2ItemIds = 1.to(3).map(i => ItemHelper.create(collectionB2))
 
-
   // give organization A access to collection B1
   ContentCollection.addOrganizations(Seq((organizationA, Permission.Read)), collectionB1)
 
   // enable collection b1 in org A
   Organization.setCollectionEnabledStatus(organizationA, collectionB1, true)
 
-  def before : Unit = {
+  def before: Unit = {
   }
 
-  def after : Unit = {
+  def after: Unit = {
     println(s"[CollectionSharingScope] deleting: fixture data")
-
 
     AccessTokenHelper.delete(accessTokenA)
     collectionA1ItemIds.foreach(ItemHelper.delete(_))
     CollectionHelper.delete(collectionA1)
     UserHelper.delete(userA.id)
     OrganizationHelper.delete(organizationA)
-
 
     AccessTokenHelper.delete(accessTokenB)
     collectionB1ItemIds.foreach(ItemHelper.delete(_))

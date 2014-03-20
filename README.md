@@ -42,11 +42,25 @@ This file will look like so:
 Ask someone to provide you with the user password
 
 
-### Running/Testing
+### Testing
 
-    cd corepsring-api
-    play run
+Currently our testing is a hybrid of unit and integration tests.
+We are looking to move out the integration tests to the 'it' folder.
+And we plan to remove the db-seeding that is done for the entire test suite.
+Instead each tests will hoist and destroy their own data.
+
+
     play test
+
+### Integration tests
+
+These tests are more expensive than the unit tests.
+
+* They run sequentially
+* They boot the play app for each test
+* They seed and destroy the data they need
+
+    play it:test
 
 ### Application configuration
 

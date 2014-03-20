@@ -5,7 +5,7 @@ import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
+import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -21,12 +21,11 @@ import scala.Some
 import scala.concurrent.Future
 import scala.xml._
 
-
 /**
  * Putting the fixture generating test into its own test class
  * Going forward we should be using generated data for individual tests
  */
-class NewItemApiTest extends BaseTest{
+class NewItemApiTest extends BaseTest {
   "list items in a collection" in new FixtureData {
     println(s"[Test] collection: $collectionId, token: $accessToken")
     //TODO: Don't use magic strings for the routes - call the controller directly
@@ -37,7 +36,6 @@ class NewItemApiTest extends BaseTest{
     items.size must beEqualTo(itemIds.length)
   }
 }
-
 
 class ItemApiTest extends BaseTest with Mockito {
 
@@ -58,8 +56,7 @@ class ItemApiTest extends BaseTest with Mockito {
 
   def assertResult(result: Future[SimpleResult], count: Int): org.specs2.execute.Result = {
     forall(assertBasics(result))(r =>
-      r.isSuccess === true
-    )
+      r.isSuccess === true)
     val json = Json.parse(contentAsString(result))
 
     val items = jsonToObj[List[JsValue]](contentAsString(result), List())
@@ -69,22 +66,21 @@ class ItemApiTest extends BaseTest with Mockito {
 
   def assertSingleResult(result: Future[SimpleResult], block: JsValue => org.specs2.execute.Result) = {
     forall(assertBasics(result))(r =>
-      r.isSuccess === true
-    )
+      r.isSuccess === true)
     val thing = jsonToObj[JsValue](contentAsString(result), JsObject(Seq()))
     block(thing)
   }
 
-  def jsonToObj[A](s:String, default: A)(implicit reads : Reads[A]) : A = {
+  def jsonToObj[A](s: String, default: A)(implicit reads: Reads[A]): A = {
     Json.parse(s).as[A] match {
-      case JsSuccess(v , _) => v.asInstanceOf[A]
+      case JsSuccess(v, _) => v.asInstanceOf[A]
       case JsError(e) => default
     }
   }
 
   "list all items" in {
     val call = ItemRoutes.list()
-    val fakeRequest = FakeRequest(call.method, tokenize(call.url) )
+    val fakeRequest = FakeRequest(call.method, tokenize(call.url))
     val Some(result) = route(fakeRequest)
     assertResult(result)
     val items = parsed[List[JsValue]](result)
@@ -157,7 +153,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     val result = route(fakeRequest).get
     status(result) must equalTo(OK)
-    val xmlData = (parsed[JsValue](result)  \ Item.Keys.data).toString()
+    val xmlData = (parsed[JsValue](result) \ Item.Keys.data).toString()
     xmlData must not(beMatching(".*csFeedbackId.*"))
   }
 
@@ -166,7 +162,7 @@ class ItemApiTest extends BaseTest with Mockito {
     var fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toCreate))
     var result = route(fakeRequest).get
     status(result) must equalTo(OK)
-    val itemId = (parsed[JsValue](result)\ "id").toString()
+    val itemId = (parsed[JsValue](result) \ "id").toString()
 
     val toUpdate = xmlBody("<html><feedbackInline></feedbackInline></html>", Map("id" -> itemId))
     fakeRequest = FakeRequest(POST, "/api/v1/items?access_token=%s".format(token), FakeHeaders(), AnyContentAsJson(toUpdate))
@@ -192,7 +188,6 @@ class ItemApiTest extends BaseTest with Mockito {
     item.collectionId must equalTo(Some(TEST_COLLECTION_ID))
   }
 
-
   "update with no collectionId returns the item's stored collection id" in {
 
     val toCreate = xmlBody("<root/>", Map("collectionId" -> TEST_COLLECTION_ID))
@@ -215,8 +210,8 @@ class ItemApiTest extends BaseTest with Mockito {
 
   "get and update return the same json" in {
 
-    val m : Map[String,String] = Map(Item.Keys.collectionId -> TEST_COLLECTION_ID, "credentials" -> STATE_DEPT)
-    val toCreate = xmlBody("<root/>",  m )
+    val m: Map[String, String] = Map(Item.Keys.collectionId -> TEST_COLLECTION_ID, "credentials" -> STATE_DEPT)
+    val toCreate = xmlBody("<root/>", m)
     val call = ItemRoutes.create()
     val createResult = route(FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsJson(toCreate))).get
     val id = (parsed[JsValue](createResult) \ "id").as[String]
@@ -234,10 +229,9 @@ class ItemApiTest extends BaseTest with Mockito {
     updateJsonString must equalTo(getJsonString)
   }
 
-
   "delete moves item to the archived collection" in {
 
-    val item = Item(collectionId = TEST_COLLECTION_ID)
+    val item = Item(collectionId = Some(TEST_COLLECTION_ID))
     ItemServiceWired.save(item)
     val deleteItemCall = ItemRoutes.delete(item.id)
 
@@ -252,10 +246,6 @@ class ItemApiTest extends BaseTest with Mockito {
       case _ => failure("delete failed")
     }
   }
-
-
-
-
 
   "when saving an item with QTI xml, add csFeedbackId attrs if they are not present" in {
     /**
@@ -276,8 +266,7 @@ class ItemApiTest extends BaseTest with Mockito {
     val hasCsFeedbackIds: Boolean = qtiXml.map(qti =>
       findFeedbackIds(XML.loadString(qti), Seq(), 0).find(result => {
         if (result._2) false else true
-      }).isEmpty
-    ).getOrElse(false)
+      }).isEmpty).getOrElse(false)
     hasCsFeedbackIds must beTrue
   }
 
@@ -291,14 +280,12 @@ class ItemApiTest extends BaseTest with Mockito {
           case innerXml: Elem => feedback = findFeedbackIds(innerXml, feedback, levels + 1)
           case _ =>
         }
-      }
-      else {
+      } else {
         val feedbackInlines = feedbackInline.theSeq
         for (feedbackNode <- feedbackInlines) {
           if ((feedbackNode \ "@csFeedbackId").nonEmpty) {
             feedback = feedback :+ (feedbackInline -> true)
-          }
-          else {
+          } else {
             feedback = feedback :+ (feedbackInline -> false)
           }
         }
@@ -318,7 +305,7 @@ class ItemApiTest extends BaseTest with Mockito {
   "updating item metadata without having a corresponding set results in error" in {
     val itemId = "511154e48604c9f77da9739b"
     val property = "flergl.mergl"
-    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token)).withTextBody("the answer to all things")
     val result = route(fakeRequest).get
     status(result) must beEqualTo(BAD_REQUEST)
     result.body must contain(ApiError.MetadataNotFound.message)
@@ -326,7 +313,7 @@ class ItemApiTest extends BaseTest with Mockito {
   "updating item metadata with incorrect schema results in error" in {
     val itemId = "511154e48604c9f77da9739b"
     val property = "blergl.flergl"
-    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody("the answer to all things")
+    val fakeRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token)).withTextBody("the answer to all things")
     val result = route(fakeRequest).get
     status(result) must beEqualTo(BAD_REQUEST)
     result.body must contain(ApiError.MetadataNotFound.message)
@@ -335,12 +322,12 @@ class ItemApiTest extends BaseTest with Mockito {
     val itemId = "511154e48604c9f77da9739b"
     val property = "blergl.mergl"
     val value = "the answer to all things"
-    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withTextBody(value)
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token)).withTextBody(value)
     val updateResult = route(updateRequest).get
     status(updateResult) must beEqualTo(OK)
     val updateJson = Json.parse(updateResult.body)
     (updateJson \ "blergl" \ "mergl").as[String] must beEqualTo(value)
-    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token))
     val requestResult = route(request).get
     status(requestResult) must beEqualTo(OK)
     val requestJson = Json.parse(requestResult.body)
@@ -352,25 +339,24 @@ class ItemApiTest extends BaseTest with Mockito {
     val body = Json.obj(
       "mergl" -> "the answer to all things",
       "platypus" -> "greatest animal ever",
-      "baaaa" -> "sound a goat makes"
-    )
-    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token)).withJsonBody(body)
+      "baaaa" -> "sound a goat makes")
+    val updateRequest = FakeRequest(PUT, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token)).withJsonBody(body)
     val updateResult = route(updateRequest).get
     status(updateResult) must beEqualTo(OK)
     val json = Json.parse(updateResult.body)
     json match {
       case JsObject(fields) => fields.find(_._1 == property) match {
-        case Some((_,jsprops)) => jsprops match {
+        case Some((_, jsprops)) => jsprops match {
           case JsObject(props) => {
             props.forall(prop => body.fields.find(field => field._1 == prop._1).isDefined) must beTrue
           }
           case _ => failure("metadata did not have a properties object")
         }
-        case None => failure("could not find metadata properties with key "+property)
+        case None => failure("could not find metadata properties with key " + property)
       }
       case _ => failure("returned json not an object")
     }
-    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId,property,token))
+    val request = FakeRequest(GET, "/api/v1/items/%s/extended/%s?access_token=%s".format(itemId, property, token))
     val requestResult = route(request).get
     status(requestResult) must beEqualTo(OK)
     val requestJson = Json.parse(requestResult.body)

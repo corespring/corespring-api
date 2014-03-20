@@ -1,12 +1,12 @@
 package tests.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.{Participant, Assessment}
+import org.corespring.platform.core.models.assessment.basic.{ Participant, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsSuccess, Json}
-import play.api.mvc.{AnyContentAsJson, AnyContentAsEmpty}
+import play.api.libs.json.{ JsSuccess, Json }
+import play.api.mvc.{ AnyContentAsJson, AnyContentAsEmpty }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.mvc.Call
@@ -22,6 +22,7 @@ class AssessmentApiTest extends Specification with RequestCalling {
   val authorId = "fd707fc3c"
 
   val Api = AssessmentApi
+  val Routes = org.corespring.api.v1.routes.AssessmentApi
 
   "AssessmentApi" should {
     "get" in {
@@ -57,9 +58,7 @@ class AssessmentApiTest extends Specification with RequestCalling {
       val assessment = q.copy(participants = Seq(
         Participant(
           externalUid = "ed",
-          answers = Seq()
-        )
-      ))
+          answers = Seq())))
       val json = AnyContentAsJson(Json.toJson(assessment))
       val createdAssessment = invokeCall[Assessment](Api.create(), json)
       createdAssessment.metadata.get("course") === Some("some course")
@@ -85,7 +84,7 @@ class AssessmentApiTest extends Specification with RequestCalling {
     "delete" in {
       val q = createAssessment(Map("course" -> "some course"))
 
-      val call: Call = api.v1.routes.AssessmentApi.delete(q.id)
+      val call: Call = Routes.delete(q.id)
       route(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
         case Some(result) => {
           status(result) === OK
@@ -109,7 +108,7 @@ class AssessmentApiTest extends Specification with RequestCalling {
       createAssessment()
       createAssessment()
 
-      val call: Call = api.v1.routes.AssessmentApi.list()
+      val call: Call = Routes.list()
       route(FakeRequest(call.method, call.url, FakeAuthHeader, AnyContentAsEmpty)) match {
         case Some(result) => {
           status(result) === OK

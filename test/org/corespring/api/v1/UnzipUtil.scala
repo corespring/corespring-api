@@ -1,4 +1,4 @@
-package tests.api.v1
+package org.corespring.api.v1
 
 import java.io._
 import java.util.jar._
@@ -43,13 +43,12 @@ class UnzipUtil {
   private def copyStream(istream: InputStream, ostream: OutputStream): Unit = {
     var bytes = new Array[Byte](1024)
     var len = -1
-    while ( {
+    while ({
       len = istream.read(bytes, 0, 1024);
       len != -1
     }) {
       ostream.write(bytes, 0, len)
     }
   }
-
 
 }

@@ -103,7 +103,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
   }
 
   def item(itemId: VersionedId[ObjectId]) = {
-    Some(Item(id = itemId, collectionId = collectionId.toString))
+    Some(Item(id = itemId, collectionId = Some(collectionId.toString)))
   }
 
   def org(orgId: ObjectId) = {
