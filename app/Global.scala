@@ -17,6 +17,7 @@ import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

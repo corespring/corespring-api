@@ -42,6 +42,8 @@ case class LtiParticipant(itemSession: ObjectId,
 
 object LtiParticipant {
 
+  implicit val oidWrites = org.corespring.platform.core.models.json.ObjectIdWrites
+  implicit val oidReads = org.corespring.platform.core.models.json.ObjectIdReads
   implicit val idReads = VersionedIdImplicits.Reads
   implicit val idWrites = VersionedIdImplicits.Writes
   implicit val Writes = Json.writes[LtiParticipant]
@@ -92,6 +94,8 @@ case class LtiAssessment(resourceLinkId: String,
 
 object LtiAssessment {
 
+  implicit val oidWrites = org.corespring.platform.core.models.json.ObjectIdWrites
+  implicit val oidReads = org.corespring.platform.core.models.json.ObjectIdReads
   implicit val idReads = VersionedIdImplicits.Reads
   implicit val Writes = Json.writes[LtiAssessment]
   implicit val Reads = Json.reads[LtiAssessment]

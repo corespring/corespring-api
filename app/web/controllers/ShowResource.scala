@@ -35,14 +35,14 @@ object ShowResource
 
       import play.api.Routes
       import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-
+      import web.controllers.routes.javascript.{Partials => PartialsJs}
       Ok(
         Routes.javascriptRouter("WebRoutes")(
           ShowResourceJs.getResourceFile,
-          Partials.createItem,
-          Partials.editItem,
-          Partials.home,
-          Partials.viewItem)).as("text/javascript")
+          PartialsJs.createItem,
+          PartialsJs.editItem,
+          PartialsJs.home,
+          PartialsJs.viewItem)).as("text/javascript")
   }
 
   /**

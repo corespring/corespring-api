@@ -58,10 +58,11 @@ trait ItemActions
         vid <- VersionedId(itemId).toSuccess(cantParseItemId)
         item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
         orgIdAndOptions <- getOrgIdAndOptions(request).toSuccess(noOrgIdAndOptions(request))
-        hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(item.collectionId), Permission.Write)) {
+        collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
+        hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
           Success(true)
         } else {
-          Failure(orgCantAccessCollection(orgIdAndOptions._1, item.collectionId))
+          Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
         }
       } yield {
 
@@ -96,7 +97,7 @@ trait ItemActions
 
     val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj())
     val item = models.item.Item(
-      collectionId = collectionId,
+      collectionId = Some(collectionId),
       playerDefinition = Some(definition))
 
     itemService.insert(item)

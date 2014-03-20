@@ -7,9 +7,12 @@ import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.reporting.services.ReportGenerator.ReportKeys
 import org.corespring.reporting.services.{ReportGenerator, ReportsService}
+import org.corespring.reporting.utils.CsvWriter
+import net.quux00.simplecsv.CsvReader
 import play.api.libs.json.Json
 import play.api.mvc.SimpleResult
 import scala.Some
+
 
 class Reports(service: ReportsService, generator: ReportGenerator) extends BaseApi with CsvWriter {
 
@@ -61,6 +64,8 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
             "$in" -> ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read, true).map(_.collectionId))
           )
         ).toSeq
+
+      import scala.collection.JavaConversions._
 
       generator.getReport(ReportKeys.standardsByCollection) match {
         case Some((date, Some(string), inProgress)) => {

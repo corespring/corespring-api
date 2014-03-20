@@ -8,7 +8,8 @@ import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.item.{TaskInfo,Alignments}
+import org.corespring.platform.core.models.item.{Content => CsContent}
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
@@ -24,7 +25,7 @@ import scala.Some
  * is common to routes associated for various Content subclasses. An implicit Writes for the Content subclass must be
  * provided so that the controller can serialize Content.
  */
-abstract class ContentApi[ContentType <: Content[_]](service: BaseContentService[ContentType, _])
+abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentService[ContentType, _])
                                                     (implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
 
 

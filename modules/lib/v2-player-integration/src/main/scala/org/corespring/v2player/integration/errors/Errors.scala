@@ -18,6 +18,8 @@ object Errors {
 
   case class noOrgIdAndOptions(request: Request[AnyContent]) extends V2Error(UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")
 
+  case class noCollectionIdForItem(vid:VersionedId[ObjectId]) extends V2Error(BAD_REQUEST, s"This item has no collection id $vid")
+
   case class orgCantAccessCollection(orgId: ObjectId, collectionId: String) extends V2Error(UNAUTHORIZED, s"The org: $orgId can't access collection: $collectionId")
 
   case object default extends V2Error(UNAUTHORIZED, "Failed to grant access")

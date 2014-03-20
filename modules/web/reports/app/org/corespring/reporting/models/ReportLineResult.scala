@@ -1,8 +1,7 @@
 package org.corespring.reporting.models
 
 import org.corespring.platform.core.models.item.TaskInfo
-import java.io.StringWriter
-import reporting.utils.CsvWriter
+import org.corespring.reporting.utils.CsvWriter
 
 object ReportLineResult extends CsvWriter {
 

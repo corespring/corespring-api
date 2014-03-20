@@ -62,7 +62,7 @@ abstract class BaseAuth(
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
       item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
       org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
-      canAccess <- if (canAccess(item.collectionId)) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId))
+      canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
     } yield {
       logger.trace(s"orgCanAccessItem: $canAccess")
       canAccess

@@ -3,7 +3,6 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import com.mongodb.casbah.map_reduce._
 import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.platform.core.controllers.auth.BaseApi

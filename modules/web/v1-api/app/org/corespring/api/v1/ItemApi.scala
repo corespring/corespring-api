@@ -1,7 +1,7 @@
 package org.corespring.api.v1
 
 import com.mongodb.{DBObject, BasicDBObject}
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
@@ -27,6 +27,7 @@ import play.api.mvc.{Action, Result, AnyContent}
 import scala.Some
 import scalaz.{Failure, Success, Validation}
 import scalaz.Scalaz._
+import com.mongodb.casbah.Imports
 
 /**
  * Items API
@@ -34,6 +35,8 @@ import scalaz.Scalaz._
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging with ItemTransformationCache {
+
+  import org.corespring.platform.core.models.mongoContext.context
 
   import Item.Keys._
 
@@ -137,8 +140,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
       logger.debug("[ItemApi.get] fields: " + fields)
 
+      import Imports._
+
       service.findFieldsById(id, fields)
-        .map(dbo => com.novus.salat.grater[Item].asObject(dbo))
+        .map(dbo => com.novus.salat.grater[Item].asObject[Imports.DBObject](dbo))
         .map(i => Ok(Json.toJson(i)))
         .getOrElse(NotFound)
   }
@@ -343,9 +348,12 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   def contentType = Item.contentType
 
   override def cleanDbFields(searchFields: SearchFields, isLoggedIn: Boolean, dbExtraFields: Seq[String] = dbSummaryFields, jsExtraFields: Seq[String] = jsonSummaryFields) = {
-    if (!isLoggedIn && searchFields.dbfields.isEmpty) {
+
+    val mongoDbFields : MongoDBObject = searchFields.dbfields
+
+    if (!isLoggedIn && mongoDbFields.isEmpty) {
       dbExtraFields.foreach(extraField =>
-        searchFields.dbfields = searchFields.dbfields ++ MongoDBObject(extraField -> searchFields.method))
+        searchFields.dbfields = mongoDbFields ++ MongoDBObject(extraField -> searchFields.method))
       jsExtraFields.foreach(extraField =>
         searchFields.jsfields = searchFields.jsfields :+ extraField)
     }

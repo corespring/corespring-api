@@ -6,6 +6,13 @@ import play.Logger
 import play.cache.Cache
 import scala.Some
 import scala.concurrent._
+import play.libs.Akka
+
+
+object ExecutionContexts {
+  import play.api.Play.current
+  lazy val reportGeneration = Akka.system.dispatchers.lookup("akka.report-generator.generate-report")
+}
 
 class ReportGenerator(reportsService: ReportsService) {
 
@@ -23,7 +30,7 @@ class ReportGenerator(reportsService: ReportsService) {
   def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
   def getReport(reportKey: String): Option[(DateTime, Option[String], Boolean)] = Option(Cache.get(reportKey)) match {
-    case Some((date: DateTime, report: Option[String], inProgress: Boolean)) => Some(date, report, inProgress)
+    case Some((date: DateTime, report, inProgress)) => Some(date, report.asInstanceOf[Option[String]], inProgress.asInstanceOf[Boolean])
     case _ => None
   }
 
@@ -47,13 +54,12 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateReport(reportKey: String): Future[Option[String]] = {
 
-    implicit val executionContext = ExecutionContexts.reportGeneration
+    implicit val executionContext : ExecutionContext = ExecutionContexts.reportGeneration
 
     Option(Cache.get(reportKey)) match {
       case Some((date, report, _)) => Cache.set(reportKey, (date, report, true))
       case _ => Cache.set(reportKey, (new DateTime, None, true))
     }
-
     future {
       Logger.info(s"Starting to generate report $reportKey")
       try {

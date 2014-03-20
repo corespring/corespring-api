@@ -173,7 +173,7 @@ object Build extends sbt.Build {
 
   val reports = builders.web("reports")
     .settings(
-      libraryDependencies += simplecsv
+      libraryDependencies ++= Seq(simplecsv)
     )
     .dependsOn(commonViews, core % "compile->compile;test->test")
 

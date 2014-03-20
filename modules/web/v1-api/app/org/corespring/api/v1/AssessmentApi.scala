@@ -1,6 +1,8 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
+import org.corespring.api.v1.errors.ApiError
+import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.assessment.basic.{ Answer, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import play.api.libs.json.Json._
