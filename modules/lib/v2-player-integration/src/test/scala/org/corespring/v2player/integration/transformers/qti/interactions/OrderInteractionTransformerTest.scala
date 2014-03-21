@@ -5,6 +5,7 @@ import scala.xml.Node
 import scala.collection.mutable
 import play.api.libs.json.{JsArray, JsObject}
 import scala.xml.transform.RuleTransformer
+import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
 
 class OrderInteractionTransformerTest extends Specification {
 
@@ -66,8 +67,9 @@ class OrderInteractionTransformerTest extends Specification {
 
     "return the choices" in {
       val choices = (interactionResult \ "model" \ "choices").as[Seq[JsObject]]
-      choices.map(_ \ "label").map(_.as[String]) diff responses must beEmpty
-      choices.map(_ \ "value").map(_.as[String]) diff responses must beEmpty
+      println(choices)
+      choices.map(_ \ "label").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
+      choices.map(_ \ "value").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
     }
 
     "return feedback" in {
