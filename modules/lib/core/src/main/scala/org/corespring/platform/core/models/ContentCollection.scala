@@ -9,7 +9,7 @@ import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.search.{ ItemSearch, Searchable }
+import org.corespring.platform.core.models.search.{ItemSearch, Searchable}
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
@@ -22,6 +22,7 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 import se.radley.plugin.salat._
+import com.mongodb.util.JSON
 
 /**
  * A ContentCollection
@@ -29,10 +30,10 @@ import se.radley.plugin.salat._
  *
  */
 case class ContentCollection(
-  var name: String = "",
-  var ownerOrgId: ObjectId,
-  var isPublic: Boolean = false,
-  var id: ObjectId = new ObjectId()) {
+                              var name: String = "",
+                              var ownerOrgId: ObjectId,
+                              var isPublic: Boolean = false,
+                              var id: ObjectId = new ObjectId()) {
   lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
@@ -101,20 +102,20 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
         MongoDBObject(
           Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
         .foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
-          if (result.isSuccess) {
-            org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-            try {
-              Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
-              val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
-              ItemServiceWired.find(query).foreach(item => {
-                ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
-              })
-              Success(())
-            } catch {
-              case e: SalatDAOUpdateError => Failure(InternalError(e.getMessage))
-            }
-          } else result
-        })
+        if (result.isSuccess) {
+          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+          try {
+            Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
+            val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
+            ItemServiceWired.find(query).foreach(item => {
+              ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+            })
+            Success(())
+          } catch {
+            case e: SalatDAOUpdateError => Failure(InternalError(e.getMessage))
+          }
+        } else result
+      })
 
     } catch {
       case e: SalatDAOUpdateError => Failure(InternalError("failed to transfer collection to archive", e))
@@ -168,6 +169,11 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    */
   def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
     if (isAuthorized(orgId, collId, Permission.Write)) {
+
+      if (items.isEmpty) {
+        logger.warn("[shareItems] items is empty")
+      }
+
       val oids = items.map(i => i.id)
       val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
 
@@ -194,10 +200,10 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
           }
         })
         if (savedUnsavedItems._2.size > 0) {
-          logger.debug(s"[addItems] failed to add items: " + savedUnsavedItems._2.map(_.id + " ").toString)
+          logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
           Left(InternalError("failed to add items"))
         } else {
-          logger.debug(s"[addItems] added items: " + savedUnsavedItems._1.map(_.id + " ").toString)
+          logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
           Right(savedUnsavedItems._1)
         }
 
@@ -219,6 +225,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @return
    */
   def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+
     val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
     val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
     val parsedQuery: Either[SearchCancelled, DBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery))
@@ -226,8 +233,13 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     parsedQuery match {
       case Right(searchQry) =>
         val cursor = ItemServiceWired.find(searchQry, MongoDBObject("_id" -> 1))
-        val ids = cursor.map(item => item.id)
-        shareItems(orgId, ids.toSeq, collId)
+
+        val seq = cursor.toSeq
+        if (seq.size == 0) {
+          logger.warn(s"[shareItemsMatchingQuery] didn't find any items: ${cursor.size}: query: ${JSON.serialize(searchQry)}")
+        }
+        val ids = seq.map(item => item.id)
+        shareItems(orgId, ids, collId)
       case Left(sc) => sc.error match {
         case None => Right(Seq())
         case Some(error) => Left(InternalError(error.clientOutput.getOrElse("error processing search")))
@@ -291,12 +303,15 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
       JsObject(list)
     }
   }
+
   override val searchableFields = Seq(
     name)
 }
 
 case class CollectionExtraDetails(coll: ContentCollection, access: Long)
+
 object CollectionExtraDetails {
+
   implicit object CCWPWrites extends Writes[CollectionExtraDetails] {
     def writes(c: CollectionExtraDetails): JsValue = {
       JsObject(Seq(
@@ -308,4 +323,5 @@ object CollectionExtraDetails {
         "id" -> JsString(c.coll.id.toString)))
     }
   }
+
 }

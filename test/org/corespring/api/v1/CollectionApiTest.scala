@@ -131,10 +131,12 @@ class CollectionApiTest extends BaseTest {
   }
 
   "add filtered items to a collection" in new CollectionSharingScope {
+
+    publishItemsInCollection(collectionB1)
     // this is to support a user searching for a set of items, then adding that set of items to a collection
     // share items in collection b1 that are published with collection a1...
     val query = s""" {"published":true, "collectionId":{"$$in":["$collectionB1"]} } """
-    val addFilteredItemsReq = FakeRequest(GET, s"/api/v1/items?q=$query&access_token=%s".format(accessTokenA))
+    val addFilteredItemsReq = FakeRequest("", s"?q=$query&access_token=$accessTokenA")
     val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1, Some(query))(addFilteredItemsReq)
     assertResult(shareItemsResult)
     val response = parsed[JsNumber](shareItemsResult)
@@ -279,6 +281,10 @@ trait CollectionSharingScope extends BeforeAfter {
 
   // enable collection b1 in org A
   Organization.setCollectionEnabledStatus(organizationA, collectionB1, true)
+
+  def publishItemsInCollection(collectionId:ObjectId) = {
+    ItemHelper.publish( MongoDBObject("collectionId" -> collectionId.toString))
+  }
 
   def before: Unit = {
   }

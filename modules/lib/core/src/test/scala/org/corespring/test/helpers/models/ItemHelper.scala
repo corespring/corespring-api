@@ -7,6 +7,8 @@ import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import scala.Some
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import com.mongodb.DBObject
+import com.mongodb.util.JSON
 
 object ItemHelper {
 
@@ -21,6 +23,14 @@ object ItemHelper {
       case Some(versionedId) => versionedId
       case _ => throw new Exception("Error creating item")
     }
+  }
+
+  def publish(query:DBObject) = {
+    println(s"[publish] query: ${JSON.serialize(query)}")
+    ItemServiceWired.collection.update(query, MongoDBObject( "$set" -> MongoDBObject("published" -> true)), multi = true)
+    println( s"[publish] query count : ${ItemServiceWired.collection.count(query)}")
+    val result = ItemServiceWired.collection.find(query, MongoDBObject("published" -> 1)).toSeq.map(JSON.serialize(_)).mkString(",")
+    println( s"[publish] query result : $result")
   }
 
   def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
