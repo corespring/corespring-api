@@ -1,22 +1,25 @@
 package org.corespring.api.v1
 
+import play.api.Play.current
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.casbah.map_reduce.{ MapReduceInlineOutput, MapReduceCommand }
-import org.corespring.api.v1.errors.ApiError
-import org.corespring.api.v1.fieldValues.{ QueryOptions, Options }
+import play.api.cache.Cache
+
+import com.mongodb.casbah.map_reduce.{MapReduceInlineOutput, MapReduceCommand}
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.item.FieldValue
-import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.{ Subject, Standard }
-import org.corespring.platform.core.services.item.ItemServiceWired
-import play.api.Logger
-import play.api.Play.current
-import play.api.cache.Cache
-import play.api.libs.json.Json._
-import play.api.libs.json._
+import org.corespring.platform.core.models._
 import play.api.mvc.Action
-import scala.Some
+import play.api.libs.json._
+import play.api.libs.json.Json._
+import org.corespring.api.v1.fieldValues._
+import org.corespring.platform.core.models.search.SearchCancelled
+import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.DBObject
+import org.bson.types.ObjectId
+import com.mongodb.casbah.map_reduce.MapReduceError
+import play.api.Logger
+import org.corespring.api.v1.errors.ApiError
+import org.corespring.platform.core.services.item.ItemServiceWired
 
 object FieldValuesApi extends BaseApi {
 
@@ -29,7 +32,7 @@ object FieldValuesApi extends BaseApi {
       List(
         ("cc-standard", Standard.description + " (list queries available)"),
         ("subject", Subject.description + " (list queries available)"))
-    for { d <- list } yield Map("path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
+    for { d <- list } yield Map("path" -> ("/api/v1/field_values/all" + d._1), "description" -> d._2)
   }
 
   def getAllAvailable = Action {
@@ -143,17 +146,45 @@ object FieldValuesApi extends BaseApi {
 
   }
 
+
   def getFieldValuesByCollection(collectionId: ObjectId) =
-    getFieldValues(MongoDBObject("collectionId" -> collectionId.toString))
+    getFieldValuesAction(MongoDBObject("collectionId" -> collectionId.toString))
 
   def getFieldValuesByContributor(contributor: String) =
-    getFieldValues(MongoDBObject("contributorDetails.contributor" -> contributor))
+    getFieldValuesAction(MongoDBObject("contributorDetails.contributor" -> contributor))
+
+  def getFieldValuesAction() = ApiAction { request =>
+    request.ctx.org match {
+      case Some(organization) => {
+        getFieldValues(
+          MongoDBObject("collectionId" ->
+            MongoDBObject("$in" -> organization.contentcolls.map(_.collectionId.toString)))) match {
+          case Left(jsValue: JsValue) => Ok(jsValue)
+          case Right(error: MapReduceError) => {
+            Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
+            InternalServerError(Json.toJson(ApiError.MapReduceError))
+          }
+        }
+      }
+      case _ => Ok(Json.obj())
+    }
+  }
+
+  private def getFieldValuesAction(query: MongoDBObject) = Action {
+    getFieldValues(query) match {
+      case Left(jsValue: JsValue) => Ok(jsValue.toString)
+      case Right(error: MapReduceError) => {
+        Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
+        InternalServerError(Json.toJson(ApiError.MapReduceError))
+      }
+    }
+  }
 
   /**
    * Returns available field values for gradeLevel, itemType, standard, keySkill, bloomsTaxonomy, and
    * demonstratedKnowledge, scoped by a provided {@link MongoDBObject} for querying.
    */
-  private def getFieldValues(query: MongoDBObject) = Action {
+  private def getFieldValues(query: MongoDBObject): Either[JsValue, MapReduceError] = {
 
     /**
      * This MapReduce returns results of the form:
@@ -191,6 +222,10 @@ object FieldValuesApi extends BaseApi {
                 this.standards.forEach(function(standard) {
                   emit({standard: standard}, {exists: 1});
                 });
+              }
+
+              if (this.contributorDetails && this.contributorDetails.contributor) {
+                emit({contributor: this.contributorDetails.contributor}, {exists: 1});
               }
 
               if (this.otherAlignments) {
@@ -259,13 +294,9 @@ object FieldValuesApi extends BaseApi {
           }
           case _ => acc
         })
-        println(fieldValueMap)
-        Ok(Json.toJson(fieldValueMap))
+        Left(Json.toJson(fieldValueMap))
       }
-      case error: MapReduceError => {
-        Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
-        InternalServerError(Json.toJson(ApiError.MapReduceError))
-      }
+      case error: MapReduceError => Right(error)
     }
   }
 
