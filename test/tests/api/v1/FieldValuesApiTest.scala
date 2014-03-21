@@ -1,30 +1,22 @@
 package tests.api.v1
 
-import org.specs2.mutable.Specification
-import org.corespring.platform.core.models._
-import org.bson.types.ObjectId
-import org.specs2.execute.Pending
 import play.api.libs.json._
-import play.api.mvc.{Results, SimpleResult, AnyContentAsJson}
-import play.api.test.{FakeHeaders, FakeRequest}
-import org.specs2.mutable._
+import play.api.mvc._
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import com.mongodb.BasicDBObject
-import play.api.mvc.AnyContentAsJson
-import scala.Some
-import play.api.mvc.SimpleResult
-import play.api.libs.json.JsArray
-import play.api.mvc.AnyContentAsJson
-import scala.Some
-import play.api.mvc.SimpleResult
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.test.BaseTest
+import play.api.test.FakeHeaders
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import scala.Some
 
 object FieldValuesApiTest extends BaseTest {
 
-   val FieldValueCount =  FieldValue.descriptions.toList.length + 2
+  val FieldValueCount =  FieldValue.descriptions.toList.length + 2
 
   "FieldValuesApi" should {
+
     "show all available values" in {
 
       val call = api.v1.routes.FieldValuesApi.getAllAvailable()
@@ -55,6 +47,29 @@ object FieldValuesApiTest extends BaseTest {
       }
 
       true.mustEqual(true)
+    }
+
+    "show field values for current user collections" in {
+      val call = api.v1.routes.FieldValuesApi.getFieldValuesAction()
+      val request = FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsEmpty)
+      route(request) match {
+        case Some(result) => {
+          status(result) must be equalTo OK
+          Json.parse(result.body) match {
+            case json: JsObject => {
+              (json \ "contributor").as[JsArray].value must not beEmpty;
+              (json \ "subject").as[JsArray].value must not beEmpty;
+              (json \ "standard").as[JsArray].value must not beEmpty;
+              (json \ "gradeLevel").as[JsArray].value must not beEmpty;
+              (json \ "keySkill").as[JsArray].value must not beEmpty;
+              (json \ "itemType").as[JsArray].value must not beEmpty
+            }
+            case _ => failure
+          }
+        }
+        case _ => failure
+      }
+      success
     }
 
     "return multiple values" in {
