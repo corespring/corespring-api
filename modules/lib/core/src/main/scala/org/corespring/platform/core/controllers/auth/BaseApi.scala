@@ -1,7 +1,7 @@
 package org.corespring.platform.core.controllers.auth
 
 import org.bson.types.ObjectId
-import org.corespring.common.log.PackageLogging
+import org.corespring.common.log.{ClassLogging, PackageLogging}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.{ User, Organization }
 import play.api.libs.json._
@@ -79,8 +79,8 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
 
         val IgnoreSession = "CoreSpring-IgnoreSession"
 
-        logger.debug(s"request route: ${request.method}, ${request.uri}")
-        logger.debug(s"ignore session: ${request.headers.get(IgnoreSession)}")
+        logger.trace(s"[ApiAction] request route: ${request.method}, ${request.uri}")
+        logger.trace(s"[ApiAction] ignore session: ${request.headers.get(IgnoreSession)}")
 
         def resultFromToken = {
 
@@ -93,7 +93,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
             },
             ctx => {
               val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
-              logger.debug("returning result")
+              logger.trace("returning result")
               result
             })
           tokenFromRequest(request).fold(onError, onToken)
@@ -103,7 +103,7 @@ trait BaseApi extends Controller with SecureSocial with PackageLogging {
           currentUser <- SecureSocial.currentUser(request)
           if (request.headers.get(IgnoreSession).isEmpty)
         } yield {
-          logger.debug(s"currentUser: $currentUser")
+          logger.trace(s"currentUser: $currentUser")
           invokeAsUser(currentUser.identityId.userId, currentUser.identityId.providerId, request)(f)
         }
 
