@@ -238,6 +238,8 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
           case true => request.body.asJson match {
             case Some(jsonSession) => {
 
+              logger.trace(s"[processResponse] ${Json.stringify(jsonSession)}")
+
               if (dbSession.finish.isDefined) {
                 BadRequest(toJson(ApiError.ItemSessionFinished))
               } else {
@@ -255,7 +257,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
                             case Right(newSession) => {
                               if (isInstructor) newSession.settings = newSession.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
                               val json = toJson(newSession)
-                              logger.debug("[processResponse] successful")
+                              logger.trace("[processResponse] successful")
                               Ok(json)
                             }
                             case Left(error) => InternalServerError(toJson(ApiError.UpdateItemSession(error.clientOutput)))
