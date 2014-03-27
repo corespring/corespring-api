@@ -141,18 +141,10 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     }
   }
 
-  private def tagSentences(s: String): String = {
-    val regExp = new Regex("(?s)(.*?[.!?]([^ \\t])*)", "match")
-    var idx = 0
-
-    // Filter out names like Vikram S. Pandit as they break the sentence parsing
-    val namesParsed = "([A-Z][a-z]+ [A-Z])\\.( [A-Z][a-z]+)".r.replaceAllIn(s, "$1&#46;$2")
-    val res = regExp.replaceAllIn(namesParsed, m => {
-      idx = idx + 1
-      "<span selectable=\"\" id=\"s" + idx.toString + "\">" + m.group("match") + "</span>"
-    })
-    res
-  }
+  private def tagSentences(string: String): String =
+    Sentences.split(string).zipWithIndex.map({ case(sentence, index) =>
+      s"""<span selectable="" id="s${index+1}">$sentence</span>"""
+    }).mkString(" ")
 
   private def tagWords(s: String): String = {
 
