@@ -111,7 +111,7 @@ width:82px;
 }
 .focus-container {
 	border-radius: 4px;
-    width: 560px;
+    width: 512px;
     height: auto;
     background: url("/assets/images/header-dark-grey-br-1.png") repeat scroll center top transparent;
     -moz-user-select: none;
