@@ -135,19 +135,22 @@ class ReportsService(ItemCollection: MongoCollection,
     populateHeaders
 
     val lineResults: List[LineResult] = StandardCollection.map((dbo: DBObject) => {
+      Option(dbo.get("legacyItem")).map(_.asInstanceOf[Boolean]) match {
+        case Some(true) => None
+        case _ => {
+          val dotNotation = dbo.get("dotNotation").asInstanceOf[String]
+          val subject = dbo.get("subject").asInstanceOf[String]
+          val category = dbo.get("category").asInstanceOf[String]
+          val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
-      val dotNotation = dbo.get("dotNotation").asInstanceOf[String]
-      val subject = dbo.get("subject").asInstanceOf[String]
-      val category = dbo.get("category").asInstanceOf[String]
-      val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
-
-      val query = Standard.baseQuery(baseQuery)
-      query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
-      buildLineResult(query, finalKey)
-    }).toList
+          val query = Standard.baseQuery(baseQuery)
+          query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
+          Some(buildLineResult(query, finalKey))
+        }
+      }
+    }).flatten.toList
     ReportLineResult.buildCsv("Standards", lineResults,
       (a: String, b: String) => Standard.sorter(a.split(":").head ,b.split(":").head))
-
   }
 
   /**
