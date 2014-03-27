@@ -12,7 +12,7 @@ import play.api.cache.Cache
 import api.ApiError
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.{ Subject, Standard }
-import org.corespring.platform.core.models.item.{Subjects, FieldValue}
+import org.corespring.platform.core.models.item.FieldValue
 import com.mongodb.casbah.map_reduce.{MapReduceInlineOutput, MapReduceCommand}
 import org.corespring.platform.core.models.search.SearchCancelled
 import play.api.libs.json.JsArray
@@ -23,6 +23,7 @@ import play.api.libs.json.JsObject
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import com.mongodb.DBObject
 import play.api.Logger
+import play.api.libs.json.Json
 
 object FieldValuesApi extends BaseApi {
 
@@ -35,7 +36,7 @@ object FieldValuesApi extends BaseApi {
       List(
         ("cc-standard", Standard.description + " (list queries available)"),
         ("subject", Subject.description + " (list queries available)"))
-    for { d <- list } yield Map("path" -> ("/api/v1/field_values/" + d._1), "description" -> d._2)
+    for { d <- list } yield Map("path" -> ("/api/v1/field_values/all" + d._1), "description" -> d._2)
   }
 
   def getAllAvailable = Action {
@@ -123,10 +124,10 @@ object FieldValuesApi extends BaseApi {
       case "cc-standard" => {
         q.map(Standard.toSearchObj(_, None)).getOrElse[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject())) match {
           case Right(query) => f.map(Standard.toFieldsObj(_)) match {
-            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query, searchFields.dbfields).toSeq.map(Json.toJson(_)))
+            case Some(Right(searchFields)) => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(Standard.baseQuery(query)).count)))
+            else JsArray(Standard.find(Standard.baseQuery(query), searchFields.dbfields).toSeq.map(Json.toJson(_)))
             case None => if (c == "true") JsObject(Seq("count" -> JsNumber(Standard.find(query).count)))
-            else JsArray(Standard.find(query).toSeq.map(Json.toJson(_)))
+            else JsArray(Standard.find(Standard.baseQuery(query)).toSeq.map(Json.toJson(_)))
             case Some(Left(error)) => JsNull
           }
           case Left(sc) => sc.error match {
@@ -151,17 +152,45 @@ object FieldValuesApi extends BaseApi {
 
   }
 
+
   def getFieldValuesByCollection(collectionId: ObjectId) =
-    getFieldValues(MongoDBObject("collectionId" -> collectionId.toString))
+    getFieldValuesAction(MongoDBObject("collectionId" -> collectionId.toString))
 
   def getFieldValuesByContributor(contributor: String) =
-    getFieldValues(MongoDBObject("contributorDetails.contributor" -> contributor))
+    getFieldValuesAction(MongoDBObject("contributorDetails.contributor" -> contributor))
+
+  def getFieldValuesAction() = ApiAction { request =>
+    request.ctx.org match {
+      case Some(organization) => {
+        getFieldValues(
+          MongoDBObject("collectionId" ->
+            MongoDBObject("$in" -> organization.contentcolls.map(_.collectionId.toString)))) match {
+          case Left(jsValue: JsValue) => Ok(jsValue)
+          case Right(error: MapReduceError) => {
+            Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
+            InternalServerError(Json.toJson(ApiError.MapReduceError))
+          }
+        }
+      }
+      case _ => Ok(Json.obj())
+    }
+  }
+
+  private def getFieldValuesAction(query: MongoDBObject) = Action {
+    getFieldValues(query) match {
+      case Left(jsValue: JsValue) => Ok(jsValue.toString)
+      case Right(error: MapReduceError) => {
+        Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
+        InternalServerError(Json.toJson(ApiError.MapReduceError))
+      }
+    }
+  }
 
   /**
    * Returns available field values for gradeLevel, itemType, standard, keySkill, bloomsTaxonomy, and
    * demonstratedKnowledge, scoped by a provided {@link MongoDBObject} for querying.
    */
-  private def getFieldValues(query: MongoDBObject) = Action {
+  private def getFieldValues(query: MongoDBObject): Either[JsValue, MapReduceError] = {
 
     /**
      * This MapReduce returns results of the form:
@@ -199,6 +228,10 @@ object FieldValuesApi extends BaseApi {
                 this.standards.forEach(function(standard) {
                   emit({standard: standard}, {exists: 1});
                 });
+              }
+
+              if (this.contributorDetails && this.contributorDetails.contributor) {
+                emit({contributor: this.contributorDetails.contributor}, {exists: 1});
               }
 
               if (this.otherAlignments) {
@@ -268,13 +301,9 @@ object FieldValuesApi extends BaseApi {
           }
           case _ => acc
         })
-        println(fieldValueMap)
-        Ok(Json.toJson(fieldValueMap))
+        Left(Json.toJson(fieldValueMap))
       }
-      case error: MapReduceError => {
-        Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
-        InternalServerError(Json.toJson(ApiError.MapReduceError))
-      }
+      case error: MapReduceError => Right(error)
     }
   }
 

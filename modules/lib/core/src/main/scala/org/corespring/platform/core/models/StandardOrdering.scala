@@ -16,6 +16,43 @@ object StandardOrdering extends Ordering[Standard] {
     "HSA-CED", "HSA-REI", "HSF-IF", "HSF-BF", "HSF-LE", "HSF-TF", "HSG-CO", "HSG-SRT", "HSG-C", "HSG-GPE", "HSG-GMD",
     "HSG-MG", "HSS-ID", "HSS-IC", "HSS-CP", "HSS-MD")
 
+  private implicit class CodeCompare(one: Standard) {
+    val numberWithoutLetters = "(\\d+)$".r
+    val numberWithLetters = "(\\d+)([a-z])$".r
+    val letter = "([a-z])".r
+    def compareCode(two: Standard) = {
+      (one.code, two.code) match {
+        case (Some(first), Some(second)) => (first, second) match {
+          case (numberWithoutLetters(firstNumber), numberWithoutLetters(secondNumber)) =>
+            firstNumber.toInt.compareTo(secondNumber.toInt)
+          case (numberWithoutLetters(firstNumber), numberWithLetters(secondNumber, secondLetter)) =>
+            firstNumber.toInt.compareTo(secondNumber.toInt) match {
+              case 0 => -1
+              case int: Int => int
+            }
+          case (numberWithLetters(firstNumber, firstLetter), numberWithoutLetters(secondNumber)) =>
+            firstNumber.toInt.compareTo(secondNumber.toInt) match {
+              case 0 => 1
+              case int: Int => int
+            }
+          case (numberWithLetters(firstNumber, firstLetter), numberWithLetters(secondNumber, secondLetter)) => {
+            firstNumber.toInt.compareTo(secondNumber.toInt) match {
+              case 0 =>  firstLetter.compareTo(secondLetter)
+              case int: Int => int
+            }
+          }
+          case (letter(firstLetter), letter(secondLetter)) => firstLetter.compareTo(secondLetter)
+          case (letter(_*), _) => 1
+          case (_, letter(_*)) => -1
+          case _ => throw new IllegalArgumentException(s"Couldn't match ${first}, ${second}")
+        }
+        case (None, Some(_)) => -1
+        case (Some(_), None) => 1
+        case (None, None) => 0
+      }
+    }
+  }
+
   private def normalizeSubject(standard: Standard): Standard =
     standard.copy(subject = standard.subject.map(subject => if (subject == "ELA-Literacy") "ELA" else subject))
 
@@ -24,14 +61,12 @@ object StandardOrdering extends Ordering[Standard] {
     val two = normalizeSubject(other)
     compare(one.subject, two.subject, subjectOrdering)(() =>
       gradesCompare(one.grades, two.grades)(() => {
-        one.category.compareOpt(two.category) match {
-          case 0 => one.subCategory.compareOpt(two.subCategory) match {
-            case 0 => compare(one.abbreviation, two.abbreviation, abbreviationOrdering)(() =>
-              one.dotNotation.compareOpt(two.dotNotation))
+        compare(one.abbreviation, two.abbreviation, abbreviationOrdering)(() => {
+          one.category.compareOpt(two.category) match {
+            case 0 => one.compareCode(two)
             case int: Int => int
           }
-          case int: Int => int
-        }
+        })
       })
     )
   }

@@ -92,7 +92,7 @@ object Build extends sbt.Build {
 
   val playerLib = builders.lib("player-lib")
     .settings(
-      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, scalaFaker % "test"))
+      libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, playTest % "test", scalaFaker % "test"))
     .dependsOn(core)
     .settings(disableDocsSettings: _*)
 

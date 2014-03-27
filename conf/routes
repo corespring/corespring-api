@@ -118,7 +118,8 @@ POST    /api/v1/items/:itemId/data/:filename/upload   api.v1.ResourceApi.uploadF
 DELETE  /api/v1/items/:itemId/data/:filename         api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
 
 # Field Values API
-GET     /api/v1/field_values                   api.v1.FieldValuesApi.getAllAvailable
+GET     /api/v1/field_values/all               api.v1.FieldValuesApi.getAllAvailable
+GET     /api/v1/field_values                   api.v1.FieldValuesApi.getFieldValuesAction
 GET     /api/v1/field_values/multiple        api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
 GET     /api/v1/field_values/:fieldName        api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
 GET     /api/v1/field_values/contributor/:contributor   api.v1.FieldValuesApi.getFieldValuesByContributor(contributor: String)
@@ -160,6 +161,7 @@ GET    /scorm-player/session/:sessionId/:filename       scorm.controllers.ScormP
 # New Player
 ## REST calls
 POST   /player/api/:itemId/session                         player.controllers.Session.create(itemId:VersionedId[ObjectId])
+GET    /player/item/:itemId/session/redirect               player.controllers.Session.create(itemId:VersionedId[ObjectId])
 GET    /player/api/:itemId/session/:sessionId              player.controllers.Session.read(itemId:VersionedId[ObjectId], sessionId:ObjectId, role:String ?= "student")
 PUT    /player/api/:itemId/session/:sessionId              player.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
 POST   /player/api/:itemId/session/:assessmentId/aggregate       player.controllers.Session.aggregate(assessmentId:ObjectId, itemId:VersionedId[ObjectId])
