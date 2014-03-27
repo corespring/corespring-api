@@ -69,7 +69,7 @@ object Build extends sbt.Build {
 
 
   val qti = builders.lib("qti").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos)
+    libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos, nlp)
   )
 
   /** Core data model */
