@@ -11,15 +11,14 @@ import org.corespring.platform.core.models._
 import play.api.mvc.Action
 import play.api.libs.json._
 import play.api.libs.json.Json._
-import org.corespring.api.v1.fieldValues._
 import org.corespring.platform.core.models.search.SearchCancelled
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.DBObject
 import org.bson.types.ObjectId
 import com.mongodb.casbah.map_reduce.MapReduceError
 import play.api.Logger
+import play.api.libs.json.Json
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.platform.core.services.item.ItemServiceWired
 
 object FieldValuesApi extends BaseApi {
 

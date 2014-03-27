@@ -12,7 +12,6 @@ import scala.Some
 object FieldValuesApiTest extends BaseTest {
 
   val FieldValueCount =  FieldValue.descriptions.toList.length + 2
-
    val routes = org.corespring.api.v1.routes.FieldValuesApi
 
   "FieldValuesApi" should {
@@ -50,7 +49,7 @@ object FieldValuesApiTest extends BaseTest {
     }
 
     "show field values for current user collections" in {
-      val call = routes.getFieldValuesAction()
+      val call = api.v1.routes.FieldValuesApi.getFieldValuesAction()
       val request = FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsEmpty)
       route(request) match {
         case Some(result) => {
