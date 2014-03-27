@@ -112,7 +112,7 @@
         queryString = src.match(/.*player.js\?(.*)/)[1];
       }
     });
-    return queryString;
+    return (queryString !== "") ? "?" + queryString : "";
   }
 
   var iframePlayerStrategy = function (e, options) {
@@ -120,7 +120,7 @@
     if (options.omitSubmitButton)
       url += "?omitSubmitButton=true";
 
-    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + '?' + getPlayerQueryString() + "' style='width: 100%; height: 100%; border: none'" + "></iframe>");
+    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + getPlayerQueryString() + "' style='width: 100%; height: 100%; border: none'" + "></iframe>");
     e.width(options.width ? options.width : "600px");
 
 
