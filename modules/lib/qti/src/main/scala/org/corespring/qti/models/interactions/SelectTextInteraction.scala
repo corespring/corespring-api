@@ -143,7 +143,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
   private def tagSentences(string: String): String =
     Sentences.split(string).zipWithIndex.map({ case(sentence, index) =>
-      s"""<span selectable="" id="s$index">$sentence</span>"""
+      s"""<span selectable="" id="s${index+1}">$sentence</span>"""
     }).mkString(" ")
 
   private def tagWords(s: String): String = {
