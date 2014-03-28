@@ -31,7 +31,11 @@ object Global
   val INIT_DATA: String = "INIT_DATA"
 
   private lazy val componentLoader: ComponentLoader = {
-    val out = new FileComponentLoader(Play.current.configuration.getString("components.path").toSeq)
+    val path = Play.current match {
+      case Mode.Prod => current.configuration.getString("components.prod-path").toSeq
+      case _ => current.configuration.getString("components.path").toSeq
+    }
+    val out = new FileComponentLoader(path)
     out.reload
     out
   }
