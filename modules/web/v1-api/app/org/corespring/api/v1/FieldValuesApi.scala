@@ -11,6 +11,8 @@ import org.corespring.platform.core.models._
 import play.api.mvc.Action
 import play.api.libs.json._
 import play.api.libs.json.Json._
+import org.corespring.api.v1.fieldValues.{Options, QueryOptions}
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.models.search.SearchCancelled
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.DBObject

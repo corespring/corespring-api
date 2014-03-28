@@ -139,7 +139,6 @@ class ReportsService(ItemCollection: MongoCollection,
     }).flatten.toList
     ReportLineResult.buildCsv("Standards", lineResults,
       (a: String, b: String) => Standard.sorter(a.split(":").head, b.split(":").head))
-      (a: String, b: String) => Standard.sorter(a.split(":").head ,b.split(":").head))
   }
 
   /**
