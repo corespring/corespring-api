@@ -8,24 +8,19 @@ import org.corespring.test.BaseTest
 import play.api.test.FakeHeaders
 import play.api.libs.json._
 import scala.Some
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object FieldValuesApiTest extends BaseTest {
 
   val FieldValueCount =  FieldValue.descriptions.toList.length + 2
-   val routes = org.corespring.api.v1.routes.FieldValuesApi
+  val routes = org.corespring.api.v1.routes.FieldValuesApi
 
   "FieldValuesApi" should {
 
     "show all available values" in {
 
-      val call = routes.getAllAvailable()
-      val request = FakeRequest(call.method, call.url )
-      val maybeResult = route(request)
-
-      if (!maybeResult.isDefined) {
-        failure
-      }
-      val result = maybeResult.get
+      val result = FieldValuesApi.getAllAvailable()(FakeRequest())
       status(result) === OK
       val json: JsValue = Json.parse(contentAsString(result))
       val array: JsArray = json.asInstanceOf[JsArray]
@@ -49,22 +44,17 @@ object FieldValuesApiTest extends BaseTest {
     }
 
     "show field values for current user collections" in {
-      val call = api.v1.routes.FieldValuesApi.getFieldValuesAction()
-      val request = FakeRequest(call.method, tokenize(call.url), FakeHeaders(), AnyContentAsEmpty)
-      route(request) match {
-        case Some(result) => {
-          status(result) must be equalTo OK
-          Json.parse(result.body) match {
-            case json: JsObject => {
-              (json \ "contributor").as[JsArray].value must not beEmpty;
-              (json \ "subject").as[JsArray].value must not beEmpty;
-              (json \ "standard").as[JsArray].value must not beEmpty;
-              (json \ "gradeLevel").as[JsArray].value must not beEmpty;
-              (json \ "keySkill").as[JsArray].value must not beEmpty;
-              (json \ "itemType").as[JsArray].value must not beEmpty
-            }
-            case _ => failure
-          }
+      val request = FakeRequest(GET, tokenize("/"), FakeHeaders(), AnyContentAsEmpty)
+      val result = FieldValuesApi.getFieldValuesAction()(request)
+      status(result) must be equalTo OK
+      contentAsJson(result) match {
+        case json: JsObject => {
+          (json \ "contributor").as[JsArray].value must not beEmpty;
+          (json \ "subject").as[JsArray].value must not beEmpty;
+          (json \ "standard").as[JsArray].value must not beEmpty;
+          (json \ "gradeLevel").as[JsArray].value must not beEmpty;
+          (json \ "keySkill").as[JsArray].value must not beEmpty;
+          (json \ "itemType").as[JsArray].value must not beEmpty
         }
         case _ => failure
       }
@@ -73,45 +63,25 @@ object FieldValuesApiTest extends BaseTest {
 
     "return multiple values" in {
 
-      val call = routes.multiple("gradeLevels,reviewsPassed")
-      val request = FakeRequest(call.method, call.url)
-
-      route(request) match {
-        case Some(result) => {
-          val json : JsValue = Json.parse(contentAsString(result))
-          ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0)  === true
-          ((json \ "reviewsPassed").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
-        }
-        case _ => failure("call failed")
-      }
+      val params = "gradeLevels,reviewsPassed"
+      val request = FakeRequest(GET, "/")
+      val result = FieldValuesApi.multiple(params, None, "")(request)
+      val json : JsValue = Json.parse(contentAsString(result))
+      ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0)  === true
+      ((json \ "reviewsPassed").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
     }
 
     "return multiple values with queries" in {
       val options = """{"subject" : { "q" : {"category": "Art"}} }"""
-      val call = routes.multiple("subject,reviewsPassed", Some(options) )
-      val request = FakeRequest(call.method, call.url)
-
-      route(request) match {
-       case Some(result) => {
-          val json = Json.parse(contentAsString(result))
-          (((json\ "subject")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
-       }
-       case _ => failure("request unsuccessful")
-      }
+      val result = FieldValuesApi.multiple("subject,reviewsPassed", Some(options), "")(FakeRequest(GET, "/"))
+      val json = Json.parse(contentAsString(result))
+      (((json \ "subject")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
     }
 
     "multiple handles invalid json" in {
-      val call = routes.multiple("reviewsPassed", Some("asdfadsf") )
-      val request = FakeRequest(call.method, call.url)
-
-      route(request) match {
-       case Some(result) => {
-          val json = Json.parse(contentAsString(result))
-          (((json\ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
-       }
-       case _ => failure("request unsuccessful")
-      }
-
+      val result = FieldValuesApi.multiple("reviewsPassed", Some("asdfadsf"), "")(FakeRequest(GET, "/"))
+      val json = contentAsJson(result)
+      (((json\ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
     }
 
   }
