@@ -21,6 +21,7 @@ import com.mongodb.casbah.map_reduce.MapReduceError
 import play.api.Logger
 import play.api.libs.json.Json
 import org.corespring.api.v1.errors.ApiError
+import org.corespring.platform.core.models.auth.Permission
 
 object FieldValuesApi extends BaseApi {
 
@@ -157,9 +158,11 @@ object FieldValuesApi extends BaseApi {
   def getFieldValuesAction() = ApiAction { request =>
     request.ctx.org match {
       case Some(organization) => {
+        val collectionIds = ContentCollection.getContentCollRefs(organization.id, Permission.Read, true)
+          .map(_.collectionId.toString).distinct
+        println(organization.contentcolls.map(_.collectionId.toString))
         getFieldValues(
-          MongoDBObject("collectionId" ->
-            MongoDBObject("$in" -> organization.contentcolls.map(_.collectionId.toString)))) match {
+          MongoDBObject("collectionId" -> MongoDBObject("$in" -> collectionIds))) match {
           case Left(jsValue: JsValue) => Ok(jsValue)
           case Right(error: MapReduceError) => {
             Logger.error(error.errorMessage.getOrElse("Unknown MapReduce error"))
