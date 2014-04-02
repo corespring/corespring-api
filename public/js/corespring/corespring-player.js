@@ -87,7 +87,7 @@
           if (!found) $(element).height(json.h + 30);
         }
       } catch (e) {
-            logError("Exception in addDimensionChangeListener: "+e);
+        logError("Exception in addDimensionChangeListener: "+e);
       }
     }
 
@@ -100,27 +100,12 @@
     return ["preview", "administer", "render", "aggregate"].indexOf(m) !== -1;
   };
 
-  function getPlayerQueryString() {
-    var queryString = "";
-    var scripts = document.getElementsByTagName('script');
-    var regex = /.*player.js\?apiClientId=(.*)&options=(.*)/;
-
-    $(scripts).each(function(i, script) {
-      var src = $(script).attr('src');
-      var match = src !== undefined ? src.match(regex) : null;
-      if (match !== null) {
-        queryString = src.match(/.*player.js\?(.*)/)[1];
-      }
-    });
-    return (queryString !== "") ? "?" + queryString : "";
-  }
-
   var iframePlayerStrategy = function (e, options) {
     var url = options.corespringUrl;
     if (options.omitSubmitButton)
       url += "?omitSubmitButton=true";
 
-    e.html("<iframe id='iframe-player' src='" + options.corespringUrl + getPlayerQueryString() + "' style='width: 100%; height: 100%; border: none'" + "></iframe>");
+    e.html("<iframe id='iframe-player' src='" + url + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
 
 
@@ -170,7 +155,7 @@
           }
         }
         catch (e) {
-            logError("Exception in ItemPlayer.addSessionListener: "+e);
+          logError("Exception in ItemPlayer.addSessionListener: "+e);
         }
       });
     };
@@ -255,11 +240,11 @@
     };
 
     function addQueryString(url,param){
-        if(url.indexOf("?") != -1){
-            return url+"&role="+param;
-        }else{
-            return url+"?role="+param;
-        }
+      if(url.indexOf("?") != -1){
+        return url+"&role="+param;
+      }else{
+        return url+"?role="+param;
+      }
     }
 
     options.corespringUrl = getUrl(com.corespring.players.config.mode, options);
