@@ -2,7 +2,7 @@ package org.corespring.v2player.integration
 
 import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
-import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.component.{ PlayerGenerator, EditorGenerator, SourceGenerator }
 import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQuery, ComponentSets, Assets }
@@ -34,8 +34,7 @@ import scala.Some
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
-import org.corespring.container.client.actions.{ DeleteAssetRequest, AssetActions }
-import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.assets.CorespringS3Service
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -55,7 +54,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  private lazy val authItemActions = new AuthItemCheckPermissions(
+  private lazy val authForItem = new AuthItemCheckPermissions(
     mainSecureSocialService,
     UserServiceWired,
     mainSessionService,
@@ -124,65 +123,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
       }
     }
 
-    //TODO: Need to look at a way of pre-validating before we upload - look at the predicate?
-    def uploadBodyParser(id: String, file: String): BodyParser[Int] = playS3.upload(bucket, s"$id/$file", (rh) => None)
-
     def getItemId(sessionId: String): Option[String] = mainSessionService.load(sessionId).map {
       s => (s \ "itemId").as[String]
     }
 
-    override def actions: AssetActions[AnyContent] = new AssetActions[AnyContent] {
+    override def actions: AssetActions = new AssetActions {
+      override def authForItem: AuthenticatedItem = V2PlayerIntegration.this.authForItem
 
-      def authenticatedFailure(itemId: String)(rh: RequestHeader): Option[SimpleResult] = {
-        authItemActions.authenticationFailedResult(itemId, rh)
-      }
+      override def itemService: ItemService = ItemServiceWired
 
-      override def delete(itemId: String, file: String)(block: (DeleteAssetRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-        request =>
+      override def bucket: String = AppConfig.assetsBucket
 
-          authenticatedFailure(itemId)(request).map {
-            errorResult =>
-              errorResult
-          }.getOrElse {
-            val result = playS3.delete(bucket, s"$itemId/data/$file")
-            if (result.success) {
-              block(DeleteAssetRequest(None, request))
-            } else {
-              BadRequest(Json.obj("error" -> result.msg))
-            }
-          }
-      }
-
-      override def upload(itemId: String, file: String)(block: (Request[Int]) => Result): Action[Int] = {
-        Action(playS3.upload(bucket, s"$itemId/data/$file", authenticatedFailure(itemId))) {
-          request =>
-
-            val result: Validation[String, Result] = for {
-              vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
-              item <- ItemServiceWired.findOneById(vid).toSuccess(s"can't find item with id: $vid")
-              data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
-            } yield {
-
-              val filename = grizzled.file.util.basename(file)
-              val newFile = StoredFile(file, BaseFile.getContentType(filename), false, s"$itemId/data/$file")
-              import org.corespring.platform.core.models.mongoContext.context
-              val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
-
-              ItemServiceWired.collection.update(
-                MongoDBObject("_id._id" -> vid.id),
-                MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)),
-                false)
-              block(request)
-            }
-
-            result match {
-              case Success(r) => r
-              case Failure(msg) => BadRequest(Json.obj("err" -> msg))
-            }
-
-        }
-      }
+      override def s3: S3Service = playS3
     }
+
   }
 
   lazy val componentUrls: ComponentSets = new ComponentSets {
