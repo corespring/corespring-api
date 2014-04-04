@@ -52,7 +52,7 @@ trait AuthParams {
     import AuthParamErrorMessages._
 
     def decryptString = try {
-      Success(AESCrypto.decrypt(encryptedOptions, apiClient.clientSecret))
+      Success(crypto.decrypt(encryptedOptions, apiClient.clientSecret))
     } catch {
       case e: Throwable => Failure(e.getMessage)
     }
