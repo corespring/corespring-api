@@ -12,8 +12,34 @@ import play.api.mvc._
 import scala.Some
 import org.corespring.v2player.integration.errors.Errors.{ cantLoadSession, cantParseItemId }
 import org.corespring.v2player.integration.errors.V2Error
+import scalaz.{ Failure, Success }
+import play.api.libs.json.Json
 
 object AuthSessionActionsCheckPermissions {
+}
+
+abstract class AuthItemCheckPermissions(
+  secureSocialService: SecureSocialService,
+  userService: UserService,
+  sessionService: MongoService,
+  itemService: ItemService,
+  orgService: OrganizationService)
+  extends BaseAuth(secureSocialService, userService, sessionService, itemService, orgService)
+  with AuthenticatedItem {
+  override def authenticationFailedResult(itemId: String, rh: RequestHeader): Option[SimpleResult] = {
+
+    None
+
+    val result = checkAccess(
+      rh,
+      orgCanAccessItem(itemId, _),
+      hasPermissions(itemId, None, Mode.gather, _))
+
+    result match {
+      case Success(true) => None
+      case _ => Some(play.api.mvc.Results.BadRequest(Json.obj("error" -> "Access not granted")))
+    }
+  }
 }
 
 abstract class AuthSessionActionsCheckPermissions(

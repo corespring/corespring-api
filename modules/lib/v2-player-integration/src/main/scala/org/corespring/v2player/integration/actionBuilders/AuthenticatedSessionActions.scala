@@ -1,11 +1,15 @@
 package org.corespring.v2player.integration.actionBuilders
 
-import play.api.mvc.{Action, Request, Result, AnyContent}
+import play.api.mvc._
+
+trait AuthenticatedItem {
+  def authenticationFailedResult(itemId: String, rh: RequestHeader): Option[SimpleResult]
+}
 
 trait AuthenticatedSessionActions {
   def read(sessionId: String)(block: Request[AnyContent] => Result): Action[AnyContent]
 
-  def defaultNotAuthorized(request: Request[AnyContent], code:Int, msg: String): Result = {
+  def defaultNotAuthorized(request: Request[AnyContent], code: Int, msg: String): Result = {
     import play.api.mvc.Results._
     Unauthorized(msg)
   }
@@ -25,8 +29,6 @@ trait AuthenticatedSessionActions {
    */
   def createSessionHandleNotAuthorized(itemId: String)(authorized: (Request[AnyContent]) => Result)(failed: (Request[AnyContent], Int, String) => Result): Action[AnyContent]
 
-
-  def loadPlayerForSession(sessionId: String)(error: (Int,String) => Result)(block : (Request[AnyContent] => Result)) : Action[AnyContent]
+  def loadPlayerForSession(sessionId: String)(error: (Int, String) => Result)(block: (Request[AnyContent] => Result)): Action[AnyContent]
 }
-
 
