@@ -31,7 +31,7 @@ trait PlayerCookieReader {
     k => RequestedAccess.Mode.withName(k)
   }
 
-  def renderOptions[A](request: Request[A]): Option[RenderOptions] = request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map {
+  def renderOptionsFromCookie[A](request: Request[A]): Option[RenderOptions] = request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map {
     json => Json.parse(json).as[RenderOptions]
   }
 

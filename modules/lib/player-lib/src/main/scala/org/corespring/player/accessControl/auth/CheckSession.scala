@@ -11,16 +11,18 @@ import play.api.libs.json.{JsString, Json}
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
+import scalaz.{Failure, Success}
 
 
 /**
  * An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
  * RequestedAccess is defined by the controllers. It defines the type of access that the controller will need.
- * RenderOptions is set as a session cookie it defines what rendering options have been granted to the session.
+ * RenderOptions is set as a session cookie or is contained in encrpypted options in the request params
+ * it defines what rendering options have been granted to the session.
  * Using these two models we can make a decision on whether this request should be granted access.
  *
  */
-abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader {
+abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAccess] with PlayerCookieReader with AuthParams {
 
   import ExecutionContext.Implicits.global
 
@@ -31,8 +33,21 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
     Action.async {
       request =>
 
+        val orgIdOption = orgIdFromCookie(request) match {
+          case Some(orgId) => Some(orgId)
+          case None => {
+            getApiClientFromParams(request) match {
+              case Failure(msg) => None
+              case Success(client) => {
+                Some(client.orgId.toString)
+              }
+            }
+
+          }
+        }
+
       /** Once access has been granted invoke the block and pass in a TokenizedRequest */
-        def invokeBlock: Future[SimpleResult] = orgIdFromCookie(request) match {
+        def invokeBlock: Future[SimpleResult] = orgIdOption match {
           case Some(orgId) => {
             AccessToken.getTokenForOrgById(new ObjectId(orgId)) match {
               case Some(token) => block(TokenizedRequest(token.tokenId, request))
@@ -42,7 +57,12 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
           case _ => Future(BadRequest("no org id"))
         }
 
-        val options = renderOptions(request)
+        val options = renderOptionsFromCookie(request) match {
+          case Some(options) => Some(options)
+          case None => getOptionsFromParams(request)
+        }
+
+
 
         options.map {
           o =>

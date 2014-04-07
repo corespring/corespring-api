@@ -3,11 +3,12 @@ package org.corespring.player.accessControl.auth
 import play.api.mvc.{AnyContent, Request, Result}
 import org.corespring.player.accessControl.models.RenderOptions
 import org.corespring.platform.core.models.auth.ApiClient
-import scalaz.{Failure, Success, Validation}
+import scalaz.{Validation, Failure, Success}
 import org.bson.types.ObjectId
 import play.api.libs.json.{Json, JsValue}
 import org.corespring.common.encryption.{Crypto, AESCrypto}
 import scalaz.Scalaz._
+import AuthParamErrorMessages._
 
 
 trait AuthParams {
@@ -16,14 +17,34 @@ trait AuthParams {
 
   def changeCrypto(newCrypto: Crypto) = crypto = newCrypto
 
+
+  def getApiClientFromParams(request: Request[AnyContent]): Validation[String, ApiClient] =  for {
+    id <- request.queryString.get("apiClientId").map(_.mkString).toSuccess(queryParamNotFound("apiClientId", request.queryString))
+    validId <- if (ObjectId.isValid(id)) Success(id) else Failure(InvalidObjectId)
+    client <- ApiClient.findByKey(id).toSuccess(apiClientNotFound(id))
+  } yield client
+
+  def getOptionsFromParams(request: Request[AnyContent], client: ApiClient): Validation[String, RenderOptions] = for {
+    o <- request.queryString.get("options").map(_.mkString).toSuccess(queryParamNotFound("options", request.queryString))
+    ro <- decryptOptions(o, client)
+  } yield(ro)
+
+  def getOptionsFromParams(request: Request[AnyContent]): Option[RenderOptions] = {
+    val clientValidation = getApiClientFromParams(request)
+    clientValidation match {
+      case Success(client) => getOptionsFromParams(request, client).toOption
+      case Failure(msg) => None
+    }
+  }
+
   def withOptions(errorBlock: String => Result)(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
 
-    import AuthParamErrorMessages._
-
-    val result: Validation[String, Result] = for {
-      o <- request.queryString.get("options").map(_.mkString).toSuccess(queryParamNotFound("options", request.queryString))
-      ro <- decryptOptions(o, client)
-    } yield block(Some(ro))
+    val result: Validation[String, Result] = {
+      getOptionsFromParams(request, client) match {
+        case Success(options) => Success( block( Some(options) ) )
+        case Failure(msg) => Failure(msg)
+      }
+    }
 
     result match {
       case Success(r) => r
@@ -33,13 +54,12 @@ trait AuthParams {
 
   def withApiClient(errorBlock: String => Result)(block: ApiClient => Result)(implicit request: Request[AnyContent]): Result = {
 
-    import AuthParamErrorMessages._
-
-    val result: Validation[String, Result] = for {
-      id <- request.queryString.get("apiClientId").map(_.mkString).toSuccess(queryParamNotFound("apiClientId", request.queryString))
-      validId <- if (ObjectId.isValid(id)) Success(id) else Failure(InvalidObjectId)
-      client <- ApiClient.findByKey(id).toSuccess(apiClientNotFound(id))
-    } yield block(client)
+    val result: Validation[String, Result] = {
+      getApiClientFromParams(request) match {
+        case Success(client) => Success( block(client) )
+        case Failure(msg) => Failure(msg)
+      }
+    }
 
     result match {
       case Success(r) => r

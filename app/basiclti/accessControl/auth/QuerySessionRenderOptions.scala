@@ -24,7 +24,7 @@ object QuerySessionRenderOptions extends TokenizedRequestActionBuilder[RenderOpt
     Action.async {
       implicit request =>
         val result = for {
-          options <- renderOptions(request)
+          options <- renderOptionsFromCookie(request)
           orgId <- orgIdFromCookie(request)
           if (query(options))
           tokenized <- buildTokenizedRequest(new ObjectId(orgId))
