@@ -12,8 +12,8 @@ object JsRoutes extends Controller with SimpleJsRoutes {
     import api.routes.javascript.{ Item => JsItem }
 
     Ok(
-      createSimpleRoutes("PlayerCollectionRoutes", JsCollection.list) +
-        createSimpleRoutes("PlayerItemRoutes", JsItem.list)).as("text/javascript")
+      createSimpleRoutes("PlayerCollectionRoutes",request, JsCollection.list) +
+        createSimpleRoutes("PlayerItemRoutes", request, JsItem.list)).as("text/javascript")
   }
 
 }

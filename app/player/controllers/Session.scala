@@ -52,7 +52,7 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
         JsSession.read,
         JsSession.aggregate,
         JsSession.update)
-      Ok(createSimpleRoutes("PlayerRoutes", jsRoutes: _*))
+      Ok(createSimpleRoutes("PlayerRoutes",request, jsRoutes: _*))
         .as("text/javascript")
   }
 }

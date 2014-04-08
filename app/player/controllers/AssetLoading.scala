@@ -72,7 +72,10 @@ class AssetLoading(playerTemplate: => String, val itemService: ItemService, erro
 
   protected def getBaseUrl(r: Request[AnyContent]): String = BaseUrl(r) + "/player"
 
-  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> getBaseUrl(r))
+  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] =
+  {
+    Map("baseUrl" -> getBaseUrl(r) , "rawQueryString" -> r.rawQueryString)
+  }
 
 }
 

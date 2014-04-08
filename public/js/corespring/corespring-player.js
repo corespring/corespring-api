@@ -3,6 +3,8 @@
   var console = window.console || {log: function(){}};
   var com = root.com = root.com || {};
 
+  var originalQueryString = "${rawQueryString}";
+
   com.corespring = com.corespring || {};
   com.corespring.players = {};
 
@@ -235,6 +237,10 @@
         .replace(":itemId", options.itemId)
         .replace(":sessionId", options.sessionId)
         .replace(":assessmentId", options.assessmentId);
+
+      if (originalQueryString != "?") {
+        template += "?" + originalQueryString;
+      }
       if(options.role) return addQueryString(template,options.role)
       else return template
     };

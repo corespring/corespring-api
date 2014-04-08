@@ -20,7 +20,7 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Control
       import player.controllers.routes.javascript.{ Item => JsItem }
       val jsRoutes = List(
         JsItem.getDetail)
-      Ok(createSimpleRoutes("PlayerItemRoutes", jsRoutes: _*))
+      Ok(createSimpleRoutes("PlayerItemRoutes", request, jsRoutes: _*))
         .as("text/javascript")
   }
 }
