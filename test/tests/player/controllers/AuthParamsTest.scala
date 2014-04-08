@@ -8,13 +8,12 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.common.encryption.NullCrypto
 import org.corespring.test.PlaySingleton
 import play.api.libs.json.Json
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.bson.types.ObjectId
-import org.corespring.player.accessControl.auth.requests.TokenizedRequest
-import play.api.mvc.{AnyContentAsEmpty, Action, AnyContent}
-import api.v1.ItemApi
+import play.api.mvc.{AnyContentAsEmpty}
 import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.Helpers._
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.http.Status.OK
+
 
 /**
  * Verify that a request using query parameters will be authorized
@@ -39,8 +38,7 @@ class AuthParamsTest extends Specification {
       val optionsString = Json.toJson(options).toString()
 
       val result = testAction(FakeRequest("", "blah?apiClientId="+apiClientId+"&options="+optionsString, FakeHeaders(), AnyContentAsEmpty))
-
-      pending
+      status(result) == OK
     }
   }
 
