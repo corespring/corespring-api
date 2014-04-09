@@ -42,16 +42,26 @@ trait ItemHooks
   implicit def executionContext: ExecutionContext
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
-    val item = for {
-      id <- VersionedId(itemId)
-      item <- itemService.findOneById(id)
+
+    val item: Validation[V2Error, ModelItem] = for {
+      id <- VersionedId(itemId).toSuccess(cantParseItemId)
+      item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
+      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(id))
+      hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
+        Success(item)
+      } else {
+        Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
+      }
     } yield item
 
-    item.map {
-      i =>
+    item match {
+      case Success(i) => {
         val containerJson = transform(i)
         Right(containerJson)
-    }.getOrElse(Left(NotFound("?")))
+      }
+      case Failure(err) => Left(Status(err.code)(err.message))
+    }
   }
 
   override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {

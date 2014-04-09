@@ -1,6 +1,5 @@
 package org.corespring.v2player.integration.controllers.editor
 
-import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.UserService
@@ -14,8 +13,7 @@ import org.specs2.specification.Scope
 import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc.{ RequestHeader, SimpleResult }
 import play.api.test.FakeRequest
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Future, Await, ExecutionContext }
+import scala.concurrent.{ Future, ExecutionContext }
 import play.api.test.Helpers._
 import play.api.mvc.Results._
 import org.corespring.v2player.integration.errors.Errors
@@ -33,6 +31,9 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     val item: Option[Item] = None,
     val orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
     val canAccessCollection: Boolean = false) extends Scope {
+
+    lazy val vid = VersionedId(new ObjectId(itemId))
+
     lazy val header = FakeRequest("", "")
 
     def f: Future[Either[ERR, RES]]
@@ -75,14 +76,16 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
       case Left(r) => r
       case Right(json) => Ok(json)
     }
+
   }
 
   class saveContext(itemId: String = ObjectId.get.toString,
     item: Option[Item] = None,
     orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
-    canAccessCollection: Boolean = false) extends baseContext[SimpleResult, JsValue](itemId, item, orgIdAndOptions, canAccessCollection) {
+    canAccessCollection: Boolean = false,
+    val json: JsValue = Json.obj()) extends baseContext[SimpleResult, JsValue](itemId, item, orgIdAndOptions, canAccessCollection) {
 
-    lazy val f = hooks.save(itemId, Json.obj())(header)
+    lazy val f = hooks.save(itemId, json)(header)
 
     override def toSimpleResult(f: Future[Either[SimpleResult, JsValue]]): Future[SimpleResult] = f.map {
       either =>
@@ -95,24 +98,26 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   "load" should {
 
-    "return not found for no item" in new loadContext() {
-      status(futureResult) === NOT_FOUND
+    "return can't find item id error" in new loadContext() {
+      val e = Errors.cantFindItemWithId(vid)
+      futureResult must returnResult(e.code, e.message)
     }
 
-    "return not found for bad item id" in new loadContext("") {
-      status(futureResult) === NOT_FOUND
-
+    "return bad request for bad item id" in new loadContext("") {
+      val e = Errors.cantParseItemId
+      futureResult must returnResult(e.code, e.message)
     }
 
-    "return ok for item" in new loadContext(item = Some(Item())) {
-      status(futureResult) === OK
+    "return org can't access item error" in new loadContext(item = Some(Item())) {
+      val e = Errors.noOrgIdAndOptions(header)
+      futureResult must returnResult(e.code, e.message)
     }
   }
 
   "save" should {
 
     "return not found" in new saveContext() {
-      val e = Errors.cantFindItemWithId(VersionedId(new ObjectId(itemId)))
+      val e = Errors.cantFindItemWithId(vid)
       futureResult must returnResult(e.code, e.message)
     }
 
@@ -129,15 +134,31 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     "return no collection id error" in new saveContext(
       item = Some(Item()),
       orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING)) {
-      val e = Errors.noCollectionIdForItem(VersionedId(new ObjectId(itemId)))
+      val e = Errors.noCollectionIdForItem(vid)
       futureResult must returnResult(e.code, e.message)
     }
 
-    "return " in new saveContext(
+    "return org can't access collection error" in new saveContext(
       item = Some(Item(collectionId = Some(ObjectId.get.toString))),
       orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING)) {
       val e = Errors.orgCantAccessCollection(orgIdAndOptions.get._1, item.get.collectionId.get)
       futureResult must returnResult(e.code, e.message)
+    }
+
+    "save update" in new saveContext(
+      item = Some(Item(collectionId = Some(ObjectId.get.toString))),
+      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING),
+      canAccessCollection = true,
+      json = Json.obj(
+        "profile" -> Json.obj(),
+        "components" -> Json.obj(),
+        "xhtml" -> "<div/>")) {
+      val e = Errors.orgCantAccessCollection(
+        orgIdAndOptions.get._1,
+        item.get.collectionId.get)
+
+      status(futureResult) === OK
+      contentAsJson(futureResult) === json
     }
   }
 }
