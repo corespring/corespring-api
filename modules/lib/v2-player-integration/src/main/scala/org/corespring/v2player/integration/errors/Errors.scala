@@ -14,6 +14,8 @@ object Errors {
 
   object noJson extends V2Error(BAD_REQUEST, "No json in request body")
 
+  object errorSaving extends V2Error(BAD_REQUEST, "Error saving")
+
   case class propertyNotFoundInJson(name: String) extends V2Error(BAD_REQUEST, s"can't find $name in request body")
 
   case class noOrgIdAndOptions(request: RequestHeader) extends V2Error(UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")

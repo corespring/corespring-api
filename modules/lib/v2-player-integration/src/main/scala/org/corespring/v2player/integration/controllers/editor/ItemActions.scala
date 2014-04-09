@@ -1,31 +1,33 @@
 package org.corespring.v2player.integration.controllers.editor
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions.{ ItemActions => ContainerItemActions, SaveItemRequest, ItemRequest, ScoreItemRequest, NewItemRequest }
+import org.corespring.container.client.actions.{ ItemHooks => ContainerItemHooks }
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{ Item => ModelItem, Subjects, TaskInfo, PlayerDefinition }
+import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
+import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
 import org.corespring.v2player.integration.errors.Errors._
+import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
+import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
 import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
 import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
 import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
 import org.corespring.v2player.integration.errors.V2Error
-import play.api.libs.json.{ Json, JsValue }
-import play.api.mvc.{ Action, Result, AnyContent }
-import play.api.mvc.Results._
-import scala.Some
-import scalaz.Failure
-import scalaz.Success
-import scalaz.Validation
 import play.api.http.Status._
-import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
+import play.api.libs.json.{ JsObject, Json, JsValue }
+import play.api.mvc.Results._
+import play.api.mvc._
+import scala.Some
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 trait ItemActions
-  extends ContainerItemActions[AnyContent]
+  extends ContainerItemHooks
   with LoadOrgAndOptions {
 
   def itemService: ItemService
@@ -34,63 +36,55 @@ trait ItemActions
 
   def transform: ModelItem => JsValue
 
-  def load(itemId: String)(block: (ItemRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-    request =>
-      val item = for {
-        id <- VersionedId(itemId)
-        item <- itemService.findOneById(id)
-      } yield item
+  implicit def executionContext: ExecutionContext
 
-      item.map {
-        i =>
-          val pocJson = transform(i)
-          block(ItemRequest(pocJson, request))
-      }.getOrElse(NotFound("?"))
+  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
+    val item = for {
+      id <- VersionedId(itemId)
+      item <- itemService.findOneById(id)
+    } yield item
+
+    item.map {
+      i =>
+        val containerJson = transform(i)
+        Right(containerJson)
+    }.getOrElse(Left(NotFound("?")))
   }
 
-  def save(itemId: String)(block: (SaveItemRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-    request =>
+  override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
 
-      import scalaz.Scalaz._
-      import scalaz._
+    /** an implementation for the container to save its definition */
+    def convertAndSave(itemId: String, item: ModelItem): Option[JsValue] = {
 
-      val out: Validation[V2Error, Result] = for {
-        vid <- VersionedId(itemId).toSuccess(cantParseItemId)
-        item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-        orgIdAndOptions <- getOrgIdAndOptions(request).toSuccess(noOrgIdAndOptions(request))
-        collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
-        hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
-          Success(true)
-        } else {
-          Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
-        }
-      } yield {
+      val updates = Seq(
+        (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
+        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
 
-        /** an implementation for the container to save its definition */
-        def save(itemId: String, playerJson: JsValue, property: Option[String]): Option[JsValue] = {
+      val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
 
-          val updatedItem = property match {
-            case None => PlayerJsonToItem.all(item, playerJson)
-            case Some("profile") => PlayerJsonToItem.profile(item, playerJson)
-            case Some("components") => PlayerJsonToItem.playerDef(item, playerJson)
-            case _ => throw new RuntimeException(s"unknown property: $property - can't save the json")
-          }
+      itemService.save(updatedItem, false)
+      Some(json)
+    }
 
-          itemService.save(updatedItem, false)
-          Some(playerJson)
-        }
-
-        val itemJson = item.playerDefinition.map {
-          Json.toJson(_)
-        }.getOrElse(Json.obj())
-
-        block(SaveItemRequest(itemJson, save, request))
+    val out: Validation[V2Error, JsValue] = for {
+      vid <- VersionedId(itemId).toSuccess(cantParseItemId)
+      item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
+      hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
+        Success(true)
+      } else {
+        Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
       }
+      result <- convertAndSave(itemId, item).toSuccess(errorSaving)
+    } yield {
+      result
+    }
 
-      out match {
-        case Success(r) => r
-        case Failure(err) => Status(err.code)(err.message)
-      }
+    out match {
+      case Success(json) => Right(json)
+      case Failure(err) => Left(Status(err.code)(err.message))
+    }
   }
 
   private def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
@@ -99,35 +93,31 @@ trait ItemActions
     val item = models.item.Item(
       collectionId = Some(collectionId),
       playerDefinition = Some(definition))
-
     itemService.insert(item)
   }
 
-  override def create(error: (Int, String) => Result)(block: (NewItemRequest[AnyContent]) => Result): Action[AnyContent] = Action {
-    request =>
+  override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
 
-      import scalaz.Scalaz._
-
-      val accessResult: Validation[V2Error, String] = for {
-        json <- request.body.asJson.toSuccess(noJson)
-        collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
-        orgIdAndOptions <- getOrgIdAndOptions(request).toSuccess(noOrgIdAndOptions(request))
-        access <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
-          Success(true)
-        } else {
-          Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
-        }
-      } yield collectionId
-
-      accessResult match {
-        case Success(collectionId) => {
-          createItem(collectionId).map {
-            id =>
-              block(NewItemRequest(id.toString, request))
-          }.getOrElse(error(BAD_REQUEST, "Access failed"))
-        }
-        case Failure(err) => error(err.code, err.message)
+    val accessResult: Validation[V2Error, String] = for {
+      json <- maybeJson.toSuccess(noJson)
+      collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
+      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      access <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
+        Success(true)
+      } else {
+        Failure(orgCantAccessCollection(orgIdAndOptions._1, collectionId))
       }
+    } yield collectionId
 
+    accessResult match {
+      case Success(collectionId) => {
+        createItem(collectionId).map {
+          id =>
+            Right(id.toString)
+        }.getOrElse(Left(BAD_REQUEST, "Access failed"))
+      }
+      case Failure(err) => Left(err.code, err.message)
+    }
   }
+
 }

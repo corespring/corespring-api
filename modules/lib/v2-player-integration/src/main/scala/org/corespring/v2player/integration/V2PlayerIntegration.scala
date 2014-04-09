@@ -35,6 +35,7 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 import org.corespring.assets.CorespringS3Service
+import scala.concurrent.ExecutionContext
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -194,7 +195,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val itemActions = new ItemActions {
+  lazy val itemHooks = new ItemActions {
 
     override def itemService: ItemService = ItemServiceWired
 
@@ -205,6 +206,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def userService: UserService = UserServiceWired
 
     override def secureSocialService: SecureSocialService = mainSecureSocialService
+
+    override implicit def executionContext: ExecutionContext = ExecutionContext.Implicits.global
   }
 
   lazy val sessionActions = new SessionActions {
