@@ -104,8 +104,13 @@
 
   var iframePlayerStrategy = function (e, options) {
     var url = options.corespringUrl;
-    if (options.omitSubmitButton)
-      url += "?omitSubmitButton=true";
+    if (options.omitSubmitButton) {
+        if (url.indexOf('?') != -1) {
+          url += "&omitSubmitButton=true";
+        } else {
+          url += "?omitSubmitButton=true";
+        }
+    }
 
     e.html("<iframe id='iframe-player' src='" + url + "' style='width: 100%; height: 100%; border: none'></iframe>");
     e.width(options.width ? options.width : "600px");
