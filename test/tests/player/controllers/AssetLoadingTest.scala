@@ -12,6 +12,8 @@ import org.corespring.common.encryption.NullCrypto
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import org.corespring.platform.core.services.item.ItemServiceImpl
+import org.apache.http.auth.params.AuthParams
+import org.corespring.player.accessControl.auth.AuthParamErrorMessages
 
 class AssetLoadingTest extends Specification {
 
@@ -23,7 +25,8 @@ class AssetLoadingTest extends Specification {
 
   import play.api.mvc.Results.BadRequest
 
-  val loader = new AssetLoading(NullCrypto, mockTemplate, ItemServiceImpl, (msg:String) => BadRequest(msg))
+  val loader = new AssetLoading(mockTemplate, ItemServiceImpl, (msg:String) => BadRequest(msg))
+  loader.changeCrypto(NullCrypto)
   "asset loading" should {
     "load the js and set the cookies " in {
       val options : RenderOptions = RenderOptions(expires = 0, mode = RequestedAccess.Mode.Preview)
@@ -42,14 +45,16 @@ class AssetLoadingTest extends Specification {
       contentAsString(result) === expectedErrorMessage
     }
 
+
+
     "return errors" in {
-      assertErrors("blah", None, AssetLoading.ErrorMessages.queryParamNotFound("apiClientId", Map()))
-      assertErrors("blah?apiClientId=blah", None, AssetLoading.ErrorMessages.InvalidObjectId)
-      assertErrors("blah?apiClientId=" + apiClientId, None, AssetLoading.ErrorMessages.queryParamNotFound("options", Map("apiClientId" -> Seq(apiClientId))))
-      assertErrors("blah?apiClientId=" + apiClientId, Some("bad-json"), AssetLoading.ErrorMessages.badJsonString("bad-json", new Exception()))
+      assertErrors("blah", None, AuthParamErrorMessages.queryParamNotFound("apiClientId", Map()))
+      assertErrors("blah?apiClientId=blah", None, AuthParamErrorMessages.InvalidObjectId)
+      assertErrors("blah?apiClientId=" + apiClientId, None, AuthParamErrorMessages.queryParamNotFound("options", Map("apiClientId" -> Seq(apiClientId))))
+      assertErrors("blah?apiClientId=" + apiClientId, Some("bad-json"), AuthParamErrorMessages.badJsonString("bad-json", new Exception()))
       val badId = "000000000000000000000001"
-      assertErrors("blah?apiClientId=" + badId, None, AssetLoading.ErrorMessages.apiClientNotFound(badId))
-      assertErrors("blah?apiClientId=" + apiClientId, Some("{}"), AssetLoading.ErrorMessages.cantConvertJsonToRenderOptions("{}") )
+      assertErrors("blah?apiClientId=" + badId, None, AuthParamErrorMessages.apiClientNotFound(badId))
+      assertErrors("blah?apiClientId=" + apiClientId, Some("{}"), AuthParamErrorMessages.cantConvertJsonToRenderOptions("{}") )
     }
   }
 }

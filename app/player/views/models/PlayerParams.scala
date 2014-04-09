@@ -10,5 +10,6 @@ case class PlayerParams(xml: String,
   previewEnabled: Boolean = false,
   qtiKeys: QtiKeys,
   mode: RenderingMode,
-  assetsLoader: AssetsLoader = AssetsLoaderImpl)
+  assetsLoader: AssetsLoader = AssetsLoaderImpl,
+  rawQueryString: Option[String] = None)
 

@@ -7,7 +7,6 @@ import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.services.item.ItemServiceImpl
 
 object AssetLoading extends PlayerAssetLoading(
-  AESCrypto,
   AssetLoadingDefaults.Templates.player,
   ItemServiceImpl,
   AssetLoadingDefaults.ErrorHandler.handleError) {

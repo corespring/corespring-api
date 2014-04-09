@@ -15,8 +15,9 @@ import org.corespring.common.encryption.{ Crypto, AESCrypto }
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.RenderOptions
 import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.player.accessControl.auth.AuthParams
 
-class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result) extends Controller with AssetResource with PlayerCookieWriter {
+class AssetLoading(playerTemplate: => String, val itemService: ItemService, errorHandler: String => Result) extends Controller with AssetResource with PlayerCookieWriter with AuthParams {
 
   def itemProfileJavascript = renderJavascript(playerTemplate, {
     (ro: Option[RenderOptions], req: Request[AnyContent]) =>
@@ -71,62 +72,14 @@ class AssetLoading(crypto: Crypto, playerTemplate: => String, val itemService: I
 
   protected def getBaseUrl(r: Request[AnyContent]): String = BaseUrl(r) + "/player"
 
-  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] = Map("baseUrl" -> getBaseUrl(r))
-
-  private def decryptOptions(encryptedOptions: String, apiClient: ApiClient): Validation[String, RenderOptions] = {
-
-    import AssetLoading.ErrorMessages._
-
-    def decryptString = try {
-      Success(crypto.decrypt(encryptedOptions, apiClient.clientSecret))
-    } catch {
-      case e: Throwable => Failure(e.getMessage)
-    }
-
-    def parse(s: String): Validation[String, JsValue] = try {
-      Success(Json.parse(s))
-    } catch {
-      case e: Throwable => Failure(badJsonString(s, e))
-    }
-
-    for {
-      s <- decryptString
-      parsed <- parse(s)
-      ro <- parsed.asOpt[RenderOptions].toSuccess(cantConvertJsonToRenderOptions(s))
-    } yield ro
+  private def createJsTokens(o: Option[RenderOptions], r: Request[AnyContent]): Map[String, String] =
+  {
+    Map("baseUrl" -> getBaseUrl(r) , "rawQueryString" -> r.rawQueryString)
   }
 
-  private def withOptions(errorBlock: String => Result)(block: Option[RenderOptions] => Result)(implicit request: Request[AnyContent], client: ApiClient) = {
-
-    import AssetLoading.ErrorMessages._
-
-    val result: Validation[String, Result] = for {
-      o <- request.queryString.get("options").map(_.mkString).toSuccess(queryParamNotFound("options", request.queryString))
-      ro <- decryptOptions(o, client)
-    } yield block(Some(ro))
-
-    result match {
-      case Success(r) => r
-      case Failure(msg) => errorBlock(msg)
-    }
-  }
-
-  private def withApiClient(errorBlock: String => Result)(block: ApiClient => Result)(implicit request: Request[AnyContent]): Result = {
-
-    import AssetLoading.ErrorMessages._
-
-    val result: Validation[String, Result] = for {
-      id <- request.queryString.get("apiClientId").map(_.mkString).toSuccess(queryParamNotFound("apiClientId", request.queryString))
-      validId <- if (ObjectId.isValid(id)) Success(id) else Failure(InvalidObjectId)
-      client <- ApiClient.findByKey(id).toSuccess(apiClientNotFound(id))
-    } yield block(client)
-
-    result match {
-      case Success(r) => r
-      case Failure(msg) => errorBlock(msg)
-    }
-  }
 }
+
+
 
 object AssetLoadingDefaults {
 
@@ -150,23 +103,10 @@ object AssetLoadingDefaults {
   }
 }
 
-object AssetLoading extends AssetLoading(AESCrypto, AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError) {
+object AssetLoading extends AssetLoading(AssetLoadingDefaults.Templates.player, ItemServiceImpl, AssetLoadingDefaults.ErrorHandler.handleError) {
 
   def createJsFromTemplate(template: String, tokens: Map[String, String]): String = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
 
-  object ErrorMessages {
-
-    def apiClientNotFound(id: String) = "Can't find api client with id: " + id
-    def queryParamNotFound(key: String, queryString: Map[String, Seq[String]]) = "Can't find parameter '" + key + "' on query string: " + queryString
-    val InvalidObjectId = "Invalid ObjectId"
-    def badJsonString(s: String, e: Throwable) = escape("Can't parse string into json: " + s)
-    def cantConvertJsonToRenderOptions(s: String) = escape("Can't convert json to options: " + s)
-
-    private def escape(s: String): String = {
-      val escaped = s.replace("\"", "\\\\\"")
-      logger.debug("escaped: " + escaped)
-      escaped
-    }
-  }
 }
+
 

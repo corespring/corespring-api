@@ -104,7 +104,8 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     assessmentId: Option[ObjectId] = None,
     role: String = "student",
     templateFn: PlayerParams => Html = defaultTemplate,
-    assetsLoader: AssetsLoader = AssetsLoaderImpl) {
+    assetsLoader: AssetsLoader = AssetsLoaderImpl,
+    var rawQueryString: Option[String] = None) {
 
     def toRequestedAccess: RequestedAccess = RequestedAccess.asRead(
       itemId = Some(itemId),
@@ -123,7 +124,9 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
         enablePreview,
         qtiKeys,
         renderingMode,
-        assetsLoader)
+        assetsLoader,
+        rawQueryString
+      )
     }
 
     def enablePreview: Boolean = sessionMode == RequestedAccess.Mode.Preview
@@ -134,6 +137,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     tokenRequest =>
       val future : Future[SimpleResult] = ApiAction {
         implicit request =>
+          params.rawQueryString = Some(request.rawQueryString)
           prepareHtml(params, request.ctx.organization) match {
             case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
             case None => NotFound("not found")
