@@ -69,7 +69,12 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     }
   }
 
-  class loadContext(itemId: String = ObjectId.get.toString, item: Option[Item] = None) extends baseContext[SimpleResult, JsValue](itemId, item, None, false) {
+  class loadContext(
+    itemId: String = ObjectId.get.toString,
+    item: Option[Item] = None,
+    orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
+    canAccessCollection: Boolean = false)
+    extends baseContext[SimpleResult, JsValue](itemId, item, orgIdAndOptions, canAccessCollection) {
     lazy val f = hooks.load(itemId)(FakeRequest("", ""))
 
     override def toSimpleResult(f: Future[Either[SimpleResult, JsValue]]): Future[SimpleResult] = f.map {
@@ -111,6 +116,13 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     "return org can't access item error" in new loadContext(item = Some(Item())) {
       val e = Errors.noOrgIdAndOptions(header)
       futureResult must returnResult(e.code, e.message)
+    }
+
+    "return an item" in new loadContext(
+      item = Some(Item(collectionId = Some(ObjectId.get.toString))),
+      orgIdAndOptions = Some(ObjectId.get, PlayerOptions.ANYTHING),
+      canAccessCollection = true) {
+      status(futureResult) === OK
     }
   }
 
