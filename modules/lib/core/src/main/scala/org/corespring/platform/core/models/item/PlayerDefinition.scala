@@ -84,7 +84,10 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "components" -> ToDBObject(a.components)
     builder.result()
   } catch {
-    case e: Throwable => throw PlayerDefinitionTransformerException(e)
+    case e: Throwable => {
+      logger.error(e.getMessage)
+      throw PlayerDefinitionTransformerException(e)
+    }
   }
 
   override def deserialize(b: DBObject): PlayerDefinition = try {
@@ -103,6 +106,9 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
       b.get("xhtml").asInstanceOf[String],
       json)
   } catch {
-    case e: Throwable => throw PlayerDefinitionTransformerException(e)
+    case e: Throwable => {
+      logger.error(e.getMessage)
+      throw PlayerDefinitionTransformerException(e)
+    }
   }
 }
