@@ -75,14 +75,14 @@ describe('CoreSpringPlayer', function () {
       new com.corespring.players.ItemPlayer(myDiv, {mode: 'render', sessionId: "sid", width: "500px", height: "500px"});
       var iframe = myDiv.find("iframe");
       var url = iframe.attr('src');
-      expect(url).toBe("${baseUrl}/session/sid/render");
+      expect(url).toBe("${baseUrl}/session/sid/render?${rawQueryString}");
     });
 
     it("sets correct url for rendering by item id", function () {
       new com.corespring.players.ItemPlayer(myDiv, {mode: 'preview', itemId: "iid", width: "500px", height: "500px"});
       var iframe = myDiv.find("iframe");
       var url = iframe.attr('src');
-      expect(url).toBe("${baseUrl}/item/iid/preview");
+      expect(url).toBe("${baseUrl}/item/iid/preview?${rawQueryString}");
     });
 
     it("sets width and height", function () {
