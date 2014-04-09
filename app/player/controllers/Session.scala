@@ -21,7 +21,7 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
 
   /** If we are running in preview mode - return the PreviewApi which will store the sessions in a different collection */
   def api(implicit request: Request[AnyContent]): ItemSessionApi = {
-    activeMode(request) match {
+    activeModeFromCookie(request) match {
       case Some(Preview) => PreviewApi
       case _ => DefaultApi
     }

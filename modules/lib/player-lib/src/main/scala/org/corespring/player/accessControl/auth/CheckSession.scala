@@ -63,10 +63,9 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
         }
 
 
-
         options.map {
           o =>
-            grantAccess(activeMode(request), ra, o) match {
+            grantAccess(Option(o.mode), ra, o) match {
               case Right(true) => invokeBlock
               case Right(false) => Future(Unauthorized(Json.obj( "error" -> JsString("you can't access the items"))))
               case Left(e) => Future(Unauthorized(Json.toJson(e.clientOutput)))

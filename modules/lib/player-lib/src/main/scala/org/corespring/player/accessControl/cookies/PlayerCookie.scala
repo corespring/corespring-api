@@ -27,7 +27,7 @@ trait PlayerCookieWriter {
 }
 
 trait PlayerCookieReader {
-  def activeMode[A](request: Request[A]): Option[RequestedAccess.Mode.Mode] = request.session.get(PlayerCookieKeys.ACTIVE_MODE).map {
+  def activeModeFromCookie[A](request: Request[A]): Option[RequestedAccess.Mode.Mode] = request.session.get(PlayerCookieKeys.ACTIVE_MODE).map {
     k => RequestedAccess.Mode.withName(k)
   }
 
