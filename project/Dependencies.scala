@@ -41,7 +41,7 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.2-eed656b"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.4-SNAPSHOT"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
   val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"

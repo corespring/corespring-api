@@ -25,10 +25,13 @@ import scala.Some
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
+import org.slf4j.LoggerFactory
 
-trait ItemActions
+trait ItemHooks
   extends ContainerItemHooks
   with LoadOrgAndOptions {
+
+  override protected lazy val logger = LoggerFactory.getLogger("v2Player.itemHooks")
 
   def itemService: ItemService
 
@@ -52,6 +55,9 @@ trait ItemActions
   }
 
   override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
+
+    logger.debug(s"save - itemId: $itemId")
+    logger.trace(s"save - json: ${Json.stringify(json)}")
 
     /** an implementation for the container to save its definition */
     def convertAndSave(itemId: String, item: ModelItem): Option[JsValue] = {

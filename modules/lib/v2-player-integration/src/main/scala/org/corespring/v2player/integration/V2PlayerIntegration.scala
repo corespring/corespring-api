@@ -195,7 +195,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val itemHooks = new ItemActions {
+  lazy val itemHooks = new ItemHooks {
 
     override def itemService: ItemService = ItemServiceWired
 

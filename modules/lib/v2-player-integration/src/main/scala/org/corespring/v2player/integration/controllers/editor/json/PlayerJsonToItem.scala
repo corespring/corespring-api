@@ -6,12 +6,6 @@ import org.bson.types.ObjectId
 
 object PlayerJsonToItem {
 
-  def all(item: Item, allJson: JsValue): Item = {
-    (
-      (playerDef(_: Item, allJson)) andThen
-      (profile(_: Item, (allJson \ "profile"))))(item)
-  }
-
   def playerDef(item: Item, playerJson: JsValue): Item = {
     val playerDef = playerJson.as[PlayerDefinition]
     item.copy(playerDefinition = Some(playerDef))
