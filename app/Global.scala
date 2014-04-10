@@ -31,16 +31,22 @@ object Global
   val INIT_DATA: String = "INIT_DATA"
 
   private lazy val componentLoader: ComponentLoader = {
-    val path = Play.current match {
-      case Mode.Prod => current.configuration.getString("components.prod-path").toSeq
-      case _ => current.configuration.getString("components.path").toSeq
-    }
+    val path = containerConfig.getString("components.path").toSeq
     val out = new FileComponentLoader(path)
     out.reload
     out
   }
 
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, current.configuration, SeedDb.salatDb())
+  def containerConfig = {
+    for {
+      container <- current.configuration.getConfig("container")
+      modeKey <- if (current.mode == Mode.Prod) Some("prod") else Some("non-prod")
+      modeConfig <- container.getConfig(modeKey)
+    } yield modeConfig
+  }.getOrElse(Configuration.empty)
+
+  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
+
   def controllers: Seq[Controller] = integration.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
