@@ -13,7 +13,7 @@ import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
 import org.corespring.v2player.integration.securesocial.SecureSocialService
-import play.api.mvc.{ AnyContent, Request }
+import play.api.mvc.{ RequestHeader, AnyContent, Request }
 import org.slf4j.LoggerFactory
 
 abstract class BaseAuth(
@@ -35,7 +35,7 @@ abstract class BaseAuth(
   def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean]
 
   protected def checkAccess(
-    request: Request[AnyContent],
+    request: RequestHeader,
     getOrgAccess: ObjectId => Validation[V2Error, Boolean],
     getPermissions: (PlayerOptions) => Validation[String, Boolean]): Validation[V2Error, Boolean] = {
     {

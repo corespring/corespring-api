@@ -1,6 +1,6 @@
 package org.corespring.v2player.integration.errors
 
-import play.api.mvc.{ AnyContent, Request }
+import play.api.mvc.{ RequestHeader, AnyContent, Request }
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 
@@ -14,11 +14,13 @@ object Errors {
 
   object noJson extends V2Error(BAD_REQUEST, "No json in request body")
 
+  object errorSaving extends V2Error(BAD_REQUEST, "Error saving")
+
   case class propertyNotFoundInJson(name: String) extends V2Error(BAD_REQUEST, s"can't find $name in request body")
 
-  case class noOrgIdAndOptions(request: Request[AnyContent]) extends V2Error(UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")
+  case class noOrgIdAndOptions(request: RequestHeader) extends V2Error(UNAUTHORIZED, s"can not load orgId and PlayerOptions from session: ${request.session.data}")
 
-  case class noCollectionIdForItem(vid:VersionedId[ObjectId]) extends V2Error(BAD_REQUEST, s"This item has no collection id $vid")
+  case class noCollectionIdForItem(vid: VersionedId[ObjectId]) extends V2Error(BAD_REQUEST, s"This item has no collection id $vid")
 
   case class orgCantAccessCollection(orgId: ObjectId, collectionId: String) extends V2Error(UNAUTHORIZED, s"The org: $orgId can't access collection: $collectionId")
 

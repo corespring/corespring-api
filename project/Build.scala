@@ -77,8 +77,7 @@ object Build extends sbt.Build {
 
   //val qti = builders.lib("qti").settings(libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
   val qti = builders.lib("qti").settings(
-    libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos)
-  )
+    libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
 
   /** Core data model */
   val core = builders.lib("core").settings(
@@ -173,8 +172,7 @@ object Build extends sbt.Build {
 
   val reports = builders.web("reports")
     .settings(
-      libraryDependencies ++= Seq(simplecsv)
-    )
+      libraryDependencies ++= Seq(simplecsv))
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
   val scormWeb = builders.web("scorm-web").settings(

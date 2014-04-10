@@ -2,7 +2,7 @@ package org.corespring.v2player.integration
 
 import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
-import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.component.{ PlayerGenerator, EditorGenerator, SourceGenerator }
 import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQuery, ComponentSets, Assets }
@@ -11,7 +11,7 @@ import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.{ Subject, Organization }
 import org.corespring.platform.core.models.item.{ FieldValue, Item }
-import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ SubjectQueryService, QueryService, UserService, UserServiceWired }
@@ -27,13 +27,15 @@ import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.Logger
 import play.api.cache.Cached
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
 import play.api.{ Mode, Play, Configuration }
 import scala.Some
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
+import org.corespring.assets.CorespringS3Service
+import scala.concurrent.ExecutionContext
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -46,12 +48,27 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   private lazy val mainSecureSocialService = new SecureSocialService {
 
-    def currentUser(request: Request[AnyContent]): Option[Identity] = SecureSocial.currentUser(request)
+    override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
   def itemService: ItemService = ItemServiceWired
 
   private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  private lazy val authForItem = new AuthItemCheckPermissions(
+    mainSecureSocialService,
+    UserServiceWired,
+    mainSessionService,
+    ItemServiceWired,
+    Organization) {
+
+    val permissionGranter = new SimpleWildcardChecker()
+
+    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
+      case Left(error) => Failure(error)
+      case Right(allowed) => Success(true)
+    }
+  }
 
   private lazy val authActions = new AuthSessionActionsCheckPermissions(
     mainSecureSocialService,
@@ -82,10 +99,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     lazy val playS3 = new ConcreteS3Service(key, secret)
 
-    def loadAsset(itemId: String, file: String)(request: Request[AnyContent]): SimpleResult = {
+    import scalaz.Scalaz._
+    import scalaz._
 
-      import scalaz.Scalaz._
-      import scalaz._
+    def loadAsset(itemId: String, file: String)(request: Request[AnyContent]): SimpleResult = {
 
       val decodedFilename = java.net.URI.create(file).getPath
       val storedFile: Validation[String, StoredFile] = for {
@@ -107,12 +124,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
       }
     }
 
-    //TODO: Need to look at a way of pre-validating before we upload - look at the predicate?
-    def uploadBodyParser(id: String, file: String): BodyParser[Int] = playS3.upload(bucket, s"$id/$file", (rh) => None)
-
     def getItemId(sessionId: String): Option[String] = mainSessionService.load(sessionId).map {
       s => (s \ "itemId").as[String]
     }
+
+    override def actions: AssetActions = new AssetActions {
+      override def authForItem: AuthenticatedItem = V2PlayerIntegration.this.authForItem
+
+      override def itemService: ItemService = ItemServiceWired
+
+      override def bucket: String = AppConfig.assetsBucket
+
+      override def s3: S3Service = playS3
+    }
+
   }
 
   lazy val componentUrls: ComponentSets = new ComponentSets {
@@ -170,7 +195,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val itemActions = new ItemActions {
+  lazy val itemHooks = new ItemHooks {
 
     override def itemService: ItemService = ItemServiceWired
 
@@ -181,6 +206,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def userService: UserService = UserServiceWired
 
     override def secureSocialService: SecureSocialService = mainSecureSocialService
+
+    override implicit def executionContext: ExecutionContext = ExecutionContext.Implicits.global
   }
 
   lazy val sessionActions = new SessionActions {
@@ -196,6 +223,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def dataQuery: ContainerDataQuery = new DataQuery() {
     override def subjectQueryService: QueryService[Subject] = SubjectQueryService
+
     override def fieldValues: FieldValue = FieldValue.findAll().toSeq.head
   }
 }

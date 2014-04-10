@@ -43,6 +43,29 @@ class PlayerJsonToItemTest extends Specification {
         info.subjects.get.related === Some(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
       }.getOrElse(failure("No updated info"))
     }
+
+    "work for xhtml + components" in {
+
+      val jsonString =
+        """
+          |{
+          |  "xhtml" : "<div/>",
+          |  "components" : {
+          |    "1" : {
+          |      "componentType" : "test-component"
+          |    }
+          |  }
+          |}
+        """.stripMargin
+
+      val json = Json.parse(jsonString)
+      val item = Item()
+      val update = PlayerJsonToItem.playerDef(item, json)
+
+      update.playerDefinition.get.xhtml === "<div/>"
+      (update.playerDefinition.get.components \ "1" \ "componentType").as[String] === "test-component"
+
+    }
   }
 
 }

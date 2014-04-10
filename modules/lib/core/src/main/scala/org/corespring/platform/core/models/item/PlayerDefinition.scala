@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.corespring.platform.core.models.item.resource.BaseFile
 import org.corespring.play.json.salat.utils.{ ToJsValue, ToDBObject }
 import play.api.libs.json._
+import org.slf4j.LoggerFactory
 
 /**
  * Model to contain the new v2 player model
@@ -31,7 +32,7 @@ object PlayerDefinition {
     override def reads(json: JsValue): JsResult[PlayerDefinition] = json match {
       case obj: JsObject => {
         JsSuccess(new PlayerDefinition(
-          (json \ "files").as[Seq[BaseFile]],
+          (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
           (json \ "components").as[JsValue]))
       }
@@ -58,14 +59,20 @@ class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val componen
   }
 }
 
+case class PlayerDefinitionTransformerException(e: Throwable) extends RuntimeException(e)
+
 /**
  * A transformer to help salat to (de)serialize - jsvalue to and from mongo db
  */
 class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[PlayerDefinition, DBObject] {
 
+  lazy val logger = LoggerFactory.getLogger(this.getClass.getName)
+
   import com.novus.salat.grater
 
-  override def serialize(a: PlayerDefinition): DBObject = {
+  override def serialize(a: PlayerDefinition): DBObject = try {
+    logger.trace(s"serialize: ${a}")
+
     val builder = MongoDBObject.newBuilder
 
     val preppedFiles: Seq[DBObject] = a.files.map {
@@ -76,13 +83,21 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "xhtml" -> a.xhtml
     builder += "components" -> ToDBObject(a.components)
     builder.result()
+  } catch {
+    case e: Throwable => {
+      logger.error(e.getMessage)
+      throw PlayerDefinitionTransformerException(e)
+    }
   }
 
-  override def deserialize(b: DBObject): PlayerDefinition = {
+  override def deserialize(b: DBObject): PlayerDefinition = try {
+
+    logger.trace(s"deserialize: ${b}")
+
     val json: JsValue = ToJsValue(b.get("components"))
     import com.mongodb.casbah.Implicits._
 
-    val l = b.get("files").asInstanceOf[MongoDBList]
+    val l = b.get("files").asInstanceOf[BasicDBList]
     val prepped: Seq[BaseFile] = l.toList.map {
       dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
     }
@@ -90,5 +105,10 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
       prepped,
       b.get("xhtml").asInstanceOf[String],
       json)
+  } catch {
+    case e: Throwable => {
+      logger.error(e.getMessage)
+      throw PlayerDefinitionTransformerException(e)
+    }
   }
 }
