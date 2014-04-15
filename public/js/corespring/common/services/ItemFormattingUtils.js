@@ -71,7 +71,12 @@ angular.module('corespring-utils')
           "LearnZillion": "lzlogo-png.png",
           "Expeditionary Learning": "El.png",
           "Smarter Balanced Assessment Consortium": "smarter.png",
-          "TIMSS": "TIMSS.jpeg"
+          "TIMSS": "TIMSS.jpeg",
+          "Kentucky Department of Education": "kentucky.jpeg",
+          "New Classrooms Innovation Partners": "newclassrooms.png",
+          "ReadWorks": "readworks.png",
+          "Mathalicious": "mathalicious.jpeg",
+          "Louisiana Department of Education": "louisiana.jpeg"
         };
 
         if (!map[key]) return;
