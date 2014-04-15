@@ -32,6 +32,14 @@ describe('common.ItemFormattingUtils', function () {
       .toEqual( "KG,01,Other");
     });
 
+    it("generates a copyright image url ", function(){
+      var item = {
+        copyrightOwner: "New York State Education Department"
+      }
+      expect(
+        scope.getCopyrightUrl(item) )
+      .toEqual( "/assets/images/copyright/nysed.png");
+    });
 
     it("creates a primary subject label", function(){
 
