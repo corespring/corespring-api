@@ -4,7 +4,7 @@ import _root_.securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
 import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.component.{ PlayerGenerator, EditorGenerator, SourceGenerator }
+import org.corespring.container.client.component._
 import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQuery, ComponentSets, Assets }
 import org.corespring.container.components.model.Component
 import org.corespring.dev.tools.DevTools
@@ -36,6 +36,7 @@ import scalaz.Success
 import scalaz.Validation
 import org.corespring.assets.CorespringS3Service
 import scala.concurrent.ExecutionContext
+import org.corespring.v2player.integration.controllers.catalog.{AuthCatalogActions, CatalogActions}
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -158,6 +159,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def editorGenerator: SourceGenerator = new EditorGenerator
 
     override def playerGenerator: SourceGenerator = new PlayerGenerator
+
+    override def catalogGenerator: SourceGenerator = new CatalogGenerator
   }
 
   override val playerLauncherActions: PlayerLauncherActions =
@@ -180,6 +183,28 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
 
     override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
+      mainSecureSocialService,
+      UserServiceWired,
+      mainSessionService,
+      ItemServiceWired,
+      Organization) {
+
+      val permissionGranter = new SimpleWildcardChecker()
+
+      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
+        case Left(error) => Failure(error)
+        case Right(allowed) => Success(true)
+      }
+    }
+  }
+
+  lazy val catalogActions = new CatalogActions {
+
+    override def itemService: ItemService = ItemServiceWired
+
+    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+
+    override def auth: AuthCatalogActions = new AuthCatalogActionsCheckPermissions(
       mainSecureSocialService,
       UserServiceWired,
       mainSessionService,
