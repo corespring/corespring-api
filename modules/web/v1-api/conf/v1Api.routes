@@ -96,6 +96,7 @@ GET     /assessments                                    org.corespring.api.v1.As
 
 # Assessment Templates API
 PUT     /assessments/templates/:id                      org.corespring.api.v1.AssessmentTemplateApi.update(id: ObjectId)
+GET     /assessments/templates/:id                      org.corespring.api.v1.AssessmentTemplateApi.show(id: ObjectId)
 GET     /assessments/templates                          org.corespring.api.v1.AssessmentTemplateApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /assessments/templates/query                    org.corespring.api.v1.AssessmentTemplateApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 POST    /assessments/templates                          org.corespring.api.v1.AssessmentTemplateApi.create()

@@ -41,6 +41,10 @@ class AssessmentTemplateApi(assessmentTemplateService: AssessmentTemplateService
       })
   }
 
+  def show(id: ObjectId) = ApiAction { request =>
+    WithAssessmentTemplate(id, request.ctx.organization) { template => Ok(Json.toJson(template)) }
+  }
+
   def update(id: ObjectId) = ApiAction { request =>
     WithAssessmentTemplate(id, request.ctx.organization) { dbTemplate =>
       parsed[AssessmentTemplate](request.body.asJson, { requestTemplate =>
