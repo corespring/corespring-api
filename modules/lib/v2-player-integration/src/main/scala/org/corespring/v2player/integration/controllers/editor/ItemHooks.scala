@@ -109,7 +109,7 @@ trait ItemHooks
     def convertAndSave(itemId: String, item: ModelItem): Option[JsValue] = {
 
       val updates = Seq(
-        (item: ModelItem, json: JsValue) => { val t = supportingMaterials(item, json); println(t.supportingMaterials); t },
+        (item: ModelItem, json: JsValue) => supportingMaterials(item, json),
         (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
         (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json)
       )
