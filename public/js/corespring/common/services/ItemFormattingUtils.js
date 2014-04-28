@@ -74,7 +74,7 @@ angular.module('corespring-utils')
           "TIMSS": "TIMSS.jpeg",
           "Kentucky Department of Education": "kentucky.jpeg",
           "New Classrooms Innovation Partners": "newclassrooms.png",
-          "ReadWorks": "readworks.png",
+          "ReadWorks, Inc.": "ReadWorks.png",
           "Mathalicious": "mathalicious.jpeg",
           "Louisiana Department of Education": "louisiana.jpeg"
         };
