@@ -74,7 +74,16 @@ trait ItemHooks
 
       val updates = Seq(
         (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
-        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
+        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json),
+        (item: ModelItem, json: JsValue) => {
+          item.copy(supportingMaterials = item.supportingMaterials.map(supportingMaterial => {
+            supportingMaterial.id match {
+              case None => supportingMaterial.copy(id = Some(new ObjectId()))
+              case _ => supportingMaterial
+            }
+          }))
+        }
+      )
 
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
 
