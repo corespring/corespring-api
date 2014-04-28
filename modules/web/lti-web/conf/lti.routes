@@ -1,0 +1,19 @@
+GET     /launch-config/:id                  org.corespring.lti.web.controllers.LtiAssessments.get(id:ObjectId)
+PUT     /launch-config/:id                  org.corespring.lti.web.controllers.LtiAssessments.update(id:ObjectId)
+GET     /dev/test-harness                   org.corespring.lti.web.controllers.dev.TestHarness.begin
+POST    /dev/prepare                        org.corespring.lti.web.controllers.dev.TestHarness.prepare
+POST    /dev/grade-passback                 org.corespring.lti.web.controllers.dev.TestHarness.gradePassback
+GET     /dev/clear-grade-passback           org.corespring.lti.web.controllers.dev.TestHarness.clearGradePassback
+GET     /dev/inspect-grade-passback         org.corespring.lti.web.controllers.dev.TestHarness.inspectGradePassback
+GET     /item-chooser.xml                   org.corespring.lti.web.controllers.AssignmentLauncher.xmlConfiguration
+POST    /assignment/launch                  org.corespring.lti.web.controllers.AssignmentLauncher.launch()
+GET     /assignment/error                   org.corespring.lti.web.controllers.AssignmentLauncher.error(cause:String)
+GET     /assignment/:configId/:resultSourcedId/process   org.corespring.lti.web.controllers.AssignmentLauncher.process(configId:ObjectId,resultSourcedId:String)
+GET     /assignment/:configId/:resultSourcedId/run       org.corespring.lti.web.controllers.AssignmentPlayer.run(configId:ObjectId,resultSourcedId:String)
+GET     /assignment/:configId/:resultSourcedId/:filename org.corespring.lti.web.controllers.AssignmentPlayer.getDataFileForAssignment(configId:ObjectId, resultSourcedId:String, filename:String)
+GET     /chooser/partials/main              org.corespring.lti.web.controllers.Partials.main
+GET     /chooser/partials/browse            org.corespring.lti.web.controllers.Partials.browse
+GET     /chooser/partials/view              org.corespring.lti.web.controllers.Partials.view
+GET     /api/items                          org.corespring.lti.web.controllers.api.v1.Item.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/collections                    org.corespring.lti.web.controllers.api.v1.Collection.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /routes.js                          org.corespring.lti.web.controllers.JsRoutes.index

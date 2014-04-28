@@ -5,11 +5,12 @@ def process?(file)
   javascript = file.end_with?('.js')
   gzipped = file.end_with?('.gz.js')
   vendor = file.include?('vendor')
+  components = file.include?('corespring-components')
   migration = file.include?('migration')
   test = file.include?('js-test')
   target = file.include?('target')
 
-  javascript && !gzipped && !vendor && !migration && !test && !target
+  javascript && !gzipped && !vendor && !components && !migration && !test && !target
 end
 
 errors = []

@@ -1,0 +1,157 @@
+@(assessmentId: ObjectId, selectionDirective: String, returnUrl: String)(implicit assetsLoader:org.corespring.web.common.controllers.deployment.AssetsLoader = org.corespring.web.common.controllers.deployment.AssetsLoaderImpl)
+
+@import org.bson.types.ObjectId
+<!doctype html>
+<html lang="en" ng-app="lti-chooser">
+  <head>
+    @org.corespring.web.common.views.html.head.coreJs()
+    @org.corespring.web.common.views.html.head.bootstrap()
+    @org.corespring.web.common.views.html.head.ubuntu()
+    @org.corespring.web.common.views.html.head.angular()
+    @org.corespring.web.common.views.html.head.corespringCommon()
+    @org.corespring.web.common.views.html.head.fieldValues()
+    @org.corespring.web.common.views.html.head.corespringNgComponents()
+
+    @assetsLoader.tagger
+
+    <script type="text/javascript" src="@org.corespring.player.v1.controllers.launcher.routes.AssetLoading.noSessionPlayerJavascript"></script>
+
+
+    <script type="text/javascript" src="/assets/js/vendor/spin/spin.min.js"></script>
+
+  <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+  <link href="/assets/stylesheets/lti-item-chooser.css" rel="stylesheet"/>
+
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/app.js"></script>
+
+    <script type="text/javascript" src="/lti/routes.js"></script>
+    <script type="text/javascript" src="/player/item/routes.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/MainController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/BrowseController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/SearchController.js"></script>
+    <script type="text/javascript" src="/assets/js/corespring/lti-chooser/controllers/ViewItemController.js"></script>
+    <script type="text/html" src="/lti/chooser/partials/view"></script>
+    <script type="text/javascript">
+      (function () {
+          angular.module('lti-chooser')
+            .factory("Config", function () {
+                return {
+                  assessmentId: "@assessmentId",
+                  selectionDirective: "@selectionDirective",
+                  returnUrl: "@returnUrl"
+                };
+            });
+      })();
+    </script>
+  </head>
+  <body style="padding:0px;" ng-controller="LtiChooserController">
+
+    <div confirm-popup
+      ng-model="assessment.question.itemId"
+      confirmed="onUnassignConfirmed" class="confirm-popup">
+      <span class="unassign-icon"><img src="/assets/images/warning-icon-37x37.png" width="37" height="37" alt="Warning"> </span>
+      <p>Are you sure you want to remove this item from the current assignment?</p>
+      <button class="btn btn-cs-green" id="confirm">Yes</button>
+      <button class="btn btn-primary" id="cancel">No</button>
+  </div>
+
+    <div class="navbar navbar-fixed-top" ng-controller="SearchController">
+      <div class="header" ng-show="showSearch()">
+      <table class="fixed lti-nav" style= "width:100%; margin-top:3px;">
+        <tr>
+          <td class="lti-logo">
+            <img src="/assets/images/cs-primary-small-web30x82.png" alt="Corespring" height="30" width="82">
+          </td>
+          <td class="nav-vr"><div></div></td>
+          <td class="lti-collections">
+            <span multi-select
+              multi-get-title="getCollectionTitle"
+              multi-options="collections"
+              multi-change="search"
+              multi-uid="name"
+              multi-model="searchParams.collection">
+              <div class="summary">
+                <div class="multi-title-text collection"> COLLECTION <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                <div class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
+              </div>
+            </span>
+          </td>
+          <td class="nav-vr"><div></div></td>
+          <td class="lti-grade-level">
+            <span multi-select
+              multi-get-title="getTitle"
+              multi-get-selected-title="getSelectedTitle"
+              multi-options="gradeLevelDataProvider"
+              multi-change="search"
+              multi-model="searchParams.gradeLevel">
+              <div class="summary">
+                <div class="multi-title-text grade-level">GRADE LEVEL<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+              </div>
+            </span>
+          </td>
+          <td class="nav-vr"><div></div></td>
+          <td class="lti-search">
+            <div class="input-append pull-left">
+
+            <input placeholder="Search"
+              ng-model="searchParams.searchText"
+              ng-change="search() "
+              class="span2 search-input"
+              id="appendedInput"
+              type="text"/>
+              <span class="add-on">
+                <i class="icon-search"></i>
+              </span>
+            </div>
+            <div class="item-count">{{getItemCountLabel(itemCount)}}</div>
+            <div class="lti-reset"><a ng-click="clear()">Clear</a></div>
+          </td>
+       </tr>
+      </table>
+      </div>
+
+      <div class="header"
+           result-pager
+           load-item="loadItem"
+           load-more="loadMore"
+           list-model="items"
+           item-count="itemCount"
+           current-item="item"
+           ng-show="showSearchHeader()"
+          >
+         <table class="fixed lti-nav" style= "width:100%; margin-top:6px;">
+             <tr>
+             <td class="lti-logo">
+                              <a ng-click="returnToSearch()"><img src="/assets/images/cs-primary-small-web30x82.png" alt="Corespring" height="30" width="82"></a>
+          </td>
+                 <td>
+                     <ul class="pager" ng-show="showPager()">
+                         <li class="pull-right">
+                             <a class="cs-icon-link" ng-click="next()">
+                                 <i class="icon-white icon-arrow-right"></i>
+                             </a>
+                         </li>
+                         <li class="pull-right">
+                             <a class="cs-icon-link" ng-click="previous()">
+                                 <i class="icon-white icon-arrow-left"></i>
+                             </a>
+                         </li>
+                         <li class="pull-right"><div class="pager-text">{{pagerText}}</div></li>
+                     </ul>
+                 </td>
+             </tr>
+         </table>
+      </div>
+
+      <div class="navbar-bottom"></div>
+
+    </div>
+
+    <div class="main-content-holder">
+      <div class="main-content">
+        <div ng-view></div>
+      </div>
+    </div>
+  </body>
+</html>

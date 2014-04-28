@@ -1,18 +1,19 @@
 package org.corespring.platform.core.models.assessment.basic
 
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
+import org.corespring.platform.core.models.assessment._
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.assessment._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.services.item._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.libs.json.Json._
-import org.corespring.platform.core.services.item._
-import com.mongodb.casbah.Imports._
 import play.api.libs.json._
 import scala.Some
-import org.corespring.platform.core.models.json.JsonValidationException
 
 case class Answer(sessionId: ObjectId, itemId: VersionedId[ObjectId])
 
@@ -27,9 +28,7 @@ object Answer {
         Answer(
           sessionId = new ObjectId((json \ "sessionId").as[String]),
           itemId = (json \ "itemId").asOpt[VersionedId[ObjectId]](IdReads)
-            .getOrElse(throw new JsonValidationException("You must have an item id"))
-        )
-      )
+            .getOrElse(throw new JsonValidationException("You must have an item id"))))
     }
   }
 
@@ -134,7 +133,7 @@ trait QuestionLike {
 }
 
 object Question extends QuestionLike with ItemServiceClient {
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 
   object Format extends Format[Question] {
     def reads(json: JsValue): JsResult[Question] = {

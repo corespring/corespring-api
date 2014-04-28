@@ -1,6 +1,5 @@
 package internal.controllers
 
-import controllers.auth.BaseApi
 import play.mvc.BodyParser
 import play.api.mvc.{ Action, AnyContentAsFormUrlEncoded, BodyParsers }
 import play.mvc.BodyParser.FormUrlEncoded
@@ -9,7 +8,8 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ XmlSearchClient, XmlSearch, ItemServiceImpl }
+import org.corespring.platform.core.services.item.{ XmlSearchClient, XmlSearch, ItemServiceWired }
+import org.corespring.platform.core.controllers.auth.BaseApi
 
 trait QtiSearch extends BaseApi { self: XmlSearchClient =>
 
@@ -41,6 +41,6 @@ trait QtiSearch extends BaseApi { self: XmlSearchClient =>
 
 object QtiSearch extends QtiSearch with XmlSearchClient {
   def xmlSearch: XmlSearch = new XmlSearch {
-    def dao: SalatVersioningDao[Item] = ItemServiceImpl.dao
+    def dao: SalatVersioningDao[Item] = ItemServiceWired.dao
   }
 }

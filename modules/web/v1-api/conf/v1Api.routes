@@ -1,0 +1,102 @@
+# Organizations
+GET     /organizations                   org.corespring.api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /organizations/children          org.corespring.api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /organizations/default           org.corespring.api.v1.OrganizationApi.getDefaultOrganization
+GET     /organizations/:id               org.corespring.api.v1.OrganizationApi.getOrganization(id: ObjectId)
+PUT     /organizations/:id               org.corespring.api.v1.OrganizationApi.updateOrganization(id: ObjectId)
+DELETE  /organizations/:id               org.corespring.api.v1.OrganizationApi.deleteOrganization(id: ObjectId)
+GET     /organizations/:id/tree          org.corespring.api.v1.OrganizationApi.listWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /organizations/:id/children      org.corespring.api.v1.OrganizationApi.getChildrenWithOrg(id:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+
+# Collections
+GET     /collections                     org.corespring.api.v1.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /collections/:id                 org.corespring.api.v1.CollectionApi.getCollection(id: ObjectId)
+GET     /organizations/:orgId/collections    org.corespring.api.v1.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+POST    /collections                     org.corespring.api.v1.CollectionApi.createCollection
+PUT     /collections/:id                 org.corespring.api.v1.CollectionApi.updateCollection(id: ObjectId)
+DELETE  /collections/:id                 org.corespring.api.v1.CollectionApi.deleteCollection(id: ObjectId)
+GET     /collections/:ids/fieldValues/:field  org.corespring.api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
+
+# Users
+GET     /users                           org.corespring.api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /users/:id                       org.corespring.api.v1.UserApi.getUser(id: ObjectId)
+POST    /users                           org.corespring.api.v1.UserApi.createUser
+PUT     /users/:id                       org.corespring.api.v1.UserApi.updateUser(id: ObjectId)
+DELETE  /users/:id                       org.corespring.api.v1.UserApi.deleteUser(id: ObjectId)
+GET     /organizations/:orgId/users      org.corespring.api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
+
+# Items API
+GET     /items                           org.corespring.api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /items/query                     org.corespring.api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /organizations/:orgId/items      org.corespring.api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /contributors                    org.corespring.api.v1.ContributorApi.getContributorsList()
+GET     /items/:id                       org.corespring.api.v1.ItemApi.get(id: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
+GET     /collections/:collId/items       org.corespring.api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+DELETE  /items/:id                       org.corespring.api.v1.ItemApi.delete(id: VersionedId[ObjectId])
+GET     /items/:id/detail                org.corespring.api.v1.ItemApi.getDetail(id: VersionedId[ObjectId])
+POST    /items                           org.corespring.api.v1.ItemApi.create
+PUT     /items/:id                       org.corespring.api.v1.ItemApi.update(id: VersionedId[ObjectId])
+POST    /items/:id                       org.corespring.api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
+PUT     /items/:id/extended/:property    org.corespring.api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
+GET     /items/:id/extended/:property    org.corespring.api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
+
+GET     /metadata/item/:id               org.corespring.api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
+
+GET     /metadata-sets                   org.corespring.api.v1.MetadataSetApi.list
+GET     /metadata-sets/:id               org.corespring.api.v1.MetadataSetApi.get(id:ObjectId)
+POST    /metadata-sets                   org.corespring.api.v1.MetadataSetApi.create
+PUT     /metadata-sets/:id               org.corespring.api.v1.MetadataSetApi.update(id:ObjectId)
+DELETE  /metadata-sets/:id               org.corespring.api.v1.MetadataSetApi.delete(id:ObjectId)
+
+# Exporter api
+GET     /items/multiple/scorm-2004.zip       org.corespring.api.v1.ExporterApi.multiItemScorm2004(ids:String)
+GET     /items/multiple/item_launch.imscc    org.corespring.api.v1.ExporterApi.multiItemLti(ids:String)
+
+# Resource api
+GET     /items/:itemId/materials          org.corespring.api.v1.ResourceApi.getSupportingMaterials(itemId:String)
+POST    /items/:itemId/materials          org.corespring.api.v1.ResourceApi.createSupportingMaterial(itemId:String)
+POST    /items/:itemId/materialsWithFile/:name/:filename          org.corespring.api.v1.ResourceApi.createSupportingMaterialWithFile(itemId:String, name, filename )
+DELETE  /items/:itemId/materials/:resourceName          org.corespring.api.v1.ResourceApi.deleteSupportingMaterial(itemId:String, resourceName : String)
+POST    /items/:itemId/materials/:resourceName   org.corespring.api.v1.ResourceApi.createSupportingMaterialFile(itemId:String, resourceName : String)
+PUT     /items/:itemId/materials/:resourceName/:filename   org.corespring.api.v1.ResourceApi.updateSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
+POST    /items/:itemId/materials/:resourceName/:filename/upload   org.corespring.api.v1.ResourceApi.uploadFile(itemId:String, resourceName : String, filename : String )
+DELETE  /items/:itemId/materials/:resourceName/:filename   org.corespring.api.v1.ResourceApi.deleteSupportingMaterialFile(itemId:String, resourceName : String, filename : String)
+
+POST    /items/:itemId/data         org.corespring.api.v1.ResourceApi.createDataFile(itemId:String)
+PUT     /items/:itemId/data/:filename         org.corespring.api.v1.ResourceApi.updateDataFile(itemId:String, filename:String, force:Boolean ?= false)
+POST    /items/:itemId/data/:filename/upload   org.corespring.api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
+DELETE  /items/:itemId/data/:filename         org.corespring.api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
+
+# Field Values API
+GET     /field_values                       org.corespring.api.v1.FieldValuesApi.getFieldValuesAction
+GET     /field_values/all               org.corespring.api.v1.FieldValuesApi.getAllAvailable
+GET     /field_values/multiple        org.corespring.api.v1.FieldValuesApi.multiple(fieldNames:String, fieldOptions: Option[String] ?= None, c ?= "false" )
+GET     /field_values/:fieldName        org.corespring.api.v1.FieldValuesApi.getFieldValues(fieldName:String, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50)
+GET     /field_values/contributor/:contributor   org.corespring.api.v1.FieldValuesApi.getFieldValuesByContributor(contributor: String)
+GET     /field_values/collection/:collectionId   org.corespring.api.v1.FieldValuesApi.getFieldValuesByCollection(collectionId: ObjectId)
+
+# Item Session API
+
+POST    /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+GET     /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
+GET     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
+PUT     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
+PUT     /items/:itemId/sessions/:sessionId/reopen       org.corespring.api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
+
+GET     /assessments/author/:authorId                   org.corespring.api.v1.AssessmentApi.getByAuthor(authorId: String)
+PUT     /assessments/:quizId/:externalUid/add-answer    org.corespring.api.v1.AssessmentApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
+GET     /assessments/:quizId                            org.corespring.api.v1.AssessmentApi.get(quizId:ObjectId)
+GET     /assessments/multiple/:quizIds                  org.corespring.api.v1.AssessmentApi.getMultiple(quizIds:String)
+POST    /assessments/:quizId/:itemId/aggregate          org.corespring.api.v1.ItemSessionApi.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
+PUT     /assessments/:quizId                            org.corespring.api.v1.AssessmentApi.update(quizId:ObjectId)
+DELETE  /assessments/:quizId                            org.corespring.api.v1.AssessmentApi.delete(quizId:ObjectId)
+PUT     /assessments/:quizId/add-participants           org.corespring.api.v1.AssessmentApi.addParticipants(quizId:ObjectId)
+POST    /assessments                                    org.corespring.api.v1.AssessmentApi.create()
+GET     /assessments                                    org.corespring.api.v1.AssessmentApi.list()
+
+# Assessment Templates API
+PUT     /assessments/templates/:id                      org.corespring.api.v1.AssessmentTemplateApi.update(id: ObjectId)
+GET     /assessments/templates                          org.corespring.api.v1.AssessmentTemplateApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /assessments/templates/query                    org.corespring.api.v1.AssessmentTemplateApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /assessments/templates/:id                      org.corespring.api.v1.AssessmentTemplateApi.show(id: ObjectId)
+POST    /assessments/templates                          org.corespring.api.v1.AssessmentTemplateApi.create()

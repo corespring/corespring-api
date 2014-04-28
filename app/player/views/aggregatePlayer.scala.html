@@ -1,8 +1,0 @@
-@(params: _root_.player.views.models.PlayerParams, assessmentId:String)
-
-@scripts = {
-   @player.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId))
-}
-
-@bodyAttributes = @{ "ng-controller=AggregateAppController" }
-@_root_.player.views.html.basePlayer( params, bodyAttributes, Some(scripts) )

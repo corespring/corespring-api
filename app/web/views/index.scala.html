@@ -20,7 +20,7 @@
     @org.corespring.web.common.views.html.head.corespringCommon()
     @org.corespring.web.common.views.html.head.fieldValues()
     @org.corespring.web.common.views.html.head.corespringNgComponents()
-    @head.taggerApp()
+    @web.views.html.taggerApp()
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
     <link href="/assets/stylesheets/item-chooser.css" rel="stylesheet"/>
@@ -67,7 +67,8 @@
 </head>
 <body>
 
-    @mainNav(templates, username)
+    @org.corespring.web.common.views.html.mainNav(templates, username)
+
 
     <div ng-view class="extra-large-window"></div>
 </body>

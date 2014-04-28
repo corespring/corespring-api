@@ -1,0 +1,19 @@
+<assessmentItem>
+    <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
+        <correctResponse>
+            <value>ChoiceA</value>
+        </correctResponse>
+    </responseDeclaration>
+    <itemBody>
+        <h1>I'm a poc item that is testing mapping of QTI to the poc</h1>
+        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier="ChoiceA">ChoiceA text (Correct Choice)
+                <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD">ChoiceD text
+                <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
+            </simpleChoice>
+        </choiceInteraction>
+    </itemBody>
+</assessmentItem>

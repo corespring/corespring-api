@@ -1,13 +1,15 @@
 package org.corespring.platform.core.models.json
 
-import play.api.libs.json._
-import scala.Some
 import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.item.{ Item, ContentType }
-import org.corespring.platform.core.services.item.ItemServiceImpl
-import org.corespring.platform.core.models.item.json.ContentView
+import org.corespring.platform.core.services.item.ItemServiceWired
+import play.api.libs.json._
+import scala.Some
+
+case class ItemView(item: Item, searchFields: Option[SearchFields])
 
 object ItemView {
 
@@ -49,7 +51,7 @@ object ItemView {
         item.collectionId.map(collectionId -> JsString(_)),
         Some(contentType -> JsString(Item.contentType)),
         Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(ItemServiceImpl.sessionCount(item))))
+        Some("sessionCount" -> JsNumber(ItemServiceWired.sessionCount(item))))
 
       def makeJsString(tuple: (String, Option[String])) = {
         val (key, value) = tuple

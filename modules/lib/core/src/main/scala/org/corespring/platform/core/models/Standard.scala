@@ -28,7 +28,7 @@ case class Standard(var dotNotation: Option[String] = None,
     case Some(notation) => notation match {
       case kAbbrev(a) => Some(a)
       case abbrev(a) => Some(a)
-      case _  => None
+      case _ => None
     }
     case _ => None
   }
@@ -75,8 +75,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
         grades -> (obj.grades match {
           case nonEmpty if grades.nonEmpty => Some(JsArray(obj.grades.map(JsString(_))))
           case _ => None
-        })
-      )
+        }))
     }
 
     def reads(json: JsValue) = {
@@ -92,7 +91,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     }
   }
 
-  lazy val sorter: (String, String) => Boolean = (a,b) => {
+  lazy val sorter: (String, String) => Boolean = (a, b) => {
     val cacheKey = "standards_sort"
     val standards: Seq[Standard] = Cache.get(cacheKey) match {
       case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
@@ -109,11 +108,9 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   lazy val legacy = findAll().filter(_.legacyItem).toSeq
-
-  lazy val standardSorter: (Standard, Standard) => Boolean = (one,two) => {
+  lazy val standardSorter: (Standard, Standard) => Boolean = (one, two) => {
     StandardOrdering.compare(one, two) < 0
   }
-
 
   val description = "common core state standards"
   override val searchableFields = Seq(

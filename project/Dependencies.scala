@@ -4,14 +4,19 @@ object Dependencies {
 
   val playVersion = "2.2.1"
 
+  //V2 Player
+  val containerVersion = "0.3.2-SNAPSHOT"
+  val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
+  val componentModel = "org.corespring" %% "component-model" % containerVersion
+  val componentLoader = "org.corespring" %% "component-loader" % containerVersion
+  val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
+
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
 
-  // TODO: temporary solution: taking out yui which is used for css minification as it breaks
-  // dependencies for corespring-qti. This needs to be sorted out properly!
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.11.2")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.0")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
-  val casbah = "com.mongodb.casbah" %% "casbah" % "2.0"
+  val casbah = "org.mongodb" %% "casbah" % "2.6.3"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
     .exclude("com.google.guava", "guava")
@@ -33,12 +38,12 @@ object Dependencies {
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
   val playS3 = "org.corespring" %% "play-s3" % "0.2-35dbed6"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
-  val rhinos = "com.scalapeno" %% "rhinos" % "0.6.0.corespring-dfb50a3-SNAPSHOT"
+  val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.3"
-  val scalaFaker = "it.justwrote" %% "scala-faker" % "0.3-SNAPSHOT"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.4-SNAPSHOT"
+  val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
   val securesocial = "org.corespring" %% "securesocial" % "master-c4ffacb"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
@@ -46,6 +51,7 @@ object Dependencies {
   val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
 
   val all = Seq(
+    play.Keys.cache,
     amapClient,
     assetsLoader,
     aws,
@@ -63,8 +69,13 @@ object Dependencies {
     playMemcached,
     playPluginMailer,
     playPluginUtil,
-    simplecsv
-  )
+    salatPlay,
+    securesocial,
+    scalaz,
+    closureCompiler,
+    containerClientWeb,
+    componentLoader,
+    componentModel)
 
   object Resolvers {
 
@@ -79,9 +90,7 @@ object Dependencies {
     val sbtPluginReleases = Resolver.url("sbt-plugin-snapshots", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
-    val localRepo = Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
-
-    val justWroteSnapshots = "justwrote" at "http://repo.justwrote.it/snapshots/"
+    val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
 
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
@@ -94,8 +103,7 @@ object Dependencies {
       sbtPluginReleases,
       edeustaceReleases,
       edeustaceSnapshots,
-      justWroteSnapshots,
-      localRepo)
+      justWrote)
   }
 
 }

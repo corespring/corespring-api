@@ -4,8 +4,8 @@
   },
   "provider": "userpass",
   "userName": "root",
-  "fullName": "Homer Simpson",
-  "email": "homersimpson@springfield.org",
+  "fullName": "Root Org User",
+  "email": "rootorguser@root.org",
   "password": "$2a$10$ztrohKSsxniXnLsTJyAJVOlye5DFYlMi3GUQH1SHkVSO5IH.E9O72",
   "org": {
     "orgId": {

@@ -6,7 +6,7 @@ import org.specs2.mutable._
 import org.corespring.qti.models._
 import org.corespring.qti.helpers.MockXml
 import org.corespring.qti.helpers.MockXml.{ removeNodeFromXmlWhere, addChildNodeInXmlWhere }
-import play.api.libs.json.{JsValue, JsString, JsObject}
+import play.api.libs.json.{ JsValue, JsString, JsObject }
 
 class DragAndDropInteractionTest extends Specification {
 
@@ -66,7 +66,7 @@ class DragAndDropInteractionTest extends Specification {
           val result = interaction.toJs(response)
 
           result match {
-            case Some(jsObject: JsObject) => {
+            case Some((_, jsObject)) => {
               (jsObject \ "value" \ "target1").asInstanceOf[JsString].value === "1"
               (jsObject \ "value" \ "target2").asInstanceOf[JsString].value === "2"
               success

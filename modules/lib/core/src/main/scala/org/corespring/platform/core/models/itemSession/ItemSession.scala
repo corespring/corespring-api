@@ -7,7 +7,7 @@ import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.{ FeedbackIdMapEntry, QtiItem }
@@ -115,7 +115,7 @@ object PreviewItemSessionCompanion extends ItemSessionCompanion {
 
   //Note: using a normal collection because in a capped collection a document's size may not grow beyond its original size.
   def collection = mongoCollection("itemsessionsPreview")
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 }
 
 object DefaultItemSession extends ItemSessionCompanion {
@@ -123,7 +123,7 @@ object DefaultItemSession extends ItemSessionCompanion {
 
   def collection = mongoCollection("itemsessions")
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 }
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging {
 

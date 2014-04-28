@@ -1,0 +1,5 @@
+GET    /player.js                                 org.corespring.scorm.controllers.AssetLoading.itemPlayerJavascript
+GET    /player/item/:itemId/administer            org.corespring.scorm.controllers.ScormPlayer.administerItem(itemId : VersionedId[ObjectId])
+GET    /player/item/:itemId/:filename             org.corespring.scorm.controllers.ScormPlayer.getDataFile(itemId : String, filename:String)
+GET    /player/session/:sessionId/render          org.corespring.scorm.controllers.ScormPlayer.render(sessionId : ObjectId, role:String ?= "student")
+GET    /player/session/:sessionId/:filename       org.corespring.scorm.controllers.ScormPlayer.getDataFileBySessionId(sessionId : String, filename:String)

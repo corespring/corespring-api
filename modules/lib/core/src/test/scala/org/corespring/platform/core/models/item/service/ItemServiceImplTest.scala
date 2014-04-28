@@ -5,7 +5,7 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
-import org.corespring.platform.core.services.item.{ ItemVersioningDao, ItemServiceImpl }
+import org.corespring.platform.core.services.item.{ ItemVersioningDao, ItemServiceWired }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -17,13 +17,13 @@ class ItemServiceImplTest extends BaseTest with Mockito {
 
   val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
-  val service = new ItemServiceImpl(s3, DefaultItemSession, dao)
+  val service = new ItemServiceWired(s3, DefaultItemSession, dao)
 
   "save" should {
 
     def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): Result = {
       val mockS3: CorespringS3Service = new MockS3Service
-      val s = new ItemServiceImpl(mockS3, DefaultItemSession, ItemVersioningDao)
+      val s = new ItemServiceWired(mockS3, DefaultItemSession, ItemVersioningDao)
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id, "data", name))
       val resource = Resource(name = "data", files = Seq(file))

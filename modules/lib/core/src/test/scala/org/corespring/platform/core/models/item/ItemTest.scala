@@ -1,17 +1,14 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.BasicDBObject
-import org.corespring.platform.core.models.json.JsonValidationException
 import org.bson.types.ObjectId
 import org.corespring.platform.core
 import org.corespring.platform.core.models.Subject
 import org.corespring.platform.core.models.item.Item.Keys
-import org.corespring.platform.core.models.item._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.Json
-import scala.Some
+import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.test.BaseTest
+import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
+import scala.Some
 
 class ItemTest extends BaseTest {
 
@@ -35,6 +32,17 @@ class ItemTest extends BaseTest {
       parsed.otherAlignments.get.demonstratedKnowledge must equalTo(Some("Factual"))
       parsed.otherAlignments.get.bloomsTaxonomy must equalTo(Some("Applying"))
     }
+
+    "parse player definition" in {
+      val json = Json.obj(
+        "playerDefinition" -> Json.obj(
+          "files" -> JsArray(Seq()),
+          "xhtml" -> "<div/>",
+          "components" -> Json.obj("3" -> Json.obj("componentType" -> "type"))))
+      val item = json.as[Item]
+      item.playerDefinition.isDefined === true
+    }
+
     "parse workflow" in {
       val workflow = Workflow(setup = true,
         tagged = true,

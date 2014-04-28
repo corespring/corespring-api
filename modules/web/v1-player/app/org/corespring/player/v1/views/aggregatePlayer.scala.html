@@ -1,0 +1,8 @@
+@(params: _root_.org.corespring.player.v1.views.models.PlayerParams, assessmentId:String)
+
+@scripts = {
+@_root_.org.corespring.player.v1.views.html.partials.angularConfig(params, ("assessmentId" -> assessmentId))
+}
+
+@bodyAttributes = @{ "ng-controller=AggregateAppController" }
+@_root_.org.corespring.player.v1.views.html.basePlayer( params, bodyAttributes, Some(scripts) )

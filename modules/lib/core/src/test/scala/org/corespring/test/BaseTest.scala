@@ -2,7 +2,7 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemService }
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
@@ -12,13 +12,13 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 import scala.Some
 import scala.concurrent.Future
 
-trait BaseTest extends Specification {
+trait BaseTest extends Specification with Assertions {
 
   val TEST_COLLECTION_ID = "51114b127fc1eaa866444647"
   // From standard fixture data
   val token = "test_token"
 
-  def itemService: ItemService = ItemServiceImpl
+  def itemService: ItemService = ItemServiceWired
 
   def fakeRequest(content: AnyContent = AnyContentAsEmpty): FakeRequest[AnyContent] = FakeRequest("", tokenize(""), FakeHeaders(), content)
 
@@ -52,7 +52,7 @@ trait BaseTest extends Specification {
    */
   def item(id: String): Item = {
 
-    ItemServiceImpl.findOneById(VersionedId(new ObjectId(id))) match {
+    ItemServiceWired.findOneById(VersionedId(new ObjectId(id))) match {
       case Some(item) => {
         item
       }
@@ -93,19 +93,4 @@ trait BaseTest extends Specification {
       (file \ "content").toString
     })
   }
-
-  def parsed[A](result: Future[SimpleResult])(implicit reads: Reads[A]) = Json.fromJson[A](Json.parse(contentAsString(result))) match {
-    case JsSuccess(data, _) => data
-    case _ => throw new RuntimeException("Couldn't parse json")
-  }
-
-  def assertResult(result: Future[SimpleResult],
-    expectedStatus: Int = OK,
-    expectedCharset: Option[String] = Some("utf-8"),
-    expectedContentType: Option[String] = Some("application/json")): org.specs2.execute.Result = {
-    status(result) === expectedStatus
-    charset(result) === expectedCharset
-    contentType(result) === expectedContentType
-  }
-
 }
