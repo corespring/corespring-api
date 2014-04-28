@@ -16,7 +16,6 @@ case class Resource(id: Option[ObjectId] = None, name: String, var files: Seq[Ba
 object Resource extends PackageLogging with JsonUtil {
   val id = "id"
   val name = "name"
-  val contentType = "contentType"
   val files = "files"
 
   val DataPath = "data"
@@ -39,7 +38,7 @@ object Resource extends PackageLogging with JsonUtil {
         val files = (json \ Resource.files).asOpt[Seq[JsValue]].map(_.map(f => {
 
           val fileName = (f \ name).as[String]
-          val contentType = (f \ contentType).as[String]
+          val contentType = (f \ "contentType").as[String]
           val isMain = (f \ "default").as[Boolean]
           (f \ "content").asOpt[String] match {
             case Some(c) => VirtualFile(fileName, contentType, isMain, c)
