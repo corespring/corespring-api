@@ -18,7 +18,7 @@ import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
 import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
 import org.corespring.v2player.integration.errors.V2Error
 import play.api.http.Status._
-import play.api.libs.json.{ JsObject, Json, JsValue }
+import play.api.libs.json._
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.Some
@@ -26,6 +26,17 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 import org.slf4j.LoggerFactory
+import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
+import scalaz.Failure
+import scala.Some
+import play.api.mvc.SimpleResult
+import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
+import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
+import scalaz.Success
+import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
+import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
+import play.api.libs.json.JsObject
+import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
 
 trait ItemHooks
   extends ContainerItemHooks
@@ -64,6 +75,31 @@ trait ItemHooks
     }
   }
 
+  private def supportingMaterials(item: ModelItem, json: JsValue): ModelItem = {
+    implicit val baseFileFormat = BaseFile.BaseFileFormat
+    (json \ "supportingMaterials") match {
+      case undefined: JsUndefined => item
+      case _ => (json \ "supportingMaterials") match {
+        case array: JsArray => {
+          val newMaterials = array.as[List[JsObject]].map(supportingMaterial => Resource(
+            id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
+            name = (supportingMaterial \ "name").as[String],
+            files = (supportingMaterial \ "files").as[List[JsObject]].map(f => Json.fromJson[BaseFile](f).get)
+          ))
+
+          val existingMaterials =
+            item.supportingMaterials.filter(material => newMaterials.map(_.id).contains(material.id))
+
+          item.copy(supportingMaterials = (newMaterials ++ existingMaterials).map(m => (m.id match {
+            case Some(id) => m
+            case None => m.copy(id = Some(new ObjectId()))
+          })))
+        }
+        case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
+      }
+    }
+  }
+
   override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
 
     logger.debug(s"save - itemId: $itemId")
@@ -73,16 +109,9 @@ trait ItemHooks
     def convertAndSave(itemId: String, item: ModelItem): Option[JsValue] = {
 
       val updates = Seq(
+        (item: ModelItem, json: JsValue) => { val t = supportingMaterials(item, json); println(t.supportingMaterials); t },
         (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
-        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json),
-        (item: ModelItem, json: JsValue) => {
-          item.copy(supportingMaterials = item.supportingMaterials.map(supportingMaterial => {
-            supportingMaterial.id match {
-              case None => supportingMaterial.copy(id = Some(new ObjectId()))
-              case _ => supportingMaterial
-            }
-          }))
-        }
+        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json)
       )
 
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }

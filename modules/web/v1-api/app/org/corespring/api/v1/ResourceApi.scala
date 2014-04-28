@@ -387,7 +387,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
             case Some(foundResource) => NotAcceptable(toJson(ApiError.ResourceNameTaken))
             case _ => {
               val file = new StoredFile(filename, contentType(filename), true, s3Key)
-              val resource = Resource(name, Seq(file))
+              val resource = Resource(name = name, files = Seq(file))
               item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
               service.save(item)
               Ok(toJson(resource))
