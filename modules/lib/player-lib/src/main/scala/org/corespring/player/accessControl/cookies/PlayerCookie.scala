@@ -6,6 +6,7 @@ import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 import play.api.libs.json.{ Writes, Json }
 import play.api.mvc.{ RequestHeader, Session, Request }
+import play.api.Logger
 
 trait CookieKeys {
   def renderOptions: String
