@@ -382,7 +382,7 @@ class ItemSessionTest extends BaseTest {
       val item = new Item(
         id = genItemId,
         data = Some(Resource(
-          "data",
+          name = "data",
           files =
             Seq(
               VirtualFile(
