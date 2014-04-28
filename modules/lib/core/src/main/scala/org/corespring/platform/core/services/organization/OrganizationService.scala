@@ -3,7 +3,6 @@ package org.corespring.platform.core.services.organization
 import org.bson.types.ObjectId
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.platform.core.models.{ Organization, MetadataSetRef }
-import org.corespring.platform.core.models.auth.Permission
 
 trait OrganizationService {
 
@@ -20,7 +19,4 @@ trait OrganizationService {
   def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String]
 
   def findOneById(orgId: ObjectId): Option[Organization]
-
-
-  def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission) : Boolean
 }

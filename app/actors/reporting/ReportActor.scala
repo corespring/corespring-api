@@ -1,7 +1,7 @@
 package actors.reporting
 
 import akka.actor.Actor
-import org.corespring.reporting.services.ReportGenerator
+import reporting.services.{ReportGenerator, ReportsService}
 
 /**
  * An Akka Actor responsible for generating and caching reports.

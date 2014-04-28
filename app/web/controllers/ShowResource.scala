@@ -1,22 +1,20 @@
 package web.controllers
 
-import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
-import org.corespring.common.mongo.ObjectIdParser
-import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.controllers.{QtiResource, AssetResourceBase}
+import common.controllers.{ AssetResourceBase, QtiResource }
+import controllers.auth.BaseApi
+import org.corespring.assets.{ CorespringS3ServiceImpl, CorespringS3Service }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.BaseFile
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
 import org.corespring.platform.core.models.item.{ Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.item.{ ItemServiceClient, ItemService }
-import org.corespring.player.v1.controllers.QtiRenderer
-import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams}
 import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
+import player.views.models.{ QtiKeys, PlayerParams }
 import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz.{ Success, Failure }
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
+import player.controllers.qti.QtiRenderer
 
 object ShowResource
   extends BaseApi
@@ -26,23 +24,24 @@ object ShowResource
   with AssetResourceBase
   with QtiRenderer {
 
-  def s3Service: CorespringS3Service = CorespringS3ServiceExtended
+  def s3Service: CorespringS3Service = CorespringS3ServiceImpl
 
-  def itemService: ItemService = ItemServiceWired
+  def itemService: ItemService = ItemServiceImpl
 
   def javascriptRoutes = Action {
     implicit request =>
 
       import play.api.Routes
+      import web.controllers.routes.javascript._
       import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-      import web.controllers.routes.javascript.{Partials => PartialsJs}
+
       Ok(
         Routes.javascriptRouter("WebRoutes")(
           ShowResourceJs.getResourceFile,
-          PartialsJs.createItem,
-          PartialsJs.editItem,
-          PartialsJs.home,
-          PartialsJs.viewItem)).as("text/javascript")
+          Partials.createItem,
+          Partials.editItem,
+          Partials.home,
+          Partials.viewItem)).as("text/javascript")
   }
 
   /**
@@ -70,6 +69,7 @@ object ShowResource
     ApiAction {
       request =>
 
+        import VersionedIdImplicits.Binders._
 
         if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
 
@@ -78,7 +78,7 @@ object ShowResource
               val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
               val finalXml = prepareQti(xmlData, renderMode)
               val params: PlayerParams = PlayerParams(finalXml, itemId = Some(item.id.toString()), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
-              Ok(org.corespring.player.v1.views.html.Player(params))
+              Ok(player.views.html.Player(params))
             }
             case None => NotFound("Can't find item")
           }

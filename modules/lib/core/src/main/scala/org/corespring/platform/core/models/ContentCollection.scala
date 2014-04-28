@@ -10,7 +10,7 @@ import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.{ItemSearch, Searchable}
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
 import play.api.Play.current
@@ -22,7 +22,6 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 import se.radley.plugin.salat._
-import com.mongodb.util.JSON
 
 /**
  * A ContentCollection
@@ -30,11 +29,12 @@ import com.mongodb.util.JSON
  *
  */
 case class ContentCollection(
-                              var name: String = "",
-                              var ownerOrgId: ObjectId,
-                              var isPublic: Boolean = false,
-                              var id: ObjectId = new ObjectId()) {
-  lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
+  var name: String = "",
+  var ownerOrgId: ObjectId,
+  var isPublic: Boolean = false,
+  var id: ObjectId = new ObjectId()) {
+
+  lazy val itemCount: Int = ItemServiceImpl.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
@@ -49,7 +49,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Either[InternalError, ContentCollection] = {
+
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled:Boolean = true): Either[InternalError, ContentCollection] = {
     //TODO: apply two-phase commit
     if (Play.isProd) coll.id = new ObjectId()
     try {
@@ -107,8 +108,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
           try {
             Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
             val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
-            ItemServiceWired.find(query).foreach(item => {
-              ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+            ItemServiceImpl.find(query).foreach(item => {
+              ItemServiceImpl.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
             })
             Success(())
           } catch {
@@ -157,6 +158,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     else Right(())
   }
 
+
   /**
    * Share items to the collection specified.
    * - must ensure that the context org has write access to the collection
@@ -169,16 +171,11 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    */
   def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
     if (isAuthorized(orgId, collId, Permission.Write)) {
-
-      if (items.isEmpty) {
-        logger.warn("[shareItems] items is empty")
-      }
-
       val oids = items.map(i => i.id)
       val query = MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
 
       // get a list of any items that were not authorized to be added
-      val itemsNotAuthorized = ItemServiceWired.find(query).filterNot(item => {
+      val itemsNotAuthorized = ItemServiceImpl.find(query).filterNot(item => {
         // get the collections to test auth on (owner collection for item, and shared-in collections)
         val collectionsToAuth = item.collectionId.map(Seq(_)).getOrElse(Seq.empty) ++ item.sharedInCollections
         // does org have read access to any of these collections
@@ -189,21 +186,21 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
         // add collection id to item.sharedinCollections unless the collection is the owner collection for item
         val savedUnsavedItems = items.partition(item => {
           try {
-            ItemServiceWired.findOneById(item) match {
+            ItemServiceImpl.findOneById(item) match {
               case Some(itemObj) if (collId.equals(itemObj)) => true
               case _ =>
-                ItemServiceWired.saveUsingDbo(item, MongoDBObject("$addToSet" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)), false)
+                ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$addToSet" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)) ,false)
                 true
             }
           } catch {
             case e: SalatDAOUpdateError => false
-          }
+        }
         })
         if (savedUnsavedItems._2.size > 0) {
-          logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
+          logger.debug(s"[addItems] failed to add items: " + savedUnsavedItems._2.map(_.id + " ").toString)
           Left(InternalError("failed to add items"))
         } else {
-          logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
+          logger.debug(s"[addItems] added items: " + savedUnsavedItems._1.map(_.id + " ").toString)
           Right(savedUnsavedItems._1)
         }
 
@@ -225,21 +222,15 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @return
    */
   def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
-
     val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-    val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
-    val parsedQuery: Either[SearchCancelled, DBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery))
+    val collectionsQuery = ItemServiceImpl.createDefaultCollectionsQuery(acessibleCollections, orgId)
+    val parsedQuery: Either[SearchCancelled, MongoDBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery) )
 
     parsedQuery match {
       case Right(searchQry) =>
-        val cursor = ItemServiceWired.find(searchQry, MongoDBObject("_id" -> 1))
-
-        val seq = cursor.toSeq
-        if (seq.size == 0) {
-          logger.warn(s"[shareItemsMatchingQuery] didn't find any items: ${cursor.size}: query: ${JSON.serialize(searchQry)}")
-        }
-        val ids = seq.map(item => item.id)
-        shareItems(orgId, ids, collId)
+        val cursor = ItemServiceImpl.find(searchQry, MongoDBObject("_id" -> 1))
+        val ids = cursor.map(item => item.id)
+        shareItems(orgId,ids.toSeq, collId)
       case Left(sc) => sc.error match {
         case None => Right(Seq())
         case Some(error) => Left(InternalError(error.clientOutput.getOrElse("error processing search")))
@@ -247,7 +238,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     }
   }
 
-  /**
+
+    /**
    * Unshare the specified items from the specified collections
    *
    * @param orgId
@@ -263,9 +255,9 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     } else {
       val failedItems = items.filterNot(item => {
         try {
-          ItemServiceWired.findOneById(item) match {
+          ItemServiceImpl.findOneById(item) match {
             case _ =>
-              ItemServiceWired.saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)), false)
+              ItemServiceImpl.saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)) ,false)
               true
           }
         } catch {
@@ -280,6 +272,9 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     }
 
   }
+
+
+
 
   /**
    * does the given organization have access to the given collection with given permissions?
@@ -303,15 +298,12 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
       JsObject(list)
     }
   }
-
   override val searchableFields = Seq(
     name)
 }
 
 case class CollectionExtraDetails(coll: ContentCollection, access: Long)
-
 object CollectionExtraDetails {
-
   implicit object CCWPWrites extends Writes[CollectionExtraDetails] {
     def writes(c: CollectionExtraDetails): JsValue = {
       JsObject(Seq(
@@ -323,5 +315,4 @@ object CollectionExtraDetails {
         "id" -> JsString(c.coll.id.toString)))
     }
   }
-
 }

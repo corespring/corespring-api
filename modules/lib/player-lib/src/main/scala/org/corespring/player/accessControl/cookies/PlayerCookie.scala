@@ -1,71 +1,39 @@
 package org.corespring.player.accessControl.cookies
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.services.{ UserServiceWired, UserService }
-import org.corespring.player.accessControl.models.RequestedAccess.Mode
+import org.corespring.platform.core.models.User
+import play.api.libs.json.Json
+import play.api.mvc.{ Session, Request }
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
-import play.api.libs.json.{ Writes, Json }
-import play.api.mvc.{ RequestHeader, Session, Request }
-import play.api.Logger
 
-trait CookieKeys {
-  def renderOptions: String
-  def orgId: String
-  def activeMode: String
-}
-
-trait BasePlayerCookieReader[MODE, OPTIONS] {
-
-  def keys: CookieKeys
-
-  def toMode(s: String): MODE
-
-  def toOptions(json: String): OPTIONS
-
-  def activeMode(request: RequestHeader): Option[MODE] = request.session.get(keys.activeMode).map(toMode(_))
-
-  def renderOptions(request: RequestHeader): Option[OPTIONS] = {
-    val out = request.session.get(keys.renderOptions).map(toOptions(_))
-    out
-  }
-
-  def orgIdFromCookie(request: RequestHeader): Option[String] = {
-    val out = request.session.get(keys.orgId)
-    out
-  }
-}
-
-trait BasePlayerCookieWriter[MODE, OPTIONS] {
-
-  def userService: UserService
-
-  def keys: CookieKeys
+trait PlayerCookieWriter {
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   def sumSession(s: Session, keyValues: (String, String)*): Session = {
     keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc + (kv._1, kv._2))
   }
 
-  def playerCookies(userId: String, providerId: String, userOptions: OPTIONS)(implicit writes: Writes[OPTIONS]): Seq[(String, String)] = userService.getUser(userId, providerId).map {
+  def playerCookies(userId: String, providerId: String): Seq[(String, String)] = User.getUser(userId, providerId).map {
     u =>
-      playerCookies(u.org.orgId, Some(userOptions))
+      playerCookies(u.org.orgId, Some(RenderOptions.ANYTHING))
   }.getOrElse(Seq())
 
-  def playerCookies(orgId: ObjectId, options: Option[OPTIONS])(implicit writes: Writes[OPTIONS]): Seq[(String, String)] = Seq(
-    keys.orgId -> orgId.toString) ++ options.map { ro => (keys.renderOptions -> writes.writes(ro).toString) }
+  def playerCookies(orgId: ObjectId, options: Option[RenderOptions]): Seq[(String, String)] = Seq(
+    PlayerCookieKeys.ORG_ID -> orgId.toString) ++ options.map { ro => (PlayerCookieKeys.RENDER_OPTIONS -> Json.toJson(ro).toString) }
 
-  def activeModeCookie[A](mode: MODE)(implicit request: Request[A]): (String, String) = {
-    (keys.activeMode -> mode.toString)
+  def activeModeCookie[A](mode: RequestedAccess.Mode.Mode = RequestedAccess.Mode.Preview)(implicit request: Request[A]): (String, String) = {
+    (PlayerCookieKeys.ACTIVE_MODE -> mode.toString)
   }
 }
 
-trait PlayerCookieWriter extends BasePlayerCookieWriter[RequestedAccess.Mode.Mode, RenderOptions] {
-  def userService: UserService = UserServiceWired
-  def keys = PlayerCookieKeys
-}
+trait PlayerCookieReader {
+  def activeModeFromCookie[A](request: Request[A]): Option[RequestedAccess.Mode.Mode] = request.session.get(PlayerCookieKeys.ACTIVE_MODE).map {
+    k => RequestedAccess.Mode.withName(k)
+  }
 
-trait PlayerCookieReader extends BasePlayerCookieReader[RequestedAccess.Mode.Mode, RenderOptions] {
-  def toMode(s: String): Mode.Mode = Mode.withName(s)
-  def toOptions(json: String): RenderOptions = Json.parse(json).as[RenderOptions]
-  def keys = PlayerCookieKeys
+  def renderOptionsFromCookie[A](request: Request[A]): Option[RenderOptions] = request.session.get(PlayerCookieKeys.RENDER_OPTIONS).map {
+    json => Json.parse(json).as[RenderOptions]
+  }
+
+  def orgIdFromCookie[A](request: Request[A]): Option[String] = request.session.get(PlayerCookieKeys.ORG_ID)
 }

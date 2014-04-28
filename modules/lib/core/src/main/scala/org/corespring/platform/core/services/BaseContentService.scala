@@ -30,7 +30,7 @@ trait BaseContentService[ContentType <: Content[ID], ID] {
 
   def findMultiple(ids: Seq[ID], keys: DBObject = new BasicDBObject()): Seq[ContentType]
 
-  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): DBObject = {
+  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): MongoDBObject = {
     // filter the collections to exclude any that are not currently enabled for the organization
     val org = Organization.findOneById(orgId)
     val disabledCollections: Seq[ObjectId] = org match {

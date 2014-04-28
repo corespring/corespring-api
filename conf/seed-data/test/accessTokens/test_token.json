@@ -7,8 +7,5 @@
   },
   "tokenId": "test_token",
   "scope": "test_user",
-    "neverExpire": true,
-    "expirationDate": {
-        "$date": "2013-12-20T16:46:49.925Z"
-    }
+  "neverExpire" : true
 }

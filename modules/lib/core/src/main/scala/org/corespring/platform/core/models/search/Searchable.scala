@@ -47,7 +47,7 @@ trait Searchable {
     })
   }
 
-  final def toSortObj(field: AnyRef): Either[InternalError, DBObject] = {
+  final def toSortObj(field: AnyRef): Either[InternalError, MongoDBObject] = {
     field match {
       case strfield: String => try {
         val parsedobj: BasicDBObject = JSON.parse(strfield).asInstanceOf[BasicDBObject]
@@ -65,18 +65,18 @@ trait Searchable {
       }
     }
   }
-  protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, DBObject] = {
+  protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, MongoDBObject] = {
     if (searchableFields.isEmpty) throw new RuntimeException("when using default sort method, you must override searchable fields")
-    def formatSortField(key: String, value: AnyRef): Either[InternalError, DBObject] = {
+    def formatSortField(key: String, value: AnyRef): Either[InternalError, MongoDBObject] = {
       value match {
-        case intval: java.lang.Integer => Right(DBObject(key -> value))
+        case intval: java.lang.Integer => Right(MongoDBObject(key -> value))
         case _ => Left(InternalError("sort value not a number"))
       }
     }
     if (searchableFields.contains(field._1)) formatSortField(field._1, field._2)
     else Left(InternalError("invalid sort key: " + field._1))
   }
-  final def toSearchObj(query: AnyRef, optInitSearch: Option[DBObject] = None, parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]] = Map()): Either[SearchCancelled, DBObject] = {
+  final def toSearchObj(query: AnyRef, optInitSearch: Option[MongoDBObject] = None, parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]] = Map()): Either[SearchCancelled, MongoDBObject] = {
     query match {
       case strquery: String => {
         val parsedobjResult: Either[SearchCancelled, BasicDBObject] = try {
@@ -109,7 +109,7 @@ trait Searchable {
               }
             }) match {
               case Right(newlist) => toSearchObj(dbquery.filter(_._1 != "$or").asDBObject, optInitSearch, parseFields) match {
-                case Right(remainder) => Right(remainder ++ DBObject("$or" -> newlist))
+                case Right(remainder) => Right(remainder ++ MongoDBObject("$or" -> newlist))
                 case Left(sc) => Left(sc)
               }
               case Left(sc) => Left(sc)
@@ -131,7 +131,7 @@ trait Searchable {
               }
             }) match {
               case Right(newlist) => toSearchObj(dbquery.filter(_._1 != "$and").asDBObject, optInitSearch, parseFields) match {
-                case Right(remainder) => Right(remainder ++ DBObject("$and" -> newlist))
+                case Right(remainder) => Right(remainder ++ MongoDBObject("$and" -> newlist))
                 case Left(sc) => Left(sc)
               }
               case Left(sc) => Left(sc)
@@ -143,9 +143,9 @@ trait Searchable {
       case _ => Left(SearchCancelled(Some(InternalError("invalid search object"))))
     }
   }
-  protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[MongoDBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
     if (searchableFields.isEmpty) throw new RuntimeException("when using default search method, you must override searchable fields")
-    dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
+    dbquery.foldRight[Either[SearchCancelled, MongoDBObject]](Right(MongoDBObject()))((field, result) => {
       result match {
         case Right(searchobj) => if (searchableFields.contains(field._1)) formatQuery(field._1, field._2, searchobj)
         else Left(SearchCancelled(Some(InternalError("unknown query field: " + field._1))))
@@ -160,7 +160,7 @@ trait Searchable {
     }
   }
 
-  protected final def formatQuery(key: String, value: AnyRef, searchobj: DBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  protected final def formatQuery(key: String, value: AnyRef, searchobj: MongoDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, MongoDBObject] = {
     parseFields.find(_._1 == key) match {
       case Some(parseField) => parseField._2(value) match {
         case Right(newvalue) => Right(searchobj += key -> newvalue)
@@ -180,14 +180,14 @@ trait Searchable {
   protected final def formatSpecOp(dbobj: BasicDBObject): Either[InternalError, AnyRef] = {
     dbobj.toSeq.headOption match {
       case Some((key, value)) => key match {
-        case "$in" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
+        case "$in" => if (value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
         else Left(InternalError("$in did not contain an array of elements"))
-        case "$nin" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
+        case "$nin" => if (value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
         else Left(InternalError("$nin did not contain an array of elements"))
-        case "$exists" => if (value.isInstanceOf[Boolean]) Right(DBObject(key -> value))
+        case "$exists" => if (value.isInstanceOf[Boolean]) Right(MongoDBObject(key -> value))
         else Left(InternalError("$exists did not contain a boolean value"))
-        case "$ne" => Right(DBObject(key -> value))
-        case "$all" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
+        case "$ne" => Right(MongoDBObject(key -> value))
+        case "$all" => if (value.isInstanceOf[BasicDBList]) Right(MongoDBObject(key -> value))
         else Left(InternalError("$all did not contain an array of elements"))
         case _ => if (key.startsWith("$")) Left(InternalError("unsupported special operation"))
         else Left(InternalError("cannot have embedded db object without special operator"))
@@ -204,8 +204,7 @@ case class SearchCancelled(error: Option[InternalError])
  * @param dbfields
  * @param jsfields
  */
-//TODO - remove mutability
-case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[String] = Seq(), method: Int) {
+case class SearchFields(var dbfields: MongoDBObject = MongoDBObject(), var jsfields: Seq[String] = Seq(), method: Int) {
   val inclusion = method == 1
   val exclusion = method == 0
 

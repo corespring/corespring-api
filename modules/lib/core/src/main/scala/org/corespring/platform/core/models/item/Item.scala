@@ -1,16 +1,16 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
-import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.json.ContentView
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.json.JsonValidationException
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.json.ItemView
+import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala._
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.item.json.ContentView
 
 case class Item(
   var collectionId: Option[String] = None,
@@ -24,7 +24,6 @@ case class Item(
   var pValue: Option[String] = None,
   var lexile: Option[String] = None,
   var data: Option[Resource] = None,
-  var playerDefinition: Option[PlayerDefinition] = None,
   var originId: Option[String] = None,
   var supportingMaterials: Seq[Resource] = Seq(),
   var published: Boolean = false,
@@ -32,7 +31,8 @@ case class Item(
   var dateModified: Option[DateTime] = Some(new DateTime()),
   var taskInfo: Option[TaskInfo] = None,
   var otherAlignments: Option[Alignments] = None,
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get())
+) extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
@@ -127,7 +127,6 @@ object Item {
 
       item.collectionId = (json \ collectionId).asOpt[String]
 
-      item.playerDefinition = (json \ "playerDefinition").asOpt[PlayerDefinition]
       item.taskInfo = json.asOpt[TaskInfo]
       item.otherAlignments = json.asOpt[Alignments]
       item.workflow = (json \ workflow).asOpt[Workflow]

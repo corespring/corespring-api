@@ -37,7 +37,7 @@ object StandardOrdering extends Ordering[Standard] {
             }
           case (numberWithLetters(firstNumber, firstLetter), numberWithLetters(secondNumber, secondLetter)) => {
             firstNumber.toInt.compareTo(secondNumber.toInt) match {
-              case 0 => firstLetter.compareTo(secondLetter)
+              case 0 =>  firstLetter.compareTo(secondLetter)
               case int: Int => int
             }
           }
@@ -67,7 +67,8 @@ object StandardOrdering extends Ordering[Standard] {
             case int: Int => int
           }
         })
-      }))
+      })
+    )
   }
 
   /**

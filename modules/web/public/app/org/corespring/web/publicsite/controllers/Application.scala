@@ -25,7 +25,7 @@ object Application extends Controller with securesocial.core.SecureSocial with P
       request.user match {
         case Some(user) => {
 
-          val newCookies: Seq[(String, String)] = playerCookies(user.identityId.userId, user.identityId.providerId, RenderOptions.ANYTHING) :+ activeModeCookie(RequestedAccess.Mode.Preview)
+          val newCookies: Seq[(String, String)] = playerCookies(user.identityId.userId, user.identityId.providerId) :+ activeModeCookie(RequestedAccess.Mode.Preview)
           val newSession = sumSession(request.session, newCookies: _*)
           //TODO: Is it safe to assume that the user has access to this content?
           Ok(org.corespring.web.publicsite.views.html.educators())

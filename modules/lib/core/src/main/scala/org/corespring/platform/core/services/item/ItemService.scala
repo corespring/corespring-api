@@ -21,6 +21,4 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject]
 
-  def collection: MongoCollection
-
 }

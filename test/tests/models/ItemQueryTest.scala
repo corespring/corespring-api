@@ -2,51 +2,51 @@ package tests.models
 
 import com.mongodb.util.JSONParseException
 import org.corespring.test.BaseTest
-import org.specs2.matcher.MatchResult
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
 import play.api.libs.json._
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
+import org.specs2.execute.Result
+import org.specs2.matcher.MatchResult
 
 
 class ItemQueryTest extends BaseTest{
 
-  val Routes = org.corespring.api.v1.routes.ItemApi
-
-  //TODO: A lot of duplication in these tests - tidy it up
-
   "filter search for author in contributorDetails" in {
     val author = "New England Common Assessment Program"
-    val call:Call = Routes.list(q = Some("{author:\""+author+"\"}"), f = Some("{author:1}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{author:\""+author+"\"}"), f = Some("{author:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) =>
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
-          jsobj \ "author" match {
-            case JsString(authorString) => authorString == author
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
+          (jsobj \ "author") match {
+            case JsString(jsauthor) => jsauthor == author
             case _ => false
           }
         })
-
+      }
       case _ => false
     }
     jsonSuccess must beTrue
   }
   "filter search by gradeLevel matching multiple grades" in {
-    val call:Call = Routes.list(q = Some("{gradeLevel:{$all:[\"02\",\"04\"]}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$all:[\"02\",\"04\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "gradeLevel") match {
             case JsArray(jsGradeLevel) => jsGradeLevel.contains(JsString("02")) && jsGradeLevel.contains(JsString("04"))
             case _ => false
@@ -59,15 +59,15 @@ class ItemQueryTest extends BaseTest{
   }
   "filter search by subCategory in standards" in {
     val subCategory = "Key Ideas and Details"
-    val call:Call = Routes.list(q = Some("{standards.subCategory:\""+subCategory+"\"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{standards.subCategory:\""+subCategory+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "standards") match {
             case JsArray(standards) => standards.exists(_ match {
               case JsObject(props) => props.contains("subCategory" -> JsString(subCategory))
@@ -83,15 +83,15 @@ class ItemQueryTest extends BaseTest{
   }
   "filter search by subjects" in {
     val primarySubjectCategory = "Mathematics"
-    val call:Call = Routes.list(q = Some("{primarySubject.category:\""+primarySubjectCategory+"\"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:\""+primarySubjectCategory+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
             case _ => false
@@ -104,15 +104,15 @@ class ItemQueryTest extends BaseTest{
   }
   "use regex to filter search by title" in {
     val title = "DEV"
-    val call:Call = Routes.list(q = Some("{title:{$regex:\""+title+"\"}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "title") match {
             case JsString(jstitle) => jstitle.indexOf(title) != -1
             case _ => false
@@ -126,15 +126,15 @@ class ItemQueryTest extends BaseTest{
   "filter search by itemType AND title" in {
     val title = "DEV"
     val itemType = "Multiple Choice"
-    val call:Call = Routes.list(q = Some("{title:{$regex:\""+title+"\"},itemType:\""+itemType+"\"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{title:{$regex:\""+title+"\"},itemType:\""+itemType+"\"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           ((jsobj \ "title") match {
             case JsString(jstitle) => jstitle.indexOf(title) != -1
             case _ => false
@@ -155,15 +155,15 @@ class ItemQueryTest extends BaseTest{
     val itemType = "Multiple Choice"
     val standardsDotNotation = "RI.3.1"
     val author = "New England Common Assessment Program"
-    val call:Call = Routes.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           val result = ((jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
             case _ => false
@@ -197,15 +197,15 @@ class ItemQueryTest extends BaseTest{
     val itemType = "Multiple Choice"
     val standardsDotNotation = "blergl mergl"
     val author = "New England Common Assessment Program"
-    val call:Call = Routes.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{\"$or\":[{primarySubject.category:\""+primarySubjectCategory+"\"},{title:{$regex:\""+title+"\"}},{gradeLevel:\""+gradeLevel+"\"},{itemType:\""+itemType+"\"},{standards.dotNotation:\""+standardsDotNotation+"\"},{author:\""+author+"\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           ((jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(primarySubjectCategory))
             case _ => false
@@ -242,7 +242,7 @@ class ItemQueryTest extends BaseTest{
   private def listQuery(s:String) : MatchResult[Any] = {
     val query = validJson(s)
     query.map{ q =>
-      val call:Call = Routes.list(q = Some(Json.stringify(q)))
+      val call:Call = api.v1.routes.ItemApi.list(q = Some(Json.stringify(q)))
       val request = FakeRequest(call.method,call.url+"&access_token="+token)
       val result = route(request).get
       status(result) === BAD_REQUEST
@@ -260,20 +260,20 @@ class ItemQueryTest extends BaseTest{
   "filter items based on a set of subjects using $in" in {
     val category1 = "Mathematics"
     val category2 = "English Language Arts"
-    val call:Call = Routes.list(q = Some("{primarySubject.category:{$in : [\""+category1+"\",\""+category2+"\"]}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{primarySubject.category:{$in : [\""+category1+"\",\""+category2+"\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.exists(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.exists(jsobj => {
           (jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(category1))
             case _ => false
           }
-        }) && objects.exists(jsobj => {
+        }) && jsobjects.exists(jsobj => {
           (jsobj \ "primarySubject") match {
             case JsObject(props) => props.contains("category" -> JsString(category2))
             case _ => false
@@ -287,15 +287,15 @@ class ItemQueryTest extends BaseTest{
   "filter items based on a set of collections using $in" in {
     val collection1 = "51114b127fc1eaa866444647"
     val collection2 = "511276834924c9ca07b97044"
-    val call:Call = Routes.list(q = Some("{collectionId:{$in:[\""+collection1+"\",\""+collection2+"\"]}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{collectionId:{$in:[\""+collection1+"\",\""+collection2+"\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "collectionId") match {
             case JsString(collectionId) => collectionId == collection1 || collectionId == collection2
             case _ => false
@@ -347,28 +347,28 @@ class ItemQueryTest extends BaseTest{
     "title" -> "\"meh\""
   )
   "all queryable item params are checked within it's search method" in {
-    val call:Call = Routes.list(q = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":"+searchParams.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":"+searchParams.head._2)((param,result) => result+","+param._1+":"+param._2)+"}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
   }
   "all search field item params are checked within it's search method" in {
-    val call:Call = Routes.list(f = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":1")((param,result) => result+","+param._1+":1")+",id:1}"))
+    val call:Call = api.v1.routes.ItemApi.list(f = Some("{"+searchParams.tail.foldRight[String](searchParams.head._1+":1")((param,result) => result+","+param._1+":1")+",id:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
   }
   "search for items that do not have an itemType equal to Multiple Choice" in {
     val itemType = "Multiple Choice"
-    val call:Call = Routes.list(q = Some("{itemType : {$ne : \""+itemType+"\"}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{itemType : {$ne : \""+itemType+"\"}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "itemType") match {
             case JsString(jsitemType) => jsitemType != itemType
             case _ => true
@@ -380,15 +380,15 @@ class ItemQueryTest extends BaseTest{
     jsonSuccess must beTrue
   }
   "search for items that do not contain a gradeLevel of 02 or 04" in {
-    val call:Call = Routes.list(q = Some("{gradeLevel:{$nin:[\"02\",\"04\"]}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{gradeLevel:{$nin:[\"02\",\"04\"]}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "gradeLevel") match {
             case JsArray(grades) => grades.forall(jsgrade => jsgrade match {
               case JsString(grade) => grade != "02" && grade != "04"
@@ -403,28 +403,28 @@ class ItemQueryTest extends BaseTest{
     jsonSuccess must beTrue
   }
   "no results are returned when searching for itemType that has both values of Multiple Choice and Project" in {
-    val call:Call = Routes.list(q = Some("{$and:[{itemType:\"Multiple Choice\"},{itemType:\"Project\"}]}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and:[{itemType:\"Multiple Choice\"},{itemType:\"Project\"}]}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     json match {
-      case JsArray(objects) => {
-        objects.size must beEqualTo(0)
+      case JsArray(jsobjects) => {
+        jsobjects.size must beEqualTo(0)
       }
       case _ => failure("did not return an array")
     }
   }
   "match all items that have a gradeLevel which contains the values 02 and 04 in its array" in {
-    val call:Call = Routes.list(q = Some("{$and : [ { gradeLevel : \"02\"}, { gradeLevel : \"04\"}],gradeLevel:{$exists:true}}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{$and : [ { gradeLevel : \"02\"}, { gradeLevel : \"04\"}],gradeLevel:{$exists:true}}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
     val json = Json.parse(contentAsString(result))
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "gradeLevel") match {
             case JsArray(grades) => grades.exists(_.as[String] == "02") && grades.exists(_.as[String] == "04")
             case _ => false
@@ -437,7 +437,7 @@ class ItemQueryTest extends BaseTest{
   }
 
   "search for items by metadata" in {
-    val call:Call = Routes.list(q = Some("{extended.demo_org.ui_comment:{$regex:\"comment about ui\"}}"),f=Some("{extended:1}"))
+    val call:Call = api.v1.routes.ItemApi.list(q = Some("{extended.demo_org.ui_comment:{$regex:\"comment about ui\"}}"),f=Some("{extended:1}"))
     val request = FakeRequest(call.method,call.url+"&access_token="+token)
     val result = route(request).get
     status(result) must equalTo(OK)
@@ -445,9 +445,9 @@ class ItemQueryTest extends BaseTest{
     println(s"contents: $contents")
     val json = Json.parse(contents)
     val jsonSuccess = json match {
-      case JsArray(objects) => {
-        objects.size must beGreaterThanOrEqualTo(1)
-        objects.forall(jsobj => {
+      case JsArray(jsobjects) => {
+        jsobjects.size must beGreaterThanOrEqualTo(1)
+        jsobjects.forall(jsobj => {
           (jsobj \ "extended") match {
             case JsObject(extended) => extended.find(field => {
               field._1 == "demo_org" && (field._2 match {

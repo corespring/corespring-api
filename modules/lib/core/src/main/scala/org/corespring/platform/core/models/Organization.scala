@@ -5,7 +5,6 @@ import com.novus.salat._
 import com.novus.salat.dao.{ SalatDAOUpdateError, SalatRemoveError, ModelCompanion, SalatDAO }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.InternalError
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
@@ -24,11 +23,7 @@ case class Organization(var name: String = "",
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
 }
 
-trait OrganizationImpl
-  extends ModelCompanion[Organization, ObjectId]
-  with Searchable
-  with OrganizationService
-  with PackageLogging {
+trait OrganizationImpl extends ModelCompanion[Organization, ObjectId] with Searchable with OrganizationService {
 
   val name: String = "name"
   val path: String = "path"
@@ -121,32 +116,11 @@ trait OrganizationImpl
     }
   }
 
-  /**
-   * TODO: I'm duplicating hasCollRef, but adjusting the query so that it checks that the stored permission pval is gte than the
-   * requested pval.
-   * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
-   * @see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
-   */
-  override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean = {
-    val query = MongoDBObject(
-      "_id" -> orgId,
-      contentcolls ->
-        MongoDBObject(
-          "$elemMatch" ->
-            MongoDBObject(
-              ContentCollRef.collectionId -> collectionId,
-              ContentCollRef.pval -> MongoDBObject("$gte" -> permission.value))))
-    val access = count(query) > 0
-    logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
-    access
-  }
-
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
     findOne(MongoDBObject("_id" -> orgId,
       contentcolls -> MongoDBObject("$elemMatch" ->
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
-
   def removeCollection(orgId: ObjectId, collId: ObjectId): Either[InternalError, Unit] = {
     findOneById(orgId) match {
       case Some(org) => {
@@ -170,7 +144,6 @@ trait OrganizationImpl
       }
     })
   }
-
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
@@ -187,7 +160,7 @@ trait OrganizationImpl
     }
   }
 
-  def setCollectionEnabledStatus(orgId: ObjectId, collectionId: ObjectId, enabledState: Boolean): Either[InternalError, ContentCollRef] = {
+  def setCollectionEnabledStatus(orgId: ObjectId, collectionId: ObjectId, enabledState: Boolean) : Either[InternalError, ContentCollRef] = {
     val orgOpt = findOneById(orgId)
     orgOpt match {
       case Some(org) =>
@@ -203,7 +176,7 @@ trait OrganizationImpl
     }
   }
 
-  def updateCollection(orgId: ObjectId, collRef: ContentCollRef): Either[InternalError, ContentCollRef] = {
+  def updateCollection(orgId: ObjectId, collRef: ContentCollRef) : Either[InternalError, ContentCollRef] = {
     if (!hasCollRef(orgId, collRef)) {
       Left(InternalError("can't update collection, it does not exist in this organization"))
     } else {
@@ -211,10 +184,11 @@ trait OrganizationImpl
       try {
         update(
           MongoDBObject("_id" -> orgId),
-          MongoDBObject("$pull" -> MongoDBObject(contentcolls -> MongoDBObject("collectionId" -> collRef.collectionId))),
+          MongoDBObject("$pull" -> MongoDBObject(contentcolls -> MongoDBObject("collectionId" -> collRef.collectionId)) ),
           false,
           false,
-          collection.writeConcern)
+          collection.writeConcern
+        )
       } catch {
         case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
       }
@@ -225,7 +199,8 @@ trait OrganizationImpl
           MongoDBObject("$addToSet" -> MongoDBObject(contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
           false,
           false,
-          collection.writeConcern)
+          collection.writeConcern
+        )
       } catch {
         case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
       }
@@ -237,13 +212,13 @@ trait OrganizationImpl
   def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
     if (collections.isEmpty) {
-      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId), Permission.Write);
+      ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId ), Permission.Write);
     } else {
       ContentCollection.findOne(
         MongoDBObject("_id" -> MongoDBObject("$in" -> collections), ContentCollection.name -> ContentCollection.DEFAULT)) match {
           case Some(default) => Right(default)
           case None =>
-            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId), Permission.Write);
+            ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId ), Permission.Write);
         }
     }
   }
@@ -270,12 +245,11 @@ trait OrganizationImpl
       }
   }
 
-  def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String] = findOneById(orgId).map {
-    org =>
-      val query = MongoDBObject("_id" -> orgId)
-      val pull = MongoDBObject("$pull" -> MongoDBObject("metadataSets" -> MongoDBObject("metadataId" -> setId)))
-      val result = update(query, pull, false, false, collection.writeConcern)
-      if (result.getLastError.ok) None else Some("Error updating orgs")
+  def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Option[String] = findOneById(orgId).map { org =>
+    val query = MongoDBObject("_id" -> orgId)
+    val pull = MongoDBObject("$pull" -> MongoDBObject("metadataSets" -> MongoDBObject("metadataId" -> setId)))
+    val result = update(query, pull, false, false, collection.writeConcern)
+    if (result.getLastError.ok) None else Some("Error updating orgs")
   }.getOrElse(Some("Can't find org with id: " + orgId))
 
   object FullWrites extends BasicWrites {
@@ -286,7 +260,9 @@ trait OrganizationImpl
           Seq(
             "collectionId" -> JsString(ref.collectionId.toString),
             "permission" -> JsString(Permission.toHumanReadable(ref.pval)),
-            "enabled" -> JsBoolean(ref.enabled)))
+            "enabled" -> JsBoolean(ref.enabled)
+          )
+        )
       }
     }
 
@@ -308,8 +284,8 @@ trait OrganizationImpl
       JsObject(list)
     }
   }
-
-  override val searchableFields = Seq(name)
+  override val searchableFields = Seq(
+    name)
 
 }
 

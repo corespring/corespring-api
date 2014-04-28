@@ -18,9 +18,6 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
  */
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger) {
 
-
-  $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
-
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
       $scope.standardsOptions = data;
@@ -63,31 +60,25 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
   }
 
-  $scope.launchV1Player = function(){
-    new com.corespring.players.ItemPlayer("#item-preview-target", {
+  $scope.refreshPreview = function () {
+    com.corespring.players.ItemPlayer("#item-preview-target", {
+        mode : "preview",
+        itemId : $scope.itemData.id,
+        height: "100%"}
+    );
+  };
+
+  $scope.togglePreview = function () {
+    $scope.previewVisible = !$scope.previewVisible;
+    $scope.$broadcast("panelOpen");
+
+    var player = new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
       height: "100%",
       omitSubmitButton: false
       }
     );
-  };
-
-  $scope.launchV2Player = function(){
-
-    var options = {
-      mode: "gather",
-      itemId : $scope.itemData.id,
-      evaluate: $scope.modeSettings
-    };
-
-    $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
-  };
-
-  $scope.togglePreview = function () {
-    $scope.previewVisible = !$scope.previewVisible;
-    $scope.$broadcast("panelOpen");
-    $scope.launchV1Player();
   };
 
   $scope.$watch("previewVisible", function (newValue) {

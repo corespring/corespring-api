@@ -41,8 +41,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
 
   import org.corespring.platform.core.models.mongoContext.context
 
-  //collection.ensureIndex( keys = MongoDBObject("clientId" -> 1), "apiClientIndex", unique = true)
-
   val dao = new SalatDAO[ApiClient, ObjectId](collection = collection) {}
 
   /**
@@ -57,7 +55,6 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   }
 
   def findByKey(key: String): Option[ApiClient] = {
-    println(s"ApiClient -> api client count --> ${ApiClient.count()}")
     findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
 

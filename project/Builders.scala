@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 import play.Project._
 
-class Builders(root:String, org:String, appVersion:String, rootScalaVersion:String, sharedSettings : Seq[Setting[_]]) {
+class Builders(root:String, org:String, appVersion:String, rootScalaVersion:String) {
 
   def lib(name: String, folder:String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty) =
 
@@ -16,22 +16,20 @@ class Builders(root:String, org:String, appVersion:String, rootScalaVersion:Stri
         version := appVersion,
         scalaVersion := rootScalaVersion,
         resolvers ++= Dependencies.Resolvers.all)
-      .settings(sharedSettings : _*)
 
   def testLib(name:String) = lib(name, "test-lib")
 
-  def web(name:String, root : Option[sbt.File] = None) = {
-
-    val rootFile = root.getOrElse(file(s"modules/web/$name"))
-
-    play.Project( makeName(name), appVersion, path = rootFile)
+  def web(name:String, deps: Seq[ClasspathDep[ProjectReference]] = Seq.empty) = {
+    play.Project(
+      makeName(name),
+      appVersion,
+      path = file("modules/web/" + name))
       .settings(
         organization := org,
         scalaVersion := rootScalaVersion,
         resolvers ++= Dependencies.Resolvers.all
     )
-    .settings(sharedSettings: _*)
   }
 
-  private def makeName(s:String) : String = if(s == root) root else Seq(root, s).mkString("-")
+  private def makeName(s:String) : String = Seq(root, s).mkString("-")
 }

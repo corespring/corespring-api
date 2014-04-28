@@ -6,11 +6,11 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.ItemSearch
 import play.api.libs.json.{ Json, JsArray }
 import play.api.mvc.{ Result, Action, Controller }
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemServiceClient, ItemService }
+import org.corespring.platform.core.services.item.{ ItemServiceImpl, ItemServiceClient, ItemService }
 
 object ExampleContent extends Controller with ItemServiceClient {
 
-  def itemService: ItemService = ItemServiceWired
+  def itemService: ItemService = ItemServiceImpl
 
   val EXAMPLE_CONTENT_COLLECTION_NAME = "Beta Items"
 

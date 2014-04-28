@@ -1,6 +1,0 @@
-GET    /v2-player/:itemId                                  org.corespring.dev.tools.controllers.V2Player.v2Player(itemId)
-GET    /player/item/:itemId/administer                     org.corespring.dev.tools.controllers.DevViews.administerItem(itemId:VersionedId[ObjectId])
-GET    /player/item/:itemId/*filename                      org.corespring.dev.tools.controllers.AssetLoading.getDataFile(itemId, filename)
-
-GET    /player/session/:sessionId/render                   org.corespring.dev.tools.controllers.DevViews.render(sessionId:ObjectId, role:String ?= "student")
-GET    /player/session/:sessionId/*filename                org.corespring.dev.tools.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)

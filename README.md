@@ -42,25 +42,11 @@ This file will look like so:
 Ask someone to provide you with the user password
 
 
-### Testing
+### Running/Testing
 
-Currently our testing is a hybrid of unit and integration tests.
-We are looking to move out the integration tests to the 'it' folder.
-And we plan to remove the db-seeding that is done for the entire test suite.
-Instead each tests will hoist and destroy their own data.
-
-
+    cd corepsring-api
+    play run
     play test
-
-### Integration tests
-
-These tests are more expensive than the unit tests.
-
-* They run sequentially
-* They boot the play app for each test
-* They seed and destroy the data they need
-
-    play it:test
 
 ### Application configuration
 
@@ -126,15 +112,4 @@ There are some useful utilities for working with the s3 assets:
 https://corespring.signin.aws.amazon.com/console
 
 Ask evan for a user account.
-
-
-### Dev Tools
-
-Some quick shortcuts for running certain things:
-
-DEV_TOOLS_ENABLED needs to be set to true on the env for this to work:
-
-
-   GET /dev/tools/v2-player/:itemId -> run the item in the new v2 player.
-
 

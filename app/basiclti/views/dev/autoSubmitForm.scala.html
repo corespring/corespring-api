@@ -1,0 +1,24 @@
+@(url:String, params : Map[String,String])
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto submit form</title>
+    @org.corespring.web.common.views.html.head.coreJs()
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+            $("form").submit();
+        })
+
+    </script>
+</head>
+<body>
+
+@helper.form(basiclti.controllers.routes.AssignmentLauncher.launch) {
+
+    @params.map { p =>
+        <input name="@p._1" value="@p._2" type="hidden"/><br/>
+    }
+}
+</body>
+</html>

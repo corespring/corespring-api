@@ -33,7 +33,7 @@ object EmptyS3Service extends CorespringS3Service {
   def getClient = ???
 }
 
-class CorespringS3ServiceExtended(key: String, secret: String)
+class CorespringS3ServiceImpl(key: String, secret: String)
   extends ConcreteS3Service(key: String, secret: String)
   with CorespringS3Service {
 
@@ -49,4 +49,4 @@ class CorespringS3ServiceExtended(key: String, secret: String)
   }
 }
 
-object CorespringS3ServiceExtended extends CorespringS3ServiceExtended(AppConfig.amazonKey, AppConfig.amazonSecret)
+object CorespringS3ServiceImpl extends CorespringS3ServiceImpl(AppConfig.amazonKey, AppConfig.amazonSecret)

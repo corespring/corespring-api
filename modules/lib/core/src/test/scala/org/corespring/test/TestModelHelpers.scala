@@ -85,6 +85,49 @@ trait TestModelHelpers extends ClassLogging {
 
   def testOrg = new Organization("test")
 
+  def secureSocialCookie(u: Option[User], expires: Option[DateTime] = None): Option[Cookie] = u.map { user =>
+
+    val authenticator: Authenticator = Authenticator.create(toIdentity(user)) match {
+      case Left(e) => throw new RuntimeException(e.getMessage)
+      case Right(a) => a
+    }
+    authenticator.toCookie
+  }
+
+  //TODO: From CorespringUserService
+  private def toIdentity(u: User): Identity = {
+    SocialUser(
+      IdentityId(u.userName, u.provider),
+      "",
+      "",
+      u.fullName,
+      Some(u.email),
+      None,
+      AuthenticationMethod.UserPassword,
+      passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)))
+  }
+
+  def expiredSecureSocialCookie(u: Option[User]): Option[Cookie] = u.map { user =>
+
+    val authenticator: Authenticator = Authenticator.create(toIdentity(user)) match {
+      case Left(e) => throw new RuntimeException(e)
+      case Right(a) => a
+    }
+
+    import DateTime.now
+    import play.api.Play.current
+    val creationDate = now.minusDays(3)
+    val expirationDate = now.minusDays(1)
+    val lastUsed = now.minusDays(2)
+    val withExpires = authenticator.copy(creationDate = creationDate,
+      expirationDate = expirationDate,
+      lastUsed = lastUsed)
+
+    logger.debug(s"Authenticator id: $withExpires.id")
+    //Note: SecureSocial needs to look up the authenticator from the cache
+    Cache.set(withExpires.id, withExpires)
+    withExpires.toCookie
+  }
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
     val signature = ShaHash.sign(

@@ -1,23 +1,22 @@
 package web.controllers
 
 import common.controllers.session.SessionHandler
-import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.web.QtiTemplate
+import controllers.auth.BaseApi
 import org.corespring.platform.core.models.{ User, Organization }
-import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
 import play.api.mvc._
 import scala.Some
 import securesocial.core.SecuredRequest
+import org.corespring.platform.core.models.web.QtiTemplate
+import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
 
 object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
 
+  //TODO: 2.1.2 Upgrade - keys?
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
-
   def logout(s: Session): Session = {
     s -
-      PlayerCookieKeys.renderOptions -
+      PlayerCookieKeys.RENDER_OPTIONS -
       UserKey -
       ProviderKey
   }
@@ -32,7 +31,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
       Organization.findOneById(user.org.orgId) match {
         case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
           .withSession(
-            sumSession(request.session, playerCookies(userId.userId, userId.providerId, RenderOptions.ANYTHING) :+ activeModeCookie(RequestedAccess.Mode.Preview): _*))
+            sumSession(request.session, playerCookies(userId.userId, userId.providerId) :+ activeModeCookie(): _*))
         case None => InternalServerError("could not find organization of user")
       }
 
