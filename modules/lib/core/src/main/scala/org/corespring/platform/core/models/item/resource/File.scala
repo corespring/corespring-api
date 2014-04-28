@@ -6,11 +6,12 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.JsObject
 import play.api.libs.json._
 import scala.Some
+import org.corespring.platform.core.models.JsonUtil
 
 @Salat
 abstract class BaseFile(val name: String, val contentType: String, val isMain: Boolean)
 
-object BaseFile {
+object BaseFile extends JsonUtil {
 
   object ContentTypes {
     val JPG: String = "image/jpg"
@@ -48,7 +49,8 @@ object BaseFile {
     SuffixToContentTypes.getOrElse(suffix, ContentTypes.UNKNOWN)
   }
 
-  implicit object BaseFileWrites extends Writes[BaseFile] {
+  implicit object BaseFileFormat extends Format[BaseFile] {
+
     def writes(f: BaseFile): JsValue = {
       if (f.isInstanceOf[VirtualFile]) {
         VirtualFile.VirtualFileWrites.writes(f.asInstanceOf[VirtualFile])
@@ -56,9 +58,6 @@ object BaseFile {
         StoredFile.StoredFileWrites.writes(f.asInstanceOf[StoredFile])
       }
     }
-  }
-
-  implicit object BaseFileReads extends Reads[BaseFile] {
 
     def reads(json: JsValue): JsResult[BaseFile] = {
 
@@ -74,14 +73,14 @@ object BaseFile {
           case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here
         })
     }
+
   }
 
-  def toJson(f: BaseFile): JsObject = {
-    JsObject(Seq(
-      "name" -> JsString(f.name),
-      "contentType" -> JsString(f.contentType),
-      "default" -> JsBoolean(f.isMain)))
-  }
+  def toJson(f: BaseFile): JsObject = Json.obj(
+    "name" -> JsString(f.name),
+    "contentType" -> JsString(f.contentType),
+    "default" -> JsBoolean(f.isMain)
+  )
 }
 
 /*

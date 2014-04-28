@@ -1,14 +1,19 @@
 package org.corespring.v2player.integration.controllers.editor.json
 
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsUndefined, JsValue}
 import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Subjects, Item }
 import org.bson.types.ObjectId
 
 object PlayerJsonToItem {
 
   def playerDef(item: Item, playerJson: JsValue): Item = {
-    val playerDef = playerJson.as[PlayerDefinition]
-    item.copy(playerDefinition = Some(playerDef))
+    (playerJson \ "xhtml") match {
+      case undefined: JsUndefined => item
+      case _ => {
+        val playerDef = playerJson.as[PlayerDefinition]
+        item.copy(playerDefinition = Some(playerDef))
+      }
+    }
   }
 
   def profile(item: Item, profileJson: JsValue): Item = (profileJson \ "taskInfo").asOpt[JsValue].map {
