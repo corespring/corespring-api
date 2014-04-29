@@ -91,6 +91,7 @@ trait ItemHooks
             array.as[List[JsObject]].map(supportingMaterial => Resource(
               id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
               name = (supportingMaterial \ "name").as[String],
+              materialType = (supportingMaterial \ "materialType").asOpt[String],
               files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
                 .map(f => Json.fromJson[BaseFile](f).get)
             )).map(m => (m.id match {
