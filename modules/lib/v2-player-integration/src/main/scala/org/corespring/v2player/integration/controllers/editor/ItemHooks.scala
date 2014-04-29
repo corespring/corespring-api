@@ -11,11 +11,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
 import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
 import org.corespring.v2player.integration.errors.Errors._
-import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
-import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
-import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
-import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
-import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
 import org.corespring.v2player.integration.errors.V2Error
 import play.api.http.Status._
 import play.api.libs.json._
@@ -37,6 +32,17 @@ import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
 import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
 import play.api.libs.json.JsObject
 import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
+import play.api.libs.json.JsArray
+import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
+import scalaz.Failure
+import scala.Some
+import play.api.mvc.SimpleResult
+import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
+import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
+import scalaz.Success
+import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
+import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
+import play.api.libs.json.JsObject
 
 trait ItemHooks
   extends ContainerItemHooks
@@ -80,21 +86,19 @@ trait ItemHooks
     (json \ "supportingMaterials") match {
       case undefined: JsUndefined => item
       case _ => (json \ "supportingMaterials") match {
-        case array: JsArray => {
-          val newMaterials = array.as[List[JsObject]].map(supportingMaterial => Resource(
-            id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
-            name = (supportingMaterial \ "name").as[String],
-            files = (supportingMaterial \ "files").as[List[JsObject]].map(f => Json.fromJson[BaseFile](f).get)
-          ))
-
-          val existingMaterials =
-            item.supportingMaterials.filter(material => newMaterials.map(_.id).contains(material.id))
-
-          item.copy(supportingMaterials = (newMaterials ++ existingMaterials).map(m => (m.id match {
-            case Some(id) => m
-            case None => m.copy(id = Some(new ObjectId()))
-          })))
-        }
+        case array: JsArray => item.copy(
+          supportingMaterials =
+            array.as[List[JsObject]].map(supportingMaterial => Resource(
+              id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
+              name = (supportingMaterial \ "name").as[String],
+              materialType = (supportingMaterial \ "materialType").asOpt[String],
+              files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
+                .map(f => Json.fromJson[BaseFile](f).get)
+            )).map(m => (m.id match {
+              case Some(id) => m
+              case None => m.copy(id = Some(new ObjectId()))
+            }))
+        )
         case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
       }
     }
@@ -117,7 +121,7 @@ trait ItemHooks
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
 
       itemService.save(updatedItem, false)
-      Some(json)
+      Some(Json.toJson(updatedItem))
     }
 
     val out: Validation[V2Error, JsValue] = for {
