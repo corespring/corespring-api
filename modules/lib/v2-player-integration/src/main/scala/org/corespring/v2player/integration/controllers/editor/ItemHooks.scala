@@ -121,7 +121,7 @@ trait ItemHooks
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
 
       itemService.save(updatedItem, false)
-      Some(Json.toJson(updatedItem))
+      Some(transform(updatedItem))
     }
 
     val out: Validation[V2Error, JsValue] = for {

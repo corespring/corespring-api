@@ -26,6 +26,12 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   import ExecutionContext.Implicits.global
   import scala.language.higherKinds
 
+  val emptyItemJson = Json.obj(
+    "profile" -> Json.obj(),
+    "components" -> Json.obj(),
+    "xhtml" -> "<div/>"
+  )
+
   abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
     val item: Option[Item] = None,
     val orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
@@ -54,7 +60,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
       override implicit def executionContext: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def transform: (Item) => JsValue = (i: Item) => Json.obj()
+      override def transform: (Item) => JsValue = (i: Item) => emptyItemJson
 
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -168,19 +174,14 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
       result must returnError(Errors.orgCantAccessCollection(orgIdAndOptions.get._1, item.get.collectionId.get))
     }
 
-    //FIXME: This needs to have correct expectations
-//    "save update" in new saveContext(
-//      item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-//      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING),
-//      canAccessCollection = true,
-//      json = Json.obj(
-//        "profile" -> Json.obj(),
-//        "components" -> Json.obj(),
-//        "xhtml" -> "<div/>")) {
-//
-//      status(result) === OK
-//      //contentAsJson(result) === json
-//    }
+    "save update" in new saveContext(
+      item = Some(Item(collectionId = Some(ObjectId.get.toString))),
+      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING),
+      canAccessCollection = true,
+      json = emptyItemJson) {
+      status(result) === OK
+      contentAsJson(result) === emptyItemJson
+    }
   }
 
   "create" should {
