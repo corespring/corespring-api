@@ -16,6 +16,7 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
       $scope.maxWidth = 50;
       $scope.maxHeight = 20;
       $scope.stateStack = [];
+      $scope.sizeMap = {};
 
       $scope.getTargetIndex = function (target) {
         return $scope.targetMap[target];
@@ -33,9 +34,15 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
         $scope.solutionVisible = false;
       };
 
-      $scope.propagateDimension = function (w, h) {
-        if (w > $scope.maxWidth) $scope.maxWidth = w;
-        if (h > $scope.maxHeight) $scope.maxHeight = h;
+      $scope.propagateDimension = function (id, w, h) {
+        $scope.sizeMap[id] = {w: w, h: h};
+        var maxW = 0, maxH = 0;
+        _.each($scope.sizeMap, function(size) {
+           if (size.w > maxW) maxW = size.w;
+           if (size.h > maxH) maxH = size.h;
+        });
+        if (maxW != $scope.maxWidth) $scope.maxWidth = maxW;
+        if (maxH != $scope.maxHeight) $scope.maxHeight = maxH;
       };
 
       $scope.undo = function () {
@@ -205,7 +212,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         ' <div class="clearfix"></div>',
         '</div>',
 
-        '<div class="sizerHolder" style="display: none; position: absolute">',
+        '<div class="sizerHolder" style="visibility: hidden; position: absolute">',
         originalContent,
         '</div>'].join(" ");
 
@@ -231,7 +238,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
               var h = $(el).find('.sizerHolder').height();
 
               if (lastW != w || lastH != h) {
-                $scope.propagateDimension(w, h);
+                $scope.propagateDimension(attrs.identifier, w, h);
               }
 
               lastW = w;
