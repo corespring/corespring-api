@@ -184,3 +184,8 @@ table.csDropTiles,
     overflow-y: auto;
     background-color: rgba(0, 0, 0, 0.2);
 }
+
+.drag-and-drop-interaction .sizerHolder {
+    visibility: hidden;
+    position: absolute;
+}

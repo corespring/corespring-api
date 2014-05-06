@@ -41,8 +41,12 @@ angular.module('qti.directives').directive("draganddropinteraction", function (Q
            if (size.w > maxW) maxW = size.w;
            if (size.h > maxH) maxH = size.h;
         });
-        if (maxW != $scope.maxWidth) $scope.maxWidth = maxW;
-        if (maxH != $scope.maxHeight) $scope.maxHeight = maxH;
+        if (maxW != $scope.maxWidth) {
+          $scope.maxWidth = maxW;
+        }
+        if (maxH != $scope.maxHeight) {
+          $scope.maxHeight = maxH;
+        }
       };
 
       $scope.undo = function () {
@@ -212,7 +216,7 @@ angular.module('qti.directives').directive("draggablechoice", function () {
         ' <div class="clearfix"></div>',
         '</div>',
 
-        '<div class="sizerHolder" style="visibility: hidden; position: absolute">',
+        '<div class="sizerHolder">',
         originalContent,
         '</div>'].join(" ");
 
