@@ -138,6 +138,7 @@ object Build extends sbt.Build {
 
   val v2Api = builders.web("v2-api")
     .settings(
+
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
     .dependsOn(core)
