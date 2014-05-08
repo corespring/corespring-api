@@ -136,6 +136,12 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
+  val v2Api = builders.web("v2-api")
+    .settings(
+      libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
+      routesImport ++= customImports)
+    .dependsOn(core)
+
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
@@ -214,7 +220,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
-    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, clientLogging % "compile->compile;test->test")
-    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, clientLogging)
+    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, v2Api, clientLogging % "compile->compile;test->test")
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

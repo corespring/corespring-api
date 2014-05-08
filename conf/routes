@@ -29,6 +29,7 @@ POST    /auth/access_token                      org.corespring.platform.core.con
 
 ->     /                      public.Routes
 ->     /api/v1                v1Api.Routes
+->     /api/v2                v2Api.Routes
 ->     /logger                clientlogging.Routes
 ->     /player                v1Player.Routes
 

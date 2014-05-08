@@ -36,7 +36,7 @@ import scalaz.Success
 import scalaz.Validation
 import org.corespring.assets.CorespringS3Service
 import scala.concurrent.ExecutionContext
-import org.corespring.v2player.integration.controllers.catalog.{AuthCatalogActions, CatalogActions}
+import org.corespring.v2player.integration.controllers.catalog.{ AuthCatalogActions, CatalogActions }
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -54,7 +54,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   def itemService: ItemService = ItemServiceWired
 
-  private lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+  lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
   private lazy val authForItem = new AuthItemCheckPermissions(
     mainSecureSocialService,

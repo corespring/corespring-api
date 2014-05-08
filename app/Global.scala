@@ -5,6 +5,7 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
+import org.corespring.api.v2.ItemSessionApi
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.play.utils._
@@ -47,7 +48,11 @@ object Global
 
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
-  def controllers: Seq[Controller] = integration.controllers
+  lazy val v2ItemSessionApi = new ItemSessionApi {
+    override def sessionService = integration.mainSessionService
+  }
+
+  def controllers: Seq[Controller] = integration.controllers ++ Seq(v2ItemSessionApi)
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
