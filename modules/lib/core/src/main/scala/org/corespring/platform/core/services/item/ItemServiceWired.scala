@@ -2,7 +2,7 @@ package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.commons.{ Imports, MongoDBObject }
 import com.novus.salat._
 import com.novus.salat.dao.SalatMongoCursor
 import org.bson.types.ObjectId
@@ -13,8 +13,8 @@ import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.files.CloneFileResult
 import org.corespring.platform.core.files.ItemFiles
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{CDataHandler, VirtualFile, Resource}
-import org.corespring.platform.core.models.item.{Item, FieldValue}
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -105,8 +105,20 @@ class ItemServiceWired(
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {
     import com.mongodb.casbah.commons.Implicits._
+
+    def withQti(dbo: DBObject): Option[DBObject] = {
+      val obj = dbo.get(Item.Keys.data)
+      if (obj == null) {
+        logger.warn(s"The item $id - has no QTI! - if this is a v1 item this could be a problem")
+        None
+      } else {
+        Some(dbo)
+      }
+    }
+
     for {
       dbo <- findFieldsById(id)
+      dboWithQti <- withQti(dbo)
       resource <- Some(grater[Resource].asObject(dbo.get(Item.Keys.data).asInstanceOf[DBObject]))
       mainFile <- resource.files.find(f => f.isMain && f.contentType == ContentTypes.XML)
       virtualFile: VirtualFile <- if (mainFile.isInstanceOf[VirtualFile]) Some(mainFile.asInstanceOf[VirtualFile]) else None
