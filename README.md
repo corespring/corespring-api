@@ -6,7 +6,6 @@ This project contains the api rest layer and web ui for administering corespring
 
 * A working ssh key for github: [more info](https://help.github.com/articles/generating-ssh-keys)
 
-
 ### Installation
 
 Before you do *anything* please run the following to install the git pre-commit hook:
