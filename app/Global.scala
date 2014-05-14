@@ -5,9 +5,11 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
-import org.corespring.api.v2.ItemSessionApi
+import org.corespring.api.v2.actions.{OrgRequest, V2ItemActions}
+import org.corespring.api.v2.{ItemApi, ItemSessionApi}
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 import org.corespring.play.utils._
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
@@ -52,7 +54,20 @@ object Global
     override def sessionService = integration.mainSessionService
   }
 
-  def controllers: Seq[Controller] = integration.controllers ++ Seq(v2ItemSessionApi)
+  lazy val v2ItemApi = new ItemApi{
+    override implicit def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def itemService: ItemService = ItemServiceWired
+
+    override def itemActions: V2ItemActions[AnyContent] = new V2ItemActions[AnyContent] {
+      override def create(block: (OrgRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async{
+        request =>
+          block(OrgRequest(request, ObjectId.get, ObjectId.get))
+      }
+    }
+  }
+
+  def controllers: Seq[Controller] = integration.controllers ++ Seq(v2ItemSessionApi, v2ItemApi)
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
