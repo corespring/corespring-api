@@ -1,11 +1,12 @@
 package org.corespring.api.v2.actions
 
-import play.api.mvc.{Action, Result, WrappedRequest, Request}
+import play.api.mvc._
 import org.bson.types.ObjectId
+import scala.concurrent.Future
 
-trait V2ItemActions {
+trait V2ItemActions[A] {
 
-  def create[A](block: OrgRequest[A] => Result) : Action[A]
+  def create(block: OrgRequest[A] => Future[SimpleResult]) : Action[A]
 }
 
 case class OrgRequest[A](r : Request[A], orgId: ObjectId, defaultCollection: ObjectId) extends WrappedRequest[A](r)

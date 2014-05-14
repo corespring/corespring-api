@@ -1,5 +1,7 @@
 package org.corespring.api.v2.errors
 
+import play.api.libs.json.{Json, JsValue}
+
 sealed abstract class V2ApiError(val code: Int, val message: String)
 
 object Errors {
@@ -12,4 +14,5 @@ object Errors {
 
   object errorSaving extends V2ApiError(BAD_REQUEST, "Error saving")
 
+  case class incorrectJsonFormat(json:JsValue) extends V2ApiError(BAD_REQUEST, s"Bad json format ${Json.stringify(json)}")
 }
