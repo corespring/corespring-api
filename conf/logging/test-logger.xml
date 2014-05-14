@@ -18,6 +18,7 @@
     <logger name="qti" level="ERROR" />
     <logger name="assets-loader" level="ERROR" />
     <logger name="tests" level="ERROR" />
+    <logger name="v2Api" level="TRACE" />
 
 
     <root level="OFF">
