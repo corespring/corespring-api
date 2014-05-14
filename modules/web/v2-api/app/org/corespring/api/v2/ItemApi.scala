@@ -10,9 +10,6 @@ import org.corespring.api.v2.errors.V2ApiError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.slf4j.LoggerFactory
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import play.api.libs.json._
 import play.api.mvc.{AnyContent, Controller}
 import scala.concurrent.{ExecutionContext, Future}
