@@ -1,8 +1,8 @@
 package org.corespring.api.v2
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.OrgRequest
-import org.corespring.api.v2.actions.V2ItemActions
+import org.corespring.api.v2.actions.{OrgRequest, V2ItemActions}
+import org.corespring.api.v2.errors.Errors.{errorSaving, invalidJson}
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -10,15 +10,14 @@ import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, Json, JsValue}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
-import play.api.test.FakeHeaders
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest}
 import scala.Some
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext}
-import org.corespring.api.v2.errors.Errors.invalidJson
+import scala.concurrent.{ExecutionContext, Future}
+
 
 class ItemApiTest extends Specification with Mockito {
 
@@ -30,11 +29,14 @@ class ItemApiTest extends Specification with Mockito {
 
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json))
 
-  case class apiScope(val defaultCollectionId: ObjectId = ObjectId.get) extends Scope {
+  case class apiScope(
+                       val defaultCollectionId: ObjectId = ObjectId.get,
+                       val insertFails: Boolean = false) extends Scope {
     lazy val api = new ItemApi {
       override def itemService: ItemService = {
         val m = mock[ItemService]
-        m.insert(any[Item]).returns(Some(VersionedId(ObjectId.get)))
+        val out = if (insertFails) None else Some(VersionedId(ObjectId.get))
+        m.insert(any[Item]).returns(out)
         m
       }
 
@@ -81,6 +83,14 @@ class ItemApiTest extends Specification with Mockito {
       )
       status(result) === invalidJson("arst").code
       contentAsString(result) === invalidJson("arst").message
+    }
+
+    s"create - returns error with a bad save" in new apiScope(
+      insertFails = true
+    ) {
+      val result = api.create()(FakeJsonRequest(Json.obj()))
+      status(result) === errorSaving.code
+      contentAsString(result) === errorSaving.message
     }
   }
 }
