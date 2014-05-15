@@ -2,7 +2,7 @@ package org.corespring.player.accessControl.auth
 
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, PreviewItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -48,14 +48,14 @@ object CheckSessionAccess extends CheckSession with PackageLogging {
   /**
    * This implementation delegates to <link>org.corespring.player.accessControl.models.granter.ConstraintGranter</link>
    */
-  override def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean] = {
+  override def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[CorespringInternalError, Boolean] = {
     if (granter.grant(activeMode, a, o))
       Right(true)
     else {
       val failedConstraints = granter.getFailedConstraints(activeMode, a, o)
 
       logger.warn("Access was refused. The following constraints prevented access: \n " + failedConstraints.mkString(", \n"))
-      Left(InternalError("Access denied: " + failedConstraints.mkString(",\n")))
+      Left(CorespringInternalError("Access denied: " + failedConstraints.mkString(",\n")))
     }
   }
 }

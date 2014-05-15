@@ -1,25 +1,24 @@
 package org.corespring.api.v2
 
-import org.corespring.api.v2.actions.{TokenAuthenticated, V2ApiActions}
+import org.bson.types.ObjectId
+import org.corespring.api.v2.actions.{ TokenAuthenticated, V2ApiActions }
 import org.corespring.api.v2.services._
+import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.AccessTokenService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
-import play.api.mvc.{AnyContent, Controller}
-import scala.concurrent.ExecutionContext
-import org.corespring.mongo.json.services.MongoService
-import org.bson.types.ObjectId
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.core.models.auth.{Permission, AccessTokenService}
+import play.api.mvc.{ AnyContentAsJson, AnyContent, Controller }
 import scala.Some
-import scalaz.Validation
+import scala.concurrent.ExecutionContext
+import play.api.libs.json.JsValue
 
 class Bootstrap(
-                 val itemService: ItemService,
-                 val v1OrgService: OrganizationService,
-                 val accessTokenService: AccessTokenService,
-                 val sessionService: MongoService) {
-
+  val itemService: ItemService,
+  val v1OrgService: OrganizationService,
+  val accessTokenService: AccessTokenService,
+  val sessionService: MongoService) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -38,32 +37,14 @@ class Bootstrap(
     }
   }
 
-  protected val itemPermissionService : PermissionService[Organization, Item] = new PermissionService[Organization, Item] {
-    override def create(client: Organization, newValue: Item): PermissionResult = {
+  protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService()
 
-      import scalaz.{Failure,Success}
-      import scalaz.Scalaz._
-
-      val result : Validation[String,PermissionResult] = for{
-        id <- newValue.collectionId.toSuccess(s"No collection id specified in item: ${newValue.id}")
-        contentCollection <- client.contentcolls.find(_.collectionId.toString == id).toSuccess(s"$id is not accessible to Organization: ${client.id}")
-        collPermission <- Permission.fromLong(contentCollection.pval).toSuccess(s"Can't parse permission for collection: ${contentCollection.collectionId}")
-        canWrite <- if(collPermission.has(Permission.Write)) Granted else Denied(s"${Permission.toHumanReadable(contentCollection.pval)} does not allow ${Permission.Write.name}")
-      } yield canWrite
-
-
-      result match {
-        case Failure(msg) => Denied(msg)
-        case Success(Granted) => Granted
-      }
-    }
-  }
-
-  protected lazy val apiActions: V2ApiActions[AnyContent] = new TokenAuthenticated {
+  protected lazy val apiActions: V2ApiActions[AnyContent] = new TokenAuthenticated[AnyContent] {
     override def orgService: OrgService = Bootstrap.this.orgService
     override def tokenService: TokenService = Bootstrap.this.tokenService
-  }
 
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+  }
 
   private lazy val itemApi = new ItemApi {
     override implicit def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

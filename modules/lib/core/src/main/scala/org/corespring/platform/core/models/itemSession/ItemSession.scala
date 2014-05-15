@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{ SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError }
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
@@ -17,7 +17,7 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 import scala.xml._
-import scalaz.{Failure, Success}
+import scalaz.{ Failure, Success }
 import se.radley.plugin.salat._
 
 /**
@@ -52,7 +52,6 @@ object ItemSession {
     val settings = "settings"
     val dateModified = "dateModified"
   }
-
 
   implicit object Writes extends Writes[ItemSession] {
 
@@ -130,7 +129,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   import ItemSession.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
-  val debugMode:Boolean;
+  val debugMode: Boolean;
 
   def collection: MongoCollection
 
@@ -141,7 +140,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
   /**
    * @return - the newly created item session
    */
-  def newSession(session: ItemSession): Either[InternalError, ItemSession] = {
+  def newSession(session: ItemSession): Either[CorespringInternalError, ItemSession] = {
     if (Play.isProd) session.id = new ObjectId()
 
     itemService.getQtiXml(session.itemId) match {
@@ -155,10 +154,10 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
     try {
       insert(session, collection.writeConcern) match {
         case Some(_) => Right(session)
-        case None => Left(InternalError("error inserting item session"))
+        case None => Left(CorespringInternalError("error inserting item session"))
       }
     } catch {
-      case e: SalatInsertError => Left(InternalError("error inserting item session: " + e.getMessage))
+      case e: SalatInsertError => Left(CorespringInternalError("error inserting item session: " + e.getMessage))
     }
   }
 
@@ -167,9 +166,9 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param session
    * @return either an InternalError or the updated ItemSession
    */
-  def begin(session: ItemSession): Either[InternalError, ItemSession] = session.start match {
+  def begin(session: ItemSession): Either[CorespringInternalError, ItemSession] = session.start match {
 
-    case Some(_) => Left(InternalError("ItemSession already started: " + session.id))
+    case Some(_) => Left(CorespringInternalError("ItemSession already started: " + session.id))
     case _ => {
       session.start = Some(new DateTime())
       save(session)
@@ -177,10 +176,10 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
     }
   }
 
-  def getXmlWithFeedback(session: ItemSession): Either[InternalError, Elem] = {
+  def getXmlWithFeedback(session: ItemSession): Either[CorespringInternalError, Elem] = {
     itemService.getQtiXml(session.itemId) match {
       case Some(qti) => Right(FeedbackProcessor.addFeedbackIds(qti, session.feedbackIdLookup))
-      case _ => Left(InternalError("Can't find xml for itemId: " + session.itemId))
+      case _ => Left(CorespringInternalError("Can't find xml for itemId: " + session.itemId))
     }
   }
 
@@ -190,7 +189,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param update
    * @return
    */
-  def update(update: ItemSession): Either[InternalError, ItemSession] =
+  def update(update: ItemSession): Either[CorespringInternalError, ItemSession] =
     withDbSession(update) {
       dbSession =>
 
@@ -210,31 +209,31 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param fn
    * @return
    */
-  private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[InternalError, ItemSession])) = {
+  private def withDbSession(session: ItemSession)(fn: ((ItemSession) => Either[CorespringInternalError, ItemSession])) = {
     findOneById(session.id) match {
       case Some(dbSession) => fn(dbSession)
-      case _ => Left(InternalError(s"can't find item session: ${session.id}"))
+      case _ => Left(CorespringInternalError(s"can't find item session: ${session.id}"))
     }
   }
 
-  private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[InternalError, ItemSession] = {
+  private def updateFromDbo(id: ObjectId, dbo: DBObject, additionalProcessing: (ItemSession => Unit) = (s) => ()): Either[CorespringInternalError, ItemSession] = {
     try {
       logger.debug(this + ":: update into : " + this.collection.getFullName())
 
       val wr = update(MongoDBObject("_id" -> id), dbo, false, false, collection.writeConcern)
-      if(wr.getN() == 0){
-        Left(InternalError("no open session could be updated"))
+      if (wr.getN() == 0) {
+        Left(CorespringInternalError("no open session could be updated"))
       } else {
         findOneById(id) match {
           case Some(session) => {
             additionalProcessing(session)
             Right(session)
           }
-          case None => Left(InternalError("could not find session that was just updated"))
+          case None => Left(CorespringInternalError("could not find session that was just updated"))
         }
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("error updating item session: " + e.getMessage))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("error updating item session: " + e.getMessage))
     }
   }
 
@@ -249,22 +248,22 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param xmlWithCsFeedbackIds
    * @return
    */
-  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt:Boolean = true)(implicit isInstructor:Boolean): Either[InternalError, ItemSession] = withDbSession(update) {
+  def process(update: ItemSession, xmlWithCsFeedbackIds: scala.xml.Elem, isAttempt: Boolean = true)(implicit isInstructor: Boolean): Either[CorespringInternalError, ItemSession] = withDbSession(update) {
     dbSession =>
 
       if (dbSession.isFinished) {
-        Left(InternalError("The session is finished"))
+        Left(CorespringInternalError("The session is finished"))
       } else {
 
         val dbo: BasicDBObject = new BasicDBObject()
 
         if (!dbSession.isStarted) dbo.put(start, new DateTime())
-        val attempts = if(isAttempt) dbSession.attempts + 1 else dbSession.attempts
+        val attempts = if (isAttempt) dbSession.attempts + 1 else dbSession.attempts
 
-        if (isAttempt && update.isFinished){
+        if (isAttempt && update.isFinished) {
           dbo.put(finish, update.finish.get)
           dbo.put(dateModified, update.finish.get)
-        } else{
+        } else {
           dbo.put(dateModified, new DateTime())
         }
 
@@ -273,14 +272,14 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
         val dboUpdate = MongoDBObject(("$set", dbo))
 
         updateFromDbo(update.id, dboUpdate, (u) => {
-          if(isAttempt){
+          if (isAttempt) {
             val qtiItem = QtiItem(xmlWithCsFeedbackIds)
-            val sessionOutcome = SessionOutcome.processSessionOutcome(u,qtiItem,debugMode)
+            val sessionOutcome = SessionOutcome.processSessionOutcome(u, qtiItem, debugMode)
             sessionOutcome match {
               case Success(so) => {
                 u.outcome = Some(so)
                 if (so.isComplete) {
-                  if(!u.isFinished){
+                  if (!u.isFinished) {
                     u.finish = Some(new DateTime())
                     u.dateModified = u.finish
                   }
@@ -317,8 +316,8 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
     (sessionScore, maxScore)
   }
 
-  private def totalScore(responses: Seq[Response], scoreableResponses:Int): Double = {
-    val sum = responses.foldRight[Double](0)((r,acc) => {
+  private def totalScore(responses: Seq[Response], scoreableResponses: Int): Double = {
+    val sum = responses.foldRight[Double](0)((r, acc) => {
       acc + r.outcome.map(_.score.toDouble).getOrElse(0.toDouble)
     })
     val average = sum / scoreableResponses
@@ -330,19 +329,18 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
    * @param id - the item session id
    * @return
    */
-  def get(id: ObjectId)( implicit includeResponsesOverride:Boolean): Option[ItemSession] = {
+  def get(id: ObjectId)(implicit includeResponsesOverride: Boolean): Option[ItemSession] = {
     findOneById(id) match {
       case Some(session) => Some(addExtrasIfFinished(session, addSessionData, addResponses))
       case _ => None
     }
   }
 
-
-  def reopen(session:ItemSession) : Option[ItemSession] = {
+  def reopen(session: ItemSession): Option[ItemSession] = {
     val update = session.copy(finish = None, attempts = 0)
     val result = save(update)
 
-    if(result.getLastError.ok){
+    if (result.getLastError.ok) {
       Some(update)
     } else {
       None
@@ -351,7 +349,7 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
 
   private def addExtrasIfFinished(
     session: ItemSession,
-    fns: ((ItemSession, Elem) => Unit)*)( implicit includeResponsesOverride:Boolean): ItemSession =
+    fns: ((ItemSession, Elem) => Unit)*)(implicit includeResponsesOverride: Boolean): ItemSession =
     if (session.isFinished) {
       getXmlWithFeedback(session) match {
         case Right(xml) => {
@@ -364,11 +362,11 @@ trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with Pa
       session
     }
 
-  private def addSessionData(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
+  private def addSessionData(session: ItemSession, xml: Elem)(implicit includeResponsesOverride: Boolean) {
     session.sessionData = Some(SessionData(QtiItem(xml), session))
   }
 
-  private def addResponses(session: ItemSession, xml: Elem)( implicit includeResponsesOverride:Boolean) {
+  private def addResponses(session: ItemSession, xml: Elem)(implicit includeResponsesOverride: Boolean) {
     session.responses = Score.scoreResponses(session.responses, QtiItem(xml))
   }
 

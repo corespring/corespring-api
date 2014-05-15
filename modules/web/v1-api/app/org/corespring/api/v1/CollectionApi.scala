@@ -7,7 +7,7 @@ import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
 import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
@@ -44,8 +44,7 @@ object CollectionApi extends BaseApi {
 
   val fieldValueMap = Map(
     "itemType" -> "taskInfo.itemType",
-    "contributor" -> "contributorDetails.contributor"
-  )
+    "contributor" -> "contributorDetails.contributor")
 
   def fieldValuesByFrequency(collectionIds: String, fieldName: String) = ApiActionRead { request =>
 
@@ -74,8 +73,7 @@ object CollectionApi extends BaseApi {
               return count;
             }""",
           query = Some(DBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.split(",").toSeq))),
-          output = MapReduceInlineOutput
-        )
+          output = MapReduceInlineOutput)
 
         ItemServiceWired.collection.mapReduce(cmd) match {
           case result: MapReduceInlineResult => {
@@ -167,11 +165,11 @@ object CollectionApi extends BaseApi {
 
   private def unknownCollection = NotFound(Json.toJson(ApiError.UnknownCollection))
 
-  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[InternalError, Unit] = {
+  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[CorespringInternalError, Unit] = {
     val orgs: Seq[(ObjectId, Permission)] = values.map(v => v match {
       case JsString(strval) => (new ObjectId(strval) -> Permission.Read)
       case JsObject(orgWithPerm) => (new ObjectId(orgWithPerm(1)._1) -> Permission.fromLong(orgWithPerm(1)._2.as[Long]).get)
-      case _ => return Right(InternalError("incorrect format for organizations"))
+      case _ => return Right(CorespringInternalError("incorrect format for organizations"))
     })
     ContentCollection.addOrganizations(orgs, collId)
   }
@@ -223,19 +221,19 @@ object CollectionApi extends BaseApi {
    * @param destinationOrgId
    * @return
    */
-  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite {  request =>
+  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite { request =>
     ContentCollection.findOneById(collectionId) match {
       case Some(collection) =>
         if (collection.ownerOrgId == request.ctx.organization) {
-          Organization.addCollection(destinationOrgId,collectionId, Permission.Read) match {
+          Organization.addCollection(destinationOrgId, collectionId, Permission.Read) match {
             case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(error.clientOutput)))
-            case Right(collRef) =>  Ok(Json.toJson("updated" + collRef.collectionId.toString))
+            case Right(collRef) => Ok(Json.toJson("updated" + collRef.collectionId.toString))
           }
         } else {
           InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("context org does not own collection"))))
         }
 
-      case None =>  InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("collection not found"))))
+      case None => InternalServerError(Json.toJson(ApiError.AddToOrganization(Some("collection not found"))))
     }
   }
 
@@ -312,11 +310,11 @@ object CollectionApi extends BaseApi {
    * @param id  - collection to add the items to
    * @return  - json with success or error response
    */
-  def shareFilteredItemsWithCollection(id: ObjectId,q: Option[String]) = ApiActionWrite {  request =>
+  def shareFilteredItemsWithCollection(id: ObjectId, q: Option[String]) = ApiActionWrite { request =>
     ContentCollection.findOneById(id) match {
       case Some(coll) => if (ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
         if (q.isDefined) {
-          ContentCollection.shareItemsMatchingQuery(request.ctx.organization,q.get,id) match {
+          ContentCollection.shareItemsMatchingQuery(request.ctx.organization, q.get, id) match {
             case Right(itemsAdded) => Ok(toJson(itemsAdded.size))
             case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
           }

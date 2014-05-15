@@ -4,7 +4,7 @@ import org.corespring.platform.core.models.item.Content
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.item.Item.Keys._
 import com.novus.salat.dao.SalatMongoCursor
@@ -44,22 +44,22 @@ trait BaseContentService[ContentType <: Content[ID], ID] {
     initSearch
   }
 
-  def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.InternalError, AnyRef] = value match {
+  def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[error.CorespringInternalError, AnyRef] = value match {
     case dbo: BasicDBObject => dbo.toSeq.headOption match {
       case Some((key, dblist)) => if (key == "$in") {
         if (dblist.isInstanceOf[BasicDBList]) {
           try {
             if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => ContentCollection.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read)))
               Right(value)
-            else Left(InternalError("attempted to access a collection that you are not authorized to"))
+            else Left(CorespringInternalError("attempted to access a collection that you are not authorized to"))
           } catch {
-            case e: IllegalArgumentException => Left(InternalError("could not parse collectionId into an object id", e))
+            case e: IllegalArgumentException => Left(CorespringInternalError("could not parse collectionId into an object id", e))
           }
-        } else Left(InternalError("invalid value for collectionId key. could not cast to array"))
-      } else Left(InternalError("can only use $in special operator when querying on collectionId"))
-      case None => Left(InternalError("empty db object as value of collectionId key"))
+        } else Left(CorespringInternalError("invalid value for collectionId key. could not cast to array"))
+      } else Left(CorespringInternalError("can only use $in special operator when querying on collectionId"))
+      case None => Left(CorespringInternalError("empty db object as value of collectionId key"))
     }
-    case _ => Left(InternalError("invalid value for collectionId"))
+    case _ => Left(CorespringInternalError("invalid value for collectionId"))
   }
 
 }

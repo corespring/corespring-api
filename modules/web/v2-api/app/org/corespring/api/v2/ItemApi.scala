@@ -1,7 +1,7 @@
 package org.corespring.api.v2
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.{V2ApiActions, OrgRequest}
+import org.corespring.api.v2.actions.{ V2ApiActions, OrgRequest }
 import org.corespring.api.v2.errors.Errors._
 import org.corespring.api.v2.errors.Errors.generalError
 import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
@@ -13,12 +13,23 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
-import play.api.mvc.{AnyContent, Controller}
-import scala.concurrent.{ExecutionContext, Future}
+import play.api.mvc._
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
-
+import play.api.http.ContentTypes
+import play.api.libs.json.JsArray
+import scalaz.Failure
+import play.api.libs.json.JsString
+import org.corespring.api.v2.actions.OrgRequest
+import org.corespring.api.v2.errors.Errors.generalError
+import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
+import play.api.mvc.AnyContentAsJson
+import scalaz.Success
+import org.corespring.api.v2.errors.Errors.unAuthorized
+import org.corespring.api.v2.services.Denied
+import play.api.libs.json.JsObject
 
 trait ItemApi extends Controller {
 
@@ -47,9 +58,9 @@ trait ItemApi extends Controller {
     (json \ prop).asOpt[T]
       .map(_ => json)
       .getOrElse {
-      logger.trace(s"adding default value - adding $prop as $defaultValue")
-      json + (prop -> defaultValue)
-    }
+        logger.trace(s"adding default value - adding $prop as $defaultValue")
+        json + (prop -> defaultValue)
+      }
   }
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
@@ -62,15 +73,23 @@ trait ItemApi extends Controller {
     steps(noId)
   }
 
-  private def loadJson(defaultCollectionId: ObjectId)(body: AnyContent): Validation[V2ApiError, JsValue] = {
-    body.asJson.map(Success(_))
-      .getOrElse {
-      if (body.asText.isDefined) {
-        Failure(invalidJson(body.asText.get))
-      } else {
-        Success(defaultItem(defaultCollectionId))
-      }
+  private def loadJson(defaultCollectionId: ObjectId)(request: Request[AnyContent]): Validation[V2ApiError, JsValue] = {
+
+    def hasJsonHeader: Boolean = {
+      val types = Seq("application/json", "text/json")
+      request.headers.get(CONTENT_TYPE).map { h =>
+        types.contains(h)
+      }.getOrElse(false)
     }
+
+    request.body.asJson.map(Success(_))
+      .getOrElse {
+        if (hasJsonHeader) {
+          Success(defaultItem(defaultCollectionId))
+        } else {
+          Failure(needJsonHeader)
+        }
+      }
   }
 
   private def toValidation(r: PermissionResult): Validation[V2ApiError, Boolean] = {
@@ -80,13 +99,22 @@ trait ItemApi extends Controller {
     }
   }
 
-  def create = actions.OrgAction { request: OrgRequest[AnyContent] =>
+  /**
+   * Note: There is a bit of a quirk here:
+   * POST no content type + empty body ==> new item
+   * POST content type json + empty body ==> bad request / invalid json
+   * POST content type json + {} ==> new item
+   * We need to either:
+   * -- not allow the 1st one through if we are being strict about the content type?
+   * -- Or if we want to be lenient  - then we should allow any empty call despite the header
+   * @return
+   */
+  def create = actions.orgAction(BodyParsers.parse.anyContent) { request: OrgRequest[AnyContent] =>
     Future {
       logger.trace("create")
       import scalaz.Scalaz._
-
       val result: Validation[V2ApiError, Item] = for {
-        json <- loadJson(request.defaultCollection)(request.body)
+        json <- loadJson(request.defaultCollection)(request)
         cleaned <- validatedJson(request.defaultCollection.toString)(json).toSuccess(incorrectJsonFormat(json))
         item <- cleaned.asOpt[Item].toSuccess(generalError(BAD_REQUEST, "Can't parse json as an Item"))
         org <- orgService.org(request.orgId).toSuccess(generalError(BAD_REQUEST, s"Can't find org: ${request.orgId}"))
@@ -102,7 +130,7 @@ trait ItemApi extends Controller {
           logger.trace(s"return item: $item")
           Ok(Json.toJson(item))
         }
-        case Failure(e) => Status(e.code)(e.message)
+        case Failure(e) => Status(e.code)(Json.obj("error" -> e.message))
       }
     }
   }

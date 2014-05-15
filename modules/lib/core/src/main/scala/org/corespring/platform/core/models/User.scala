@@ -9,7 +9,7 @@ import dao.SalatRemoveError
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.search.Searchable
 import org.joda.time.DateTime
 import play.api.Play
@@ -56,7 +56,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Either[InternalError, User] = {
+  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Either[CorespringInternalError, User] = {
     if (!checkOrgId || Organization.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         if (Play.isProd) user.id = new ObjectId
@@ -65,25 +65,25 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
           case Some(id) => {
             Right(user)
           }
-          case None => Left(InternalError("error inserting user"))
+          case None => Left(CorespringInternalError("error inserting user"))
         }
-      } else Left(InternalError("user already exists"))
-    } else Left(InternalError("no organization found with given id"))
+      } else Left(CorespringInternalError("user already exists"))
+    } else Left(CorespringInternalError("no organization found with given id"))
   }
 
-  def removeUser(username: String): Either[InternalError, Unit] = {
+  def removeUser(username: String): Either[CorespringInternalError, Unit] = {
     getUser(username) match {
       case Some(user) => removeUser(user.id)
-      case None => Left(InternalError("user could not be removed because it doesn't exist"))
+      case None => Left(CorespringInternalError("user could not be removed because it doesn't exist"))
     }
   }
 
-  def removeUser(userId: ObjectId): Either[InternalError, Unit] = {
+  def removeUser(userId: ObjectId): Either[CorespringInternalError, Unit] = {
     try {
       User.removeById(userId)
       Right(())
     } catch {
-      case e: SalatRemoveError => Left(InternalError("error occured while removing user", e))
+      case e: SalatRemoveError => Left(CorespringInternalError("error occured while removing user", e))
     }
   }
 
@@ -99,11 +99,11 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
           false, false, User.collection.writeConcern)
         Right(user)
       }
-      case None => Left(InternalError("no user found to update " + field))
+      case None => Left(CorespringInternalError("no user found to update " + field))
     }
   }
 
-  def updateUser(user: User): Either[InternalError, User] = {
+  def updateUser(user: User): Either[CorespringInternalError, User] = {
     try {
       User.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
         MongoDBObject(
@@ -114,14 +114,14 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
         false, false, User.collection.writeConcern)
       User.findOneById(user.id) match {
         case Some(u) => Right(u)
-        case None => Left(InternalError("no user found that was just modified"))
+        case None => Left(CorespringInternalError("no user found that was just modified"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("failed to update user", e))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("failed to update user", e))
     }
   }
 
-  def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[InternalError, Unit] = {
+  def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[CorespringInternalError, Unit] = {
     val userOrg = UserOrg(orgId, p.value)
     try {
       User.update(MongoDBObject("_id" -> userId),
@@ -129,7 +129,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
         false, false, defaultWriteConcern);
       Right(())
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("could add organization to user"))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("could add organization to user"))
     }
   }
 
@@ -154,24 +154,24 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
     User.findOne(query)
   }
 
-  def getUsers(orgId: ObjectId): Either[InternalError, Seq[User]] = {
+  def getUsers(orgId: ObjectId): Either[CorespringInternalError, Seq[User]] = {
     val c: SalatMongoCursor[User] = User.find(MongoDBObject(User.orgKey + "." + UserOrg.orgId -> orgId))
     val returnValue = Right(c.toSeq)
     c.close();
     returnValue
   }
 
-  def getPermissions(username: String, orgId: ObjectId): Either[InternalError, Permission] = {
+  def getPermissions(username: String, orgId: ObjectId): Either[CorespringInternalError, Permission] = {
     User.findOne(MongoDBObject(User.userName -> username, "org.orgId" -> orgId)) match {
       case Some(u) => getPermissions(u, orgId)
-      case None => Left(InternalError(s"could not find user $username with access to given organization: $orgId"))
+      case None => Left(CorespringInternalError(s"could not find user $username with access to given organization: $orgId"))
     }
   }
 
-  private def getPermissions(user: User, orgId: ObjectId): Either[InternalError, Permission] = {
+  private def getPermissions(user: User, orgId: ObjectId): Either[CorespringInternalError, Permission] = {
     Permission.fromLong(user.org.pval) match {
       case Some(p) => Right(p)
-      case None => Left(InternalError("uknown permission retrieved"))
+      case None => Left(CorespringInternalError("uknown permission retrieved"))
     }
   }
 

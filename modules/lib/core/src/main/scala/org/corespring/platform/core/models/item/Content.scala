@@ -6,7 +6,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 
 trait Content[Id] {
@@ -19,13 +19,13 @@ class ContentHelper(itemService: ItemService) extends PackageLogging {
   val collectionId: String = "collectionId"
   val contentType: String = "contentType"
 
-  def moveToArchive(contentId: VersionedId[ObjectId]): Either[InternalError, Unit] = {
+  def moveToArchive(contentId: VersionedId[ObjectId]): Either[CorespringInternalError, Unit] = {
     try {
       val update = MongoDBObject("$set" -> MongoDBObject(Content.collectionId -> ContentCollection.archiveCollId.toString))
       itemService.saveUsingDbo(contentId, update, false)
       Right(())
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("failed to transfer content to archive", e))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("failed to transfer content to archive", e))
     }
   }
 

@@ -73,7 +73,7 @@ trait BaseApi
               Forbidden(Json.toJson(error)).as(JSON)
             },
             ctx => {
-              val result: PlainResult = f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              val result: SimpleResult = f(ApiRequest(ctx, request, token)).asInstanceOf[SimpleResult]
               logger.trace("returning result")
               result
             })
@@ -105,7 +105,7 @@ trait BaseApi
             error => Forbidden(Json.toJson(error)).as(JSON),
             ctx => {
               ctx.permission.has(access)
-              val result: PlainResult = if (ctx.permission.has(access)) f(ApiRequest(ctx, request, token)).asInstanceOf[PlainResult]
+              val result: SimpleResult = if (ctx.permission.has(access)) f(ApiRequest(ctx, request, token)).asInstanceOf[SimpleResult]
               else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
               result
             })))

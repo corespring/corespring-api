@@ -6,7 +6,7 @@ import scala.concurrent.Future
 
 trait V2ApiActions[A] {
 
-  def OrgAction(block: OrgRequest[A] => Future[SimpleResult]) : Action[A]
+  def orgAction(bp: BodyParser[A])(block: OrgRequest[A] => Future[SimpleResult]): Action[A]
 }
 
-case class OrgRequest[A](r : Request[A], orgId: ObjectId, defaultCollection: ObjectId) extends WrappedRequest[A](r)
+case class OrgRequest[A](r: Request[A], orgId: ObjectId, defaultCollection: ObjectId) extends WrappedRequest[A](r)

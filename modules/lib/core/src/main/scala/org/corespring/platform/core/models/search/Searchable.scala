@@ -3,7 +3,7 @@ package org.corespring.platform.core.models.search
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.{ JSONParseException, JSON }
 import java.util.regex.Pattern
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import scala.Left
 import scala.Right
 import scala.Some
@@ -11,12 +11,12 @@ import scala.Some
 trait Searchable {
   protected val searchableFields: Seq[String] = Seq()
 
-  final def toFieldsObj(fields: AnyRef): Either[InternalError, SearchFields] = {
+  final def toFieldsObj(fields: AnyRef): Either[CorespringInternalError, SearchFields] = {
     fields match {
       case strfields: String => try {
         toFieldsObj(JSON.parse(strfields))
       } catch {
-        case e: JSONParseException => Left(InternalError(e.getMessage + "\ncould not parse search string"))
+        case e: JSONParseException => Left(CorespringInternalError(e.getMessage + "\ncould not parse search string"))
       }
       case dbfields: BasicDBObject => {
         val method: Int = if (dbfields.values().iterator().next() == 1) 1 else 0
@@ -24,9 +24,9 @@ trait Searchable {
       }
     }
   }
-  protected def toFieldsObjInternal(dbfields: BasicDBObject, method: Int): Either[InternalError, SearchFields] = {
+  protected def toFieldsObjInternal(dbfields: BasicDBObject, method: Int): Either[CorespringInternalError, SearchFields] = {
     if (searchableFields.isEmpty) throw new RuntimeException("when using default fields method, you must override searchable fields")
-    def toSearchFieldObj(searchFields: SearchFields, field: (String, AnyRef), addToFieldsObj: Boolean = true, dbkey: String = ""): Either[InternalError, SearchFields] = {
+    def toSearchFieldObj(searchFields: SearchFields, field: (String, AnyRef), addToFieldsObj: Boolean = true, dbkey: String = ""): Either[CorespringInternalError, SearchFields] = {
       if (field._2 == method) {
         if (addToFieldsObj) {
           if (dbkey.isEmpty) field._1 else dbkey
@@ -35,29 +35,29 @@ trait Searchable {
         searchFields.jsfields = searchFields.jsfields :+ field._1
         Right(searchFields)
       } else {
-        Left(InternalError("Wrong value for " + field._1 + ". Should have been " + method))
+        Left(CorespringInternalError("Wrong value for " + field._1 + ". Should have been " + method))
       }
     }
-    dbfields.foldRight[Either[InternalError, SearchFields]](Right(SearchFields(method = method)))((field, result) => {
+    dbfields.foldRight[Either[CorespringInternalError, SearchFields]](Right(SearchFields(method = method)))((field, result) => {
       result match {
         case Right(searchFields) => if (searchableFields.contains(field._1)) toSearchFieldObj(searchFields, field)
-        else Left(InternalError("unknown field: " + field._1))
+        else Left(CorespringInternalError("unknown field: " + field._1))
         case Left(error) => Left(error)
       }
     })
   }
 
-  final def toSortObj(field: AnyRef): Either[InternalError, DBObject] = {
+  final def toSortObj(field: AnyRef): Either[CorespringInternalError, DBObject] = {
     field match {
       case strfield: String => try {
         val parsedobj: BasicDBObject = JSON.parse(strfield).asInstanceOf[BasicDBObject]
         toSortObj(parsedobj)
       } catch {
-        case e: JSONParseException => Left(InternalError(e.getMessage + "\ncould not parse sort string"))
+        case e: JSONParseException => Left(CorespringInternalError(e.getMessage + "\ncould not parse sort string"))
       }
       case dbfield: BasicDBObject => {
         if (dbfield.toSeq.size != 1) {
-          Left(InternalError("cannot sort on multiple fields"))
+          Left(CorespringInternalError("cannot sort on multiple fields"))
         } else {
           val field = dbfield.toSeq.head
           toSortObjInternal(field)
@@ -65,25 +65,25 @@ trait Searchable {
       }
     }
   }
-  protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, DBObject] = {
+  protected def toSortObjInternal(field: (String, AnyRef)): Either[CorespringInternalError, DBObject] = {
     if (searchableFields.isEmpty) throw new RuntimeException("when using default sort method, you must override searchable fields")
-    def formatSortField(key: String, value: AnyRef): Either[InternalError, DBObject] = {
+    def formatSortField(key: String, value: AnyRef): Either[CorespringInternalError, DBObject] = {
       value match {
         case intval: java.lang.Integer => Right(DBObject(key -> value))
-        case _ => Left(InternalError("sort value not a number"))
+        case _ => Left(CorespringInternalError("sort value not a number"))
       }
     }
     if (searchableFields.contains(field._1)) formatSortField(field._1, field._2)
-    else Left(InternalError("invalid sort key: " + field._1))
+    else Left(CorespringInternalError("invalid sort key: " + field._1))
   }
-  final def toSearchObj(query: AnyRef, optInitSearch: Option[DBObject] = None, parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]] = Map()): Either[SearchCancelled, DBObject] = {
+  final def toSearchObj(query: AnyRef, optInitSearch: Option[DBObject] = None, parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]] = Map()): Either[SearchCancelled, DBObject] = {
     query match {
       case strquery: String => {
         val parsedobjResult: Either[SearchCancelled, BasicDBObject] = try {
           Right(JSON.parse(strquery).asInstanceOf[BasicDBObject])
         } catch {
-          case e: JSONParseException => Left(SearchCancelled(Some(InternalError(s"could not parse search string: ${e.getMessage}"))))
-          case e: ClassCastException => Left(SearchCancelled(Some(InternalError(s"could not parse search string: ${e.getMessage}"))))
+          case e: JSONParseException => Left(SearchCancelled(Some(CorespringInternalError(s"could not parse search string: ${e.getMessage}"))))
+          case e: ClassCastException => Left(SearchCancelled(Some(CorespringInternalError(s"could not parse search string: ${e.getMessage}"))))
         }
         parsedobjResult match {
           case Right(parsedobj) => toSearchObj(parsedobj, optInitSearch, parseFields)
@@ -103,7 +103,7 @@ trait Searchable {
                       case Some(_) => Left(sc)
                     }
                   }
-                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object"))))
+                  case _ => Left(SearchCancelled(Some(CorespringInternalError("element within the array of or cases was not a db object"))))
                 }
                 case Left(sc) => Left(sc)
               }
@@ -114,7 +114,7 @@ trait Searchable {
               }
               case Left(sc) => Left(sc)
             }
-            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value"))))
+            case _ => Left(SearchCancelled(Some(CorespringInternalError("$or operator did not contain a list of documents for its value"))))
           }
         } else if (dbquery.contains("$and")) {
           dbquery.get("$and") match {
@@ -125,7 +125,7 @@ trait Searchable {
                     case Right(searchobj) => Right(dblist += searchobj)
                     case Left(sc) => Left(sc)
                   }
-                  case _ => Left(SearchCancelled(Some(InternalError("element within the array of or cases was not a db object"))))
+                  case _ => Left(SearchCancelled(Some(CorespringInternalError("element within the array of or cases was not a db object"))))
                 }
                 case Left(sc) => Left(sc)
               }
@@ -136,19 +136,19 @@ trait Searchable {
               }
               case Left(sc) => Left(sc)
             }
-            case _ => Left(SearchCancelled(Some(InternalError("$or operator did not contain a list of documents for its value"))))
+            case _ => Left(SearchCancelled(Some(CorespringInternalError("$or operator did not contain a list of documents for its value"))))
           }
         } else toSearchObjInternal(dbquery, optInitSearch)(parseFields)
       }
-      case _ => Left(SearchCancelled(Some(InternalError("invalid search object"))))
+      case _ => Left(SearchCancelled(Some(CorespringInternalError("invalid search object"))))
     }
   }
-  protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     if (searchableFields.isEmpty) throw new RuntimeException("when using default search method, you must override searchable fields")
     dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => if (searchableFields.contains(field._1)) formatQuery(field._1, field._2, searchobj)
-        else Left(SearchCancelled(Some(InternalError("unknown query field: " + field._1))))
+        else Left(SearchCancelled(Some(CorespringInternalError("unknown query field: " + field._1))))
         case Left(sc) => Left(sc)
       }
     }) match {
@@ -160,7 +160,7 @@ trait Searchable {
     }
   }
 
-  protected final def formatQuery(key: String, value: AnyRef, searchobj: DBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  protected final def formatQuery(key: String, value: AnyRef, searchobj: DBObject)(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     parseFields.find(_._1 == key) match {
       case Some(parseField) => parseField._2(value) match {
         case Right(newvalue) => Right(searchobj += key -> newvalue)
@@ -172,32 +172,32 @@ trait Searchable {
           case Right(newvalue) => Right(searchobj += key -> newvalue)
           case Left(e) => throw new RuntimeException(e.message)
         }
-        case _ => Left(SearchCancelled(Some(InternalError("invalid value when parsing search for " + key))))
+        case _ => Left(SearchCancelled(Some(CorespringInternalError("invalid value when parsing search for " + key))))
       }
     }
   }
 
-  protected final def formatSpecOp(dbobj: BasicDBObject): Either[InternalError, AnyRef] = {
+  protected final def formatSpecOp(dbobj: BasicDBObject): Either[CorespringInternalError, AnyRef] = {
     dbobj.toSeq.headOption match {
       case Some((key, value)) => key match {
         case "$in" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
-        else Left(InternalError("$in did not contain an array of elements"))
+        else Left(CorespringInternalError("$in did not contain an array of elements"))
         case "$nin" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
-        else Left(InternalError("$nin did not contain an array of elements"))
+        else Left(CorespringInternalError("$nin did not contain an array of elements"))
         case "$exists" => if (value.isInstanceOf[Boolean]) Right(DBObject(key -> value))
-        else Left(InternalError("$exists did not contain a boolean value"))
+        else Left(CorespringInternalError("$exists did not contain a boolean value"))
         case "$ne" => Right(DBObject(key -> value))
         case "$all" => if (value.isInstanceOf[BasicDBList]) Right(DBObject(key -> value))
-        else Left(InternalError("$all did not contain an array of elements"))
-        case _ => if (key.startsWith("$")) Left(InternalError("unsupported special operation"))
-        else Left(InternalError("cannot have embedded db object without special operator"))
+        else Left(CorespringInternalError("$all did not contain an array of elements"))
+        case _ => if (key.startsWith("$")) Left(CorespringInternalError("unsupported special operation"))
+        else Left(CorespringInternalError("cannot have embedded db object without special operator"))
       }
-      case None => Left(InternalError("cannot have empty embedded db object as value"))
+      case None => Left(CorespringInternalError("cannot have empty embedded db object as value"))
     }
   }
 }
 
-case class SearchCancelled(error: Option[InternalError])
+case class SearchCancelled(error: Option[CorespringInternalError])
 
 /**
  *

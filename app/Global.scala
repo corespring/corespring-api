@@ -3,27 +3,26 @@ import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
-import filters.{IEHeaders, Headers, AjaxFilter, AccessControlFilter}
+import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.{OrgRequest, V2ItemActions}
-import org.corespring.api.v2.{Bootstrap, ItemApi, ItemSessionApi}
+import org.corespring.api.v2.Bootstrap
 import org.corespring.common.log.ClassLogging
-import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
+import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.play.utils._
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2player.integration.V2PlayerIntegration
-import org.corespring.web.common.controllers.deployment.{LocalAssetsLoaderImpl, AssetsLoaderImpl}
-import org.joda.time.{DateTimeZone, DateTime}
+import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
+import org.joda.time.{ DateTimeZone, DateTime }
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -159,7 +158,7 @@ object Global
       safeRemoteUri.map(safeUri => uri == safeUri).getOrElse(false)
     }
 
-    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u)}.getOrElse(false)
+    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
   private def timeLeftUntil2am = {
