@@ -2,7 +2,7 @@ package org.corespring.api.v2
 
 import org.bson.types.ObjectId
 import org.corespring.api.v2.actions.{OrgRequest, V2ItemActions}
-import org.corespring.api.v2.errors.Errors.{errorSaving, invalidJson}
+import org.corespring.api.v2.errors.Errors.{unAuthorized, errorSaving, invalidJson}
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -17,6 +17,15 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import scala.Some
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
+import org.corespring.api.v2.services._
+import org.corespring.platform.core.models.Organization
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.mvc.SimpleResult
+import org.corespring.api.v2.actions.OrgRequest
+import play.api.mvc.AnyContentAsJson
+import play.api.mvc.AnyContentAsText
+import play.api.libs.json.JsObject
 
 
 class ItemApiTest extends Specification with Mockito {
@@ -31,7 +40,9 @@ class ItemApiTest extends Specification with Mockito {
 
   case class apiScope(
                        val defaultCollectionId: ObjectId = ObjectId.get,
-                       val insertFails: Boolean = false) extends Scope {
+                       val insertFails: Boolean = false,
+                       val permissionResult : PermissionResult = Granted,
+                       val loadOrgResult : Option[Organization] = Some(Organization())) extends Scope {
     lazy val api = new ItemApi {
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -49,6 +60,18 @@ class ItemApiTest extends Specification with Mockito {
       }
 
       override implicit def executionContext: ExecutionContext = global
+
+      override def permissionService: PermissionService[Organization, Item] = {
+        val m = mock[PermissionService[Organization,Item]]
+        m.create(any[Organization], any[Item]) returns permissionResult
+        m
+      }
+
+      override def orgService: OrgService = {
+        val m = mock[OrgService]
+        m.org(any[ObjectId]) returns loadOrgResult
+        m
+      }
     }
   }
 
@@ -83,6 +106,14 @@ class ItemApiTest extends Specification with Mockito {
       )
       status(result) === invalidJson("arst").code
       contentAsString(result) === invalidJson("arst").message
+    }
+
+    s"returns $UNAUTHORIZED - if permisssion denied" in new apiScope(
+      permissionResult = Denied("Nope")
+    ){
+      val result = api.create()(FakeJsonRequest(Json.obj()))
+      status(result) === unAuthorized("Nope").code
+      contentAsString(result) === unAuthorized("Nope").message
     }
 
     s"create - returns error with a bad save" in new apiScope(

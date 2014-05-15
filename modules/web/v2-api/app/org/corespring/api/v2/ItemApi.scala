@@ -1,38 +1,36 @@
 package org.corespring.api.v2
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.OrgRequest
-import org.corespring.api.v2.actions.V2ItemActions
+import org.corespring.api.v2.actions.{V2ApiActions, OrgRequest}
 import org.corespring.api.v2.errors.Errors._
 import org.corespring.api.v2.errors.Errors.generalError
 import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
+import org.corespring.api.v2.errors.Errors.invalidJson
 import org.corespring.api.v2.errors.V2ApiError
+import org.corespring.api.v2.services._
+import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
-import play.api.mvc.{ AnyContent, Controller }
-import scala.concurrent.{ ExecutionContext, Future }
+import play.api.mvc.{AnyContent, Controller}
+import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 
-trait Permissions[EID, PID] {
-  def create(parentId: PID): Boolean
-  def delete(id: EID): Boolean
-  def update(id: EID): Boolean
-  def read(id: EID): Boolean
-}
-
-class ItemPermissions(orgId: ObjectId)
 
 trait ItemApi extends Controller {
 
   implicit def executionContext: ExecutionContext
 
-  def itemActions: V2ItemActions[AnyContent]
+  def actions: V2ApiActions[AnyContent]
 
   def itemService: ItemService
+
+  def permissionService: PermissionService[Organization, Item]
+
+  def orgService: OrgService
 
   protected lazy val logger = LoggerFactory.getLogger("v2Api.ItemApi")
 
@@ -49,9 +47,9 @@ trait ItemApi extends Controller {
     (json \ prop).asOpt[T]
       .map(_ => json)
       .getOrElse {
-        logger.trace(s"adding default value - adding $prop as $defaultValue")
-        json + (prop -> defaultValue)
-      }
+      logger.trace(s"adding default value - adding $prop as $defaultValue")
+      json + (prop -> defaultValue)
+    }
   }
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
@@ -67,41 +65,45 @@ trait ItemApi extends Controller {
   private def loadJson(defaultCollectionId: ObjectId)(body: AnyContent): Validation[V2ApiError, JsValue] = {
     body.asJson.map(Success(_))
       .getOrElse {
-        if (body.asText.isDefined) {
-          Failure(invalidJson(body.asText.get))
-        } else {
-          Success(defaultItem(defaultCollectionId))
-        }
+      if (body.asText.isDefined) {
+        Failure(invalidJson(body.asText.get))
+      } else {
+        Success(defaultItem(defaultCollectionId))
       }
+    }
   }
 
-  def create = itemActions.create {
+  private def toValidation(r: PermissionResult): Validation[V2ApiError, Boolean] = {
+    r match {
+      case Granted => Success(true)
+      case Denied(reasons) => Failure(unAuthorized(reasons))
+    }
+  }
 
-    request: OrgRequest[AnyContent] =>
+  def create = actions.OrgAction { request: OrgRequest[AnyContent] =>
+    Future {
+      logger.trace("create")
+      import scalaz.Scalaz._
 
-      Future {
-
-        logger.trace("create")
-        import scalaz.Scalaz._
-
-        val result: Validation[V2ApiError, Item] = for {
-          json <- loadJson(request.defaultCollection)(request.body)
-          cleaned <- validatedJson(request.defaultCollection.toString)(json).toSuccess(incorrectJsonFormat(json))
-          item <- cleaned.asOpt[Item].toSuccess(generalError(BAD_REQUEST, "Can't parse json as an Item"))
-          if (permissionService.can(CREATE, item, request.orgId))
-          vid <- itemService.insert(item).toSuccess(errorSaving)
-        } yield {
-          logger.trace(s"new item id: $vid")
-          item.copy(id = vid)
-        }
-
-        result match {
-          case Success(item) => {
-            logger.trace(s"return item: $item")
-            Ok(Json.toJson(item))
-          }
-          case Failure(e) => Status(e.code)(e.message)
-        }
+      val result: Validation[V2ApiError, Item] = for {
+        json <- loadJson(request.defaultCollection)(request.body)
+        cleaned <- validatedJson(request.defaultCollection.toString)(json).toSuccess(incorrectJsonFormat(json))
+        item <- cleaned.asOpt[Item].toSuccess(generalError(BAD_REQUEST, "Can't parse json as an Item"))
+        org <- orgService.org(request.orgId).toSuccess(generalError(BAD_REQUEST, s"Can't find org: ${request.orgId}"))
+        permission <- toValidation(permissionService.create(org, item))
+        vid <- itemService.insert(item).toSuccess(errorSaving)
+      } yield {
+        logger.trace(s"new item id: $vid")
+        item.copy(id = vid)
       }
+
+      result match {
+        case Success(item) => {
+          logger.trace(s"return item: $item")
+          Ok(Json.toJson(item))
+        }
+        case Failure(e) => Status(e.code)(e.message)
+      }
+    }
   }
 }

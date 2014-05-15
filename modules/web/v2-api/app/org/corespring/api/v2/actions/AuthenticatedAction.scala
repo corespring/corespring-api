@@ -5,22 +5,19 @@ import org.corespring.platform.core.controllers.auth.TokenReader
 import play.api.mvc._
 import scala.concurrent.Future
 
-trait AuthenticatedAction[A] {
-  def auth(failed: String => Future[SimpleResult], block: OrgRequest[A] => Future[SimpleResult]): Action[A]
-}
-
 trait TokenAuthenticated
-  extends AuthenticatedAction[AnyContent]
+  extends V2ApiActions[AnyContent]
   with Controller
   with TokenReader {
 
   def tokenService: TokenService
   def orgService: OrgService
 
-  override def auth(
-    failed: (String) => Future[SimpleResult],
-    block: (OrgRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async { r: Request[AnyContent] =>
 
+  private def failed(s:String) : Future[SimpleResult] = Future(Unauthorized(s))
+
+  private def orgAction(failed: String => Future[SimpleResult],
+                 block: OrgRequest[AnyContent] => Future[SimpleResult]) : Action[AnyContent] = Action.async { r: Request[AnyContent] =>
     def onToken(token: String) = {
       val result = for {
         org <- tokenService.orgForToken(token)
@@ -32,8 +29,8 @@ trait TokenAuthenticated
     }
 
     def onError(msg: String) = failed(msg)
-
     getToken[String](r, "Invalid token", "No token").fold(onError, onToken)
-
   }
+
+  override def OrgAction( block: OrgRequest[AnyContent] => Future[SimpleResult]): Action[AnyContent] =  orgAction(failed, block)
 }

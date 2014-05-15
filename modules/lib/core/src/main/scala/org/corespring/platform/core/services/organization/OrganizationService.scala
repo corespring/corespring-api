@@ -2,7 +2,7 @@ package org.corespring.platform.core.services.organization
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
-import org.corespring.platform.core.models.{ Organization, MetadataSetRef }
+import org.corespring.platform.core.models.{ContentCollection, Organization, MetadataSetRef}
 import org.corespring.platform.core.models.auth.Permission
 
 trait OrganizationService {
@@ -23,4 +23,6 @@ trait OrganizationService {
 
 
   def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission) : Boolean
+
+  def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection]
 }

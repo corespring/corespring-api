@@ -26,7 +26,12 @@ case class AccessToken(organization: ObjectId,
     !neverExpire && DateTime.now().isAfter(expirationDate)
   }
 }
-object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
+
+trait AccessTokenService {
+  def findByToken(token:String) : Option[AccessToken]
+}
+
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
@@ -66,6 +71,8 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
    * @return returns an Option[AccessToken]
    */
   def findById(tokenId: String) = findOne(MongoDBObject(this.tokenId -> tokenId))
+
+  def findByToken(token: String) = findById(token)
 
   /**
    * Finds an access token by organization and scope

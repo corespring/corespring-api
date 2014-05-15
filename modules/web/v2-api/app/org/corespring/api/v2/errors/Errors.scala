@@ -13,6 +13,8 @@ object Errors {
   object noJson extends V2ApiError(BAD_REQUEST, "No json in request body")
   case class invalidJson(str:String) extends V2ApiError(BAD_REQUEST, s"Invalid json $str")
 
+  case class unAuthorized(errors:String*) extends V2ApiError(UNAUTHORIZED, errors.mkString(", "))
+
   object errorSaving extends V2ApiError(BAD_REQUEST, "Error saving")
 
   case class incorrectJsonFormat(json:JsValue) extends V2ApiError(BAD_REQUEST, s"Bad json format ${Json.stringify(json)}")

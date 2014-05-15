@@ -6,4 +6,5 @@ import org.bson.types.ObjectId
 trait OrgService {
 
   def defaultCollection(o: Organization): Option[ObjectId]
+  def org(id:ObjectId) : Option[Organization]
 }
