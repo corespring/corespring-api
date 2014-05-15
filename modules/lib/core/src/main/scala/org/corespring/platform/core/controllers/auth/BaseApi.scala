@@ -1,7 +1,7 @@
 package org.corespring.platform.core.controllers.auth
 
 import org.bson.types.ObjectId
-import org.corespring.common.log.{ClassLogging, PackageLogging}
+import org.corespring.common.log.{ ClassLogging, PackageLogging }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.{ User, Organization }
 import play.api.libs.json._
@@ -28,33 +28,14 @@ case class ApiRequest[A](ctx: AuthorizationContext, r: Request[A], token: String
  * @see Permission
  * @see PermissionSet
  */
-trait BaseApi extends Controller with SecureSocial with PackageLogging {
+trait BaseApi
+  extends Controller
+  with SecureSocial
+  with TokenReader
+  with PackageLogging {
 
-  private val AuthorizationHeader = "Authorization"
-  private val Bearer = "Bearer"
-  private val Space = " "
-
-  /**
-   * Returns the access token either from the Play session (with key access_token) or from the Authorization header
-   * in the form of "Bearer some_token"
-   *
-   * @param request
-   * @tparam A
-   * @return
-   */
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
-    request.queryString.get(OAuthConstants.AccessToken).map(seq => Right(seq.head)).getOrElse {
-      request.session.get(OAuthConstants.AccessToken).map(Right(_)).getOrElse {
-        request.headers.get(AuthorizationHeader) match {
-          case Some(value) =>
-            value.split(Space) match {
-              case Array(Bearer, token) => Right(token)
-              case _ => Left(ApiError.InvalidTokenType)
-            }
-          case _ => Left(ApiError.MissingCredentials)
-        }
-      }
-    }
+    getToken[ApiError](request, ApiError.InvalidToken, ApiError.MissingCredentials)
   }
 
   def SSLApiAction[A](p: BodyParser[A])(f: ApiRequest[A] => Result): Action[A] = ApiAction(p) {

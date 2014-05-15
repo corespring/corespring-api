@@ -11,11 +11,20 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
-import play.api.mvc.{AnyContent, Controller}
-import scala.concurrent.{ExecutionContext, Future}
+import play.api.mvc.{ AnyContent, Controller }
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
+
+trait Permissions[EID, PID] {
+  def create(parentId: PID): Boolean
+  def delete(id: EID): Boolean
+  def update(id: EID): Boolean
+  def read(id: EID): Boolean
+}
+
+class ItemPermissions(orgId: ObjectId)
 
 trait ItemApi extends Controller {
 
@@ -34,16 +43,15 @@ trait ItemApi extends Controller {
   lazy val defaultPlayerDefinition = Json.obj(
     "components" -> Json.obj(),
     "files" -> JsArray(Seq.empty),
-    "xhtml" -> "<div></div>"
-  )
+    "xhtml" -> "<div></div>")
 
   private def addIfNeeded[T](json: JsObject, prop: String, defaultValue: JsValue)(implicit r: Format[T]): JsObject = {
     (json \ prop).asOpt[T]
       .map(_ => json)
       .getOrElse {
-      logger.trace(s"adding default value - adding $prop as $defaultValue")
-      json + (prop -> defaultValue)
-    }
+        logger.trace(s"adding default value - adding $prop as $defaultValue")
+        json + (prop -> defaultValue)
+      }
   }
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
@@ -56,16 +64,15 @@ trait ItemApi extends Controller {
     steps(noId)
   }
 
-
   private def loadJson(defaultCollectionId: ObjectId)(body: AnyContent): Validation[V2ApiError, JsValue] = {
     body.asJson.map(Success(_))
       .getOrElse {
-      if (body.asText.isDefined) {
-        Failure(invalidJson(body.asText.get))
-      } else {
-        Success(defaultItem(defaultCollectionId))
+        if (body.asText.isDefined) {
+          Failure(invalidJson(body.asText.get))
+        } else {
+          Success(defaultItem(defaultCollectionId))
+        }
       }
-    }
   }
 
   def create = itemActions.create {
@@ -81,6 +88,7 @@ trait ItemApi extends Controller {
           json <- loadJson(request.defaultCollection)(request.body)
           cleaned <- validatedJson(request.defaultCollection.toString)(json).toSuccess(incorrectJsonFormat(json))
           item <- cleaned.asOpt[Item].toSuccess(generalError(BAD_REQUEST, "Can't parse json as an Item"))
+          if (permissionService.can(CREATE, item, request.orgId))
           vid <- itemService.insert(item).toSuccess(errorSaving)
         } yield {
           logger.trace(s"new item id: $vid")

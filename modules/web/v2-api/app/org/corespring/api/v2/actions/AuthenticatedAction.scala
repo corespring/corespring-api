@@ -1,54 +1,39 @@
 package org.corespring.api.v2.actions
 
+import org.corespring.api.v2.services.{ OrgService, TokenService }
+import org.corespring.platform.core.controllers.auth.TokenReader
 import play.api.mvc._
 import scala.concurrent.Future
-import org.corespring.platform.core.controllers.auth.{OAuthConstants, ApiRequest}
-import org.corespring.platform.core.controllers.auth.ApiRequest
-import scala.Some
-import play.api.mvc.SimpleResult
 
 trait AuthenticatedAction[A] {
-
-
-  def auth(block:ApiRequest[A] => Future[SimpleResult]) : Action[A]
+  def auth(failed: String => Future[SimpleResult], block: OrgRequest[A] => Future[SimpleResult]): Action[A]
 }
 
-trait TokenReader{
+trait TokenAuthenticated
+  extends AuthenticatedAction[AnyContent]
+  with Controller
+  with TokenReader {
 
-  val AuthorizationHeader = "Authorization"
-  val AccessToken = "access_token"
-  val Bearer = "Bearer"
-  val Space = " "
+  def tokenService: TokenService
+  def orgService: OrgService
 
-  def getToken[E](request:RequestHeader, invalidToken:E, noToken:E) : Either[E,String] = {
+  override def auth(
+    failed: (String) => Future[SimpleResult],
+    block: (OrgRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async { r: Request[AnyContent] =>
 
-    def tokenInHeader : Option[String] = {
-      request.headers.get(AuthorizationHeader).map{ h =>
-         h.split(Space) match {
-           case Array(Bearer, token) => Some(token)
-           case _ => None
-         }
-      }.flatten
+    def onToken(token: String) = {
+      val result = for {
+        org <- tokenService.orgForToken(token)
+        dc <- orgService.defaultCollection(org)
+      } yield {
+        block(OrgRequest(r, org.id, dc))
+      }
+      result.getOrElse(failed(""))
     }
 
-    val out : Option[String] = request.queryString.get(AccessToken).map(_.head)
-      .orElse(request.session.get(AccessToken))
-      .orElse(tokenInHeader)
+    def onError(msg: String) = failed(msg)
 
-    out
-  }
-}
+    getToken[String](r, "Invalid token", "No token").fold(onError, onToken)
 
-object TokenAuthenticated extends AuthenticatedAction[AnyContent]{
-
-
-  override def auth(failed:  Unit => Future[SimpleResult], proceed: (ApiRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async{
-    request :  Request[AnyContent] =>
-
-      request.queryString.get("access_token").map{ token =>
-
-
-
-      }.getOrElse(failed())
   }
 }
