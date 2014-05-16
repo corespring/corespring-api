@@ -2,12 +2,13 @@ package org.corespring.api.v2.itemApi
 
 import org.corespring.it.IntegrationSpecification
 import play.api.test.{FakeHeaders, FakeRequest}
-import org.corespring.v2player.integration.scopes.orgWithAccessToken
+import org.corespring.v2player.integration.scopes.{user, orgWithAccessToken}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsJson, AnyContent}
 import play.api.http.Writeable
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.{JsValue, Json}
+import org.corespring.test.SecureSocialHelpers
 
 class ItemApiTest extends IntegrationSpecification {
 
@@ -65,6 +66,16 @@ class ItemApiTest extends IntegrationSpecification {
       s"$OK - for token based request with json header - with json body" in new orgWithAccessToken {
         assertCall(
           createRequest[AnyContentAsJson](s"access_token=$accessToken", Some("application/json"), Some(Json.obj())),
+          OK
+        )
+      }
+
+      s"$OK - for session based request" in new user with SecureSocialHelpers{
+
+        val cookie = secureSocialCookie(Some(user)).get
+
+        assertCall(
+          createRequest[AnyContentAsJson](contentTypeHeader = Some("application/json"), json = Some(Json.obj())).withCookies(cookie),
           OK
         )
       }
