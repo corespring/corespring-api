@@ -10,7 +10,6 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.errors.{ Errors, V2Error }
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -20,6 +19,7 @@ import play.api.mvc.{ RequestHeader, SimpleResult }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.concurrent.{ Future, ExecutionContext }
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
@@ -29,8 +29,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   val emptyItemJson = Json.obj(
     "profile" -> Json.obj(),
     "components" -> Json.obj(),
-    "xhtml" -> "<div/>"
-  )
+    "xhtml" -> "<div/>")
 
   abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
     val item: Option[Item] = None,

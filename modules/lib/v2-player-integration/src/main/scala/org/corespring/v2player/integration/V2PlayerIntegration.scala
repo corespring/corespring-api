@@ -1,6 +1,6 @@
 package org.corespring.v2player.integration
 
-import _root_.securesocial.core.{ SecureSocial, Identity }
+import securesocial.core.{ SecureSocial, Identity }
 import com.mongodb.casbah.MongoDB
 import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.common.config.AppConfig
@@ -23,7 +23,6 @@ import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWild
 import org.corespring.v2player.integration.controllers.{ DataQuery, DefaultPlayerLauncherActions }
 import org.corespring.v2player.integration.controllers.editor._
 import org.corespring.v2player.integration.controllers.player.{ PlayerActions, SessionActions }
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.Logger
 import play.api.cache.Cached
@@ -37,6 +36,7 @@ import scalaz.Validation
 import org.corespring.assets.CorespringS3Service
 import scala.concurrent.ExecutionContext
 import org.corespring.v2player.integration.controllers.catalog.{ AuthCatalogActions, CatalogActions }
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -47,7 +47,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def components: Seq[Component] = comps
 
-  private lazy val mainSecureSocialService = new SecureSocialService {
+  lazy val mainSecureSocialService = new SecureSocialService {
 
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }

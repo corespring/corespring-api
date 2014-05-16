@@ -8,11 +8,11 @@ import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.{ AnyContent, Request }
 import play.api.{ Configuration, Mode, Play }
 import scalaz.Success
 import org.slf4j.LoggerFactory
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class DefaultPlayerLauncherActions(
   secureSocialService: SecureSocialService,

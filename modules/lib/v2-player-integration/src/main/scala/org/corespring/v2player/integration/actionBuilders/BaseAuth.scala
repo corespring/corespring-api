@@ -12,9 +12,9 @@ import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.{ RequestHeader, AnyContent, Request }
 import org.slf4j.LoggerFactory
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 abstract class BaseAuth(
   val secureSocialService: SecureSocialService,

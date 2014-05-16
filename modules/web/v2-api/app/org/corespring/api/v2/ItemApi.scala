@@ -1,11 +1,12 @@
 package org.corespring.api.v2
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.{ V2ApiActions, OrgRequest }
+import org.corespring.api.v2.actions.OrgRequest
+import org.corespring.api.v2.actions.V2ApiActions
 import org.corespring.api.v2.errors.Errors._
 import org.corespring.api.v2.errors.Errors.generalError
 import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
-import org.corespring.api.v2.errors.Errors.invalidJson
+import org.corespring.api.v2.errors.Errors.unAuthorized
 import org.corespring.api.v2.errors.V2ApiError
 import org.corespring.api.v2.services._
 import org.corespring.platform.core.models.Organization
@@ -18,18 +19,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
-import play.api.http.ContentTypes
-import play.api.libs.json.JsArray
-import scalaz.Failure
-import play.api.libs.json.JsString
-import org.corespring.api.v2.actions.OrgRequest
-import org.corespring.api.v2.errors.Errors.generalError
-import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
-import play.api.mvc.AnyContentAsJson
-import scalaz.Success
-import org.corespring.api.v2.errors.Errors.unAuthorized
-import org.corespring.api.v2.services.Denied
-import play.api.libs.json.JsObject
 
 trait ItemApi extends Controller {
 
@@ -100,13 +89,9 @@ trait ItemApi extends Controller {
   }
 
   /**
-   * Note: There is a bit of a quirk here:
-   * POST no content type + empty body ==> new item
+   * POST no content type + empty body ==> need header
    * POST content type json + empty body ==> bad request / invalid json
    * POST content type json + {} ==> new item
-   * We need to either:
-   * -- not allow the 1st one through if we are being strict about the content type?
-   * -- Or if we want to be lenient  - then we should allow any empty call despite the header
    * @return
    */
   def create = actions.orgAction(BodyParsers.parse.anyContent) { request: OrgRequest[AnyContent] =>

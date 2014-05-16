@@ -6,10 +6,10 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.v2player.integration.actionBuilders.access.Mode
 import org.corespring.v2player.integration.controllers.editor.AuthEditorActions
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.{ Action, SimpleResult, AnyContent, Request }
 import scala.concurrent.Future
 import scalaz.{ Failure, Success }
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 abstract class AuthEditorActionsCheckPermissions(
   secureSocialService: SecureSocialService,

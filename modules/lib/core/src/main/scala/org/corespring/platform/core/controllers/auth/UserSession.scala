@@ -1,8 +1,7 @@
-package org.corespring.v2player.integration.actionBuilders
+package org.corespring.platform.core.controllers.auth
 
 import org.corespring.platform.core.models.User
 import org.corespring.platform.core.services.UserService
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc.RequestHeader
 
 trait UserSession {

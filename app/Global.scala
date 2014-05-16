@@ -11,6 +11,7 @@ import org.corespring.container.components.loader.{ ComponentLoader, FileCompone
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
@@ -51,7 +52,13 @@ object Global
 
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
-  lazy val v2ApiBootstrap = new Bootstrap(ItemServiceWired, Organization, AccessToken, integration.mainSessionService)
+  lazy val v2ApiBootstrap = new Bootstrap(
+    ItemServiceWired,
+    Organization,
+    AccessToken,
+    integration.mainSessionService,
+    UserServiceWired,
+    integration.mainSecureSocialService)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 

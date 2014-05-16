@@ -7,7 +7,6 @@ import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
 import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieKeys
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -19,6 +18,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import scala.Some
 import scala.concurrent.Future
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class PlayerLauncherActionBuilderTest
   extends Specification

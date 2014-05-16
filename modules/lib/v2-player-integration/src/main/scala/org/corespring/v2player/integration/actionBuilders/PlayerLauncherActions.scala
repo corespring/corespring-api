@@ -6,11 +6,11 @@ import org.corespring.container.client.actions.{ PlayerLauncherActions => Launch
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
 import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieWriter, PlayerOptions }
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc._
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.platform.core.controllers.auth.{ SecureSocialService, UserSession }
 
 object PlayerLauncherActions {
 

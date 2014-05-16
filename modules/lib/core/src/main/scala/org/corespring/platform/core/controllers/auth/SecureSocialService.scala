@@ -1,6 +1,6 @@
-package org.corespring.v2player.integration.securesocial
+package org.corespring.platform.core.controllers.auth
 
-import play.api.mvc.{ RequestHeader, Request, AnyContent }
+import play.api.mvc.RequestHeader
 import securesocial.core.Identity
 
 trait SecureSocialService {
