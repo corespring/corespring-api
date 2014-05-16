@@ -80,7 +80,7 @@ class SystemCheck(s3: CorespringS3Service) extends Controller {
       case timeout: String => BadRequest("timeout")
       case Right(_) => Ok
       case Left(error: CorespringInternalError) => InternalServerError(JsObject(Seq("error" -> JsString("a check failed"), "moreInfo" -> JsString(error.message))))
-      case Left(_) => BadRequest("..")
+      case Left(_) => BadRequest("An unknown error occured")
     }
   }
 }
