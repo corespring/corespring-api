@@ -3,13 +3,13 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.item.{TaskInfo,Alignments}
-import org.corespring.platform.core.models.item.{Content => CsContent}
+import org.corespring.platform.core.models.item.{ TaskInfo, Alignments }
+import org.corespring.platform.core.models.item.{ Content => CsContent }
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
@@ -25,9 +25,7 @@ import scala.Some
  * is common to routes associated for various Content subclasses. An implicit Writes for the Content subclass must be
  * provided so that the controller can serialize Content.
  */
-abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentService[ContentType, _])
-                                                    (implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
-
+abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentService[ContentType, _])(implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
 
   /** Subclasses must define the contentType of the Content in the database **/
   def contentType: String
@@ -51,11 +49,11 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
    * sorting.
    */
   def list(query: Option[String],
-           fields: Option[String],
-           count: String,
-           skip: Int,
-           limit: Int,
-           sort: Option[String]) = ApiAction {
+    fields: Option[String],
+    count: String,
+    skip: Int,
+    limit: Int,
+    sort: Option[String]) = ApiAction {
     implicit request =>
       val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
@@ -78,7 +76,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
    * </pre>
    */
   def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
-                   sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
+    sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
     val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
 
     contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
@@ -90,47 +88,44 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
   private def baseQuery = MongoDBObject("contentType" -> contentType)
 
   protected def countOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
-                              current: Boolean = true): JsValue = JsObject(Seq("count" -> JsNumber(count)))
-
+    current: Boolean = true): JsValue = JsObject(Seq("count" -> JsNumber(count)))
 
   protected def countAndListJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
-                                 current: Boolean = true): JsValue = {
+    current: Boolean = true): JsValue = {
     val contentViews: Seq[ContentView[ContentType]] = cursor.toList.map(ContentView(_, Some(searchFields)))
     JsObject(Seq("count" -> JsNumber(count), "data" -> toJson(contentViews)))
   }
 
   protected def contentOnlyJson(count: Int, cursor: SalatMongoCursor[ContentType], searchFields: SearchFields,
-                                current: Boolean = true): JsValue = {
+    current: Boolean = true): JsValue = {
     val contentViews: Seq[ContentView[ContentType]] = cursor.toList.map(ContentView[ContentType](_, Some(searchFields)))
     toJson(contentViews)
   }
 
-
   protected def contentList[A](q: Option[String],
-                               f: Option[String],
-                               sk: Int,
-                               l: Int,
-                               sort: Option[String],
-                               collections: Seq[ObjectId],
-                               current: Boolean = true,
-                               jsBuilder: (Int, SalatMongoCursor[ContentType], SearchFields, Boolean) => JsValue)
-                              (implicit request: ApiRequest[A]): Either[ApiError, JsValue] = {
+    f: Option[String],
+    sk: Int,
+    l: Int,
+    sort: Option[String],
+    collections: Seq[ObjectId],
+    current: Boolean = true,
+    jsBuilder: (Int, SalatMongoCursor[ContentType], SearchFields, Boolean) => JsValue)(implicit request: ApiRequest[A]): Either[ApiError, JsValue] = {
     if (collections.isEmpty) {
       Right(JsArray(Seq()))
     } else {
       val initSearch: MongoDBObject = baseQuery.iterator.toSeq
-        .foldLeft(service.createDefaultCollectionsQuery(collections, request.ctx.organization)){ (query, entry) =>
-        query ++ entry }
+        .foldLeft(service.createDefaultCollectionsQuery(collections, request.ctx.organization)) { (query, entry) =>
+          query ++ entry
+        }
 
       val queryResult: Either[SearchCancelled, DBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))
-      ) match {
+        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
         case Some(result) => result
         case None => Right(initSearch)
       }
 
-      val fieldResult: Either[InternalError, SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
+      val fieldResult: Either[CorespringInternalError, SearchFields] = f.map(fields => ItemSearch.toFieldsObj(fields)) match {
         case Some(result) => result
         case None => Right(SearchFields(method = 1))
       }

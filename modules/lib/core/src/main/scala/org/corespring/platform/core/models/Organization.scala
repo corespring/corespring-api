@@ -7,7 +7,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.platform.core.services.organization.OrganizationService
 import play.api.Play
@@ -50,7 +50,7 @@ trait OrganizationImpl
    * @param optParentId - the parent of the organization to be inserted or none if the organization is to be root of new tree
    * @return - the organization if successfully inserted, otherwise none
    */
-  def insert(org: Organization, optParentId: Option[ObjectId]): Either[InternalError, Organization] = {
+  def insert(org: Organization, optParentId: Option[ObjectId]): Either[CorespringInternalError, Organization] = {
     if (Play.isProd) org.id = new ObjectId()
     optParentId match {
       case Some(parentId) => {
@@ -60,10 +60,10 @@ trait OrganizationImpl
             org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value))
             insert(org) match {
               case Some(id) => Right(org)
-              case None => Left(InternalError("error inserting organization"))
+              case None => Left(CorespringInternalError("error inserting organization"))
             }
           }
-          case None => Left(InternalError("could not find parent given id"))
+          case None => Left(CorespringInternalError("could not find parent given id"))
         }
       }
       case None => {
@@ -71,7 +71,7 @@ trait OrganizationImpl
         org.contentcolls = org.contentcolls ++ ContentCollection.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value))
         insert(org) match {
           case Some(id) => Right(org)
-          case None => Left(InternalError("error inserting organization"))
+          case None => Left(CorespringInternalError("error inserting organization"))
         }
       }
     }
@@ -82,25 +82,25 @@ trait OrganizationImpl
    * @param orgId
    * @return
    */
-  def delete(orgId: ObjectId): Either[InternalError, Unit] = {
+  def delete(orgId: ObjectId): Either[CorespringInternalError, Unit] = {
     try {
       remove(MongoDBObject(path -> orgId))
       Right(())
     } catch {
-      case e: SalatRemoveError => Left(InternalError("failed to destroy organization tree", e))
+      case e: SalatRemoveError => Left(CorespringInternalError("failed to destroy organization tree", e))
     }
   }
 
-  def updateOrganization(org: Organization): Either[InternalError, Organization] = {
+  def updateOrganization(org: Organization): Either[CorespringInternalError, Organization] = {
     try {
       update(MongoDBObject("_id" -> org.id), MongoDBObject("$set" -> MongoDBObject(name -> org.name)),
         false, false, collection.writeConcern)
       findOneById(org.id) match {
         case Some(org) => Right(org)
-        case None => Left(InternalError("could not find organization that was just modified"))
+        case None => Left(CorespringInternalError("could not find organization that was just modified"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("unable to update organization", e))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("unable to update organization", e))
     }
   }
 
@@ -147,7 +147,7 @@ trait OrganizationImpl
         MongoDBObject(ContentCollRef.collectionId -> collRef.collectionId, ContentCollRef.pval -> collRef.pval)))).isDefined
   }
 
-  def removeCollection(orgId: ObjectId, collId: ObjectId): Either[InternalError, Unit] = {
+  def removeCollection(orgId: ObjectId, collId: ObjectId): Either[CorespringInternalError, Unit] = {
     findOneById(orgId) match {
       case Some(org) => {
         org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
@@ -155,10 +155,10 @@ trait OrganizationImpl
           update(MongoDBObject("_id" -> orgId), org, false, false, defaultWriteConcern)
           Right(())
         } catch {
-          case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+          case e: SalatDAOUpdateError => Left(CorespringInternalError(e.getMessage))
         }
       }
-      case None => Left(InternalError("could not find organization"))
+      case None => Left(CorespringInternalError("could not find organization"))
     }
   }
 
@@ -171,7 +171,7 @@ trait OrganizationImpl
     })
   }
 
-  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[InternalError, ContentCollRef] = {
+  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Either[CorespringInternalError, ContentCollRef] = {
     try {
       val collRef = new ContentCollRef(collId, p.value)
       if (!hasCollRef(orgId, collRef)) {
@@ -180,14 +180,14 @@ trait OrganizationImpl
           false, false, collection.writeConcern)
         Right(collRef)
       } else {
-        Left(InternalError("collection reference already exists"))
+        Left(CorespringInternalError("collection reference already exists"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError(e.getMessage))
     }
   }
 
-  def setCollectionEnabledStatus(orgId: ObjectId, collectionId: ObjectId, enabledState: Boolean): Either[InternalError, ContentCollRef] = {
+  def setCollectionEnabledStatus(orgId: ObjectId, collectionId: ObjectId, enabledState: Boolean): Either[CorespringInternalError, ContentCollRef] = {
     val orgOpt = findOneById(orgId)
     orgOpt match {
       case Some(org) =>
@@ -196,16 +196,16 @@ trait OrganizationImpl
           case Some(ref) =>
             ref.enabled = enabledState
             updateCollection(orgId, ref)
-          case None => Left(InternalError("collection reference not found"))
+          case None => Left(CorespringInternalError("collection reference not found"))
         }
 
-      case None => Left(InternalError("organization not found"))
+      case None => Left(CorespringInternalError("organization not found"))
     }
   }
 
-  def updateCollection(orgId: ObjectId, collRef: ContentCollRef): Either[InternalError, ContentCollRef] = {
+  def updateCollection(orgId: ObjectId, collRef: ContentCollRef): Either[CorespringInternalError, ContentCollRef] = {
     if (!hasCollRef(orgId, collRef)) {
-      Left(InternalError("can't update collection, it does not exist in this organization"))
+      Left(CorespringInternalError("can't update collection, it does not exist in this organization"))
     } else {
       // pull the old collection
       try {
@@ -216,7 +216,7 @@ trait OrganizationImpl
           false,
           collection.writeConcern)
       } catch {
-        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+        case e: SalatDAOUpdateError => Left(CorespringInternalError(e.getMessage))
       }
       // add the updated one
       try {
@@ -227,14 +227,14 @@ trait OrganizationImpl
           false,
           collection.writeConcern)
       } catch {
-        case e: SalatDAOUpdateError => Left(InternalError(e.getMessage))
+        case e: SalatDAOUpdateError => Left(CorespringInternalError(e.getMessage))
       }
 
       Right(collRef)
     }
   }
 
-  def getDefaultCollection(orgId: ObjectId): Either[InternalError, ContentCollection] = {
+  override def getDefaultCollection(orgId: ObjectId): Either[CorespringInternalError, ContentCollection] = {
     val collections = ContentCollection.getCollectionIds(orgId, Permission.Write, false);
     if (collections.isEmpty) {
       ContentCollection.insertCollection(orgId, ContentCollection(ContentCollection.DEFAULT, orgId), Permission.Write);

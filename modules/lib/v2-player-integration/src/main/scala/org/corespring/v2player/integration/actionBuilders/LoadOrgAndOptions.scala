@@ -1,9 +1,10 @@
 package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.controllers.auth.UserSession
 import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieReader, PlayerOptions }
-import play.api.mvc.{ RequestHeader, AnyContent, Request }
 import org.slf4j.LoggerFactory
+import play.api.mvc.RequestHeader
 
 trait LoadOrgAndOptions extends UserSession with V2PlayerCookieReader {
 

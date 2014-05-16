@@ -5,9 +5,13 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
-import org.corespring.api.v2.ItemSessionApi
+import org.corespring.api.v2.Bootstrap
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
@@ -48,11 +52,15 @@ object Global
 
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
-  lazy val v2ItemSessionApi = new ItemSessionApi {
-    override def sessionService = integration.mainSessionService
-  }
+  lazy val v2ApiBootstrap = new Bootstrap(
+    ItemServiceWired,
+    Organization,
+    AccessToken,
+    integration.mainSessionService,
+    UserServiceWired,
+    integration.mainSecureSocialService)
 
-  def controllers: Seq[Controller] = integration.controllers ++ Seq(v2ItemSessionApi)
+  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
@@ -75,7 +83,9 @@ object Global
       throwable.printStackTrace()
     }
 
-    Future { InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable)) }
+    Future {
+      InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+    }
   }
 
   private def applyFilter(f: Future[SimpleResult]): Future[SimpleResult] = f.map(_.withHeaders(Headers.AccessControlAllowEverything))

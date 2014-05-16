@@ -7,12 +7,12 @@ import org.corespring.platform.core.models.{ Subject, Standard }
 import scala.Left
 import scala.Right
 import scala.Some
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 
 object ItemSearch extends Searchable {
 
-  override protected def toFieldsObjInternal(dbfields: BasicDBObject, method: Int): Either[InternalError, SearchFields] = {
-    def toSearchFieldObj(searchFields: SearchFields, field: (String, AnyRef), addToFieldsObj: Boolean = true, dbkey: String = ""): Either[InternalError, SearchFields] = {
+  override protected def toFieldsObjInternal(dbfields: BasicDBObject, method: Int): Either[CorespringInternalError, SearchFields] = {
+    def toSearchFieldObj(searchFields: SearchFields, field: (String, AnyRef), addToFieldsObj: Boolean = true, dbkey: String = ""): Either[CorespringInternalError, SearchFields] = {
       if (field._2 == method) {
         if (addToFieldsObj) {
           //if(dbkey.isEmpty) field._1 else dbkey
@@ -21,11 +21,11 @@ object ItemSearch extends Searchable {
         searchFields.jsfields = searchFields.jsfields :+ field._1
         Right(searchFields)
       } else {
-        Left(InternalError("Wrong value for " + field._1 + ". Should have been " + method))
+        Left(CorespringInternalError("Wrong value for " + field._1 + ". Should have been " + method))
       }
     }
 
-    dbfields.foldRight[Either[InternalError, SearchFields]](Right(SearchFields(method = method)))((field, result) => result match {
+    dbfields.foldRight[Either[CorespringInternalError, SearchFields]](Right(SearchFields(method = method)))((field, result) => result match {
       case Right(searchFields) => {
         field._1 match {
           case "id" => toSearchFieldObj(searchFields, field)
@@ -64,14 +64,14 @@ object ItemSearch extends Searchable {
           case `description` => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + TaskInfo.Keys.description)
           case `published` => toSearchFieldObj(searchFields, field)
           case key if key.startsWith(extended) => toSearchFieldObj(searchFields, field, dbkey = taskInfo + "." + key)
-          case _ => Left(InternalError("unknown key contained in fields: " + field._1))
+          case _ => Left(CorespringInternalError("unknown key contained in fields: " + field._1))
         }
       }
       case Left(e) => Left(e)
     })
   }
 
-  private def preParseSubjects(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  private def preParseSubjects(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     val primarySubjectQuery = dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => field._1 match {
@@ -121,7 +121,7 @@ object ItemSearch extends Searchable {
     }
   }
 
-  private def preParseStandards(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  private def preParseStandards(dbquery: BasicDBObject)(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     dbquery.foldRight[Either[SearchCancelled, DBObject]](Right(DBObject()))((field, result) => {
       result match {
         case Right(searchobj) => field._1 match {
@@ -145,7 +145,7 @@ object ItemSearch extends Searchable {
       case Left(sc) => Left(sc)
     }
   }
-  override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[InternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
+  override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {
         case Right(query2) => {
@@ -175,7 +175,7 @@ object ItemSearch extends Searchable {
                 case `contentType` => Right(searchobj)
                 case `pValue` => formatQuery(pValue, field._2, searchobj)
                 case `relatedCurriculum` => formatQuery(otherAlignments + "." + Alignments.Keys.relatedCurriculum, field._2, searchobj)
-                case `supportingMaterials` => Left(SearchCancelled(Some(InternalError("cannot query on supportingMaterials"))))
+                case `supportingMaterials` => Left(SearchCancelled(Some(CorespringInternalError("cannot query on supportingMaterials"))))
                 case `gradeLevel` => formatQuery(taskInfo + "." + TaskInfo.Keys.gradeLevel, field._2, searchobj)
                 case `itemType` => formatQuery(taskInfo + "." + TaskInfo.Keys.itemType, field._2, searchobj)
                 case `keySkills` => formatQuery(otherAlignments + "." + Alignments.Keys.keySkills, field._2, searchobj)
@@ -189,7 +189,7 @@ object ItemSearch extends Searchable {
                 case `title` => formatQuery(taskInfo + "." + TaskInfo.Keys.title, field._2, searchobj)
                 case `description` => formatQuery(taskInfo + "." + TaskInfo.Keys.description, field._2, searchobj)
                 case key if key.startsWith(extended) => formatQuery(taskInfo + "." + key, field._2, searchobj)
-                case _ => Left(SearchCancelled(Some(InternalError("unknown key contained in query: " + field._1))))
+                case _ => Left(SearchCancelled(Some(CorespringInternalError("unknown key contained in query: " + field._1))))
               }
             }
             case Left(e) => Left(e)
@@ -201,11 +201,11 @@ object ItemSearch extends Searchable {
     }
   }
 
-  override protected def toSortObjInternal(field: (String, AnyRef)): Either[InternalError, DBObject] = {
-    def formatSortField(key: String, value: AnyRef): Either[InternalError, DBObject] = {
+  override protected def toSortObjInternal(field: (String, AnyRef)): Either[CorespringInternalError, DBObject] = {
+    def formatSortField(key: String, value: AnyRef): Either[CorespringInternalError, DBObject] = {
       value match {
         case intval: java.lang.Integer => Right(DBObject(key -> value))
-        case _ => Left(InternalError("sort value not a number"))
+        case _ => Left(CorespringInternalError("sort value not a number"))
       }
     }
     field._1 match {
@@ -242,7 +242,7 @@ object ItemSearch extends Searchable {
       case `collectionId` => formatSortField(collectionId, field._2)
       case `published` => formatSortField(published, field._2)
       case key if key.startsWith(extended) => formatSortField(taskInfo + "." + key, field._2)
-      case _ => Left(InternalError("unknown or invalid key contained in sort field"))
+      case _ => Left(CorespringInternalError("unknown or invalid key contained in sort field"))
     }
   }
 

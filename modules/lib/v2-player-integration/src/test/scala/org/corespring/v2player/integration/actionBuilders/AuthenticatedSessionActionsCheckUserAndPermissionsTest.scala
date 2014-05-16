@@ -14,7 +14,6 @@ import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieKeys, Mode, PlayerOptions }
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -27,6 +26,7 @@ import scala.Some
 import scalaz.Success
 import scalaz.Validation
 import securesocial.core._
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class AuthenticatedSessionActionsCheckUserAndPermissionsTest
   extends Specification

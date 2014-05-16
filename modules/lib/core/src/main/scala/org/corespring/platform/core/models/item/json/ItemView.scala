@@ -49,6 +49,7 @@ object ItemView {
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
         item.collectionId.map(collectionId -> JsString(_)),
+        item.playerDefinition.map("playerDefinition" -> Json.toJson(_)),
         Some(contentType -> JsString(Item.contentType)),
         Some(published -> JsBoolean(item.published)),
         Some("sessionCount" -> JsNumber(ItemServiceWired.sessionCount(item))))

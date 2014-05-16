@@ -6,10 +6,10 @@ import com.novus.salat._
 import com.novus.salat.dao._
 import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.search.{ItemSearch, Searchable}
+import org.corespring.platform.core.models.search.{ ItemSearch, Searchable }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
@@ -30,10 +30,10 @@ import com.mongodb.util.JSON
  *
  */
 case class ContentCollection(
-                              var name: String = "",
-                              var ownerOrgId: ObjectId,
-                              var isPublic: Boolean = false,
-                              var id: ObjectId = new ObjectId()) {
+  var name: String = "",
+  var ownerOrgId: ObjectId,
+  var isPublic: Boolean = false,
+  var id: ObjectId = new ObjectId()) {
   lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
@@ -49,7 +49,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Either[InternalError, ContentCollection] = {
+  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Either[CorespringInternalError, ContentCollection] = {
     //TODO: apply two-phase commit
     if (Play.isProd) coll.id = new ObjectId()
     try {
@@ -60,17 +60,17 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
             false, false, Organization.collection.writeConcern)
           Right(coll)
         } catch {
-          case e: SalatDAOUpdateError => Left(InternalError("failed to update organization with collection", e))
+          case e: SalatDAOUpdateError => Left(CorespringInternalError("failed to update organization with collection", e))
         }
-        case None => Left(InternalError("failed to insert content collection"))
+        case None => Left(CorespringInternalError("failed to insert content collection"))
       }
     } catch {
-      case e: SalatInsertError => Left(InternalError("failed to insert content collection", e))
+      case e: SalatInsertError => Left(CorespringInternalError("failed to insert content collection", e))
     }
   }
 
   //TODO if public content collection, use two-phase commit and add possibility for rollback
-  def updateCollection(coll: ContentCollection): Either[InternalError, ContentCollection] = {
+  def updateCollection(coll: ContentCollection): Either[CorespringInternalError, ContentCollection] = {
     try {
       ContentCollection.update(MongoDBObject("_id" -> coll.id), coll, false, false, ContentCollection.collection.writeConcern)
       if (coll.isPublic) {
@@ -80,10 +80,10 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
       }
       ContentCollection.findOneById(coll.id) match {
         case Some(coll) => Right(coll)
-        case None => Left(InternalError("could not find the collection that was just updated"))
+        case None => Left(CorespringInternalError("could not find the collection that was just updated"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(InternalError("failed to update collection", e))
+      case e: SalatDAOUpdateError => Left(CorespringInternalError("failed to update collection", e))
     }
   }
 
@@ -94,32 +94,32 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     id
   }
 
-  def delete(collId: ObjectId): Validation[InternalError, Unit] = {
+  def delete(collId: ObjectId): Validation[CorespringInternalError, Unit] = {
     //todo: roll backs after detecting error in organization update
     try {
       ContentCollection.removeById(collId)
       Organization.find(
         MongoDBObject(
           Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
-        .foldRight[Validation[InternalError, Unit]](Success(()))((org, result) => {
-        if (result.isSuccess) {
-          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-          try {
-            Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
-            val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
-            ItemServiceWired.find(query).foreach(item => {
-              ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
-            })
-            Success(())
-          } catch {
-            case e: SalatDAOUpdateError => Failure(InternalError(e.getMessage))
-          }
-        } else result
-      })
+        .foldRight[Validation[CorespringInternalError, Unit]](Success(()))((org, result) => {
+          if (result.isSuccess) {
+            org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+            try {
+              Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
+              val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
+              ItemServiceWired.find(query).foreach(item => {
+                ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+              })
+              Success(())
+            } catch {
+              case e: SalatDAOUpdateError => Failure(CorespringInternalError(e.getMessage))
+            }
+          } else result
+        })
 
     } catch {
-      case e: SalatDAOUpdateError => Failure(InternalError("failed to transfer collection to archive", e))
-      case e: SalatRemoveError => Failure(InternalError(e.getMessage))
+      case e: SalatDAOUpdateError => Failure(CorespringInternalError("failed to transfer collection to archive", e))
+      case e: SalatRemoveError => Failure(CorespringInternalError(e.getMessage))
     }
   }
 
@@ -151,7 +151,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @param collId
    * @return
    */
-  def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Either[InternalError, Unit] = {
+  def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Either[CorespringInternalError, Unit] = {
     val errors = orgs.map(org => Organization.addCollection(org._1, collId, org._2)).filter(_.isLeft)
     if (errors.size > 0) Left(errors(0).left.get)
     else Right(())
@@ -167,7 +167,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @param collId
    * @return
    */
-  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[CorespringInternalError, Seq[VersionedId[ObjectId]]] = {
     if (isAuthorized(orgId, collId, Permission.Write)) {
 
       if (items.isEmpty) {
@@ -201,17 +201,17 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
         })
         if (savedUnsavedItems._2.size > 0) {
           logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
-          Left(InternalError("failed to add items"))
+          Left(CorespringInternalError("failed to add items"))
         } else {
           logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
           Right(savedUnsavedItems._1)
         }
 
       } else {
-        Left(InternalError("items failed auth: " + itemsNotAuthorized.map(_.id)))
+        Left(CorespringInternalError("items failed auth: " + itemsNotAuthorized.map(_.id)))
       }
     } else {
-      Left(InternalError("organization does not have write permission on collection"))
+      Left(CorespringInternalError("organization does not have write permission on collection"))
     }
 
   }
@@ -224,7 +224,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @param collId
    * @return
    */
-  def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+  def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[CorespringInternalError, Seq[VersionedId[ObjectId]]] = {
 
     val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
     val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
@@ -242,7 +242,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
         shareItems(orgId, ids, collId)
       case Left(sc) => sc.error match {
         case None => Right(Seq())
-        case Some(error) => Left(InternalError(error.clientOutput.getOrElse("error processing search")))
+        case Some(error) => Left(CorespringInternalError(error.clientOutput.getOrElse("error processing search")))
       }
     }
   }
@@ -255,11 +255,11 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
    * @param collIds - sequence of collections to have the items removed from
    * @return
    */
-  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Either[InternalError, Seq[VersionedId[ObjectId]]] = {
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Either[CorespringInternalError, Seq[VersionedId[ObjectId]]] = {
     // make sure org has auth for all the collIds
     val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
     if (authorizedCollIds.size != collIds.size) {
-      Left(InternalError("authorization failed on collection(s)"))
+      Left(CorespringInternalError("authorization failed on collection(s)"))
     } else {
       val failedItems = items.filterNot(item => {
         try {
@@ -273,7 +273,7 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
         }
       })
       if (failedItems.size > 0) {
-        Left(InternalError("failed to unshare collections for items: " + failedItems))
+        Left(CorespringInternalError("failed to unshare collections for items: " + failedItems))
       } else {
         Right(items)
       }

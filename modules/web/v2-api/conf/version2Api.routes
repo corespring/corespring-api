@@ -1,1 +1,4 @@
-POST /items/:itemId/sessions @org.corespring.api.v2.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+
+POST /items/:itemId/sessions    @org.corespring.api.v2.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+
+POST /items                     @org.corespring.api.v2.ItemApi.create()

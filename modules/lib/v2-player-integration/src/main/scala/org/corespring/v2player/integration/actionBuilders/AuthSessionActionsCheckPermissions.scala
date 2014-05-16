@@ -7,13 +7,13 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.{ Mode, PlayerOptions }
-import org.corespring.v2player.integration.securesocial.SecureSocialService
 import play.api.mvc._
 import scala.Some
 import org.corespring.v2player.integration.errors.Errors.{ cantLoadSession, cantParseItemId }
 import org.corespring.v2player.integration.errors.V2Error
 import scalaz.Success
 import play.api.libs.json.Json
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 abstract class AuthItemCheckPermissions(
   secureSocialService: SecureSocialService,

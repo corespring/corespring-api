@@ -2,16 +2,15 @@ package org.corespring.player.accessControl.auth
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.AccessToken
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess.Mode
 import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{ JsString, Json }
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * An implementation of TokenizedRequestActionBuilder that grants access based on the requested access and render options.
@@ -47,7 +46,7 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
         o =>
           grantAccess(activeMode(request), ra, o) match {
             case Right(true) => invokeBlock
-            case Right(false) => Future(Unauthorized(Json.obj( "error" -> JsString("you can't access the items"))))
+            case Right(false) => Future(Unauthorized(Json.obj("error" -> JsString("you can't access the items"))))
             case Left(e) => Future(Unauthorized(Json.toJson(e.clientOutput)))
           }
       }.getOrElse(
@@ -57,13 +56,12 @@ abstract class CheckSession extends TokenizedRequestActionBuilder[RequestedAcces
             case true => handleSafari(request)
             case false => Future(BadRequest("Couldn't find options"))
           }
-        }
-      )
+        })
     }
 
   /**
    * Grant access for this request?
    */
-  def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[InternalError, Boolean]
+  def grantAccess(activeMode: Option[Mode.Mode], a: RequestedAccess, o: RenderOptions): Either[CorespringInternalError, Boolean]
 
 }

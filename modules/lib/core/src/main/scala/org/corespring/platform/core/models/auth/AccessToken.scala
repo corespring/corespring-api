@@ -7,7 +7,7 @@ import org.corespring.platform.core.models.Organization
 import org.joda.time.DateTime
 import play.api.Play.current
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -26,7 +26,12 @@ case class AccessToken(organization: ObjectId,
     !neverExpire && DateTime.now().isAfter(expirationDate)
   }
 }
-object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
+
+trait AccessTokenService {
+  def findByToken(token: String): Option[AccessToken]
+}
+
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
@@ -37,25 +42,25 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
 
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
-  def removeToken(tokenId: String): Either[InternalError, Unit] = {
+  def removeToken(tokenId: String): Either[CorespringInternalError, Unit] = {
     try {
       AccessToken.remove(MongoDBObject(AccessToken.tokenId -> tokenId))
       Right(())
     } catch {
-      case e: SalatRemoveError => Left(InternalError("error removing token with id " + tokenId, e))
+      case e: SalatRemoveError => Left(CorespringInternalError("error removing token with id " + tokenId, e))
     }
   }
-  def insertToken(token: AccessToken): Either[InternalError, AccessToken] = {
+  def insertToken(token: AccessToken): Either[CorespringInternalError, AccessToken] = {
     try {
       AccessToken.insert(token) match {
         case Some(id) => AccessToken.findOneById(id) match {
           case Some(dbtoken) => Right(dbtoken)
-          case None => Left(InternalError("could not retrieve token that was just inserted"))
+          case None => Left(CorespringInternalError("could not retrieve token that was just inserted"))
         }
-        case None => Left(InternalError("error occurred during insert"))
+        case None => Left(CorespringInternalError("error occurred during insert"))
       }
     } catch {
-      case e: SalatInsertError => Left(InternalError("error occurred during insert", e))
+      case e: SalatInsertError => Left(CorespringInternalError("error occurred during insert", e))
     }
 
   }
@@ -66,6 +71,8 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] {
    * @return returns an Option[AccessToken]
    */
   def findById(tokenId: String) = findOne(MongoDBObject(this.tokenId -> tokenId))
+
+  def findByToken(token: String) = findById(token)
 
   /**
    * Finds an access token by organization and scope

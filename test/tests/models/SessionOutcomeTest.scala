@@ -2,11 +2,11 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{SessionOutcome, ItemSession}
-import org.corespring.qti.models.responses.{ArrayResponse, StringResponse}
-import scalaz.{Failure, Success}
+import org.corespring.platform.core.models.itemSession.{ SessionOutcome, ItemSession }
+import org.corespring.qti.models.responses.{ ArrayResponse, StringResponse }
+import scalaz.{ Failure, Success }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.error.InternalError
+import org.corespring.platform.core.models.error.CorespringInternalError
 import play.api.libs.json._
 
 class SessionOutcomeTest extends Specification {
@@ -41,8 +41,7 @@ class SessionOutcomeTest extends Specification {
                 <inlineChoice identifier="2"/>
               </inlineChiceInteraction>
             </itemBody>
-          </assessmentItem>
-        )
+          </assessmentItem>)
 
       val itemSession = ItemSession(
         itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
@@ -99,8 +98,7 @@ class SessionOutcomeTest extends Specification {
            }
          };
          response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case Success(sessionOutcome: SessionOutcome) => {
@@ -147,8 +145,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -175,15 +172,13 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
         case _ => failure("Should have included isCorrect, but didn't")
       }
     }
-
 
     "return default value for isComplete when Javascript does not include it in response" in {
       val qtiItem = itemWithResponseJs(
@@ -203,8 +198,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -226,8 +220,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -253,8 +246,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -280,8 +272,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -307,8 +298,7 @@ class SessionOutcomeTest extends Specification {
             }
           };
           response;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
         case s: Success[_, _] => success
@@ -321,11 +311,10 @@ class SessionOutcomeTest extends Specification {
         """
           var score = 1;
           score;
-        """
-      )
+        """)
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
-        case s: Success[_,SessionOutcome] if s.getOrElse(null).score == 1 => success
+        case s: Success[_, SessionOutcome] if s.getOrElse(null).score == 1 => success
         case _ => failure("Did not set score from javascript number response")
       }
     }
@@ -350,7 +339,7 @@ class SessionOutcomeTest extends Specification {
       val qtiItem = QtiItem(
         <assessmentItem>
           <responseProcessing type="script">
-            <script type="text/javascript">{script}</script>
+            <script type="text/javascript">{ script }</script>
           </responseProcessing>
           <responseDeclaration identifier='badStepQuestion' cardinality='single' baseType='identifier'>
             <correctResponse>
@@ -360,16 +349,14 @@ class SessionOutcomeTest extends Specification {
           <itemBody>
             <inlineChoiceInteraction responseIdentifier='badStepQuestion'></inlineChoiceInteraction>
           </itemBody>
-        </assessmentItem>
-      )
+        </assessmentItem>)
 
       val itemSession = ItemSession(
         itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-        responses = Seq(StringResponse(id = "badStepQuestion", responseValue = "1"))
-      )
+        responses = Seq(StringResponse(id = "badStepQuestion", responseValue = "1")))
 
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
-        case s: Success[InternalError, SessionOutcome] => {
+        case s: Success[CorespringInternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
               sessionOutcome.isComplete === true
@@ -389,7 +376,7 @@ class SessionOutcomeTest extends Specification {
           }
 
         }
-        case f: Failure[InternalError, _] => failure
+        case f: Failure[CorespringInternalError, _] => failure
       }
     }
 
@@ -413,7 +400,7 @@ class SessionOutcomeTest extends Specification {
       val qtiItem = QtiItem(
         <assessmentItem>
           <responseProcessing type="script">
-            <script type="text/javascript">{script}</script>
+            <script type="text/javascript">{ script }</script>
           </responseProcessing>
           <responseDeclaration identifier='dragDropQuestion' cardinality='targeted' baseType='identifier'>
             <correctResponse>
@@ -433,15 +420,14 @@ class SessionOutcomeTest extends Specification {
               <landingPlace cardinality='single' identifier='target2'/>
             </dragAndDropInteraction>
           </itemBody>
-        </assessmentItem>
-      )
+        </assessmentItem>)
 
       val itemSession = ItemSession(
         itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
         responses = Seq(ArrayResponse(id = "dragDropQuestion", responseValue = Seq("target1:1", "target2:2"))),
         attempts = 1)
       SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
-        case s: Success[InternalError, SessionOutcome] => {
+        case s: Success[CorespringInternalError, SessionOutcome] => {
           s.getOrElse(null) match {
             case sessionOutcome: SessionOutcome => {
               sessionOutcome.isComplete === true
@@ -450,8 +436,8 @@ class SessionOutcomeTest extends Specification {
               sessionOutcome.identifierOutcomes.get("dragDropQuestion") match {
                 case Some(outcome) => {
                   outcome.isComplete === true
-                 outcome.isCorrect === true
-                 outcome.score === 1
+                  outcome.isCorrect === true
+                  outcome.score === 1
                   success
                 }
                 case _ => failure("No outcome for identifier dragDropQuestion")
@@ -460,7 +446,7 @@ class SessionOutcomeTest extends Specification {
             case _ => failure("No SessionOutcome")
           }
         }
-        case f: Failure[InternalError, _] => failure("There was an error processing the Javascript")
+        case f: Failure[CorespringInternalError, _] => failure("There was an error processing the Javascript")
       }
     }
 
@@ -489,8 +475,7 @@ class SessionOutcomeTest extends Specification {
 
     val itemSession = ItemSession(
       itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
-      responses = Seq(StringResponse(id = "Q_01", responseValue = "0"), StringResponse(id = "Q_02", responseValue = "1"))
-    )
+      responses = Seq(StringResponse(id = "Q_01", responseValue = "0"), StringResponse(id = "Q_02", responseValue = "1")))
 
     SessionOutcome.processSessionOutcome(itemSession, qtiItem, false) match {
       case Success(sessionOutcome: SessionOutcome) => {
@@ -540,7 +525,7 @@ class SessionOutcomeTest extends Specification {
         </responseDeclaration>
         <responseProcessing type="script">
           <script type="text/javascript">
-            {js}
+            { js }
           </script>
         </responseProcessing>
         <itemBody>
@@ -553,8 +538,7 @@ class SessionOutcomeTest extends Specification {
             <simpleChoice identifier='6' fixed='false'/>
           </choiceInteraction>
         </itemBody>
-      </asssessmentItem>
-    )
+      </asssessmentItem>)
 
     val session = ItemSession(
       itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
@@ -570,11 +554,9 @@ class SessionOutcomeTest extends Specification {
     }
   }
 
-
   "serializing outcome of extended text entry to JSON works" in {
 
     // Fix for: https://www.pivotaltracker.com/story/show/62473588
-
 
     val qtiItem = QtiItem(
       <asssessmentItem>
@@ -582,8 +564,7 @@ class SessionOutcomeTest extends Specification {
         <itemBody>
           <extendedTextInteraction responseIdentifier="RESPONSE" expectedLines="5"/>
         </itemBody>
-      </asssessmentItem>
-    )
+      </asssessmentItem>)
 
     val session = ItemSession(
       itemId = VersionedId("50180807e4b0b89ebc0153b0").get,
@@ -595,7 +576,7 @@ class SessionOutcomeTest extends Specification {
         try {
           Json.toJson(sessionOutcome)
         } catch {
-          case _ : Throwable => failure("exception was thrown when tried to serialize to outcome object")
+          case _: Throwable => failure("exception was thrown when tried to serialize to outcome object")
         }
         success
       }
@@ -607,7 +588,7 @@ class SessionOutcomeTest extends Specification {
     QtiItem(
       <assessmentItem>
         <responseProcessing type="script">
-          <script type="text/javascript">{js}</script>
+          <script type="text/javascript">{ js }</script>
         </responseProcessing>
         <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
           <correctResponse>
