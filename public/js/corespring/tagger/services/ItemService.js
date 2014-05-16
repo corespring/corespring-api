@@ -55,6 +55,22 @@ angular.module('tagger.services')
     }]);
 
 
+angular.module('tagger.services')
+    .factory('V2ItemService', [ '$http',
+    function($http){
+
+    function V2ItemService(){
+        this.create = function( data, onSuccess, onError ){
+            $http.post('/api/v2/items', data)
+              .success(onSuccess)
+              .error(onError);
+        }
+    }
+
+    return V2ItemService;
+
+
+    }]);
 
 angular.module('tagger.services')
     .factory('ItemService', [ '$resource', 'ServiceLookup', '$http',
@@ -80,26 +96,6 @@ angular.module('tagger.services')
             .success(successCallback)
             .error(onError);
     };
-
-    //******Item Versioning*************//
-//    ItemService.prototype.cloneAndIncrement = function(params, onSuccess, onError){
-//        var url = ServiceLookup.getUrlFor('itemIncrement').replace(":id",params.id);
-//        $http.get(url).success(onSuccess).error(onError)
-//    }
-//    ItemService.prototype.increment = function(params,onSuccess,onError){
-//        var url = ServiceLookup.getUrlFor('itemIncrement').replace(":id",params.id)
-//
-//        var dto = ItemService.processor.createDTO(this);
-//        $http.post(url,dto).success(function(resource){
-//            ItemService.processor.processIncomingData(resource);
-//            onSuccess(resource);
-//        }).error(onError)
-//    }
-//    ItemService.prototype.currentItem = function(params,onSuccess,onError){
-//        var url = "/api/v1/items/:id/current".replace(":id",params.id);
-//        $http.get(url).success(onSuccess).error(onError)
-//    }
-    //****************************//
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
         var idObject = angular.extend(paramsObject, {id:this.id});
