@@ -1,12 +1,17 @@
 package controllers
 
+import java.util.concurrent.TimeUnit
+
+import scala.{Right, Some}
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.ModelCompanion
-import java.util.concurrent.TimeUnit
-import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
+import org.corespring.assets.{CorespringS3Service, CorespringS3ServiceExtended}
 import org.corespring.platform.core.models._
-import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
+import org.corespring.platform.core.models.auth.{AccessToken, ApiClient}
 import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.models.itemSession.DefaultItemSession
@@ -14,18 +19,13 @@ import play.api.Play.current
 import play.api.cache.Cache
 import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.mvc.{ Action, Controller }
-import scala.Right
-import scala.Some
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
+import play.api.libs.json.{JsObject, JsString}
+import play.api.mvc.{Action, Controller}
 
 class SystemCheck(s3: CorespringS3Service) extends Controller {
   implicit val as = Akka.system
 
-  def checkCache(): Either[error.CorespringInternalError, Unit] = {
+  def checkCache(): Either[CorespringInternalError, Unit] = {
     Cache.set("test", "test")
     Cache.get("test") match {
       case Some(test) => if (test == "test") Right(())
