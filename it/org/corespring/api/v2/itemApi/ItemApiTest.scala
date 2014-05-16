@@ -21,8 +21,6 @@ class ItemApiTest extends IntegrationSpecification {
       def assertCall[A](r: FakeRequest[A], expectedStatus: Int = OK)(implicit wr: Writeable[A]) = {
         route(r).map { result =>
 
-          println(contentAsString(result))
-
           if (status(result) == OK) {
             val id = (contentAsJson(result) \ "id").as[String]
             ItemHelper.delete(VersionedId(id).get)
