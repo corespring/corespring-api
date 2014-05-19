@@ -36,7 +36,7 @@ class LoadPlayerJsThenLoadPlayerTest
 
     "allow me to create a session and load player" in new LoadJsAndCreateSessionAndLoadPlayer("allow 1", true) {
       status(loadPlayerResult) === OK
-      val expected = scala.io.Source.fromURL(Play.resource("/container-client/player.html").get).getLines.mkString("\n")
+      val expected = scala.io.Source.fromURL(Play.resource("/container-client/player.dev.html").get).getLines.mkString("\n")
       contentAsString(loadPlayerResult) === expected
     }
   }
