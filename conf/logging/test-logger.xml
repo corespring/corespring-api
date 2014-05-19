@@ -20,6 +20,7 @@
     <logger name="tests" level="ERROR" />
     <logger name="v2Api" level="TRACE" />
     <logger name="it" level="TRACE" />
+    <logger name="container" level="TRACE" />
 
 
     <root level="OFF">
