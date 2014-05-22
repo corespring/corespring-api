@@ -67,8 +67,6 @@ GET     /login                      securesocial.controllers.LoginPage.login
 GET     /logout                     common.controllers.UserSession.logout
 
 # User Registration
-GET     /signup                     securesocial.controllers.Registration.startSignUp
-POST    /signup                     developer.controllers.Developer.handleStartSignUp
 GET     /signup/:token              securesocial.controllers.Registration.signUp(token)
 POST    /signup/:token              developer.controllers.Developer.handleSignUp(token)
 GET     /reset                      securesocial.controllers.Registration.startResetPassword
