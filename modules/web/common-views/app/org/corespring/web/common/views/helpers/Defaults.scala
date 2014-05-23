@@ -29,7 +29,7 @@ object Defaults {
       val json: JsValue = writes.writes(fv)
       Json.stringify(json)
     }
-    case _ => ""
+    case _ => "{}"
   }
 
   lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
