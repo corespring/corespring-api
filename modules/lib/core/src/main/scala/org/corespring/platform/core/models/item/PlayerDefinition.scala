@@ -37,7 +37,7 @@ object PlayerDefinition {
           (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
           (json \ "components").as[JsValue],
-          (json \ "xhtml").as[String]))
+          (json \ "summaryFeedback").as[String]))
       }
       case _ => JsError("empty object")
     }
