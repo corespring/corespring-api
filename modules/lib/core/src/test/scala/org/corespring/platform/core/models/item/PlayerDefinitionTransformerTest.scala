@@ -24,9 +24,11 @@ class PlayerDefinitionTransformerTest extends Specification {
       new PlayerDefinition(
         Seq(VirtualFile("test.js", "text/javascript", false, "hello")),
         "",
-        Json.obj()),
+        Json.obj(),
+        ""),
       MongoDBObject(
         "xhtml" -> "",
+        "summaryFeedback" -> "",
         "components" -> MongoDBObject(),
         "files" -> unwrapDBList(MongoDBList(
           MongoDBObject(
@@ -43,9 +45,11 @@ class PlayerDefinitionTransformerTest extends Specification {
       new PlayerDefinition(
         Seq(StoredFile("test.js", "text/javascript", false, "key")),
         "",
-        Json.obj()),
+        Json.obj(),
+        ""),
       MongoDBObject(
         "xhtml" -> "",
+        "summaryFeedback" -> "",
         "components" -> MongoDBObject(),
         "files" -> unwrapDBList(MongoDBList(
           MongoDBObject(
@@ -59,11 +63,12 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize json" in new serialize(
-      new PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed"))),
+      new PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed")), ""),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "",
-        "components" -> MongoDBObject("2" -> MongoDBObject("name" -> "ed")))) {
+        "components" -> MongoDBObject("2" -> MongoDBObject("name" -> "ed")),
+        "summaryFeedback" -> "")) {
       serialized === dbo
       deserialized === pd
     }
