@@ -73,6 +73,28 @@ class PlayerDefinitionTransformerTest extends Specification {
       deserialized === pd
     }
 
+    "serialize + deserialize xhtml" in new serialize(
+      new PlayerDefinition(Nil, "<div>something</div>", Json.obj(), ""),
+      MongoDBObject(
+        "files" -> unwrapDBList(MongoDBList()),
+        "xhtml" -> "<div>something</div>",
+        "components" -> MongoDBObject(),
+        "summaryFeedback" -> "")) {
+      serialized === dbo
+      deserialized === pd
+    }
+
+    "serialize + deserialize summaryFeedback" in new serialize(
+      new PlayerDefinition(Nil, "", Json.obj(), "The show ended with a riot of feedbacking guitars."),
+      MongoDBObject(
+        "files" -> unwrapDBList(MongoDBList()),
+        "xhtml" -> "",
+        "components" -> MongoDBObject(),
+        "summaryFeedback" -> "The show ended with a riot of feedbacking guitars.")) {
+      serialized === dbo
+      deserialized === pd
+    }
+
   }
 
   class serialize(val pd: PlayerDefinition, val dbo: DBObject) extends Scope {
