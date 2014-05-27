@@ -16,17 +16,19 @@ import org.slf4j.LoggerFactory
  * @param files
  * @param xhtml
  * @param components
+ * @param summaryFeedback
  */
 
 object PlayerDefinition {
-  def apply(files: Seq[BaseFile], xhtml: String, components: JsValue) = new PlayerDefinition(files, xhtml, components)
+  def apply(files: Seq[BaseFile], xhtml: String, components: JsValue, summaryFeedback: String) = new PlayerDefinition(files, xhtml, components, summaryFeedback)
 
   implicit object Format extends Format[PlayerDefinition] {
     override def writes(o: PlayerDefinition): JsValue = {
       Json.obj(
         "xhtml" -> o.xhtml,
         "files" -> o.files.map(f => Json.toJson(f)),
-        "components" -> o.components)
+        "components" -> o.components,
+        "summaryFeedback" -> o.summaryFeedback)
     }
 
     override def reads(json: JsValue): JsResult[PlayerDefinition] = json match {
@@ -34,7 +36,8 @@ object PlayerDefinition {
         JsSuccess(new PlayerDefinition(
           (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
-          (json \ "components").as[JsValue]))
+          (json \ "components").as[JsValue],
+          (json \ "summaryFeedback").as[String]))
       }
       case _ => JsError("empty object")
     }
@@ -42,19 +45,20 @@ object PlayerDefinition {
 
 }
 
-class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue) {
-  override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}"""
+class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String) {
+  override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
 
   override def hashCode() = {
     new HashCodeBuilder(17, 31)
       .append(files)
       .append(xhtml)
       .append(components)
+      .append(summaryFeedback)
       .toHashCode
   }
 
   override def equals(other: Any) = other match {
-    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components)
+    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) && p.summaryFeedback == summaryFeedback
     case _ => false
   }
 }
@@ -82,6 +86,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "files" -> MongoDBList(preppedFiles: _*)
     builder += "xhtml" -> a.xhtml
     builder += "components" -> ToDBObject(a.components)
+    builder += "summaryFeedback" -> a.summaryFeedback
     builder.result()
   } catch {
     case e: Throwable => {
@@ -104,7 +109,8 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     new PlayerDefinition(
       prepped,
       b.get("xhtml").asInstanceOf[String],
-      json)
+      json,
+      b.get("summaryFeedback").asInstanceOf[String])
   } catch {
     case e: Throwable => {
       logger.error(e.getMessage)
