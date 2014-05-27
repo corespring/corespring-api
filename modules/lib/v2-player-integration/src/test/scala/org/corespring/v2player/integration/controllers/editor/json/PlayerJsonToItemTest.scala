@@ -54,7 +54,8 @@ class PlayerJsonToItemTest extends Specification {
           |    "1" : {
           |      "componentType" : "test-component"
           |    }
-          |  }
+          |  },
+          |  "summaryFeedback" : "some feedback"
           |}
         """.stripMargin
 
@@ -64,6 +65,7 @@ class PlayerJsonToItemTest extends Specification {
 
       update.playerDefinition.get.xhtml === "<div/>"
       (update.playerDefinition.get.components \ "1" \ "componentType").as[String] === "test-component"
+      update.playerDefinition.get.summaryFeedback === "some feedback"
 
     }
   }

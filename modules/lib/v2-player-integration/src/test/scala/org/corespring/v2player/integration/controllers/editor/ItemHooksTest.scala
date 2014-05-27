@@ -29,7 +29,8 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   val emptyItemJson = Json.obj(
     "profile" -> Json.obj(),
     "components" -> Json.obj(),
-    "xhtml" -> "<div/>")
+    "xhtml" -> "<div/>",
+    "summaryFeedback" -> "")
 
   abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
     val item: Option[Item] = None,

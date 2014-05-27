@@ -41,7 +41,8 @@ trait ItemApi extends Controller {
   lazy val defaultPlayerDefinition = Json.obj(
     "components" -> Json.obj(),
     "files" -> JsArray(Seq.empty),
-    "xhtml" -> "<div></div>")
+    "xhtml" -> "<div></div>",
+    "summaryFeedback" -> "")
 
   private def addIfNeeded[T](json: JsObject, prop: String, defaultValue: JsValue)(implicit r: Format[T]): JsObject = {
     (json \ prop).asOpt[T]

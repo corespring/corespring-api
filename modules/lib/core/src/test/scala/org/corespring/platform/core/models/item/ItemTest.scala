@@ -38,7 +38,8 @@ class ItemTest extends BaseTest {
         "playerDefinition" -> Json.obj(
           "files" -> JsArray(Seq()),
           "xhtml" -> "<div/>",
-          "components" -> Json.obj("3" -> Json.obj("componentType" -> "type"))))
+          "components" -> Json.obj("3" -> Json.obj("componentType" -> "type")),
+          "summaryFeedback" -> ""))
       val item = json.as[Item]
       item.playerDefinition.isDefined === true
     }
