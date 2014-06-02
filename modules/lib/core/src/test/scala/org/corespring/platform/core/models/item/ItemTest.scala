@@ -122,13 +122,16 @@ class ItemTest extends BaseTest {
     }
 
     "parse contributor details" in {
+      val additionalCopyright = AdditionalCopyright(Some("author"),Some("owner"),Some("year"),Some("license"),Some("mediaType"),Some("sourceUrl"))
       val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"), Some("imageName.png"))
       val contributorDetails = ContributorDetails(
+        additionalCopyrights = List(additionalCopyright),
         copyright = Some(copyright),
         costForResource = Some(10),
         author = Some("Ed"))
       val item = Item(contributorDetails = Some(contributorDetails))
       val json = Json.toJson(item)
+      (json \ "additionalCopyrights").asOpt[Seq[AdditionalCopyright]].get(0) must equalTo(additionalCopyright)
       (json \ Keys.copyrightOwner).asOpt[String] must equalTo(Some("Ed"))
       (json \ Keys.copyrightYear).asOpt[String] must equalTo(Some("2001"))
       (json \ Keys.copyrightExpirationDate).asOpt[String] must equalTo(Some("3000"))
@@ -139,6 +142,7 @@ class ItemTest extends BaseTest {
       (json \ Keys.sourceUrl).asOpt[String] must beNone
 
       val parsedItem = json.as[Item]
+      parsedItem.contributorDetails.get.additionalCopyrights(0) must equalTo(additionalCopyright)
       parsedItem.contributorDetails.get.copyright.get.owner must equalTo(Some("Ed"))
       parsedItem.contributorDetails.get.copyright.get.year must equalTo(Some("2001"))
       parsedItem.contributorDetails.get.copyright.get.expirationDate must equalTo(Some("3000"))

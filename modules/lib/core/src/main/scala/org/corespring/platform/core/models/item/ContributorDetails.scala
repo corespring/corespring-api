@@ -2,26 +2,29 @@ package org.corespring.platform.core.models.item
 
 import play.api.libs.json._
 import org.corespring.platform.core.models.json.JsonValidationException
+import play.api.Logger
 
 case class ContributorDetails(
-  var contributor: Option[String] = None,
-  var credentials: Option[String] = None,
-  var copyright: Option[Copyright] = None,
+  var additionalCopyrights: Seq[AdditionalCopyright] = Seq(),
   var author: Option[String] = None,
-  var sourceUrl: Option[String] = None,
+  var contributor: Option[String] = None,
+  var copyright: Option[Copyright] = None,
+  var costForResource: Option[Int] = None,
+  var credentials: Option[String] = None,
   var licenseType: Option[String] = None,
-  var costForResource: Option[Int] = None)
+  var sourceUrl: Option[String] = None)
 
 object ContributorDetails extends ValueGetter {
 
   object Keys {
+    val additionalCopyrights = "additionalCopyrights"
     val author = "author"
-    val credentials = "credentials"
     val contributor = "contributor"
     val copyright = "copyright"
-    val sourceUrl = "sourceUrl"
-    val licenseType = "licenseType"
     val costForResource = "costForResource"
+    val credentials = "credentials"
+    val licenseType = "licenseType"
+    val sourceUrl = "sourceUrl"
   }
 
   //implicit val Formats = Json.format[ContributorDetails]
@@ -31,6 +34,7 @@ object ContributorDetails extends ValueGetter {
 
     def reads(json: JsValue): JsResult[ContributorDetails] = {
       JsSuccess(ContributorDetails(
+        additionalCopyrights = (json \ additionalCopyrights).asOpt[Seq[AdditionalCopyright]].getOrElse(Seq()),
         author = (json \ author).asOpt[String],
         contributor = (json \ contributor).asOpt[String],
         costForResource = (json \ costForResource).asOpt[Int],
@@ -49,6 +53,7 @@ object ContributorDetails extends ValueGetter {
     def writes(details: ContributorDetails): JsValue = {
 
       val s: Seq[Option[(String, JsValue)]] = Seq(
+        Some(additionalCopyrights -> Json.toJson(details.additionalCopyrights)),
         details.author.map((author -> JsString(_))),
         details.contributor.map((contributor -> JsString(_))),
         details.costForResource.map((costForResource -> JsNumber(_))),
