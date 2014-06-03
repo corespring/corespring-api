@@ -147,7 +147,7 @@ trait ItemHooks
 
   private def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
 
-    val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "")
+    val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj())
     val item = models.item.Item(
       collectionId = Some(collectionId),
       playerDefinition = Some(definition))

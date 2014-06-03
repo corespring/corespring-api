@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
  */
 
 object PlayerDefinition {
-  def apply(files: Seq[BaseFile], xhtml: String, components: JsValue, summaryFeedback: String) = new PlayerDefinition(files, xhtml, components, summaryFeedback)
+  def apply(files: Seq[BaseFile], xhtml: String, components: JsValue, summaryFeedback: Option[String] = None) = new PlayerDefinition(files, xhtml, components, summaryFeedback)
 
   implicit object Format extends Format[PlayerDefinition] {
     override def writes(o: PlayerDefinition): JsValue = {
@@ -37,7 +37,7 @@ object PlayerDefinition {
           (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
           (json \ "components").as[JsValue],
-          (json \ "summaryFeedback").as[String]))
+          (json \ "summaryFeedback").asOpt[String]))
       }
       case _ => JsError("empty object")
     }
@@ -45,7 +45,7 @@ object PlayerDefinition {
 
 }
 
-class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String) {
+class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: Option[String] = None) {
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
 
   override def hashCode() = {
@@ -86,7 +86,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "files" -> MongoDBList(preppedFiles: _*)
     builder += "xhtml" -> a.xhtml
     builder += "components" -> ToDBObject(a.components)
-    builder += "summaryFeedback" -> a.summaryFeedback
+    a.summaryFeedback.map(builder += "summaryFeedback" -> _)
     builder.result()
   } catch {
     case e: Throwable => {
@@ -110,7 +110,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
       prepped,
       b.get("xhtml").asInstanceOf[String],
       json,
-      b.get("summaryFeedback").asInstanceOf[String])
+      b.getAs[String]("summaryFeedback"))
   } catch {
     case e: Throwable => {
       logger.error(e.getMessage)
