@@ -67,13 +67,7 @@ The application will run without any configuration by using a set of default val
 These values essentially run the app in development mode, by using the local db
 and reseeding the data.
 
-When deploying the application to heroku we override some of these variables.
-
-This is done using the [heroku-helper](https://github.com/corespring/heroku-helper).
-See that project for more documentation. In an nutshell the helper uses 2 files:
-
-* .heroku-helper.conf - allows you to configure scripts to run as part of deployment
-* .heroku-helper-env.conf - set up env vars for a given heroku server (not under source control).
+When deploying the application to heroku we override some of these variables using env vars.
 
 ### IntelliJ Configuration
 
