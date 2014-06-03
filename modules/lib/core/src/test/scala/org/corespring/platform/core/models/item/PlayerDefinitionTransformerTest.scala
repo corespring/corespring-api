@@ -21,14 +21,12 @@ class PlayerDefinitionTransformerTest extends Specification {
 
     "serialize + deserialize with virtual files" in new serialize(
 
-      new PlayerDefinition(
+      PlayerDefinition(
         Seq(VirtualFile("test.js", "text/javascript", false, "hello")),
         "",
-        Json.obj(),
-        ""),
+        Json.obj()),
       MongoDBObject(
         "xhtml" -> "",
-        "summaryFeedback" -> "",
         "components" -> MongoDBObject(),
         "files" -> unwrapDBList(MongoDBList(
           MongoDBObject(
@@ -42,14 +40,12 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize with stored files" in new serialize(
-      new PlayerDefinition(
+      PlayerDefinition(
         Seq(StoredFile("test.js", "text/javascript", false, "key")),
         "",
-        Json.obj(),
-        ""),
+        Json.obj()),
       MongoDBObject(
         "xhtml" -> "",
-        "summaryFeedback" -> "",
         "components" -> MongoDBObject(),
         "files" -> unwrapDBList(MongoDBList(
           MongoDBObject(
@@ -63,34 +59,42 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize json" in new serialize(
-      new PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed")), ""),
+      PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed"))),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "",
-        "components" -> MongoDBObject("2" -> MongoDBObject("name" -> "ed")),
-        "summaryFeedback" -> "")) {
+        "components" -> MongoDBObject("2" -> MongoDBObject("name" -> "ed")))) {
       serialized === dbo
       deserialized === pd
     }
 
     "serialize + deserialize xhtml" in new serialize(
-      new PlayerDefinition(Nil, "<div>something</div>", Json.obj(), ""),
+      PlayerDefinition(Nil, "<div>something</div>", Json.obj()),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "<div>something</div>",
-        "components" -> MongoDBObject(),
-        "summaryFeedback" -> "")) {
+        "components" -> MongoDBObject())) {
       serialized === dbo
       deserialized === pd
     }
 
     "serialize + deserialize summaryFeedback" in new serialize(
-      new PlayerDefinition(Nil, "", Json.obj(), "The show ended with a riot of feedbacking guitars."),
+      PlayerDefinition(Nil, "", Json.obj(), Some("The show ended with a riot of feedbacking guitars.")),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "",
         "components" -> MongoDBObject(),
         "summaryFeedback" -> "The show ended with a riot of feedbacking guitars.")) {
+      serialized === dbo
+      deserialized === pd
+    }
+
+    "serialize + deserialize without summaryFeedback" in new serialize(
+      new PlayerDefinition(Nil, "", Json.obj()),
+      MongoDBObject(
+        "files" -> unwrapDBList(MongoDBList()),
+        "xhtml" -> "",
+        "components" -> MongoDBObject())) {
       serialized === dbo
       deserialized === pd
     }
