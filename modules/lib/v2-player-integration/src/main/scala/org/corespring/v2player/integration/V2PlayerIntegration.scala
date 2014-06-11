@@ -1,42 +1,40 @@
 package org.corespring.v2player.integration
 
-import securesocial.core.{ SecureSocial, Identity }
+import scala.Some
+import scala.concurrent.ExecutionContext
+
 import com.mongodb.casbah.MongoDB
-import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
+import org.corespring.amazon.s3.{ConcreteS3Service, S3Service}
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.component._
-import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQuery, ComponentSets, Assets }
+import org.corespring.container.client.controllers.{Assets, ComponentSets, DataQuery => ContainerDataQuery}
 import org.corespring.container.components.model.Component
 import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.{ Subject, Organization }
-import org.corespring.platform.core.models.item.{ FieldValue, Item }
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.core.controllers.auth.SecureSocialService
+import org.corespring.platform.core.models.{Organization, Subject}
+import org.corespring.platform.core.models.item.{FieldValue, Item}
+import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.services.{QueryService, SubjectQueryService, UserService, UserServiceWired}
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.core.services.{ SubjectQueryService, QueryService, UserService, UserServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.actionBuilders._
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.controllers.{ DataQuery, DefaultPlayerLauncherActions }
+import org.corespring.v2player.integration.controllers.{DataQuery, DefaultPlayerLauncherActions}
+import org.corespring.v2player.integration.controllers.catalog.{AuthCatalogActions, CatalogActions}
 import org.corespring.v2player.integration.controllers.editor._
-import org.corespring.v2player.integration.controllers.player.{ PlayerActions, SessionActions }
+import org.corespring.v2player.integration.controllers.player.{PlayerActions, SessionActions}
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.Logger
+import play.api.{Configuration, Logger, Mode, Play}
 import play.api.cache.Cached
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.JsValue
 import play.api.mvc._
-import play.api.{ Mode, Play, Configuration }
-import scala.Some
-import scalaz.Failure
-import scalaz.Success
-import scalaz.Validation
-import org.corespring.assets.CorespringS3Service
-import scala.concurrent.ExecutionContext
-import org.corespring.v2player.integration.controllers.catalog.{ AuthCatalogActions, CatalogActions }
-import org.corespring.platform.core.controllers.auth.SecureSocialService
+import scalaz.{Failure, Success, Validation}
+import securesocial.core.{Identity, SecureSocial}
+import org.corespring.container.components.model.dependencies.DependencyResolver
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -138,10 +136,13 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def s3: S3Service = playS3
     }
-
   }
 
   lazy val componentUrls: ComponentSets = new ComponentSets {
+
+    override def dependencyResolver: DependencyResolver = new DependencyResolver {
+      override def components: Seq[Component] = comps
+    }
 
     override def allComponents: Seq[Component] = comps
 
