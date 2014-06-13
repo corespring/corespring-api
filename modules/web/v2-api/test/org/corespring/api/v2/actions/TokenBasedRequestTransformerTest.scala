@@ -1,9 +1,11 @@
 package org.corespring.api.v2.actions
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.services.{OrgService, TokenService}
+import org.corespring.api.v2.services.OrgService
 import org.corespring.platform.core.models.Organization
 import org.corespring.test.PlaySingleton
+import org.corespring.v2.auth.TokenBasedRequestTransformer
+import org.corespring.v2.auth.services.TokenService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -18,7 +20,7 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
   "TokenBasedRequestTransformer" should {
 
     class scope[A](val org: Option[Organization] = None,
-                   val defaultCollection: Option[ObjectId] = None) extends Scope {
+      val defaultCollection: Option[ObjectId] = None) extends Scope {
 
       val transformer = new TokenBasedRequestTransformer[A] {
         override def tokenService: TokenService = {
@@ -49,8 +51,7 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
       Some(Organization()),
-      Some(ObjectId.get)
-    ) {
+      Some(ObjectId.get)) {
       transformer.apply(FakeRequest("", "?access_token=blah")).map { or =>
         or.defaultCollection === defaultCollection.get
         or.orgId === org.get.id

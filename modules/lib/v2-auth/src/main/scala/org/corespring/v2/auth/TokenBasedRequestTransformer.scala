@@ -1,29 +1,26 @@
-package org.corespring.api.v2.actions
+package org.corespring.v2.auth
 
-import org.corespring.api.v2.services.{OrgService, TokenService}
 import org.corespring.platform.core.controllers.auth.TokenReader
+import org.corespring.platform.core.models.Organization
 import org.slf4j.LoggerFactory
-import play.api.mvc.Request
+import play.api.mvc.{ Request, RequestHeader }
 
-trait TokenBasedRequestTransformer[A]
-  extends RequestTransformer[A, OrgRequest[A]]
+trait TokenBasedRequestTransformer[A, B]
+  extends RequestTransformer[A, B]
   with TokenReader {
 
   private lazy val logger = LoggerFactory.getLogger("v2Api.TokenRequestTransformer")
 
+  def data(rh: RequestHeader, org: Organization): B
   def tokenService: TokenService
 
-  def orgService: OrgService
-
-  override def apply(rh: Request[A]): Option[OrgRequest[A]] = {
+  override def apply(rh: Request[A]): Option[B] = {
 
     def onToken(token: String) = {
       val result = for {
         org <- tokenService.orgForToken(token)
-        dc <- orgService.defaultCollection(org)
       } yield {
-        logger.trace(s"return org request for org: ${org.id}")
-        OrgRequest[A](rh, org.id, dc)
+        data(rh, org)
       }
       result
     }
