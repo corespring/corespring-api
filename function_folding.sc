@@ -1,18 +1,43 @@
+type PF = PartialFunction[String, Option[String]]
 
-val a : (String => String) = (a : String) => { a + "!"}
-val b : (String => String) = (a : String) => { a + "?"}
+val a : PartialFunction[String,Option[String]] =  {case (s:String) => Some(s + "a")}
+val b : PartialFunction[String,Option[String]] =  {case (s:String) => Some(s + "b")}
+val c : PartialFunction[String,Option[String]] =  {case (s:String) => Some(s + "c")}
+val d : PartialFunction[String,Option[String]] =  {case (s:String) => Some(s + "d")}
+val y : PartialFunction[String,Option[String]] = {case _ => None}
 
-val c : (String => Option[String]) = (a:String) => None
-val d : (String => Option[String]) = (a:String) => Some("!!")
+def aa(s:String) = Some(s + "a")
+def bb(s:String) = Some(s + "b")
+def cc(s:String) = None
+
+def foldFn(a:PF,b:PF) = a.orElse(b)
+
+Seq(a).fold[PF](y)(foldFn)("hello")
+Seq(a,b).fold[PF](y)(foldFn)("hello")
+Seq(y).fold[PF](a)(foldFn)("hello")
+
+(a orElse b orElse c)("hello")
+(y orElse b orElse c)("hello")
+
+var r = None
+
+Seq(1,3,4).foreach{ n => if(r.isDefined) r else Some(n)}
 
 
-val seq = Seq(a,b)
+Seq(aa _, bb _).foldLeft[Option[String]](None){(acc, fn) =>
 
-val folded = seq.foldRight("input"){ (fn1, fn2) =>
-
-  fn()
-  (fn1).andThen(fn2)
-
+  if(acc.isDefined){
+    acc
+  } else {
+    fn("s")
+  }
 }
-println("............")
-folded("hello")
+
+Seq(cc _, cc _, bb _).foldLeft[Option[String]](None){(acc, fn) =>
+
+  if(acc.isDefined){
+    acc
+  } else {
+    fn("s")
+  }
+}

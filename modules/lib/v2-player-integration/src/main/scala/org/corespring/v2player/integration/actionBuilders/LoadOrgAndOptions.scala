@@ -17,20 +17,27 @@ trait LoadOrgAndOptions extends UserSession with V2PlayerCookieReader {
 
   def toOrgId(apiClientId: String): Option[ObjectId]
 
-  private def fromUserSession(r: RequestHeader): Option[OrgAndOpts] = userFromSession(r).map(
-    u => {
-      logger.trace(s"found user: $u")
-      (u.org.orgId, PlayerOptions.ANYTHING)
-    })
+  private def fromUserSession(r: RequestHeader): Option[OrgAndOpts] = {
+    logger.trace("Try from user session")
+    userFromSession(r).map(
+      u => {
+        logger.trace(s"found user: $u")
+        (u.org.orgId, PlayerOptions.ANYTHING)
+      })
+  }
 
-  private def fromCookies(r: RequestHeader): Option[OrgAndOpts] = for {
-    orgId <- orgIdFromCookie(r)
-    options <- renderOptions(r)
-  } yield {
-    (new ObjectId(orgId), options)
+  private def fromCookies(r: RequestHeader): Option[OrgAndOpts] = {
+    logger.trace("Try from cookies")
+    for {
+      orgId <- orgIdFromCookie(r)
+      options <- renderOptions(r)
+    } yield {
+      (new ObjectId(orgId), options)
+    }
   }
 
   private def fromQueryParams(r: RequestHeader): Option[OrgAndOpts] = {
+    logger.trace("Try from query params")
     for {
       apiClientId <- r.getQueryString("apiClient")
       encryptedOptions <- r.getQueryString("options")
@@ -46,29 +53,19 @@ trait LoadOrgAndOptions extends UserSession with V2PlayerCookieReader {
     fromQueryParams
   )
 
-  def getOrgIdAndOptions(request: RequestHeader): Option[(ObjectId, PlayerOptions)] = {
+  def transformer : CoreTransformer[RequestHeader,OrgAndOpts]
 
-    finders.tail.foldRight[RequestToOrgAndOpts](finders.head){ (fn : RequestToOrgAndOpts, accFn : RequestToOrgAndOpts) =>
-      (fn _) andThen (accFn _)
+  /**
+   * TODO: There seems like there is crossover her with <code>RequestTransformer</code>. Should look to centralize.
+   * @param request
+   * @return
+   */
+  def getOrgIdAndOptions(request: RequestHeader): Option[OrgAndOpts] = { transformer(request)}
+
+  /*finders.foldLeft[Option[OrgAndOpts]](None){ (acc, fn) => acc match {
+      case Some(o) => Some(o)
+      case _ => fn(request)
     }
-
-    finders.foldRight(None)
-    logger.trace(s"[getOrgIdAndOptions]: ${request.cookies}")
-    userFromSession(request).map(
-      u => {
-        logger.trace(s"found user: $u")
-        (u.org.orgId, PlayerOptions.ANYTHING)
-      }) orElse anonymousUser(request)
-  }
-
-  def anonymousUser(request: RequestHeader): Option[(ObjectId, PlayerOptions)] = {
-    logger.trace(s"parse anonymous user")
-    for {
-      orgId <- orgIdFromCookie(request)
-      options <- renderOptions(request)
-    } yield {
-      (new ObjectId(orgId), options)
-    }
-  }
+  }*/
 }
 

@@ -1,9 +1,9 @@
 package org.corespring.api.v2.actions
 
-import play.api.mvc._
-import scala.concurrent.{ ExecutionContext, Future }
-import play.api.mvc.SimpleResult
 import org.slf4j.LoggerFactory
+import play.api.mvc._
+
+import scala.concurrent.{Future, ExecutionContext}
 
 trait CompoundAuthenticated[A] extends V2ApiActions[A] with Controller {
 

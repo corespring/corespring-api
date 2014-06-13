@@ -136,12 +136,17 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
+  /**
+   * All authentication code for v2 api + player/editor
+   */
+  val v2Auth = builders.lib("v2-auth")
+      .dependsOn(core)
+
   val v2Api = builders.web("v2-api")
     .settings(
-
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
-    .dependsOn(core % "test->test;compile->compile")
+    .dependsOn(v2Auth,core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -163,7 +168,7 @@ object Build extends sbt.Build {
       containerClientWeb,
       componentLoader,
       componentModel,
-      mongoJsonService)).dependsOn(core % "test->test;compile->compile", playerLib, devTools)
+      mongoJsonService)).dependsOn(v2Auth, core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
