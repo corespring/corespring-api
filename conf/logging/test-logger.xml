@@ -9,7 +9,7 @@
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder><pattern>%coloredLevel [%logger{10}] %message%n%xException{5}</pattern></encoder>
+        <encoder><pattern>%coloredLevel [%logger{20}] %message%n%xException{5}</pattern></encoder>
     </appender>
 
     <logger name="play" level="ERROR" />
@@ -19,6 +19,7 @@
     <logger name="assets-loader" level="ERROR" />
     <logger name="tests" level="ERROR" />
     <logger name="v2Api" level="TRACE" />
+    <logger name="v2player" level="TRACE" />
     <logger name="it" level="TRACE" />
     <logger name="container" level="TRACE" />
 

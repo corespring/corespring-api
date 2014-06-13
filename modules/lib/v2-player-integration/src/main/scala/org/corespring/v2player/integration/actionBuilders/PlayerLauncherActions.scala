@@ -40,7 +40,7 @@ abstract class PlayerLauncherActions(
 
   def toOrgId(apiClientId: String): Option[ObjectId]
 
-  protected def getOrgIdAndOptions(request: Request[AnyContent]): Validation[LaunchError, (ObjectId, PlayerOptions)] = {
+  /*protected def getOrgIdAndOptions(request: Request[AnyContent]): Validation[LaunchError, (ObjectId, PlayerOptions)] = {
 
     userFromSession(request).map {
       u =>
@@ -54,7 +54,7 @@ abstract class PlayerLauncherActions(
         playerOptions <- PlayerOptions.fromJson(decryptedOptions).toSuccess(badJson)
       } yield (orgId, playerOptions)
     }
-  }
+  }*/
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   override def sumSession(s: Session, keyValues: (String, String)*): Session = {
@@ -71,13 +71,14 @@ abstract class PlayerLauncherActions(
 
   private def loadJs(block: PlayerJsRequest[AnyContent] => Result): Action[AnyContent] = Action {
     request =>
-      getOrgIdAndOptions(request) match {
+        Ok("")
+      /*getOrgIdAndOptions(request) match {
         case Success((orgId, opts)) => {
           val newSession = sumSession(request.session, playerCookies(orgId, Some(opts)): _*)
           block(new PlayerJsRequest(opts.secure, request)).withSession(newSession)
         }
         case Failure(error) => block(new PlayerJsRequest(false, request, Seq(error.message)))
-      }
+      }*/
 
   }
 }
