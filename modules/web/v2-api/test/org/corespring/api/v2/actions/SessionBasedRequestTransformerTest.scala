@@ -1,11 +1,12 @@
 package org.corespring.api.v2.actions
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.services.OrgService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.{Organization, User}
 import org.corespring.platform.core.services.UserService
 import org.corespring.test.PlaySingleton
+import org.corespring.v2.auth.SessionBasedRequestTransformer
+import org.corespring.v2.auth.services.OrgService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

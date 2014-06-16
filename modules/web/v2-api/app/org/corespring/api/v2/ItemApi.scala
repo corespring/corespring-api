@@ -12,6 +12,7 @@ import org.corespring.api.v2.services._
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.v2.auth.services.OrgService
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import play.api.mvc._

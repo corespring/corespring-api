@@ -1,7 +1,7 @@
-package org.corespring.api.v2.services
+package org.corespring.v2.auth.services
 
-import org.corespring.platform.core.models.Organization
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.Organization
 
 trait OrgService {
 

@@ -1,5 +1,7 @@
 package org.corespring.api.v2
 
+import org.corespring.v2.auth.services.OrgService
+
 import scala.Some
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
