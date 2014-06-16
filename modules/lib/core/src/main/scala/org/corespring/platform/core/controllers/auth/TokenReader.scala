@@ -24,9 +24,7 @@ trait TokenReader {
 
     def tokenInHeader: Option[Either[E, String]] = {
       request.headers.get(AuthorizationHeader).map { h =>
-        println(s"> h: $h")
         val split = h.split(Space).toSeq
-        println(s"split: $split")
 
         split match {
           case Seq(Bearer, token) => Right(token)
