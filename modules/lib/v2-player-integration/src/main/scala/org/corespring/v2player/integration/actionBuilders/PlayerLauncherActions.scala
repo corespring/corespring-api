@@ -1,16 +1,13 @@
 package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions.PlayerJsRequest
-import org.corespring.container.client.actions.{ PlayerLauncherActions => LaunchActions }
-import org.corespring.platform.core.services.UserService
-import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
-import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieWriter, PlayerOptions }
-import play.api.mvc._
-import scala.Some
-import scalaz.Scalaz._
-import scalaz._
+import org.corespring.container.client.actions.{ PlayerJsRequest, PlayerLauncherActions => LaunchActions }
 import org.corespring.platform.core.controllers.auth.{ SecureSocialService, UserSession }
+import org.corespring.platform.core.services.UserService
+import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieKeys, V2PlayerCookieWriter }
+import play.api.mvc._
+
+import scalaz._
 
 object PlayerLauncherActions {
 
@@ -34,27 +31,8 @@ abstract class PlayerLauncherActions(
   val userService: UserService)
   extends LaunchActions[AnyContent]
   with UserSession
+  with LoadOrgAndOptions
   with V2PlayerCookieWriter {
-
-  def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String]
-
-  def toOrgId(apiClientId: String): Option[ObjectId]
-
-  /*protected def getOrgIdAndOptions(request: Request[AnyContent]): Validation[LaunchError, (ObjectId, PlayerOptions)] = {
-
-    userFromSession(request).map {
-      u =>
-        Success((u.org.orgId, PlayerOptions.ANYTHING))
-    }.getOrElse {
-      for {
-        apiClientId <- request.getQueryString("apiClient").toSuccess(noClientId)
-        encryptedOptions <- request.getQueryString("options").toSuccess(noOptions)
-        orgId <- toOrgId(apiClientId).toSuccess(noOrgId)
-        decryptedOptions <- decrypt(request, orgId, encryptedOptions).toSuccess(cantDecrypt)
-        playerOptions <- PlayerOptions.fromJson(decryptedOptions).toSuccess(badJson)
-      } yield (orgId, playerOptions)
-    }
-  }*/
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   override def sumSession(s: Session, keyValues: (String, String)*): Session = {
@@ -71,14 +49,15 @@ abstract class PlayerLauncherActions(
 
   private def loadJs(block: PlayerJsRequest[AnyContent] => Result): Action[AnyContent] = Action {
     request =>
-        Ok("")
-      /*getOrgIdAndOptions(request) match {
+      getOrgIdAndOptions(request) match {
         case Success((orgId, opts)) => {
           val newSession = sumSession(request.session, playerCookies(orgId, Some(opts)): _*)
           block(new PlayerJsRequest(opts.secure, request)).withSession(newSession)
         }
-        case Failure(error) => block(new PlayerJsRequest(false, request, Seq(error.message)))
-      }*/
+        case Failure(error) => block(new PlayerJsRequest(false, request, Seq(error)))
+      }
 
   }
+
+  override def keys: V2PlayerCookieKeys.type = V2PlayerCookieKeys
 }

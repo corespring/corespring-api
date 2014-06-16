@@ -56,9 +56,9 @@ object Global
     ItemServiceWired,
     Organization,
     AccessToken,
-    integration.mainSessionService,
+    integration.sessionService,
     UserServiceWired,
-    integration.mainSecureSocialService)
+    integration.secureSocialService)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 

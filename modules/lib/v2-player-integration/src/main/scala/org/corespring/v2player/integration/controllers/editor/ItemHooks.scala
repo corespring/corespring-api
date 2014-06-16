@@ -4,7 +4,8 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.actions.{ ItemHooks => ContainerItemHooks }
 import org.corespring.platform.core.models
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource }
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => ModelItem }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -12,37 +13,15 @@ import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
 import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
+import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Results._
 import play.api.mvc._
-import scala.Some
+
 import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-import org.slf4j.LoggerFactory
-import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
-import scalaz.Failure
-import scala.Some
-import play.api.mvc.SimpleResult
-import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
-import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
-import scalaz.Success
-import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
-import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
-import play.api.libs.json.JsObject
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
-import play.api.libs.json.JsArray
-import org.corespring.v2player.integration.errors.Errors.propertyNotFoundInJson
-import scalaz.Failure
-import scala.Some
-import play.api.mvc.SimpleResult
-import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
-import org.corespring.v2player.integration.errors.Errors.cantFindItemWithId
-import scalaz.Success
-import org.corespring.v2player.integration.errors.Errors.noCollectionIdForItem
-import org.corespring.v2player.integration.errors.Errors.orgCantAccessCollection
-import play.api.libs.json.JsObject
 
 trait ItemHooks
   extends ContainerItemHooks
@@ -63,7 +42,7 @@ trait ItemHooks
     val item: Validation[V2Error, ModelItem] = for {
       id <- VersionedId(itemId).toSuccess(cantParseItemId)
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
-      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      orgIdAndOptions <- getOrgIdAndOptions(header).leftMap(s => noOrgIdAndOptions(header))
       collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(id))
       hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
         Success(item)
@@ -93,12 +72,10 @@ trait ItemHooks
               name = (supportingMaterial \ "name").as[String],
               materialType = (supportingMaterial \ "materialType").asOpt[String],
               files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
-                .map(f => Json.fromJson[BaseFile](f).get)
-            )).map(m => (m.id match {
+                .map(f => Json.fromJson[BaseFile](f).get))).map(m => (m.id match {
               case Some(id) => m
               case None => m.copy(id = Some(new ObjectId()))
-            }))
-        )
+            })))
         case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
       }
     }
@@ -115,8 +92,7 @@ trait ItemHooks
       val updates = Seq(
         (item: ModelItem, json: JsValue) => supportingMaterials(item, json),
         (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
-        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json)
-      )
+        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
 
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
 
@@ -127,7 +103,7 @@ trait ItemHooks
     val out: Validation[V2Error, JsValue] = for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
       item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      orgIdAndOptions <- getOrgIdAndOptions(header).leftMap(s => noOrgIdAndOptions(header))
       collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
       hasAccess <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
         Success(true)
@@ -159,7 +135,7 @@ trait ItemHooks
     val accessResult: Validation[V2Error, String] = for {
       json <- maybeJson.toSuccess(noJson)
       collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
-      orgIdAndOptions <- getOrgIdAndOptions(header).toSuccess(noOrgIdAndOptions(header))
+      orgIdAndOptions <- getOrgIdAndOptions(header).leftMap(s => noOrgIdAndOptions(header))
       access <- if (orgService.canAccessCollection(orgIdAndOptions._1, new ObjectId(collectionId), Permission.Write)) {
         Success(true)
       } else {

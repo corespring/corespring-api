@@ -9,9 +9,9 @@ import org.corespring.platform.core.models.auth.AccessTokenService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.v2.auth.{SessionBasedRequestTransformer, TokenBasedRequestTransformer}
-import org.corespring.v2.auth.services.{OrgService, TokenService}
-import play.api.mvc.{ Request, AnyContentAsJson, AnyContent, Controller }
+import org.corespring.v2.auth._
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import play.api.mvc._
 import scala.Some
 import scala.concurrent.ExecutionContext
 import play.api.libs.json.JsValue
@@ -46,28 +46,38 @@ class Bootstrap(
 
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService()
 
-  protected lazy val tokenRequestTransformer: TokenBasedRequestTransformer[AnyContent] = new TokenBasedRequestTransformer[AnyContent] {
+  protected lazy val tokenRequestTransformer: TokenBasedRequestTransformer[OrgRequest[AnyContent]] = new TokenBasedRequestTransformer[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def tokenService: TokenService = Bootstrap.this.tokenService
+
+    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): OrgRequest[AnyContent] = {
+      OrgRequest(rh.asInstanceOf[Request[AnyContent]], org.id, defaultCollection)
+    }
   }
 
-  protected lazy val sessionRequestTransformer: SessionBasedRequestTransformer[AnyContent] = new SessionBasedRequestTransformer[AnyContent] {
+  protected lazy val sessionRequestTransformer: SessionBasedRequestTransformer[OrgRequest[AnyContent]] = new SessionBasedRequestTransformer[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def userService: UserService = Bootstrap.this.userService
 
     override def secureSocialService: SecureSocialService = Bootstrap.this.secureSocialService
+
+    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): OrgRequest[AnyContent] = {
+      OrgRequest(rh.asInstanceOf[Request[AnyContent]], org.id, defaultCollection)
+    }
   }
 
-  protected lazy val apiActions: V2ApiActions[AnyContent] =
-    new CompoundAuthenticated[AnyContent] {
-      override def requestTransformers: Seq[(Request[AnyContent]) => Option[OrgRequest[AnyContent]]] = Seq(
-        tokenRequestTransformer.apply,
-        sessionRequestTransformer.apply)
+  protected lazy val apiActions: V2ApiActions[AnyContent] = new CompoundAuthenticated[AnyContent] {
+    override def orgTransformer: OrgTransformer[OrgRequest[AnyContent]] = new WithOrgTransformerSequence[OrgRequest[AnyContent]] {
+      override def transformers: Seq[WithServiceOrgTransformer[OrgRequest[AnyContent]]] = Seq(
+        tokenRequestTransformer,
+        sessionRequestTransformer)
 
-      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
     }
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+  }
 
   private lazy val itemApi = new ItemApi {
     override implicit def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

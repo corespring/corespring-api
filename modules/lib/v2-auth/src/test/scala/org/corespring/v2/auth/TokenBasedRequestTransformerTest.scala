@@ -1,27 +1,22 @@
-package org.corespring.api.v2.actions
+package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
-import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.TokenBasedRequestTransformer
-import org.corespring.v2.auth.services.{OrgService, TokenService}
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
 
 class TokenBasedRequestTransformerTest extends Specification with Mockito {
-
-  //TODO: This shouldn't be necessary
-  PlaySingleton.start()
 
   "TokenBasedRequestTransformer" should {
 
     class scope[A](val org: Option[Organization] = None,
       val defaultCollection: Option[ObjectId] = None) extends Scope {
 
-      val transformer = new TokenBasedRequestTransformer[A] {
+      val transformer = new TokenBasedRequestTransformer[String] {
         override def tokenService: TokenService = {
           val m = mock[TokenService]
           m.orgForToken(any[String]) returns org
@@ -33,6 +28,8 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
           m.defaultCollection(any[Organization]) returns defaultCollection
           m
         }
+
+        override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): String = "Worked"
       }
     }
 
@@ -51,10 +48,8 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
       Some(Organization()),
       Some(ObjectId.get)) {
-      transformer.apply(FakeRequest("", "?access_token=blah")).map { or =>
-        or.defaultCollection === defaultCollection.get
-        or.orgId === org.get.id
-      }.getOrElse(failure("no org request"))
+      transformer.apply(FakeRequest("", "?access_token=blah")) === Some("Worked")
     }
   }
+
 }

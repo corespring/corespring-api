@@ -2,31 +2,26 @@ package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.{ UserOrg, Organization, User }
+import org.corespring.platform.core.models.{ Organization, User, UserOrg }
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
-import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieKeys, Mode, PlayerOptions }
+import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieKeys
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.JsString
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.{ JsString, JsValue, Json }
 import play.api.mvc._
-import play.api.test.FakeHeaders
-import play.api.test.FakeRequest
-import scala.Some
-import scalaz.Success
-import scalaz.Validation
+import play.api.test.{ FakeHeaders, FakeRequest }
 import securesocial.core._
-import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class AuthenticatedSessionActionsCheckUserAndPermissionsTest
   extends Specification
@@ -126,6 +121,8 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
     orgCanAccess: Boolean = false,
     userHasPermissions: Boolean = false) extends Scope {
 
+    val authCheck = mock[AuthCheck]
+
     lazy val actions = {
       val userService = mock[UserService]
       userService.getUser(anyString, anyString) returns user
@@ -143,15 +140,7 @@ class AuthenticatedSessionActionsCheckUserAndPermissionsTest
       orgService.findOneById(any[ObjectId]) returns org
       orgService.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns orgCanAccess
 
-      new AuthSessionActionsCheckPermissions(
-        secureSocialService,
-        userService,
-        sessionService,
-        itemService,
-        orgService) {
-
-        override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode.Mode, options: PlayerOptions): Validation[String, Boolean] = Success(userHasPermissions)
-      }
+      new AuthSessionActionsCheckPermissions(sessionService, authCheck) {}
 
     }
   }

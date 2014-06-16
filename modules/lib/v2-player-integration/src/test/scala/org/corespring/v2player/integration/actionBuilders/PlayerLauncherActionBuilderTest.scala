@@ -2,23 +2,22 @@ package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.actions.PlayerJsRequest
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
 import org.corespring.test.PlaySingleton
 import org.corespring.test.matchers.RequestMatchers
+import org.corespring.v2.auth.OrgTransformer
 import org.corespring.v2player.integration.actionBuilders.PlayerLauncherActions._
-import org.corespring.v2player.integration.actionBuilders.access.V2PlayerCookieKeys
+import org.corespring.v2player.integration.actionBuilders.access.{ PlayerOptions, V2PlayerCookieKeys }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.mvc.Results._
-import play.api.mvc.SimpleResult
 import play.api.mvc._
-import play.api.test.FakeHeaders
-import play.api.test.FakeRequest
+import play.api.test.{ FakeHeaders, FakeRequest }
 import play.api.test.Helpers._
-import scala.Some
+
 import scala.concurrent.Future
-import org.corespring.platform.core.controllers.auth.SecureSocialService
 
 class PlayerLauncherActionBuilderTest
   extends Specification
@@ -39,7 +38,9 @@ class PlayerLauncherActionBuilderTest
     val builder = new PlayerLauncherActions(mockSecureSocial, mock[UserService]) {
       def toOrgId(s: String): Option[ObjectId] = orgId
 
-      def decrypt(request: Request[AnyContent], orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
+      override def decrypt(request: RequestHeader, orgId: ObjectId, encrypted: String): Option[String] = if (decryptEnabled) Some(encrypted) else None
+
+      override def transformer: OrgTransformer[(ObjectId, PlayerOptions)] = mock[OrgTransformer[(ObjectId, PlayerOptions)]]
     }
 
     def handler(r: PlayerJsRequest[AnyContent]): Result = r.errors match {

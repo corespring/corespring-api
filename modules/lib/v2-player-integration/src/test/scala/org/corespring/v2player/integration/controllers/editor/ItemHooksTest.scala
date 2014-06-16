@@ -1,29 +1,32 @@
 package org.corespring.v2player.integration.controllers.editor
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
+import org.corespring.v2.auth.OrgTransformer
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.errors.{ Errors, V2Error }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Results._
 import play.api.mvc.{ RequestHeader, SimpleResult }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import scala.concurrent.{ Future, ExecutionContext }
-import org.corespring.platform.core.controllers.auth.SecureSocialService
+
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.{ Failure, Success, Validation }
 
 class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
-  import ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global
   import scala.language.higherKinds
 
   val emptyItemJson = Json.obj(
@@ -34,7 +37,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
     val item: Option[Item] = None,
-    val orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
+    val orgIdAndOptions: Validation[String, (ObjectId, PlayerOptions)] = Failure("?"),
     val canAccessCollection: Boolean = false) extends Scope {
 
     lazy val vid = VersionedId(new ObjectId(itemId))
@@ -73,13 +76,19 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
       override def getOrgIdAndOptions(header: RequestHeader) = {
         orgIdAndOptions
       }
+
+      override def decrypt(request: RequestHeader, orgId: ObjectId, encrypted: String): Option[String] = ???
+
+      override def transformer: OrgTransformer[(ObjectId, PlayerOptions)] = ???
+
+      override def toOrgId(apiClientId: String): Option[ObjectId] = ???
     }
   }
 
   class loadContext(
     itemId: String = ObjectId.get.toString,
     item: Option[Item] = None,
-    orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
+    orgIdAndOptions: Validation[String, (ObjectId, PlayerOptions)] = Failure("?"),
     canAccessCollection: Boolean = false)
     extends baseContext[SimpleResult, JsValue](itemId, item, orgIdAndOptions, canAccessCollection) {
     lazy val f = hooks.load(itemId)(FakeRequest("", ""))
@@ -93,7 +102,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   class saveContext(itemId: String = ObjectId.get.toString,
     item: Option[Item] = None,
-    orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
+    orgIdAndOptions: Validation[String, (ObjectId, PlayerOptions)] = Failure("?"),
     canAccessCollection: Boolean = false,
     val json: JsValue = Json.obj()) extends baseContext[SimpleResult, JsValue](itemId, item, orgIdAndOptions, canAccessCollection) {
 
@@ -112,7 +121,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   class createContext(
     val json: Option[JsValue] = None,
-    orgIdAndOptions: Option[(ObjectId, PlayerOptions)] = None,
+    orgIdAndOptions: Validation[String, (ObjectId, PlayerOptions)] = Failure("?"),
     canAccessCollection: Boolean = false)
     extends baseContext[(Int, String), String](
       orgIdAndOptions = orgIdAndOptions,
@@ -142,7 +151,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
     "return an item" in new loadContext(
       item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-      orgIdAndOptions = Some(ObjectId.get, PlayerOptions.ANYTHING),
+      orgIdAndOptions = Success(ObjectId.get -> PlayerOptions.ANYTHING),
       canAccessCollection = true) {
       status(result) === OK
     }
@@ -164,19 +173,19 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
     "return no collection id error" in new saveContext(
       item = Some(Item()),
-      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING)) {
+      orgIdAndOptions = Success(ObjectId.get -> PlayerOptions.ANYTHING)) {
       result must returnError(Errors.noCollectionIdForItem(vid))
     }
 
     "return org can't access collection error" in new saveContext(
       item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING)) {
-      result must returnError(Errors.orgCantAccessCollection(orgIdAndOptions.get._1, item.get.collectionId.get))
+      orgIdAndOptions = Success(ObjectId.get -> PlayerOptions.ANYTHING)) {
+      result must returnError(Errors.orgCantAccessCollection(orgIdAndOptions.toOption.get._1, item.get.collectionId.get))
     }
 
     "save update" in new saveContext(
       item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-      orgIdAndOptions = Some(ObjectId.get -> PlayerOptions.ANYTHING),
+      orgIdAndOptions = Success(ObjectId.get -> PlayerOptions.ANYTHING),
       canAccessCollection = true,
       json = emptyItemJson) {
       status(result) === OK
@@ -200,13 +209,13 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
     "return no org id and options" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString)),
-      Some((ObjectId.get, PlayerOptions.ANYTHING))) {
-      result must returnError(Errors.orgCantAccessCollection(orgIdAndOptions.get._1, (json.get \ "collectionId").as[String]))
+      Success((ObjectId.get, PlayerOptions.ANYTHING))) {
+      result must returnError(Errors.orgCantAccessCollection(orgIdAndOptions.toOption.get._1, (json.get \ "collectionId").as[String]))
     }
 
     "return item id for new item" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString)),
-      Some((ObjectId.get, PlayerOptions.ANYTHING)),
+      Success((ObjectId.get, PlayerOptions.ANYTHING)),
       true) {
       status(result) === OK
     }
