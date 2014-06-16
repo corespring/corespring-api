@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import play.api.mvc.RequestHeader
 import scalaz.{Failure, Success, Validation}
 
-trait ClientIdAndOptionsTransformer[B] extends WithOrgTransformer[B] {
+trait ClientIdAndOptionsTransformer[B] extends WithServiceOrgTransformer[B] {
 
   def clientIdToOrgId(apiClientId: String): Option[ObjectId]
 

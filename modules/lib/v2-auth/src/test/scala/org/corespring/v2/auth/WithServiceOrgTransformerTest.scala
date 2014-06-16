@@ -8,12 +8,12 @@ import org.specs2.mutable.{Around, Specification}
 import play.api.test.FakeRequest
 import scalaz.{Failure, Success, Validation}
 
-class WithOrgTransformerTest
+class WithServiceOrgTransformerTest
   extends Specification
   with Mockito
   with TransformerSpec {
 
-  import org.corespring.v2.auth.WithOrgTransformer._
+  import org.corespring.v2.auth.WithServiceOrgTransformer._
 
   "With org transformer" should {
 

@@ -7,7 +7,7 @@ import play.api.mvc._
 import scalaz.{Failure, Success, Validation}
 
 trait SessionBasedRequestTransformer[B]
-  extends WithOrgTransformer[B]
+  extends WithServiceOrgTransformer[B]
   with UserSession {
 
   override def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId] = {

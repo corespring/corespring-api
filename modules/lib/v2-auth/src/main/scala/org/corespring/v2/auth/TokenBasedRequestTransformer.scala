@@ -7,7 +7,7 @@ import play.api.mvc.RequestHeader
 import scalaz.{Failure, Success, Validation}
 
 trait TokenBasedRequestTransformer[B]
-  extends WithOrgTransformer[B]
+  extends WithServiceOrgTransformer[B]
   with TokenReader {
 
   def tokenService: TokenService

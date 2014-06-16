@@ -10,10 +10,10 @@ import scalaz.{Success, Failure}
 
 class WithOrgTransformerSequenceTest extends Specification with TransformerSpec{
 
-  class scope(tfs:Seq[WithOrgTransformer[String]]) extends Around{
+  class scope(tfs:Seq[WithServiceOrgTransformer[String]]) extends Around{
 
     val seq = new WithOrgTransformerSequence[String] {
-      override def transformers: Seq[WithOrgTransformer[String]] = tfs
+      override def transformers: Seq[WithServiceOrgTransformer[String]] = tfs
     }
 
     override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {

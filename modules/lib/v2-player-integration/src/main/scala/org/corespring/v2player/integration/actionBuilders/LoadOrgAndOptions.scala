@@ -2,7 +2,7 @@ package org.corespring.v2player.integration.actionBuilders
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.UserSession
-import org.corespring.v2.auth.WithOrgTransformer
+import org.corespring.v2.auth.WithServiceOrgTransformer
 import org.corespring.v2player.integration.actionBuilders.access.{PlayerOptions, V2PlayerCookieReader}
 import org.slf4j.LoggerFactory
 import play.api.mvc.RequestHeader

@@ -1,13 +1,15 @@
 package org.corespring.api.v2.actions
 
+import org.corespring.v2.auth.OrgTransformer
 import org.slf4j.LoggerFactory
 import play.api.mvc._
 
 import scala.concurrent.{Future, ExecutionContext}
+import scalaz.{Success, Failure}
 
 trait CompoundAuthenticated[A] extends V2ApiActions[A] with Controller {
 
-  def requestTransformers: Seq[Request[A] => Option[OrgRequest[A]]]
+  def orgTransformer : OrgTransformer[OrgRequest[A]]
 
   implicit def ec: ExecutionContext
 
@@ -19,14 +21,10 @@ trait CompoundAuthenticated[A] extends V2ApiActions[A] with Controller {
 
     val result: Future[Future[SimpleResult]] = Future {
 
-      val orgRequest: Option[OrgRequest[A]] = requestTransformers.foldLeft[Option[OrgRequest[A]]](None) { (acc, fn) =>
-        if (acc.isDefined) {
-          acc
-        } else {
-          fn(request)
-        }
+      orgTransformer(request) match {
+        case Success(or) => block(or)
+        case Failure(msg) => Future(Unauthorized(msg))
       }
-      orgRequest.map(block).getOrElse(Future(Unauthorized))
     }
     result.flatMap(identity)
   }

@@ -7,12 +7,16 @@ import org.slf4j.{Logger, LoggerFactory}
 import play.api.mvc.RequestHeader
 import scalaz.{Failure, Success, Validation}
 
-object WithOrgTransformer{
+object WithServiceOrgTransformer{
   def noOrgId(orgId:ObjectId) = s"No org for orgId $orgId"
   def noDefaultCollection(orgId:ObjectId) = s"No default collection for org ${orgId}"
 }
 
-private[auth] trait WithOrgTransformer[B] {
+trait OrgTransformer[B]{
+  def apply(rh: RequestHeader): Validation[String, B]
+}
+
+private[auth] trait WithServiceOrgTransformer[B] extends OrgTransformer[B]{
   def orgService: OrgService
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
@@ -23,7 +27,7 @@ private[auth] trait WithOrgTransformer[B] {
 
   def apply(rh: RequestHeader): Validation[String, B] = {
     import scalaz.Scalaz._
-    import WithOrgTransformer._
+    import WithServiceOrgTransformer._
 
     for {
       orgId <- headerToOrgId(rh)
