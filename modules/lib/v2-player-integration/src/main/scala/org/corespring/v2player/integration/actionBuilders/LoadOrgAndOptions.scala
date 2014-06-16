@@ -18,41 +18,41 @@ trait LoadOrgAndOptions extends UserSession with V2PlayerCookieReader {
 
   def toOrgId(apiClientId: String): Option[ObjectId]
 
-  private def fromUserSession(r: RequestHeader): Option[OrgAndOpts] = {
-    logger.trace("Try from user session")
-    userFromSession(r).map(
-      u => {
-        logger.trace(s"found user: $u")
-        (u.org.orgId, PlayerOptions.ANYTHING)
-      })
-  }
+//  private def fromUserSession(r: RequestHeader): Option[OrgAndOpts] = {
+//    logger.trace("Try from user session")
+//    userFromSession(r).map(
+//      u => {
+//        logger.trace(s"found user: $u")
+//        (u.org.orgId, PlayerOptions.ANYTHING)
+//      })
+//  }
+//
+//  private def fromCookies(r: RequestHeader): Option[OrgAndOpts] = {
+//    logger.trace("Try from cookies")
+//    for {
+//      orgId <- orgIdFromCookie(r)
+//      options <- renderOptions(r)
+//    } yield {
+//      (new ObjectId(orgId), options)
+//    }
+//  }
+//
+//  private def fromQueryParams(r: RequestHeader): Option[OrgAndOpts] = {
+//    logger.trace("Try from query params")
+//    for {
+//      apiClientId <- r.getQueryString("apiClient")
+//      encryptedOptions <- r.getQueryString("options")
+//      orgId <- toOrgId(apiClientId)
+//      decryptedOptions <- decrypt(r, orgId, encryptedOptions)
+//      playerOptions <- PlayerOptions.fromJson(decryptedOptions)
+//    } yield (orgId, playerOptions)
+//  }
 
-  private def fromCookies(r: RequestHeader): Option[OrgAndOpts] = {
-    logger.trace("Try from cookies")
-    for {
-      orgId <- orgIdFromCookie(r)
-      options <- renderOptions(r)
-    } yield {
-      (new ObjectId(orgId), options)
-    }
-  }
-
-  private def fromQueryParams(r: RequestHeader): Option[OrgAndOpts] = {
-    logger.trace("Try from query params")
-    for {
-      apiClientId <- r.getQueryString("apiClient")
-      encryptedOptions <- r.getQueryString("options")
-      orgId <- toOrgId(apiClientId)
-      decryptedOptions <- decrypt(r, orgId, encryptedOptions)
-      playerOptions <- PlayerOptions.fromJson(decryptedOptions)
-    } yield (orgId, playerOptions)
-  }
-
-  def finders: Seq[(RequestHeader) => Option[OrgAndOpts]] = Seq(
-    fromUserSession,
-    fromCookies,
-    fromQueryParams
-  )
+//  def finders: Seq[(RequestHeader) => Option[OrgAndOpts]] = Seq(
+//    fromUserSession,
+//    fromCookies,
+//    fromQueryParams
+//  )
 
   def transformer : WithOrgTransformer[OrgAndOpts]
 
