@@ -1,6 +1,5 @@
 package org.corespring.v2player.integration.actionBuilders
 
-import org.bson.types.ObjectId
 import org.corespring.container.client.actions.{ PlayerJsRequest, PlayerLauncherActions => LaunchActions }
 import org.corespring.platform.core.controllers.auth.{ SecureSocialService, UserSession }
 import org.corespring.platform.core.services.UserService
