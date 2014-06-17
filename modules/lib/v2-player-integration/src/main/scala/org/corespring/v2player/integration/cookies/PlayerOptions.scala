@@ -30,13 +30,11 @@ object PlayerOptions {
     optionsFormat.reads(Json.parse(s)) match {
       case JsSuccess(o, _) => Some(o)
       case JsError(errs) => {
-        println(errs)
         None
       }
     }
   } catch {
     case e: Throwable => {
-      println(e.getMessage)
       None
     }
   }
