@@ -1,13 +1,13 @@
-package org.corespring.v2player.integration.actionBuilders.access
+package org.corespring.v2player.integration.cookies
 
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
+import org.corespring.v2player.integration.cookies.Mode.Mode
 import play.api.libs.json._
 
 case class PlayerOptions(itemId: String,
-                         sessionId: Option[String] = None,
-                         secure: Boolean = false,
-                         expires: Option[Long] = None,
-                         mode: Option[String] = None) {
+  sessionId: Option[String] = None,
+  secure: Boolean = false,
+  expires: Option[Long] = None,
+  mode: Option[String] = None) {
 
   def allowSessionId(sessionId: String): Boolean = this.sessionId.map {
     s =>
@@ -43,5 +43,4 @@ object PlayerOptions {
 
   implicit val optionsFormat = Json.format[PlayerOptions]
 }
-
 

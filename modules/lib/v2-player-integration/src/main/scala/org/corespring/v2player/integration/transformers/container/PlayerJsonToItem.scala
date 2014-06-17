@@ -1,6 +1,7 @@
-package org.corespring.v2player.integration.controllers.editor.json
+package org.corespring.v2player.integration.transformers.container
 
-import play.api.libs.json.{JsUndefined, JsValue}
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
+import play.api.libs.json._
 import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Subjects, Item }
 import org.bson.types.ObjectId
 
@@ -32,4 +33,26 @@ object PlayerJsonToItem {
       item.copy(taskInfo = Some(newInfo))
   }.getOrElse(item)
 
+  def supportingMaterials(item: Item, json: JsValue): Item = {
+    implicit val baseFileFormat = BaseFile.BaseFileFormat
+    (json \ "supportingMaterials") match {
+      case undefined: JsUndefined => item
+      case _ => (json \ "supportingMaterials") match {
+        case array: JsArray => item.copy(
+          supportingMaterials =
+            array.as[List[JsObject]].map(supportingMaterial => Resource(
+              id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
+              name = (supportingMaterial \ "name").as[String],
+              materialType = (supportingMaterial \ "materialType").asOpt[String],
+              files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
+                .map(f => Json.fromJson[BaseFile](f).get))).map(m => (m.id match {
+              case Some(id) => m
+              case None => m.copy(id = Some(new ObjectId()))
+            })))
+        case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
+      }
+    }
+  }
+
 }
+

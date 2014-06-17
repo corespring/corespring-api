@@ -1,6 +1,6 @@
-package org.corespring.v2player.integration.actionBuilders.access
+package org.corespring.v2player.integration.cookies
 
-import org.corespring.player.accessControl.cookies.{CookieKeys, BasePlayerCookieWriter, BasePlayerCookieReader}
+import org.corespring.player.accessControl.cookies.{ CookieKeys, BasePlayerCookieWriter, BasePlayerCookieReader }
 
 object V2PlayerCookieKeys extends CookieKeys {
   val activeMode: String = "v2player.activeMode"
@@ -16,9 +16,7 @@ trait V2PlayerCookieReader extends BasePlayerCookieReader[Mode.Mode, PlayerOptio
   def keys = V2PlayerCookieKeys
 }
 
-trait V2PlayerCookieWriter extends BasePlayerCookieWriter[Mode.Mode, PlayerOptions]{
+trait V2PlayerCookieWriter extends BasePlayerCookieWriter[Mode.Mode, PlayerOptions] {
   def keys = V2PlayerCookieKeys
 }
-
-
 
