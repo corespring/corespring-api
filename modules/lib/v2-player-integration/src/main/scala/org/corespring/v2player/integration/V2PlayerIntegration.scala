@@ -28,7 +28,7 @@ import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
 import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.controllers.catalog.{ AuthCatalogActions, CatalogActions }
 import org.corespring.v2player.integration.controllers.editor._
-import org.corespring.v2player.integration.controllers.player.{ PlayerActions, SessionActions }
+import org.corespring.v2player.integration.controllers.player.{ PlayerActions, SessionHooks }
 import org.corespring.v2player.integration.controllers.{ DataQuery, DefaultPlayerLauncherActions }
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import play.api.cache.Cached
@@ -81,6 +81,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   }
 
   def transformer: OrgTransformer[(ObjectId, PlayerOptions)] = new WithOrgTransformerSequence[(ObjectId, PlayerOptions)] {
+    //TODO: Add org transformers here..
     override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq.empty
   }
 
@@ -109,7 +110,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def toOrgId(apiClientId: String): Option[ObjectId] = V2PlayerIntegration.this.toOrgId(apiClientId)
   }
 
-  private lazy val authForItem = new AuthItemCheckPermissions(sessionService, baseAuthCheck) {}
+  //private lazy val authForItem = new AuthItemCheckPermissions(sessionService, baseAuthCheck) {}
 
   private lazy val authActions = new AuthSessionActionsCheckPermissions(sessionService, baseAuthCheck) {}
 
@@ -253,7 +254,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def toOrgId(apiClientId: String): Option[ObjectId] = V2PlayerIntegration.this.toOrgId(apiClientId)
   }
 
-  lazy val sessionActions = new SessionActions {
+  lazy val sessionHooks = new SessionHooks {
 
     def sessionService: MongoService = V2PlayerIntegration.this.sessionService
 
@@ -261,7 +262,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
 
-    def auth: AuthenticatedSessionActions = authenticatedSessionActions
+    //def auth: AuthenticatedSessionActions = authenticatedSessionActions
+    override def auth: SessionAuth = authenticatedSessionActions
   }
 
   override def dataQuery: ContainerDataQuery = new DataQuery() {

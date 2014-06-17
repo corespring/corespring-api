@@ -9,7 +9,7 @@ import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => Mode
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.actionBuilders.LoadOrgAndOptions
+import org.corespring.v2player.integration.actionBuilders.{ AuthCheck, LoadOrgAndOptions }
 import org.corespring.v2player.integration.controllers.editor.json.PlayerJsonToItem
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
@@ -35,10 +35,13 @@ trait ItemHooks
 
   def transform: ModelItem => JsValue
 
+  def authCheck: AuthCheck
+
   implicit def executionContext: ExecutionContext
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[SimpleResult, JsValue]] = Future {
 
+    //TODO: We should be using auth check for this
     val item: Validation[V2Error, ModelItem] = for {
       id <- VersionedId(itemId).toSuccess(cantParseItemId)
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
