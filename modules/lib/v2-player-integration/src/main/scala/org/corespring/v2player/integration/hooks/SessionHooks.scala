@@ -1,7 +1,8 @@
 package org.corespring.v2player.integration.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions.{ FullSession, HttpStatusMessage, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
+import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -30,42 +31,42 @@ trait SessionHooks
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
-  override def loadEverything(id: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, FullSession]] = Future {
+  override def loadEverything(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
     buildSession(id, (item, session) =>
       FullSession(Json.obj("item" -> item, "session" -> session), isSecure(header)))
   }
 
-  override def getScore(id: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, SessionOutcome]] = Future {
+  override def getScore(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
     buildSession(id, (item, session) =>
       SessionOutcome(item, session, isSecure(header), isComplete(session)))
   }
 
-  override def loadOutcome(id: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, SessionOutcome]] = Future {
+  override def loadOutcome(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
     buildSession(id, (item, session) =>
       SessionOutcome(item, session, isSecure(header), isComplete(session)))
   }
 
-  override def save(id: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, SaveSession]] = Future {
+  override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
     val out = for {
-      canWrite <- auth.canWriteToSession(id)
+      canWrite <- auth.canWrite(id)
       w <- if (canWrite) Success(true) else Failure("No write access")
       s <- loadSession(id)
     } yield {
       SaveSession(s, isSecure(header), isComplete(s), sessionService.save(_, _))
     }
-    out.leftMap(s => HttpStatusMessage(BAD_REQUEST, s)).toEither
+    out.leftMap(s => (BAD_REQUEST -> s)).toEither
   }
 
-  private def buildSession[A](id: String, make: (JsValue, JsValue) => A): Either[HttpStatusMessage, A] = {
+  private def buildSession[A](id: String, make: (JsValue, JsValue) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
     val out: Validation[String, A] = for {
-      canAccess <- auth.canAccessSession(id)
+      canAccess <- auth.canRead(id)
       allowed <- if (canAccess) Success(true) else Failure("No access")
       itemAndSession <- loadItemAndSession(id)
     } yield {
       val (item, session) = itemAndSession
       make(item, session)
     }
-    out.leftMap { s => HttpStatusMessage(BAD_REQUEST, s) }.toEither
+    out.leftMap { s => BAD_REQUEST -> s }.toEither
   }
 
   private def isSecure(r: RequestHeader) = renderOptions(r).map {
@@ -94,6 +95,6 @@ trait SessionHooks
     (transformItem(item), session)
   }
 
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, JsValue]] = Future(Left(HttpStatusMessage(NOT_FOUND, "Not implemented")))
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future(Left(NOT_FOUND -> "Not implemented"))
 
 }

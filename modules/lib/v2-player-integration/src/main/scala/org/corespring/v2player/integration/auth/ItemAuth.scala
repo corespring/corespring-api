@@ -5,7 +5,7 @@ import play.api.mvc.RequestHeader
 import scalaz.Validation
 
 trait ItemAuth {
-  def canCreateItemInCollection(collectionId: String)(implicit header: RequestHeader): Validation[String, Boolean]
-  def canAccessItem(itemId: String)(implicit header: RequestHeader): Validation[String, Boolean]
-  def canWriteItem(itemId: String)(implicit header: RequestHeader): Validation[String, Boolean]
+  def canCreateInCollection(collectionId: String)(implicit header: RequestHeader): Validation[String, Boolean]
+  def canRead(itemId: String)(implicit header: RequestHeader): Validation[String, Boolean]
+  def canWrite(itemId: String)(implicit header: RequestHeader): Validation[String, Boolean]
 }

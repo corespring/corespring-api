@@ -1,8 +1,9 @@
 package org.corespring.v2player.integration.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.container.client.actions.{ HttpStatusMessage, ItemHooks => ContainerItemHooks }
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition, Item => ModelItem }
+import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.container.client.hooks.{ ItemHooks => ContainerItemHooks }
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => ModelItem }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -31,10 +32,10 @@ trait ItemHooks extends ContainerItemHooks {
 
   lazy val logger = LoggerFactory.getLogger("v2.integration.hooks.item")
 
-  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, JsValue]] = Future {
+  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
-      canAccess <- auth.canAccessItem(itemId).leftMap(generalError(UNAUTHORIZED, _))
+      canAccess <- auth.canRead(itemId).leftMap(generalError(UNAUTHORIZED, _))
       item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
       hasAccess <- if (canAccess) {
         Success(item)
@@ -43,10 +44,10 @@ trait ItemHooks extends ContainerItemHooks {
       }
     } yield transform(item)
 
-    item.leftMap(e => HttpStatusMessage(e.code, e.message)).toEither
+    item.leftMap(e => e.code -> e.message).toEither
   }
 
-  override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[HttpStatusMessage, JsValue]] = Future {
+  override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
 
     logger.debug(s"save - itemId: $itemId")
     logger.trace(s"save - json: ${Json.stringify(json)}")
@@ -65,7 +66,7 @@ trait ItemHooks extends ContainerItemHooks {
 
     val out: Validation[V2Error, JsValue] = for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
-      canWrite <- auth.canWriteItem(itemId).leftMap(generalError(UNAUTHORIZED, _))
+      canWrite <- auth.canWrite(itemId).leftMap(generalError(UNAUTHORIZED, _))
       hasAccess <- if (canWrite) {
         Success(true)
       } else {
@@ -77,14 +78,14 @@ trait ItemHooks extends ContainerItemHooks {
       result
     }
 
-    out.leftMap(e => HttpStatusMessage(e.code, e.message)).toEither
+    out.leftMap(e => e.code -> e.message).toEither
   }
 
-  override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[HttpStatusMessage, String]] = Future {
+  override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
     def createItem(collectionId: String): Option[VersionedId[ObjectId]] = {
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "")
-      val item = Item(
+      val item = ModelItem(
         collectionId = Some(collectionId),
         playerDefinition = Some(definition))
       itemService.insert(item)
@@ -93,7 +94,7 @@ trait ItemHooks extends ContainerItemHooks {
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
       json <- maybeJson.toSuccess(noJson)
       collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
-      canWrite <- auth.canCreateItemInCollection(collectionId).leftMap(generalError(UNAUTHORIZED, _))
+      canWrite <- auth.canCreateInCollection(collectionId).leftMap(generalError(UNAUTHORIZED, _))
       hasAccess <- if (canWrite) {
         Success(true)
       } else {
@@ -102,7 +103,7 @@ trait ItemHooks extends ContainerItemHooks {
       id <- createItem(collectionId).toSuccess(generalError(INTERNAL_SERVER_ERROR, "Error creating item"))
     } yield id
 
-    accessResult.leftMap(e => HttpStatusMessage(e.code, e.message)).rightMap(_.toString).toEither
+    accessResult.leftMap(e => e.code -> e.message).rightMap(_.toString).toEither
 
   }
 }

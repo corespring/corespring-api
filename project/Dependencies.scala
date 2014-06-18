@@ -35,7 +35,7 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "play-s3" % "0.2-35dbed6"
+  val playS3 = "org.corespring" %% "play-s3" % "0.3-SNAPSHOT"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
@@ -43,7 +43,7 @@ object Dependencies {
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
   val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.4-SNAPSHOT"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
-  val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.2"
+  val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
