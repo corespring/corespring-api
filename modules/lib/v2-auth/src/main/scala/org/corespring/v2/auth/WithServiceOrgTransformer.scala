@@ -5,7 +5,8 @@ import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.OrgService
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc.RequestHeader
-import scalaz.{ Failure, Success, Validation }
+
+import scalaz.Validation
 
 object WithServiceOrgTransformer {
   def noOrgId(orgId: ObjectId) = s"No org for orgId $orgId"
@@ -26,8 +27,9 @@ trait WithServiceOrgTransformer[B] extends OrgTransformer[B] {
   def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId]
 
   def apply(rh: RequestHeader): Validation[String, B] = {
+    import org.corespring.v2.auth.WithServiceOrgTransformer._
+
     import scalaz.Scalaz._
-    import WithServiceOrgTransformer._
 
     for {
       orgId <- headerToOrgId(rh)

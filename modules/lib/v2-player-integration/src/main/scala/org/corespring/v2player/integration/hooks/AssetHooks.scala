@@ -2,7 +2,6 @@ package org.corespring.v2player.integration.hooks
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ AssetHooks => ContainerAssetHooks }
 import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
@@ -13,10 +12,6 @@ import play.api.mvc.Results.BadRequest
 import play.api.mvc._
 
 import scala.concurrent.Future
-
-trait AuthenticatedItem {
-  def authenticationFailedResult(itemId: String, rh: RequestHeader): Option[StatusMessage]
-}
 
 trait AssetHooks extends ContainerAssetHooks {
 

@@ -1,15 +1,17 @@
 package org.corespring.v2player.integration
 
+import org.corespring.v2player.integration.cookies.{ V2PlayerCookieKeys, PlayerOptions }
+
+import scala.concurrent.Future
+
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.v2player.integration.actionBuilders.access.{ V2PlayerCookieKeys, PlayerOptions }
 import org.corespring.v2player.integration.scopes.orgWithAccessToken
+import play.api.{ GlobalSettings, Play }
 import play.api.libs.json.Json
 import play.api.mvc.SimpleResult
 import play.api.test.FakeRequest
-import play.api.{ Play, GlobalSettings }
-import scala.concurrent.Future
 
 class LaunchPlayerJsSecureModeTest extends IntegrationSpecification {
 

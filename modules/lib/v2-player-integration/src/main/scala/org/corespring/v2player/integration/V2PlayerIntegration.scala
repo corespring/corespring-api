@@ -15,7 +15,8 @@ import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
-import org.corespring.v2.auth.{ OrgTransformer, WithOrgTransformerSequence, WithServiceOrgTransformer }
+import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.auth.{ OrgTransformer, SessionBasedRequestTransformer, WithOrgTransformerSequence, WithServiceOrgTransformer }
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2player.integration.cookies.Mode.Mode
@@ -51,11 +52,37 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def cache: ItemTransformationCache = new PlayItemTransformationCache()
   }
 
+  /** A wrapper around organization */
+  lazy val orgService = new OrgService {
+    override def defaultCollection(o: Organization): Option[ObjectId] = {
+      Organization.getDefaultCollection(o.id) match {
+        case Right(coll) => Some(coll.id)
+        case Left(e) => None
+      }
+    }
+    override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
+  }
+
   lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  object requestTransformers {
+    lazy val sessionBased = new SessionBasedRequestTransformer[(ObjectId, PlayerOptions)] {
+      override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
+
+      override def userService: UserService = UserServiceWired
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = {
+        (org.id -> PlayerOptions.ANYTHING)
+      }
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+    }
+  }
 
   lazy val transformer: OrgTransformer[(ObjectId, PlayerOptions)] = new WithOrgTransformerSequence[(ObjectId, PlayerOptions)] {
     //TODO: Add org transformers here..
-    override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq.empty
+    override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq(
+      requestTransformers.sessionBased)
   }
 
   lazy val itemAuth = new ItemAuthWired {
@@ -101,7 +128,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   private lazy val key = AppConfig.amazonKey
   private lazy val secret = AppConfig.amazonSecret
-  private lazy val bucket = AppConfig.assetsBucket
 
   lazy val playS3 = new ConcreteS3Service(key, secret)
 

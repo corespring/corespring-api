@@ -3,18 +3,18 @@ package org.corespring.v2player.integration
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.cookies.PlayerOptions
 import org.corespring.v2player.integration.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.{ GlobalSettings, Play }
+
 import scala.concurrent.Future
 
 class LoadPlayerTest
   extends IntegrationSpecification {
 
-  import org.corespring.container.client.controllers.PlayerLauncher
   import org.corespring.container.client.controllers.apps.Player
 
   "when I load the player with orgId and options" should {
