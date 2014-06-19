@@ -58,7 +58,7 @@ class LoadEditorTest
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 
-  class clientIdAndOptions_editItemLoader(val options: String, skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with itemLoader {
+  class clientIdAndOptions_editItemLoader(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with itemLoader {
     import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
