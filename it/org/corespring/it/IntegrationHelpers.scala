@@ -1,10 +1,11 @@
 package org.corespring.it
 
+import org.corespring.v2.auth.models.PlayerOptions
+
 import scala.concurrent.Future
 
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.v2player.integration.cookies.PlayerOptions
 import org.slf4j.LoggerFactory
 import play.api.http.Writeable
 import play.api.libs.json.Json

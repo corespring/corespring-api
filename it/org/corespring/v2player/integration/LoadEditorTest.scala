@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
-import org.corespring.v2player.integration.cookies.PlayerOptions
+import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
 import org.corespring.v2player.integration.scopes._
 import org.slf4j.LoggerFactory

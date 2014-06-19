@@ -8,16 +8,21 @@ import play.api.mvc.RequestHeader
 
 import scalaz.Validation
 
-object WithServiceOrgTransformer {
+trait RequestIdentity[B] {
+  /**
+   * Turn an unknown request header into an identity so decisions can be made about the request.
+   * @param rh
+   * @return
+   */
+  def apply(rh: RequestHeader): Validation[String, B]
+}
+
+object OrgRequestIdentity {
   def noOrgId(orgId: ObjectId) = s"No org for orgId $orgId"
   def noDefaultCollection(orgId: ObjectId) = s"No default collection for org ${orgId}"
 }
 
-trait OrgTransformer[B] {
-  def apply(rh: RequestHeader): Validation[String, B]
-}
-
-trait WithServiceOrgTransformer[B] extends OrgTransformer[B] {
+trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def orgService: OrgService
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
@@ -27,7 +32,7 @@ trait WithServiceOrgTransformer[B] extends OrgTransformer[B] {
   def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId]
 
   def apply(rh: RequestHeader): Validation[String, B] = {
-    import org.corespring.v2.auth.WithServiceOrgTransformer._
+    import org.corespring.v2.auth.OrgRequestIdentity._
 
     import scalaz.Scalaz._
 

@@ -1,6 +1,6 @@
-package org.corespring.v2player.integration.cookies
+package org.corespring.v2.auth.models
 
-import org.corespring.v2player.integration.cookies.Mode.Mode
+import org.corespring.v2.auth.models.Mode.Mode
 import play.api.libs.json._
 
 case class PlayerOptions(itemId: String,

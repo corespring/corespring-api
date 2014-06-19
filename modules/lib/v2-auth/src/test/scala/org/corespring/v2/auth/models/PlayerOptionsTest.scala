@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.cookies
+package org.corespring.v2.auth.models
 
 import org.specs2.mutable.Specification
 

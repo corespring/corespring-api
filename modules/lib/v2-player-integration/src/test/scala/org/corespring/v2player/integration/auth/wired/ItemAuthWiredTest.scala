@@ -7,8 +7,8 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.cookies.PlayerOptions
-import org.corespring.v2player.integration.cookies.Mode.Mode
+import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
+import Mode.Mode
 import org.corespring.v2player.integration.errors.Errors._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

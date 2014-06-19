@@ -4,10 +4,10 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.TokenReader
 import org.corespring.v2.auth.services.TokenService
 import play.api.mvc.RequestHeader
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
-trait TokenBasedRequestTransformer[B]
-  extends WithServiceOrgTransformer[B]
+trait TokenOrgIdentity[B]
+  extends OrgRequestIdentity[B]
   with TokenReader {
 
   def tokenService: TokenService

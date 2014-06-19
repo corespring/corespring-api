@@ -6,9 +6,9 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
 import org.corespring.v2player.integration.auth.{ ItemAuth, LoadOrgAndOptions }
-import org.corespring.v2player.integration.cookies.Mode._
-import org.corespring.v2player.integration.cookies.PlayerOptions
+import Mode._
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
 import org.slf4j.LoggerFactory

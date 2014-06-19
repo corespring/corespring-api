@@ -1,6 +1,7 @@
 package org.corespring.v2player.integration
 
-import org.corespring.v2player.integration.cookies.{ V2PlayerCookieKeys, PlayerOptions }
+import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2player.integration.cookies.V2PlayerCookieKeys
 
 import scala.concurrent.Future
 

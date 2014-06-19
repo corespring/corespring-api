@@ -5,9 +5,9 @@ import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.OrgService
 import org.specs2.mock.Mockito
 import play.api.mvc.RequestHeader
-import scalaz.{Failure, Validation}
+import scalaz.{ Failure, Validation }
 
-class MockOrgTransformer(val org: Option[Organization] = None, val defaultCollection: Option[ObjectId] = None, val orgId: Validation[String, ObjectId] = Failure("no org id")) extends WithServiceOrgTransformer[String] with Mockito {
+class MockRequestIdentity(val org: Option[Organization] = None, val defaultCollection: Option[ObjectId] = None, val orgId: Validation[String, ObjectId] = Failure("no org id")) extends OrgRequestIdentity[String] with Mockito {
 
   override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): String = "Worked"
 

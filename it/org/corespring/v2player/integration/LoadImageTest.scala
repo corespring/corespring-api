@@ -5,17 +5,14 @@ import java.io.File
 import com.amazonaws.auth.{ AWSCredentials, BasicAWSCredentials }
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
-import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
-import org.corespring.v2player.integration.scopes.{ userAndItem, SessionRequestBuilder, user }
-import org.specs2.mutable.BeforeAfter
+import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.v2player.integration.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.Logger
-import play.api.test.FakeRequest
 
 class LoadImageTest extends IntegrationSpecification {
 

@@ -3,7 +3,8 @@ package org.corespring.v2player.integration
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.test.TestModelHelpers
-import org.corespring.v2player.integration.cookies.{ PlayerOptions, V2PlayerCookieKeys }
+import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2player.integration.cookies.V2PlayerCookieKeys
 import org.corespring.v2player.integration.scopes.sessionData
 import org.specs2.specification.Example
 import play.api.test.FakeRequest

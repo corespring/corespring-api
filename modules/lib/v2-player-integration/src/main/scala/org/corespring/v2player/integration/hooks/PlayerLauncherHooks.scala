@@ -4,7 +4,8 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerJs, PlayerLauncherHooks => ContainerPlayerLauncherHooks }
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
-import org.corespring.v2player.integration.cookies.{ PlayerOptions, V2PlayerCookieWriter }
+import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2player.integration.cookies.V2PlayerCookieWriter
 import play.api.mvc._
 
 import scala.concurrent.Future

@@ -18,19 +18,20 @@ import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
+import org.corespring.v2.auth.ClientIdAndOptionsOrgIdentity.Keys
 import org.corespring.v2.auth._
+import org.corespring.v2.auth.models.Mode.Mode
+import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
-import org.corespring.v2player.integration.cookies.Mode.Mode
-import org.corespring.v2player.integration.cookies.PlayerOptions
 import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import org.corespring.v2player.integration.urls.ComponentSetsWired
 import org.corespring.v2player.integration.{ controllers => apiControllers, hooks => apiHooks }
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Logger, Mode, Play }
+import play.api.{ Configuration, Logger, Play, Mode => PlayMode }
 import securesocial.core.{ Identity, SecureSocial }
 
 import scala.concurrent.ExecutionContext
@@ -75,8 +76,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
-  object requestTransformers {
-    lazy val sessionBased = new SessionBasedRequestTransformer[(ObjectId, PlayerOptions)] {
+  object requestIdentifiers {
+    lazy val sessionBased = new SessionOrgIdentity[(ObjectId, PlayerOptions)] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
       override def userService: UserService = UserServiceWired
@@ -88,7 +89,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val token = new TokenBasedRequestTransformer[(ObjectId, PlayerOptions)] {
+    lazy val token = new TokenOrgIdentity[(ObjectId, PlayerOptions)] {
       override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
       override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> PlayerOptions.ANYTHING)
@@ -96,18 +97,18 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val clientIdAndOpts = new ClientIdAndOptionsTransformer[(ObjectId, PlayerOptions)] {
+    lazy val clientIdAndOpts = new ClientIdAndOptionsOrgIdentityWithDecrypt {
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
 
       override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = for {
         client <- ApiClient.findByKey(apiClientId)
         org <- Organization.findOneById(client.orgId)
       } yield org.id
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> toPlayerOptions(org.id, rh))
-
-      def encryptionEnabled(r: RequestHeader): Boolean = {
+      private def encryptionEnabled(r: RequestHeader): Boolean = {
         val m = Play.current.mode
-        val acceptsFlag = m == Mode.Dev || m == Mode.Test || configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+        val acceptsFlag = m == PlayMode.Dev || m == PlayMode.Test || configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
 
         val enabled = if (acceptsFlag) {
           val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
@@ -116,46 +117,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
         enabled
       }
 
-      def decrypt(orgId: ObjectId, header: RequestHeader): Option[String] = for {
-        encrypted <- header.queryString.get("options").map(_.head)
+      override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = for {
         encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
         orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
         out <- orgEncrypter.decrypt(encrypted)
       } yield out
 
-      def toOrgId(apiClientId: String): Option[ObjectId] = {
-        logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
-        val client = ApiClient.findByKey(apiClientId)
-
-        if (client.isEmpty) {
-          logger.warn(s"[toOrgId] can't find org for $apiClientId")
-        }
-        client.map(_.orgId)
-      }
-
-      private def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions = {
-        for {
-          optsString <- rh.queryString.get("options").map(_.head)
-          decrypted <- decrypt(orgId, rh)
-          json <- try {
-            Some(Json.parse(decrypted))
-          } catch {
-            case _: Throwable => None
-          }
-          playerOptions <- json.asOpt[PlayerOptions]
-        } yield playerOptions
-      }.getOrElse(PlayerOptions.NOTHING)
-
-      override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
   }
 
-  lazy val transformer: OrgTransformer[(ObjectId, PlayerOptions)] = new WithOrgTransformerSequence[(ObjectId, PlayerOptions)] {
-    //TODO: Add org transformers here..
-    override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq(
-      requestTransformers.sessionBased,
-      requestTransformers.token,
-      requestTransformers.clientIdAndOpts)
+  lazy val transformer: RequestIdentity[(ObjectId, PlayerOptions)] = new WithRequestIdentitySequence[(ObjectId, PlayerOptions)] {
+    override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
+      requestIdentifiers.sessionBased,
+      requestIdentifiers.token,
+      requestIdentifiers.clientIdAndOpts)
   }
 
   lazy val itemAuth = new ItemAuthWired {

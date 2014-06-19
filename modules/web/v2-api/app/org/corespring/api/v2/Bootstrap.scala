@@ -46,7 +46,7 @@ class Bootstrap(
 
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService()
 
-  protected lazy val tokenRequestTransformer: TokenBasedRequestTransformer[OrgRequest[AnyContent]] = new TokenBasedRequestTransformer[OrgRequest[AnyContent]] {
+  protected lazy val tokenRequestTransformer: TokenOrgIdentity[OrgRequest[AnyContent]] = new TokenOrgIdentity[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def tokenService: TokenService = Bootstrap.this.tokenService
@@ -56,7 +56,7 @@ class Bootstrap(
     }
   }
 
-  protected lazy val sessionRequestTransformer: SessionBasedRequestTransformer[OrgRequest[AnyContent]] = new SessionBasedRequestTransformer[OrgRequest[AnyContent]] {
+  protected lazy val sessionRequestTransformer: SessionOrgIdentity[OrgRequest[AnyContent]] = new SessionOrgIdentity[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def userService: UserService = Bootstrap.this.userService
@@ -69,8 +69,8 @@ class Bootstrap(
   }
 
   protected lazy val apiActions: V2ApiActions[AnyContent] = new CompoundAuthenticated[AnyContent] {
-    override def orgTransformer: OrgTransformer[OrgRequest[AnyContent]] = new WithOrgTransformerSequence[OrgRequest[AnyContent]] {
-      override def transformers: Seq[WithServiceOrgTransformer[OrgRequest[AnyContent]]] = Seq(
+    override def orgTransformer: RequestIdentity[OrgRequest[AnyContent]] = new WithRequestIdentitySequence[OrgRequest[AnyContent]] {
+      override def identifiers: Seq[OrgRequestIdentity[OrgRequest[AnyContent]]] = Seq(
         tokenRequestTransformer,
         sessionRequestTransformer)
 

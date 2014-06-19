@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.permissions
 
-import org.corespring.v2player.integration.cookies.Mode.Mode
-import org.corespring.v2player.integration.cookies.PlayerOptions
+import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
+import Mode.Mode
 
 trait PermissionGranter {
   def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Either[String, Boolean]

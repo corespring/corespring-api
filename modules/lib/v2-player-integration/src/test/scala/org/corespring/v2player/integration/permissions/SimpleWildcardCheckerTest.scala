@@ -1,6 +1,6 @@
 package org.corespring.v2player.integration.permissions
 
-import org.corespring.v2player.integration.cookies.{ Mode, PlayerOptions }
+import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
 import org.specs2.mutable.Specification
 
 class SimpleWildcardCheckerTest extends Specification {

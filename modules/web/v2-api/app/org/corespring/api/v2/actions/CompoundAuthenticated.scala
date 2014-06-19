@@ -1,15 +1,15 @@
 package org.corespring.api.v2.actions
 
-import org.corespring.v2.auth.OrgTransformer
+import org.corespring.v2.auth.RequestIdentity
 import org.slf4j.LoggerFactory
 import play.api.mvc._
 
-import scala.concurrent.{Future, ExecutionContext}
-import scalaz.{Success, Failure}
+import scala.concurrent.{ Future, ExecutionContext }
+import scalaz.{ Success, Failure }
 
 trait CompoundAuthenticated[A] extends V2ApiActions[A] with Controller {
 
-  def orgTransformer : OrgTransformer[OrgRequest[A]]
+  def orgTransformer: RequestIdentity[OrgRequest[A]]
 
   implicit def ec: ExecutionContext
 

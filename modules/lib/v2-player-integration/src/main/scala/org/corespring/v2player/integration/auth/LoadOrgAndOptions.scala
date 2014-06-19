@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.auth
 
 import org.bson.types.ObjectId
-import org.corespring.v2player.integration.cookies.PlayerOptions
+import org.corespring.v2.auth.models.PlayerOptions
 import play.api.mvc.RequestHeader
 
 import scalaz.Validation

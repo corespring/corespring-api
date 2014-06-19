@@ -9,14 +9,22 @@ import org.specs2.specification.Scope
 import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
 
-class TokenBasedRequestTransformerTest extends Specification with Mockito {
+import scalaz.{ Success, Failure }
+
+class TokenOrgIdentityTest extends Specification with Mockito {
+
+  def mockOrg = {
+    val m = mock[Organization]
+    m.id returns ObjectId.get
+    m
+  }
 
   "TokenBasedRequestTransformer" should {
 
     class scope[A](val org: Option[Organization] = None,
       val defaultCollection: Option[ObjectId] = None) extends Scope {
 
-      val transformer = new TokenBasedRequestTransformer[String] {
+      val transformer = new TokenOrgIdentity[String] {
         override def tokenService: TokenService = {
           val m = mock[TokenService]
           m.orgForToken(any[String]) returns org
@@ -26,6 +34,7 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
         override def orgService: OrgService = {
           val m = mock[OrgService]
           m.defaultCollection(any[Organization]) returns defaultCollection
+          m.org(any[ObjectId]) returns org
           m
         }
 
@@ -34,21 +43,21 @@ class TokenBasedRequestTransformerTest extends Specification with Mockito {
     }
 
     "not work" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest()) === None
+      transformer.apply(FakeRequest()) must_== Failure("No token")
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest("", "?access_token=blah")) === None
+      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure("No org")
     }
 
-    "not work with token" in new scope[AnyContentAsEmpty.type](Some(Organization())) {
-      transformer.apply(FakeRequest("", "?access_token=blah")) === None
+    "not work with token" in new scope[AnyContentAsEmpty.type](Some(mockOrg)) {
+      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(OrgRequestIdentity.noDefaultCollection(org.get.id))
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
-      Some(Organization()),
+      Some(mockOrg),
       Some(ObjectId.get)) {
-      transformer.apply(FakeRequest("", "?access_token=blah")) === Some("Worked")
+      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Success("Worked")
     }
   }
 

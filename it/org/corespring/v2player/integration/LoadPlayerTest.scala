@@ -3,7 +3,7 @@ package org.corespring.v2player.integration
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.v2player.integration.cookies.PlayerOptions
+import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2player.integration.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.Json
 import play.api.mvc._
