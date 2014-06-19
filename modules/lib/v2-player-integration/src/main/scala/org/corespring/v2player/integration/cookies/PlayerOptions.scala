@@ -25,6 +25,7 @@ case class PlayerOptions(itemId: String,
 object PlayerOptions {
   val STAR = "*"
   val ANYTHING = PlayerOptions(STAR, Some(STAR), false)
+  val NOTHING = PlayerOptions("____", Some("____"), false)
 
   def fromJson(s: String) = try {
     optionsFormat.reads(Json.parse(s)) match {

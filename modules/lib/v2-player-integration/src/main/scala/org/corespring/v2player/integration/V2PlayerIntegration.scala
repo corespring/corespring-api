@@ -4,20 +4,22 @@ import com.mongodb.casbah.MongoDB
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
+import org.corespring.common.encryption.{ AESCrypto, NullCrypto }
 import org.corespring.container.client.component._
 import org.corespring.container.client.controllers.{ Assets, DataQuery => ContainerDataQuery }
 import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
 import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
-import org.corespring.v2.auth.services.{ TokenService, OrgService }
 import org.corespring.v2.auth._
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2player.integration.cookies.Mode.Mode
@@ -26,9 +28,9 @@ import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import org.corespring.v2player.integration.urls.ComponentSetsWired
 import org.corespring.v2player.integration.{ controllers => apiControllers, hooks => apiHooks }
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Logger }
+import play.api.{ Configuration, Logger, Mode, Play }
 import securesocial.core.{ Identity, SecureSocial }
 
 import scala.concurrent.ExecutionContext
@@ -67,6 +69,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
         case Left(e) => None
       }
     }
+
     override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
   }
 
@@ -92,13 +95,67 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
+
+    lazy val clientIdAndOpts = new ClientIdAndOptionsTransformer[(ObjectId, PlayerOptions)] {
+
+      override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = for {
+        client <- ApiClient.findByKey(apiClientId)
+        org <- Organization.findOneById(client.orgId)
+      } yield org.id
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> toPlayerOptions(org.id, rh))
+
+      def encryptionEnabled(r: RequestHeader): Boolean = {
+        val m = Play.current.mode
+        val acceptsFlag = m == Mode.Dev || m == Mode.Test || configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+
+        val enabled = if (acceptsFlag) {
+          val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
+          !disable
+        } else true
+        enabled
+      }
+
+      def decrypt(orgId: ObjectId, header: RequestHeader): Option[String] = for {
+        encrypted <- header.queryString.get("options").map(_.head)
+        encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
+        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
+        out <- orgEncrypter.decrypt(encrypted)
+      } yield out
+
+      def toOrgId(apiClientId: String): Option[ObjectId] = {
+        logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
+        val client = ApiClient.findByKey(apiClientId)
+
+        if (client.isEmpty) {
+          logger.warn(s"[toOrgId] can't find org for $apiClientId")
+        }
+        client.map(_.orgId)
+      }
+
+      private def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions = {
+        for {
+          optsString <- rh.queryString.get("options").map(_.head)
+          decrypted <- decrypt(orgId, rh)
+          json <- try {
+            Some(Json.parse(decrypted))
+          } catch {
+            case _: Throwable => None
+          }
+          playerOptions <- json.asOpt[PlayerOptions]
+        } yield playerOptions
+      }.getOrElse(PlayerOptions.NOTHING)
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+    }
   }
 
   lazy val transformer: OrgTransformer[(ObjectId, PlayerOptions)] = new WithOrgTransformerSequence[(ObjectId, PlayerOptions)] {
     //TODO: Add org transformers here..
     override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq(
       requestTransformers.sessionBased,
-      requestTransformers.token)
+      requestTransformers.token,
+      requestTransformers.clientIdAndOpts)
   }
 
   lazy val itemAuth = new ItemAuthWired {
@@ -115,32 +172,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
       V2PlayerIntegration.this.transformer(request)
     }
   }
-
-  //  def encryptionEnabled(r: RequestHeader): Boolean = {
-  //    val acceptsFlag = Play.current.mode == Mode.Dev || configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
-  //
-  //    val enabled = if (acceptsFlag) {
-  //      val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
-  //      !disable
-  //    } else true
-  //    enabled
-  //  }
-  //
-  //  def decrypt(request: RequestHeader, orgId: ObjectId, contents: String): Option[String] = for {
-  //    encrypter <- Some(if (encryptionEnabled(request)) AESCrypto else NullCrypto)
-  //    orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
-  //    out <- orgEncrypter.decrypt(contents)
-  //  } yield out
-  //
-  //  def toOrgId(apiClientId: String): Option[ObjectId] = {
-  //    logger.debug(s"[toOrgId] find org for apiClient: $apiClientId")
-  //    val client = ApiClient.findByKey(apiClientId)
-  //
-  //    if (client.isEmpty) {
-  //      logger.warn(s"[toOrgId] can't find org for $apiClientId")
-  //    }
-  //    client.map(_.orgId)
-  //  }
 
   private lazy val key = AppConfig.amazonKey
   private lazy val secret = AppConfig.amazonSecret

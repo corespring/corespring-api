@@ -4,9 +4,11 @@ import org.bson.types.ObjectId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
+import org.corespring.v2player.integration.cookies.PlayerOptions
 import org.corespring.v2player.integration.errors.Errors.noOrgIdAndOptions
 import org.corespring.v2player.integration.scopes._
 import org.slf4j.LoggerFactory
+import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
 
@@ -16,7 +18,7 @@ class LoadEditorTest
 
   override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
 
-  "when I load the editor js with orgId and encrypted options" should {
+  "the editor" should {
 
     "fail if I'm not authorized" in new unknownUser_editItemLoader() {
       status(result) === UNAUTHORIZED
@@ -29,6 +31,14 @@ class LoadEditorTest
     }
 
     "work if authorized as a logged in user" in new user_editItemLoader() {
+      status(result) === OK
+    }
+
+    "fail if there are bad options" in new clientIdAndOptions_editItemLoader("let me in") {
+      status(result) === UNAUTHORIZED
+    }
+
+    "work if the options are good" in new clientIdAndOptions_editItemLoader(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
       status(result) === OK
     }
   }
@@ -44,6 +54,11 @@ class LoadEditorTest
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelpers {
+    import org.corespring.container.client.controllers.apps.routes.Editor
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
+  }
+
+  class clientIdAndOptions_editItemLoader(val options: String, skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with itemLoader {
     import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }

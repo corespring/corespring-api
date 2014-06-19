@@ -88,7 +88,11 @@ package object scopes {
       super.after
       ItemHelper.delete(itemId)
     }
+  }
 
+  trait clientIdAndOptions extends orgWithAccessTokenAndItem {
+    val clientId = apiClient.clientId
+    def options: String
   }
 
   trait itemLoader { self: RequestBuilder with HasItemId =>
@@ -123,6 +127,12 @@ package object scopes {
 
     override def makeRequest(call: Call): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
+    }
+  }
+
+  trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndOptions =>
+    override def makeRequest(call: Call): Request[AnyContent] = {
+      FakeRequest(call.method, s"${call.url}?clientId=$clientId&options=$options")
     }
   }
 
