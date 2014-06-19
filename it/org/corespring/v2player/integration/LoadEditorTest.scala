@@ -41,6 +41,8 @@ class LoadEditorTest
     "work if the options are good" in new clientIdAndOptions_editItemLoader(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
       status(result) === OK
     }
+
+    //TODO: Add test with encryption running..
   }
 
   class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemLoader {

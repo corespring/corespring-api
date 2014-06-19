@@ -1,22 +1,25 @@
 package org.corespring.v2player.integration
 
-import com.amazonaws.auth.{ BasicAWSCredentials, AWSCredentials }
-import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import java.io.File
+
+import com.amazonaws.auth.{ AWSCredentials, BasicAWSCredentials }
+import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
+import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.test.helpers.models.{ V2SessionHelper, ItemHelper }
+import org.corespring.test.SecureSocialHelpers
+import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
+import org.corespring.v2player.integration.scopes.{ userAndItem, SessionRequestBuilder, user }
 import org.specs2.mutable.BeforeAfter
-import play.api.test.FakeRequest
 import play.api.Logger
+import play.api.test.FakeRequest
 
 class LoadImageTest extends IntegrationSpecification {
 
-  class AddImageAndItem(imagePath: String) extends BeforeAfter {
+  class AddImageAndItem(imagePath: String) extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
 
     lazy val logger = Logger("v2player.test")
     lazy val name = grizzled.file.util.basename(imagePath)
@@ -24,11 +27,12 @@ class LoadImageTest extends IntegrationSpecification {
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
-    lazy val itemId = ItemHelper.create(new ObjectId())
     lazy val sessionId = V2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
+
+      super.before
 
       val item = ItemServiceWired.findOneById(itemId).get
 
@@ -51,10 +55,10 @@ class LoadImageTest extends IntegrationSpecification {
     }
 
     override def after: Any = {
+      super.after
       logger.debug(s"[after]: delete bucket: ${itemId.id}, item: $itemId, session: $sessionId")
 
       client.deleteObject(bucketName, s"{$itemId.id}")
-      ItemHelper.delete(itemId)
       V2SessionHelper.delete(sessionId)
     }
   }
@@ -66,8 +70,8 @@ class LoadImageTest extends IntegrationSpecification {
       import org.corespring.container.client.controllers.routes.Assets
 
       val call = Assets.session(sessionId.toString, "puppy.png")
-
-      route(FakeRequest(call.method, call.url)).map { r =>
+      val r = makeRequest(call)
+      route(r)(writeable).map { r =>
         status(r) === OK
       }.getOrElse(failure("Can't load asset"))
 

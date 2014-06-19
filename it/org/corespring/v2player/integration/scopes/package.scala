@@ -109,6 +109,8 @@ package object scopes {
   }
 
   trait RequestBuilder {
+    implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+    val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
     def makeRequest(call: Call): Request[AnyContent]
   }
 
