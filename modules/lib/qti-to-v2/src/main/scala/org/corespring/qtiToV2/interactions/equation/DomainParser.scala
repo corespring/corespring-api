@@ -1,7 +1,9 @@
 package org.corespring.qtiToV2.interactions.equation
 
+import play.api.libs.json._
+
 /**
- * Parses a "domain" string from the old QTI format to the new container format. For exmaple, the old QTI format would
+ * Parses a "domain" string from the old QTI format to the new container format. For example, the old QTI format would
  * is of the comma-separated style "-10->10,0", where two numbers separated by a '->' denote an included range, whereas
  * individual numbers correspond to excluded integers from the range. The new container format representation uses the
  * following JSON format:

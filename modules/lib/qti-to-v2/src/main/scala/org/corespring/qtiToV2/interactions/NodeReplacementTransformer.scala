@@ -2,6 +2,8 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml._
 
+import play.api.libs.json._
+
 abstract class NodeReplacementTransformer extends InteractionTransformer {
 
   def labelToReplace: String

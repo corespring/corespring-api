@@ -2,6 +2,8 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml._
 
+import play.api.libs.json._
+
 case class NumberedLinesTransformer(qti: Node) extends InteractionTransformer {
 
   override def transform(node: Node): Seq[Node] = node

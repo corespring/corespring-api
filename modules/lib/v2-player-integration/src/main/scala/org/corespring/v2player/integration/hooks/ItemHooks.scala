@@ -1,30 +1,24 @@
 package org.corespring.v2player.integration.hooks
 
+import scala.concurrent.Future
+
 import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ ItemHooks => ContainerItemHooks }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => ModelItem }
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.auth.ItemAuth
-import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.errors.V2Error
+import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.transformers.container.PlayerJsonToItem
 import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
-
-import scala.concurrent.Future
-import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 trait ItemHooks extends ContainerItemHooks {
-
-  def itemService: ItemService
-
-  def orgService: OrganizationService
 
   def transform: ModelItem => JsValue
 
@@ -35,13 +29,7 @@ trait ItemHooks extends ContainerItemHooks {
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
-      canAccess <- auth.canRead(itemId).leftMap(generalError(UNAUTHORIZED, _))
-      item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-      hasAccess <- if (canAccess) {
-        Success(item)
-      } else {
-        Failure(generalError(UNAUTHORIZED, "?"))
-      }
+      item <- auth.loadForRead(itemId).leftMap(generalError(UNAUTHORIZED, _))
     } yield transform(item)
 
     item.leftMap(e => e.code -> e.message).toEither
@@ -60,19 +48,14 @@ trait ItemHooks extends ContainerItemHooks {
         (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
 
       val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
-      itemService.save(updatedItem, false)
+      auth.save(updatedItem, false)
       Some(transform(updatedItem))
     }
 
     val out: Validation[V2Error, JsValue] = for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId)
-      canWrite <- auth.canWrite(itemId).leftMap(generalError(UNAUTHORIZED, _))
-      hasAccess <- if (canWrite) {
-        Success(true)
-      } else {
-        Failure(generalError(UNAUTHORIZED, "?"))
-      }
-      item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+      item <- auth.loadForWrite(itemId).leftMap(generalError(UNAUTHORIZED, _))
+      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
       result <- convertAndSave(itemId, item).toSuccess(errorSaving)
     } yield {
       result
@@ -88,7 +71,7 @@ trait ItemHooks extends ContainerItemHooks {
       val item = ModelItem(
         collectionId = Some(collectionId),
         playerDefinition = Some(definition))
-      itemService.insert(item)
+      auth.insert(item)
     }
 
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {

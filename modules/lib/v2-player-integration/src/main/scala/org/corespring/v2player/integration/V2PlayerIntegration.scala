@@ -10,7 +10,7 @@ import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.models.item.{ FieldValue, Item }
+import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
 import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -45,6 +45,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
+  }
+
+  lazy val itemTransformer = new ItemTransformer {
+    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
   }
 
   lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
@@ -142,7 +146,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
 
     override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
 
@@ -150,11 +154,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
   }
 
   override def itemHooks: ItemHooks = new apiHooks.ItemHooks {
-    override def itemService: ItemService = ItemServiceWired
 
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
-
-    override def orgService: OrganizationService = Organization
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
     override def auth: ItemAuth = V2PlayerIntegration.this.itemAuth
 
@@ -177,7 +178,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {
@@ -187,7 +188,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
 
     override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
   }
@@ -197,7 +198,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
     override def auth: ItemAuth = V2PlayerIntegration.this.itemAuth
   }

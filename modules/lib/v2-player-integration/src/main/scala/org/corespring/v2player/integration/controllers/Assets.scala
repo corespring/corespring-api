@@ -28,11 +28,8 @@ trait Assets extends ContainerAssets {
 
     val decodedFilename = java.net.URI.create(file).getPath
     val storedFile: Validation[String, StoredFile] = for {
-      canRead <- itemAuth.canRead(itemId)(request)
-      r <- if (canRead) Success(true) else Failure(s"Can't read $itemId")
-      vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
-      item <- ItemServiceWired.findOneById(vid).toSuccess(s"can't find item with id: $vid")
-      data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
+      item <- itemAuth.loadForRead(itemId)(request)
+      data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $itemId")
       asset <- data.files.find(_.name == decodedFilename).toSuccess(s"can't find a file with name: $decodedFilename in ${data}")
     } yield asset.asInstanceOf[StoredFile]
 

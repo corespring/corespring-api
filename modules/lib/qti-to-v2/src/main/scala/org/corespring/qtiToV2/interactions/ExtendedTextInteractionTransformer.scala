@@ -2,6 +2,8 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml.{ Elem, Node }
 
+import play.api.libs.json._
+
 object ExtendedTextInteractionTransformer extends InteractionTransformer {
 
   override def interactionJs(qti: Node): Map[String, JsObject] =

@@ -75,7 +75,6 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  //val qti = builders.lib("qti").settings(libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
 
@@ -163,13 +162,17 @@ object Build extends sbt.Build {
     routesImport ++= customImports,
     libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
 
+  /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson))
+    libraryDependencies ++= Seq(playJson)).dependsOn(qti)
+
+  /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
       containerClientWeb,
       componentLoader,
       componentModel,
+      scalaz,
       mongoJsonService)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(

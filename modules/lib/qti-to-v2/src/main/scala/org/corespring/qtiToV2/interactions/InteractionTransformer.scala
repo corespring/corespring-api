@@ -1,8 +1,12 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qti.models.QtiItem
+
 import scala.reflect.ClassTag
 import scala.xml.Node
 import scala.xml.transform.RewriteRule
+
+import play.api.libs.json._
 
 abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClearer {
 

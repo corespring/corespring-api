@@ -2,6 +2,7 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml._
 
+import play.api.libs.json._
 object OrderInteractionTransformer extends InteractionTransformer {
 
   override def interactionJs(qti: Node) = (qti \\ "orderInteraction").map(implicit node => {

@@ -1,21 +1,18 @@
 package org.corespring.v2player.integration.hooks
 
-import org.bson.types.ObjectId
+import scala.concurrent.Future
+
+import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionHooks => ContainerSessionHooks, SessionOutcome }
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.auth.SessionAuth
 import org.corespring.v2player.integration.cookies.V2PlayerCookieReader
 import play.api.http.Status._
-import play.api.libs.json.{ JsString, JsValue, Json }
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
-
-import scala.concurrent.Future
-import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Validation
 
 trait SessionHooks
   extends ContainerSessionHooks
@@ -48,23 +45,20 @@ trait SessionHooks
 
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
     val out = for {
-      canWrite <- auth.canWrite(id)
-      w <- if (canWrite) Success(true) else Failure("No write access")
-      s <- loadSession(id)
+      models <- auth.loadForWrite(id)
     } yield {
-      SaveSession(s, isSecure(header), isComplete(s), sessionService.save(_, _))
+      val (session, _) = models
+      SaveSession(session, isSecure(header), isComplete(session), sessionService.save(_, _))
     }
     out.leftMap(s => (BAD_REQUEST -> s)).toEither
   }
 
   private def buildSession[A](id: String, make: (JsValue, JsValue) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
     val out: Validation[String, A] = for {
-      canAccess <- auth.canRead(id)
-      allowed <- if (canAccess) Success(true) else Failure("No access")
-      itemAndSession <- loadItemAndSession(id)
+      models <- auth.loadForRead(id)
     } yield {
-      val (item, session) = itemAndSession
-      make(item, session)
+      val (session, item) = models
+      make(transformItem(item), session)
     }
     out.leftMap { s => BAD_REQUEST -> s }.toEither
   }
@@ -72,28 +66,6 @@ trait SessionHooks
   private def isSecure(r: RequestHeader) = renderOptions(r).map {
     ro => ro.secure
   }.getOrElse(true)
-
-  private def versionedId(json: JsValue): Option[VersionedId[ObjectId]] = json match {
-    case JsString(s) => VersionedId(s)
-    case _ => None
-  }
-
-  def oid(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
-
-  private def loadSession(sessionId: String): Validation[String, JsValue] = for {
-    oid <- oid(sessionId).toSuccess("invalid object id")
-    session <- sessionService.load(oid.toString).toSuccess("can't find session by id")
-  } yield {
-    session
-  }
-
-  private def loadItemAndSession(sessionId: String): Validation[String, (JsValue, JsValue)] = for {
-    session <- loadSession(sessionId)
-    vId <- versionedId(session \ "itemId").toSuccess("can't convert to versioned id")
-    item <- itemService.findOneById(vId).toSuccess("can't find item by id")
-  } yield {
-    (transformItem(item), session)
-  }
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future(Left(NOT_FOUND -> "Not implemented"))
 

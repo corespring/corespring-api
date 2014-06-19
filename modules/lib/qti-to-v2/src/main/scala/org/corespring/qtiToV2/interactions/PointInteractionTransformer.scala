@@ -2,6 +2,7 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml._
 
+import play.api.libs.json._
 object PointInteractionTransformer extends InteractionTransformer {
 
   override def interactionJs(qti: Node) = (qti \\ "pointInteraction").map(implicit node => {

@@ -1,8 +1,11 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.interactions.equation.DomainParser
+
 import scala.xml._
 import scala.xml.transform.RuleTransformer
 
+import play.api.libs.json._
 object TextEntryInteractionTransformer extends Transformer {
 
   def transform(qti: Node): Node =

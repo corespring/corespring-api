@@ -2,6 +2,7 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml.{ Elem, Node, Text }
 
+import play.api.libs.json._
 object TexTransformer extends InteractionTransformer {
 
   implicit class TexConverter(child: Seq[Node]) {

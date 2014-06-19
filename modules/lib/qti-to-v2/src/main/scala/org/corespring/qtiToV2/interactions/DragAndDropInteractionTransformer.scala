@@ -3,6 +3,8 @@ package org.corespring.qtiToV2.interactions
 import scala.xml._
 import scala.xml.transform._
 
+import play.api.libs.json._
+
 object DragAndDropInteractionTransformer extends InteractionTransformer with NodeUtils {
 
   private object AnswerAreaTransformer extends RewriteRule {

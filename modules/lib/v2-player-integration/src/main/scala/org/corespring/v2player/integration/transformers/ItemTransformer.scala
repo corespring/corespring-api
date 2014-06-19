@@ -7,7 +7,9 @@ import play.api.libs.json.{ JsString, Json, JsObject, JsValue }
 
 import scala.xml.Node
 
-object ItemTransformer extends ItemTransformationCache {
+trait ItemTransformer {
+
+  def cache: ItemTransformationCache
 
   def transformToV2Json(item: Item): JsValue = {
     implicit val ResourceFormat = Resource.Format
@@ -42,7 +44,7 @@ object ItemTransformer extends ItemTransformationCache {
   }
 
   private def getTransformation(item: Item): (Node, JsObject) =
-    getCachedTransformation(item) match {
+    cache.getCachedTransformation(item) match {
       case Some((node: Node, json: JsValue)) => (node, json.as[JsObject])
       case _ => {
         val qti = for {
@@ -53,7 +55,7 @@ object ItemTransformer extends ItemTransformationCache {
         require(qti.isDefined, s"item: ${item.id} has no qti xml")
 
         val (node, json) = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
-        setCachedTransformation(item, (node, json))
+        cache.setCachedTransformation(item, (node, json))
 
         (node, json.as[JsObject])
       }

@@ -34,7 +34,7 @@ trait AssetHooks extends ContainerAssetHooks {
   import play.api.http.Status._
 
   override def delete(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
-    auth.canWrite(itemId) match {
+    auth.loadForWrite(itemId) match {
       case Failure(e) => Some(UNAUTHORIZED -> e)
       case _ => {
         val r = s3.delete(bucket, s"$itemId/data/$file")
@@ -44,7 +44,7 @@ trait AssetHooks extends ContainerAssetHooks {
   }
 
   private def canUpload(itemId: String)(rh: RequestHeader): Option[SimpleResult] = {
-    auth.canWrite(itemId)(rh) match {
+    auth.loadForWrite(itemId)(rh) match {
       case Failure(e) => Some(BadRequest(e))
       case _ => None
     }

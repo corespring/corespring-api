@@ -5,6 +5,7 @@ import org.corespring.qtiToV2.interactions._
 import scala.xml.transform.RuleTransformer
 import scala.xml.{ Elem, Node }
 
+import play.api.libs.json._
 object QtiTransformer extends XMLNamespaceClearer {
 
   def transform(qti: Elem): (Node, JsValue) = {

@@ -2,6 +2,8 @@ package org.corespring.qtiToV2.interactions
 
 import scala.xml.{ Elem, Node }
 
+import play.api.libs.json._
+
 object FocusTaskInteractionTransformer extends InteractionTransformer {
 
   override def interactionJs(qti: Node) = (qti \\ "focusTaskInteraction").map(implicit node => {
