@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.FeedbackBlockTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import play.api.libs.json.{ Json, JsObject }
@@ -25,17 +26,15 @@ class FeedbackBlockTransformerTest extends Specification {
         <p>This is some info that's in the prompt</p>
         {
           Seq(identifier, anotherIdentifier).map(id => {
-              Seq(
-                <textEntryInteraction responseIdentifier={ id } expectedLength="15"/>,
-                correctResponses.map(response =>
-                  <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } identifier={ response }>
-                    <div class="feedback-block-correct">{ s"$correctFeedback $id" }</div>
-                  </feedbackBlock>
-                ),
-                <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } incorrectResponse="true">
-                  <div class="feedback-block-incorrect">{ s"$incorrectFeedback $id" }</div>
-                </feedbackBlock>
-              )
+            Seq(
+              <textEntryInteraction responseIdentifier={ id } expectedLength="15"/>,
+              correctResponses.map(response =>
+                <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } identifier={ response }>
+                  <div class="feedback-block-correct">{ s"$correctFeedback $id" }</div>
+                </feedbackBlock>),
+              <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } incorrectResponse="true">
+                <div class="feedback-block-incorrect">{ s"$incorrectFeedback $id" }</div>
+              </feedbackBlock>)
           })
         }
       </itemBody>
@@ -176,8 +175,8 @@ class FeedbackBlockTransformerTest extends Specification {
           </responseDeclaration>
           <itemBody>
             <textEntryInteraction responseIdentifier="Q_01" expectedLength="15"/>
-            <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier={response}>
-              <div class="feedback-block-correct">{feedback}</div>
+            <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier={ response }>
+              <div class="feedback-block-correct">{ feedback }</div>
             </feedbackBlock>
           </itemBody>
         </assessmentItem>

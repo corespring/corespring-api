@@ -1,8 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json._
-import scala.Some
 
 object LineInteractionTransformer extends InteractionTransformer {
 
@@ -23,16 +21,13 @@ object LineInteractionTransformer extends InteractionTransformer {
             "initialValues" -> ((node \ "graphline" \\ "point") match {
               case empty: Seq[Node] if empty.isEmpty => None
               case nodes: Seq[Node] => Some(JsArray(nodes.map(n => JsString(n.text))))
-            })
-          )
-        )
-      )
+            }))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "lineInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-        <corespring-line id={identifier}></corespring-line>
+      <corespring-line id={ identifier }></corespring-line>
     }
     case _ => node
   }

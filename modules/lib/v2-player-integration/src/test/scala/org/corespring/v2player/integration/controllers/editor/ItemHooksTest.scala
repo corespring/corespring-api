@@ -11,7 +11,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.OrgTransformer
 import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
+import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2player.integration.cookies.PlayerOptions
 import org.corespring.v2player.integration.errors.{ Errors, V2Error }
+import org.corespring.v2player.integration.hooks.ItemHooks
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -57,12 +60,6 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
         m
       }
 
-      override def userService: UserService = mock[UserService]
-
-      override def secureSocialService: SecureSocialService = mock[SecureSocialService]
-
-      override implicit def executionContext: ExecutionContext = ExecutionContext.Implicits.global
-
       override def transform: (Item) => JsValue = (i: Item) => emptyItemJson
 
       override def itemService: ItemService = {
@@ -73,15 +70,9 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
         m
       }
 
-      override def getOrgIdAndOptions(header: RequestHeader) = {
-        orgIdAndOptions
-      }
+      override def auth: ItemAuth = mock[ItemAuth]
 
-      override def decrypt(request: RequestHeader, orgId: ObjectId, encrypted: String): Option[String] = ???
-
-      override def transformer: OrgTransformer[(ObjectId, PlayerOptions)] = ???
-
-      override def toOrgId(apiClientId: String): Option[ObjectId] = ???
+      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
     }
   }
 

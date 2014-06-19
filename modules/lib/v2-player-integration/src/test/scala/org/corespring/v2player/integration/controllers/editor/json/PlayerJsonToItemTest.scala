@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.controllers.editor.json
 
+import org.corespring.v2player.integration.transformers.container.PlayerJsonToItem
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 import org.corespring.platform.core.models.item.Item

@@ -1,9 +1,10 @@
 package org.corespring.v2player.integration.transformers
 
-import org.corespring.platform.core.models.item.resource.{Resource, CDataHandler, VirtualFile}
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item }
-import org.corespring.v2player.integration.transformers.qti.QtiTransformer
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache }
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.qtiToV2.QtiTransformer
+import play.api.libs.json.{ JsString, Json, JsObject, JsValue }
+
 import scala.xml.Node
 
 object ItemTransformer extends ItemTransformationCache {
@@ -15,8 +16,7 @@ object ItemTransformer extends ItemTransformationCache {
     val profile = toProfile(item)
     rootJson ++ Json.obj(
       "profile" -> profile,
-      "supportingMaterials" -> Json.toJson(item.supportingMaterials)
-    )
+      "supportingMaterials" -> Json.toJson(item.supportingMaterials))
   }
 
   private def toProfile(item: Item): JsValue = {

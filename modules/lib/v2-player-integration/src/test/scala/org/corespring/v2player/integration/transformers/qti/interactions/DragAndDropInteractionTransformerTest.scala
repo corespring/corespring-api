@@ -1,9 +1,10 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.DragAndDropInteractionTransformer
 import org.specs2.mutable.Specification
-import scala.xml.{XML, Node}
+import scala.xml.{ XML, Node }
 import scala.collection.mutable
-import play.api.libs.json.{JsUndefined, JsArray, Json, JsObject}
+import play.api.libs.json.{ JsUndefined, JsArray, Json, JsObject }
 import scala.xml.transform.RuleTransformer
 
 class DragAndDropInteractionTransformerTest extends Specification {
@@ -12,48 +13,51 @@ class DragAndDropInteractionTransformerTest extends Specification {
   val feedbackValue = "Feedback!"
 
   def qti(responses: Map[String, String], correctResponses: Map[String, String], shuffle: Option[Boolean] = None,
-          itemsPerRow: Option[Int] = None, choicesFirst: Boolean = true): Node =
+    itemsPerRow: Option[Int] = None, choicesFirst: Boolean = true): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="targeted">
+      <responseDeclaration identifier={ identifier } cardinality="targeted">
         <correctResponse>
           {
-            correctResponses.map { case (key, value) => {
-              <value identifier={key}>
-                <value>{value}</value>
-              </value>
-            } }
+            correctResponses.map {
+              case (key, value) => {
+                <value identifier={ key }>
+                  <value>{ value }</value>
+                </value>
+              }
+            }
           }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <dragAndDropInteraction responseIdentifier={identifier}>
+        <dragAndDropInteraction responseIdentifier={ identifier }>
           {
             val choices =
-                {
-                  val choices = responses.map {
-                    case (key, value) =>
-                      <draggableChoice identifier={key}>{XML.loadString(value)}
-                        <feedbackInline identifier={key}>{feedbackValue}</feedbackInline>
-                      </draggableChoice>
-                  }
-                  (shuffle, itemsPerRow) match {
-                    case (Some(shuffleValue), Some(itemsPerRowValue)) =>
-                      <draggableChoiceGroup shuffle={shuffleValue.toString} itemsPerRow={itemsPerRowValue.toString}>
-                        {choices}
-                      </draggableChoiceGroup>
-                    case (Some(shuffleValue), None) =>
-                      <draggableChoiceGroup shuffle={shuffleValue.toString}>{choices}</draggableChoiceGroup>
-                    case (None, Some(itemsPerRowValue)) =>
-                      <draggableChoiceGroup itemsPerRow={itemsPerRowValue.toString}>{choices}</draggableChoiceGroup>
-                    case _ => choices
-                  }
+              {
+                val choices = responses.map {
+                  case (key, value) =>
+                    <draggableChoice identifier={ key }>
+                      { XML.loadString(value) }
+                      <feedbackInline identifier={ key }>{ feedbackValue }</feedbackInline>
+                    </draggableChoice>
                 }
-             val answers =
+                (shuffle, itemsPerRow) match {
+                  case (Some(shuffleValue), Some(itemsPerRowValue)) =>
+                    <draggableChoiceGroup shuffle={ shuffleValue.toString } itemsPerRow={ itemsPerRowValue.toString }>
+                      { choices }
+                    </draggableChoiceGroup>
+                  case (Some(shuffleValue), None) =>
+                    <draggableChoiceGroup shuffle={ shuffleValue.toString }>{ choices }</draggableChoiceGroup>
+                  case (None, Some(itemsPerRowValue)) =>
+                    <draggableChoiceGroup itemsPerRow={ itemsPerRowValue.toString }>{ choices }</draggableChoiceGroup>
+                  case _ => choices
+                }
+              }
+            val answers =
               <answerArea>
                 {
-                correctResponses.keys.map(id => {
-                    <landingPlace identifier={id} cardinality="single" />
-                })
+                  correctResponses.keys.map(id => {
+                    <landingPlace identifier={ id } cardinality="single"/>
+                  })
                 }
               </answerArea>
             choicesFirst match {
@@ -88,12 +92,14 @@ class DragAndDropInteractionTransformerTest extends Specification {
     }
 
     "return the correct answers for the interaction" in {
-      val answers = (interactionResult \ "correctResponse").as[Map[String, Seq[String]]].map{ case (k, v) => (k -> v.head)}.toMap
+      val answers = (interactionResult \ "correctResponse").as[Map[String, Seq[String]]].map { case (k, v) => (k -> v.head) }.toMap
 
-      answers.map { case (identifier, response) => {
-        correctResponses.get(identifier) must not beEmpty ;
-        correctResponses.get(identifier).get must be equalTo response
-      }}
+      answers.map {
+        case (identifier, response) => {
+          correctResponses.get(identifier) must not beEmpty;
+          correctResponses.get(identifier).get must be equalTo response
+        }
+      }
       answers.keys.toSeq diff correctResponses.keys.toSeq must beEmpty
     }
 

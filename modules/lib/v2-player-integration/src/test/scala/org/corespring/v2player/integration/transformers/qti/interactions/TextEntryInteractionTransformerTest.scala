@@ -1,8 +1,9 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.TextEntryInteractionTransformer
+import org.corespring.qtiToV2.interactions.equation.DomainParser
 import org.specs2.mutable.Specification
 import scala.xml.Node
-import org.corespring.v2player.integration.transformers.qti.interactions.equation.DomainParser
 import play.api.libs.json.Json
 import scala.xml.transform.RuleTransformer
 
@@ -14,48 +15,45 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
 
   def qti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="single" baseType="string">
+      <responseDeclaration identifier={ identifier } cardinality="single" baseType="string">
         <correctResponse>
-          {correctResponses.map(response => <value>{response}</value>)}
+          { correctResponses.map(response => <value>{ response }</value>) }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={identifier} expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={ identifier } expectedLength="15"/>
       </itemBody>
     </assessmentItem>
 
   def equationQti(equation: String, vars: String, domain: String, sigfigs: Int): Node = {
     val baseType = s"eqn: vars:$vars domain:$domain sigfigs:$sigfigs"
     <assessmentItem>
-      <responseDeclaration identifier={equationIdentifier} cardinality="single"
-                           baseType={baseType}>
+      <responseDeclaration identifier={ equationIdentifier } cardinality="single" baseType={ baseType }>
         <correctResponse>
-          <value>{equation}</value>
+          <value>{ equation }</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={equationIdentifier} expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={ equationIdentifier } expectedLength="15"/>
       </itemBody>
     </assessmentItem>
   }
 
   def lineQti(equation: String): Node = {
     <assessmentItem>
-      <responseDeclaration identifier={lineIdentifier} cardinality="single"
-                           baseType="line">
+      <responseDeclaration identifier={ lineIdentifier } cardinality="single" baseType="line">
         <correctResponse>
-          <value>{equation}</value>
+          <value>{ equation }</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={lineIdentifier} expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={ lineIdentifier } expectedLength="15"/>
       </itemBody>
     </assessmentItem>
   }
-
 
   "TextEntryInteractionTransformer" should {
 
@@ -66,12 +64,10 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     val input = qti(
       correctResponses = correctResponses,
       correctFeedback = correctFeedback,
-      incorrectFeedback = incorrectFeedback
-    )
+      incorrectFeedback = incorrectFeedback)
 
     val interactionResult = TextEntryInteractionTransformer(input).interactionJs(input).get(identifier)
       .getOrElse(throw new RuntimeException(s"No component called $identifier"))
-
 
     val equation = "y=2x+7"
     val vars = "x,y"

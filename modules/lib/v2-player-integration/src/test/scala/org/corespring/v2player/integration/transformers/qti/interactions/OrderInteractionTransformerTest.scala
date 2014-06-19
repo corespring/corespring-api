@@ -1,9 +1,10 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.OrderInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.collection.mutable
-import play.api.libs.json.{JsArray, JsObject}
+import play.api.libs.json.{ JsArray, JsObject }
 import scala.xml.transform.RuleTransformer
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
 
@@ -16,23 +17,22 @@ class OrderInteractionTransformerTest extends Specification {
 
   def qti(correctResponse: Seq[String]): Node =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="ordered" baseType="identifier">
-        <correctResponse>{correctResponse.map(r => <value>{r}</value>)}</correctResponse>
+      <responseDeclaration identifier={ identifier } cardinality="ordered" baseType="identifier">
+        <correctResponse>{ correctResponse.map(r => <value>{ r }</value>) }</correctResponse>
       </responseDeclaration>
       <itemBody>
-        <orderInteraction responseIdentifier={identifier} shuffle={shuffle}>
-          <prompt>{prompt}</prompt>
+        <orderInteraction responseIdentifier={ identifier } shuffle={ shuffle }>
+          <prompt>{ prompt }</prompt>
           {
             correctResponse.map(r =>
-              <simpleChoice identifier={r} fixed="true">{r}
-                <feedbackInline identifier={r}>{feedbackValue}</feedbackInline>
-              </simpleChoice>
-            )
+              <simpleChoice identifier={ r } fixed="true">
+                { r }
+                <feedbackInline identifier={ r }>{ feedbackValue }</feedbackInline>
+              </simpleChoice>)
           }
         </orderInteraction>
       </itemBody>
     </assessmentItem>
-
 
   "OrderInteractionTransformer" should {
 
@@ -62,7 +62,7 @@ class OrderInteractionTransformerTest extends Specification {
     }
 
     "return the correct response" in {
-      ((interactionResult \ "correctResponse").as[Seq[String]] zip responses).map{ case (a, b) => a must be equalTo b }
+      ((interactionResult \ "correctResponse").as[Seq[String]] zip responses).map { case (a, b) => a must be equalTo b }
     }
 
     "return the choices" in {
@@ -80,7 +80,6 @@ class OrderInteractionTransformerTest extends Specification {
       feedback.keys.toSeq diff responses.toSeq must beEmpty
       feedback.values.toSet.toSeq must be equalTo Seq(feedbackValue)
     }
-
 
   }
 

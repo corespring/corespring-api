@@ -1,8 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import play.api.libs.json._
 import scala.xml.{ Elem, Node }
-import play.api.libs.json.JsString
 
 object FocusTaskInteractionTransformer extends InteractionTransformer {
 

@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.InteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import play.api.libs.json._
@@ -12,15 +13,15 @@ class InteractionTransformerTest extends Specification {
 
   val responseIdentifier = "Q_01"
 
-  val responseDeclarationNode = <responseDeclaration identifier={responseIdentifier} />
+  val responseDeclarationNode = <responseDeclaration identifier={ responseIdentifier }/>
 
-  val interaction = <node responseIdentifier={responseIdentifier} />
+  val interaction = <node responseIdentifier={ responseIdentifier }/>
   val interactionWithNoIdentifier = <node/>
   val interactionWithoutResponseDeclaration = <node responseIdentifier="not-found"/>
 
   val qti =
     <assessmentItem>
-      {responseDeclarationNode}
+      { responseDeclarationNode }
       <itemBody>
         { Seq(interaction, interactionWithNoIdentifier, interactionWithoutResponseDeclaration) }
       </itemBody>

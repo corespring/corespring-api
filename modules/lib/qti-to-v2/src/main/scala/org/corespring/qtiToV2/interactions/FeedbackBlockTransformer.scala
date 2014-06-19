@@ -1,9 +1,7 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import play.api.libs.json._
 import scala.Predef._
 import scala.xml._
-import scala.IllegalArgumentException
 
 case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
@@ -18,11 +16,10 @@ object FeedbackBlockTransformer extends Transformer {
   val outcomeIdentifier = """responses\.(.+?)\.(.*)""".r
   val outcomeSpecificRegex = "outcome.(.*)".r
 
-
   implicit class NodeWithFeedback(node: Node) {
     def isFeedbackFor(id: String) = (node \\ "@outcomeIdentifier").text match {
       case outcomeIdentifier(ident, _) => ident match {
-        case `id`  => true
+        case `id` => true
         case _ => false
       }
       case _ => false
@@ -60,12 +57,9 @@ object FeedbackBlockTransformer extends Transformer {
                         case Some(node) => (node \ "@class").text.contains("feedback-block-correct")
                         case _ => defaultCorrectness
                       }
-                    })
-                  )
-                )
+                    })))
                 case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
-              })
-            )
+              }))
             case false => Json.obj(
               "correct" -> JsObject(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString != "true").map(feedbackBlock => {
@@ -73,17 +67,14 @@ object FeedbackBlockTransformer extends Transformer {
                     case "" => "*" -> JsString(feedbackBlock.child.text.trim)
                     case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
                   }
-                })
-              ),
+                })),
               "incorrect" -> JsObject(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString == "true").map(feedbackBlock => {
                   (feedbackBlock \ "@identifier").text match {
                     case "" => "*" -> JsString(feedbackBlock.child.text.trim)
                     case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
                   }
-                })
-              )
-            )
+                })))
           }))
 
       }
@@ -115,7 +106,7 @@ object FeedbackBlockTransformer extends Transformer {
           case true => Seq.empty
           case _ => {
             ids = ids + feedbackId
-            <corespring-feedback-block id={feedbackId}></corespring-feedback-block>
+            <corespring-feedback-block id={ feedbackId }></corespring-feedback-block>
           }
         }
       }

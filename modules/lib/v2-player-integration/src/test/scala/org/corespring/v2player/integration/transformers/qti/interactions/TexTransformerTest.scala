@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.TexTransformer
 import org.specs2.mutable.Specification
 import scala.xml.transform.RuleTransformer
 import scala.xml.Node
@@ -20,8 +21,8 @@ class TexTransformerTest extends Specification {
     val tex = "This is my latex!"
 
     def texNode(tex: String, inline: Option[Boolean] = None) = inline match {
-      case Some(inlineValue) => <tex inline={ inlineValue.toString }>{tex}</tex>
-      case _ => <tex>{tex}</tex>
+      case Some(inlineValue) => <tex inline={ inlineValue.toString }>{ tex }</tex>
+      case _ => <tex>{ tex }</tex>
     }
 
     def inlineOutput(tex: String) = s"\\($tex\\)"

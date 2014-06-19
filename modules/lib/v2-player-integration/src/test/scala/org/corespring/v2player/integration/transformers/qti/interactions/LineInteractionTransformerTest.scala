@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.LineInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.collection.mutable
 import play.api.libs.json._
@@ -22,18 +23,15 @@ class LineInteractionTransformerTest extends Specification {
 
   def qti(correctResponse: String) =
     <assessmentItem>
-      <responseDeclaration identifier={identifier}>
+      <responseDeclaration identifier={ identifier }>
         <correctResponse>
-          <value>{correctResponse}</value>
+          <value>{ correctResponse }</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <lineInteraction jsxgraphcore="" responseIdentifier={identifier}  graph-width="300px" graph-height="300px"
-                         domain={domain.toString} range={range.toString} scale={scale.toString}
-                         domain-label={domainLabel} range-label={rangeLabel}
-                         tick-label-frequency={tickLabelFrequency.toString} sigfigs={sigfigs.toString}>
+        <lineInteraction jsxgraphcore="" responseIdentifier={ identifier } graph-width="300px" graph-height="300px" domain={ domain.toString } range={ range.toString } scale={ scale.toString } domain-label={ domainLabel } range-label={ rangeLabel } tick-label-frequency={ tickLabelFrequency.toString } sigfigs={ sigfigs.toString }>
           <graphline>
-            {initialValues.map(v => <point>{v}</point>)}
+            { initialValues.map(v => <point>{ v }</point>) }
           </graphline>
         </lineInteraction>
       </itemBody>
@@ -41,13 +39,13 @@ class LineInteractionTransformerTest extends Specification {
 
   val qtiNoConfig =
     <assessmentItem>
-      <responseDeclaration identifier={anotherIdentifier}>
+      <responseDeclaration identifier={ anotherIdentifier }>
         <correctResponse>
           <value>don't care</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <lineInteraction responseIdentifier={anotherIdentifier} />
+        <lineInteraction responseIdentifier={ anotherIdentifier }/>
       </itemBody>
     </assessmentItem>
 

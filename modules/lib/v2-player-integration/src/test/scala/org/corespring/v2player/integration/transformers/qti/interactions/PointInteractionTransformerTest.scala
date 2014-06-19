@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.PointInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.collection.mutable
 import play.api.libs.json._
@@ -24,31 +25,27 @@ class PointInteractionTransformerTest extends Specification {
 
   def qti(correctResponses: Seq[String]) =
     <assessmentItem>
-      <responseDeclaration identifier={identifier}>
+      <responseDeclaration identifier={ identifier }>
         <correctResponse>
           {
-            correctResponses.map(response => <value>{response}</value>)
+            correctResponses.map(response => <value>{ response }</value>)
           }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <pointInteraction responseIdentifier={identifier} point-labels={pointLabels.mkString(",")}
-                          max-points={maxPoints.toString} scale={scale.toString} domain={domain.toString}
-                          range={range.toString} sigfigs={sigfigs.toString} domain-label={domainLabel}
-                          range-label={rangeLabel} tick-label-frequency={tickLabelFrequency.toString}
-                          show-inputs={showInputs} locked="great" />
+        <pointInteraction responseIdentifier={ identifier } point-labels={ pointLabels.mkString(",") } max-points={ maxPoints.toString } scale={ scale.toString } domain={ domain.toString } range={ range.toString } sigfigs={ sigfigs.toString } domain-label={ domainLabel } range-label={ rangeLabel } tick-label-frequency={ tickLabelFrequency.toString } show-inputs={ showInputs } locked="great"/>
       </itemBody>
     </assessmentItem>
 
   val qtiNoConfig =
     <assessmentItem>
-      <responseDeclaration identifier={anotherIdentifier}>
+      <responseDeclaration identifier={ anotherIdentifier }>
         <correctResponse>
           <value>don't care</value>
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <pointInteraction responseIdentifier={anotherIdentifier} />
+        <pointInteraction responseIdentifier={ anotherIdentifier }/>
       </itemBody>
     </assessmentItem>
 

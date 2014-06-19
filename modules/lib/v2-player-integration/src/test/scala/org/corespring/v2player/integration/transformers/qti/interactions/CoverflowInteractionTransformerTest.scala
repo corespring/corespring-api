@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.CoverflowInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.xml.transform.RuleTransformer
@@ -13,7 +14,7 @@ class CoverflowInteractionTransformerTest extends Specification {
     val qti =
       <assessmentItem>
         <itemBody>
-          <coverflow>{component}</coverflow>
+          <coverflow>{ component }</coverflow>
         </itemBody>
       </assessmentItem>
 

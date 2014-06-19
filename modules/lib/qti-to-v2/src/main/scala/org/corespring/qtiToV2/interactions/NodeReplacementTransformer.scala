@@ -1,7 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json.JsObject
 
 abstract class NodeReplacementTransformer extends InteractionTransformer {
 

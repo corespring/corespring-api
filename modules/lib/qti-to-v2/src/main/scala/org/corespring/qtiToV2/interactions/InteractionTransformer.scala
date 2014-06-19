@@ -1,18 +1,7 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import scala.xml.Node
-import play.api.libs.json._
 import scala.reflect.ClassTag
-import scala.Some
-import scala.Some
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsBoolean
-import scala.Some
-import play.api.libs.json.JsNumber
-import org.corespring.qti.models.QtiItem
-import play.api.libs.json.Json.JsValueWrapper
+import scala.xml.Node
 import scala.xml.transform.RewriteRule
 
 abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClearer {
@@ -40,12 +29,12 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
     val choiceIds: Seq[Node] = Seq("simpleChoice", "inlineChoice", "feedbackInline").map(node \\ _).map(_.toSeq).flatten
     val componentId = (node \ "@responseIdentifier").text.trim
 
-    val feedbackObjects : Seq[JsObject] = choiceIds.map{(n: Node) =>
+    val feedbackObjects: Seq[JsObject] = choiceIds.map { (n: Node) =>
 
       val id = (n \ "@identifier").text.trim
       val fbInline = qtiItem.getFeedback(componentId, id)
 
-      fbInline.map{ fb =>
+      fbInline.map { fb =>
         val content = if (fb.defaultFeedback) {
           fb.defaultContent(qtiItem)
         } else {
@@ -57,17 +46,16 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
     JsArray(feedbackObjects)
   }
 
-
   /**
-  * Returns an Option of JsValue subtype T for an attribute of the implicit node. For example:
-  *
-  *   implicit val node = <span class="great" count=2 awesome=true>Test</span>
-  *
-  *   optForAttr[JsString]("class")    // Some(JsString(great))
-  *   optForAttr[JsNumber]("count")    // Some(JsNumber(2))
-  *   optForAttr[JsBoolean]("awesome") // Some(JsBoolean(true))
-  *   optForAttr[JsString]("id")       // None
-  */
+   * Returns an Option of JsValue subtype T for an attribute of the implicit node. For example:
+   *
+   *   implicit val node = <span class="great" count=2 awesome=true>Test</span>
+   *
+   *   optForAttr[JsString]("class")    // Some(JsString(great))
+   *   optForAttr[JsNumber]("count")    // Some(JsNumber(2))
+   *   optForAttr[JsBoolean]("awesome") // Some(JsBoolean(true))
+   *   optForAttr[JsString]("id")       // None
+   */
   def optForAttr[T <: JsValue](attr: String)(implicit node: Node, mf: ClassTag[T]) = {
     (node \ s"@$attr") match {
       case empty: Seq[Node] if empty.isEmpty => None
@@ -82,8 +70,8 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
   /**
    * Returns a JsObject with only the fields whose values are Some(JsValue)
    */
-  def partialObj(fields : (String, Option[JsValue])*): JsObject =
-    JsObject(fields.filter{ case (_, v) => v.nonEmpty }.map{ case (a,b) => (a, b.get) })
+  def partialObj(fields: (String, Option[JsValue])*): JsObject =
+    JsObject(fields.filter { case (_, v) => v.nonEmpty }.map { case (a, b) => (a, b.get) })
 
 }
 

@@ -1,6 +1,5 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import play.api.libs.json._
 import scala.xml._
 
 object ChoiceInteractionTransformer extends InteractionTransformer {

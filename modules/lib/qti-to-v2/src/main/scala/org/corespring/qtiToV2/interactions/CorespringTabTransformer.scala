@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
 

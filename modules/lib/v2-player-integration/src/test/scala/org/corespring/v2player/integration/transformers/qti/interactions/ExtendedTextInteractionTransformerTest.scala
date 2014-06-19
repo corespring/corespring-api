@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.ExtendedTextInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.transform.RuleTransformer
 
@@ -13,11 +14,9 @@ class ExtendedTextInteractionTransformerTest extends Specification {
 
   def qti =
     <assessmentItem>
-      <responseDeclaration identifier={identifier} cardinality="single" baseType="string"/>
+      <responseDeclaration identifier={ identifier } cardinality="single" baseType="string"/>
       <itemBody>
-        <extendedTextInteraction responseIdentifier={identifier} expectedLength={expectedLength.toString}
-                                 expectedLines={expectedLines.toString} maxStrings={maxStrings.toString}
-                                 minStrings={minStrings.toString}></extendedTextInteraction>
+        <extendedTextInteraction responseIdentifier={ identifier } expectedLength={ expectedLength.toString } expectedLines={ expectedLines.toString } maxStrings={ maxStrings.toString } minStrings={ minStrings.toString }></extendedTextInteraction>
       </itemBody>
     </assessmentItem>
 

@@ -1,9 +1,7 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import scala.xml.transform._
 import scala.xml._
-import play.api.libs.json._
-import scala.Some
+import scala.xml.transform._
 
 object DragAndDropInteractionTransformer extends InteractionTransformer with NodeUtils {
 
@@ -13,11 +11,11 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
       elem.copy(label = "span",
         attributes = (new UnprefixedAttribute("landing-place", "landing-place", elem.attributes.toSeq.head)
           ++ elem.attributes).fold(Null)((soFar, attr) => {
-          attr.key match {
-            case "identifier" => soFar append new UnprefixedAttribute("id", attr.value, soFar.tail.last)
-            case _ => soFar append attr
-          }
-        }))
+            attr.key match {
+              case "identifier" => soFar append new UnprefixedAttribute("id", attr.value, soFar.tail.last)
+              case _ => soFar append attr
+            }
+          }))
     }
 
     override def transform(node: Node): Seq[Node] = node match {
@@ -38,15 +36,12 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
       "correctResponse" -> JsObject(
         (responseDeclaration(node, qti) \ "correctResponse" \ "value").map(valueNode => {
           ((valueNode \ "@identifier").text -> JsArray((valueNode \ "value").map(v => JsString(v.text.trim))))
-        })
-      ),
+        })),
       "model" -> partialObj(
         "choices" -> Some(JsArray((node \\ "draggableChoice").map(n =>
           Json.obj(
             "id" -> (n \ "@identifier").text,
-            "content" -> n.child.map(clearNamespace).mkString
-          )
-        ))),
+            "content" -> n.child.map(clearNamespace).mkString)))),
         "prompt" -> ((node \ "prompt") match {
           case seq: Seq[Node] if seq.isEmpty => None
           case seq: Seq[Node] => Some(JsString(seq.head.child.map(clearNamespace).mkString))
@@ -79,17 +74,14 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
             case Some("draggableChoice") => Some(JsString("above"))
             case Some(_) => Some(JsString("below"))
             case None => None
-          })
-        ))
-      ),
-      "feedback" -> feedback(node, qti)
-    )
+          })))),
+      "feedback" -> feedback(node, qti))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "dragAndDropInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-drag-and-drop id={identifier}></corespring-drag-and-drop>
+      <corespring-drag-and-drop id={ identifier }></corespring-drag-and-drop>
     }
     case _ => node
   }

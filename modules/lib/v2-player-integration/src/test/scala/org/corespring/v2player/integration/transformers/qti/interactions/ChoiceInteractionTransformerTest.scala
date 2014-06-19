@@ -1,9 +1,10 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.ChoiceInteractionTransformer
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 import scala.xml.transform.RuleTransformer
-import scala.xml.{Elem, Node}
+import scala.xml.{ Elem, Node }
 
 class ChoiceInteractionTransformerTest extends Specification {
 
@@ -13,23 +14,25 @@ class ChoiceInteractionTransformerTest extends Specification {
     <assessmentItem>
       <correctResponseFeedback>Default Correct</correctResponseFeedback>
       <incorrectResponseFeedback>Default Incorrect</incorrectResponseFeedback>
-      {rd}<itemBody>
-      {body}
-    </itemBody>
+      { rd }<itemBody>
+              { body }
+            </itemBody>
     </assessmentItem>
 
   def responseDeclaration(cardinality: String, correctResponse: Elem) =
-    <responseDeclaration identifier="Q_01" cardinality={cardinality} baseType="identifier">
-      {correctResponse}
+    <responseDeclaration identifier="Q_01" cardinality={ cardinality } baseType="identifier">
+      { correctResponse }
     </responseDeclaration>
 
   def choiceInteraction =
     <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
       <prompt>ITEM PROMPT?</prompt>
-      <simpleChoice identifier="A">{a}
+      <simpleChoice identifier="A">
+        { a }
         <feedbackInline identifier="A" defaultFeedback="true"/>
       </simpleChoice>
-      <simpleChoice identifier="B">B
+      <simpleChoice identifier="B">
+        B
         <feedbackInline identifier="B" defaultFeedback="true"/>
       </simpleChoice>
     </choiceInteraction>
@@ -37,33 +40,33 @@ class ChoiceInteractionTransformerTest extends Specification {
   def inlineInteraction =
     <inlineChoiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
       <prompt>ITEM PROMPT?</prompt>
-      <inlineChoice identifier="A"><math>A</math>
+      <inlineChoice identifier="A">
+        <math>A</math>
         <feedbackInline identifier="A" defaultFeedback="true"/>
       </inlineChoice>
-      <inlineChoice identifier="B"><math>A</math>
+      <inlineChoice identifier="B">
+        <math>A</math>
         <feedbackInline identifier="B" defaultFeedback="true"/>
       </inlineChoice>
     </inlineChoiceInteraction>
 
   val singleChoice = qti(
     responseDeclaration("single", <correctResponse>
-      <value>A</value>
-    </correctResponse>),
+                                    <value>A</value>
+                                  </correctResponse>),
     choiceInteraction)
 
   val inlineChoice = qti(
     responseDeclaration("single", <correctResponse>
-      <value>A</value>
-    </correctResponse>),
+                                    <value>A</value>
+                                  </correctResponse>),
     inlineInteraction)
 
   val multipleChoice = qti(
     responseDeclaration("multiple", <correctResponse>
-      <value>A</value> <value>B</value>
-    </correctResponse>),
-    choiceInteraction
-  )
-
+                                      <value>A</value><value>B</value>
+                                    </correctResponse>),
+    choiceInteraction)
 
   "ChoiceInteractionTransformer" should {
 
@@ -73,7 +76,7 @@ class ChoiceInteractionTransformerTest extends Specification {
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
-      (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
+      (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === a.toString
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
@@ -88,7 +91,7 @@ class ChoiceInteractionTransformerTest extends Specification {
         .getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
-      (q1 \ "model" \ "config" \ "singleChoice" ).as[Boolean] === true
+      (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "<math>A</math>"
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2

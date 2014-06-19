@@ -1,8 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json._
-import org.corespring.v2player.integration.transformers.qti.interactions.equation.DomainParser
 import scala.xml.transform.RuleTransformer
 
 object TextEntryInteractionTransformer extends Transformer {
@@ -35,14 +33,13 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
           case _ => JsString(correctResponses.head)
         }
         case _ => JsArray(correctResponses.map(JsString(_)).toSeq)
-      })
-    )
+      }))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "textEntryInteraction" => isEquation(node, qti) match {
-      case true => <corespring-function-entry id={(node \ "@responseIdentifier").text}></corespring-function-entry>
-      case false => <corespring-text-entry id={(node \ "@responseIdentifier").text}></corespring-text-entry>
+      case true => <corespring-function-entry id={ (node \ "@responseIdentifier").text }></corespring-function-entry>
+      case false => <corespring-text-entry id={ (node \ "@responseIdentifier").text }></corespring-text-entry>
     }
     case _ => node
   }

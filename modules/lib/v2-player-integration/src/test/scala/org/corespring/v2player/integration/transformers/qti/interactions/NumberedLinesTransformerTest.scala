@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.NumberedLinesTransformer
 import org.specs2.mutable.Specification
 
 class NumberedLinesTransformerTest extends Specification {
@@ -11,7 +12,7 @@ class NumberedLinesTransformerTest extends Specification {
           lines.map(lineSet => {
             <div class="numbered-lines">
               <p class="some container para">
-                {lineSet.map(line => <line>{line}</line>)}
+                { lineSet.map(line => <line>{ line }</line>) }
               </p>
             </div>
           })
@@ -28,11 +29,13 @@ class NumberedLinesTransformerTest extends Specification {
     val input = qti(lines)
     val output = NumberedLinesTransformer.transform(input)
 
-    val interactionResults = lines.zipWithIndex.map{ case (lines, index) => {
-      val identifier = s"numbered_lines_${index + 1}"
-      NumberedLinesTransformer.interactionJs(input).get(identifier)
-        .getOrElse(throw new RuntimeException(s"No component called $identifier"))
-    }}
+    val interactionResults = lines.zipWithIndex.map {
+      case (lines, index) => {
+        val identifier = s"numbered_lines_${index + 1}"
+        NumberedLinesTransformer.interactionJs(input).get(identifier)
+          .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+      }
+    }
 
     "return the correct component type" in {
       interactionResults.map(interactionResult =>
@@ -40,16 +43,20 @@ class NumberedLinesTransformerTest extends Specification {
     }
 
     "returns correct lines" in {
-      interactionResults.zipWithIndex.map{ case (interactionResult, index) => {
-        (interactionResult \ "model" \ "lines").as[Seq[String]] diff lines(index) must beEmpty
-      }}
+      interactionResults.zipWithIndex.map {
+        case (interactionResult, index) => {
+          (interactionResult \ "model" \ "lines").as[Seq[String]] diff lines(index) must beEmpty
+        }
+      }
     }
 
     "returns properly indexed <corespring-numbered-lines/> nodes" in {
-      lines.zipWithIndex.map{ case (_, index) => {
-        (output \\ "corespring-numbered-lines")
-          .find(n => (n \\ "@id").text == s"numbered_lines_${index + 1}") must not beEmpty
-      }}
+      lines.zipWithIndex.map {
+        case (_, index) => {
+          (output \\ "corespring-numbered-lines")
+            .find(n => (n \\ "@id").text == s"numbered_lines_${index + 1}") must not beEmpty
+        }
+      }
     }
 
     "does not return any divs with class='numbered-lines'" in {

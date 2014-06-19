@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.CorespringTabTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.xml.transform.RuleTransformer
@@ -10,15 +11,14 @@ class CorespringTabTransformerTest extends Specification {
     <assessmentItem>
       <itemBody>
         <cs-tabs>
-          { tabData.map{ case(title, child) => <cs-tab title={title}>{child}</cs-tab>} }
+          { tabData.map { case (title, child) => <cs-tab title={ title }>{ child }</cs-tab> } }
         </cs-tabs>
       </itemBody>
     </assessmentItem>
 
   val tabData = Map(
     "tabOne" -> <div>This is the content of tab one</div>,
-    "tabTwo" -> <div>...and this is the content of tab two</div>
-  )
+    "tabTwo" -> <div>...and this is the content of tab two</div>)
 
   "CorespringTabTransformer" should {
 
@@ -36,9 +36,11 @@ class CorespringTabTransformerTest extends Specification {
     }
 
     "preserve children of <cs-tab/> in <corespring-tab/>" in {
-      ((input \ "cs-tab") zip (output \ "corespring-tab")).map{ case(oldNode, newNode) => {
-        oldNode.child must be equalTo newNode.child
-      }}
+      ((input \ "cs-tab") zip (output \ "corespring-tab")).map {
+        case (oldNode, newNode) => {
+          oldNode.child must be equalTo newNode.child
+        }
+      }
     }
 
   }

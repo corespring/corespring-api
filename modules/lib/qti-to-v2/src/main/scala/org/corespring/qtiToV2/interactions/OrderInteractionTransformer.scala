@@ -1,7 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json._
 
 object OrderInteractionTransformer extends InteractionTransformer {
 
@@ -18,22 +17,19 @@ object OrderInteractionTransformer extends InteractionTransformer {
           case seq: Seq[Node] => seq.head.child.mkString
         }),
         "config" -> Json.obj(
-          "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")
-        ),
+          "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")),
         "choices" -> (node \\ "simpleChoice")
           .map(choice =>
             Json.obj(
               "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
-              "value" -> (choice \ "@identifier").text))
-      ),
-      "feedback" -> feedback(node, qti)
-    )
+              "value" -> (choice \ "@identifier").text))),
+      "feedback" -> feedback(node, qti))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "orderInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-ordering id={identifier}></corespring-ordering>
+      <corespring-ordering id={ identifier }></corespring-ordering>
     }
     case _ => node
   }

@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.SelectTextInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.transform.RuleTransformer
 
@@ -14,12 +15,10 @@ class SelectTextInteractionTransformerTest extends Specification {
 
   def qti(selectionText: String) =
     <assessmentItem>
-      <responseDeclaration identifier={identifier}>
+      <responseDeclaration identifier={ identifier }>
       </responseDeclaration>
       <itemBody>
-        <selectTextInteraction responseIdentifier={identifier} selectionType={selectionType}
-                               checkIfCorrect={checkIfCorrect} minSelections={minSelections.toString}
-                               maxSelections={maxSelections.toString}>{selectionText}</selectTextInteraction>
+        <selectTextInteraction responseIdentifier={ identifier } selectionType={ selectionType } checkIfCorrect={ checkIfCorrect } minSelections={ minSelections.toString } maxSelections={ maxSelections.toString }>{ selectionText }</selectTextInteraction>
       </itemBody>
     </assessmentItem>
 
@@ -29,7 +28,6 @@ class SelectTextInteractionTransformerTest extends Specification {
        aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
        fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
        anim id est laborum."""
-
 
   "SelectTextInteractionTransformer" should {
 
@@ -62,7 +60,6 @@ class SelectTextInteractionTransformerTest extends Specification {
       (config \ "maxSelections").as[Int] must be equalTo maxSelections
     }
 
-
     "should remove <selectTextInteraction/>" in {
       (output \\ "selectTextInteraction") must beEmpty
     }
@@ -75,7 +72,6 @@ class SelectTextInteractionTransformerTest extends Specification {
       val children = (output \\ "corespring-select-text").find(n => (n \ "@id").text == identifier).get.child
       children must be equalTo (input \\ "selectTextInteraction").head.child
     }
-
 
   }
 

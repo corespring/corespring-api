@@ -1,7 +1,8 @@
 package org.corespring.v2player.integration.actionBuilders.permissions
 
+import org.corespring.v2player.integration.cookies.{ PlayerOptions, Mode }
+import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.specs2.mutable.Specification
-import org.corespring.v2player.integration.actionBuilders.access.{ PlayerOptions, Mode }
 
 class SimpleWildcardCheckerTest extends Specification {
 

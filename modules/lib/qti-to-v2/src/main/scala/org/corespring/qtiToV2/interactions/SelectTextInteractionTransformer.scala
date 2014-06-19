@@ -1,7 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json._
 
 object SelectTextInteractionTransformer extends InteractionTransformer {
 
@@ -19,16 +18,13 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
             "selectionUnit" -> optForAttr[JsString]("selectionType"),
             "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
             "minSelections" -> optForAttr[JsNumber]("minSelections"),
-            "maxSelections" -> optForAttr[JsNumber]("maxSelections")
-          )
-        )
-      )
+            "maxSelections" -> optForAttr[JsNumber]("maxSelections"))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "selectTextInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-        <corespring-select-text id={identifier}>{clearNamespace(elem.child)}</corespring-select-text>
+      <corespring-select-text id={ identifier }>{ clearNamespace(elem.child) }</corespring-select-text>
     }
     case _ => node
   }

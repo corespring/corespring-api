@@ -1,7 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import scala.xml.{Text, Elem, Node}
-import play.api.libs.json.JsObject
+import scala.xml.{ Elem, Node, Text }
 
 object TexTransformer extends InteractionTransformer {
 
@@ -21,7 +20,6 @@ object TexTransformer extends InteractionTransformer {
       case _ => node
     }
   }
-
 
   override def interactionJs(qti: Node) = Map.empty[String, JsObject]
 

@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions.equation
 
+import org.corespring.qtiToV2.interactions.equation.DomainParser
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsUndefined
 

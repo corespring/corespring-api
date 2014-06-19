@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.FoldableInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.xml.Node
 import scala.xml.transform.RuleTransformer
@@ -13,7 +14,7 @@ class FoldableInteractionTransformerTest extends Specification {
     val qti =
       <assessmentItem>
         <itemBody>
-          <foldable>{component}</foldable>
+          <foldable>{ component }</foldable>
         </itemBody>
       </assessmentItem>
 

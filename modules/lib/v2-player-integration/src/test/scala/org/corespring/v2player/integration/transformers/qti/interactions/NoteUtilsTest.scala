@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.NodeUtils
 import org.specs2.mutable.Specification
 
 class NoteUtilsTest extends Specification with NodeUtils {

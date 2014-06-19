@@ -1,7 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
-import scala.xml.{Elem, Node}
-import play.api.libs.json.{JsNumber, Json, JsObject}
+import scala.xml.{ Elem, Node }
 
 object ExtendedTextInteractionTransformer extends InteractionTransformer {
 
@@ -14,15 +13,12 @@ object ExtendedTextInteractionTransformer extends InteractionTransformer {
             "expectedLength" -> optForAttr[JsNumber]("expectedLength"),
             "expectedLines" -> optForAttr[JsNumber]("expectedLines"),
             "maxStrings" -> optForAttr[JsNumber]("maxStrings"),
-            "minStrings" -> optForAttr[JsNumber]("minStrings")
-          )
-        )
-      )
+            "minStrings" -> optForAttr[JsNumber]("minStrings"))))
     }).toMap
 
   override def transform(node: Node) = node match {
     case e: Elem if (e.label == "extendedTextInteraction") =>
-      <corespring-extended-text-entry id={(e \ "@responseIdentifier").text}></corespring-extended-text-entry>
+      <corespring-extended-text-entry id={ (e \ "@responseIdentifier").text }></corespring-extended-text-entry>
     case _ => node
   }
 

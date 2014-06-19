@@ -1,10 +1,9 @@
-package org.corespring.v2player.integration.transformers.qti
+package org.corespring.qtiToV2
 
-import play.api.libs.json.JsValue
-import scala.xml.{ Elem, Node }
+import org.corespring.qtiToV2.interactions._
+
 import scala.xml.transform.RuleTransformer
-import org.corespring.v2player.integration.transformers.qti.interactions._
-import play.api.libs.json.JsObject
+import scala.xml.{ Elem, Node }
 
 object QtiTransformer extends XMLNamespaceClearer {
 
@@ -24,14 +23,12 @@ object QtiTransformer extends XMLNamespaceClearer {
       ExtendedTextInteractionTransformer,
       FoldableInteractionTransformer,
       CoverflowInteractionTransformer,
-      CorespringTabTransformer
-    )
+      CorespringTabTransformer)
 
     val statefulTransformers: Seq[Transformer] = Seq(
       FeedbackBlockTransformer,
       NumberedLinesTransformer,
-      TextEntryInteractionTransformer
-    )
+      TextEntryInteractionTransformer)
 
     /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
     val texProcessedQti = new RuleTransformer(TexTransformer).transform(qti)

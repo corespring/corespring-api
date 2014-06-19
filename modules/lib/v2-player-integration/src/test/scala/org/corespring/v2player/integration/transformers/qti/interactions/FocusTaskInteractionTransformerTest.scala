@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers.qti.interactions
 
+import org.corespring.qtiToV2.interactions.FocusTaskInteractionTransformer
 import org.specs2.mutable.Specification
 import scala.util.Random
 import scala.xml.transform.RuleTransformer
@@ -21,17 +22,15 @@ class FocusTaskInteractionTransformerTest extends Specification {
 
   def qti(correctResponses: Seq[String]) =
     <assessmentItem>
-      <responseDeclaration identifier={identifier}>
+      <responseDeclaration identifier={ identifier }>
         <correctResponse>
-          {correctResponses.map(response => <value>{response}</value>)}
+          { correctResponses.map(response => <value>{ response }</value>) }
         </correctResponse>
       </responseDeclaration>
       <itemBody>
-        <focusTaskInteraction responseIdentifier={identifier} checkIfCorrect={checkIfCorrect}
-                              minSelections={minSelections.toString} maxSelections={maxSelections.toString}
-                              shuffle={shuffle.toString} itemShape={itemShape}>
-          <prompt>{prompt}</prompt>
-          {choices.map{ case(identifier, label) => {<focusChoice identifier={identifier}>{label}</focusChoice>}}}
+        <focusTaskInteraction responseIdentifier={ identifier } checkIfCorrect={ checkIfCorrect } minSelections={ minSelections.toString } maxSelections={ maxSelections.toString } shuffle={ shuffle.toString } itemShape={ itemShape }>
+          <prompt>{ prompt }</prompt>
+          { choices.map { case (identifier, label) => { <focusChoice identifier={ identifier }>{ label }</focusChoice> } } }
         </focusTaskInteraction>
       </itemBody>
     </assessmentItem>

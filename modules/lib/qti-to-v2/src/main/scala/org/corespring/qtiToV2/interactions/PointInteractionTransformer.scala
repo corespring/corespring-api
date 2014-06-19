@@ -1,8 +1,6 @@
-package org.corespring.v2player.integration.transformers.qti.interactions
+package org.corespring.qtiToV2.interactions
 
 import scala.xml._
-import play.api.libs.json._
-import scala.Some
 
 object PointInteractionTransformer extends InteractionTransformer {
 
@@ -27,16 +25,13 @@ object PointInteractionTransformer extends InteractionTransformer {
           "locked" -> ((node \\ "@locked").isEmpty match {
             case true => None
             case _ => Some(JsBoolean(true))
-          })
-        )
-      )
-    )
+          }))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "pointInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
-      <corespring-point-intercept id={identifier}></corespring-point-intercept>
+      <corespring-point-intercept id={ identifier }></corespring-point-intercept>
     }
     case _ => node
   }
