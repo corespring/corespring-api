@@ -15,9 +15,9 @@ trait IntegrationHelpers extends PlaySpecification {
 
   val logger = LoggerFactory.getLogger("it.spec.helper")
 
-  def makeRequest(call: Call, c: Cookies): Request[AnyContentAsEmpty.type] = {
+  def makeRequest(call: Call, c: Seq[Cookie]): Request[AnyContentAsEmpty.type] = {
     val req = FakeRequest(call.method, call.url)
-    req.withCookies(c.toSeq: _*)
+    req.withCookies(c: _*)
   }
 
   def urlWithEncryptedOptions(call: Call, apiClient: ApiClient, options: PlayerOptions = PlayerOptions.ANYTHING) = {

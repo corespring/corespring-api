@@ -10,13 +10,14 @@ import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
+import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
 import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
-import org.corespring.v2.auth.services.OrgService
-import org.corespring.v2.auth.{ OrgTransformer, SessionBasedRequestTransformer, WithOrgTransformerSequence, WithServiceOrgTransformer }
+import org.corespring.v2.auth.services.{ TokenService, OrgService }
+import org.corespring.v2.auth._
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2player.integration.cookies.Mode.Mode
@@ -48,6 +49,12 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
+  protected val tokenService = new TokenService {
+    override def orgForToken(token: String): Option[Organization] = {
+      AccessToken.findByToken(token).map(t => orgService.org(t.organization)).flatten
+    }
+  }
+
   lazy val itemTransformer = new ItemTransformer {
     override def cache: ItemTransformationCache = new PlayItemTransformationCache()
   }
@@ -77,12 +84,21 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
+
+    lazy val token = new TokenBasedRequestTransformer[(ObjectId, PlayerOptions)] {
+      override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> PlayerOptions.ANYTHING)
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+    }
   }
 
   lazy val transformer: OrgTransformer[(ObjectId, PlayerOptions)] = new WithOrgTransformerSequence[(ObjectId, PlayerOptions)] {
     //TODO: Add org transformers here..
     override def transformers: Seq[WithServiceOrgTransformer[(ObjectId, PlayerOptions)]] = Seq(
-      requestTransformers.sessionBased)
+      requestTransformers.sessionBased,
+      requestTransformers.token)
   }
 
   lazy val itemAuth = new ItemAuthWired {
