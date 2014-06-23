@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration
 
 import org.corespring.it.JsLoadingSpecification
-import org.corespring.v2player.integration.cookies.V2PlayerCookieKeys
+import org.corespring.v2.auth.cookies.V2PlayerCookieKeys
 
 class LoadPlayerJsAsLoggedInUserTest
   extends JsLoadingSpecification {

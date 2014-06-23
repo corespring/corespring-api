@@ -3,6 +3,7 @@ package org.corespring.v2player.integration
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.container.client.component.ComponentUrls
+import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
 import org.corespring.it.IntegrationSpecification
@@ -10,6 +11,7 @@ import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.v2.auth.cookies.V2PlayerCookieKeys
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2player.integration.scopes._
 import org.specs2.mock.Mockito
@@ -81,6 +83,12 @@ class LoadPlayerTest
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       headers(createSessionResult) === headers(mockResult)
     }
+
+    "load player js with client id + options query string sets session" in new loadPlayerJs(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+      status(playerJsResult) === OK
+      session(playerJsResult).get(V2PlayerCookieKeys.orgId) === Some(orgId.toString)
+      session(playerJsResult).get(V2PlayerCookieKeys.renderOptions) === Some(options)
+    }
   }
 
   trait HasCreateSessionResult { self: HasItemId with RequestBuilder =>
@@ -93,7 +101,17 @@ class LoadPlayerTest
       val request = makeRequest(Call("", ""))
       createSession(request)
     }
+  }
 
+  trait HasPlayerJsResult { self: HasItemId with RequestBuilder =>
+
+    protected def global: GlobalSettings = Play.current.global
+
+    lazy val playerJsResult: Future[SimpleResult] = {
+      val launcher = global.getControllerInstance(classOf[PlayerLauncher])
+      val request = makeRequest(Call("", ""))
+      launcher.playerJs()(request)
+    }
   }
 
   class unknownIdentity_CreateSession extends HasCreateSessionResult with PlainRequestBuilder with orgWithAccessTokenAndItem {}
@@ -102,7 +120,8 @@ class LoadPlayerTest
   class token_CreateSession extends orgWithAccessTokenAndItem with HasCreateSessionResult with TokenRequestBuilder {}
   class clientIdAndOpts_queryString_CreateSession(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with HasCreateSessionResult with IdAndOptionsRequestBuilder {}
 
-  class LoadJsAndCreateSession(name: String, addCredentials: Boolean = false) extends orgWithAccessTokenAndItem {
+  class loadPlayerJs(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with HasPlayerJsResult with IdAndOptionsRequestBuilder {}
+  /*class LoadJsAndCreateSession(name: String, addCredentials: Boolean = false) extends orgWithAccessTokenAndItem {
 
     protected def global: GlobalSettings = Play.current.global
 
@@ -119,7 +138,7 @@ class LoadPlayerTest
       val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
       s"${url}?apiClient=${apiClient.clientId}&options=$encrypted"
     }
-  }
+  }*/
 
   /*class LoadJsAndCreateSessionAndLoadPlayer(name: String, addCookies: Boolean) extends LoadJsAndCreateSession(name, addCookies) {
     lazy val loadPlayerResult: Future[SimpleResult] = {

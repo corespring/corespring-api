@@ -1,6 +1,6 @@
-package org.corespring.v2player.integration.cookies
+package org.corespring.v2.auth.cookies
 
-import org.corespring.player.accessControl.cookies.{ CookieKeys, BasePlayerCookieWriter, BasePlayerCookieReader }
+import org.corespring.player.accessControl.cookies.{ BasePlayerCookieWriter, CookieKeys, BasePlayerCookieReader }
 import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
 
 object V2PlayerCookieKeys extends CookieKeys {

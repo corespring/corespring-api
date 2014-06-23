@@ -5,8 +5,8 @@ import org.corespring.container.client.hooks.{ FullSession, SaveSession, Session
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.v2.auth.cookies.V2PlayerCookieReader
 import org.corespring.v2player.integration.auth.SessionAuth
-import org.corespring.v2player.integration.cookies.V2PlayerCookieReader
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
@@ -60,7 +60,7 @@ trait SessionHooks
       val (session, item) = models
       make(transformItem(item), session)
     }
-    out.leftMap { s => BAD_REQUEST -> s }.toEither
+    out.leftMap { s => UNAUTHORIZED -> s }.toEither
   }
 
   private def isSecure(r: RequestHeader) = renderOptions(r).map {

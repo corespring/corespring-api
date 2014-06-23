@@ -97,8 +97,14 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    //TODO - is this needed?
-    lazy val clientIdAndOptsSession = ???
+    lazy val clientIdAndOptsSession = new ClientIdSessionIdentity[(ObjectId, PlayerOptions)] {
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = {
+        renderOptions(rh).map(org.id -> _).getOrElse(throw new RuntimeException("No render options found"))
+      }
+    }
 
     lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
 
@@ -131,9 +137,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val transformer: RequestIdentity[(ObjectId, PlayerOptions)] = new WithRequestIdentitySequence[(ObjectId, PlayerOptions)] {
     override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
-      requestIdentifiers.sessionBased,
+      requestIdentifiers.clientIdAndOptsQueryString,
       requestIdentifiers.token,
-      requestIdentifiers.clientIdAndOptsQueryString)
+      requestIdentifiers.sessionBased,
+      requestIdentifiers.clientIdAndOptsSession)
   }
 
   lazy val itemAuth = new ItemAuthWired {
@@ -216,7 +223,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
     override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
-    override def getOrgIdAndOptions(header: RequestHeader): Validation[String, (ObjectId, PlayerOptions)] = ???
+    override def getOrgIdAndOptions(header: RequestHeader): Validation[String, (ObjectId, PlayerOptions)] = V2PlayerIntegration.this.transformer(header)
 
     override def userService: UserService = UserServiceWired
 

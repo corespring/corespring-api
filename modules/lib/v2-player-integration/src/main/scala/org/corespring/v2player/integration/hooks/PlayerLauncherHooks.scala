@@ -4,14 +4,18 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerJs, PlayerLauncherHooks => ContainerPlayerLauncherHooks }
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
+import org.corespring.v2.auth.cookies.V2PlayerCookieWriter
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2player.integration.cookies.V2PlayerCookieWriter
+import org.slf4j.LoggerFactory
 import play.api.mvc._
 
 import scala.concurrent.Future
 import scalaz._
 
 trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCookieWriter {
+
+  lazy val logger = LoggerFactory.getLogger("v2.player.launcher.integration")
+
   def secureSocialService: SecureSocialService
 
   def userService: UserService
@@ -31,6 +35,11 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCook
     getOrgIdAndOptions(header) match {
       case Success((orgId, opts)) => {
         val newSession = sumSession(header.session, playerCookies(orgId, Some(opts)): _*)
+        logger.trace(s"call player js with session: $newSession")
+        /**
+         * Note: setting a session cookie when loading the js is going to be deprecated,
+         * Once we have url based authentication up and running.
+         */
         PlayerJs(opts.secure, newSession)
       }
       case Failure(error) => PlayerJs(false, header.session, Seq(error))
