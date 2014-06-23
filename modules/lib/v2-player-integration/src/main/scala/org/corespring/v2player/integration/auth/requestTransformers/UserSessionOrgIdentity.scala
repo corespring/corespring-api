@@ -8,7 +8,7 @@ import org.corespring.v2
 import org.corespring.v2.auth.services.OrgService
 import play.api.mvc.RequestHeader
 
-trait SessionOrgIdentity[B] extends v2.auth.SessionOrgIdentity[B] {
+trait UserSessionOrgIdentity[B] extends v2.auth.UserSessionOrgIdentity[B] {
 
   override def userService: UserService = ???
 

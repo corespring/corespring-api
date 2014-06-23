@@ -19,6 +19,7 @@
     <logger name="assets-loader" level="ERROR" />
     <logger name="tests" level="ERROR" />
     <logger name="v2Api" level="TRACE" />
+    <logger name="v2" level="TRACE" />
     <logger name="v2player" level="TRACE" />
     <logger name="it" level="TRACE" />
     <logger name="container" level="TRACE" />

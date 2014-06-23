@@ -1,9 +1,7 @@
 package org.corespring.v2player.integration.hooks
 
-import scala.concurrent.Future
-
-import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionHooks => ContainerSessionHooks, SessionOutcome }
 import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -12,6 +10,8 @@ import org.corespring.v2player.integration.cookies.V2PlayerCookieReader
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
+
+import scala.concurrent.Future
 import scalaz.Validation
 
 trait SessionHooks

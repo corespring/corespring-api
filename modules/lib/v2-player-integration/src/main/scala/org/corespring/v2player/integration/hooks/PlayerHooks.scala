@@ -7,6 +7,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2player.integration.auth.SessionAuth
+import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsString, JsValue, Json }
 import play.api.mvc._
@@ -25,6 +26,8 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
   def auth: SessionAuth
 
+  lazy val logger = LoggerFactory.getLogger("v2.integration.PlayerHooks")
+
   override def loadItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     val s: Validation[String, (JsValue, Item)] = for {
       models <- auth.loadForRead(sessionId)
@@ -38,6 +41,8 @@ trait PlayerHooks extends ContainerPlayerHooks {
   }
 
   override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
+
+    logger.trace(s"createSessionForItem: $itemId")
 
     def createSessionJson(vid: VersionedId[ObjectId]) = {
       Some(

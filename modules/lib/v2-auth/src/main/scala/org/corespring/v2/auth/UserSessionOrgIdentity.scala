@@ -6,7 +6,7 @@ import play.api.mvc._
 
 import scalaz.{ Failure, Success, Validation }
 
-trait SessionOrgIdentity[B]
+trait UserSessionOrgIdentity[B]
   extends OrgRequestIdentity[B]
   with UserSession {
 

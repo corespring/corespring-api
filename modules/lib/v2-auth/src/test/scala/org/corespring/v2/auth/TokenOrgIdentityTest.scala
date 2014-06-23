@@ -9,7 +9,7 @@ import org.specs2.specification.Scope
 import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
 class TokenOrgIdentityTest extends Specification with Mockito {
 

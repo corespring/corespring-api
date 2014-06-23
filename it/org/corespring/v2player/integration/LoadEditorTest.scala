@@ -16,6 +16,8 @@ class LoadEditorTest
   extends IntegrationSpecification
   with IntegrationHelpers {
 
+  import org.corespring.container.client.controllers.apps.routes.Editor
+
   override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
 
   "the editor" should {
@@ -46,22 +48,18 @@ class LoadEditorTest
   }
 
   class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemLoader {
-    import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 
   class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemLoader {
-    import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelpers {
-    import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 
   class clientIdAndOptions_editItemLoader(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with itemLoader {
-    import org.corespring.container.client.controllers.apps.routes.Editor
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 }

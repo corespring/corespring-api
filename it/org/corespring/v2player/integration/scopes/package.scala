@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models._
-import org.corespring.v2.auth.ClientIdAndOptionsOrgIdentity
+import org.corespring.v2.auth.ClientIdQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ Writeable, ContentTypeOf }
@@ -135,7 +135,7 @@ package object scopes {
 
   trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndOptions =>
 
-    import ClientIdAndOptionsOrgIdentity.Keys
+    import ClientIdQueryStringIdentity.Keys
 
     def skipDecryption: Boolean
 

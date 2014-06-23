@@ -18,7 +18,7 @@ import org.corespring.platform.core.models.{ Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
-import org.corespring.v2.auth.ClientIdAndOptionsOrgIdentity.Keys
+import org.corespring.v2.auth.ClientIdQueryStringIdentity.Keys
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerOptions
@@ -77,7 +77,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
   object requestIdentifiers {
-    lazy val sessionBased = new SessionOrgIdentity[(ObjectId, PlayerOptions)] {
+    lazy val sessionBased = new UserSessionOrgIdentity[(ObjectId, PlayerOptions)] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
       override def userService: UserService = UserServiceWired
@@ -97,7 +97,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val clientIdAndOpts = new ClientIdAndOptionsOrgIdentityWithDecrypt {
+    //TODO - is this needed?
+    lazy val clientIdAndOptsSession = ???
+
+    lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
 
@@ -130,7 +133,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
       requestIdentifiers.sessionBased,
       requestIdentifiers.token,
-      requestIdentifiers.clientIdAndOpts)
+      requestIdentifiers.clientIdAndOptsQueryString)
   }
 
   lazy val itemAuth = new ItemAuthWired {

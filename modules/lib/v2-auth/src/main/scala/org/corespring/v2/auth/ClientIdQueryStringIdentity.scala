@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 import scalaz.{ Failure, Success, Validation }
 
-object ClientIdAndOptionsOrgIdentity {
+object ClientIdQueryStringIdentity {
 
   object Keys {
     val apiClient = "apiClient"
@@ -21,10 +21,10 @@ object ClientIdAndOptionsOrgIdentity {
 
 }
 
-trait ClientIdAndOptionsOrgIdentity[B] extends OrgRequestIdentity[B] {
+trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
-  import ClientIdAndOptionsOrgIdentity.Keys
-  import ClientIdAndOptionsOrgIdentity.Errors
+  import ClientIdQueryStringIdentity.Keys
+  import ClientIdQueryStringIdentity.Errors
 
   def clientIdToOrgId(apiClientId: String): Option[ObjectId]
 
@@ -41,9 +41,9 @@ trait ClientIdAndOptionsOrgIdentity[B] extends OrgRequestIdentity[B] {
   }
 }
 
-trait ClientIdAndOptionsOrgIdentityWithDecrypt extends ClientIdAndOptionsOrgIdentity[(ObjectId, PlayerOptions)] {
+trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[(ObjectId, PlayerOptions)] {
 
-  import ClientIdAndOptionsOrgIdentity.Keys
+  import ClientIdQueryStringIdentity.Keys
 
   def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String]
 

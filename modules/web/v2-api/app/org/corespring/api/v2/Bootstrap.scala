@@ -56,7 +56,7 @@ class Bootstrap(
     }
   }
 
-  protected lazy val sessionRequestTransformer: SessionOrgIdentity[OrgRequest[AnyContent]] = new SessionOrgIdentity[OrgRequest[AnyContent]] {
+  protected lazy val sessionRequestTransformer: UserSessionOrgIdentity[OrgRequest[AnyContent]] = new UserSessionOrgIdentity[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def userService: UserService = Bootstrap.this.userService

@@ -13,7 +13,7 @@ import scalaz.Failure
 
 class ClientIdAndOptionsOrgIdentityTest extends Specification with Mockito {
 
-  val identifier = new ClientIdAndOptionsOrgIdentity[String] {
+  val identifier = new ClientIdQueryStringIdentity[String] {
     override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = None
 
     override def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions = PlayerOptions.ANYTHING
@@ -28,7 +28,7 @@ class ClientIdAndOptionsOrgIdentityTest extends Specification with Mockito {
 
   "client id and options" should {
     "work" in {
-      import ClientIdAndOptionsOrgIdentity.Errors
+      import ClientIdQueryStringIdentity.Errors
       identifier(FakeRequest("", "")) must_== Failure(Errors.noOrgForApiClient)
     }
   }
