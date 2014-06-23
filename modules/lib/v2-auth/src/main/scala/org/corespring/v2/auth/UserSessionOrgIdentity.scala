@@ -15,5 +15,7 @@ trait UserSessionOrgIdentity[B]
       Success(u.org.orgId)
     }.getOrElse(Failure("No user session found"))
   }
+
+  override def toString = "[UserSession]"
 }
 

@@ -47,7 +47,10 @@ trait ItemHooks extends ContainerItemHooks {
         (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
         (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
 
-      val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) => fn(i, json) }
+      val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) =>
+        logger.trace(s"update item - fold")
+        fn(i, json)
+      }
       auth.save(updatedItem, false)
       Some(transform(updatedItem))
     }

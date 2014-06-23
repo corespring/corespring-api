@@ -27,7 +27,8 @@ object PlayerJsonToItem {
 
       val newInfo = info.copy(
         title = (infoJson \ "title").asOpt[String].orElse(info.title),
-        gradeLevel = (infoJson \ "gradeLevel").as[Seq[String]],
+        description = (infoJson \ "description").asOpt[String],
+        gradeLevel = (infoJson \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
         subjects = Some(subjects),
         itemType = (infoJson \ "itemType").asOpt[String])
       item.copy(taskInfo = Some(newInfo))

@@ -77,7 +77,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
   object requestIdentifiers {
-    lazy val sessionBased = new UserSessionOrgIdentity[(ObjectId, PlayerOptions)] {
+    lazy val userSession = new UserSessionOrgIdentity[(ObjectId, PlayerOptions)] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
       override def userService: UserService = UserServiceWired
@@ -95,6 +95,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> PlayerOptions.ANYTHING)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
+
     }
 
     lazy val clientIdAndOptsSession = new ClientIdSessionIdentity[(ObjectId, PlayerOptions)] {
@@ -139,7 +140,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
       requestIdentifiers.clientIdAndOptsQueryString,
       requestIdentifiers.token,
-      requestIdentifiers.sessionBased,
+      requestIdentifiers.userSession,
       requestIdentifiers.clientIdAndOptsSession)
   }
 

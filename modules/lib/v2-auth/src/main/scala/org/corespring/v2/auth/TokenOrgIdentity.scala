@@ -17,4 +17,6 @@ trait TokenOrgIdentity[B]
     getToken[String](rh, "Invalid token", "No token").fold(Failure(_), onToken)
   }
 
+  override def toString = s"[TokenOrgIdentity]"
+
 }
