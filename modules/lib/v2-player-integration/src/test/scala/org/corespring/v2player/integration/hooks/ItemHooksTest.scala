@@ -44,7 +44,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
     def result: Either[ERR, RES] = {
       import scala.concurrent.duration._
-      Await.result(f, Duration(1, TimeUnit.SECONDS))
+      Await.result(f, Duration(10, TimeUnit.SECONDS))
     }
 
     lazy val hooks = new ItemHooks {

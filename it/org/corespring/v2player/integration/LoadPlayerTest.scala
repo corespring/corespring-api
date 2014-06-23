@@ -1,17 +1,13 @@
 package org.corespring.v2player.integration
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.AESCrypto
 import org.corespring.container.client.component.ComponentUrls
-import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2.auth.cookies.V2PlayerCookieKeys
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2player.integration.scopes._
 import org.specs2.mock.Mockito
@@ -83,12 +79,6 @@ class LoadPlayerTest
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       headers(createSessionResult) === headers(mockResult)
     }
-
-    "load player js with client id + options query string sets session" in new loadPlayerJs(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
-      status(playerJsResult) === OK
-      session(playerJsResult).get(V2PlayerCookieKeys.orgId) === Some(orgId.toString)
-      session(playerJsResult).get(V2PlayerCookieKeys.renderOptions) === Some(options)
-    }
   }
 
   trait HasCreateSessionResult { self: HasItemId with RequestBuilder =>
@@ -103,53 +93,8 @@ class LoadPlayerTest
     }
   }
 
-  trait HasPlayerJsResult { self: HasItemId with RequestBuilder =>
-
-    protected def global: GlobalSettings = Play.current.global
-
-    lazy val playerJsResult: Future[SimpleResult] = {
-      val launcher = global.getControllerInstance(classOf[PlayerLauncher])
-      val request = makeRequest(Call("", ""))
-      launcher.playerJs()(request)
-    }
-  }
-
   class unknownIdentity_CreateSession extends HasCreateSessionResult with PlainRequestBuilder with orgWithAccessTokenAndItem {}
-
   class user_CreateSession extends userAndItem with HasCreateSessionResult with SessionRequestBuilder with SecureSocialHelpers {}
   class token_CreateSession extends orgWithAccessTokenAndItem with HasCreateSessionResult with TokenRequestBuilder {}
   class clientIdAndOpts_queryString_CreateSession(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with HasCreateSessionResult with IdAndOptionsRequestBuilder {}
-
-  class loadPlayerJs(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with HasPlayerJsResult with IdAndOptionsRequestBuilder {}
-  /*class LoadJsAndCreateSession(name: String, addCredentials: Boolean = false) extends orgWithAccessTokenAndItem {
-
-    protected def global: GlobalSettings = Play.current.global
-
-    lazy val createSessionResult: Future[SimpleResult] = {
-      val player = global.getControllerInstance(classOf[Player])
-      val createSession = player.createSessionForItem(itemId.toString)
-      val url = if (addCredentials) urlWithEncryptedOptions("", apiClient) else ""
-      logger.debug(s"calling create session with: $url")
-      createSession(FakeRequest("", url))
-    }
-
-    def urlWithEncryptedOptions(url: String, apiClient: ApiClient, options: PlayerOptions = PlayerOptions.ANYTHING) = {
-      val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
-      val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
-      s"${url}?apiClient=${apiClient.clientId}&options=$encrypted"
-    }
-  }*/
-
-  /*class LoadJsAndCreateSessionAndLoadPlayer(name: String, addCookies: Boolean) extends LoadJsAndCreateSession(name, addCookies) {
-    lazy val loadPlayerResult: Future[SimpleResult] = {
-      val redirect = headers(createSessionResult).get("Location").getOrElse(throw new RuntimeException("Error getting location"))
-      //TODO: We are avoiding calling `route` here - is there a nicer way to get the Action?
-      val Regex = """/v2/player/session/(.*?)/.*""".r
-      val Regex(id) = redirect
-      logger.debug(s" id is: $id")
-      val c = global.getControllerInstance(classOf[Player])
-      val out = c.loadPlayerForSession(id)(FakeRequest(GET, redirect).withCookies(cookies(jsResult).toSeq: _*))
-      out
-    }
-  }*/
 }
