@@ -1,7 +1,8 @@
 package org.corespring.v2player.integration.transformers
 
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, TaskInfo, Item }
+import org.corespring.platform.core.models.item.{ Subjects, ItemTransformationCache, TaskInfo, Item }
 import org.specs2.mutable.Specification
 import play.api.libs.json.{ JsValue, JsObject }
 
@@ -45,7 +46,9 @@ class ItemTransformerTest extends Specification {
     "transform an item to poc json" in {
 
       val item = Item(
-        taskInfo = Some(TaskInfo(title = Some("item one"))),
+        taskInfo = Some(
+          TaskInfo(
+            title = Some("item one"))),
         data = Some(
           Resource(
             name = "data",
@@ -65,7 +68,6 @@ class ItemTransformerTest extends Specification {
       (json \ "metadata" \ "title").as[String] === "item one"
       (json \ "components" \ "Q_01").asOpt[JsObject] must beSome[JsObject]
       (json \ "files").as[Seq[JsObject]].map(f => (f \ "name").as[String]).contains("qti.xml") must beFalse
-
       (imageJson \ "name").as[String] must be equalTo "kittens.jpeg"
       (imageJson \ "contentType").as[String] must be equalTo "image/jpeg"
     }

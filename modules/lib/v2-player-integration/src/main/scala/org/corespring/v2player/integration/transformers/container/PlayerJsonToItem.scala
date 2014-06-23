@@ -21,19 +21,27 @@ object PlayerJsonToItem {
     infoJson =>
       val info = item.taskInfo.getOrElse(TaskInfo())
 
-      val subjects = info.subjects.getOrElse(Subjects()).copy(
-        primary = (infoJson \ "primarySubject" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
-        related = (infoJson \ "relatedSubject" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)))
+      val subjectsJson = (infoJson \ "subjects").asOpt[JsObject]
+      val subjects = Some(updateSubjects(info.subjects.getOrElse(Subjects()), subjectsJson))
 
       val newInfo = info.copy(
         title = (infoJson \ "title").asOpt[String].orElse(info.title),
         description = (infoJson \ "description").asOpt[String],
         gradeLevel = (infoJson \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
-        subjects = Some(subjects),
+        subjects = subjects,
         itemType = (infoJson \ "itemType").asOpt[String])
       item.copy(taskInfo = Some(newInfo))
   }.getOrElse(item)
 
+  def updateSubjects(subjects: Subjects, subjectJson: Option[JsObject]): Subjects = {
+
+    subjectJson.map { json =>
+      subjects.copy(
+        primary = (json \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
+        related = (json \ "related" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)))
+    }.getOrElse(subjects)
+
+  }
   def supportingMaterials(item: Item, json: JsValue): Item = {
     implicit val baseFileFormat = BaseFile.BaseFileFormat
     (json \ "supportingMaterials") match {

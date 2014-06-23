@@ -4,10 +4,13 @@ import org.corespring.container.client.controllers.{ DataQuery => ContainerDataQ
 import org.corespring.platform.core.models.Subject
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.services.QueryService
+import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsArray, Json }
-import play.api.mvc.{ AnyContent, Action }
+import play.api.mvc.{ Action, AnyContent }
 
 trait DataQuery extends ContainerDataQuery {
+
+  lazy val logger = LoggerFactory.getLogger("v2.integration.DataQuery")
 
   def subjectQueryService: QueryService[Subject]
 
@@ -15,6 +18,9 @@ trait DataQuery extends ContainerDataQuery {
 
   override def findOne(topic: String, id: String): Action[AnyContent] = Action {
     request =>
+
+      logger.trace(s"findOne $topic id: $id")
+
       subjectQueryService.findOne(id).map {
         s =>
           Ok(Json.toJson(s))
@@ -23,6 +29,8 @@ trait DataQuery extends ContainerDataQuery {
 
   override def list(topic: String, query: Option[String]): Action[AnyContent] = Action {
     request =>
+
+      logger.trace(s"list: $topic - query: $query")
 
       def subjectQuery = {
         query.map {
@@ -36,8 +44,8 @@ trait DataQuery extends ContainerDataQuery {
           Json.toJson(fieldValues.gradeLevels)
         }
         case "itemType" => Json.toJson(fieldValues.itemTypes)
-        case "primarySubject" => Json.toJson(subjectQuery)
-        case "relatedSubject" => Json.toJson(subjectQuery)
+        case "subjects.primary" => Json.toJson(subjectQuery)
+        case "subjects.related" => Json.toJson(subjectQuery)
         case _ => Json.toJson(JsArray(Seq.empty))
       }
       Ok(json)

@@ -29,8 +29,7 @@ object TaskInfo extends ValueGetter {
     val extended = "extended"
   }
 
-
-  val gradeLevelSorter: (String, String) => Boolean = (a,b) => {
+  val gradeLevelSorter: (String, String) => Boolean = (a, b) => {
     val reference = List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09",
       "10", "11", "12", "13", "PS", "AP", "UG")
     (Option(reference.indexOf(a)), Option(reference.indexOf(b))) match {
@@ -62,6 +61,7 @@ object TaskInfo extends ValueGetter {
       }
     }
   }
+
   def extendedAsJson(extended: Map[String, BasicDBObject]): JsValue = {
     JsObject(extended.foldRight[Seq[(String, JsValue)]](Seq())((md, acc1) => {
       acc1 :+ (md._1 -> JsObject(md._2.toSeq.map(prop => prop._1 -> JsString(prop._2.toString))))

@@ -23,6 +23,7 @@
     <logger name="v2player" level="TRACE" />
     <logger name="it" level="TRACE" />
     <logger name="container" level="TRACE" />
+    <logger name="org.corespring.platform.core.services" level="TRACE" />
 
 
     <root level="OFF">

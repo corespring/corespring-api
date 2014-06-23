@@ -12,7 +12,10 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
     Subject.findOneById(new ObjectId(id))
   } else None
 
-  override def list(): Seq[Subject] = Subject.findAll().toSeq
+  override def list(): Seq[Subject] = {
+    logger.trace(s"list")
+    Subject.findAll().toSeq
+  }
 
   override def query(term: String): Seq[Subject] = {
 

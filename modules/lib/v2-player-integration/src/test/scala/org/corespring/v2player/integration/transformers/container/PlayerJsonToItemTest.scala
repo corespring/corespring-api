@@ -19,13 +19,15 @@ class PlayerJsonToItemTest extends Specification {
                 "01",
                         "03"
                 ],
-                "primarySubject": {
+                "subjects" : {
+                  "primary": {
                     "id": "4ffb535f6bb41e469c0bf2a8",
                             "text": "Performing Arts"
-                },
-                "relatedSubject": {
+                  },
+                  "related": {
                     "id": "4ffb535f6bb41e469c0bf2a9",
                             "text": "AP Music Theory,Visual Arts"
+                  }
                 },
                 "itemType": "Type"
               }
