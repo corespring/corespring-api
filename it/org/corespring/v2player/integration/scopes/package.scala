@@ -48,9 +48,19 @@ package object scopes {
     val itemId = ItemHelper.create(collectionId)
 
     override def after: Any = {
+      super.after
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
     }
+  }
+
+  trait orgWithAccessTokenItemAndSession extends orgWithAccessTokenAndItem with HasSessionId {
+    val sessionId = V2SessionHelper.create(itemId)
+
+    override def after: Any = {
+      V2SessionHelper.delete(sessionId)
+    }
+
   }
 
   trait sessionData extends orgWithAccessToken {
