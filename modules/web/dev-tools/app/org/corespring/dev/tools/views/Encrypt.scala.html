@@ -1,0 +1,46 @@
+@(url : String)
+<html>
+
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+ <body>
+
+    <label>
+        org id:
+        <input id="orgId"/>
+    </label>
+    <br/>
+    <label>options:
+        <textarea style="width: 500px; height: 400px;" id="options">{"itemId" : "*", "sessionId" : "*", "secure": true }</textarea>
+    </label>
+    <br/>
+    <button id="button">Go</button>
+    <br/>
+    <div class="result-id"></div>
+    <div class="result-opts"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+           $("#button").click(function(event){
+              var options = JSON.parse($('#options').val());
+              var url = "@url".replace(':orgId', $('#orgId').val());
+
+              $.ajax({
+                  url:url,
+                  type:"POST",
+                  data:JSON.stringify(options),
+                  contentType:"application/json; charset=utf-8",
+                  dataType:"json",
+                  success: function(result){
+                    console.log(result);
+                    $('.result-id').html(JSON.stringify(result));
+                  }
+                });
+           });
+        });
+
+    </script>
+ </body>
+</html>

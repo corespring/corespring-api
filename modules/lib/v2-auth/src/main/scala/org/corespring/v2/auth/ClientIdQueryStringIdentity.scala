@@ -32,10 +32,16 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
   override def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId] = {
     logger.trace("Try from query params")
+
+    val maybeClientId = rh.getQueryString(Keys.apiClient)
+    logger.trace( s"${Keys.apiClient} in query: ${maybeClientId.toString}")
+
     val out = for {
-      apiClientId <- rh.getQueryString(Keys.apiClient)
+      apiClientId <- maybeClientId
       orgId <- clientIdToOrgId(apiClientId)
     } yield orgId
+
+    logger.trace(s"result: $out")
 
     out.map(Success(_)).getOrElse(Failure(Errors.noOrgForApiClient))
   }

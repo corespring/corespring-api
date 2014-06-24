@@ -6,4 +6,5 @@ GET    /player/session/:sessionId/render                   org.corespring.dev.to
 GET    /player/session/:sessionId/*filename                org.corespring.dev.tools.controllers.AssetLoading.getDataFileBySessionId(sessionId, filename)
 
 GET   /orgs                                                org.corespring.dev.tools.controllers.Organization.list()
-GET   /encrypt-options/:clientId                           org.corespring.dev.tools.controllers.Encrypter.encrypt(clientId:String)
+GET   /encrypt-options                                    org.corespring.dev.tools.controllers.Encrypter.encryptPage
+POST  /encrypt-options/:orgId                             org.corespring.dev.tools.controllers.Encrypter.encrypt(orgId:String)

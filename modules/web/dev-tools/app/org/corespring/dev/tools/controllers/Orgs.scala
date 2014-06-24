@@ -20,7 +20,8 @@ object Organization extends Controller {
         val clients = ApiClient.find(MongoDBObject("orgId" -> o.id)).toSeq
 
         val tokens = AccessToken.find(MongoDBObject("organization" -> o.id)).toSeq
-        val json = Json.toJson(o).as[JsObject]
+        val json = Json.toJson(o)(ModelOrg.FullWrites).as[JsObject]
+
 
         json ++ Json.obj("apiClients" -> Json.toJson(JsArray(clients.map { c =>
           Json.obj(
