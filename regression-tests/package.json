@@ -1,0 +1,30 @@
+{
+  "author": "CoreSpring",
+  "name": "corespring-container-regression-tests",
+  "description" : "A suite of functional tests for corespring container",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/corespring/corespring-container"
+  },
+  "dependencies": {
+  },
+  "engines": {
+    "node": ">= 0.10.9"
+  },
+  "devDependencies": {
+    "bower": "~1.3.1",
+    "chai" : "~1.9.1",
+    "coffee-script": "~1.7.1",
+    "grunt": "~0.4.2",
+    "grunt-http-verify": "~0.1.2",
+    "grunt-webdriver": "~0.4.1",
+    "http-verify": "~0.2.0",
+    "lodash": "~2.4.1",
+    "nconf": "~0.6.9",
+    "regression-test-runner": "git+ssh://git@github.com:corespring/regression-test-runner.git",
+    "should" : "~4.0.4",
+    "sinon" : "~1.10.2"
+  }
+}
+

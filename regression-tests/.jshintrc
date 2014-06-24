@@ -1,0 +1,27 @@
+{
+  "browser": true,
+  "curly": true,
+  "eqnull": true,
+  "eqeqeq": true,
+  "undef": true,
+  "es3" : true,
+  "globals": {
+    "jQuery": true,
+    "$" : true,
+    "_" : true,
+    "console" : true,
+    "require" : true,
+    "describe" : true,
+    "it" : true,
+    "xit" : true,
+    "expect" : true,
+    "angular" : true,
+    "beforeEach" : true,
+    "exports" : true,
+    "module" : true,
+    "spyOn" : true,
+    "inject" : true,
+    "browser": true,
+    "corespringRegressionTestGlobals": true
+  }
+}
