@@ -5,7 +5,7 @@ import org.corespring.platform.core.models.Subject
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.services.QueryService
 import org.slf4j.LoggerFactory
-import play.api.libs.json.{ JsArray, JsValue, Json }
+import play.api.libs.json.{ JsObject, JsArray, JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
@@ -16,7 +16,9 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
 
   def subjectQueryService: QueryService[Subject]
 
-  def fieldValues: FieldValue
+  def fieldValueJson: JsObject
+
+  def standardsTreeJson: JsArray
 
   override def findOne(topic: String, id: String)(implicit header: RequestHeader): Future[Either[(Int, String), Option[JsValue]]] = Future {
     logger.trace(s"findOne $topic id: $id")
@@ -33,16 +35,19 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
       }.getOrElse(subjectQueryService.list)
     }
 
-    val json = topic match {
-      case "gradeLevel" => {
-        Json.toJson(fieldValues.gradeLevels)
+    topic match {
+      case "subjects.primary" => Right(Json.toJson(subjectQuery).as[JsArray])
+      case "subjects.related" => Right(Json.toJson(subjectQuery).as[JsArray])
+      case "standardsTree" => Right(standardsTreeJson)
+      case _ => {
+        logger.trace(s"fields: ${fieldValueJson.fields.map(_._1)}")
+        if (fieldValueJson.fields.map(_._1).contains(topic)) {
+          Right((fieldValueJson \ topic).as[JsArray])
+        } else {
+          Left(404, s"Can't find $topic")
+        }
       }
-      case "itemType" => Json.toJson(fieldValues.itemTypes)
-      case "subjects.primary" => Json.toJson(subjectQuery)
-      case "subjects.related" => Json.toJson(subjectQuery)
-      case _ => Json.toJson(JsArray(Seq.empty))
     }
-    Right(json.as[JsArray])
   }
 
 }

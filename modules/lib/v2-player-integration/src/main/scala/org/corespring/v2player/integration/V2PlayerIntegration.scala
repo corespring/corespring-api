@@ -1,6 +1,7 @@
 package org.corespring.v2player.integration
 
 import com.mongodb.casbah.MongoDB
+import com.mongodb.util.JSON
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
@@ -29,7 +30,7 @@ import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import org.corespring.v2player.integration.urls.ComponentSetsWired
 import org.corespring.v2player.integration.{ controllers => apiControllers, hooks => apiHooks }
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.{ Configuration, Logger, Play, Mode => PlayMode }
 import securesocial.core.{ Identity, SecureSocial }
@@ -191,7 +192,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
   override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
     override def subjectQueryService: QueryService[Subject] = SubjectQueryService
 
-    override def fieldValues: FieldValue = FieldValue.findAll().toSeq.head
+    override val fieldValueJson: JsObject = {
+      val dbo = FieldValue.collection.find().toSeq.head
+      import play.api.libs.json.{ Json => PlayJson }
+      import com.mongodb.util.{ JSON => MongoJson }
+      PlayJson.parse(MongoJson.serialize(dbo)).as[JsObject]
+    }
+
+    override val standardsTreeJson: JsArray = {
+      import play.api.Play.current
+      Play.resourceAsStream("public/web/standards_tree.json").map { is =>
+        val contents = scala.io.Source.fromInputStream(is).getLines().mkString("\n")
+        Json.parse(contents).as[JsArray]
+      }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
+    }
   }
 
   lazy val sessionAuth: SessionAuth = new SessionAuthWired {

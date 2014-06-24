@@ -67,11 +67,7 @@ abstract class JsonTransformer(mapArray: (String, String)*) {
   private def merge(results: Option[JsObject]*): JsObject = {
     val success: Seq[JsObject] = results.toSeq.flatten
     success.fold[JsObject](JsObject(Seq())) { (acc: JsObject, i: JsObject) =>
-
-      println(s"merge: $acc + with $i")
       acc.deepMerge(i)
-      //(__).json.update()
-      //acc ++ i
     }
   }
 }

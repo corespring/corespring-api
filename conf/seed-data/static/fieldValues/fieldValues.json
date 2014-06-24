@@ -1,6 +1,44 @@
 {
     "version":"0.0.1",
 
+    "mediaType" : [
+         {
+            "key" : "Audio",
+            "value" : "Audio"
+          },
+         {
+            "key" : "Image",
+            "value" : "Image"
+          },
+         {
+            "key" : "Passage",
+            "value" : "Passage"
+          },
+         {
+            "key" : "Video",
+            "value" : "Video"
+         }
+        ],
+
+        "depthOfKnowledge" : [
+            {
+               "key" : "1",
+               "value" : "Level 1 Recall & Reproduction"
+            },
+            {
+               "key" : "2",
+               "value" : "Level 2 Skills & Concepts"
+             },
+            {
+               "key" : "3",
+               "value" : "Level 3 Strategic Thinking/Reasoning"
+             },
+            {
+               "key" : "4",
+               "value" : "Level 4 Extended Thinking"
+            }
+        ],
+
     "bloomsTaxonomy":[
         {
             "key":"Remembering",

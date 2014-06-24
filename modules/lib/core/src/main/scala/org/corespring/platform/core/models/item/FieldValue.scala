@@ -22,6 +22,7 @@ case class FieldValue(
   var version: Option[String] = None,
   var gradeLevels: Seq[StringKeyValue] = Seq(),
   var reviewsPassed: Seq[StringKeyValue] = Seq(),
+  var mediaTypes: Seq[StringKeyValue] = Seq(),
   var keySkills: Seq[ListKeyValue] = Seq(),
   var itemTypes: Seq[ListKeyValue] = Seq(),
   var licenseTypes: Seq[StringKeyValue] = Seq(),
@@ -46,6 +47,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
   val Version = "version"
   val KeySkills = "keySkills"
+  val MediaTypes = "mediaTypes"
   val GradeLevel = "gradeLevels"
   val ReviewsPassed = "reviewsPassed"
   val ItemTypes = "itemTypes"

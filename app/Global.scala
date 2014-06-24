@@ -133,7 +133,7 @@ object Global
     app.mode match {
 
       case Mode.Test => {
-        //onlyIfLocalDb(emptyData, seedTestData)
+        seedStaticData()
       }
       case Mode.Dev => {
         if (initData) {
