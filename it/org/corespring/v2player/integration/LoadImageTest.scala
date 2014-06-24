@@ -19,7 +19,6 @@ class LoadImageTest extends IntegrationSpecification {
   class AddImageAndItem(imagePath: String) extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
 
     lazy val logger = Logger("v2player.test")
-    lazy val name = grizzled.file.util.basename(imagePath)
     lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
@@ -31,8 +30,11 @@ class LoadImageTest extends IntegrationSpecification {
 
       super.before
 
-      val item = ItemServiceWired.findOneById(itemId).get
+      val file = new File(imagePath)
+      require(file.exists)
 
+      val item = ItemServiceWired.findOneById(itemId).get
+      val name = grizzled.file.util.basename(file.getCanonicalPath)
       val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/${name}"
 
       val update = item.copy(
@@ -41,10 +43,6 @@ class LoadImageTest extends IntegrationSpecification {
             StoredFile(name = name, contentType = "image/png", storageKey = key)))))
 
       ItemServiceWired.save(update)
-
-      val file = new File(imagePath)
-
-      require(file.exists)
 
       logger.debug(s"Uploading image...: ${file.getPath} -> $key")
       val upload: Upload = tm.upload(bucketName, key, file)
