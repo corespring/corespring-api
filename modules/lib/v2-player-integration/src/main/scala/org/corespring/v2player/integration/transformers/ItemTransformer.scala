@@ -1,5 +1,6 @@
 package org.corespring.v2player.integration.transformers
 
+import org.corespring.common.json.JsonTransformer
 import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache }
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
 import org.corespring.qtiToV2.QtiTransformer
@@ -23,8 +24,15 @@ trait ItemTransformer {
 
   private def toProfile(item: Item): JsValue = {
     item.taskInfo.map { info =>
-      Json.obj("taskInfo" -> Json.toJson(info))
+      Json.obj("taskInfo" -> mapTaskInfo(Json.toJson(info)))
     }.getOrElse(Json.obj("taskInfo" -> Json.obj()))
+  }
+
+  def mapTaskInfo(taskInfoJson: JsValue): JsValue = {
+    val tf = new JsonTransformer(
+      "primarySubject" -> "subjects.primary",
+      "relatedSubject" -> "subjects.related") {}
+    tf.transform(taskInfoJson)
   }
 
   private def createFromQti(item: Item): JsObject = {

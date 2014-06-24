@@ -1,10 +1,10 @@
 package org.corespring.v2player.integration.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
-import org.corespring.platform.core.models.item.{ Subjects, ItemTransformationCache, TaskInfo, Item }
+import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, TaskInfo }
 import org.specs2.mutable.Specification
-import play.api.libs.json.{ JsValue, JsObject }
+import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scala.xml.Node
 
@@ -43,6 +43,22 @@ class ItemTransformerTest extends Specification {
     </assessmentItem>
 
   "Item transformer" should {
+
+    "map task info" in {
+
+      val oid = ObjectId.get.toString
+      val apiJson = Json.obj(
+        "primarySubject" -> Json.obj("id" -> oid, "subject" -> "a", "category" -> "b"),
+        "relatedSubject" -> Json.obj("id" -> oid, "subject" -> "c", "category" -> "d"))
+
+      val v2Json = Json.obj(
+        "subjects" -> Json.obj(
+          "primary" -> apiJson \ "primarySubject",
+          "related" -> apiJson \ "relatedSubject"))
+
+      itemTransformer.mapTaskInfo(apiJson) === v2Json
+    }
+
     "transform an item to poc json" in {
 
       val item = Item(

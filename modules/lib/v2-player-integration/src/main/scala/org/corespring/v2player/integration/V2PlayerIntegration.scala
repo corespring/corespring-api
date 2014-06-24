@@ -188,7 +188,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def itemAuth: ItemAuth = V2PlayerIntegration.this.itemAuth
   }
 
-  override def dataQuery: ContainerDataQuery = new apiControllers.DataQuery {
+  override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
     override def subjectQueryService: QueryService[Subject] = SubjectQueryService
 
     override def fieldValues: FieldValue = FieldValue.findAll().toSeq.head
