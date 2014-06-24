@@ -15,10 +15,10 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
-import org.corespring.platform.core.models.{ Organization, Subject }
+import org.corespring.platform.core.models.{ Standard, Organization, Subject }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.core.services.{ QueryService, SubjectQueryService, UserService, UserServiceWired }
+import org.corespring.platform.core.services._
 import org.corespring.v2.auth.ClientIdQueryStringIdentity.Keys
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.models.Mode.Mode
@@ -191,6 +191,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
     override def subjectQueryService: QueryService[Subject] = SubjectQueryService
+    override def standardQueryService: QueryService[Standard] = StandardQueryService
 
     override val fieldValueJson: JsObject = {
       val dbo = FieldValue.collection.find().toSeq.head
@@ -206,6 +207,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
+
   }
 
   lazy val sessionAuth: SessionAuth = new SessionAuthWired {

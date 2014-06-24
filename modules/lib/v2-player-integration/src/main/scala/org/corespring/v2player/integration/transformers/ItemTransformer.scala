@@ -23,9 +23,10 @@ trait ItemTransformer {
   }
 
   private def toProfile(item: Item): JsValue = {
-    item.taskInfo.map { info =>
+    val taskInfoJson = item.taskInfo.map { info =>
       Json.obj("taskInfo" -> mapTaskInfo(Json.toJson(info)))
     }.getOrElse(Json.obj("taskInfo" -> Json.obj()))
+    taskInfoJson ++ Json.obj("standards" -> item.standards.map(Json.toJson(_)))
   }
 
   def mapTaskInfo(taskInfoJson: JsValue): JsValue = {

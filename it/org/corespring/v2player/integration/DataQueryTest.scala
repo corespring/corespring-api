@@ -35,9 +35,11 @@ class DataQueryTest extends IntegrationSpecification {
           "reviewsPassed",
           "credentials",
           "standardsTree",
-          "bloomsTaxonomy")) { (topic: String) =>
+          "bloomsTaxonomy",
+          "subjects.primary",
+          "subjects.related",
+          "standards")) { (topic: String) =>
           val r = listResult(topic)
-          println(s" -> ${contentAsString(r)}")
           contentAsJson(r) match {
             case obj: JsObject => {
               failure((obj \ "error").as[String])

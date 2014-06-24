@@ -13,6 +13,9 @@ class PlayerJsonToItemTest extends Specification {
 
       val jsonString = """
             {
+                "standards" : [{
+                 "id": "000000000000000000000001"
+                }],
                 "taskInfo": {
                 "title": "Drag and drop example",
                         "gradeLevel": [
@@ -37,12 +40,15 @@ class PlayerJsonToItemTest extends Specification {
       val item = Item()
       val update = PlayerJsonToItem.profile(item, json)
 
+      update.standards.length === 1
+
       update.taskInfo.map { info =>
         info.title === Some("Drag and drop example")
         info.itemType === Some("Type")
         info.gradeLevel === Seq("01", "03")
         info.subjects.get.primary === Some(new ObjectId("4ffb535f6bb41e469c0bf2a8"))
         info.subjects.get.related === Some(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
+
       }.getOrElse(failure("No updated info"))
     }
 

@@ -1,7 +1,7 @@
 package org.corespring.v2player.integration.hooks
 
 import org.corespring.container.client.hooks.{ DataQueryHooks => ContainerDataQueryHooks }
-import org.corespring.platform.core.models.Subject
+import org.corespring.platform.core.models.{ Standard, Subject }
 import org.corespring.platform.core.models.item.FieldValue
 import org.corespring.platform.core.services.QueryService
 import org.slf4j.LoggerFactory
@@ -16,6 +16,8 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
 
   def subjectQueryService: QueryService[Subject]
 
+  def standardQueryService: QueryService[Standard]
+
   def fieldValueJson: JsObject
 
   def standardsTreeJson: JsArray
@@ -28,16 +30,15 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
   override def list(topic: String, query: Option[String])(implicit header: RequestHeader): Future[Either[(Int, String), JsArray]] = Future {
     logger.trace(s"list: $topic - query: $query")
 
-    def subjectQuery = {
-      query.map {
-        q =>
-          subjectQueryService.query(q)
-      }.getOrElse(subjectQueryService.list)
-    }
+    def q[A](service: QueryService[A]) = query.map(q => service.query(q)).getOrElse(service.list)
+    def subjectQuery = q(subjectQueryService)
+    def standardQuery = q(standardQueryService)
 
+    import play.api.libs.json.Json.toJson
     topic match {
-      case "subjects.primary" => Right(Json.toJson(subjectQuery).as[JsArray])
-      case "subjects.related" => Right(Json.toJson(subjectQuery).as[JsArray])
+      case "subjects.primary" => Right(toJson(subjectQuery).as[JsArray])
+      case "subjects.related" => Right(toJson(subjectQuery).as[JsArray])
+      case "standards" => Right(toJson(standardQuery).as[JsArray])
       case "standardsTree" => Right(standardsTreeJson)
       case _ => {
         logger.trace(s"fields: ${fieldValueJson.fields.map(_._1)}")

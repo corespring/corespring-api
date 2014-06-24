@@ -30,7 +30,11 @@ object PlayerJsonToItem {
         gradeLevel = (infoJson \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
         subjects = subjects,
         itemType = (infoJson \ "itemType").asOpt[String])
-      item.copy(taskInfo = Some(newInfo))
+
+      def toStandards(arr: Seq[JsObject]): Seq[String] = arr.map(json => (json \ "id").asOpt[String]).flatten
+      val newStandards = (profileJson \ "standards").asOpt[Seq[JsObject]].map(toStandards).getOrElse(item.standards) //.asOpt[Seq[JsObject]].map( json => (json \ "id").as[String])
+
+      item.copy(taskInfo = Some(newInfo), standards = newStandards)
   }.getOrElse(item)
 
   def updateSubjects(subjects: Subjects, subjectJson: Option[JsObject]): Subjects = {
