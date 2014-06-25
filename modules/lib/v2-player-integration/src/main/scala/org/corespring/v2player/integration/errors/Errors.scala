@@ -28,6 +28,8 @@ object Errors {
 
   case class cantLoadSession(id: String) extends V2Error(NOT_FOUND, s"Can't load session with id $id")
 
+  case class noItemIdInSession(id: String) extends V2Error(NOT_FOUND, s"no item id in session: $id")
+
   case object cantParseItemId extends V2Error(BAD_REQUEST, "Can't parse itemId")
 
   case class cantFindItemWithId(vid: VersionedId[ObjectId]) extends cantFindById("item", vid.toString())

@@ -1,9 +1,15 @@
 package org.corespring.v2player.integration
 
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models._
+import org.corespring.v2.auth.ClientIdQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
+import play.api.http.{ Writeable, ContentTypeOf }
+import play.api.mvc.{ Cookie, Request, AnyContent, Call }
+import play.api.test.FakeRequest
 
 package object scopes {
 
@@ -28,15 +34,33 @@ package object scopes {
     }
   }
 
-  trait orgWithAccessTokenAndItem extends orgWithAccessToken {
+  trait HasItemId {
+    val itemId: VersionedId[ObjectId]
+  }
+
+  trait HasSessionId {
+    val sessionId: ObjectId
+  }
+
+  trait orgWithAccessTokenAndItem extends orgWithAccessToken with HasItemId {
 
     val collectionId = CollectionHelper.create(orgId)
     val itemId = ItemHelper.create(collectionId)
 
     override def after: Any = {
+      super.after
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
     }
+  }
+
+  trait orgWithAccessTokenItemAndSession extends orgWithAccessTokenAndItem with HasSessionId {
+    val sessionId = V2SessionHelper.create(itemId)
+
+    override def after: Any = {
+      V2SessionHelper.delete(sessionId)
+    }
+
   }
 
   trait sessionData extends orgWithAccessToken {
@@ -70,6 +94,77 @@ package object scopes {
       UserHelper.delete(user.id)
       OrganizationHelper.delete(orgId)
       CollectionHelper.delete(collectionId)
+    }
+  }
+
+  trait userAndItem extends user with HasItemId {
+    val itemId = ItemHelper.create(collectionId)
+    override def after: Any = {
+      super.after
+      ItemHelper.delete(itemId)
+    }
+  }
+
+  trait userWithItemAndSession extends userAndItem with HasItemId with HasSessionId {
+    val sessionId = V2SessionHelper.create(itemId)
+    override def after: Any = {
+      super.after
+      V2SessionHelper.delete(sessionId)
+    }
+  }
+
+  trait clientIdAndOptions extends orgWithAccessTokenAndItem {
+    val clientId = apiClient.clientId
+    def options: String
+  }
+
+  trait itemLoader { self: RequestBuilder with HasItemId =>
+
+    def getCall(itemId: VersionedId[ObjectId]): Call
+
+    lazy val result = {
+      val call = getCall(itemId)
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
+      play.api.test.Helpers.route(makeRequest(call))(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
+  trait RequestBuilder {
+    implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+    val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
+    def makeRequest(call: Call): Request[AnyContent]
+  }
+
+  trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
+    override def makeRequest(call: Call): Request[AnyContent] = {
+      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}")
+    }
+  }
+
+  trait PlainRequestBuilder extends RequestBuilder {
+    override def makeRequest(call: Call): Request[AnyContent] = FakeRequest(call.method, call.url)
+  }
+
+  trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
+
+    val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
+
+    override def makeRequest(call: Call): Request[AnyContent] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*)
+    }
+  }
+
+  trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndOptions =>
+
+    import ClientIdQueryStringIdentity.Keys
+
+    def skipDecryption: Boolean
+
+    override def makeRequest(call: Call): Request[AnyContent] = {
+      val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.options}=$options"
+      val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
+      FakeRequest(call.method, finalUrl)
     }
   }
 

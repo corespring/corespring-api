@@ -75,7 +75,6 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  //val qti = builders.lib("qti").settings(libraryDependencies ++= Seq(corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
   val qti = builders.lib("qti").settings(
     libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, playJson, salat, rhino, rhinos))
 
@@ -136,12 +135,17 @@ object Build extends sbt.Build {
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
+  /**
+   * All authentication code for v2 api + player/editor
+   */
+  val v2Auth = builders.lib("v2-auth").settings(
+    libraryDependencies ++= Seq(specs2 % "test", mockito)).dependsOn(core, playerLib)
+
   val v2Api = builders.web("v2-api")
     .settings(
-
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
-    .dependsOn(core % "test->test;compile->compile")
+    .dependsOn(v2Auth, core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -158,12 +162,18 @@ object Build extends sbt.Build {
     routesImport ++= customImports,
     libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
 
+  /** Qti -> v2 transformers */
+  val qtiToV2 = builders.lib("qti-to-v2").settings(
+    libraryDependencies ++= Seq(playJson)).dependsOn(qti)
+
+  /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
       containerClientWeb,
       componentLoader,
       componentModel,
-      mongoJsonService)).dependsOn(core % "test->test;compile->compile", playerLib, devTools)
+      scalaz,
+      mongoJsonService)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,

@@ -13,7 +13,6 @@ import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
-import org.corespring.poc.integration.ControllerInstanceResolver
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
@@ -56,9 +55,9 @@ object Global
     ItemServiceWired,
     Organization,
     AccessToken,
-    integration.mainSessionService,
+    integration.sessionService,
     UserServiceWired,
-    integration.mainSecureSocialService)
+    integration.secureSocialService)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
@@ -134,7 +133,7 @@ object Global
     app.mode match {
 
       case Mode.Test => {
-        //onlyIfLocalDb(emptyData, seedTestData)
+        seedStaticData()
       }
       case Mode.Dev => {
         if (initData) {

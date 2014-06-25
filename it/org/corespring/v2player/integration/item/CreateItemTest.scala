@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.User
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2player.integration.errors.Errors.{ noOrgIdAndOptions, propertyNotFoundInJson, noJson, orgCantAccessCollection }
+import org.corespring.v2player.integration.errors.Errors.{ noJson, orgCantAccessCollection, propertyNotFoundInJson }
 import org.corespring.v2player.integration.scopes.user
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Cookie
@@ -30,8 +30,6 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
 
     "should fail for a plain request with json + collection id" in new createItem(false, id => Some(Json.obj("collectionId" -> id))) {
       status(result) === UNAUTHORIZED
-      logger.debug(s"content: ${contentAsString(result)}")
-      (contentAsJson(result) \ "error").asOpt[String] === Some(noOrgIdAndOptions(FakeRequest("", "")).message)
     }
 
     val badCollectionId = ObjectId.get

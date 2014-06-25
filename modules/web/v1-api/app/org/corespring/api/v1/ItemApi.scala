@@ -33,8 +33,9 @@ import scalaz._
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging with ItemTransformationCache {
+  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
+  val transformationCache = new PlayItemTransformationCache()
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
@@ -74,7 +75,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield {
-        removeCachedTransformation(item)
+        transformationCache.removeCachedTransformation(item)
         savedResult
       }
   }

@@ -7,7 +7,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item, Content }
+import org.corespring.platform.core.models.item.{ PlayItemTransformationCache, ItemTransformationCache, Item, Content }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -16,11 +16,13 @@ import play.api.libs.json._
 import play.api.mvc._
 import scala.Some
 
-class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends BaseApi with ItemTransformationCache {
+class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends BaseApi {
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
   val DATA_PATH: String = "data"
+
+  val transformationCache = new PlayItemTransformationCache()
 
   /**
    * Item.data has at least one file that is always default its name is set here.
@@ -231,7 +233,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
                 service.save(item)
-                removeCachedTransformation(item)
+                transformationCache.removeCachedTransformation(item)
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)

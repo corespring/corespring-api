@@ -4,6 +4,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.ShaHash
+import org.slf4j.LoggerFactory
 import play.api.Play.current
 import se.radley.plugin.salat._
 
@@ -33,6 +34,8 @@ case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String) 
 }
 
 object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
+
+  lazy val logger = LoggerFactory.getLogger("org.corespring.core.ApiClient")
   val orgId = "orgId"
   val clientId = "clientId"
   val clientSecret = "clientSecret"
@@ -57,7 +60,7 @@ object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
   }
 
   def findByKey(key: String): Option[ApiClient] = {
-    println(s"ApiClient -> api client count --> ${ApiClient.count()}")
+    logger.trace(s"api client count:  ${ApiClient.count()}")
     findOne(MongoDBObject(ApiClient.clientId -> new ObjectId(key)))
   }
 

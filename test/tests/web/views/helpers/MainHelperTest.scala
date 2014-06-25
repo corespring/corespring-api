@@ -24,7 +24,7 @@ class MainHelperTest extends Specification {
 
     "write safe xml " in {
       val xml = <root name="test">hello \ there \n</root>
-      MainHelper.safeXml(xml.toString).body === """<root name=\"test\">hello \\ there \\n</root>"""
+      MainHelper.safeXml(xml.toString).body === """<root name=\"test\">hello \\ there \\n<\/root>"""
     }
   }
 

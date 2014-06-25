@@ -20,10 +20,14 @@ object V2SessionHelper {
     val oid = ObjectId.get
     collection.insert(MongoDBObject(
       "_id" -> oid,
-      "itemId" -> itemId.toString
-    )
-    )
+      "itemId" -> itemId.toString))
     oid
+  }
+
+  def findSessionForItemId(vid: VersionedId[ObjectId]): ObjectId = {
+    collection.findOne(MongoDBObject("itemId" -> vid.toString()))
+      .map(o => o.get("_id").asInstanceOf[ObjectId])
+      .getOrElse(throw new RuntimeException(s"Can't find sesssion for item id: $vid"))
   }
 
   def delete(sessionId: ObjectId): Unit = {

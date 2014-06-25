@@ -7,6 +7,15 @@ import play.api.Logger
 
 trait ItemTransformationCache {
 
+  def getCachedTransformation(item: Item): Option[(Node, JsValue)]
+
+  def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit
+
+  def removeCachedTransformation(item: Item): Unit
+}
+
+class PlayItemTransformationCache extends ItemTransformationCache {
+
   import play.api.Play.current
 
   private def transformKey(item: Item) = s"qti_transformation_${item.id}"

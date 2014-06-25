@@ -1,12 +1,16 @@
 package org.corespring.v2player.integration.transformers
 
-import org.corespring.platform.core.models.item.resource.{Resource, CDataHandler, VirtualFile}
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, Item }
-import org.corespring.v2player.integration.transformers.qti.QtiTransformer
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import org.corespring.common.json.JsonTransformer
+import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache }
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.qtiToV2.QtiTransformer
+import play.api.libs.json.{ JsString, Json, JsObject, JsValue }
+
 import scala.xml.Node
 
-object ItemTransformer extends ItemTransformationCache {
+trait ItemTransformer {
+
+  def cache: ItemTransformationCache
 
   def transformToV2Json(item: Item): JsValue = {
     implicit val ResourceFormat = Resource.Format
@@ -15,14 +19,21 @@ object ItemTransformer extends ItemTransformationCache {
     val profile = toProfile(item)
     rootJson ++ Json.obj(
       "profile" -> profile,
-      "supportingMaterials" -> Json.toJson(item.supportingMaterials)
-    )
+      "supportingMaterials" -> Json.toJson(item.supportingMaterials))
   }
 
   private def toProfile(item: Item): JsValue = {
-    item.taskInfo.map { info =>
-      Json.obj("taskInfo" -> Json.toJson(info))
+    val taskInfoJson = item.taskInfo.map { info =>
+      Json.obj("taskInfo" -> mapTaskInfo(Json.toJson(info)))
     }.getOrElse(Json.obj("taskInfo" -> Json.obj()))
+    taskInfoJson ++ Json.obj("standards" -> item.standards.map(Json.toJson(_)))
+  }
+
+  def mapTaskInfo(taskInfoJson: JsValue): JsValue = {
+    val tf = new JsonTransformer(
+      "primarySubject" -> "subjects.primary",
+      "relatedSubject" -> "subjects.related") {}
+    tf.transform(taskInfoJson)
   }
 
   private def createFromQti(item: Item): JsObject = {
@@ -42,7 +53,7 @@ object ItemTransformer extends ItemTransformationCache {
   }
 
   private def getTransformation(item: Item): (Node, JsObject) =
-    getCachedTransformation(item) match {
+    cache.getCachedTransformation(item) match {
       case Some((node: Node, json: JsValue)) => (node, json.as[JsObject])
       case _ => {
         val qti = for {
@@ -53,7 +64,7 @@ object ItemTransformer extends ItemTransformationCache {
         require(qti.isDefined, s"item: ${item.id} has no qti xml")
 
         val (node, json) = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
-        setCachedTransformation(item, (node, json))
+        cache.setCachedTransformation(item, (node, json))
 
         (node, json.as[JsObject])
       }

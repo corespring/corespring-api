@@ -1,11 +1,24 @@
 package org.corespring.v2player.integration.transformers
 
-import org.corespring.platform.core.models.item.resource.{VirtualFile, Resource}
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
+import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, TaskInfo }
 import org.specs2.mutable.Specification
-import play.api.libs.json.JsObject
+import play.api.libs.json.{ Json, JsObject, JsValue }
 
-class ItemTransformerTest extends Specification{
+import scala.xml.Node
+
+class ItemTransformerTest extends Specification {
+
+  val itemTransformer = new ItemTransformer {
+    override def cache: ItemTransformationCache = new ItemTransformationCache {
+      override def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit = {}
+
+      override def removeCachedTransformation(item: Item): Unit = {}
+
+      override def getCachedTransformation(item: Item): Option[(Node, JsValue)] = None
+    }
+  }
 
   val qti =
     <assessmentItem>
@@ -17,10 +30,12 @@ class ItemTransformerTest extends Specification{
       <itemBody>
         <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
           <prompt>ITEM PROMPT?</prompt>
-          <simpleChoice identifier="ChoiceA">ChoiceA text (Correct Choice)
+          <simpleChoice identifier="ChoiceA">
+            ChoiceA text (Correct Choice)
             <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
           </simpleChoice>
-          <simpleChoice identifier="ChoiceD">ChoiceD text
+          <simpleChoice identifier="ChoiceD">
+            ChoiceD text
             <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
           </simpleChoice>
         </choiceInteraction>
@@ -28,36 +43,47 @@ class ItemTransformerTest extends Specification{
     </assessmentItem>
 
   "Item transformer" should {
+
+    "map task info" in {
+
+      val oid = ObjectId.get.toString
+      val apiJson = Json.obj(
+        "primarySubject" -> Json.obj("id" -> oid, "subject" -> "a", "category" -> "b"),
+        "relatedSubject" -> Json.obj("id" -> oid, "subject" -> "c", "category" -> "d"))
+
+      val v2Json = Json.obj(
+        "subjects" -> Json.obj(
+          "primary" -> apiJson \ "primarySubject",
+          "related" -> apiJson \ "relatedSubject"))
+
+      itemTransformer.mapTaskInfo(apiJson) === v2Json
+    }
+
     "transform an item to poc json" in {
 
       val item = Item(
-        taskInfo = Some(TaskInfo( title = Some("item one"))),
+        taskInfo = Some(
+          TaskInfo(
+            title = Some("item one"))),
         data = Some(
           Resource(
             name = "data",
             files = Seq(
               VirtualFile(
-                 name = "qti.xml",
-                 contentType = "text/xml",
-                 content = qti.toString
-              ),
+                name = "qti.xml",
+                contentType = "text/xml",
+                content = qti.toString),
               VirtualFile(
                 name = "kittens.jpeg",
                 contentType = "image/jpeg",
-                content = ""
-              )
-            )
-          )
-        )
-      )
+                content = "")))))
 
-      val json = ItemTransformer.transformToV2Json(item)
+      val json = itemTransformer.transformToV2Json(item)
       val imageJson = (json \ "files").as[Seq[JsObject]].head
 
       (json \ "metadata" \ "title").as[String] === "item one"
       (json \ "components" \ "Q_01").asOpt[JsObject] must beSome[JsObject]
       (json \ "files").as[Seq[JsObject]].map(f => (f \ "name").as[String]).contains("qti.xml") must beFalse
-
       (imageJson \ "name").as[String] must be equalTo "kittens.jpeg"
       (imageJson \ "contentType").as[String] must be equalTo "image/jpeg"
     }

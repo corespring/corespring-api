@@ -1,40 +1,40 @@
 package org.corespring.v2player.integration
 
-import scala.Some
-import scala.concurrent.ExecutionContext
-
 import com.mongodb.casbah.MongoDB
-import org.corespring.amazon.s3.{ConcreteS3Service, S3Service}
+import org.bson.types.ObjectId
+import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
+import org.corespring.common.encryption.{ AESCrypto, NullCrypto }
 import org.corespring.container.client.component._
-import org.corespring.container.client.controllers.{Assets, ComponentSets, DataQuery => ContainerDataQuery}
+import org.corespring.container.client.controllers.Assets
+import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
-import org.corespring.dev.tools.DevTools
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.models.{Organization, Subject}
-import org.corespring.platform.core.models.item.{FieldValue, Item}
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.services.{QueryService, SubjectQueryService, UserService, UserServiceWired}
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
+import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
+import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
+import org.corespring.platform.core.models.{ Organization, Standard, Subject }
+import org.corespring.platform.core.services._
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.actionBuilders._
-import org.corespring.v2player.integration.actionBuilders.access.PlayerOptions
-import org.corespring.v2player.integration.actionBuilders.access.Mode.Mode
-import org.corespring.v2player.integration.actionBuilders.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.controllers.{DataQuery, DefaultPlayerLauncherActions}
-import org.corespring.v2player.integration.controllers.catalog.{AuthCatalogActions, CatalogActions}
-import org.corespring.v2player.integration.controllers.editor._
-import org.corespring.v2player.integration.controllers.player.{PlayerActions, SessionActions}
+import org.corespring.v2.auth._
+import org.corespring.v2.auth.models.Mode.Mode
+import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
+import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
+import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.transformers.ItemTransformer
-import play.api.{Configuration, Logger, Mode, Play}
-import play.api.cache.Cached
-import play.api.libs.json.JsValue
+import org.corespring.v2player.integration.urls.ComponentSetsWired
+import org.corespring.v2player.integration.{ controllers => apiControllers, hooks => apiHooks }
+import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import scalaz.{Failure, Success, Validation}
-import securesocial.core.{Identity, SecureSocial}
-import org.corespring.container.components.model.dependencies.DependencyResolver
+import play.api.{ Configuration, Logger, Play, Mode => PlayMode }
+import securesocial.core.{ Identity, SecureSocial }
+
+import scala.concurrent.ExecutionContext
+import scalaz.{ Failure, Success, Validation }
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -43,213 +43,236 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val logger = Logger("v2player.integration")
 
+  def ec: ExecutionContext = ExecutionContext.Implicits.global
+
   override def components: Seq[Component] = comps
 
-  lazy val mainSecureSocialService = new SecureSocialService {
-
+  lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
-  def itemService: ItemService = ItemServiceWired
-
-  lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
-
-  private lazy val authForItem = new AuthItemCheckPermissions(
-    mainSecureSocialService,
-    UserServiceWired,
-    mainSessionService,
-    ItemServiceWired,
-    Organization) {
-
-    val permissionGranter = new SimpleWildcardChecker()
-
-    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
-      case Left(error) => Failure(error)
-      case Right(allowed) => Success(true)
+  protected val tokenService = new TokenService {
+    override def orgForToken(token: String): Option[Organization] = {
+      AccessToken.findByToken(token).map(t => orgService.org(t.organization)).flatten
     }
   }
 
-  private lazy val authActions = new AuthSessionActionsCheckPermissions(
-    mainSecureSocialService,
-    UserServiceWired,
-    mainSessionService,
-    ItemServiceWired,
-    Organization) {
-
-    val permissionGranter = new SimpleWildcardChecker()
-
-    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
-      case Left(error) => Failure(error)
-      case Right(allowed) => Success(true)
-    }
+  lazy val itemTransformer = new ItemTransformer {
+    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
   }
 
-  private lazy val authenticatedSessionActions = if (DevTools.enabled) {
-    new DevToolsSessionActions(authActions)
-  } else {
-    authActions
-  }
-
-  lazy val assets = new Assets {
-
-    private lazy val key = AppConfig.amazonKey
-    private lazy val secret = AppConfig.amazonSecret
-    private lazy val bucket = AppConfig.assetsBucket
-
-    lazy val playS3 = new ConcreteS3Service(key, secret)
-
-    import scalaz.Scalaz._
-    import scalaz._
-
-    def loadAsset(itemId: String, file: String)(request: Request[AnyContent]): SimpleResult = {
-
-      val decodedFilename = java.net.URI.create(file).getPath
-      val storedFile: Validation[String, StoredFile] = for {
-        vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
-        item <- ItemServiceWired.findOneById(vid).toSuccess(s"can't find item with id: $vid")
-        data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
-        asset <- data.files.find(_.name == decodedFilename).toSuccess(s"can't find a file with name: $decodedFilename in ${data}")
-      } yield asset.asInstanceOf[StoredFile]
-
-      storedFile match {
-        case Success(sf) => {
-          logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
-          playS3.download(bucket, sf.storageKey, Some(request.headers))
-        }
-        case Failure(msg) => {
-          logger.warn(s"can't load file: $msg")
-          NotFound(msg)
-        }
+  /** A wrapper around organization */
+  lazy val orgService = new OrgService {
+    override def defaultCollection(o: Organization): Option[ObjectId] = {
+      Organization.getDefaultCollection(o.id) match {
+        case Right(coll) => Some(coll.id)
+        case Left(e) => None
       }
     }
 
-    def getItemId(sessionId: String): Option[String] = mainSessionService.load(sessionId).map {
-      s => (s \ "itemId").as[String]
+    override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
+  }
+
+  lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  object requestIdentifiers {
+    lazy val userSession = new UserSessionOrgIdentity[(ObjectId, PlayerOptions)] {
+      override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
+
+      override def userService: UserService = UserServiceWired
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = {
+        (org.id -> PlayerOptions.ANYTHING)
+      }
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    override def actions: AssetActions = new AssetActions {
-      override def authForItem: AuthenticatedItem = V2PlayerIntegration.this.authForItem
+    lazy val token = new TokenOrgIdentity[(ObjectId, PlayerOptions)] {
+      override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> PlayerOptions.ANYTHING)
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+
+    }
+
+    lazy val clientIdAndOptsSession = new ClientIdSessionIdentity[(ObjectId, PlayerOptions)] {
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = {
+        renderOptions(rh).map(org.id -> _).getOrElse(throw new RuntimeException("No render options found"))
+      }
+    }
+
+    lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
+
+      override def orgService: OrgService = V2PlayerIntegration.this.orgService
+
+      override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = for {
+        client <- ApiClient.findByKey(apiClientId)
+        org <- Organization.findOneById(client.orgId)
+      } yield org.id
+
+      private def encryptionEnabled(r: RequestHeader): Boolean = {
+        val m = Play.current.mode
+        val acceptsFlag = m == PlayMode.Dev || m == PlayMode.Test || configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false)
+
+        val enabled = if (acceptsFlag) {
+          val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
+          !disable
+        } else true
+        enabled
+      }
+
+      override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = for {
+        encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
+        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
+        out <- orgEncrypter.decrypt(encrypted)
+      } yield out
+
+    }
+  }
+
+  lazy val transformer: RequestIdentity[(ObjectId, PlayerOptions)] = new WithRequestIdentitySequence[(ObjectId, PlayerOptions)] {
+    override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
+      requestIdentifiers.clientIdAndOptsQueryString,
+      requestIdentifiers.token,
+      requestIdentifiers.userSession,
+      requestIdentifiers.clientIdAndOptsSession)
+  }
+
+  lazy val itemAuth = new ItemAuthWired {
+    override def orgService: OrganizationService = Organization
+
+    override def itemService: ItemService = ItemServiceWired
+
+    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = {
+      val permissionGranter = new SimpleWildcardChecker()
+      permissionGranter.allow(itemId, sessionId, mode, options).fold(Failure(_), Success(_))
+    }
+
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[String, (ObjectId, PlayerOptions)] = {
+      V2PlayerIntegration.this.transformer(request)
+    }
+  }
+
+  private lazy val key = AppConfig.amazonKey
+  private lazy val secret = AppConfig.amazonSecret
+
+  lazy val playS3 = new ConcreteS3Service(key, secret)
+
+  override def componentUrls: ComponentUrls = new ComponentSetsWired {
+    override def allComponents: Seq[Component] = V2PlayerIntegration.this.components
+  }
+
+  override def assets: Assets = new apiControllers.Assets {
+    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+    override def hooks: AssetHooks = new apiHooks.AssetHooks {
       override def itemService: ItemService = ItemServiceWired
 
       override def bucket: String = AppConfig.assetsBucket
 
       override def s3: S3Service = playS3
+
+      override def auth: ItemAuth = V2PlayerIntegration.this.itemAuth
+
+      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
     }
+
+    override def itemAuth: ItemAuth = V2PlayerIntegration.this.itemAuth
   }
 
-  lazy val componentUrls: ComponentSets = new ComponentSets {
+  override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
+    override def subjectQueryService: QueryService[Subject] = SubjectQueryService
+    override def standardQueryService: QueryService[Standard] = StandardQueryService
 
-    override def dependencyResolver: DependencyResolver = new DependencyResolver {
-      override def components: Seq[Component] = comps
+    override val fieldValueJson: JsObject = {
+      val dbo = FieldValue.collection.find().toSeq.head
+      import com.mongodb.util.{ JSON => MongoJson }
+      import play.api.libs.json.{ Json => PlayJson }
+      PlayJson.parse(MongoJson.serialize(dbo)).as[JsObject]
     }
 
-    override def allComponents: Seq[Component] = comps
-
-    override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = {
-      if (Play.current.mode == Mode.Dev) {
-        super.resource(context, directive, suffix)
-      } else {
-        implicit val current = play.api.Play.current
-        Cached(s"$context-$directive-$suffix") {
-          super.resource(context, directive, suffix)
-        }
-      }
+    override val standardsTreeJson: JsArray = {
+      import play.api.Play.current
+      Play.resourceAsStream("public/web/standards_tree.json").map { is =>
+        val contents = scala.io.Source.fromInputStream(is).getLines().mkString("\n")
+        Json.parse(contents).as[JsArray]
+      }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
 
-    override def editorGenerator: SourceGenerator = new EditorGenerator
-
-    override def playerGenerator: SourceGenerator = new PlayerGenerator
-
-    override def catalogGenerator: SourceGenerator = new CatalogGenerator
   }
 
-  override val playerLauncherActions: PlayerLauncherActions =
-    new DefaultPlayerLauncherActions(mainSecureSocialService, UserServiceWired, configuration)
+  lazy val sessionAuth: SessionAuth = new SessionAuthWired {
+    override def itemAuth: ItemAuth = V2PlayerIntegration.this.itemAuth
 
-  override val playerActions = new PlayerActions {
-    override def auth: AuthenticatedSessionActions = authenticatedSessionActions
+    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+  }
 
-    override def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
+  override def sessionHooks: SessionHooks = new apiHooks.SessionHooks {
+    override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def sessionService: MongoService = mainSessionService
+    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
+
+    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
   }
 
-  lazy val editorActions = new EditorActions {
+  override def itemHooks: ItemHooks = new apiHooks.ItemHooks {
 
-    override def itemService: ItemService = ItemServiceWired
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
+    override def auth: ItemAuth = V2PlayerIntegration.this.itemAuth
 
-    override def auth: AuthEditorActions = new AuthEditorActionsCheckPermissions(
-      mainSecureSocialService,
-      UserServiceWired,
-      mainSessionService,
-      ItemServiceWired,
-      Organization) {
-
-      val permissionGranter = new SimpleWildcardChecker()
-
-      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
-        case Left(error) => Failure(error)
-        case Right(allowed) => Success(true)
-      }
-    }
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
   }
 
-  lazy val catalogActions = new CatalogActions {
+  override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
+    override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
-    override def itemService: ItemService = ItemServiceWired
-
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
-
-    override def auth: AuthCatalogActions = new AuthCatalogActionsCheckPermissions(
-      mainSecureSocialService,
-      UserServiceWired,
-      mainSessionService,
-      ItemServiceWired,
-      Organization) {
-
-      val permissionGranter = new SimpleWildcardChecker()
-
-      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = permissionGranter.allow(itemId, sessionId, mode, options) match {
-        case Left(error) => Failure(error)
-        case Right(allowed) => Success(true)
-      }
-    }
-  }
-
-  lazy val itemHooks = new ItemHooks {
-
-    override def itemService: ItemService = ItemServiceWired
-
-    override def transform: (Item) => JsValue = ItemTransformer.transformToV2Json
-
-    override def orgService: OrganizationService = Organization
+    override def getOrgIdAndOptions(header: RequestHeader): Validation[String, (ObjectId, PlayerOptions)] = V2PlayerIntegration.this.transformer(header)
 
     override def userService: UserService = UserServiceWired
 
-    override def secureSocialService: SecureSocialService = mainSecureSocialService
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
-    override implicit def executionContext: ExecutionContext = ExecutionContext.Implicits.global
   }
 
-  lazy val sessionActions = new SessionActions {
+  override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks {
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
-    def sessionService: MongoService = mainSessionService
+    override def itemService: ItemService = ItemServiceWired
 
-    def itemService: ItemService = ItemServiceWired
-
-    def transformItem: (Item) => JsValue = ItemTransformer.transformToV2Json
-
-    def auth: AuthenticatedSessionActions = authenticatedSessionActions
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
   }
 
-  override def dataQuery: ContainerDataQuery = new DataQuery() {
-    override def subjectQueryService: QueryService[Subject] = SubjectQueryService
+  override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
-    override def fieldValues: FieldValue = FieldValue.findAll().toSeq.head
+    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+
+    override def itemService: ItemService = ItemServiceWired
+
+    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
+
+    override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
+  }
+
+  override def editorHooks: EditorHooks = new apiHooks.EditorHooks {
+    override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
+
+    override def itemService: ItemService = ItemServiceWired
+
+    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
+
+    override def auth: ItemAuth = V2PlayerIntegration.this.itemAuth
   }
 }
