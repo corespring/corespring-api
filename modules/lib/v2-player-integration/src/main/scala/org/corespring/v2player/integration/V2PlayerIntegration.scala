@@ -1,13 +1,12 @@
 package org.corespring.v2player.integration
 
 import com.mongodb.casbah.MongoDB
-import com.mongodb.util.JSON
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.encryption.{ AESCrypto, NullCrypto }
 import org.corespring.container.client.component._
-import org.corespring.container.client.controllers.{ Assets, DataQuery => ContainerDataQuery }
+import org.corespring.container.client.controllers.Assets
 import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
 import org.corespring.mongo.json.services.MongoService
@@ -15,11 +14,10 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
-import org.corespring.platform.core.models.{ Standard, Organization, Subject }
+import org.corespring.platform.core.models.{ Organization, Standard, Subject }
+import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.core.services._
-import org.corespring.v2.auth.ClientIdQueryStringIdentity.Keys
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerOptions
@@ -195,8 +193,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override val fieldValueJson: JsObject = {
       val dbo = FieldValue.collection.find().toSeq.head
-      import play.api.libs.json.{ Json => PlayJson }
       import com.mongodb.util.{ JSON => MongoJson }
+      import play.api.libs.json.{ Json => PlayJson }
       PlayJson.parse(MongoJson.serialize(dbo)).as[JsObject]
     }
 

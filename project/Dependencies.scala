@@ -25,6 +25,7 @@ object Dependencies {
     .exclude("com.google.code.findbugs", "jsr305")
     .exclude("com.googlecode.jarjar", "jarjar")
     .exclude("junit", "junit")
+  val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
@@ -55,6 +56,7 @@ object Dependencies {
     assetsLoader,
     aws,
     closureCompiler,
+    commonsLang,
     jbcrypt,
     mongoDbSeeder,
     playS3,
