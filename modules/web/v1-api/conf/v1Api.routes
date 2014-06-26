@@ -79,6 +79,7 @@ GET     /field_values/collection/:collectionId   org.corespring.api.v1.FieldValu
 
 POST    /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 GET     /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
+GET     /items/:itemId/sessions/count                   org.corespring.api.v1.ItemApi.countSessions(itemId:VersionedId[ObjectId])
 GET     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
 PUT     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
 PUT     /items/:itemId/sessions/:sessionId/reopen       org.corespring.api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)

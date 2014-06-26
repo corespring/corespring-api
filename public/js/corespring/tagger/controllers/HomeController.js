@@ -105,6 +105,11 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
       });
   }
 
+  $scope.lazySearch = _.debounce(function() {
+    $scope.search();
+    $scope.$apply();
+  }, 500);
+
   $scope.search = function () {
     var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function (e) {
       return e.label == "Other"

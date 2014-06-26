@@ -51,8 +51,7 @@ object ItemView {
         item.collectionId.map(collectionId -> JsString(_)),
         item.playerDefinition.map("playerDefinition" -> Json.toJson(_)),
         Some(contentType -> JsString(Item.contentType)),
-        Some(published -> JsBoolean(item.published)),
-        Some("sessionCount" -> JsNumber(ItemServiceWired.sessionCount(item))))
+        Some(published -> JsBoolean(item.published)))
 
       def makeJsString(tuple: (String, Option[String])) = {
         val (key, value) = tuple
