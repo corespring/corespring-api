@@ -41,6 +41,20 @@ angular.module('tagger.services')
     ]);
 
 angular.module('tagger.services')
+    .factory('ItemSessionCountService', [
+        '$resource', 'ServiceLookup', function($resource, ServiceLookup){
+
+            return $resource(
+             ServiceLookup.getUrlFor('items') + '/sessions/count',
+                {},
+                {
+                  "get" :{ method:'GET' }
+                }
+            );
+        }
+    ]);
+
+angular.module('tagger.services')
     .factory('SupportingMaterial',
     [ '$resource', 'ServiceLookup', function ($resource, ServiceLookup) {
 
