@@ -1,8 +1,9 @@
 package org.corespring.v2player.integration.transformers.container
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource }
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition, Subjects, TaskInfo }
 import play.api.libs.json._
 
 object PlayerJsonToItem {
@@ -17,53 +18,107 @@ object PlayerJsonToItem {
     }
   }
 
-  def profile(item: Item, profileJson: JsValue): Item = (profileJson \ "taskInfo").asOpt[JsValue].map {
-    infoJson =>
+  def profile(item: Item, profileJson: JsValue): Item = {
+    val newContributorDetails = contributorDetails(profileJson).orElse(item.contributorDetails)
+    val newInfo = taskInfo(item, profileJson).orElse(item.taskInfo)
+    val newLexile = (profileJson \ "lexile").asOpt[String].orElse(item.lexile)
+    val newOtherAlignments = otherAlignments(profileJson).orElse(item.otherAlignments)
+    val newPriorGradeLevels = (profileJson \ "priorGradeLevel").asOpt[Seq[String]].getOrElse(item.priorGradeLevels)
+    val newPriorUse = (profileJson \ "priorUse").asOpt[String].orElse(item.priorUse)
+    val newPriorUseOther = (profileJson \ "priorUseOther").asOpt[String].orElse(item.priorUseOther)
+    val newReviewsPassed = (profileJson \ "reviewsPassed").asOpt[Seq[String]].getOrElse(item.reviewsPassed)
+    val newReviewsPassedOther = (profileJson \ "reviewsPassedOther").asOpt[String].orElse(item.reviewsPassedOther)
+    val newStandards = (profileJson \ "standards").asOpt[Seq[String]].getOrElse(item.standards)
+
+    item.copy(
+      contributorDetails = newContributorDetails,
+      lexile = newLexile,
+      otherAlignments = newOtherAlignments,
+      priorGradeLevels = newPriorGradeLevels,
+      priorUse = newPriorUse,
+      priorUseOther = newPriorUseOther,
+      reviewsPassed = newReviewsPassed,
+      reviewsPassedOther = newReviewsPassedOther,
+      standards = newStandards,
+      taskInfo = newInfo)
+  }
+
+  def taskInfo(item: Item, profileJson: JsValue): Option[TaskInfo] =
+    (profileJson \ "taskInfo").asOpt[JsValue].map { infoJson =>
       val info = item.taskInfo.getOrElse(TaskInfo())
 
-      val subjectsJson = (infoJson \ "subjects").asOpt[JsObject]
-      val subjects = Some(updateSubjects(info.subjects.getOrElse(Subjects()), subjectsJson))
-
-      val newInfo = info.copy(
-        title = (infoJson \ "title").asOpt[String].orElse(info.title),
+      info.copy(
         description = (infoJson \ "description").asOpt[String],
         gradeLevel = (infoJson \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
-        subjects = subjects,
-        itemType = (infoJson \ "itemType").asOpt[String])
+        itemType = (infoJson \ "itemType").asOpt[String],
+        subjects = subjects(infoJson).orElse(info.subjects),
+        title = (infoJson \ "title").asOpt[String].orElse(info.title))
+    }
 
-      def toStandards(arr: Seq[JsObject]): Seq[String] = arr.map(json => (json \ "id").asOpt[String]).flatten
-      val newStandards = (profileJson \ "standards").asOpt[Seq[JsObject]].map(toStandards).getOrElse(item.standards) //.asOpt[Seq[JsObject]].map( json => (json \ "id").as[String])
+  def subjects(taskInfoJson: JsValue): Option[Subjects] =
+    (taskInfoJson \ "subjects").asOpt[JsValue].map { subjects =>
+      Subjects(
+        primary = (subjects \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
+        related = (subjects \ "related" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)))
+    }
 
-      item.copy(taskInfo = Some(newInfo), standards = newStandards)
-  }.getOrElse(item)
+  def contributorDetails(profileJson: JsValue): Option[ContributorDetails] =
+    (profileJson \ "contributorDetails").asOpt[JsValue].map { details =>
+      ContributorDetails(
+        additionalCopyrights = additionalCopyrights(details).getOrElse(Seq()),
+        author = (details \ "author").asOpt[String],
+        contributor = (details \ "contributor").asOpt[String],
+        copyright = Some(copyright(details)),
+        costForResource = (details \ "costForResource").asOpt[Int],
+        credentials = (details \ "credentials").asOpt[String],
+        credentialsOther = (details \ "credentialsOther").asOpt[String],
+        licenseType = (details \ "licenseType").asOpt[String],
+        sourceUrl = (details \ "sourceUrl").asOpt[String])
+    }
 
-  def updateSubjects(subjects: Subjects, subjectJson: Option[JsObject]): Subjects = {
+  def copyright(contributorDetailsJson: JsValue): Copyright =
+    Copyright(
+      owner = (contributorDetailsJson \ "copyrightOwner").asOpt[String],
+      year = (contributorDetailsJson \ "copyrightYear").asOpt[String],
+      expirationDate = (contributorDetailsJson \ "copyrightExpirationDate").asOpt[String])
 
-    subjectJson.map { json =>
-      subjects.copy(
-        primary = (json \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
-        related = (json \ "related" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)))
-    }.getOrElse(subjects)
+  def additionalCopyrights(contributorDetailsJson: JsValue): Option[Seq[AdditionalCopyright]] =
+    (contributorDetailsJson \ "additionalCopyrights") match {
+      case undefined: JsUndefined => None
+      case array: JsArray => Some(array.as[List[JsObject]].map(copyright => AdditionalCopyright(
+        author = (copyright \ "author").asOpt[String],
+        licenseType = (copyright \ "licenseType").asOpt[String],
+        mediaType = (copyright \ "mediaType").asOpt[String],
+        owner = (copyright \ "owner").asOpt[String],
+        sourceUrl = (copyright \ "sourceUrl").asOpt[String],
+        year = (copyright \ "year").asOpt[String])))
+      case _ => throw new IllegalArgumentException("additionalCopyrights must be an array")
+    }
 
-  }
+  def otherAlignments(profileJson: JsValue): Option[Alignments] =
+    (profileJson \ "otherAlignments").asOpt[JsValue].map { alignments =>
+      Alignments(
+        bloomsTaxonomy = (alignments \ "bloomsTaxonomy").asOpt[String],
+        depthOfKnowledge = (alignments \ "depthOfKnowledge").asOpt[String],
+        keySkills = (alignments \ "keySkills").asOpt[Seq[String]].getOrElse(Seq()))
+    }
+
   def supportingMaterials(item: Item, json: JsValue): Item = {
     implicit val baseFileFormat = BaseFile.BaseFileFormat
     (json \ "supportingMaterials") match {
       case undefined: JsUndefined => item
-      case _ => (json \ "supportingMaterials") match {
-        case array: JsArray => item.copy(
-          supportingMaterials =
-            array.as[List[JsObject]].map(supportingMaterial => Resource(
-              id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
-              name = (supportingMaterial \ "name").as[String],
-              materialType = (supportingMaterial \ "materialType").asOpt[String],
-              files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
-                .map(f => Json.fromJson[BaseFile](f).get))).map(m => (m.id match {
-              case Some(id) => m
-              case None => m.copy(id = Some(new ObjectId()))
-            })))
-        case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
-      }
+      case array: JsArray => item.copy(
+        supportingMaterials =
+          array.as[List[JsObject]].map(supportingMaterial => Resource(
+            id = (supportingMaterial \ "id").asOpt[String].map(new ObjectId(_)),
+            name = (supportingMaterial \ "name").as[String],
+            materialType = (supportingMaterial \ "materialType").asOpt[String],
+            files = (supportingMaterial \ "files").asOpt[List[JsObject]].getOrElse(List.empty[JsObject])
+              .map(f => Json.fromJson[BaseFile](f).get))).map(m => (m.id match {
+            case Some(id) => m
+            case None => m.copy(id = Some(new ObjectId()))
+          })))
+      case _ => throw new IllegalArgumentException("supportingMaterials must be an array")
     }
   }
 

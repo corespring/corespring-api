@@ -1,10 +1,11 @@
 package org.corespring.v2player.integration.transformers
 
 import org.corespring.common.json.JsonTransformer
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache }
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.item.resource.{CDataHandler, Resource, VirtualFile}
+import org.corespring.platform.core.models.item.{Item, ItemTransformationCache}
 import org.corespring.qtiToV2.QtiTransformer
-import play.api.libs.json.{ JsString, Json, JsObject, JsValue }
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 
 import scala.xml.Node
 
@@ -26,7 +27,25 @@ trait ItemTransformer {
     val taskInfoJson = item.taskInfo.map { info =>
       Json.obj("taskInfo" -> mapTaskInfo(Json.toJson(info)))
     }.getOrElse(Json.obj("taskInfo" -> Json.obj()))
-    taskInfoJson ++ Json.obj("standards" -> item.standards.map(Json.toJson(_)))
+    val contributorDetails = item.contributorDetails.map { details =>
+      Json.obj("contributorDetails" -> Json.toJson(details))
+    }.getOrElse(Json.obj("contributorDetails" -> Json.obj()))
+    val otherAlignments = item.otherAlignments.map { alignments =>
+      Json.obj("otherAlignments" -> Json.toJson(alignments))
+    }.getOrElse(Json.obj("otherAlignments" -> Json.obj()))
+
+    taskInfoJson ++
+      contributorDetails ++
+      otherAlignments ++
+      Json.obj(
+        "standards" -> item.standards.map(Standard.findOneByDotNotation).flatten.map(Json.toJson(_)),
+        "reviewsPassed" -> item.reviewsPassed,
+        "reviewsPassedOther" -> item.reviewsPassedOther,
+        "priorGradeLevel" -> item.priorGradeLevels,
+        "priorUse" -> item.priorUse,
+        "priorUseOther" -> item.priorUseOther,
+        "lexile" -> item.lexile
+      )
   }
 
   def mapTaskInfo(taskInfoJson: JsValue): JsValue = {

@@ -78,14 +78,14 @@ class ItemTest extends BaseTest {
     }
 
     "parse priorGradeLevel" in {
-      val item = Item(priorGradeLevel = Seq("03", "04"))
+      val item = Item(priorGradeLevels = Seq("03", "04"))
       val json = Json.toJson(item)
       val parsedItem = json.as[Item]
-      parsedItem.priorGradeLevel must equalTo(item.priorGradeLevel)
+      parsedItem.priorGradeLevels must equalTo(item.priorGradeLevels)
     }
 
     "not parse invalid priorGradeLevel" in {
-      val item = Item(priorGradeLevel = Seq("apple", "pear"))
+      val item = Item(priorGradeLevels = Seq("apple", "pear"))
       val json = Json.toJson(item)
       json.as[Item] must throwA[JsonValidationException]
     }

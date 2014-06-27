@@ -8,6 +8,7 @@ import org.corespring.platform.core.models.JsonUtil
 case class Alignments(bloomsTaxonomy: Option[String] = None,
   keySkills: Seq[String] = Seq(),
   demonstratedKnowledge: Option[String] = None,
+  depthOfKnowledge: Option[String] = None,
   relatedCurriculum: Option[String] = None)
 
 object Alignments extends ValueGetter with JsonUtil {
@@ -16,6 +17,7 @@ object Alignments extends ValueGetter with JsonUtil {
     val bloomsTaxonomy = "bloomsTaxonomy"
     val keySkills = "keySkills"
     val demonstratedKnowledge = "demonstratedKnowledge"
+    val depthOfKnowledge = "depthOfKnowledge"
     val relatedCurriculum = "relatedCurriculum"
   }
 
@@ -33,6 +35,7 @@ object Alignments extends ValueGetter with JsonUtil {
           case _ => None
         }).map(JsString(_)),
         bloomsTaxonomy -> alignments.bloomsTaxonomy.map(JsString(_)),
+        depthOfKnowledge -> alignments.depthOfKnowledge.map(JsString(_)),
         keySkills -> (alignments.keySkills.map(JsString(_)) match {
           case skills: Seq[JsString] if (skills.isEmpty) => None
           case skills: Seq[JsString] => Some(JsArray(skills))
@@ -52,6 +55,7 @@ object Alignments extends ValueGetter with JsonUtil {
         demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge),
         bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy),
         keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty),
+        depthOfKnowledge = (json \ depthOfKnowledge).asOpt[String],
         relatedCurriculum = (json \ relatedCurriculum).asOpt[String]))
     }
 

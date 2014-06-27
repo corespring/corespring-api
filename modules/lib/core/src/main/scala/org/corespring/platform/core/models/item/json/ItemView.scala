@@ -79,7 +79,7 @@ object ItemView {
       val validStandards = item.standards.map(Standard.findOneByDotNotation).flatten
 
       val arrays: Seq[Option[(String, JsValue)]] = Seq(
-        (priorGradeLevel, item.priorGradeLevel.map(JsString(_))),
+        (priorGradeLevel, item.priorGradeLevels.map(JsString(_))),
         (reviewsPassed, item.reviewsPassed.map(JsString(_))),
         (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
         (standards, validStandards.map(Json.toJson(_)))).map(makeJsArray)

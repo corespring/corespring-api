@@ -1,5 +1,6 @@
 package org.corespring.platform.core.models.item
 
+import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import org.corespring.platform.core.models.json.JsonValidationException
 import play.api.Logger
@@ -11,6 +12,7 @@ case class ContributorDetails(
   var copyright: Option[Copyright] = None,
   var costForResource: Option[Int] = None,
   var credentials: Option[String] = None,
+  var credentialsOther: Option[String] = None,
   var licenseType: Option[String] = None,
   var sourceUrl: Option[String] = None)
 
@@ -23,6 +25,7 @@ object ContributorDetails extends ValueGetter {
     val copyright = "copyright"
     val costForResource = "costForResource"
     val credentials = "credentials"
+    val credentialsOther = "credentialsOther"
     val licenseType = "licenseType"
     val sourceUrl = "sourceUrl"
   }
@@ -42,7 +45,8 @@ object ContributorDetails extends ValueGetter {
         sourceUrl = (json \ sourceUrl).asOpt[String],
         licenseType = (json \ licenseType).asOpt[String],
         credentials = (json \ credentials).asOpt[String].
-          map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials))))
+          map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials)),
+        credentialsOther = (json \ credentialsOther).asOpt[String]))
     }
   }
 
@@ -58,10 +62,12 @@ object ContributorDetails extends ValueGetter {
         details.contributor.map((contributor -> JsString(_))),
         details.costForResource.map((costForResource -> JsNumber(_))),
         details.credentials.map((credentials -> JsString(_))),
+        details.credentialsOther.map((credentialsOther -> JsString(_))),
         details.licenseType.map((licenseType -> JsString(_))),
         details.sourceUrl.map((sourceUrl -> JsString(_))))
 
       val copyrightJson = Json.toJson(details.copyright)
+
       val detailsJson = JsObject(s.flatten)
 
       val objects =
