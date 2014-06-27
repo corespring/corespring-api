@@ -149,11 +149,13 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   function loadCollections() {
 
     $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
-      $scope.sortedCollections = newValue;
-      if(!$rootScope.searchParams.collection && $scope.sortedCollections){
-        $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+      if (newValue) {
+        $scope.sortedCollections = newValue;
+        if (!$rootScope.searchParams.collection && $scope.sortedCollections) {
+          $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+        }
+        $scope.search();
       }
-      $scope.search();
     }, true);
 
     CollectionManager.init();
