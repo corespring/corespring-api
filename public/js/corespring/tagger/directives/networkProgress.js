@@ -7,12 +7,10 @@ angular.module('tagger')
         $scope.isLoading = false;
 
         $scope.$on('onNetworkLoading', function () {
-          console.log("loading");
           $scope.isLoading = true;
         });
 
         $scope.$on('onNetworkComplete', function () {
-          console.log("complete");
           $scope.isLoading = false;
         });
 
