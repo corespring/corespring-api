@@ -10,6 +10,7 @@ describe('CreateController should', function () {
     beforeEach(function () {
         module(function($provide) {
             $provide.value('AccessToken', "1");
+            $provide.value('ItemService', MockItemService);
             $provide.value('V2ItemService', MockItemService);
             $provide.value('NewItemTemplates', { templ1:{label:"template 1", xmlData: "<xml>1</xml>"}, templ2: {label:"template 2", xmlData: "<xml>2</xml>"} });
             $provide.value('Collection', {
