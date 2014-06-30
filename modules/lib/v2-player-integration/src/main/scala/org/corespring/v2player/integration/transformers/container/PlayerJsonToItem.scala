@@ -28,7 +28,7 @@ object PlayerJsonToItem {
     val newPriorUseOther = (profileJson \ "priorUseOther").asOpt[String].orElse(item.priorUseOther)
     val newReviewsPassed = (profileJson \ "reviewsPassed").asOpt[Seq[String]].getOrElse(item.reviewsPassed)
     val newReviewsPassedOther = (profileJson \ "reviewsPassedOther").asOpt[String].orElse(item.reviewsPassedOther)
-    val newStandards = (profileJson \ "standards").asOpt[Seq[String]].getOrElse(item.standards)
+    val newStandards = standards(profileJson).getOrElse(item.standards)
 
     item.copy(
       contributorDetails = newContributorDetails,
@@ -42,6 +42,21 @@ object PlayerJsonToItem {
       standards = newStandards,
       taskInfo = newInfo)
   }
+
+  /**
+   * We store the dotNotation only, could also use the id, but the dotNotation
+   * is easier to debug
+   * @param profileJson
+   * @return
+   */
+  def standards(profileJson: JsValue): Option[Seq[String]] =
+    (profileJson\ "standards") match {
+      case undefined: JsUndefined => None
+      case array: JsArray => Some(array.as[List[JsObject]].map { standard: JsObject =>
+        (standard \ "dotNotation").as[String]
+      })
+      case _ => throw new IllegalArgumentException("additionalCopyrights must be an array")
+    }
 
   def taskInfo(item: Item, profileJson: JsValue): Option[TaskInfo] =
     (profileJson \ "taskInfo").asOpt[JsValue].map { infoJson =>

@@ -12,7 +12,9 @@ class PlayerJsonToItemTest extends Specification {
     "work for profile " in {
 
       val json = Json.obj(
-        "standards" -> Json.arr("ST1", "ST2"),
+        "standards" -> Json.arr(
+          Json.obj("dotNotation" -> "ST1"),
+          Json.obj("dotNotation" -> "ST2")),
         "taskInfo" -> Json.obj(
           "title" -> "Drag and drop example",
           "gradeLevel" -> Json.arr("01", "03"),
