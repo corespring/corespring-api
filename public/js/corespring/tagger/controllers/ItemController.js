@@ -16,7 +16,7 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger) {
+function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
@@ -242,9 +242,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem = function () {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $rootScope.itemData = itemData;
+
+      ItemSessionCountService.get({id:$routeParams.itemId}, function onItemLoaded(countObject) {
+        $rootScope.itemData.sessionCount = countObject.sessionCount;
+        $scope.$broadcast("dataLoaded");
+      });
+
       enterEditorIfInContentPanel();
       initItemType();
-      $scope.$broadcast("dataLoaded");
+
     });
   };
 
@@ -529,6 +535,7 @@ ItemController.$inject = [
   'ServiceLookup',
   '$http',
   'ItemMetadata',
-  'Logger'
+  'Logger',
+  'ItemSessionCountService'
 ];
 

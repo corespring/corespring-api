@@ -105,6 +105,11 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
       });
   }
 
+  $scope.lazySearch = _.debounce(function() {
+    $scope.search();
+    $scope.$apply();
+  }, 500);
+
   $scope.search = function () {
     var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function (e) {
       return e.label == "Other"
@@ -144,11 +149,13 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   function loadCollections() {
 
     $scope.$watch( function(){ return CollectionManager.sortedCollections; }, function(newValue, oldValue){
-      $scope.sortedCollections = newValue;
-      if(!$rootScope.searchParams.collection && $scope.sortedCollections){
-        $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+      if (newValue) {
+        $scope.sortedCollections = newValue;
+        if (!$rootScope.searchParams.collection && $scope.sortedCollections) {
+          $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
+        }
+        $scope.search();
       }
-      $scope.search();
     }, true);
 
     CollectionManager.init();

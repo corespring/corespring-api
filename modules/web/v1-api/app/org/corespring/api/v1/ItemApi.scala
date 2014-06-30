@@ -80,6 +80,17 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
   }
 
+  def countSessions(id: VersionedId[ObjectId]) = ApiAction {
+    request =>
+      val c = for {
+        item <- service.findOneById(id).toSuccess("Can't find item")
+      } yield service.sessionCount(item)
+      c match {
+        case Success(_) => Ok(JsObject(Seq("sessionCount"->JsNumber(c.toOption.get))))
+        case _ => BadRequest
+      }
+  }
+
   def cloneItem(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
       for {

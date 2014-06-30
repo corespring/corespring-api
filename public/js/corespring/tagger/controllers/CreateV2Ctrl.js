@@ -18,4 +18,4 @@ function CreateV2Ctrl($routeParams, V2ItemService) {
   );
 }
 
-CreateCtrl.$inject = ['$routeParams', 'V2ItemService'];
+CreateV2Ctrl.$inject = ['$routeParams', 'V2ItemService'];
