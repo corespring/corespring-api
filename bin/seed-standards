@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+# using ruby bc. we need to parse the MONGO_URI into its parts
+
+require 'pathname'
+
+mongoUri = ARGV[0]
+pathToStandardsJson = ARGV[1]
+
+puts "seed-standards #{mongoUri} #{pathToStandardsJson}"
+
+# example url
+# mongodb://corespring:baker@ds049467.mongolab.com:49467/corespring-ci
+if(mongoUri =~ /(mongodb\:\/\/)?([^:]+):([^@]+)@([^\/]+)\/(.+)/)
+  username = $2
+  password = $3
+  host = $4
+  db = $5
+  puts "username #{$2} -- password #{$3} -- host #{$4} -- db #{$5}"
+else
+  puts "Usage: seed-standards mongoUri [pathToStandardsJson]"
+  exit(-1)
+end
+
+if( pathToStandardsJson.nil?)
+   pathToStandardsJson = "conf/seed-data/common/ccstandards.json"
+end
+
+pn = Pathname.new(pathToStandardsJson)
+
+if( !pn.exist? )
+  puts "Error: File not found #{pathToStandardsJson}"
+  exit(-1)
+else
+  puts "pathToStandardsJson #{pathToStandardsJson}"
+end
+
+cmd = ["mongoimport",
+ "--collection ccstandards",
+ "--drop",
+ "--file \"#{pathToStandardsJson}\"",
+ "--host \"#{host}\"",
+ "--db \"#{db}\"",
+ "--username \"#{username}\"",
+ "--password \"#{password}\""].join(" ")
+
+system(cmd)
