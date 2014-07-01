@@ -200,8 +200,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override val standardsTreeJson: JsArray = {
       import play.api.Play.current
+      import scala.io.Codec
       Play.resourceAsStream("public/web/standards_tree.json").map { is =>
-        val contents = scala.io.Source.fromInputStream(is).getLines().mkString("\n")
+        val contents = scala.io.Source.fromInputStream(is)(Codec.UTF8).getLines().mkString("\n")
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
