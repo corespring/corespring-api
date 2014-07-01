@@ -9,7 +9,7 @@ pathToStandardsJson = ARGV[1]
 puts "seed-standards #{mongoUri} #{pathToStandardsJson}"
 
 # example url
-# mongodb://corespring:baker@ds049467.mongolab.com:49467/corespring-ci
+# mongodb://[username]:[password]@ds049467.mongolab.com:49467/corespring-ci
 if(mongoUri =~ /(mongodb\:\/\/)?([^:]+):([^@]+)@([^\/]+)\/(.+)/)
   username = $2
   password = $3
