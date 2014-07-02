@@ -202,12 +202,12 @@ class ReportsService(ItemCollection: MongoCollection,
 
   def buildStandardsByCollectionReport() = {
     val collections = CollectionsCollection.find().toIterator.toSeq
-    val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
-    val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
+    val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId]).map(_.toString).toList
+    val header = "Standards" :: collectionIds
     val lines = mapToDistinctList("standards", Standard.sorter)
       .filterNot(Standard.legacy.map(_.dotNotation).flatten.contains(_))
       .map(standard => {
-        val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
+        val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds)
         runMapReduceForProperty(collectionsKeyCounts, new BasicDBObject("standards", standard), JSFunctions.SimplePropertyMapFnTemplate("collectionId"))
         standard +: ReportLineResult.createValueList(collectionsKeyCounts)
       })
