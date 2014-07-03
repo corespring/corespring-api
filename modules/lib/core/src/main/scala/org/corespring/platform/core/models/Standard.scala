@@ -9,6 +9,7 @@ import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
+import scala.collection.immutable.{ListMap, SortedMap}
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -112,6 +113,18 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       case (Some(one), Some(two)) => standardSorter(one, two)
       case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
     })
+  }
+
+  lazy val groupMap = {
+    cachedStandards().sortWith(standardSorter).foldLeft(ListMap.empty[String, Seq[Standard]]) { (map, standard) =>
+      standard.group match {
+        case Some(group) => map.get(group) match {
+          case Some(standards: Seq[Standard]) => map + (group -> (standards :+ standard))
+          case _ => map + (group -> Seq(standard))
+        }
+        case _ => map
+      }
+    }
   }
 
   def cachedStandards(): Seq[Standard] = {
