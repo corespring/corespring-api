@@ -33,6 +33,20 @@ case class Standard(var dotNotation: Option[String] = None,
     case _ => None
   }
 
+  def group: Option[String] = {
+    val grade = "[[0-9]*|K]|[[[0-9]*|K]\\-[[0-9]*|K]]"
+    val match1 = s"(.*\\..*\\..*)\\..*".r
+    val match2 = s"(.*\\.$grade)[a-z]$$".r
+    dotNotation match {
+      case Some(notation) => notation match {
+        case match1(group) => Some(group)
+        case match2(group) => Some(group)
+        case _ => dotNotation
+      }
+      case _ => None
+    }
+  }
+
   def code: Option[String] = dotNotation match {
     case Some(notation) => notation match {
       case last(code) => Some(code)
@@ -93,8 +107,16 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   lazy val sorter: (String, String) => Boolean = (a,b) => {
+    val standards: Seq[Standard] = cachedStandards()
+    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
+      case (Some(one), Some(two)) => standardSorter(one, two)
+      case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
+    })
+  }
+
+  def cachedStandards(): Seq[Standard] = {
     val cacheKey = "standards_sort"
-    val standards: Seq[Standard] = Cache.get(cacheKey) match {
+    Cache.get(cacheKey) match {
       case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
       case _ => {
         val standards = findAll().toSeq
@@ -102,10 +124,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
         standards.toList
       }
     }
-    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
-      case (Some(one), Some(two)) => standardSorter(one, two)
-      case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
-    })
   }
 
   lazy val legacy = findAll().filter(_.legacyItem).toSeq
