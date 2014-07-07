@@ -19,7 +19,7 @@ case class Standard(var dotNotation: Option[String] = None,
   var standard: Option[String] = None,
   var id: ObjectId = new ObjectId(),
   var grades: Seq[String] = Seq.empty[String],
-  var legacyItem: Boolean = false) {
+  var legacyItem: Boolean = false) extends StandardGroup {
 
   val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
   val abbrev = "([\\w|-]+)..*".r
@@ -32,20 +32,6 @@ case class Standard(var dotNotation: Option[String] = None,
       case _  => None
     }
     case _ => None
-  }
-
-  def group: Option[String] = {
-    val grade = "[[0-9]*|K]|[[[0-9]*|K]\\-[[0-9]*|K]]"
-    val match1 = s"(.*\\..*\\..*)\\..*".r
-    val match2 = s"(.*\\.$grade)[a-z]$$".r
-    dotNotation match {
-      case Some(notation) => notation match {
-        case match1(group) => Some(group)
-        case match2(group) => Some(group)
-        case _ => dotNotation
-      }
-      case _ => None
-    }
   }
 
   def code: Option[String] = dotNotation match {
