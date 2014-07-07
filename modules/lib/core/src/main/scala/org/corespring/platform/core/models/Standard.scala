@@ -101,15 +101,18 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   lazy val groupMap = {
-    cachedStandards().sortWith(standardSorter).foldLeft(ListMap.empty[String, Seq[Standard]]) { (map, standard) =>
-      standard.group match {
-        case Some(group) => map.get(group) match {
-          case Some(standards: Seq[Standard]) => map + (group -> (standards :+ standard))
-          case _ => map + (group -> Seq(standard))
+    val blacklist = Seq("3.W.9", "7.W.3.c")
+    cachedStandards().sortWith(standardSorter)
+      .filterNot(standard => blacklist.map(Option(_)).contains(standard.dotNotation))
+      .foldLeft(ListMap.empty[String, Seq[Standard]]) { (map, standard) =>
+        standard.group match {
+          case Some(group) => map.get(group) match {
+            case Some(standards) => map + (group -> (standards :+ standard))
+            case _ => map + (group -> Seq(standard))
+          }
+          case _ => map
         }
-        case _ => map
       }
-    }
   }
 
   def cachedStandards(): Seq[Standard] = {

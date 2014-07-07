@@ -10,10 +10,16 @@ trait StandardGroup {
   def dotNotation: Option[String]
 
   /**
-   * Returns true if the Standards belong to the same group, that is if they have the same grades and subcategory.
+   * Returns true if the Standards belong to the same group, that is if they have the same grades, same subcategory,
+   * and begin with the same first two letters.
    */
   def sameGroupAs(standard: StandardGroup) =
-    (this.subCategory == standard.subCategory) && (standard.grades == this.grades)
+    (this.subCategory == standard.subCategory) && (standard.grades == this.grades) &&
+      ((this.dotNotation, standard.dotNotation) match {
+        case (Some(dot), Some(other)) => dot.startsWith(other.substring(0, 2))
+        case (None, None) => true
+        case _ => false
+      })
 
   /**
    * The group property for the Standard
@@ -41,34 +47,18 @@ trait StandardGroup {
 
     val suffixes = inSameGroup.map({s => s.substring(prefix.length, s.length) }).filterNot(_.isEmpty).sorted
 
-    val suffix = {
-      def isLowerCaseChar(s: String) = s.matches("[a-z]")
-      def isNumber(s: String) = s.matches("[0-9]")
-      def isNumberWithLowerCaseChar(s: String) = s.matches("[0-9][a-z]")
-
-      suffixes.length match {
-        case 0 => ""
-        case 1 => suffixes.head
-        case _ => {
-          if (isLowerCaseChar(suffixes.head) && isLowerCaseChar(suffixes.last)) {
-            None
-          } else if (isNumber(suffixes.head) && isNumberWithLowerCaseChar(suffixes.last)) {
-            Some(s"${suffixes.head}-${suffixes.last.head}")
-          } else {
-            Some(s"${suffixes.head}-${suffixes.last}")
+    (dotNotation, subCategory) match {
+      case (Some(dotNotation), Some(subCategory)) => {
+        suffixes.length match {
+          case 0 => Some(s"$dotNotation.$subCategory")
+          case 1 => Some(s"$prefix.$subCategory}")
+          case _ => prefix.endsWith(".") match {
+            case true => Some(s"$prefix$subCategory")
+            case _ => Some(s"$prefix.$subCategory")
           }
         }
       }
-    }
-
-    suffixes.length match {
-      case 0 => dotNotation
-      case 1 => dotNotation
-      case _ => (prefix.endsWith("."), suffix) match {
-        case (true, Some(suffixVal)) => Some(s"$prefix$suffixVal")
-        case (false, Some(suffixVal)) => Some(s"$prefix.$suffixVal")
-        case (_, None) => Some(prefix)
-      }
+      case _ => throw new IllegalArgumentException("subCategory and dotNotation are required")
     }
   }
 

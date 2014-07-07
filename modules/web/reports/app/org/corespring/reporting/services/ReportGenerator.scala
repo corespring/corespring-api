@@ -22,7 +22,7 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.contributor -> reportsService.buildContributorReport _,
     ReportKeys.collection -> reportsService.buildCollectionReport _,
     ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _,
-    ReportKeys.groupedStandards -> reportsService.buildStandardsGroupReport _
+    ReportKeys.subcategory -> reportsService.buildStandardsGroupReport _
   )
 
   /**
@@ -95,12 +95,12 @@ object ReportGenerator extends ReportGenerator(ReportsService) {
   object ReportKeys {
     val primarySubject = "primarySubject"
     val standards = "standards"
-    val groupedStandards = "substandards"
+    val subcategory = "subcategory"
     val collection = "collection"
     val contributor = "contributor"
     val standardsByCollection = "standardsByCollection"
 
-    val keys = Seq(primarySubject, standards, collection, contributor, standardsByCollection)
+    val keys = Seq(primarySubject, standards, subcategory, collection, contributor, standardsByCollection)
   }
 
 }

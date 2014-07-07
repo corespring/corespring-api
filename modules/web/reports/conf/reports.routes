@@ -5,6 +5,6 @@ GET    /primary-subject-item-report.csv     org.corespring.reporting.controllers
 GET    /contributor-item-report.csv         org.corespring.reporting.controllers.Reports.getContributorReport
 GET    /collection-item-report.csv          org.corespring.reporting.controllers.Reports.getCollectionReport
 GET    /standards-by-collection-report.csv  org.corespring.reporting.controllers.Reports.getStandardsByCollectionReport
-GET    /substandards-item-report.csv        org.corespring.reporting.controllers.Reports.getGroupedStandardsReport
+GET    /subcategory-item-report.csv        org.corespring.reporting.controllers.Reports.getGroupedStandardsReport
 GET    /:reportKey/generate                 org.corespring.reporting.controllers.Reports.generate(reportKey: String)
 GET    /:reportKey/status                   org.corespring.reporting.controllers.Reports.status(reportKey: String)
