@@ -212,9 +212,9 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   def buildStandardsGroupReport() = {
-    val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList
-    val demonstratedKnowledge = FieldValue.current.demonstratedKnowledge.map(_.value).toList
-    val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList
+    val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList.sorted
+    val demonstratedKnowledge = FieldValue.current.demonstratedKnowledge.map(_.value).toList.sorted
+    val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList.sorted
 
     val lines: List[List[String]] = Standard.groupMap.map{ case (group, standards) =>
       val values = standards.map(_.dotNotation).flatten
@@ -230,10 +230,12 @@ class ReportsService(ItemCollection: MongoCollection,
       val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
       runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
 
-      (group +: Seq(bloomsKeyCount, demonstratedKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten).toList
+      (Seq(group, ItemCollection.count(query).toString) ++
+        Seq(bloomsKeyCount, demonstratedKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten)
+        .toList
     }.toList
 
-    val header = List("Substandard" :: (bloomsTaxonomy ++ demonstratedKnowledge ++ itemTypes))
+    val header = List("Substandard" :: "Total" :: (bloomsTaxonomy ++ demonstratedKnowledge ++ itemTypes))
     (header ++ lines).toCsv
   }
 
