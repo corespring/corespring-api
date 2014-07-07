@@ -6,7 +6,7 @@ import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.utils.string
-import org.corespring.platform.core.models.item.TaskInfo
+import org.corespring.platform.core.models.item.{FieldValue, TaskInfo}
 import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.reporting.models.ReportLineResult
@@ -201,6 +201,34 @@ class ReportsService(ItemCollection: MongoCollection,
         standard +: ReportLineResult.createValueList(collectionsKeyCounts)
       })
     (List(header) ++ lines).toCsv
+  }
+
+  def buildStandardsGroupReport() = {
+    val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList.sorted
+    val demonstratedKnowledge = FieldValue.current.demonstratedKnowledge.map(_.value).toList.sorted
+    val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList.sorted
+
+    val lines: List[List[String]] = Standard.groupMap.map{ case (group, standards) =>
+      val values = standards.map(_.dotNotation).flatten
+      val query = new BasicDBObject()
+      query.put("standards", new BasicDBObject("$in", values))
+
+      val bloomsKeyCount = ReportLineResult.zeroedKeyCountList[String](bloomsTaxonomy)
+      runMapReduceForProperty[String](bloomsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.bloomsTaxonomy"))
+
+      val demonstratedKnowledgeKeyCount = ReportLineResult.zeroedKeyCountList[String](demonstratedKnowledge)
+      runMapReduceForProperty[String](demonstratedKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.demonstratedKnowledge"))
+
+      val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
+      runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
+
+      (Seq(group, ItemCollection.count(query).toString) ++
+        Seq(bloomsKeyCount, demonstratedKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten)
+        .toList
+    }.toList
+
+    val header = List("Substandard" :: "Total" :: (bloomsTaxonomy ++ demonstratedKnowledge ++ itemTypes))
+    (header ++ lines).toCsv
   }
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {

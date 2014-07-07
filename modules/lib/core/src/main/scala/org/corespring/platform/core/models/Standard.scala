@@ -9,6 +9,7 @@ import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
+import scala.collection.immutable.{ListMap, SortedMap}
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -18,7 +19,7 @@ case class Standard(var dotNotation: Option[String] = None,
   var standard: Option[String] = None,
   var id: ObjectId = new ObjectId(),
   var grades: Seq[String] = Seq.empty[String],
-  var legacyItem: Boolean = false) {
+  var legacyItem: Boolean = false) extends StandardGroup {
 
   val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
   val abbrev = "([\\w|-]+)..*".r
@@ -91,9 +92,32 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     }
   }
 
-  lazy val sorter: (String, String) => Boolean = (a, b) => {
+  lazy val sorter: (String, String) => Boolean = (a,b) => {
+    val standards: Seq[Standard] = cachedStandards()
+    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
+      case (Some(one), Some(two)) => standardSorter(one, two)
+      case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
+    })
+  }
+
+  lazy val groupMap = {
+    val blacklist = Seq("3.W.9", "7.W.3.c")
+    cachedStandards().sortWith(standardSorter)
+      .filterNot(standard => blacklist.map(Option(_)).contains(standard.dotNotation))
+      .foldLeft(ListMap.empty[String, Seq[Standard]]) { (map, standard) =>
+        standard.group match {
+          case Some(group) => map.get(group) match {
+            case Some(standards) => map + (group -> (standards :+ standard))
+            case _ => map + (group -> Seq(standard))
+          }
+          case _ => map
+        }
+      }
+  }
+
+  def cachedStandards(): Seq[Standard] = {
     val cacheKey = "standards_sort"
-    val standards: Seq[Standard] = Cache.get(cacheKey) match {
+    Cache.get(cacheKey) match {
       case Some(standardsJson: String) => Json.parse(standardsJson).as[Seq[Standard]]
       case _ => {
         val standards = findAll().toSeq
@@ -101,10 +125,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
         standards.toList
       }
     }
-    ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
-      case (Some(one), Some(two)) => standardSorter(one, two)
-      case _ => throw new IllegalArgumentException("Could not find standard for dot notation")
-    })
   }
 
   lazy val legacy = findAll().filter(_.legacyItem).toSeq

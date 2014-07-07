@@ -211,6 +211,21 @@
                 </a></td>
             </tr>
             <tr>
+                <td class="name">Subcategories Report</td>
+                <td class="date">@timestamps.get("substandards").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("substandards").getOrElse(false)) "loading" else "")">
+                    <a class="generate" href="/reports/subcategory/generate">
+                        <img src="assets/images/refresh.png"/>
+                        <span>Update</span>
+                    </a>
+                    <div class="indicator"/>
+                </td>
+                <td><a href="/reports/subcategory-item-report.csv" class="@(if (timestamps.contains("subcategory")) "enabled" else "disabled")">
+                    <img src="assets/images/download.png" />
+                    <span>Download</span>
+                </a></td>
+            </tr>
+            <tr>
                 <td class="name">Contributor Report</td>
                 <td class="date">@timestamps.get("contributor").getOrElse("--")</td>
                 <td class="@(if (inProgress.get("contributor").getOrElse(false)) "loading" else "")">
