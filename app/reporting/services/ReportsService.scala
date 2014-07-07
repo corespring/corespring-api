@@ -1,20 +1,17 @@
 package reporting.services
 
-import com.mongodb.casbah.MongoCollection
-import com.mongodb.casbah.Implicits._
-import com.mongodb.casbah.map_reduce._
-import com.mongodb.{ BasicDBObject, DBObject }
-import reporting.models.ReportLineResult.KeyCount
-import reporting.models.ReportLineResult
-import org.bson.types.ObjectId
-
-import org.corespring.platform.core.models.{Standard, Subject, ContentCollection}
-import org.corespring.common.utils.string
 import org.corespring.platform.core.services.item.ItemServiceImpl
-import reporting.models.ReportLineResult.LineResult
-import scala.Some
-import org.corespring.platform.core.models.item.TaskInfo
+import org.corespring.platform.core.models.{Standard, ContentCollection, Subject}
+import com.mongodb.casbah.MongoCollection
 import reporting.utils.CsvWriter
+import com.mongodb.casbah.Implicits._
+import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.map_reduce._
+import org.bson.types.ObjectId
+import com.mongodb.{BasicDBObject, DBObject}
+import reporting.models.ReportLineResult
+import org.corespring.platform.core.models.item.{FieldValue, TaskInfo}
+import reporting.models.ReportLineResult.{KeyCount, LineResult}
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
@@ -212,6 +209,32 @@ class ReportsService(ItemCollection: MongoCollection,
         standard +: ReportLineResult.createValueList(collectionsKeyCounts)
       })
     (List(header) ++ lines).toCsv
+  }
+
+  def buildStandardsGroupReport() = {
+    val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList
+    val demonstratedKnowledge = FieldValue.current.demonstratedKnowledge.map(_.value).toList
+    val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList
+
+    val lines: List[List[String]] = Standard.groupMap.map{ case (group, standards) =>
+      val values = standards.map(_.dotNotation).flatten
+      val query = new BasicDBObject()
+      query.put("standards", new BasicDBObject("$in", values))
+
+      val bloomsKeyCount = ReportLineResult.zeroedKeyCountList[String](bloomsTaxonomy)
+      runMapReduceForProperty[String](bloomsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.bloomsTaxonomy"))
+
+      val demonstratedKnowledgeKeyCount = ReportLineResult.zeroedKeyCountList[String](demonstratedKnowledge)
+      runMapReduceForProperty[String](demonstratedKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.demonstratedKnowledge"))
+
+      val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
+      runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
+
+      (group +: Seq(bloomsKeyCount, demonstratedKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten).toList
+    }.toList
+
+    val header = List("Substandard" :: (bloomsTaxonomy ++ demonstratedKnowledge ++ itemTypes))
+    (header ++ lines).toCsv
   }
 
   def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {

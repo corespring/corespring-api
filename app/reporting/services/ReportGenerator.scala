@@ -15,7 +15,8 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.standards -> reportsService.buildStandardsReport _,
     ReportKeys.contributor -> reportsService.buildContributorReport _,
     ReportKeys.collection -> reportsService.buildCollectionReport _,
-    ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _
+    ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _,
+    ReportKeys.groupedStandards -> reportsService.buildStandardsGroupReport _
   )
 
   /**
@@ -89,6 +90,7 @@ object ReportGenerator extends ReportGenerator(ReportsService) {
   object ReportKeys {
     val primarySubject = "primarySubject"
     val standards = "standards"
+    val groupedStandards = "substandards"
     val collection = "collection"
     val contributor = "contributor"
     val standardsByCollection = "standardsByCollection"

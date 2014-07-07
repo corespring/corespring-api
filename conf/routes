@@ -251,7 +251,7 @@ GET    /reports/primary-subject-item-report.csv     reporting.controllers.Report
 GET    /reports/contributor-item-report.csv         reporting.controllers.Reports.getContributorReport
 GET    /reports/collection-item-report.csv          reporting.controllers.Reports.getCollectionReport
 GET    /reports/standards-by-collection-report.csv  reporting.controllers.Reports.getStandardsByCollectionReport
-
+GET    /reports/subcategory-item-report.csv         reporting.controllers.Reports.getGroupedStandardsReport
 
 #
 # SecureSocial routes

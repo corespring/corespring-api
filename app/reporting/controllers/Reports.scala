@@ -54,6 +54,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def getStandardItemReport = ApiAction(request => getReport(ReportKeys.standards))
   def getContributorReport = ApiAction(request => getReport(ReportKeys.contributor))
   def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
+  def getGroupedStandardsReport = ApiAction(request => getReport(ReportKeys.groupedStandards))
 
   /**
    * Only report current user's visible collections
