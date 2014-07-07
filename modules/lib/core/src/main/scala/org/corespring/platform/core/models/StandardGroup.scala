@@ -41,8 +41,11 @@ trait StandardGroup {
         }
         a.substring(0, i)
       }
-
-      inSameGroup.foldLeft(inSameGroup(0)) { longestCommonPrefix(_,_) }
+      inSameGroup.length match {
+        case 0 => throw new IllegalArgumentException(
+          s"Could not find group for ${dotNotation.getOrElse("missing dot notation")}")
+        case _ => inSameGroup.foldLeft(inSameGroup(0)) { longestCommonPrefix(_,_) }
+      }
     }
 
     val suffixes = inSameGroup.map({s => s.substring(prefix.length, s.length) }).filterNot(_.isEmpty).sorted
