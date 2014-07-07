@@ -4,7 +4,8 @@ import org.corespring.container.client.component.{ CatalogGenerator, EditorGener
 import org.corespring.container.client.controllers.ComponentSets
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
-import play.api.cache.Cached
+import play.api.cache.Cache
+import play.api.mvc._
 import play.api.{ Mode, Play }
 
 trait ComponentSetsWired extends ComponentSets {
@@ -14,14 +15,27 @@ trait ComponentSetsWired extends ComponentSets {
   }
 
   override def resource[A >: play.api.mvc.EssentialAction](context: scala.Predef.String, directive: scala.Predef.String, suffix: scala.Predef.String): A = {
-    if (Play.current.mode == Mode.Dev) {
-      super.resource(context, directive, suffix)
-    } else {
+
+    val bodyAndContentType: (String, String) = {
+
       implicit val current = play.api.Play.current
-      Cached(s"$context-$directive-$suffix") {
-        super.resource(context, directive, suffix)
+
+      if (Play.current.mode == Mode.Dev) {
+        generateBodyAndContentType(context, directive, suffix)
+      } else {
+        val cacheKey = s"$context-$directive-$suffix"
+        Cache.get(cacheKey) match {
+          case Some(value) => value.asInstanceOf[(String, String)]
+          case None =>
+            val out = generateBodyAndContentType(context, directive, suffix)
+            Cache.set(cacheKey, out)
+            out
+        }
       }
     }
+
+    val (body, ct) = bodyAndContentType
+    Action(Ok(body).as(ct))
   }
 
   override def editorGenerator: SourceGenerator = new EditorGenerator
