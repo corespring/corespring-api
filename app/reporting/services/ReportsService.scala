@@ -2,7 +2,6 @@ package reporting.services
 
 import org.corespring.platform.core.services.item.ItemServiceImpl
 import org.corespring.platform.core.models.{Standard, ContentCollection, Subject}
-import com.mongodb.casbah.MongoCollection
 import reporting.utils.CsvWriter
 import com.mongodb.casbah.Implicits._
 import com.mongodb.casbah.MongoCollection
@@ -12,6 +11,7 @@ import com.mongodb.{BasicDBObject, DBObject}
 import reporting.models.ReportLineResult
 import org.corespring.platform.core.models.item.{FieldValue, TaskInfo}
 import reporting.models.ReportLineResult.{KeyCount, LineResult}
+import scala.util.matching.Regex
 
 object ReportsService extends ReportsService(ItemServiceImpl.collection, Subject.collection,
   ContentCollection.collection, Standard.collection)
@@ -367,6 +367,39 @@ class ReportsService(ItemCollection: MongoCollection,
       credentialsKeyCount,
       licenseTypeKeyCount,
       publishedKeyCount)
+  }
+
+  private object string {
+
+    val DefaultRegex = """\$\[interpolate\{([^}]+)\}\]""".r
+
+    val DollarRegex = """\$\{([^}]+)\}""".r
+
+    def interpolate(text: String, lookup: String => String, regex: Regex = DefaultRegex) =
+      regex.replaceAllIn(text, (_: scala.util.matching.Regex.Match) match {
+        case Regex.Groups(v) => {
+          val result = lookup(v)
+          result
+        }
+      })
+
+    def replaceKey(tokens: Map[String, String])(s: String): String = tokens.getOrElse(s, "?")
+
+    def lowercaseFirstChar(s: String): String = if (s == null || s.isEmpty) s else s.charAt(0).toLower + s.substring(1, s.length)
+
+    def filePath(parts: String*): String = {
+      parts.mkString("/").replace("//", "/").replace("/./", "/")
+    }
+
+    def pseudoRandomString(length: Int, chars : Seq[Char] = ('a' to 'z') ++ ('A' to 'Z')): String = {
+      (1 to length).map(
+        x => {
+          val index = scala.util.Random.nextInt(chars.length)
+          chars(index)
+        }
+      ).mkString("")
+    }
+
   }
 
   private def interpolate(text: String, vars: Map[String, String]) = {
