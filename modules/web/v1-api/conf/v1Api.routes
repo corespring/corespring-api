@@ -1,6 +1,7 @@
 # Organizations
 GET     /organizations                   org.corespring.api.v1.OrganizationApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
 GET     /organizations/children          org.corespring.api.v1.OrganizationApi.getChildren(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 100, sort:Option[String] ?= None)
+GET     /organizations/with-shared-collection/:collId          org.corespring.api.v1.OrganizationApi.getOrgsWithSharedCollection(collId: ObjectId)
 GET     /organizations/default           org.corespring.api.v1.OrganizationApi.getDefaultOrganization
 GET     /organizations/:id               org.corespring.api.v1.OrganizationApi.getOrganization(id: ObjectId)
 PUT     /organizations/:id               org.corespring.api.v1.OrganizationApi.updateOrganization(id: ObjectId)
@@ -16,6 +17,11 @@ POST    /collections                     org.corespring.api.v1.CollectionApi.cre
 PUT     /collections/:id                 org.corespring.api.v1.CollectionApi.updateCollection(id: ObjectId)
 DELETE  /collections/:id                 org.corespring.api.v1.CollectionApi.deleteCollection(id: ObjectId)
 GET     /collections/:ids/fieldValues/:field  org.corespring.api.v1.CollectionApi.fieldValuesByFrequency(ids: String, field: String)
+PUT     /collections/:id/share-items                                     org.corespring.api.v1.CollectionApi.shareItemsWithCollection(id: ObjectId)
+PUT     /collections/:id/un-share-items                                  org.corespring.api.v1.CollectionApi.unShareItemsWithCollection(id: ObjectId)
+PUT     /collections/:id/share-filtered-items                            org.corespring.api.v1.CollectionApi.shareFilteredItemsWithCollection(id: ObjectId, q: Option[String] ?= None)
+PUT     /collections/:id/set-enabled-status/:enabled                     org.corespring.api.v1.CollectionApi.setEnabledStatus(id: ObjectId, enabled: Boolean)
+PUT     /collections/:id/share-with-org/:orgId                           org.corespring.api.v1.CollectionApi.shareCollection(id: ObjectId, orgId: ObjectId)
 
 # Users
 GET     /users                           org.corespring.api.v1.UserApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
