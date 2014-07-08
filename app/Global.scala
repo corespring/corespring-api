@@ -36,7 +36,8 @@ object Global
 
   private lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
-    val out = new FileComponentLoader(path, false)
+    val doNotShowUnreleasedComponents = Play.current.mode == Mode.Prod
+    val out = new FileComponentLoader(path, doNotShowUnreleasedComponents)
     out.reload
     out
   }
