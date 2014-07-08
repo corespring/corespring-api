@@ -36,7 +36,7 @@ object Global
 
   private lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
-    val out = new FileComponentLoader(path)
+    val out = new FileComponentLoader(path, false)
     out.reload
     out
   }
