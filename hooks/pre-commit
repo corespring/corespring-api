@@ -51,7 +51,7 @@ if files.length > 0
     end
 end
 
-if errors = `hooks/pre-commit-hooks/javascript-unicode-check`
-  puts errors
-  exit 1
-end
+#if errors = `hooks/pre-commit-hooks/javascript-unicode-check`
+#  puts errors
+#  exit 1
+#end

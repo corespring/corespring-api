@@ -1,10 +1,7 @@
 package org.corespring.platform.core.models.item.resource
 
-import play.api.libs.json._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import scala.Some
 import org.corespring.common.log.PackageLogging
+import play.api.libs.json._
 
 /**
  * A Resource is representation of a set of one or more files. The files can be Stored files (uploaded to amazon) or virtual files (stored in mongo).
@@ -34,16 +31,7 @@ object Resource extends PackageLogging {
         case obj: JsObject => {
           logger.debug(s"ResourceReads ${Json.prettyPrint(json)}")
           val resourceName = (json \ "name").as[String]
-          val files = (json \ "files").asOpt[Seq[JsValue]].map(_.map(f => {
-
-            val fileName = (f \ "name").as[String]
-            val contentType = (f \ "contentType").as[String]
-            val isMain = (f \ "default").as[Boolean]
-            (f \ "content").asOpt[String] match {
-              case Some(c) => VirtualFile(fileName, contentType, isMain, c)
-              case _ => StoredFile(fileName, contentType, isMain, (f \ "storageKey").asOpt[String].getOrElse(""))
-            }
-          }))
+          val files = (json \ "files").asOpt[Seq[BaseFile]]
           JsSuccess(Resource(resourceName, files.getOrElse(Seq())))
         }
         case _ => JsError("Undefined json")
