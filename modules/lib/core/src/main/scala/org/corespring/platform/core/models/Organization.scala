@@ -128,6 +128,9 @@ trait OrganizationImpl
    * @see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
    */
   override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean = {
+    def isRequestForPublicCollection(collectionId: ObjectId, permission: Permission) =
+      ContentCollection.isPublic(collectionId) && permission == Permission.Read
+
     val query = MongoDBObject(
       "_id" -> orgId,
       contentcolls ->
@@ -136,7 +139,9 @@ trait OrganizationImpl
             MongoDBObject(
               ContentCollRef.collectionId -> collectionId,
               ContentCollRef.pval -> MongoDBObject("$gte" -> permission.value))))
-    val access = count(query) > 0
+
+    val access = count(query) > 0 || isRequestForPublicCollection(collectionId, permission)
+
     logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
     access
   }
