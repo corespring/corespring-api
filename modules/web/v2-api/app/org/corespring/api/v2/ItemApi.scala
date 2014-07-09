@@ -21,9 +21,7 @@ import scalaz.Failure
 import scalaz.Success
 import scalaz.Validation
 
-trait ItemApi extends Controller {
-
-  implicit def executionContext: ExecutionContext
+trait ItemApi extends V2Api {
 
   def actions: V2ApiActions[AnyContent]
 
@@ -81,13 +79,6 @@ trait ItemApi extends Controller {
           Failure(needJsonHeader)
         }
       }
-  }
-
-  private def toValidation(r: PermissionResult): Validation[V2ApiError, Boolean] = {
-    r match {
-      case Granted => Success(true)
-      case Denied(reasons) => Failure(unAuthorized(reasons))
-    }
   }
 
   /**

@@ -16,6 +16,7 @@ object Errors {
   case class invalidJson(str: String) extends V2ApiError(BAD_REQUEST, s"Invalid json $str")
 
   case class unAuthorized(errors: String*) extends V2ApiError(UNAUTHORIZED, errors.mkString(", "))
+  case class cantFindSession(id: String) extends V2ApiError(NOT_FOUND, s"Can't find session with id: $id")
 
   object errorSaving extends V2ApiError(BAD_REQUEST, "Error saving")
 

@@ -80,7 +80,7 @@ class Bootstrap(
   }
 
   private lazy val itemApi = new ItemApi {
-    override implicit def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     override def itemService: ItemService = Bootstrap.this.itemService
 
@@ -89,10 +89,18 @@ class Bootstrap(
     override def orgService: OrgService = Bootstrap.this.orgService
 
     override def permissionService: PermissionService[Organization, Item] = Bootstrap.this.itemPermissionService
+
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
     override def sessionService = Bootstrap.this.sessionService
+
+    override def actions: V2ApiActions[AnyContent] = ???
+
+    override def orgService: OrgService = ???
+
+    override def permissionService: PermissionService[Organization, JsValue] = ???
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)

@@ -17,6 +17,6 @@ case class Denied(reasons: String*) extends PermissionResult {
 }
 
 trait PermissionService[CLIENT, DATA] {
-
   def create(client: CLIENT, newValue: DATA): PermissionResult
+  def get(client: CLIENT, value: DATA): PermissionResult
 }
