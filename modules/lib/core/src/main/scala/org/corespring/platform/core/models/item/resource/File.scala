@@ -69,7 +69,7 @@ object BaseFile extends JsonUtil {
 
       import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes._
 
-      def isTextType = Seq(XML, CSS, HTML, TXT, JS, JSON, UNKNOWN).contains(contentType)
+      val isTextType = textTypes.contains(contentType)
 
       JsSuccess(
         if (isTextType) {
