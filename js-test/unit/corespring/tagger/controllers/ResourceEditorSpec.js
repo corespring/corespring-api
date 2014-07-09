@@ -132,6 +132,22 @@ describe('ResourceEditor should', function () {
         expect(scope.resource.files.length).toEqual(0);
     }));
 
+    /**
+     * Fix for: CA-1665.
+     * It's very hard to reproduce on the client, but on occasion the content property is set
+     * for non text files - which causes the server to save the files as VirtualFiles not StoredFiles.
+     */
+    it('removes content prop from non text based files', inject(function($rootScope){
+        var resource = { name:"testResource", files:[
+            { name:"testFile.jpg", contentType:"image/jpg", content:"", default:true}
+        ]};
+        broadcastEnterEditor($rootScope, resource);
+        scope.update(scope.selectedFile);
+        $httpBackend.flush();
+        expect(scope.selectedFile.content).toBe(undefined);
+
+    }));
+
 });
 
 
