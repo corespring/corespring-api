@@ -3,9 +3,7 @@ package org.corespring.platform.core.models.item.resource
 import com.novus.salat.annotations.raw.Salat
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.JsObject
 import play.api.libs.json._
-import scala.Some
 import org.corespring.platform.core.models.JsonUtil
 
 @Salat
@@ -14,6 +12,7 @@ abstract class BaseFile(val name: String, val contentType: String, val isMain: B
 object BaseFile extends JsonUtil {
 
   object ContentTypes {
+
     val JPG: String = "image/jpg"
     val PNG: String = "image/png"
     val GIF: String = "image/gif"
@@ -25,7 +24,10 @@ object BaseFile extends JsonUtil {
     val TXT: String = "text/txt"
     val JS: String = "text/javascript"
     val JSON: String = "application/json"
-    val UNKNOWN : String = "unknown"
+    val UNKNOWN: String = "unknown"
+
+    lazy val textTypes = Seq(XML, CSS, HTML, TXT, JS, JSON, UNKNOWN)
+    lazy val binaryTypes = Seq(JPG, PNG, GIF, DOC, PDF)
   }
 
   val SuffixToContentTypes = Map(
@@ -65,12 +67,15 @@ object BaseFile extends JsonUtil {
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
       val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
 
+      import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes._
+
+      val isTextType = textTypes.contains(contentType)
+
       JsSuccess(
-        (json \ "content").asOpt[String] match {
-          case Some(content) => {
-            VirtualFile(name, contentType, isMain, content)
-          }
-          case _ => StoredFile(name, contentType, isMain) //we are missing the storageKey here
+        if (isTextType) {
+          VirtualFile(name, contentType, isMain, (json \ "content").asOpt[String].getOrElse(""))
+        } else {
+          StoredFile(name, contentType, isMain)
         })
     }
 
@@ -79,8 +84,7 @@ object BaseFile extends JsonUtil {
   def toJson(f: BaseFile): JsObject = Json.obj(
     "name" -> JsString(f.name),
     "contentType" -> JsString(f.contentType),
-    "default" -> JsBoolean(f.isMain)
-  )
+    "default" -> JsBoolean(f.isMain))
 }
 
 /*
