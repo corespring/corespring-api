@@ -212,8 +212,8 @@
             </tr>
             <tr>
                 <td class="name">Subcategories Report</td>
-                <td class="date">@timestamps.get("substandards").getOrElse("--")</td>
-                <td class="@(if (inProgress.get("substandards").getOrElse(false)) "loading" else "")">
+                <td class="date">@timestamps.get("subcategory").getOrElse("--")</td>
+                <td class="@(if (inProgress.get("subcategory").getOrElse(false)) "loading" else "")">
                     <a class="generate" href="/reports/subcategory/generate">
                         <img src="assets/images/refresh.png"/>
                         <span>Update</span>

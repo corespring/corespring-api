@@ -30,10 +30,14 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
   def status(reportKey: String) = ApiAction { request => getStatus(reportKey) }
 
   private def getStatus(reportKey: String) = generator.inProgress(reportKey) match {
-    case true => Accepted("")
+    case true => Accepted(Json.obj("report" -> reportKey, "status" -> "In Progress"))
     case _ => generator.getReport(reportKey) match {
-      case Some((date, _, false)) => Ok(Json.obj("timestamp" -> date.toString("MM/dd/YYYY hh:mm aa z")))
-      case _ => Accepted("")
+      case Some((date, _, false)) => Ok(Json.obj(
+        "report" -> reportKey,
+        "status" -> "Finished",
+        "timestamp" -> date.toString("MM/dd/YYYY hh:mm aa z")
+      ))
+      case _ => Accepted(Json.obj("report" -> reportKey, "status" -> s"In Progress"))
     }
   }
 
