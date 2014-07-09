@@ -140,7 +140,7 @@ trait OrganizationImpl
               ContentCollRef.collectionId -> collectionId,
               ContentCollRef.pval -> MongoDBObject("$gte" -> permission.value))))
 
-    val access = count(query) > 0 || isRequestForPublicCollection(collectionId, permission)
+    val access = isRequestForPublicCollection(collectionId, permission) || count(query) > 0
 
     logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
     access
