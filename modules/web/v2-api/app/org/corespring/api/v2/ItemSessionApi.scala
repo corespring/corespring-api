@@ -38,7 +38,7 @@ trait ItemSessionApi extends V2Api {
         val result: Validation[V2ApiError, ObjectId] = for {
           json <- Success(createSessionJson(itemId))
           org <- orgService.org(request.orgId).toSuccess(generalError(BAD_REQUEST, s"Can't find org: ${request.orgId}"))
-          permission <- toValidation(permissionService.create(org, json))
+          permission <- permissionService.create(org, json)
           sessionId <- sessionService.create(json).toSuccess(generalError(BAD_REQUEST, s"Error creating session with json: ${json}"))
         } yield sessionId
 
@@ -48,12 +48,11 @@ trait ItemSessionApi extends V2Api {
 
   def get(sessionId: String) = actions.orgAction(BodyParsers.parse.anyContent) { request: OrgRequest[AnyContent] =>
     Future {
-
       val out: Validation[V2ApiError, JsValue] = for {
-        s <- sessionService.load(sessionId).toSuccess(cantFindSession(sessionId))
         org <- orgService.org(request.orgId).toSuccess(generalError(BAD_REQUEST, s"Can't find org: ${request.orgId}"))
-        permission <- toValidation(permissionService.get(org, s))
-      } yield s
+        s <- sessionService.load(sessionId).toSuccess(cantFindSession(sessionId))
+        accessibleSession <- permissionService.get(org, s)
+      } yield accessibleSession
 
       validationToResult[JsValue](json => Ok(json))(out)
     }

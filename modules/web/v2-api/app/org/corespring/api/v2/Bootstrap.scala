@@ -44,7 +44,9 @@ class Bootstrap(
     }
   }
 
-  protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService()
+  protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
+    override def organizationService: OrganizationService = Bootstrap.this.v1OrgService
+  }
 
   protected lazy val tokenRequestTransformer: TokenOrgIdentity[OrgRequest[AnyContent]] = new TokenOrgIdentity[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService

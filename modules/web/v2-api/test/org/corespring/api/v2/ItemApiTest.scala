@@ -1,43 +1,43 @@
 package org.corespring.api.v2
 
-import org.corespring.v2.auth.services.OrgService
+import org.corespring.api.v2.errors.V2ApiError
 
-import scala.Some
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ ExecutionContext, Future }
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.{OrgRequest, V2ApiActions}
-import org.corespring.api.v2.errors.Errors.{errorSaving, unAuthorized}
+import org.corespring.api.v2.actions.{ OrgRequest, V2ApiActions }
+import org.corespring.api.v2.errors.Errors.{ errorSaving, unAuthorized }
 import org.corespring.api.v2.services._
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
+import org.corespring.v2.auth.services.OrgService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 import play.api.test.Helpers._
+import scalaz.{ Failure, Success, Validation }
 
 class ItemApiTest extends Specification with Mockito {
 
   /**
-   * We should only need to run FakeApplication here.
-   * However the way the app is tied up - we need to boot a real application.
+   * We should not need to run the app for a unit test.
+   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
    */
   PlaySingleton.start()
 
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   case class apiScope(
-                       val defaultCollectionId: ObjectId = ObjectId.get,
-                       val insertFails: Boolean = false,
-                       val permissionResult: PermissionResult = Granted,
-                       val loadOrgResult: Option[Organization] = Some(Organization())) extends Scope {
+    val defaultCollectionId: ObjectId = ObjectId.get,
+    val insertFails: Boolean = false,
+    val permissionResult: Validation[V2ApiError, Item] = Success(Item()),
+    val loadOrgResult: Option[Organization] = Some(Organization())) extends Scope {
     lazy val api = new ItemApi {
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -54,8 +54,6 @@ class ItemApiTest extends Specification with Mockito {
         }
       }
 
-      override implicit def executionContext: ExecutionContext = global
-
       override def permissionService: PermissionService[Organization, Item] = {
         val m = mock[PermissionService[Organization, Item]]
         m.create(any[Organization], any[Item]) returns permissionResult
@@ -67,6 +65,8 @@ class ItemApiTest extends Specification with Mockito {
         m.org(any[ObjectId]) returns loadOrgResult
         m
       }
+
+      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
     }
   }
 
@@ -94,19 +94,16 @@ class ItemApiTest extends Specification with Mockito {
       status(result) === OK
     }
 
-
-    s"create - returns $OK - it ignores bad json, if it can't be pared" in new apiScope {
+    s"create - returns $OK - it ignores bad json, if it can't be parsed" in new apiScope {
       //TODO - is this desired?
       val customCollectionId = ObjectId.get
       val result = api.create()(
-        FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsText("bad"))
-      )
+        FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsText("bad")))
       status(result) === OK
     }
 
     s"returns $UNAUTHORIZED - if permisssion denied" in new apiScope(
-      permissionResult = Denied("Nope")
-    ) {
+      permissionResult = Failure(unAuthorized("Nope"))) {
       val result = api.create()(FakeJsonRequest(Json.obj()))
       status(result) === unAuthorized("Nope").code
       contentAsJson(result) === Json.obj("error" -> unAuthorized("Nope").message)
@@ -114,8 +111,7 @@ class ItemApiTest extends Specification with Mockito {
     }
 
     s"create - returns error with a bad save" in new apiScope(
-      insertFails = true
-    ) {
+      insertFails = true) {
       val result = api.create()(FakeJsonRequest(Json.obj()))
       status(result) === errorSaving.code
       contentAsJson(result) === Json.obj("error" -> errorSaving.message)

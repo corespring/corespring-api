@@ -1,13 +1,11 @@
 package org.corespring.api.v2
 
+import scala.concurrent.Future
+
 import org.bson.types.ObjectId
-import org.corespring.api.v2.actions.OrgRequest
-import org.corespring.api.v2.actions.V2ApiActions
-import org.corespring.api.v2.errors.Errors._
-import org.corespring.api.v2.errors.Errors.generalError
-import org.corespring.api.v2.errors.Errors.incorrectJsonFormat
-import org.corespring.api.v2.errors.Errors.unAuthorized
+import org.corespring.api.v2.actions.{ OrgRequest, V2ApiActions }
 import org.corespring.api.v2.errors.V2ApiError
+import org.corespring.api.v2.errors.Errors._
 import org.corespring.api.v2.services._
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
@@ -16,10 +14,7 @@ import org.corespring.v2.auth.services.OrgService
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import play.api.mvc._
-import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.Failure
-import scalaz.Success
-import scalaz.Validation
+import scalaz.{ Failure, Success, Validation }
 
 trait ItemApi extends V2Api {
 
@@ -96,7 +91,7 @@ trait ItemApi extends V2Api {
         cleaned <- validatedJson(request.defaultCollection.toString)(json).toSuccess(incorrectJsonFormat(json))
         item <- cleaned.asOpt[Item].toSuccess(generalError(BAD_REQUEST, "Can't parse json as an Item"))
         org <- orgService.org(request.orgId).toSuccess(generalError(BAD_REQUEST, s"Can't find org: ${request.orgId}"))
-        permission <- toValidation(permissionService.create(org, item))
+        permission <- permissionService.create(org, item)
         vid <- itemService.insert(item).toSuccess(errorSaving)
       } yield {
         logger.trace(s"new item id: $vid")
