@@ -7,6 +7,7 @@ import org.specs2.mutable.Specification
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scala.xml.Node
+import org.corespring.qtiToV2.transformers.ItemTransformer
 
 class ItemTransformerTest extends Specification {
 
