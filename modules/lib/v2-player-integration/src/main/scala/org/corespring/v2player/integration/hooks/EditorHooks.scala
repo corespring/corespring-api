@@ -3,7 +3,7 @@ package org.corespring.v2player.integration.hooks
 import org.corespring.container.client.hooks.{ PlayerData, EditorHooks => ContainerEditorHooks }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2.auth.ItemAuth
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._

@@ -13,6 +13,7 @@ private[v2] object Errors {
 
   case class generalError(c: Int, msg: String) extends V2ApiError(c, msg)
 
+  object notReady extends V2ApiError(BAD_REQUEST, "Not ready yet...")
   object noJson extends V2ApiError(BAD_REQUEST, "No json in request body")
   object needJsonHeader extends V2ApiError(BAD_REQUEST, "You need to set the Content-Type to 'application/json'")
   case class invalidJson(str: String) extends V2ApiError(BAD_REQUEST, s"Invalid json $str")

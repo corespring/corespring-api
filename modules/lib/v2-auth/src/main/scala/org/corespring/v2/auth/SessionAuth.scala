@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.auth
+package org.corespring.v2.auth
 
 import org.corespring.platform.core.models.item.Item
 import play.api.libs.json.JsValue

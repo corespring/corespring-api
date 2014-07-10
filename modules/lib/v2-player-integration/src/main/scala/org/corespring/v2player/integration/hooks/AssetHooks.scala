@@ -6,7 +6,7 @@ import org.corespring.container.client.hooks.{ AssetHooks => ContainerAssetHooks
 import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2.auth.ItemAuth
 import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._

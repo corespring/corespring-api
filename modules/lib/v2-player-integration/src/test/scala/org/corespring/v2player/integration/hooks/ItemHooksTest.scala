@@ -7,7 +7,7 @@ import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
-import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2player.integration.errors.{ Errors, V2Error }
 import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito

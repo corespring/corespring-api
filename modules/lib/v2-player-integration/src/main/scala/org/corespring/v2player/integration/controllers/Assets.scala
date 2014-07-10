@@ -7,7 +7,7 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2.auth.ItemAuth
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 
 trait Assets extends ContainerAssets {

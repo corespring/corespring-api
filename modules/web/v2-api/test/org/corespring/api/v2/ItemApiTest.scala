@@ -1,6 +1,7 @@
 package org.corespring.api.v2
 
 import org.corespring.api.v2.errors.V2ApiError
+import org.corespring.v2.auth.ItemAuth
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -37,7 +38,8 @@ class ItemApiTest extends Specification with Mockito {
     val defaultCollectionId: ObjectId = ObjectId.get,
     val insertFails: Boolean = false,
     val permissionResult: Validation[V2ApiError, Item] = Success(Item()),
-    val loadOrgResult: Option[Organization] = Some(Organization())) extends Scope {
+    val loadOrgResult: Option[Organization] = Some(Organization()),
+    val canCreate: Validation[String, Boolean] = Success(true)) extends Scope {
     lazy val api = new ItemApi {
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -46,27 +48,22 @@ class ItemApiTest extends Specification with Mockito {
         m
       }
 
-      override def actions: V2ApiActions[AnyContent] = new V2ApiActions[AnyContent] {
-
-        override def orgAction(bp: BodyParser[AnyContent])(block: (OrgRequest[AnyContent]) => Future[SimpleResult]): Action[AnyContent] = Action.async {
-          r =>
-            block(OrgRequest(r, ObjectId.get, defaultCollectionId))
-        }
-      }
-
-      override def permissionService: PermissionService[Organization, Item] = {
-        val m = mock[PermissionService[Organization, Item]]
-        m.create(any[Organization], any[Item]) returns permissionResult
+      override def itemAuth: ItemAuth = {
+        val m = mock[ItemAuth]
+        m.canCreateInCollection(anyString)(any[RequestHeader]) returns canCreate
         m
       }
 
-      override def orgService: OrgService = {
-        val m = mock[OrgService]
-        m.org(any[ObjectId]) returns loadOrgResult
-        m
-      }
+      /**
+       * For a known organization (derived from the request) return Some(id)
+       * If it is an unknown user return None
+       * @param header
+       * @return
+       */
+      override def defaultCollection(implicit header: RequestHeader): Option[String] = Some(defaultCollectionId.toString)
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
     }
   }
 

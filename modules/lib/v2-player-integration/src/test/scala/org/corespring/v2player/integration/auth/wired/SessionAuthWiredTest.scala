@@ -2,7 +2,7 @@ package org.corespring.v2player.integration.auth.wired
 
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.v2player.integration.auth.ItemAuth
+import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2player.integration.errors.Errors.{ noItemIdInSession, cantLoadSession }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

@@ -23,7 +23,6 @@ import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
-import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
 import org.corespring.v2player.integration.transformers.ItemTransformer
 import org.corespring.v2player.integration.urls.ComponentSetsWired

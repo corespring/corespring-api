@@ -6,7 +6,7 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.auth.SessionAuth
+import org.corespring.v2.auth.SessionAuth
 import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsString, JsValue, Json }

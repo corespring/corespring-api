@@ -1,5 +1,7 @@
 package org.corespring.v2player.integration.hooks
 
+import org.corespring.v2.auth.ItemAuth
+
 import scala.concurrent.Future
 
 import org.bson.types.ObjectId
@@ -7,7 +9,6 @@ import org.corespring.container.client.hooks.{ ItemHooks => ContainerItemHooks }
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2player.integration.auth.ItemAuth
 import org.corespring.v2player.integration.errors.V2Error
 import org.corespring.v2player.integration.errors.Errors._
 import org.corespring.v2player.integration.transformers.container.PlayerJsonToItem

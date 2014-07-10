@@ -48,6 +48,10 @@ class Bootstrap(
     override def organizationService: OrganizationService = Bootstrap.this.v1OrgService
   }
 
+  protected val sessionPermissionService: PermissionService[Organization, JsValue] = new SessionPermissionService {
+
+  }
+
   protected lazy val tokenRequestTransformer: TokenOrgIdentity[OrgRequest[AnyContent]] = new TokenOrgIdentity[OrgRequest[AnyContent]] {
     override def orgService: OrgService = Bootstrap.this.orgService
 
@@ -86,23 +90,19 @@ class Bootstrap(
 
     override def itemService: ItemService = Bootstrap.this.itemService
 
-    override def actions: V2ApiActions[AnyContent] = Bootstrap.this.apiActions
+    override def itemAuth: ItemAuth = ???
 
-    override def orgService: OrgService = Bootstrap.this.orgService
-
-    override def permissionService: PermissionService[Organization, Item] = Bootstrap.this.itemPermissionService
-
+    override def defaultCollection(implicit header: RequestHeader): Option[String] = ???
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
+
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def sessionAuth: SessionAuth = ???
+
     override def sessionService = Bootstrap.this.sessionService
 
-    override def actions: V2ApiActions[AnyContent] = ???
-
-    override def orgService: OrgService = ???
-
-    override def permissionService: PermissionService[Organization, JsValue] = ???
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)
