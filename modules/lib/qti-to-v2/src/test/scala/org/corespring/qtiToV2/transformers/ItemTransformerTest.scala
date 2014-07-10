@@ -1,9 +1,12 @@
 package org.corespring.qtiToV2.transformers
 
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.models.item._
+import org.specs2.mutable.Specification
+import play.api.libs.json.{ Json, JsObject, JsValue }
 
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import scala.xml.Node
 
 class ItemTransformerTest extends Specification {
 

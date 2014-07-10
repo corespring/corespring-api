@@ -27,6 +27,7 @@ import play.api.mvc.{ Action, Result, AnyContent }
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.qtiToV2.transformers.ItemTransformer
 
 /**
  * Items API
@@ -34,6 +35,10 @@ import scalaz._
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
+
+  lazy val itemTransformer = new ItemTransformer {
+    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
+  }
 
   val transformationCache = new PlayItemTransformationCache()
   import Item.Keys._
@@ -73,6 +78,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
+        withV2DataItem <- addV2Data(validatedItem).toSuccess("Couldn't add v2 data to item..")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield {
         transformationCache.removeCachedTransformation(item)
@@ -97,6 +103,14 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- service.findOneById(id).toSuccess("Can't find item")
         cloned <- service.clone(item).toSuccess("Error cloning")
       } yield cloned
+  }
+
+  private def addV2Data(item: Item): Option[Item] = {
+    implicit val PlayerDefinitionFormat = PlayerDefinition.Format
+    Json.fromJson[PlayerDefinition](itemTransformer.transformToV2Json(item)) match {
+      case JsSuccess(playerDefinition, _) => Some(item.copy(playerDefinition = Some(playerDefinition)))
+      case _ => None
+    }
   }
 
   private def validateItem(dbItem: Item, item: Item): Option[Item] = {
@@ -129,6 +143,8 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
     })
   }
+
+
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
