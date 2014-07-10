@@ -36,11 +36,12 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
+  val transformationCache = new PlayItemTransformationCache()
+
   lazy val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
+    override def cache: ItemTransformationCache = transformationCache
   }
 
-  val transformationCache = new PlayItemTransformationCache()
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
@@ -106,10 +107,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   }
 
   private def addV2Data(item: Item): Option[Item] = {
-    implicit val PlayerDefinitionFormat = PlayerDefinition.Format
-    Json.fromJson[PlayerDefinition](itemTransformer.transformToV2Json(item)) match {
-      case JsSuccess(playerDefinition, _) => Some(item.copy(playerDefinition = Some(playerDefinition)))
-      case _ => None
+    try {
+      Some(itemTransformer.addV2Json(item))
+    } catch {
+      case e: Exception => None
     }
   }
 

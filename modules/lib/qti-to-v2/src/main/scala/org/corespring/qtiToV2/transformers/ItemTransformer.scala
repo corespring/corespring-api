@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.transformers
 import org.corespring.qtiToV2.QtiTransformer
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.resource.{CDataHandler, Resource, VirtualFile}
-import org.corespring.platform.core.models.item.{Item, ItemTransformationCache}
+import org.corespring.platform.core.models.item.{PlayerDefinition, Item, ItemTransformationCache}
 import org.corespring.common.json.JsonTransformer
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import scala.xml.Node
@@ -13,12 +13,25 @@ trait ItemTransformer {
 
   def cache: ItemTransformationCache
 
-  def transformToV2Json(item: Item): JsValue = {
+  def addV2Json(item: Item): Item = {
+    transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
+      .map(pd => item.copy(playerDefinition = Some(pd))) match {
+        case Some(item) => item
+        case _ => throw new IllegalArgumentException("There was a problem")
+      }
+  }
+
+  def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
+
+  def transformToV2Json(item: Item, rootJson: Option[JsObject]): JsValue = {
     implicit val ResourceFormat = Resource.Format
 
-    val rootJson: JsObject = item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+    val root: JsObject = (rootJson match {
+      case Some(json) => json
+      case None => item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+    })
     val profile = toProfile(item)
-    rootJson ++ Json.obj(
+    root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials))
   }
