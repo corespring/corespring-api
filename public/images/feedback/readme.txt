@@ -1,1 +1,0 @@
-The files in here are used by the v2 components.
