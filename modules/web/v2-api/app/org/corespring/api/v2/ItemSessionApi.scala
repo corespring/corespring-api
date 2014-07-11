@@ -15,6 +15,7 @@ trait ItemSessionApi extends Controller {
 
   def itemService: ItemService
   def sessionService: MongoService
+  def itemTransformer: ItemTransformer
 
   def create(itemId: VersionedId[ObjectId]) = Action {
 
@@ -27,7 +28,7 @@ trait ItemSessionApi extends Controller {
             "itemId" -> JsString(vid.toString)))
       }
 
-      ItemTransformer.updateV2Json(itemId)
+      itemTransformer.updateV2Json(itemId)
 
       val result = for {
         json <- createSessionJson(itemId).toSuccess("Error creating json")

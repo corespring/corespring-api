@@ -39,6 +39,11 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
+  val itemTransformer = new ItemTransformer {
+    def cache: ItemTransformationCache = PlayItemTransformationCache
+    def itemService: ItemService = service
+  }
+
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
@@ -73,7 +78,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        withV2DataItem <- ItemTransformer.updateV2Json(validatedItem).toSuccess("Error generating item v2 JSON")
+        withV2DataItem <- itemTransformer.updateV2Json(validatedItem).toSuccess("Error generating item v2 JSON")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield {
         PlayItemTransformationCache.removeCachedTransformation(item)

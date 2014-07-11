@@ -57,7 +57,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val itemTransformer = ItemTransformer
+  lazy val itemTransformer = new ItemTransformer {
+    def itemService = ItemServiceWired
+    def cache = PlayItemTransformationCache
+  }
 
   /** A wrapper around organization */
   lazy val orgService = new OrgService {
@@ -260,7 +263,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
+    override def itemTransformer = itemTransformer
 
     override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
   }

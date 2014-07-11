@@ -12,7 +12,10 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 
 
-class ItemTransformer(cache: ItemTransformationCache, itemService: ItemService) {
+trait ItemTransformer {
+
+  def cache: ItemTransformationCache
+  def itemService: ItemService
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
@@ -31,15 +34,15 @@ class ItemTransformer(cache: ItemTransformationCache, itemService: ItemService) 
   def updateV2Json(item: Item): Option[Item] = {
     transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
       .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-          case true => Some(updatedItem)
-          case _ => {
-            itemService.save(updatedItem)
-            Some(updatedItem)
-          }
+      case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+        case true => Some(updatedItem)
+        case _ => {
+          itemService.save(updatedItem)
+          Some(updatedItem)
         }
-        case _ => None
       }
+      case _ => None
+    }
   }
 
   def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
@@ -124,5 +127,3 @@ class ItemTransformer(cache: ItemTransformationCache, itemService: ItemService) 
     }
 
 }
-
-object ItemTransformer extends ItemTransformer(PlayItemTransformationCache, ItemServiceWired)

@@ -23,7 +23,13 @@ import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.controllers.auth.ApiRequest
 import play.api.libs.json.JsObject
 
-class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends BaseApi {
+class ResourceApi(s3service: CorespringS3Service, service: ItemService)
+  extends BaseApi {
+
+  def itemTransformer = new ItemTransformer {
+    def itemService = service
+    def cache = PlayItemTransformationCache
+  }
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -237,7 +243,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                ItemTransformer.updateV2Json(item) match {
+                itemTransformer.updateV2Json(item) match {
                   case Some(updatedItem) => {
                     PlayItemTransformationCache.removeCachedTransformation(updatedItem)
                     Ok(toJson(processedUpdate))

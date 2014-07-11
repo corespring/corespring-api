@@ -24,7 +24,7 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
   def itemService: ItemService
 
-  def transformItem: Item => JsValue
+  def itemTransformer: ItemTransformer
 
   def auth: SessionAuth
 
@@ -37,7 +37,7 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
     s.leftMap(s => UNAUTHORIZED -> s).rightMap { (models) =>
       val (_, item) = models
-      val itemJson = transformItem(item)
+      val itemJson = itemTransformer.transformToV2Json(item)
       itemJson
     }.toEither
   }
@@ -57,7 +57,7 @@ trait PlayerHooks extends ContainerPlayerHooks {
       canWrite <- auth.canCreate(itemId)
       writeAllowed <- if (canWrite) Success(true) else Failure(s"Can't create session for $itemId")
       vid <- VersionedId(itemId).toSuccess(s"Error parsing item id: $itemId")
-      item <- ItemTransformer.updateV2Json(vid).toSuccess("Error generating item v2 JSON")
+      item <- itemTransformer.updateV2Json(vid).toSuccess("Error generating item v2 JSON")
       json <- createSessionJson(vid).toSuccess("Error creating json")
       sessionId <- sessionService.create(json).toSuccess("Error creating session")
     } yield sessionId
