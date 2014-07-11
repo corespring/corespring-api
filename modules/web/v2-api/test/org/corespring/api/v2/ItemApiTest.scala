@@ -71,11 +71,12 @@ class ItemApiTest extends Specification with Mockito {
 
     "create - ignores the id in the request" in new apiScope {
       val result = api.create()(FakeJsonRequest(Json.obj("id" -> "blah")))
+      println(s"--> ${Json.stringify(contentAsJson(result))}")
       (contentAsJson(result) \ "id").as[String] !== "blah"
       (contentAsJson(result) \ "collectionId").as[String] === defaultCollectionId.toString
       status(result) === OK
     }
-
+    /*
     "create - if there's no json in the body - it uses the default json" in new apiScope {
       val result = api.create()(FakeJsonRequest(Json.obj()))
       (contentAsJson(result) \ "collectionId").as[String] === defaultCollectionId.toString
@@ -112,7 +113,7 @@ class ItemApiTest extends Specification with Mockito {
       val result = api.create()(FakeJsonRequest(Json.obj()))
       status(result) === errorSaving.code
       contentAsJson(result) === Json.obj("error" -> errorSaving.message)
-    }
+    }*/
 
   }
 }

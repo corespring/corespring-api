@@ -31,7 +31,6 @@ trait ItemApi extends V2Api {
    * POST no content type + empty body ==> need header
    * POST content type json + empty body ==> bad request / invalid json
    * POST content type json + {} ==> new item
-   * @return
    */
   def create = Action.async { implicit request =>
     import scalaz.Scalaz._
