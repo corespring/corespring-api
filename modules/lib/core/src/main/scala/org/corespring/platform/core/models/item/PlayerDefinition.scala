@@ -36,8 +36,8 @@ object PlayerDefinition {
         JsSuccess(new PlayerDefinition(
           (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
-          (json \ "components").as[JsValue],
-          (json \ "summaryFeedback").as[String]))
+          (json \ "components").asOpt[JsValue].getOrElse(Json.obj()),
+          (json \ "summaryFeedback").asOpt[String].getOrElse("?")))
       }
       case _ => JsError("empty object")
     }
