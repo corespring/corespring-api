@@ -150,7 +150,7 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
-    .dependsOn(v2Auth, core % "test->test;compile->compile")
+    .dependsOn(v2Auth, qtiToV2, core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")

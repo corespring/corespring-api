@@ -29,13 +29,6 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
 
   val DATA_PATH: String = "data"
 
-  val transformationCache = new PlayItemTransformationCache()
-
-  lazy val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = transformationCache
-  }
-
-
   /**
    * Item.data has at least one file that is always default its name is set here.
    * TODO: move this elsewhere
@@ -244,9 +237,14 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                service.save(itemTransformer.addV2Json(item))
-                transformationCache.removeCachedTransformation(item)
-                Ok(toJson(processedUpdate))
+                ItemTransformer.updateV2Json(item) match {
+                  case Some(updatedItem) => {
+                    PlayItemTransformationCache.removeCachedTransformation(updatedItem)
+                    Ok(toJson(processedUpdate))
+                  }
+                  case None => InternalServerError(s"Could not update item $itemId")
+                }
+
               }
               case _ => NotFound(update.name)
             }

@@ -57,9 +57,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
-  }
+  lazy val itemTransformer = ItemTransformer
 
   /** A wrapper around organization */
   lazy val orgService = new OrgService {

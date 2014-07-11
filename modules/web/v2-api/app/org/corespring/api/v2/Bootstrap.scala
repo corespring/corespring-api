@@ -93,6 +93,7 @@ class Bootstrap(
 
   lazy val itemSessionApi = new ItemSessionApi {
     override def sessionService = Bootstrap.this.sessionService
+    override def itemService = Bootstrap.this.itemService
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)

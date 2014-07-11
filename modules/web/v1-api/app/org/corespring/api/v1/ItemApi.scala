@@ -36,12 +36,6 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
-  val transformationCache = new PlayItemTransformationCache()
-
-  lazy val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = transformationCache
-  }
-
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
@@ -79,10 +73,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        withV2DataItem <- addV2Data(validatedItem).toSuccess("Couldn't add v2 data to item..")
+        withV2DataItem <- ItemTransformer.updateV2Json(validatedItem).toSuccess("Error generating item v2 JSON")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield {
-        transformationCache.removeCachedTransformation(item)
+        PlayItemTransformationCache.removeCachedTransformation(item)
         savedResult
       }
   }
@@ -104,14 +98,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- service.findOneById(id).toSuccess("Can't find item")
         cloned <- service.clone(item).toSuccess("Error cloning")
       } yield cloned
-  }
-
-  private def addV2Data(item: Item): Option[Item] = {
-    try {
-      Some(itemTransformer.addV2Json(item))
-    } catch {
-      case e: Exception => None
-    }
   }
 
   private def validateItem(dbItem: Item, item: Item): Option[Item] = {

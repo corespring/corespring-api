@@ -3,21 +3,42 @@ package org.corespring.qtiToV2.transformers
 import org.corespring.qtiToV2.QtiTransformer
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.resource.{CDataHandler, Resource, VirtualFile}
-import org.corespring.platform.core.models.item.{PlayerDefinition, Item, ItemTransformationCache}
+import org.corespring.platform.core.models.item.{PlayItemTransformationCache, PlayerDefinition, Item, ItemTransformationCache}
 import org.corespring.common.json.JsonTransformer
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import scala.xml.Node
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
 
 
-trait ItemTransformer {
+class ItemTransformer(cache: ItemTransformationCache, itemService: ItemService) {
 
-  def cache: ItemTransformationCache
+  def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
+    itemService.findOneById(itemId) match {
+      case Some(item) => item.playerDefinition match {
+        case None => try {
+          updateV2Json(item)
+        } catch {
+          case e: Exception => None
+        }
+        case _ => Some(item)
+      }
+      case _ => None
+    }
+  }
 
-  def addV2Json(item: Item): Item = {
+  def updateV2Json(item: Item): Option[Item] = {
     transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
-      .map(pd => item.copy(playerDefinition = Some(pd))) match {
-        case Some(item) => item
-        case _ => throw new IllegalArgumentException("There was a problem")
+      .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
+        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+          case true => Some(updatedItem)
+          case _ => {
+            itemService.save(updatedItem)
+            Some(updatedItem)
+          }
+        }
+        case _ => None
       }
   }
 
@@ -103,3 +124,5 @@ trait ItemTransformer {
     }
 
 }
+
+object ItemTransformer extends ItemTransformer(PlayItemTransformationCache, ItemServiceWired)
