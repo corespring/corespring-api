@@ -263,7 +263,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def itemTransformer = itemTransformer
+    override def itemTransformer = V2PlayerIntegration.this.itemTransformer
 
     override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
   }
