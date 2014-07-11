@@ -25,7 +25,6 @@ import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2player.integration.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2player.integration.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2player.integration.permissions.SimpleWildcardChecker
-import org.corespring.v2player.integration.transformers.ItemTransformer
 import org.corespring.v2player.integration.urls.ComponentSetsWired
 import org.corespring.v2player.integration.{ controllers => apiControllers, hooks => apiHooks }
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
@@ -35,6 +34,7 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success, Validation }
+import org.corespring.qtiToV2.transformers.ItemTransformer
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -58,7 +58,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
   }
 
   lazy val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = new PlayItemTransformationCache()
+    def itemService = ItemServiceWired
+    def cache = PlayItemTransformationCache
   }
 
   /** A wrapper around organization */
@@ -262,7 +263,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
+    override def itemTransformer = itemTransformer
 
     override def auth: SessionAuth = V2PlayerIntegration.this.sessionAuth
   }

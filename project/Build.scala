@@ -128,12 +128,17 @@ object Build extends sbt.Build {
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
+
+  /** Qti -> v2 transformers */
+  val qtiToV2 = builders.lib("qti-to-v2").settings(
+    libraryDependencies ++= Seq(playJson)).dependsOn(core, qti)
+
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
    * All authentication code for v2 api + player/editor
@@ -145,7 +150,7 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
-    .dependsOn(v2Auth, core % "test->test;compile->compile")
+    .dependsOn(v2Auth, qtiToV2, core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -161,10 +166,6 @@ object Build extends sbt.Build {
   val devTools = builders.web("dev-tools").settings(
     routesImport ++= customImports,
     libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
-
-  /** Qti -> v2 transformers */
-  val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson)).dependsOn(qti)
 
   /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(

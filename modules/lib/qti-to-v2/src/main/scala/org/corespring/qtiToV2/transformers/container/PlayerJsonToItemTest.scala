@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.{AdditionalCopyright, Copyright, Item}
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
+import org.corespring.qtiToV2.transformers.PlayerJsonToItem
 
 class PlayerJsonToItemTest extends Specification {
 

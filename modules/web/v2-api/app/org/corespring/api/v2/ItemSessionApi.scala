@@ -7,10 +7,15 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.item.{ItemTransformationCache, PlayItemTransformationCache}
+import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.platform.core.services.item.ItemService
 
 trait ItemSessionApi extends Controller {
 
+  def itemService: ItemService
   def sessionService: MongoService
+  def itemTransformer: ItemTransformer
 
   def create(itemId: VersionedId[ObjectId]) = Action {
 
@@ -22,6 +27,8 @@ trait ItemSessionApi extends Controller {
             "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
             "itemId" -> JsString(vid.toString)))
       }
+
+      itemTransformer.updateV2Json(itemId)
 
       val result = for {
         json <- createSessionJson(itemId).toSuccess("Error creating json")

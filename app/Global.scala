@@ -8,11 +8,13 @@ import org.bson.types.ObjectId
 import org.corespring.api.v2.Bootstrap
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.platform.core.models.item.PlayItemTransformationCache
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
@@ -52,13 +54,19 @@ object Global
 
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
+  lazy val itemTransformer = new ItemTransformer {
+    def cache = PlayItemTransformationCache
+    def itemService = ItemServiceWired
+  }
+
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,
     Organization,
     AccessToken,
     integration.sessionService,
     UserServiceWired,
-    integration.secureSocialService)
+    integration.secureSocialService,
+    itemTransformer)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 

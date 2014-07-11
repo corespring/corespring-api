@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.transformers.container
+package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Standard

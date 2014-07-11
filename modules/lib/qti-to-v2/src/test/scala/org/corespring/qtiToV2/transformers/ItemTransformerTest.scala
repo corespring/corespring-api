@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.transformers
+package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
@@ -7,18 +7,23 @@ import org.specs2.mutable.Specification
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scala.xml.Node
+import scala.Some
+import play.api.libs.json.JsObject
+import org.corespring.platform.core.services.item.ItemService
+import org.specs2.mock.Mockito
 
-class ItemTransformerTest extends Specification {
+class ItemTransformerTest extends Specification with Mockito {
 
-  val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = new ItemTransformationCache {
-      override def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit = {}
-
-      override def removeCachedTransformation(item: Item): Unit = {}
-
-      override def getCachedTransformation(item: Item): Option[(Node, JsValue)] = None
-    }
+  val cache = new ItemTransformationCache {
+    override def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit = {}
+    override def removeCachedTransformation(item: Item): Unit = {}
+    override def getCachedTransformation(item: Item): Option[(Node, JsValue)] = None
   }
+
+  val itemService = mock[ItemService]
+
+
+  val itemTransformer = new ItemTransformer(cache, itemService)
 
   val qti =
     <assessmentItem>

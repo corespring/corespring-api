@@ -18,6 +18,7 @@ import play.api.libs.json.JsValue
 import scala.Some
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
+import org.corespring.qtiToV2.transformers.ItemTransformer
 
 class Bootstrap(
   val itemService: ItemService,
@@ -25,7 +26,8 @@ class Bootstrap(
   val accessTokenService: AccessTokenService,
   val sessionService: MongoService,
   val userService: UserService,
-  val secureSocialService: SecureSocialService) {
+  val secureSocialService: SecureSocialService,
+  val itemTransformer: ItemTransformer) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -93,6 +95,8 @@ class Bootstrap(
 
   lazy val itemSessionApi = new ItemSessionApi {
     override def sessionService = Bootstrap.this.sessionService
+    override def itemService = Bootstrap.this.itemService
+    override def itemTransformer = Bootstrap.this.itemTransformer
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)
