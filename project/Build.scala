@@ -136,10 +136,16 @@ object Build extends sbt.Build {
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
 
   /**
+   * Error types
+   */
+  val v2Errors = builders.lib("v2-errors").settings(
+    libraryDependencies ++= Seq(scalaz)).dependsOn(core)
+  /**
    * All authentication code for v2 api + player/editor
    */
   val v2Auth = builders.lib("v2-auth").settings(
-    libraryDependencies ++= Seq(specs2 % "test", mockito)).dependsOn(core, playerLib)
+    libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
+    .dependsOn(v2Errors, core, playerLib)
 
   val v2Api = builders.web("v2-api")
     .settings(

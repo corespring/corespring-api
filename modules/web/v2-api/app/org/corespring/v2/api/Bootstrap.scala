@@ -1,0 +1,108 @@
+package org.corespring.v2.api
+
+import org.bson.types.ObjectId
+import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.controllers.auth.SecureSocialService
+import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.AccessTokenService
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.UserService
+import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.v2.api.actions.{ CompoundAuthenticated, OrgRequest, V2ApiActions }
+import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
+import org.corespring.v2.auth._
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import play.api.libs.json.JsValue
+import play.api.mvc._
+
+import scala.concurrent.ExecutionContext
+
+class Bootstrap(
+  val itemService: ItemService,
+  val v1OrgService: OrganizationService,
+  val accessTokenService: AccessTokenService,
+  val sessionService: MongoService,
+  val userService: UserService,
+  val secureSocialService: SecureSocialService) {
+
+  protected val orgService: OrgService = new OrgService {
+    override def defaultCollection(o: Organization): Option[ObjectId] = {
+      v1OrgService.getDefaultCollection(o.id) match {
+        case Left(e) => None
+        case Right(c) => Some(c.id)
+      }
+    }
+
+    override def org(id: ObjectId): Option[Organization] = v1OrgService.findOneById(id)
+  }
+
+  protected val tokenService = new TokenService {
+    override def orgForToken(token: String): Option[Organization] = {
+      accessTokenService.findByToken(token).map(t => v1OrgService.findOneById(t.organization)).flatten
+    }
+  }
+
+  protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
+    override def organizationService: OrganizationService = Bootstrap.this.v1OrgService
+  }
+
+  protected val sessionPermissionService: PermissionService[Organization, JsValue] = new SessionPermissionService {
+
+  }
+
+  protected lazy val tokenRequestTransformer: TokenOrgIdentity[OrgRequest[AnyContent]] = new TokenOrgIdentity[OrgRequest[AnyContent]] {
+    override def orgService: OrgService = Bootstrap.this.orgService
+
+    override def tokenService: TokenService = Bootstrap.this.tokenService
+
+    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): OrgRequest[AnyContent] = {
+      OrgRequest(rh.asInstanceOf[Request[AnyContent]], org.id, defaultCollection)
+    }
+  }
+
+  protected lazy val sessionRequestTransformer: UserSessionOrgIdentity[OrgRequest[AnyContent]] = new UserSessionOrgIdentity[OrgRequest[AnyContent]] {
+    override def orgService: OrgService = Bootstrap.this.orgService
+
+    override def userService: UserService = Bootstrap.this.userService
+
+    override def secureSocialService: SecureSocialService = Bootstrap.this.secureSocialService
+
+    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): OrgRequest[AnyContent] = {
+      OrgRequest(rh.asInstanceOf[Request[AnyContent]], org.id, defaultCollection)
+    }
+  }
+
+  protected lazy val apiActions: V2ApiActions[AnyContent] = new CompoundAuthenticated[AnyContent] {
+    override def orgTransformer: RequestIdentity[OrgRequest[AnyContent]] = new WithRequestIdentitySequence[OrgRequest[AnyContent]] {
+      override def identifiers: Seq[OrgRequestIdentity[OrgRequest[AnyContent]]] = Seq(
+        tokenRequestTransformer,
+        sessionRequestTransformer)
+
+    }
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+  }
+
+  private lazy val itemApi = new ItemApi {
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def itemService: ItemService = Bootstrap.this.itemService
+
+    override def itemAuth: ItemAuth = ???
+
+    override def defaultCollection(implicit header: RequestHeader): Option[String] = ???
+  }
+
+  lazy val itemSessionApi = new ItemSessionApi {
+
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def sessionAuth: SessionAuth = ???
+
+    override def sessionService = Bootstrap.this.sessionService
+
+  }
+
+  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)
+}

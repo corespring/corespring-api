@@ -9,6 +9,7 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
 import Mode.Mode
+import org.corespring.v2.auth.wired.ItemAuthWired
 import org.corespring.v2player.integration.errors.Errors._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

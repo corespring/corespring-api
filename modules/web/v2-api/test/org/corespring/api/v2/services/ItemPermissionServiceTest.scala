@@ -8,6 +8,7 @@ import org.corespring.platform.core.models.{ ContentCollRef, Organization }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
+import org.corespring.v2.api.services.ItemPermissionService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

@@ -5,7 +5,6 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
-import org.corespring.api.v2.Bootstrap
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
@@ -14,6 +13,7 @@ import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
+import org.corespring.v2.api.Bootstrap
 import org.corespring.v2player.integration.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
