@@ -98,7 +98,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
 
   override def preProcessXml(interactionXml: Elem): NodeSeq = tokenizeSelectText(interactionXml)
 
-  private def parseCorrectResponses(selectnodeXml: NodeSeq): Seq[String] = {
+  def parseCorrectResponses(selectnodeXml: NodeSeq): Seq[String] = {
     val isWord = (selectnodeXml \ "@selectionType").text == "word"
     val taggedXml = if (isWord) performOnText(selectnodeXml, tagWords) else performOnText(selectnodeXml, tagSentences)
     val idRegexp = new Regex("id=\".([0-9]+)", "match")
@@ -114,7 +114,7 @@ object SelectTextInteraction extends InteractionCompanion[SelectTextInteraction]
     correctIndexes
   }
 
-  private def tokenizeSelectText(interactionXml: NodeSeq): NodeSeq = {
+  def tokenizeSelectText(interactionXml: NodeSeq): NodeSeq = {
     val isWord = (interactionXml \ "@selectionType").text == "word"
     val taggedXml = if (isWord) performOnText(interactionXml, tagWords) else performOnText(interactionXml, tagSentences)
     new RuleTransformer(RemoveCorrectTags).transform(taggedXml)

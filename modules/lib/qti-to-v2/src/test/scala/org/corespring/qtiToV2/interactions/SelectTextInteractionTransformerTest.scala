@@ -56,6 +56,10 @@ class SelectTextInteractionTransformerTest extends Specification {
       (config \ "minSelections").as[Int] must be equalTo minSelections
     }
 
+    "be a fail" in {
+      true === false
+    }
+
     "return the correct maxSelections value" in {
       (config \ "maxSelections").as[Int] must be equalTo maxSelections
     }
