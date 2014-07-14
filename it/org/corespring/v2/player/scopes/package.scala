@@ -130,6 +130,22 @@ package object scopes {
     }
   }
 
+  trait createSession { self: RequestBuilder with HasItemId =>
+
+    def getCall(sessionId: VersionedId[ObjectId]): Call
+
+    lazy val req = {
+      val call = getCall(itemId)
+      makeRequest(call)
+    }
+
+    lazy val result = {
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
+      play.api.test.Helpers.route(req)(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
   trait sessionLoader { self: RequestBuilder with HasSessionId =>
 
     def getCall(sessionId: ObjectId): Call

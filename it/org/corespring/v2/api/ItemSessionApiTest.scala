@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerOptions
@@ -40,10 +41,55 @@ class ItemSessionApiTest extends IntegrationSpecification {
       }
 
     }
+
+    "when creating a session" should {
+
+      s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
+        val e = noOrgIdAndOptions(req)
+        status(result) === e.statusCode
+        contentAsJson(result) === e.json
+      }
+
+      s"return $OK for token" in new token_createSession {
+        val e = noOrgIdAndOptions(req)
+        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
+        status(result) === OK
+      }
+
+      s"return $OK for user" in new user_createSession {
+        val e = noOrgIdAndOptions(req)
+        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
+        status(result) === OK
+      }
+
+      s"return $OK for client id and options" in new clientIdAndOptions_createSession(
+        Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+        val e = noOrgIdAndOptions(req)
+        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
+        status(result) === OK
+      }
+
+    }
   }
 
   class unknownUser_getSession extends sessionLoader with orgWithAccessTokenItemAndSession with PlainRequestBuilder {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
+  }
+
+  class unknownUser_createSession extends createSession with orgWithAccessTokenItemAndSession with PlainRequestBuilder {
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
+  }
+
+  class token_createSession extends createSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
+  }
+
+  class user_createSession extends createSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
+  }
+
+  class clientIdAndOptions_createSession(val options: String, val skipDecryption: Boolean = true) extends createSession with clientIdAndOptions with IdAndOptionsRequestBuilder {
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
   }
 
   class user_getSession extends sessionLoader with SessionRequestBuilder with userWithItemAndSession with SecureSocialHelpers {
