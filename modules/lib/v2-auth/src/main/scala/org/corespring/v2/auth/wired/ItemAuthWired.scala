@@ -12,7 +12,6 @@ import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.slf4j.LoggerFactory
-import play.api.http.Status._
 import play.api.mvc.RequestHeader
 
 import scalaz.{ Failure, Success, Validation }
@@ -28,29 +27,29 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
 
   def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean]
 
-  override def canCreateInCollection(collectionId: String)(implicit header: RequestHeader): Validation[String, Boolean] = {
+  override def canCreateInCollection(collectionId: String)(implicit header: RequestHeader): Validation[V2Error, Boolean] = {
 
-    def write(orgId: ObjectId, collectionId: ObjectId): Validation[String, Boolean] = {
+    def write(orgId: ObjectId, collectionId: ObjectId) = {
       if (orgService.canAccessCollection(orgId, collectionId, Permission.Write)) {
         Success(true)
       } else {
-        Failure(orgCantAccessCollection(orgId, collectionId.toString).message)
+        Failure(orgCantAccessCollection(orgId, collectionId.toString))
       }
     }
 
-    val out: Validation[String, Boolean] = for {
-      (orgId, options) <- getOrgIdAndOptions(header)
-      canWrite <- write(orgId, new ObjectId(collectionId))
+    val out: Validation[V2Error, Boolean] = for {
+      orgAndOpts <- getOrgIdAndOptions(header)
+      canWrite <- write(orgAndOpts._1, new ObjectId(collectionId))
     } yield canWrite
     out
   }
 
-  override def loadForRead(itemId: String)(implicit header: RequestHeader): Validation[String, Item] = {
-    canWithPermission(itemId, Permission.Read).leftMap(_.message)
+  override def loadForRead(itemId: String)(implicit header: RequestHeader): Validation[V2Error, Item] = {
+    canWithPermission(itemId, Permission.Read)
   }
 
-  override def loadForWrite(itemId: String)(implicit header: RequestHeader): Validation[String, Item] = {
-    canWithPermission(itemId, Permission.Write).leftMap(_.message)
+  override def loadForWrite(itemId: String)(implicit header: RequestHeader): Validation[V2Error, Item] = {
+    canWithPermission(itemId, Permission.Write)
   }
 
   private def canWithPermission(itemId: String, p: Permission)(implicit header: RequestHeader): Validation[V2Error, Item] = getOrgIdAndOptions(header).map { t: (ObjectId, PlayerOptions) =>

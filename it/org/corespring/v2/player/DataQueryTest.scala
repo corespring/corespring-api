@@ -1,12 +1,12 @@
-package org.corespring.v2player.integration
+package org.corespring.v2.player
 
 import org.corespring.container.client.controllers.DataQuery
 import org.corespring.it.IntegrationSpecification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsObject, JsValue, JsArray }
+import play.api.libs.json.{ JsArray, JsObject, JsValue }
+import play.api.mvc.SimpleResult
 import play.api.test.FakeRequest
 import play.api.{ GlobalSettings, Play }
-import play.api.mvc.SimpleResult
 
 import scala.concurrent.Future
 

@@ -1,12 +1,12 @@
-package org.corespring.v2player.integration
+package org.corespring.v2.player
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2player.integration.scopes._
-import play.api.http.{ Writeable, ContentTypeOf }
+import org.corespring.v2.player.scopes._
+import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
 

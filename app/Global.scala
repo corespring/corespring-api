@@ -14,7 +14,7 @@ import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
-import org.corespring.v2player.integration.V2PlayerIntegration
+import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
 import play.api._
@@ -58,7 +58,10 @@ object Global
     AccessToken,
     integration.sessionService,
     UserServiceWired,
-    integration.secureSocialService)
+    integration.secureSocialService,
+    integration.itemAuth,
+    integration.sessionAuth,
+    integration.requestIdentifier)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 

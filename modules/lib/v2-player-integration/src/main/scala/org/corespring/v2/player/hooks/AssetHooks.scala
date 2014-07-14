@@ -10,6 +10,7 @@ import org.corespring.v2.auth.ItemAuth
 import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._
+import play.api.mvc.Results.Status
 
 import scala.concurrent.Future
 
@@ -30,7 +31,7 @@ trait AssetHooks extends ContainerAssetHooks {
 
   override def delete(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     auth.loadForWrite(itemId) match {
-      case Failure(e) => Some(UNAUTHORIZED -> e)
+      case Failure(e) => Some(UNAUTHORIZED -> e.message)
       case _ => {
         val r = s3.delete(bucket, s"$itemId/data/$file")
         if (r.success) None else Some(BAD_REQUEST -> r.msg)
@@ -40,7 +41,7 @@ trait AssetHooks extends ContainerAssetHooks {
 
   private def canUpload(itemId: String)(rh: RequestHeader): Option[SimpleResult] = {
     auth.loadForWrite(itemId)(rh) match {
-      case Failure(e) => Some(BadRequest(e))
+      case Failure(e) => Some(Status(e.statusCode)(e.message))
       case _ => None
     }
   }

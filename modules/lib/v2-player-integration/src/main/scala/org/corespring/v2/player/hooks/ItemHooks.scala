@@ -50,7 +50,7 @@ trait ItemHooks extends ContainerItemHooks {
         logger.trace(s"update item - fold")
         fn(i, json)
       }
-      auth.save(updatedItem, false)
+      auth.save(updatedItem, createNewVersion = false)
       Some(transform(updatedItem))
     }
 
@@ -88,7 +88,7 @@ trait ItemHooks extends ContainerItemHooks {
       id <- createItem(collectionId).toSuccess(generalError("Error creating item"))
     } yield id
 
-    accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString).toEither
+    accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
 
   }
 }

@@ -1,22 +1,22 @@
-package org.corespring.api.v2
+package org.corespring.v2.api
+
+import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.errors.Errors.{ errorSaving, unAuthorized }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
-import org.corespring.v2.api.ItemApi
 import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.{ errorSaving, generalError, unAuthorized }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
-import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
-
-import scala.concurrent.ExecutionContext
+import play.api.test.Helpers._
 import scalaz.{ Failure, Success, Validation }
 
 class ItemApiTest extends Specification with Mockito {
@@ -30,9 +30,9 @@ class ItemApiTest extends Specification with Mockito {
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   case class apiScope(
-    val defaultCollectionId: ObjectId = ObjectId.get,
-    val insertFails: Boolean = false,
-    val canCreate: Validation[String, Boolean] = Success(true)) extends Scope {
+    defaultCollectionId: ObjectId = ObjectId.get,
+    insertFails: Boolean = false,
+    canCreate: Validation[V2Error, Boolean] = Success(true)) extends Scope {
     lazy val api = new ItemApi {
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -50,7 +50,6 @@ class ItemApiTest extends Specification with Mockito {
       /**
        * For a known organization (derived from the request) return Some(id)
        * If it is an unknown user return None
-       * @param header
        * @return
        */
       override def defaultCollection(implicit header: RequestHeader): Option[String] = Some(defaultCollectionId.toString)
@@ -87,24 +86,23 @@ class ItemApiTest extends Specification with Mockito {
       }
 
       s"returns $OK - it ignores bad json, if it can't be parsed" in new apiScope {
-        //TODO - is this desired?
         val customCollectionId = ObjectId.get
         val result = api.create()(
           FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsText("bad")))
         status(result) === OK
       }
 
-      s"returns $UNAUTHORIZED - if permisssion denied" in new apiScope(
-        canCreate = Failure("Nope")) {
+      s"returns $UNAUTHORIZED - if permission denied" in new apiScope(
+        canCreate = Failure(generalError("Nope"))) {
         val result = api.create()(FakeJsonRequest(Json.obj()))
-        status(result) === unAuthorized("Nope").code
+        status(result) === unAuthorized("Nope").statusCode
         contentAsJson(result) === Json.obj("error" -> unAuthorized("Nope").message)
       }
 
       s"create - returns error with a bad save" in new apiScope(
         insertFails = true) {
         val result = api.create()(FakeJsonRequest(Json.obj()))
-        status(result) === errorSaving().code
+        status(result) === errorSaving().statusCode
         contentAsJson(result) === Json.obj("error" -> errorSaving().message)
       }
 

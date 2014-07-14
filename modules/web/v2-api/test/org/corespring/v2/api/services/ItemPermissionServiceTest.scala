@@ -1,19 +1,18 @@
-package org.corespring.api.v2.services
+package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
-import org.corespring.api.v2.errors.Errors._
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.{ ContentCollRef, Organization }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
-import org.corespring.v2.api.services.ItemPermissionService
+import org.corespring.v2.errors.Errors._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
 class ItemPermissionServiceTest extends Specification with Mockito {
 
@@ -38,7 +37,7 @@ class ItemPermissionServiceTest extends Specification with Mockito {
     "when calling create" should {
 
       "fail - if no collection id" in new scope {
-        s.create(Organization(), Item(id = id)) must_== Failure(noCollectionIdInItem(id))
+        s.create(Organization(), Item(id = id)) must_== Failure(noCollectionIdForItem(id))
       }
 
       "fail if missing content collection ref" in new scope {
@@ -64,7 +63,7 @@ class ItemPermissionServiceTest extends Specification with Mockito {
     "when calling get" should {
 
       "fail if no collection id" in new scope {
-        s.get(Organization(), Item(id = id)) must_== Failure(noCollectionIdInItem(id))
+        s.get(Organization(), Item(id = id)) must_== Failure(noCollectionIdForItem(id))
       }
 
       "fail if collection id is invalid" in new scope {

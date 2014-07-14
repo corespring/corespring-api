@@ -22,14 +22,16 @@ object OrgRequestIdentity {
   def noDefaultCollection(orgId: ObjectId) = s"No default collection for org ${orgId}"
 }
 
-trait OrgRequestIdentity[B] extends RequestIdentity[B] {
+trait HeaderAsOrgId {
+  def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId]
+}
+
+trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
   def orgService: OrgService
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
 
   lazy val logger: Logger = LoggerFactory.getLogger("v2.auth.WithOrgTransformer")
-
-  def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId]
 
   def apply(rh: RequestHeader): Validation[String, B] = {
     import org.corespring.v2.auth.OrgRequestIdentity._

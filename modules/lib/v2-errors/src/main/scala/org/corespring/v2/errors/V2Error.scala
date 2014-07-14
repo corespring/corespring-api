@@ -31,7 +31,7 @@ private[v2] object Errors {
 
   case class propertyNotFoundInJson(name: String) extends V2Error(s"can't find $name in request body")
 
-  case class noOrgIdAndOptions(request: RequestHeader) extends V2Error(s"can not load orgId and PlayerOptions from session: ${request.session.data}")
+  case class noOrgIdAndOptions(request: RequestHeader) extends V2Error(s"can not load orgId and PlayerOptions from session: ${request.session.data}", UNAUTHORIZED)
 
   case class noCollectionIdForItem(vid: VersionedId[ObjectId]) extends V2Error(s"This item has no collection id $vid")
 

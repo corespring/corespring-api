@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.item
+package org.corespring.v2.player.item
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
@@ -6,8 +6,8 @@ import org.corespring.platform.core.models.User
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2player.integration.errors.Errors.{ noJson, orgCantAccessCollection, propertyNotFoundInJson }
-import org.corespring.v2player.integration.scopes.user
+import org.corespring.v2.errors.Errors.{ orgCantAccessCollection, propertyNotFoundInJson, noJson }
+import org.corespring.v2.player.scopes.user
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Cookie
 import play.api.test.FakeRequest
@@ -29,14 +29,14 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
     }
 
     "should fail for a plain request with json + collection id" in new createItem(false, id => Some(Json.obj("collectionId" -> id))) {
-      status(result) === UNAUTHORIZED
+      status(result) === BAD_REQUEST
     }
 
     val badCollectionId = ObjectId.get
     "should fail for a auth request with json + bad collection id" in new createItem(false,
       id => Some(Json.obj("collectionId" -> badCollectionId.toString)),
       u => secureSocialCookie(u)) {
-      status(result) === UNAUTHORIZED
+      status(result) === BAD_REQUEST
       logger.debug(s"content: ${contentAsString(result)}")
       (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString).message)
     }

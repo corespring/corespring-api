@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration
+package org.corespring.v2.player
 
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -7,8 +7,8 @@ import org.corespring.test.helpers.models._
 import org.corespring.v2.auth.ClientIdQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
-import play.api.http.{ Writeable, ContentTypeOf }
-import play.api.mvc.{ Cookie, Request, AnyContent, Call }
+import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.mvc.{ AnyContent, Call, Cookie, Request }
 import play.api.test.FakeRequest
 
 package object scopes {
@@ -157,7 +157,7 @@ package object scopes {
 
   trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndOptions =>
 
-    import ClientIdQueryStringIdentity.Keys
+    import org.corespring.v2.auth.ClientIdQueryStringIdentity.Keys
 
     def skipDecryption: Boolean
 

@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration
+package org.corespring.v2.player
 
 import java.io.File
 
@@ -11,7 +11,7 @@ import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile 
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2player.integration.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.Logger
 
 class LoadImageTest extends IntegrationSpecification {
@@ -60,7 +60,7 @@ class LoadImageTest extends IntegrationSpecification {
 
   "load image" should {
 
-    "work" in new AddImageAndItem("it/org/corespring/v2player/integration/load-image/puppy.png") {
+    "work" in new AddImageAndItem("it/org/corespring/v2/player/load-image/puppy.png") {
 
       import org.corespring.container.client.controllers.routes.Assets
 

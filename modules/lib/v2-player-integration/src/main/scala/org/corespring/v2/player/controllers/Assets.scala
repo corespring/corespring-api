@@ -1,5 +1,6 @@
 package org.corespring.v2.player.controllers
 
+import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService

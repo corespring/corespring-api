@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration
+package org.corespring.v2.player
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.component.ComponentUrls
@@ -9,7 +9,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2player.integration.scopes._
+import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
