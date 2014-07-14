@@ -1,6 +1,6 @@
 
-GET  /sessions/:sessionId       @org.corespring.api.v2.ItemSessionApi.get(sessionId:String)
+GET  /sessions/:sessionId       @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
-POST /items/:itemId/sessions    @org.corespring.api.v2.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+POST /items/:itemId/sessions    @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
-POST /items                     @org.corespring.api.v2.ItemApi.create()
+POST /items                     @org.corespring.v2.api.ItemApi.create()

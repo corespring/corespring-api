@@ -12,7 +12,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ItemApiTest extends IntegrationSpecification {
 
-  val create = org.corespring.api.v2.routes.ItemApi.create()
+  val create = org.corespring.v2.api.routes.ItemApi.create()
 
   "V2 - ItemApi" should {
     "create" should {

@@ -7,7 +7,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.errors.Errors.{ errorSaving, generalError }
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsString, JsValue, Json }
+import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.Action
 
 import scala.concurrent.Future
@@ -41,9 +41,15 @@ trait ItemSessionApi extends V2Api {
       }
   }
 
+  def mapSessionJson(rawJson: JsObject): JsObject = {
+    (rawJson \ "_id" \ "$oid").asOpt[String].map { oid =>
+      (rawJson - "_id") + ("id" -> JsString(oid))
+    }.getOrElse(rawJson)
+  }
+
   def get(sessionId: String) = Action.async { implicit request =>
     Future {
-      validationToResult[(SessionAuth#Session, Item)](tuple => Ok(tuple._1)) {
+      validationToResult[(SessionAuth#Session, Item)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
         sessionAuth.loadForRead(sessionId)
       }
     }

@@ -130,6 +130,22 @@ package object scopes {
     }
   }
 
+  trait sessionLoader { self: RequestBuilder with HasSessionId =>
+
+    def getCall(sessionId: ObjectId): Call
+
+    lazy val req = {
+      val call = getCall(sessionId)
+      makeRequest(call)
+    }
+
+    lazy val result = {
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
+      play.api.test.Helpers.route(req)(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
@@ -148,7 +164,7 @@ package object scopes {
 
   trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
 
-    val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
+    lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
     override def makeRequest(call: Call): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
