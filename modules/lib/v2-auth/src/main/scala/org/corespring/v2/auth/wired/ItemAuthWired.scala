@@ -25,7 +25,7 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
 
   def itemService: ItemService
 
-  def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean]
+  def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[V2Error, Boolean]
 
   override def canCreateInCollection(collectionId: String)(implicit header: RequestHeader): Validation[V2Error, Boolean] = {
 
@@ -52,33 +52,35 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
     canWithPermission(itemId, Permission.Write)
   }
 
-  private def canWithPermission(itemId: String, p: Permission)(implicit header: RequestHeader): Validation[V2Error, Item] = getOrgIdAndOptions(header).map { t: (ObjectId, PlayerOptions) =>
+  private def canWithPermission(itemId: String, p: Permission)(implicit header: RequestHeader): Validation[V2Error, Item] = getOrgIdAndOptions(header) match {
+    case Failure(e) => Failure(e)
+    case Success((orgId, options)) => {
 
-    logger.trace(s"can ${p.name} to $itemId")
+      logger.trace(s"can ${p.name} to $itemId")
 
-    def checkOrgAccess(orgId: ObjectId): Validation[V2Error, Item] = {
+      def checkOrgAccess(orgId: ObjectId): Validation[V2Error, Item] = {
 
-      def canAccess(collectionId: String) = orgService.canAccessCollection(orgId, new ObjectId(collectionId), p)
+        def canAccess(collectionId: String) = orgService.canAccessCollection(orgId, new ObjectId(collectionId), p)
+
+        for {
+          vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+          item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+          org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
+          canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
+        } yield {
+          logger.trace(s"orgCanAccessItem: $canAccess")
+          item
+        }
+      }
+
+      logger.debug(s"checkAccess (orgId,options): $orgId -> $options")
 
       for {
-        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-        org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
-        canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
-      } yield {
-        logger.trace(s"orgCanAccessItem: $canAccess")
-        item
-      }
+        item <- checkOrgAccess(orgId)
+        permissionAccess <- hasPermissions(itemId, None, evaluate, options)
+      } yield item
     }
-
-    val (orgId, options) = t
-    logger.debug(s"checkAccess (orgId,options): $t}")
-
-    for {
-      item <- checkOrgAccess(orgId)
-      permissionAccess <- hasPermissions(itemId, None, evaluate, options).leftMap(msg => generalError(msg))
-    } yield item
-  }.getOrElse(Failure(noOrgIdAndOptions(header)))
+  }
 
   override def save(item: Item, createNewVersion: Boolean)(implicit header: RequestHeader): Unit = {
     loadForWrite(item.id.toString) match {

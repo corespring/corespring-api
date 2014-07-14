@@ -6,6 +6,7 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2.auth.cookies.V2PlayerCookieWriter
 import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.errors.V2Error
 import org.slf4j.LoggerFactory
 import play.api.mvc._
 
@@ -20,7 +21,7 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCook
 
   def userService: UserService
 
-  def getOrgIdAndOptions(header: RequestHeader): Validation[String, (ObjectId, PlayerOptions)]
+  def getOrgIdAndOptions(header: RequestHeader): Validation[V2Error, (ObjectId, PlayerOptions)]
 
   /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
   override def sumSession(s: Session, keyValues: (String, String)*): Session = {
@@ -42,7 +43,7 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCook
          */
         PlayerJs(opts.secure, newSession)
       }
-      case Failure(error) => PlayerJs(false, header.session, Seq(error))
+      case Failure(error) => PlayerJs(false, header.session, Seq(s"${error.errorType}: ${error.message}"))
     }
 
   }

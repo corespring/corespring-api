@@ -12,6 +12,8 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -65,10 +67,10 @@ class Bootstrap(
 
     override def defaultCollection(implicit header: RequestHeader): Option[String] = {
 
-      val out: Validation[String, String] = for {
+      val out: Validation[V2Error, String] = for {
         orgId <- headerToOrgIdentifier.headerToOrgId(header)
-        org <- orgService.org(orgId).toSuccess("No org found")
-        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(s"no default collection for org: $orgId")
+        org <- orgService.org(orgId).toSuccess(cantFindOrgWithId(orgId))
+        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(noDefaultCollection(orgId))
       } yield dc
 
       out match {

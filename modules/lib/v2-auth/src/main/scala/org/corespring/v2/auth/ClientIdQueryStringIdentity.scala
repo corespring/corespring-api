@@ -3,6 +3,8 @@ package org.corespring.v2.auth
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.errors.Errors.identificationFailed
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 import scalaz.{ Failure, Success, Validation }
@@ -15,26 +17,21 @@ object ClientIdQueryStringIdentity {
     val skipDecryption = "skipDecryption"
   }
 
-  object Errors {
-    val noOrgForApiClient = "No org for api client"
-  }
-
 }
 
 trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
   import ClientIdQueryStringIdentity.Keys
-  import ClientIdQueryStringIdentity.Errors
 
   def clientIdToOrgId(apiClientId: String): Option[ObjectId]
 
   def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions
 
-  override def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId] = {
+  override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
     logger.trace("Try from query params")
 
     val maybeClientId = rh.getQueryString(Keys.apiClient)
-    logger.trace( s"${Keys.apiClient} in query: ${maybeClientId.toString}")
+    logger.trace(s"${Keys.apiClient} in query: ${maybeClientId.toString}")
 
     val out = for {
       apiClientId <- maybeClientId
@@ -43,7 +40,7 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
     logger.trace(s"result: $out")
 
-    out.map(Success(_)).getOrElse(Failure(Errors.noOrgForApiClient))
+    out.map(Success(_)).getOrElse(Failure(identificationFailed(rh, "clientId+options")))
   }
 }
 

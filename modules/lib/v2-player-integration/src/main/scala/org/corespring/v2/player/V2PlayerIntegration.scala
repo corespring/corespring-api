@@ -1,5 +1,7 @@
 package org.corespring.v2.player
 
+import scala.concurrent.ExecutionContext
+
 import com.mongodb.casbah.MongoDB
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
@@ -12,30 +14,28 @@ import org.corespring.container.components.model.Component
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, ItemTransformationCache, PlayItemTransformationCache }
-import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.v2.auth._
-import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
-import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.permissionNotGranted
+import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
 import org.corespring.v2.player.urls.ComponentSetsWired
-import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import org.corespring.v2player.integration.transformers.ItemTransformer
+import play.api.{ Configuration, Logger, Mode => PlayMode, Play }
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Logger, Play, Mode => PlayMode }
-import securesocial.core.{ Identity, SecureSocial }
-
-import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success, Validation }
+import securesocial.core.{ Identity, SecureSocial }
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -147,13 +147,13 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = {
+    override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
-      permissionGranter.allow(itemId, sessionId, mode, options).fold(Failure(_), Success(_))
+      permissionGranter.allow(itemId, sessionId, mode, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, (ObjectId, PlayerOptions)] = {
-      V2PlayerIntegration.this.requestIdentifier(request).leftMap(generalError(_))
+      V2PlayerIntegration.this.requestIdentifier(request)
     }
   }
 
@@ -239,7 +239,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
     override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
-    override def getOrgIdAndOptions(header: RequestHeader): Validation[String, (ObjectId, PlayerOptions)] = V2PlayerIntegration.this.requestIdentifier(header)
+    override def getOrgIdAndOptions(header: RequestHeader): Validation[V2Error, (ObjectId, PlayerOptions)] = V2PlayerIntegration.this.requestIdentifier(header)
 
     override def userService: UserService = UserServiceWired
 

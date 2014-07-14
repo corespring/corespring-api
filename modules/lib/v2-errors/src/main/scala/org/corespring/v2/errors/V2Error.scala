@@ -17,6 +17,12 @@ sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQ
 
 private[v2] object Errors {
 
+  case class permissionNotGranted(msg: String) extends V2Error(msg, UNAUTHORIZED)
+
+  case class identificationFailed(rh: RequestHeader, subType: String = "") extends V2Error(s"Failed to identify an organization for request ${rh.path} $subType", UNAUTHORIZED)
+
+  case class noDefaultCollection(orgId: ObjectId) extends V2Error(s"No default collection defined for org ${orgId}")
+
   case class generalError(msg: String) extends V2Error(msg)
 
   case object notReady extends V2Error("not ready")

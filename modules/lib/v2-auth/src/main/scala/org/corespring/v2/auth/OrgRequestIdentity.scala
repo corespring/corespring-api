@@ -3,6 +3,8 @@ package org.corespring.v2.auth
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
+import org.corespring.v2.errors.V2Error
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc.RequestHeader
 
@@ -14,16 +16,11 @@ trait RequestIdentity[B] {
    * @param rh
    * @return
    */
-  def apply(rh: RequestHeader): Validation[String, B]
-}
-
-object OrgRequestIdentity {
-  def noOrgId(orgId: ObjectId) = s"No org for orgId $orgId"
-  def noDefaultCollection(orgId: ObjectId) = s"No default collection for org ${orgId}"
+  def apply(rh: RequestHeader): Validation[V2Error, B]
 }
 
 trait HeaderAsOrgId {
-  def headerToOrgId(rh: RequestHeader): Validation[String, ObjectId]
+  def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId]
 }
 
 trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
@@ -33,14 +30,13 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
   lazy val logger: Logger = LoggerFactory.getLogger("v2.auth.WithOrgTransformer")
 
-  def apply(rh: RequestHeader): Validation[String, B] = {
-    import org.corespring.v2.auth.OrgRequestIdentity._
+  def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
     import scalaz.Scalaz._
 
     for {
       orgId <- headerToOrgId(rh)
-      org <- orgService.org(orgId).toSuccess(noOrgId(orgId))
+      org <- orgService.org(orgId).toSuccess(cantFindOrgWithId(orgId))
       dc <- orgService.defaultCollection(org).toSuccess(noDefaultCollection(org.id))
     } yield {
       data(rh, org, dc)
