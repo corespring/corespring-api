@@ -170,7 +170,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $http({
       url: $scope.urls.updateFile.replace("{filename}", oldFilename),
       method: "PUT",
-      data: $scope.fileToRename
+      data: validateFile($scope.fileToRename)
     }).success(function (data, status, headers, config) {
         $scope.showFile($scope.fileToRename);
         $scope.saveSelectedFileFinished();
@@ -215,15 +215,40 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   $scope.$on("saveSelectedFile", function () {
     $scope.update($scope.selectedFile);
   });
+
+  /**
+   * Ensure that only text types have the 'content' property'
+   */
+  function validateFile(f){
+
+    var textTypes = ['html', 'js', 'css', 'xml', 'txt'];
+
+    function isTextType(){
+
+      for(var i = 0; i < textTypes.length; i++){
+        if(f.contentType.indexOf(textTypes[i]) !== -1){
+           return true;
+        }
+      }
+      return false;
+    }
+
+    if( typeof(f.content) === 'string' && !isTextType()){
+      delete f.content;
+    }
+
+    return f;
+  }
+
   /**
    * Update the file on the server
    * @param file
    */
   $scope.update = function (file, filename) {
 
-    if (!filename) {
-      filename = file.name;
-    }
+    filename = filename || file.name;
+
+    file = validateFile(file);
 
     $http({
       url: $scope.urls.updateFile.replace("{filename}", filename),
@@ -238,9 +263,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
         } else $scope.saveSelectedFileFinished();
 
       });
-
   };
-
 
   $scope.getSelectedFileImageUrl = function () {
     if (!$scope.selectedFile || $scope.selectedFile.storageKey) {

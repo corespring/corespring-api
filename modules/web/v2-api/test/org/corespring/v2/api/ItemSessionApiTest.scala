@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
@@ -40,6 +41,11 @@ class ItemSessionApiTest extends Specification with Mockito {
       }
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+      override def itemTransformer: ItemTransformer = {
+        val m = mock[ItemTransformer]
+        m
+      }
     }
   }
 

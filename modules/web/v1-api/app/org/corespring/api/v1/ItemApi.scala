@@ -27,6 +27,7 @@ import play.api.mvc.{ Action, Result, AnyContent }
 import scala.Some
 import scalaz.Scalaz._
 import scalaz._
+import org.corespring.qtiToV2.transformers.ItemTransformer
 
 /**
  * Items API
@@ -35,9 +36,13 @@ import scalaz._
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
-  val transformationCache = new PlayItemTransformationCache()
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
+
+  val itemTransformer = new ItemTransformer {
+    def cache: ItemTransformationCache = PlayItemTransformationCache
+    def itemService: ItemService = service
+  }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
@@ -73,9 +78,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
+        withV2DataItem <- itemTransformer.updateV2Json(validatedItem).toSuccess("Error generating item v2 JSON")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
       } yield {
-        transformationCache.removeCachedTransformation(item)
+        PlayItemTransformationCache.removeCachedTransformation(item)
         savedResult
       }
   }
@@ -129,6 +135,8 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
     })
   }
+
+
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version

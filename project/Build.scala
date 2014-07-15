@@ -128,12 +128,17 @@ object Build extends sbt.Build {
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
+
+  /** Qti -> v2 transformers */
+  val qtiToV2 = builders.lib("qti-to-v2").settings(
+    libraryDependencies ++= Seq(playJson)).dependsOn(core, qti)
+
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib)
+    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
    * Error types
@@ -151,7 +156,7 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
       routesImport ++= customImports)
-    .dependsOn(v2Auth, core % "test->test;compile->compile")
+    .dependsOn(v2Auth, qtiToV2, core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -168,10 +173,6 @@ object Build extends sbt.Build {
     routesImport ++= customImports,
     libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
 
-  /** Qti -> v2 transformers */
-  val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson)).dependsOn(qti)
-
   /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
     libraryDependencies ++= Seq(
@@ -179,7 +180,8 @@ object Build extends sbt.Build {
       componentLoader,
       componentModel,
       scalaz,
-      mongoJsonService)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
+      mongoJsonService,
+      playS3)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
@@ -238,6 +240,6 @@ object Build extends sbt.Build {
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
     .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, v2Api, clientLogging % "compile->compile;test->test")
-    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging)
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging, qtiToV2)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

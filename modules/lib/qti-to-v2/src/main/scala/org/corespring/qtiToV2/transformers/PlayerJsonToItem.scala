@@ -1,9 +1,8 @@
-package org.corespring.v2player.integration.transformers.container
+package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource }
+import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
 import play.api.libs.json._
 
 object PlayerJsonToItem {

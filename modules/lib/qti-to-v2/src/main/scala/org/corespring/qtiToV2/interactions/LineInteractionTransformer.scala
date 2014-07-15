@@ -23,7 +23,9 @@ object LineInteractionTransformer extends InteractionTransformer {
             "initialValues" -> ((node \ "graphline" \\ "point") match {
               case empty: Seq[Node] if empty.isEmpty => None
               case nodes: Seq[Node] => Some(JsArray(nodes.map(n => JsString(n.text))))
-            }))))
+            }),
+            "exhibitOnly" -> Some(JsBoolean(false)),
+            "showInputs" -> Some(JsBoolean(true)))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {

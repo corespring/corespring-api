@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.errors.Errors.{ errorSaving, generalError }
 import org.corespring.v2.errors.V2Error
@@ -20,6 +21,8 @@ trait ItemSessionApi extends V2Api {
 
   def sessionAuth: SessionAuth
 
+  def itemTransformer : ItemTransformer
+
   /**
    * Create an v2 session for the given itemId
    * @param itemId
@@ -32,6 +35,8 @@ trait ItemSessionApi extends V2Api {
         def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
           "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
           "itemId" -> JsString(vid.toString))
+
+        itemTransformer.updateV2Json(itemId)
 
         val result: Validation[V2Error, JsValue] = for {
           canCreate <- sessionAuth.canCreate(itemId.toString)

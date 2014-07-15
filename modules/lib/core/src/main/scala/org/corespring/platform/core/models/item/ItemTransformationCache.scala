@@ -40,3 +40,5 @@ class PlayItemTransformationCache extends ItemTransformationCache {
   }
 
 }
+
+object PlayItemTransformationCache extends PlayItemTransformationCache()

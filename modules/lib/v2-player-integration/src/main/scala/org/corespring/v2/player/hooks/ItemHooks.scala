@@ -8,7 +8,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2player.integration.transformers.container.PlayerJsonToItem
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -16,6 +15,7 @@ import play.api.mvc.RequestHeader
 import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
+import org.corespring.qtiToV2.transformers.PlayerJsonToItem
 
 trait ItemHooks extends ContainerItemHooks {
 

@@ -1,24 +1,61 @@
-package org.corespring.v2player.integration.transformers
+package org.corespring.qtiToV2.transformers
 
-import org.corespring.common.json.JsonTransformer
+import org.corespring.qtiToV2.QtiTransformer
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.resource.{CDataHandler, Resource, VirtualFile}
-import org.corespring.platform.core.models.item.{Item, ItemTransformationCache}
-import org.corespring.qtiToV2.QtiTransformer
+import org.corespring.platform.core.models.item.{PlayItemTransformationCache, PlayerDefinition, Item, ItemTransformationCache}
+import org.corespring.common.json.JsonTransformer
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-
 import scala.xml.Node
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
+
 
 trait ItemTransformer {
 
   def cache: ItemTransformationCache
+  def itemService: ItemService
 
-  def transformToV2Json(item: Item): JsValue = {
+  def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
+    itemService.findOneById(itemId) match {
+      case Some(item) => item.playerDefinition match {
+        case None => try {
+          updateV2Json(item)
+        } catch {
+          case e: Exception => None
+        }
+        case _ => Some(item)
+      }
+      case _ => None
+    }
+  }
+
+  def updateV2Json(item: Item): Option[Item] = {
+    transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
+      .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
+      case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+        case true => Some(updatedItem)
+        case _ => {
+          itemService.save(updatedItem)
+          Some(updatedItem)
+        }
+      }
+      case _ => None
+    }
+  }
+
+  def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
+
+  def transformToV2Json(item: Item, rootJson: Option[JsObject]): JsValue = {
     implicit val ResourceFormat = Resource.Format
 
-    val rootJson: JsObject = item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+    val root: JsObject = (rootJson match {
+      case Some(json) => json
+      case None => item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+    })
     val profile = toProfile(item)
-    rootJson ++ Json.obj(
+    root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials))
   }

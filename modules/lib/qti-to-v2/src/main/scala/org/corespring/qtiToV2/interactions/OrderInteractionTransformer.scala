@@ -12,19 +12,23 @@ object OrderInteractionTransformer extends InteractionTransformer {
     identifier -> Json.obj(
       "componentType" -> "corespring-ordering",
       "correctResponse" -> responses,
-      "model" -> Json.obj(
-        "prompt" -> ((node \ "prompt") match {
-          case seq: Seq[Node] if seq.isEmpty => ""
-          case seq: Seq[Node] => seq.head.child.mkString
-        }),
-        "config" -> Json.obj(
-          "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")),
-        "choices" -> (node \\ "simpleChoice")
-          .map(choice =>
-            Json.obj(
-              "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
-              "value" -> (choice \ "@identifier").text))),
-      "feedback" -> feedback(node, qti))
+      "model" ->
+        Json.obj(
+          "prompt" -> ((node \ "prompt") match {
+            case seq: Seq[Node] if seq.isEmpty => ""
+            case seq: Seq[Node] => seq.head.child.mkString
+          }),
+          "config" -> Json.obj(
+            "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")),
+          "choices" -> (node \\ "simpleChoice")
+            .map(choice =>Json.obj(
+                "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
+                "value" -> (choice \ "@identifier").text,
+                "content" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
+                "id" -> (choice \ "@identifier").text)),
+          "correctResponse" -> responses,
+          "feedback" -> feedback(node, qti))
+        )
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {

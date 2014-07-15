@@ -9,6 +9,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.HeaderAsOrgId
@@ -35,7 +36,8 @@ class Bootstrap(
   val secureSocialService: SecureSocialService,
   val itemAuth: ItemAuth,
   val sessionAuth: SessionAuth,
-  val headerToOrgIdentifier: HeaderAsOrgId) {
+  val headerToOrgIdentifier: HeaderAsOrgId,
+  val itemTransformer : ItemTransformer) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -95,6 +97,7 @@ class Bootstrap(
 
     override def sessionService = Bootstrap.this.sessionService
 
+    override def itemTransformer = Bootstrap.this.itemTransformer
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)

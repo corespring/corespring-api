@@ -114,6 +114,17 @@ class LineInteractionTransformerTest extends Specification {
       output \\ "lineInteraction" must beEmpty
     }
 
+    "showInputs is always true" in {
+      (noConfig \ "showInputs").as[JsBoolean].value must beTrue
+      (config \ "showInputs").as[JsBoolean].value must beTrue
+    }
+
+    "exhibitOnly is always false" in {
+      (config \ "exhibitOnly").as[JsBoolean].value must beFalse
+      (config \ "exhibitOnly").as[JsBoolean].value must beFalse
+    }
+
+
   }
 
 }

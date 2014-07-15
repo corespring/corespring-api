@@ -7,7 +7,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
-import org.corespring.platform.core.models.item.{ PlayItemTransformationCache, ItemTransformationCache, Item, Content }
+import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -15,14 +15,25 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc._
 import scala.Some
+import org.corespring.qtiToV2.transformers.ItemTransformer
+import play.api.libs.json.JsArray
+import play.api.libs.json.JsString
+import scala.Some
+import org.corespring.platform.core.models.item.Content
+import org.corespring.platform.core.controllers.auth.ApiRequest
+import play.api.libs.json.JsObject
 
-class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends BaseApi {
+class ResourceApi(s3service: CorespringS3Service, service: ItemService)
+  extends BaseApi {
+
+  def itemTransformer = new ItemTransformer {
+    def itemService = service
+    def cache = PlayItemTransformationCache
+  }
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
   val DATA_PATH: String = "data"
-
-  val transformationCache = new PlayItemTransformationCache()
 
   /**
    * Item.data has at least one file that is always default its name is set here.
@@ -232,9 +243,14 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService) extends 
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                service.save(item)
-                transformationCache.removeCachedTransformation(item)
-                Ok(toJson(processedUpdate))
+                itemTransformer.updateV2Json(item) match {
+                  case Some(updatedItem) => {
+                    PlayItemTransformationCache.removeCachedTransformation(updatedItem)
+                    Ok(toJson(processedUpdate))
+                  }
+                  case None => InternalServerError(s"Could not update item $itemId")
+                }
+
               }
               case _ => NotFound(update.name)
             }
