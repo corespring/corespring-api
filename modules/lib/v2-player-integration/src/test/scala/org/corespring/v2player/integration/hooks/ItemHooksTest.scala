@@ -1,4 +1,4 @@
-package org.corespring.v2player.integration.hooks
+package org.corespring.v2.player.hooks
 
 import java.util.concurrent.TimeUnit
 
@@ -7,8 +7,9 @@ import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
-import org.corespring.v2player.integration.auth.ItemAuth
-import org.corespring.v2player.integration.errors.{ Errors, V2Error }
+import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.errors.Errors._
+import org.corespring.v2.errors.V2Error
 import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -31,10 +32,10 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     "xhtml" -> "<div/>",
     "summaryFeedback" -> "")
 
-  val defaultFailure = "Default failure"
+  val defaultFailure = generalError("Default failure")
 
   abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
-    val authResult: Validation[String, Item] = Failure(defaultFailure)) extends Scope {
+    val authResult: Validation[V2Error, Item] = Failure(defaultFailure)) extends Scope {
 
     lazy val vid = VersionedId(new ObjectId(itemId))
 
@@ -66,20 +67,20 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   class loadContext(
     itemId: String = ObjectId.get.toString,
-    authResult: Validation[String, Item] = Failure(defaultFailure))
+    authResult: Validation[V2Error, Item] = Failure(defaultFailure))
     extends baseContext[StatusMessage, JsValue](itemId, authResult) {
 
     val f: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)(FakeRequest("", ""))
   }
 
   class saveContext(itemId: String = ObjectId.get.toString,
-    authResult: Validation[String, Item] = Failure(defaultFailure),
+    authResult: Validation[V2Error, Item] = Failure(defaultFailure),
     val json: JsValue = Json.obj()) extends baseContext[StatusMessage, JsValue](itemId, authResult) {
 
     lazy val f = hooks.save(itemId, json)(header)
   }
 
-  def returnError[D](e: V2Error) = returnStatusMessage[D](e.code, e.message)
+  def returnError[D](e: V2Error) = returnStatusMessage[D](e.statusCode, e.message)
 
   case class returnStatusMessage[D](expectedStatus: Int, body: String) extends Matcher[Either[(Int, String), D]] {
     def apply[S <: Either[(Int, String), D]](s: Expectable[S]) = {
@@ -95,7 +96,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   class createContext(
     val json: Option[JsValue] = None,
-    authResult: Validation[String, Item] = Failure(defaultFailure))
+    authResult: Validation[V2Error, Item] = Failure(defaultFailure))
 
     extends baseContext[(Int, String), String](authResult = authResult) {
 
@@ -105,15 +106,15 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   "load" should {
 
     "return can't find item id error" in new loadContext() {
-      result must returnStatusMessage(UNAUTHORIZED, defaultFailure)
+      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
     }
 
     "return bad request for bad item id" in new loadContext("", authResult = Success(Item())) {
-      result must returnError(Errors.cantParseItemId)
+      result must returnError(cantParseItemId(""))
     }
 
-    "return org can't access item error" in new loadContext(authResult = Failure("NO!")) {
-      result must returnStatusMessage(UNAUTHORIZED, "NO!")
+    "return org can't access item error" in new loadContext(authResult = Failure(generalError("NO!"))) {
+      result must returnStatusMessage(authResult.toEither.left.get.statusCode, authResult.toEither.left.get.message)
     }
 
     "return an item" in new loadContext(
@@ -125,16 +126,16 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   "save" should {
 
     "return not found" in new saveContext() {
-      result must returnStatusMessage(UNAUTHORIZED, defaultFailure)
+      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
     }
 
     "return cantParse error for a bad item id" in new saveContext("bad id", authResult = Success(Item())) {
-      result must returnError(Errors.cantParseItemId)
+      result must returnError(cantParseItemId("bad id"))
     }
 
     "return no collection id error" in new saveContext(
       authResult = Success(Item())) {
-      result must returnError(Errors.noCollectionIdForItem(vid))
+      result must returnError(noCollectionIdForItem(vid))
     }
 
     "save update" in new saveContext(
@@ -147,16 +148,16 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
   "create" should {
 
     "return no json error" in new createContext(None) {
-      result must returnError(Errors.noJson)
+      result must returnError(noJson)
     }
 
     "return property not found" in new createContext(Some(Json.obj())) {
-      result must returnError(Errors.propertyNotFoundInJson("collectionId"))
+      result must returnError(propertyNotFoundInJson("collectionId"))
     }
 
     "return no org id and options" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString))) {
-      result must returnStatusMessage(UNAUTHORIZED, defaultFailure)
+      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
     }
 
     "return item id for new item" in new createContext(

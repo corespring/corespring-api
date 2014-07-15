@@ -72,7 +72,7 @@ class OrderInteractionTransformerTest extends Specification {
     }
 
     "return feedback" in {
-      val feedback = (interactionResult \ "feedback").as[JsArray].value.map(n => {
+      val feedback = (interactionResult \ "model" \ "feedback").as[JsArray].value.map(n => {
         ((n \ "value").as[String] -> (n \ "feedback").as[String])
       }).toMap
 

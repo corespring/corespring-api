@@ -29,6 +29,14 @@ object FeedbackBlockTransformer extends Transformer {
   }
 
   def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
+    def feedbackToJson(feedbackBlock:Node) = {
+      val input = (feedbackBlock \ "@identifier").text
+      val feedback = JsString(feedbackBlock.child.text.trim)
+      input match {
+        case "" => Json.obj("input" -> "*", "feedback" -> feedback)
+        case _ => Json.obj("input" -> input, "feedback" -> feedback)
+      }
+    }
     (node \ "@outcomeIdentifier").text match {
       case outcomeIdentifier(id, value) => {
         val outcomeSpecific = value match {
@@ -63,19 +71,13 @@ object FeedbackBlockTransformer extends Transformer {
                 case _ => throw new IllegalStateException("Node previously identified as outcome specific.")
               }))
             case false => Json.obj(
-              "correct" -> JsObject(
+              "correct" -> JsArray(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString != "true").map(feedbackBlock => {
-                  (feedbackBlock \ "@identifier").text match {
-                    case "" => "*" -> JsString(feedbackBlock.child.text.trim)
-                    case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
-                  }
+                   feedbackToJson(feedbackBlock)
                 })),
-              "incorrect" -> JsObject(
+              "incorrect" -> JsArray(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString == "true").map(feedbackBlock => {
-                  (feedbackBlock \ "@identifier").text match {
-                    case "" => "*" -> JsString(feedbackBlock.child.text.trim)
-                    case _ => (feedbackBlock \ "@identifier").text -> JsString(feedbackBlock.child.text.trim)
-                  }
+                  feedbackToJson(feedbackBlock)
                 })))
           }))
 
