@@ -90,23 +90,23 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     }
 
     "return the correct answers for the interaction" in {
-      (interactionResult \ "correctResponse").as[Seq[String]] diff correctResponses must beEmpty
+      (interactionResult \ "correctResponses" \ "values").as[Seq[String]] diff correctResponses must beEmpty
     }
 
     "returns the correct correct response vars" in {
-      (equationInteractionResult \ "correctResponse" \ "vars").as[String] must be equalTo vars
+      (equationInteractionResult \ "correctResponses" \ "values" \ "vars").as[String] must be equalTo vars
     }
 
     "returns the correct correct response domain" in {
-      (equationInteractionResult \ "correctResponse" \ "domain") must be equalTo parseDomain(domain)
+      (equationInteractionResult \ "correctResponses" \ "values" \ "domain") must be equalTo parseDomain(domain)
     }
 
     "returns the correct correct response sigfigs" in {
-      (equationInteractionResult \ "correctResponse" \ "sigfigs").as[Int] must be equalTo sigfigs
+      (equationInteractionResult \ "correctResponses" \ "values" \ "sigfigs").as[Int] must be equalTo sigfigs
     }
 
     "returns the correct correct response equation" in {
-      (equationInteractionResult \ "correctResponse" \ "equation").as[String] must be equalTo equation
+      (equationInteractionResult \ "correctResponses" \ "values" \ "equation").as[String] must be equalTo equation
     }
 
     "converts baseType=line to <corespring-function-entry/>" in {

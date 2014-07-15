@@ -22,21 +22,41 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
 
     (node \ "@responseIdentifier").text -> partialObj(
+      "weight" -> Some(JsNumber(1)),
       "componentType" -> Option(isEquation(node, qti) match {
         case true => JsString("corespring-function-entry")
         case _ => JsString("corespring-text-entry")
       }),
-      "correctResponse" -> Option(correctResponses.size match {
-        case 0 => equationConfig(responseDeclarationNode) match {
-          case Some(config) => config
-          case None => Json.arr()
-        }
-        case 1 => isEquation(node, qti) match {
-          case true => equationConfig(responseDeclarationNode).getOrElse(Json.obj()) + ("equation" -> JsString(correctResponses.head))
-          case _ => JsString(correctResponses.head)
-        }
-        case _ => JsArray(correctResponses.map(JsString(_)).toSeq)
-      }))
+      "model" -> Some(Json.obj(
+        "answerBlankSize" -> 8,
+        "answerAlignment" -> "left"
+      )),
+      "correctResponses" -> Some(Json.obj(
+        "award" -> 100,
+        "values" -> (correctResponses.size match {
+          case 0 => equationConfig(responseDeclarationNode) match {
+            case Some(config) => config
+            case None => Json.arr()
+          }
+          case 1 => isEquation(node, qti) match {
+            case true => equationConfig(responseDeclarationNode).getOrElse(Json.obj()) + ("equation" -> JsString(correctResponses.head))
+            case _ => JsString(correctResponses.head)
+          }
+          case _ => JsArray(correctResponses.map(JsString(_)).toSeq)
+        }),
+        "ignoreWhitespace" -> true,
+        "ignoreCase" -> true,
+        "feedback" -> Json.obj(
+          "type" -> "default"
+        )
+      )),
+      "incorrectResponses" -> Some(Json.obj(
+        "award" -> 0,
+        "feedback" -> Json.obj(
+          "type" -> "default"
+        )
+      ))
+    )
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {

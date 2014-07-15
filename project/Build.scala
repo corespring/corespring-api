@@ -234,6 +234,6 @@ object Build extends sbt.Build {
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
     .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, v2Api, clientLogging % "compile->compile;test->test")
-    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging)
+    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging, qtiToV2)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
