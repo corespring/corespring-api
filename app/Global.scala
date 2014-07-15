@@ -41,11 +41,8 @@ object Global
 
     def showReleasedOnlyComponentsEnv = containerConfig.getString("components.showReleasedOnly")
 
-    val showReleasedOnlyComponents = if (showReleasedOnlyComponentsEnv == None) {
-      Play.current.mode == Mode.Prod
-    }else{
-      showReleasedOnlyComponentsEnv == Some("true")
-    }
+    val showReleasedOnlyComponents:Boolean = containerConfig.getBoolean("components.showReleasedOnly").getOrElse{ Play.current.mode == Mode.Prod }
+
     val out = new FileComponentLoader(path, showReleasedOnlyComponents)
     out.reload
     out
