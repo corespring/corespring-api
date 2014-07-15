@@ -9,6 +9,8 @@ object UserHelper {
   import faker._
 
   def create(organizationId: ObjectId, fullName: String = Name.name, permission: Permission = Permission.Write) = {
+
+    println(s"[UserHelper] create user $fullName")
     val user = User(
       fullName = fullName,
       userName = fullName.toLowerCase(),
@@ -20,6 +22,7 @@ object UserHelper {
   }
 
   def delete(userId: ObjectId) = {
+    println(s"[UserHelper] delete user $userId")
     User.removeUser(userId)
   }
 

@@ -5,7 +5,6 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
-import org.corespring.api.v2.Bootstrap
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.item.PlayItemTransformationCache
@@ -16,7 +15,8 @@ import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
-import org.corespring.v2player.integration.V2PlayerIntegration
+import org.corespring.v2.api.Bootstrap
+import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
 import play.api._
@@ -52,6 +52,7 @@ object Global
     } yield modeConfig
   }.getOrElse(Configuration.empty)
 
+  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
   lazy val itemTransformer = new ItemTransformer {
@@ -66,6 +67,9 @@ object Global
     integration.sessionService,
     UserServiceWired,
     integration.secureSocialService,
+    integration.itemAuth,
+    integration.sessionAuth,
+    integration.requestIdentifier,
     itemTransformer)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers

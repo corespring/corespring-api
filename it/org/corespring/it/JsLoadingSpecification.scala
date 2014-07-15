@@ -1,7 +1,7 @@
 package org.corespring.it
 
 import org.corespring.test.SecureSocialHelpers
-import org.corespring.v2player.integration.scopes.user
+import org.corespring.v2.player.scopes.user
 import play.api.mvc.{ SimpleResult, Call }
 import play.api.test.FakeRequest
 import scala.concurrent.Future
