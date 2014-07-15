@@ -39,9 +39,8 @@ object Global
   private lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
-    def showReleasedOnlyComponentsEnv = containerConfig.getString("components.showReleasedOnly")
-
-    val showReleasedOnlyComponents:Boolean = containerConfig.getBoolean("components.showReleasedOnly").getOrElse{ Play.current.mode == Mode.Prod }
+    val showReleasedOnlyComponents:Boolean = containerConfig.getBoolean("components.showReleasedOnly")
+      .getOrElse{ Play.current.mode == Mode.Prod }
 
     val out = new FileComponentLoader(path, showReleasedOnlyComponents)
     out.reload
