@@ -131,8 +131,7 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
-    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qti)
+    libraryDependencies ++= Seq(playJson)).dependsOn(core, qti)
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
