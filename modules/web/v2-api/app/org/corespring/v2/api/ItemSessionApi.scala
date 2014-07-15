@@ -21,7 +21,7 @@ trait ItemSessionApi extends V2Api {
 
   def sessionAuth: SessionAuth
 
-  def itemTransformer : ItemTransformer
+  def itemTransformer: ItemTransformer
 
   /**
    * Create an v2 session for the given itemId
@@ -51,7 +51,7 @@ trait ItemSessionApi extends V2Api {
       }
   }
 
-  def mapSessionJson(rawJson: JsObject): JsObject = {
+  private def mapSessionJson(rawJson: JsObject): JsObject = {
     (rawJson \ "_id" \ "$oid").asOpt[String].map { oid =>
       (rawJson - "_id") + ("id" -> JsString(oid))
     }.getOrElse(rawJson)
