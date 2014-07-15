@@ -46,18 +46,21 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
 
     val text = clearNamespace(node.child).mkString
     val choices = optForAttr[JsString]("selectionType") match {
-      case Some(selection) if selection == "word" => words(text)
-      case _ => sentences(text)
+      case Some(selection) if selection == "word" => TextSplitter.words(text)
+      case _ => TextSplitter.sentences(text)
     }
 
-    val t = JsArray(choices.map(choice => partialObj(
+    JsArray(choices.map(choice => partialObj(
       "data" -> Some(JsString(stripCorrectness(choice))),
       "correct" -> (if (isCorrect(choice)) Some(JsBoolean(true)) else None))))
-    println(t)
-    t
   }
 
-  private def sentences(s: String): Seq[String] = {
+
+}
+
+object TextSplitter {
+
+  def sentences(s: String): Seq[String] = {
     val regExp = new Regex("(?s)(.*?[.!?]([^ \\t])*)", "match")
     var idx = 0
     // Filter out names like Vikram S. Pandit as they break the sentence parsing
@@ -65,7 +68,7 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
     regExp.findAllMatchIn(namesParsed).map({m => m.group("match").trim }).toList
   }
 
-  private def words(s: String): Seq[String] = {
+  def words(s: String): Seq[String] = {
     val regExp = new Regex("(?<![</&])\\b([a-zA-Z_']+)\\b", "match")
     var idx = 0
     regExp.findAllMatchIn(s).map({m => m.group("match").trim }).toList
