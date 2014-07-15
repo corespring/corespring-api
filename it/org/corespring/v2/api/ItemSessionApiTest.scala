@@ -19,7 +19,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
     "when loading a session" should {
 
-      s"return $BAD_REQUEST for unknown user" in new unknownUser_getSession {
+      s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
 
         val e = compoundError("Failed to identify an Organization from the request", Seq(
           noClientIdAndOptionsInQueryString(req),
