@@ -13,6 +13,4 @@ trait ClientIdSessionIdentity[B] extends OrgRequestIdentity[B] with V2PlayerCook
   override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
     orgIdFromCookie(rh).toSuccess(noClientIdAndOptionsInSession(rh)).rightMap(new ObjectId(_))
   }
-
-  override def toString = "[ClientId-Session]"
 }

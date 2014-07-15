@@ -10,12 +10,11 @@ import play.api.mvc.RequestHeader
 
 import scalaz.Validation
 
+/**
+ * Turn an unknown request header into an identity so decisions can be made about the request.
+ * @tparam B the identity type
+ */
 trait RequestIdentity[B] {
-  /**
-   * Turn an unknown request header into an identity so decisions can be made about the request.
-   * @param rh
-   * @return
-   */
   def apply(rh: RequestHeader): Validation[V2Error, B]
 }
 
@@ -28,7 +27,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
 
-  lazy val logger: Logger = LoggerFactory.getLogger("v2.auth.WithOrgTransformer")
+  lazy val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(rh: RequestHeader): Validation[V2Error, B] = {
 

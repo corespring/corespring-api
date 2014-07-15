@@ -7,6 +7,11 @@ import play.api.libs.json.{ JsObject, Json, JsValue }
 import play.api.mvc.RequestHeader
 import play.api.http.Status._
 
+/**
+ * Base type for all known V2 errors.
+ * @param message
+ * @param statusCode
+ */
 sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQUEST) {
 
   def errorType: String = this.getClass.getSimpleName
@@ -14,6 +19,7 @@ sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQ
   def json: JsObject = Json.obj("message" -> message, "errorType" -> errorType)
 
 }
+
 sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(s"${rh.path} - $msg", UNAUTHORIZED)
 
 private[v2] object Errors {

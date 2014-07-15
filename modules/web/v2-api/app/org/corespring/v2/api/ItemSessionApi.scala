@@ -20,6 +20,11 @@ trait ItemSessionApi extends V2Api {
 
   def sessionAuth: SessionAuth
 
+  /**
+   * Create an v2 session for the given itemId
+   * @param itemId
+   * @return json - either the id of the session, or error json
+   */
   def create(itemId: VersionedId[ObjectId]) = Action.async {
     implicit request =>
       Future {
@@ -47,6 +52,12 @@ trait ItemSessionApi extends V2Api {
     }.getOrElse(rawJson)
   }
 
+  /**
+   * Load a session.
+   * Returns either the Session json, or error json.
+   * @param sessionId
+   * @return
+   */
   def get(sessionId: String) = Action.async { implicit request =>
     Future {
       validationToResult[(SessionAuth#Session, Item)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {

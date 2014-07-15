@@ -14,13 +14,16 @@ object WithRequestIdentitySequence {
 }
 trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
-  lazy val logger = LoggerFactory.getLogger("v2.auth.RequestIdentitySequence")
+  lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   def identifiers: Seq[OrgRequestIdentity[B]]
 
   override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
 
-    val out: Seq[Validation[V2Error, ObjectId]] = identifiers.map(tf => tf.headerToOrgId(rh))
+    val out: Seq[Validation[V2Error, ObjectId]] = identifiers.map { tf =>
+      logger.trace(s"header to org with ${tf.getClass.getSimpleName}")
+      tf.headerToOrgId(rh)
+    }
 
     out.find(_.isSuccess).getOrElse {
       Failure(compoundError(
@@ -32,7 +35,10 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrg
 
   override def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
-    val out: Seq[Validation[V2Error, B]] = identifiers.map(tf => tf(rh))
+    val out: Seq[Validation[V2Error, B]] = identifiers.map { tf =>
+      logger.trace(s"apply ${tf.getClass.getSimpleName}")
+      tf(rh)
+    }
 
     out.find(_.isSuccess).getOrElse {
       Failure(

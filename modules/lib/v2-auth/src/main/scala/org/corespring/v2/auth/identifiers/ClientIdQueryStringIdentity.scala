@@ -63,6 +63,5 @@ trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[
 
   override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> toPlayerOptions(org.id, rh))
 
-  override def toString = "[ClientIdAndOpts-QueryString-WithDecrypt]"
 }
 

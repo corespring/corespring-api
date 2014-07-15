@@ -23,6 +23,9 @@ import scalaz.Scalaz._
 import scala.concurrent.ExecutionContext
 import scalaz.{ Success, Failure, Validation }
 
+/**
+ * Wires up the dependencies for v2 api, so that the controllers will run in the application.
+ */
 class Bootstrap(
   val itemService: ItemService,
   val v1OrgService: OrganizationService,

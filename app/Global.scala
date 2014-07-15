@@ -50,6 +50,7 @@ object Global
     } yield modeConfig
   }.getOrElse(Configuration.empty)
 
+  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
   lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
 
   lazy val v2ApiBootstrap = new Bootstrap(

@@ -17,6 +17,5 @@ trait UserSessionOrgIdentity[B]
     }.getOrElse(Failure(noUserSession(rh)))
   }
 
-  override def toString = "[UserSession]"
 }
 

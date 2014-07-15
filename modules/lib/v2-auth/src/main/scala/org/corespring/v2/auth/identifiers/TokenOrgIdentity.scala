@@ -20,10 +20,8 @@ trait TokenOrgIdentity[B]
     }.getOrElse(Failure(generalError(s"Can't find org for token $token")))
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))
-
+    logger.trace(s"getToken from request")
     getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
   }
-
-  override def toString = s"[TokenOrgIdentity]"
 
 }
