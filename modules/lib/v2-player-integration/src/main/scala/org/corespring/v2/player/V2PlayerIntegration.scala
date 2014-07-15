@@ -1,5 +1,7 @@
 package org.corespring.v2.player
 
+import org.corespring.v2.auth.identifiers._
+
 import scala.concurrent.ExecutionContext
 
 import com.mongodb.casbah.MongoDB

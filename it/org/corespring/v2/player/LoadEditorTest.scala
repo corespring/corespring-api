@@ -4,8 +4,9 @@ import org.bson.types.ObjectId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
+import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2.errors.Errors.noOrgIdAndOptions
+import org.corespring.v2.errors.Errors.{ generalError, noOrgIdAndOptions }
 import org.corespring.v2.player.scopes._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
@@ -24,7 +25,7 @@ class LoadEditorTest
 
     "fail if I'm not authorized" in new unknownUser_editItemLoader() {
       status(result) === UNAUTHORIZED
-      val err = noOrgIdAndOptions(FakeRequest("", ""))
+      val err = generalError(WithRequestIdentitySequence.errorMessage, UNAUTHORIZED)
       contentAsString(result) === org.corespring.container.client.views.html.error.main(err.statusCode, err.message).toString
     }
 

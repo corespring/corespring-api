@@ -1,8 +1,9 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.errors.Errors.{ generalError, noToken, noDefaultCollection }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -43,15 +44,15 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     }
 
     "not work" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest()) must_== Failure("No token")
+      transformer.apply(FakeRequest()) must_== Failure(noToken(FakeRequest()))
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure("No org")
+      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(generalError("Can't find org for token blah"))
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type](Some(mockOrg)) {
-      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(OrgRequestIdentity.noDefaultCollection(org.get.id))
+      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(noDefaultCollection(org.get.id))
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](

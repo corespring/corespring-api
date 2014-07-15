@@ -21,14 +21,14 @@ import scalaz.{ Failure, Success, Validation }
 
 class ItemAuthWiredTest extends Specification with Mockito {
 
-  val defaultPermFailure = "Perm failure"
+  val defaultPermFailure = generalError("Perm failure")
   val defaultOrgAndOptsFailure = generalError("Org and opts failure")
 
   implicit val rh: RequestHeader = FakeRequest("", "")
 
   case class authContext(item: Option[Item] = None,
     org: Option[Organization] = None,
-    perms: Validation[String, Boolean] = Failure(defaultPermFailure),
+    perms: Validation[V2Error, Boolean] = Failure(defaultPermFailure),
     orgAndOpts: Validation[V2Error, (ObjectId, PlayerOptions)] = Failure(defaultOrgAndOptsFailure),
     canAccess: Boolean = false) extends Scope {
 
@@ -46,7 +46,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         m
       }
 
-      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[String, Boolean] = {
+      override def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[V2Error, Boolean] = {
         perms
       }
 
@@ -61,7 +61,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
 
     "canRead" in {
       "fail if no orgId and opts" in new authContext() {
-        itemAuth.loadForRead("") must_== Failure(noOrgIdAndOptions(rh))
+        itemAuth.loadForRead("") must_== Failure(defaultOrgAndOptsFailure)
       }
 
       "fail if invalid item id" in new authContext(orgAndOpts = Success(ObjectId.get -> PlayerOptions.ANYTHING)) {
@@ -106,7 +106,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         canAccess = true) {
         val vid = VersionedId(ObjectId.get, None)
         val orgId = orgAndOpts.map(_._1).toOption.get
-        itemAuth.loadForRead(vid.toString) must_== Failure(generalError(defaultPermFailure))
+        itemAuth.loadForRead(vid.toString) must_== Failure(defaultPermFailure)
       }
 
       "succeed" in new authContext(

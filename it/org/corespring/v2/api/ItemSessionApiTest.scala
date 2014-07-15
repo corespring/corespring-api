@@ -6,7 +6,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2.errors.Errors.noOrgIdAndOptions
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
 import play.api.libs.json.Json
@@ -20,9 +20,15 @@ class ItemSessionApiTest extends IntegrationSpecification {
     "when loading a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_getSession {
-        val e = noOrgIdAndOptions(req)
-        status(result) === e.statusCode
+
+        val e = compoundError("Failed to identify an Organization from the request", Seq(
+          noClientIdAndOptionsInQueryString(req),
+          noToken(req),
+          noUserSession(req),
+          noClientIdAndOptionsInSession(req)), UNAUTHORIZED)
+
         contentAsJson(result) === e.json
+        status(result) === e.statusCode
       }
 
       s"return $OK for token based request" in new token_getSession {
@@ -45,7 +51,11 @@ class ItemSessionApiTest extends IntegrationSpecification {
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = noOrgIdAndOptions(req)
+        val e = compoundError("Failed to identify an Organization from the request", Seq(
+          noClientIdAndOptionsInQueryString(req),
+          noToken(req),
+          noUserSession(req),
+          noClientIdAndOptionsInSession(req)), UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }

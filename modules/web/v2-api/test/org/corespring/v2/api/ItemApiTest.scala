@@ -93,17 +93,19 @@ class ItemApiTest extends Specification with Mockito {
       }
 
       s"returns $UNAUTHORIZED - if permission denied" in new apiScope(
-        canCreate = Failure(generalError("Nope"))) {
+        canCreate = Failure(generalError("Nope", UNAUTHORIZED))) {
         val result = api.create()(FakeJsonRequest(Json.obj()))
-        status(result) === unAuthorized("Nope").statusCode
-        contentAsJson(result) === Json.obj("error" -> unAuthorized("Nope").message)
+        val e = canCreate.toEither.left.get
+        status(result) === e.statusCode
+        contentAsJson(result) === e.json
       }
 
       s"create - returns error with a bad save" in new apiScope(
         insertFails = true) {
         val result = api.create()(FakeJsonRequest(Json.obj()))
-        status(result) === errorSaving().statusCode
-        contentAsJson(result) === Json.obj("error" -> errorSaving().message)
+        val e = errorSaving("Insert failed")
+        status(result) === e.statusCode
+        contentAsJson(result) === e.json
       }
 
     }

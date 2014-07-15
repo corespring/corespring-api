@@ -3,7 +3,7 @@ package org.corespring.v2.errors
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.{ Json, JsValue }
+import play.api.libs.json.{ JsObject, Json, JsValue }
 import play.api.mvc.RequestHeader
 import play.api.http.Status._
 
@@ -11,19 +11,32 @@ sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQ
 
   def errorType: String = this.getClass.getSimpleName
 
-  def json: JsValue = Json.obj("message" -> message, "errorType" -> errorType)
+  def json: JsObject = Json.obj("message" -> message, "errorType" -> errorType)
 
 }
+sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(s"${rh.path} - $msg", UNAUTHORIZED)
 
 private[v2] object Errors {
 
   case class permissionNotGranted(msg: String) extends V2Error(msg, UNAUTHORIZED)
 
-  case class identificationFailed(rh: RequestHeader, subType: String = "") extends V2Error(s"Failed to identify an organization for request ${rh.path} $subType", UNAUTHORIZED)
+  case class compoundError(msg: String, errs: Seq[V2Error], override val statusCode: Int) extends V2Error(msg, statusCode) {
+    override def json: JsObject = super.json ++ Json.obj("subErrors" -> errs.map(_.json))
+  }
+
+  case class noClientIdAndOptionsInSession(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in session")
+
+  case class noClientIdAndOptionsInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in queryString")
+
+  case class noToken(rh: RequestHeader) extends identificationFailed(rh, "No access token")
+
+  case class noUserSession(rh: RequestHeader) extends identificationFailed(rh, "No user session")
+
+  case class invalidToken(rh: RequestHeader) extends identificationFailed(rh, "Invalid access token")
 
   case class noDefaultCollection(orgId: ObjectId) extends V2Error(s"No default collection defined for org ${orgId}")
 
-  case class generalError(msg: String) extends V2Error(msg)
+  case class generalError(msg: String, override val statusCode: Int = BAD_REQUEST) extends V2Error(msg, statusCode)
 
   case object notReady extends V2Error("not ready")
 

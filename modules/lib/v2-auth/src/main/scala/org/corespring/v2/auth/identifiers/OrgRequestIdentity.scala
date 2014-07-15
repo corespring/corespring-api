@@ -1,4 +1,4 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization

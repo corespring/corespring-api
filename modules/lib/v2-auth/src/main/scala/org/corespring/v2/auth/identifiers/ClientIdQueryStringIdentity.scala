@@ -1,12 +1,14 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
+import org.corespring.v2.auth.identifiers.ClientIdQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.PlayerOptions
-import org.corespring.v2.errors.Errors.identificationFailed
+import org.corespring.v2.errors.Errors.noClientIdAndOptionsInQueryString
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
+
 import scalaz.{ Failure, Success, Validation }
 
 object ClientIdQueryStringIdentity {
@@ -20,8 +22,6 @@ object ClientIdQueryStringIdentity {
 }
 
 trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
-
-  import ClientIdQueryStringIdentity.Keys
 
   def clientIdToOrgId(apiClientId: String): Option[ObjectId]
 
@@ -40,13 +40,11 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
     logger.trace(s"result: $out")
 
-    out.map(Success(_)).getOrElse(Failure(identificationFailed(rh, "clientId+options")))
+    out.map(Success(_)).getOrElse(Failure(noClientIdAndOptionsInQueryString(rh)))
   }
 }
 
 trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[(ObjectId, PlayerOptions)] {
-
-  import ClientIdQueryStringIdentity.Keys
 
   def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String]
 

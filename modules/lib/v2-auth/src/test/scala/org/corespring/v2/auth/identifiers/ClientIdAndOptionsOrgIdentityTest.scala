@@ -1,14 +1,14 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.errors.Errors.noClientIdAndOptionsInQueryString
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
-
 import scalaz.Failure
 
 class ClientIdAndOptionsOrgIdentityTest extends Specification with Mockito {
@@ -28,8 +28,7 @@ class ClientIdAndOptionsOrgIdentityTest extends Specification with Mockito {
 
   "client id and options" should {
     "work" in {
-      import ClientIdQueryStringIdentity.Errors
-      identifier(FakeRequest("", "")) must_== Failure(Errors.noOrgForApiClient)
+      identifier(FakeRequest("", "")) must_== Failure(noClientIdAndOptionsInQueryString(FakeRequest("", "")))
     }
   }
 }

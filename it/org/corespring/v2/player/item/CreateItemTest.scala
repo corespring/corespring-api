@@ -29,7 +29,7 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
     }
 
     "should fail for a plain request with json + collection id" in new createItem(false, id => Some(Json.obj("collectionId" -> id))) {
-      status(result) === BAD_REQUEST
+      status(result) === UNAUTHORIZED
     }
 
     val badCollectionId = ObjectId.get

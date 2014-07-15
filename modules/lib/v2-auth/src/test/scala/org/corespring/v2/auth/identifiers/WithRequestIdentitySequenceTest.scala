@@ -1,15 +1,16 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
+import org.corespring.v2.errors.Errors.compoundError
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Around, Specification }
 import play.api.test.FakeRequest
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
-class WithRequestIdentitySequenceTest extends Specification with TransformerSpec with Mockito {
+class WithRequestIdentitySequenceTest extends Specification with IdentitySpec with Mockito {
 
   class scope(tfs: Seq[OrgRequestIdentity[String]]) extends Around {
 
@@ -30,7 +31,7 @@ class WithRequestIdentitySequenceTest extends Specification with TransformerSpec
   "with org transformer sequence" should {
 
     "fails for an empty sequence" in new scope(Seq.empty) {
-      seq(FakeRequest("", "")) mustEqual Failure("Failed to transform request")
+      seq(FakeRequest("", "")) must_== Failure(compoundError(WithRequestIdentitySequence.errorMessage, Seq.empty, UNAUTHORIZED))
     }
 
     "return the first success in a sequence" in new scope(Seq(

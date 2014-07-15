@@ -1,23 +1,27 @@
-package org.corespring.v2.auth
+package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
+import org.corespring.v2.errors.Errors.{ generalError, cantFindOrgWithId, noDefaultCollection }
+import org.corespring.v2.errors.V2Error
 import org.specs2.execute.AsResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Around, Specification }
 import play.api.test.FakeRequest
+
 import scalaz.{ Failure, Success, Validation }
 
 class OrgRequestIdentityTest
   extends Specification
   with Mockito
-  with TransformerSpec {
-
-  import org.corespring.v2.auth.OrgRequestIdentity._
+  with IdentitySpec {
 
   "With org transformer" should {
 
-    class scope(val org: Option[Organization] = None, val defaultCollection: Option[ObjectId] = None, val orgId: Validation[String, ObjectId] = Failure("no org id")) extends Around {
+    class scope(
+      val org: Option[Organization] = None,
+      val defaultCollection: Option[ObjectId] = None,
+      val orgId: Validation[V2Error, ObjectId] = Failure(generalError("?"))) extends Around {
 
       override def around[T: AsResult](t: => T) = {
         running(fakeApp) {
@@ -35,7 +39,7 @@ class OrgRequestIdentityTest
     }
 
     "return failure - if there is no org or default collection" in new scope(orgId = Success(ObjectId.get)) {
-      tf(FakeRequest("", "")) mustEqual Failure(noOrgId(orgId.toOption.get))
+      tf(FakeRequest("", "")) mustEqual Failure(cantFindOrgWithId(orgId.toOption.get))
     }
 
     "return failure - if there is no default collection" in new scope(org = Some(mock[Organization]), orgId = Success(ObjectId.get)) {
