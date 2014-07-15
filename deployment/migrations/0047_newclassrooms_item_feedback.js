@@ -2,7 +2,7 @@ function up() {
 
     var NEW_CLASSROOMS_COLLECTION_ID = "51df104fe4b073dbbb1c84fa";
 
-    var newClassroomsContent = db.content.find({"collectionId": NEW_CLASSROOMS_COLLECTION_ID});
+    var newClassroomsContent = db.content.find({"collectionId": NEW_CLASSROOMS_COLLECTION_ID, "published": false});
 
     /**
      * Returns the <feedbackBlock/> contents with incorrectResponse="true" from the item.

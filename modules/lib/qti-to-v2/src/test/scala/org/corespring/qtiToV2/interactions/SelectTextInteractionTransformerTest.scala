@@ -3,6 +3,8 @@ package org.corespring.qtiToV2.interactions
 import org.specs2.mutable.Specification
 
 import scala.xml.transform.RuleTransformer
+import play.api.libs.json.JsObject
+import scala.util.matching.Regex
 
 class SelectTextInteractionTransformerTest extends Specification {
 
@@ -39,10 +41,15 @@ class SelectTextInteractionTransformerTest extends Specification {
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
     val config = interactionResult \ "model" \ "config"
+    val choices = interactionResult \ "model" \ "choices"
 
     "return the correct interaction component type" in {
       (interactionResult \ "componentType").as[String] must be equalTo "corespring-select-text"
     }
+    "return the correct choices" in {
+      choices.as[Seq[JsObject]].map(choice => (choice \ "data").as[String]) diff TextSplitter.sentences(selectionText) must beEmpty
+    }
+
 
     "return the correct config selectionUnit value" in {
       (config \ "selectionUnit").as[String] must be equalTo selectionType
