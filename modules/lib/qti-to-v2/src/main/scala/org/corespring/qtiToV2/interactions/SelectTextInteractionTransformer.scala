@@ -17,7 +17,7 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
       Json.obj(
         "componentType" -> "corespring-select-text",
         "model" -> Json.obj(
-          "text" -> choices,
+          "choices" -> choices,
           "config" -> partialObj(
             "selectionUnit" -> optForAttr[JsString]("selectionType"),
             "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),

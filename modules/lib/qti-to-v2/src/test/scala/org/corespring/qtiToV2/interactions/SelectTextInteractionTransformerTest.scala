@@ -57,13 +57,13 @@ class SelectTextInteractionTransformerTest extends Specification {
 //    }
 
     "do the things" in {
-      val input = <assessmentItem>
+      val input = <assessmen
         <itemBody>
           <selectTextInteraction responseIdentifier="selectText" selectionType="sentence" checkIfCorrect="yes" minSelections="1" maxSelections="1">
             Elizabeth now began to revive. But not long was the interval of tranquillity; for when supper was over, singing was talked of, and she had the mortification of seeing Mary, after very little entreaty, preparing to oblige the company. <correct>By many significant looks and silent entreaties, did she endeavour to prevent such a proof of complaisance, &#8212;but in vain; Mary would not understand them; such an opportunity of exhibiting was delightful to her, and she began her song.</correct> Elizabeth's eyes were fixed on her with most painful sensations; and she watched her progress through the several stanzas with an impatience which was very ill rewarded at their close; for Mary, on receiving amongst the thanks of the table, the hint of a hope that she might be prevailed on to favour them again, after the pause of half a minute began another. Mary's powers were by no means fitted for such a display; her voice was weak, and her manner affected. &#8212;Elizabeth was in agonies. She looked at Jane, to see how she bore it; but Jane was very composedly talking to Bingley. She looked at his two sisters, and saw them making signs of derision at each other, and at Darcy, who continued however imperturbably grave.
           </selectTextInteraction>
         </itemBody>
-      </assessmentItem>
+      </assessmentItem
 
       val componentsJson = SelectTextInteractionTransformer.interactionJs(input)
       val output = new RuleTransformer(SelectTextInteractionTransformer).transform(input)
