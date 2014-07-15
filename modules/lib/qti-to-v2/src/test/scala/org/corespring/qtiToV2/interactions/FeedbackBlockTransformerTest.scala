@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.interactions
 
 import org.specs2.execute.Failure
 import org.specs2.mutable.Specification
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsString, JsValue, JsArray, JsObject}
 
 import scala.xml.Node
 import scala.xml.transform.RuleTransformer
@@ -99,17 +99,30 @@ class FeedbackBlockTransformerTest extends Specification {
       (feedbackResult(identifier) \ "weight").as[Int] must be equalTo 0
     }
 
+    def getFeedbackObjects( json : JsValue, key: String ) =
+      (json \ "feedback" \ key).as[JsArray].value
+
+    def getFeedbackKeys( json : JsValue, key: String ) =
+      getFeedbackObjects(json, key).map((o : JsValue) => (o \ "input").as[String])
+
+    def getFeedback( json : JsValue, key: String, response: String ) =
+      (getFeedbackObjects(json, key)
+        .find((o:JsValue) => (o \ "input") == JsString(response))
+        .get \ "feedback").as[String]
+
+
+
     "return correct feedback for answers" in {
       correctResponses.map(response => {
-        (feedbackResult(identifier) \ "feedback" \ "correct").as[JsObject].keys.contains(response) must beTrue
+        getFeedbackKeys(feedbackResult(identifier), "correct").contains(response) must beTrue
       })
     }
 
     "return feedback text for answers with correct identifier" in {
       Seq(identifier, anotherIdentifier).map(id => {
+
         correctResponses.map(response => {
-          (feedbackResult(id) \ "feedback" \ "correct").as[JsObject]
-            .value(response).as[String] must be equalTo s"$correctFeedback $id"
+          getFeedback(feedbackResult(id),"correct", response) must be equalTo s"$correctFeedback $id"
         })
       }).flatten
     }
@@ -133,9 +146,8 @@ class FeedbackBlockTransformerTest extends Specification {
 
     "return incorrect feedback" in {
       Seq(identifier, anotherIdentifier).map(id => {
-        (feedbackResult(id) \ "feedback" \ "incorrect").as[JsObject].keys.contains("*") must beTrue
-        (feedbackResult(id) \ "feedback" \ "incorrect")
-          .as[JsObject].value("*").as[String] must be equalTo s"$incorrectFeedback $id"
+        getFeedbackKeys(feedbackResult(id), "incorrect").contains("*") must beTrue
+        getFeedback(feedbackResult(id),"incorrect","*") must be equalTo s"$incorrectFeedback $id"
       })
     }
 
@@ -189,10 +201,7 @@ class FeedbackBlockTransformerTest extends Specification {
       val json = new FeedbackBlockTransformer(input).interactionJs(input).get("Q_01_feedback")
         .getOrElse(throw new RuntimeException(s"No feedback component for Q_01"))
 
-      (json \ "feedback" \ "correct" \ response).asOpt[String] match {
-        case Some(text) => text must be equalTo feedback
-        case None => failure("Json did not contain feedback for response")
-      }
+      getFeedback(json,"correct",response) === feedback
     }
 
   }
