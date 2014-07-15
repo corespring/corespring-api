@@ -34,17 +34,27 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
   }
 
   private def choices(implicit node: Node): JsArray = {
-    val correctResponses = SelectTextInteraction.parseCorrectResponses(node)
-    def isCorrect(string: String) = correctResponses.contains(string)
+
+    def isCorrect(string: String) = {
+      XML.loadString("<div>" + string + "</div>") \ "correct" match {
+        case empty: NodeSeq if empty.length == 0 => false
+        case _ => true
+      }
+    }
+    def stripCorrectness(string: String) =
+      if (isCorrect(string)) (XML.loadString("<div>" + string + "</div>") \ "correct").text else string
 
     val text = clearNamespace(node.child).mkString
     val choices = optForAttr[JsString]("selectionType") match {
       case Some(selection) if selection == "word" => words(text)
       case _ => sentences(text)
     }
-    JsArray(choices.map(choice => partialObj(
-      "data" -> Some(JsString(choice)),
+
+    val t = JsArray(choices.map(choice => partialObj(
+      "data" -> Some(JsString(stripCorrectness(choice))),
       "correct" -> (if (isCorrect(choice)) Some(JsBoolean(true)) else None))))
+    println(t)
+    t
   }
 
   private def sentences(s: String): Seq[String] = {
