@@ -8,7 +8,7 @@ object OrderInteractionTransformer extends InteractionTransformer {
   override def interactionJs(qti: Node) = (qti \\ "orderInteraction").map(implicit node => {
     val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
     val identifier = (node \ "@responseIdentifier").text
-
+    
     identifier -> partialObj(
       "componentType" ->
         Some(JsString(if (isPlacementOrdering(node)) "corespring-placement-ordering" else "corespring-ordering")),
