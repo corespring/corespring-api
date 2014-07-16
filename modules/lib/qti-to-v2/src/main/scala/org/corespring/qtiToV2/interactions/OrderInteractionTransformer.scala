@@ -26,8 +26,14 @@ object OrderInteractionTransformer extends InteractionTransformer {
           case seq: Seq[Node] if seq.isEmpty => ""
           case seq: Seq[Node] => seq.head.child.mkString
         }))),
-        "config" -> Some(Json.obj(
-          "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true"))),
+        "config" -> Some(partialObj(
+          "shuffle" -> Some(JsBoolean((node \\ "@shuffle").text == "true")),
+          "choiceAreaLayout" -> (
+            if (isPlacementOrdering(node) && (node \\ "@orientation").text.equalsIgnoreCase("horizontal"))
+              Some(JsString("horizontal"))
+            else None
+           )
+        )),
         "choices" -> Some(JsArray((node \\ "simpleChoice")
           .map(choice => Json.obj(
             "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,

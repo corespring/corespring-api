@@ -2,10 +2,11 @@ package org.corespring.qtiToV2.interactions
 
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
 import org.specs2.mutable.Specification
-import play.api.libs.json.{ JsArray, JsObject }
+import play.api.libs.json._
 
 import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+import scala.Some
 import play.api.libs.json.JsArray
 import scala.Some
 import play.api.libs.json.JsObject
@@ -40,7 +41,7 @@ class OrderInteractionTransformerTest extends Specification {
       override def transform(n: Node): NodeSeq = {
         (n, csOrderingType) match {
           case (e: Elem, Some(orderingType)) if (e.label == "orderInteraction") =>
-            e % new UnprefixedAttribute("csOrderingType", orderingType, Null)
+            (e % new UnprefixedAttribute("csOrderingType", orderingType, Null)) % new UnprefixedAttribute("orientation", "horizontal", Null)
           case _ => n
         }
       }
@@ -71,6 +72,13 @@ class OrderInteractionTransformerTest extends Specification {
       (placementOutput \\ "corespring-placement-ordering").find(n => (n \ "@id").text == identifier) must not beEmpty
     }
 
+    "result must contain model.config.choiceAreaLayout = 'horizontal'" in {
+      placementComponentsJson.get(identifier) match {
+        case Some(json) => (json \ "model" \ "config" \ "choiceAreaLayout").as[String] === "horizontal"
+        case _ => failure("No json for identifier")
+      }
+    }
+
     "must contain appropriate shuffle property" in {
       (interactionResult \ "model" \ "config" \ "shuffle").as[Boolean] must be equalTo shuffle.toBoolean
     }
@@ -89,7 +97,6 @@ class OrderInteractionTransformerTest extends Specification {
 
     "return the choices" in {
       val choices = (interactionResult \ "model" \ "choices").as[Seq[JsObject]]
-      println(choices)
       choices.map(_ \ "label").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
       choices.map(_ \ "value").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
     }
