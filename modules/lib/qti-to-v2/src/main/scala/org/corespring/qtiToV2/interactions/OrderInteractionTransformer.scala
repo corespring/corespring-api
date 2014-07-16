@@ -31,7 +31,7 @@ object OrderInteractionTransformer extends InteractionTransformer {
           "choiceAreaLayout" -> (
             if (isPlacementOrdering(node) && (node \\ "@orientation").text.equalsIgnoreCase("horizontal"))
               Some(JsString("horizontal"))
-            else None
+            else Some(JsString("vertical"))
            )
         )),
         "choices" -> Some(JsArray((node \\ "simpleChoice")
