@@ -44,7 +44,7 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
         } else {
           fb.content
         }
-        Json.obj("value" -> JsString(id), "feedback" -> JsString(content))
+        Json.obj("value" -> id, "feedback" -> content, "notChosenFeedback" -> content)
       }
     }.flatten.distinct
     JsArray(feedbackObjects)
