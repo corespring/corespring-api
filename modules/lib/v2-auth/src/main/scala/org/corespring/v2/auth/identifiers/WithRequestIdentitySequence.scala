@@ -3,6 +3,7 @@ package org.corespring.v2.auth.identifiers
 import org.bson.types.ObjectId
 import org.corespring.v2.errors.Errors.compoundError
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.mvc.RequestHeader
@@ -14,7 +15,7 @@ object WithRequestIdentitySequence {
 }
 trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
-  lazy val logger = LoggerFactory.getLogger(this.getClass)
+  lazy val logger = V2LoggerFactory.getLogger("auth.WithRequestIdentitySequence")
 
   def identifiers: Seq[OrgRequestIdentity[B]]
 
@@ -26,6 +27,9 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrg
     }
 
     out.find(_.isSuccess).getOrElse {
+
+      logger.trace(s"header to org id result: ${out.mkString(",")}")
+
       Failure(compoundError(
         WithRequestIdentitySequence.errorMessage,
         out.filter(_.isFailure).map(_.toEither).map(_.left.get),
@@ -36,11 +40,12 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrg
   override def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
     val out: Seq[Validation[V2Error, B]] = identifiers.map { tf =>
-      logger.trace(s"apply ${tf.getClass.getSimpleName}")
       tf(rh)
     }
 
     out.find(_.isSuccess).getOrElse {
+      logger.trace(s"identify result: ${out.mkString(",")}")
+
       Failure(
         compoundError(
           WithRequestIdentitySequence.errorMessage,

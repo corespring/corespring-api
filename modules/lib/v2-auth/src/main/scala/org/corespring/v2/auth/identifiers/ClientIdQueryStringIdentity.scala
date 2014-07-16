@@ -6,6 +6,7 @@ import org.corespring.v2.auth.identifiers.ClientIdQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.errors.Errors.noClientIdAndOptionsInQueryString
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 
@@ -26,6 +27,8 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
   def clientIdToOrgId(apiClientId: String): Option[ObjectId]
 
   def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions
+
+  override lazy val logger = V2LoggerFactory.getLogger("auth", "ClientIdQueryString")
 
   override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
     logger.trace("Try from query params")

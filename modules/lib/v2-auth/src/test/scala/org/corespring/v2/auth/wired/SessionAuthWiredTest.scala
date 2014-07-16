@@ -23,7 +23,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
     implicit val rh: RequestHeader = FakeRequest("", "")
 
-    case class authScope(session: Option[JsValue] = None, item: Option[Item] = None) extends Scope {
+    case class authScope(session: Option[JsValue] = None, item: Option[Item] = None, itemLoadForRead: Boolean = false, itemLoadForWrite: Boolean = false) extends Scope {
       val auth = new SessionAuthWired {
         override def sessionService: MongoService = {
           val m = mock[MongoService]
@@ -76,6 +76,11 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
     "load for read" should {
       run(a => a.loadForRead(""))
+    }
+
+    "can load for write if item is read only" in new authScope() {
+
+      auth.loadForWrite("")
     }
   }
 
