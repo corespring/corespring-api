@@ -23,7 +23,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
     implicit val rh: RequestHeader = FakeRequest("", "")
 
-    case class authScope(session: Option[JsValue] = None, item: Option[Item] = None) extends Scope {
+    case class authScope(session: Option[JsValue] = None, item: Option[Item] = None, itemLoadForRead: Boolean = true, itemLoadForWrite: Boolean = true) extends Scope {
       val auth = new SessionAuthWired {
         override def sessionService: MongoService = {
           val m = mock[MongoService]
@@ -33,8 +33,8 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
         override def itemAuth: ItemAuth = {
           val m = mock[ItemAuth]
-          m.loadForRead(anyString)(any[RequestHeader]) returns item.toSuccess(defaultItemFailure)
-          m.loadForWrite(anyString)(any[RequestHeader]) returns item.toSuccess(defaultItemFailure)
+          m.loadForRead(anyString)(any[RequestHeader]) returns (if (itemLoadForRead) item.toSuccess(defaultItemFailure) else Failure(defaultItemFailure))
+          m.loadForWrite(anyString)(any[RequestHeader]) returns (if (itemLoadForWrite) item.toSuccess(defaultItemFailure) else Failure(defaultItemFailure))
           m
         }
       }
@@ -76,6 +76,14 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
     "load for read" should {
       run(a => a.loadForRead(""))
+    }
+
+    "can load session for write if item is load for read only" in new authScope(
+      item = Some(Item()),
+      session = Some(Json.obj("itemId" -> "itemId")),
+      itemLoadForWrite = false) {
+
+      auth.loadForWrite("?") must_== Success((session.get, item.get))
     }
   }
 

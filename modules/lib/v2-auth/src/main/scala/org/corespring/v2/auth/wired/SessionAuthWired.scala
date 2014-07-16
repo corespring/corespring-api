@@ -20,19 +20,15 @@ trait SessionAuthWired extends SessionAuth {
 
   def sessionService: MongoService
 
-  override def loadForRead(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = {
-    loadFor(sessionId, itemAuth.loadForRead)
-  }
+  override def loadForRead(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = load(sessionId)
 
-  override def loadForWrite(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = {
-    loadFor(sessionId, itemAuth.loadForWrite)
-  }
+  override def loadForWrite(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = load(sessionId)
 
-  private def loadFor(sessionId: String, loadItem: (String) => Validation[V2Error, Item])(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = {
+  private def load(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = {
     val out = for {
       json <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
       itemId <- (json \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
-      item <- loadItem(itemId)
+      item <- itemAuth.loadForRead(itemId)
     } yield (json, item)
     logger.trace(s"loadFor sessionId: $sessionId - result: $out")
     out
