@@ -11,9 +11,10 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.Action
 
-import scala.concurrent.Future
+import scala.concurrent._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
+import play.mvc.BodyParser.AnyContent
 
 trait ItemSessionApi extends V2Api {
 
@@ -28,27 +29,25 @@ trait ItemSessionApi extends V2Api {
    * @param itemId
    * @return json - either the id of the session, or error json
    */
-  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) {
-    implicit request =>
-      Future {
+  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
+    future {
+      def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
+        "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
+        "itemId" -> JsString(vid.toString))
 
-        def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
-          "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
-          "itemId" -> JsString(vid.toString))
+      itemTransformer.updateV2Json(itemId)
 
-        itemTransformer.updateV2Json(itemId)
+      val result: Validation[V2Error, JsValue] = for {
+        canCreate <- sessionAuth.canCreate(itemId.toString)
+        json <- Success(createSessionJson(itemId))
+        sessionId <- if (canCreate)
+          sessionService.create(json).toSuccess(errorSaving(s"Error creating session with json: ${json}"))
+        else
+          Failure(generalError("creation failed"))
+      } yield Json.obj("id" -> sessionId.toString)
 
-        val result: Validation[V2Error, JsValue] = for {
-          canCreate <- sessionAuth.canCreate(itemId.toString)
-          json <- Success(createSessionJson(itemId))
-          sessionId <- if (canCreate)
-            sessionService.create(json).toSuccess(errorSaving(s"Error creating session with json: ${json}"))
-          else
-            Failure(generalError("creation failed"))
-        } yield Json.obj("id" -> sessionId.toString)
-
-        validationToResult[JsValue](Ok(_))(result)
-      }
+      validationToResult[JsValue](Ok(_))(result)
+    }
   }
 
   private def mapSessionJson(rawJson: JsObject): JsObject = {
