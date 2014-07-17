@@ -21,7 +21,7 @@ trait EditorHooks extends ContainerEditorHooks {
 
   def auth: ItemAuth
 
-  private lazy val logger = V2LoggerFactory.getLogger("editor.hooks")
+  private lazy val logger = V2LoggerFactory.getLogger("EditorHooks")
 
   /**
    * Attempt to load the item for write. If that fails but reading is possible redirect to the catalog view
