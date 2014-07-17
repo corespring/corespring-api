@@ -20,11 +20,9 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
 
       val componentId = (node \ "@responseIdentifier").text.trim
 
-      def correctResponse: JsObject = {
+      def correctResponses: Seq[JsString] = {
         val values: Seq[Node] = (responseDeclaration(node, qti) \\ "value").toSeq
-        val jsonValues: Seq[JsString] = values.map(n => JsString(n.text.trim))
-
-        Json.obj("value" -> JsArray(jsonValues))
+        values.map(n => JsString(n.text.trim))
       }
 
       val json = Json.obj(
@@ -46,7 +44,11 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
               "value" -> (n \ "@identifier").text.trim)
           })),
         "feedback" -> feedback(node, qti),
-        "correctResponse" -> correctResponse)
+        "correctResponse" -> (node.label match {
+          case "choiceInteraction" => Json.obj("value" -> JsArray(correctResponses))
+          case "inlineChoiceInteraction" => correctResponses(0)
+          case _ => throw new IllegalStateException
+        }))
 
       componentId -> json
 

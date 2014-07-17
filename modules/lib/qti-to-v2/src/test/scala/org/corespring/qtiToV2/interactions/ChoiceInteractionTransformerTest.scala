@@ -93,7 +93,7 @@ class ChoiceInteractionTransformerTest extends Specification {
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
       (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "<math>A</math>"
-      (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
+      (q1 \ "correctResponse") === JsString("A")
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
       ((q1 \ "feedback")(0) \ "value").as[String] === "A"
       ((q1 \ "feedback")(0) \ "feedback").as[String] === "Default Correct"
