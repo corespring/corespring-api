@@ -71,7 +71,17 @@ class ItemSessionApiTest extends Specification with Mockito {
         status(result) === OK
         contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
       }
+
+      "work with json header, but no body" in new apiScope(
+        Success(true),
+        Some(ObjectId.get)) {
+        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "")
+          .withHeaders(("Content-Type", "application/json")).withBody(null))
+        status(result) === OK
+        contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
+      }
     }
+
 
     "when calling get" should {
       "fail when auth load fails" in new apiScope() {

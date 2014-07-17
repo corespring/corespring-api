@@ -28,7 +28,7 @@ trait ItemSessionApi extends V2Api {
    * @param itemId
    * @return json - either the id of the session, or error json
    */
-  def create(itemId: VersionedId[ObjectId]) = Action.async {
+  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) {
     implicit request =>
       Future {
 
