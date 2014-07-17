@@ -6,26 +6,25 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.Mode._
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.slf4j.LoggerFactory
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.mvc.RequestHeader
 
-import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
 
-  lazy val logger = LoggerFactory.getLogger("v2.auth.ItemAuth")
+  lazy val logger = V2LoggerFactory.getLogger("auth.ItemAuth")
 
   def orgService: OrganizationService
 
   def itemService: ItemService
 
-  def hasPermissions(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, options: PlayerOptions): Validation[V2Error, Boolean]
 
   override def canCreateInCollection(collectionId: String)(implicit header: RequestHeader): Validation[V2Error, Boolean] = {
 
@@ -53,32 +52,27 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
   }
 
   private def canWithPermission(itemId: String, p: Permission)(implicit header: RequestHeader): Validation[V2Error, Item] = getOrgIdAndOptions(header) match {
-    case Failure(e) => Failure(e)
+    case Failure(e) => {
+      logger.trace(s"Failed to load org id and options - return a Failure")
+      Failure(e)
+    }
     case Success((orgId, options)) => {
 
       logger.trace(s"can ${p.name} to $itemId")
 
-      def checkOrgAccess(orgId: ObjectId): Validation[V2Error, Item] = {
-
-        def canAccess(collectionId: String) = orgService.canAccessCollection(orgId, new ObjectId(collectionId), p)
-
-        for {
-          vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-          item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-          org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
-          canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
-        } yield {
-          logger.trace(s"orgCanAccessItem: $canAccess")
-          item
-        }
-      }
-
-      logger.debug(s"checkAccess (orgId,options): $orgId -> $options")
+      def canAccess(collectionId: String) = orgService.canAccessCollection(orgId, new ObjectId(collectionId), p)
 
       for {
-        item <- checkOrgAccess(orgId)
-        permissionAccess <- hasPermissions(itemId, None, evaluate, options)
-      } yield item
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+        org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
+        canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
+        permissionAccess <- hasPermissions(itemId, options)
+      } yield {
+        logger.trace(s"orgCanAccessItem: $canAccess")
+        item
+      }
+
     }
   }
 

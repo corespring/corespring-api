@@ -7,6 +7,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.cookies.V2PlayerCookieReader
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
@@ -24,6 +25,8 @@ trait SessionHooks
   def itemService: ItemService
 
   def transformItem: Item => JsValue
+
+  lazy val logger = V2LoggerFactory.getLogger("session.hooks")
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
@@ -43,6 +46,9 @@ trait SessionHooks
   }
 
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
+
+    logger.trace(s"save $id")
+
     val out = for {
       models <- auth.loadForWrite(id)
     } yield {
