@@ -32,7 +32,7 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
       if (orgService.canAccessCollection(orgId, collectionId, Permission.Write)) {
         Success(true)
       } else {
-        Failure(orgCantAccessCollection(orgId, collectionId.toString))
+        Failure(orgCantAccessCollection(orgId, collectionId.toString, Permission.Write.name))
       }
     }
 
@@ -66,7 +66,10 @@ trait ItemAuthWired extends ItemAuth with LoadOrgAndOptions {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
         org <- orgService.findOneById(orgId).toSuccess(cantFindOrgWithId(orgId))
-        canAccess <- if (canAccess(item.collectionId.getOrElse("?"))) Success(true) else Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?")))
+        canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
+          Success(true)
+        else
+          Failure(orgCantAccessCollection(orgId, item.collectionId.getOrElse("?"), Permission.Write.name))
         permissionAccess <- hasPermissions(itemId, options)
       } yield {
         logger.trace(s"orgCanAccessItem: $canAccess")

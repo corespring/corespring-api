@@ -2,7 +2,7 @@ package org.corespring.v2.log
 
 import org.slf4j.LoggerFactory
 
-object V2LoggerFactory {
+private[v2] object V2LoggerFactory {
 
   def getLogger(names: String*) = {
     val n = names match {
