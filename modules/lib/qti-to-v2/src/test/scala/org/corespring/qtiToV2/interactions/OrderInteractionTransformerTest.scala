@@ -80,13 +80,6 @@ class OrderInteractionTransformerTest extends Specification {
       }
     }
 
-    "result must contain model.config.choiceAreaLabel and it should be to prompt of the order interaction node" in {
-      placementComponentsJson.get(identifier) match {
-        case Some(json) => (json \ "model" \ "config" \ "choiceAreaLabel").as[String] === prompt
-        case _ => failure("No json for identifier")
-      }
-    }
-
     "result must contain model.config.answerAreaLabel " in {
       placementComponentsJson.get(identifier) match {
         case Some(json) => (json \ "model" \ "config" \ "answerAreaLabel").as[String] === answerAreaLabel

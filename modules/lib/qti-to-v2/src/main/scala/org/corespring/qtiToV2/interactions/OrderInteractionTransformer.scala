@@ -33,9 +33,6 @@ object OrderInteractionTransformer extends InteractionTransformer {
               Some(JsString("horizontal"))
             else Some(JsString("vertical"))
            ),
-          "choiceAreaLabel" -> (
-            if (isPlacementOrdering(node)) Some(JsString(prompt)) else None
-           ),
           "answerAreaLabel" -> (
             if (isPlacementOrdering(node)) Some(JsString("Place answers here")) else None
            )
