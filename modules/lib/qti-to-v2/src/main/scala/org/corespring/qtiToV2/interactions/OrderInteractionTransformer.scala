@@ -26,7 +26,6 @@ object OrderInteractionTransformer extends InteractionTransformer {
         else None
       ),
       "model" -> Some(partialObj(
-        "prompt" -> Some(JsString(prompt)),
         "config" -> Some(partialObj(
           "shuffle" -> Some(JsBoolean((node \\ "@shuffle").text == "true")),
           "choiceAreaLayout" -> (
@@ -58,8 +57,8 @@ object OrderInteractionTransformer extends InteractionTransformer {
     case e: Elem if e.label == "orderInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
       isPlacementOrdering(node) match {
-        case true => <corespring-placement-ordering id={ identifier }></corespring-placement-ordering>
-        case _ => <corespring-ordering id={ identifier }></corespring-ordering>
+        case true => <corespring-placement-ordering id={ identifier }></corespring-placement-ordering>.withPrompt(node)
+        case _ => <corespring-ordering id={ identifier }></corespring-ordering>.withPrompt(node)
       }
     }
     case _ => node

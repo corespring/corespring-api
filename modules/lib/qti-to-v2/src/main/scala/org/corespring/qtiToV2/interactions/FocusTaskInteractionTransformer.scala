@@ -13,7 +13,6 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
         "correctResponse" -> Json.obj(
           "value" -> (responseDeclaration(node, qti) \\ "value").map(_.text)),
         "model" -> partialObj(
-          "prompt" -> (node \ "prompt").headOption.map(n => JsString(n.text)),
           "config" -> Some(partialObj(
             "shuffle" -> optForAttr[JsBoolean]("shuffle"),
             "itemShape" -> optForAttr[JsString]("itemShape"),
@@ -30,7 +29,7 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "focusTaskInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-focus-task id={ identifier }></corespring-focus-task>
+      <corespring-focus-task id={ identifier }></corespring-focus-task>.withPrompt(node)
     }
     case _ => node
   }

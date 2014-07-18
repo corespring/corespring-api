@@ -68,4 +68,29 @@ class InteractionTransformerTest extends Specification {
     }
   }
 
+  "withPrompt" should {
+
+    val prompt = "Hey, this is a prompt!"
+    val sourceWithPrompt = <interaction><prompt>{ prompt }</prompt></interaction>
+    val sourceWithoutPrompt = <interaction></interaction>
+    val result = <corespring-interaction></corespring-interaction>
+
+    "add prompt when source contains one" in {
+      new InteractionTransformer {
+        def interactionJs(qti: Node): Map[String, JsObject] = ???
+        (result.withPrompt(sourceWithPrompt) \\ "p").find(n => n.text == prompt) must not beEmpty
+      }
+      success
+    }
+
+    "add nothing when source contains no prompt" in {
+      new InteractionTransformer {
+        def interactionJs(qti: Node): Map[String, JsObject] = ???
+        (result.withPrompt(sourceWithoutPrompt) \\ "p").find(n => n.text == prompt) must beEmpty
+      }
+      success
+    }
+
+  }
+
 }
