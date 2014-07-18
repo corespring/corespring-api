@@ -42,7 +42,8 @@ object OrderInteractionTransformer extends InteractionTransformer {
             "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
             "value" -> (choice \ "@identifier").text,
             "content" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
-            "id" -> (choice \ "@identifier").text)
+            "id" -> (choice \ "@identifier").text,
+            "moveOnDrag" -> true)
           ))),
         "correctResponse" -> Some(JsArray(responses.map(JsString(_)))),
         "feedback" -> (if (isPlacementOrdering(node)) None else Some(feedback(node, qti)))

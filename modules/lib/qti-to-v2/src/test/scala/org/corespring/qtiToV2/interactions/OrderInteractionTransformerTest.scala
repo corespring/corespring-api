@@ -107,6 +107,7 @@ class OrderInteractionTransformerTest extends Specification {
       val choices = (interactionResult \ "model" \ "choices").as[Seq[JsObject]]
       choices.map(_ \ "label").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
       choices.map(_ \ "value").map(_.as[String]).map(unescapeHtml4) diff responses must beEmpty
+      choices.map(_ \ "moveOnDrag").map(_.as[Boolean]).find(moveOnDrag => moveOnDrag == false) must beEmpty
     }
 
     "return feedback" in {
