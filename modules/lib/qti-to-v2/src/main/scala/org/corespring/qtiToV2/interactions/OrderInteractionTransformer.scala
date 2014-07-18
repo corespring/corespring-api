@@ -8,7 +8,11 @@ object OrderInteractionTransformer extends InteractionTransformer {
   override def interactionJs(qti: Node) = (qti \\ "orderInteraction").map(implicit node => {
     val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
     val identifier = (node \ "@responseIdentifier").text
-    
+    val prompt = ((node \ "prompt") match {
+      case seq: Seq[Node] if seq.isEmpty => ""
+      case seq: Seq[Node] => seq.head.child.mkString
+    })
+
     identifier -> partialObj(
       "componentType" ->
         Some(JsString(if (isPlacementOrdering(node)) "corespring-placement-ordering" else "corespring-ordering")),
@@ -22,16 +26,19 @@ object OrderInteractionTransformer extends InteractionTransformer {
         else None
       ),
       "model" -> Some(partialObj(
-        "prompt" -> Some(JsString(((node \ "prompt") match {
-          case seq: Seq[Node] if seq.isEmpty => ""
-          case seq: Seq[Node] => seq.head.child.mkString
-        }))),
+        "prompt" -> Some(JsString(prompt)),
         "config" -> Some(partialObj(
           "shuffle" -> Some(JsBoolean((node \\ "@shuffle").text == "true")),
           "choiceAreaLayout" -> (
             if (isPlacementOrdering(node) && (node \\ "@orientation").text.equalsIgnoreCase("horizontal"))
               Some(JsString("horizontal"))
             else Some(JsString("vertical"))
+           ),
+          "choiceAreaLabel" -> (
+            if (isPlacementOrdering(node)) Some(JsString(prompt)) else None
+           ),
+          "answerAreaLabel" -> (
+            if (isPlacementOrdering(node)) Some(JsString("Place answers here")) else None
            )
         )),
         "choices" -> Some(JsArray((node \\ "simpleChoice")
