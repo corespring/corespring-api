@@ -47,6 +47,11 @@
     <logger name="v2player" level="DEBUG"/>
     <logger name="container" level="TRACE"/>
 
+
+    <logger name="components.outcome" level="TRACE"/>
+    <logger name="js.processing" level="TRACE"/>
+    <logger name="session" level="TRACE"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
