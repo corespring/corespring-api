@@ -81,7 +81,7 @@ class FocusTaskInteractionTransformerTest extends Specification {
     }
 
     "returns correct prompt" in {
-      (model \ "prompt").as[String] must be equalTo prompt
+      (output \\ "p").find(n => n.text == prompt) must not beEmpty
     }
 
   }

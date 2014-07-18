@@ -99,7 +99,7 @@ class OrderInteractionTransformerTest extends Specification {
     }
 
     "must contain the appropriate prompt" in {
-      (interactionResult \ "model" \ "prompt").as[String] must be equalTo prompt
+      (output \\ "p").find(n => n.text == prompt) must not beEmpty
     }
 
     "return the correct component type" in {
