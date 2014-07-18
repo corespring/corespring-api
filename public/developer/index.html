@@ -213,6 +213,9 @@
   <li><a href="#advanced-options" class="main-menu">Advanced Options</a></li>
 </ul>
 <ul class="nav nav-list">
+  <li><a href="#player-methods" class="main-menu">Player Methods</a></li>
+</ul>
+<ul class="nav nav-list">
   <li><a href="#road-map" class="main-menu">Road Map</a></li>
 </ul>
 <ul class="nav nav-list">
@@ -741,7 +744,7 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 </ul>
 
 
-<h3>Methods</h3>
+<h2><a name="player-methods" class="waypoint"></a>Methods</h2>
 
 <p><a name="player-method-submit" class="waypoint"></a></p>
 
@@ -766,6 +769,10 @@ callback(null,encrypted+"--"+new Buffer(iv).toString('hex'));
 </code></pre>
 </div>
 
+
+<h4>remove()</h4>
+
+<p>Removes the player from the DOM alongside with its message listeners. If you are targetting older browsers be sure to call this method to remove the player to ensure that the listeners are removed. It's less important of an aspect in newer browsers however it's still recommended to remove the player via this method.</p>
 
 <h2><a name="road-map" class="waypoint"></a>Road Map</h2>
 
@@ -1381,7 +1388,7 @@ Each of these API resources support parameters to help with querying / filtering
     <tr>
         <td>f</td>
         <td>Fields: Indicates fields to include in the result. For example f={"name": 1, "description":1}<br/> 
-(1—include; 0—exclude)<br/>
+(1-include; 0-exclude)<br/>
        e.g. { "name" : 1, "email": 1 } OR <br/>
        e.g. { "comments" : 0 } </td>
         <td>true</td>
@@ -1544,7 +1551,7 @@ wanted to display only itemType and sort alphabetically in ascending order:</p>
 
 <hr />
 
-<p>date:  05/23/2014 03:30PM</p>
+<p>date:  07/18/2014 06:54PM</p>
 
     </div>
     <div class="dev-login-box" ng-controller="DeveloperCtrl">
