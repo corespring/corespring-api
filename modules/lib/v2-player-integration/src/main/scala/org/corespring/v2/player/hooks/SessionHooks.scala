@@ -26,7 +26,7 @@ trait SessionHooks
 
   def transformItem: Item => JsValue
 
-  lazy val logger = V2LoggerFactory.getLogger("session.hooks")
+  lazy val logger = V2LoggerFactory.getLogger("SessionHooks")
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 

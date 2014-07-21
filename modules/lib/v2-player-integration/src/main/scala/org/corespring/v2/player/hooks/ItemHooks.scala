@@ -8,6 +8,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -23,7 +24,7 @@ trait ItemHooks extends ContainerItemHooks {
 
   def auth: ItemAuth
 
-  lazy val logger = LoggerFactory.getLogger("v2.integration.hooks.item")
+  lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
