@@ -35,7 +35,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
             var createFeedbackContainerDiv = function (html, returnContainerIfEmpty) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
-                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>" + emptyCells(2);
+                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>" + emptyCells(1);
                 if (!feedbackNodes) {
                     return returnContainerIfEmpty ? feedbackContainer + "</div>" : "";
                 }

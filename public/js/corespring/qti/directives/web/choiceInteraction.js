@@ -78,6 +78,15 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
    */
   var compile = function (element, attrs, transclude) {
 
+    function wrapLabel(markup) {
+      var $markup = $('<div>' + markup + '</div>');
+      $('[simplechoice]', $markup).each(function(i, el) {
+        $(el).wrapInner('<div class="choice-label-container"></div>');
+      });
+      return $markup.html();
+    }
+
+
     var shuffle = attrs["shuffle"] === "true";
     var insertLetters = !(attrs["insertletters"] == "false");
     var isHorizontal = attrs["orientation"] === "horizontal";
@@ -91,6 +100,8 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
       .replace(/<:*prompt>(.|[\r\n])*?<\/:*prompt>/gim, "")
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
+
+    finalContents = wrapLabel(finalContents);
 
     var newNode = isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
