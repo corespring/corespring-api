@@ -4,6 +4,7 @@ import org.corespring.container.client.hooks.{ PlayerData, EditorHooks => Contai
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
@@ -21,7 +22,7 @@ trait EditorHooks extends ContainerEditorHooks {
 
   def auth: ItemAuth
 
-  private lazy val logger = Logger("v2player.editor.client.actions")
+  private lazy val logger = V2LoggerFactory.getLogger("EditorHooks")
 
   override def loadItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     val result = for {
