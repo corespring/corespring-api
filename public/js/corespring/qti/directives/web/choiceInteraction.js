@@ -27,10 +27,11 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
   };
 
   var wrapChoiceContents = function(choices) {
-
     for (var i = 0; i < choices.length; i++) {
       choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)([\s\S]*)(<\/:*simplechoice>)/gmi, "$1<div class='choice-label {{choiceStyle}}'>$2</div>$3");
     }
+
+    return choices;
   };
 
   var insertAlphabetPrefixes = function (choices) {
@@ -44,7 +45,9 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
 
       choices[i] = choices[i].replace(/(<:*simplechoice[\s\S]*?>)/, "$1" + ch);
     }
+    return choices;
   }
+
 
   /**
    * Get the simplechoice nodes - shuffle those that need shuffling,
@@ -61,8 +64,11 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
       html.replace(/<:*simplechoice[\s\S]*?>[\s\S]*<\/:*simplechoice>/gmi, TOKEN);
 
     var choices = shuffle ? simpleChoicesArray.shuffle(fixedIndexes) : simpleChoicesArray;
-    wrapChoiceContents(choices);
-    if (insertLetters) insertAlphabetPrefixes(choices);
+    choices = wrapChoiceContents(choices);
+
+    if (insertLetters) {
+        choices = insertAlphabetPrefixes(choices);
+    }
 
     return contentsWithChoicesStripped.replace(TOKEN, choices.join("\n"));
   };
@@ -71,6 +77,15 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
    * shuffle the nodes if shuffle="true"
    */
   var compile = function (element, attrs, transclude) {
+
+    function wrapLabel(markup) {
+      var $markup = $('<div>' + markup + '</div>');
+      $('[simplechoice]', $markup).each(function(i, el) {
+        $(el).wrapInner('<div class="choice-label-container"></div>');
+      });
+      return $markup.html();
+    }
+
 
     var shuffle = attrs["shuffle"] === "true";
     var insertLetters = !(attrs["insertletters"] == "false");
@@ -85,6 +100,8 @@ angular.module('qti.directives').directive('choiceinteraction', function () {
       .replace(/<:*prompt>(.|[\r\n])*?<\/:*prompt>/gim, "")
       .replace(/<:*simpleChoice/gi, "<span simplechoice").replace(/<\/:*simpleChoice>/gi, "</span>")
       .replace(/<:*feedbackInline/gi, "<span feedbackinline").replace(/<\/:*feedbackInline>/gi, "</span>");
+
+    finalContents = wrapLabel(finalContents);
 
     var newNode = isHorizontal ?
       ('<div ng-class="{noResponse: noResponse}"><div class="choice-interaction">' + prompt + '<div class="choice-wrap">' + finalContents + '</div></div><div style="clear: both"></div></div>')
