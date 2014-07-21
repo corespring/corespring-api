@@ -1,0 +1,56 @@
+@(url: String)
+<html>
+    <head>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    </head>
+    <style>
+        .container {
+          display : flex ;
+        }
+        .column {
+          flex : 1 ;
+        }
+        textarea {
+            width: 90%;
+            height: 100%;
+        }
+    </style>
+    <body>
+
+        <button class="go">Go</button>
+
+        <div class="container">
+            <div class="column">
+                <div>qti :</div>
+                <textarea id="qti" ></textarea>
+                <button class="go">Go</button>
+            </div>
+            <div class="column">
+                <div>Result Xhtml:</div>
+                <textarea id="xml"></textarea>
+            </div>
+            <div class="column">
+                <div>Result Json:</div>
+                <textarea id="json"></textarea>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        $(document).ready(function() {
+          $(".go").click(function(event) {
+            var url = "@url";
+            $.ajax ({
+              url : url,
+              type : "POST",
+              data : $ ( "#qti" ).val ( ),
+              contentType : "text/plain; charset=utf-8",
+              success : function ( result ) {
+              $('#xml' ).val(result.xhtml);
+              $('#json' ).val(JSON.stringify(result.data, null, 2));
+            }});
+          });
+        });
+
+        </script>
+    </body>
+</html>
