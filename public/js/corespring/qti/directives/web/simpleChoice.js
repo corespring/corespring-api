@@ -17,6 +17,14 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
          */
         compile: function (tElement, tAttrs, transclude) {
 
+            function emptyCells(count) {
+                var markup = '';
+                for (var i = 0; i < count; i++) {
+                    markup += "<div class='empty-cell'/>";
+                }
+                return markup;
+            }
+
             var feedbackInlineRegex = /(<span.*?feedbackInline.*?<\/.*?>)/gi;
 
             /**
@@ -27,8 +35,7 @@ angular.module('qti.directives').directive('simplechoice', function (QtiUtils) {
             var createFeedbackContainerDiv = function (html, returnContainerIfEmpty) {
                 var feedbackNodes = html.match(feedbackInlineRegex);
 
-
-                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>";
+                var feedbackContainer = "<div class='feedback-container {{correctClass}}'>" + emptyCells(2);
                 if (!feedbackNodes) {
                     return returnContainerIfEmpty ? feedbackContainer + "</div>" : "";
                 }
