@@ -8,8 +8,6 @@ case class CorrectResponseOrdered(value: Seq[String]) extends CorrectResponse {
     value == responseList
   }
 
-  def isPartCorrect(responseValue: String) = isCorrect(responseValue)
-
   def isValueCorrect(v: String, index: Option[Int]) = {
     index match {
       case Some(i) => value.length > i && value(i) == v
