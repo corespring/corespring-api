@@ -5,6 +5,7 @@ import org.corespring.qti.models.interactions.{DragAndDropInteraction, SelectTex
 
 trait CorrectResponse {
   def isCorrect(responseValue: String): Boolean
+  def isPartOfCorrect(responseValue: String): Boolean = isCorrect(responseValue)
   def isValueCorrect(value: String, index: Option[Int]): Boolean
 }
 
