@@ -4,7 +4,7 @@ import org.specs2.execute.Failure
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsString, JsValue, JsArray, JsObject}
 
-import scala.xml.Node
+import scala.xml.{XML, Node}
 import scala.xml.transform.RuleTransformer
 
 class FeedbackBlockTransformerTest extends Specification {
@@ -178,7 +178,10 @@ class FeedbackBlockTransformerTest extends Specification {
     }
 
     "identifies correct feedback for <div class='feedback-block-correct'/>'" in {
-      def qti(response: String, feedback: String) =
+      val response = "a"
+      val feedback = "feedback<sup>html</sup>"
+
+      def qti(response: String, feedback: String) = XML.loadString(s"""
         <assessmentItem>
           <responseDeclaration identifier="Q_01" cardinality="single" baseType="string">
             <correctResponse>
@@ -186,15 +189,13 @@ class FeedbackBlockTransformerTest extends Specification {
             </correctResponse>
           </responseDeclaration>
           <itemBody>
-            <textEntryInteraction responseIdentifier="Q_01" expectedLength="15"/>
-            <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier={ response }>
-              <div class="feedback-block-correct">{ feedback }</div>
+            <textEntryInteraction responseIdentifier="Q_01" expectedLength="15"></textEntryInteraction>
+            <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier="$response">
+              <div class="feedback-block-correct">$feedback</div>
             </feedbackBlock>
           </itemBody>
         </assessmentItem>
-
-      val response = "a"
-      val feedback = "feedback"
+        """)
 
       val input = qti(response, feedback)
 

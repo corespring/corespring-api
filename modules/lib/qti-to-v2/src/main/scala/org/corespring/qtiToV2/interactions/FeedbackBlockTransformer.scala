@@ -12,11 +12,12 @@ case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
 }
 
-object FeedbackBlockTransformer extends Transformer {
+object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
 
   val defaultCorrectness = true
   val outcomeIdentifier = """responses\.(.+?)\.(.*)""".r
   val outcomeSpecificRegex = "outcome.(.*)".r
+  val DEFAULT_FEEDBACK = ""
 
   implicit class NodeWithFeedback(node: Node) {
     def isFeedbackFor(id: String) = (node \\ "@outcomeIdentifier").text match {
@@ -31,7 +32,9 @@ object FeedbackBlockTransformer extends Transformer {
   def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
     def feedbackToJson(feedbackBlock:Node) = {
       val input = (feedbackBlock \ "@identifier").text
-      val feedback = JsString(feedbackBlock.child.text.trim)
+      def nonEmptyNode(c:Node) = !c.text.trim.isEmpty
+      def formatNode(c:Node) = clearNamespace(c.child).mkString.trim
+      val feedback = JsString(feedbackBlock.child.filter(nonEmptyNode).headOption.map(formatNode).getOrElse(DEFAULT_FEEDBACK))
       input match {
         case "" => Json.obj("input" -> "*", "feedback" -> feedback)
         case _ => Json.obj("input" -> input, "feedback" -> feedback)
