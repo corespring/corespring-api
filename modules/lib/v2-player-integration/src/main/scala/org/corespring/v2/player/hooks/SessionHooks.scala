@@ -30,6 +30,12 @@ trait SessionHooks
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] =
+    Future(Left(NOT_FOUND -> "Not implemented"))
+
+  override def reset(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] =
+    Future(Left(NOT_FOUND -> "Not implemented"))
+
   override def loadEverything(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
     buildSession(id, (item, session) =>
       FullSession(Json.obj("item" -> item, "session" -> session), isSecure(header)))
@@ -71,7 +77,5 @@ trait SessionHooks
   private def isSecure(r: RequestHeader) = renderOptions(r).map {
     ro => ro.secure
   }.getOrElse(true)
-
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future(Left(NOT_FOUND -> "Not implemented"))
-
 }
+
