@@ -192,7 +192,7 @@ object QtiItem {
 
 case class ResponseDeclaration(identifier: String, cardinality: String, baseType: String, exactMatch: Boolean, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
 
-  val _correctResponse = exactMatch match {
+  val  _correctResponse = exactMatch match {
     case false => correctResponse match {
       case Some(cr) => Some(cr match {
         case CorrectResponseAny(value) => CorrectResponseAny(value.map(processInput(_)))
@@ -214,6 +214,11 @@ case class ResponseDeclaration(identifier: String, cardinality: String, baseType
 
   def isCorrect(responseValue: String): Correctness.Value = _correctResponse match {
     case Some(cr) => if (cr.isCorrect(processInput(responseValue))) Correctness.Correct else Correctness.Incorrect
+    case None => Correctness.Unknown
+  }
+
+  def isPartOfCorrect(responseValue: String): Correctness.Value = _correctResponse match {
+    case Some(cr) => if (cr.isPartOfCorrect(processInput(responseValue))) Correctness.Correct else Correctness.Incorrect
     case None => Correctness.Unknown
   }
 
