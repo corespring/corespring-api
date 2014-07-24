@@ -26,7 +26,7 @@ class LoadEditorTest
     "fail if I'm not authorized" in new unknownUser_editItemLoader() {
       status(result) === UNAUTHORIZED
       val err = generalError(WithRequestIdentitySequence.errorMessage, UNAUTHORIZED)
-      contentAsString(result) === org.corespring.container.client.views.html.error.main(err.statusCode, err.message).toString
+      contentAsString(result) === org.corespring.container.client.views.html.error.main(err.statusCode, err.message, false).toString
     }
 
     "work if authorized with an access token" in new token_editItemLoader() {

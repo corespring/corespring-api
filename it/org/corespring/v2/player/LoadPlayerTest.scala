@@ -24,6 +24,8 @@ class LoadPlayerTest
   import org.corespring.container.client.controllers.apps.BasePlayer
 
   class MockPlayer(sessionId: String) extends BasePlayer {
+
+    def showErrorInUi = false
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def hooks: PlayerHooks = new PlayerHooks {
