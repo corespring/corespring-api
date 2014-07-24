@@ -33,7 +33,7 @@ trait SessionHooks
   override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] =
     Future(Left(NOT_FOUND -> "Not implemented"))
 
-  override def loadEverything(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
+  override def loadItemAndSession(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
     buildSession(id, (item, session) =>
       FullSession(Json.obj("item" -> item, "session" -> session), isSecure(header)))
   }
