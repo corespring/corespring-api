@@ -44,10 +44,10 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
           Json.obj(
             "id" -> (n \ "@identifier").text,
             "content" -> n.child.map(clearNamespace).mkString)))),
-        "answerArea" -> ((node \ "answerArea") match {
+        "answerArea" -> ((node \\ "answerArea") match {
           case empty: Seq[Node] if empty.isEmpty => None
           case _ => Some(JsString(
-            new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
+            new RuleTransformer(AnswerAreaTransformer).transform((node \\ "answerArea").head)
               .head.child.map(clearNamespace).mkString))
         }),
         "config" -> Some(partialObj(
