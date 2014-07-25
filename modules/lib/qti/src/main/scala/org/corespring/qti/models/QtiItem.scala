@@ -176,16 +176,25 @@ object QtiItem {
 
   private def addCorrectResponseFeedback(qti: QtiItem, n: Node) {
     (n \ "correctResponseFeedback").headOption match {
-      case Some(correctResponseFeedback) => qti.defaultCorrect = correctResponseFeedback.child.text
+      case Some(correctResponseFeedback) => qti.defaultCorrect =
+        clearScope(correctResponseFeedback).child.flatten mkString
       case None =>
     }
   }
 
+
+
   private def addIncorrectResponseFeedback(qti: QtiItem, n: Node) {
     (n \ "incorrectResponseFeedback").headOption match {
-      case Some(incorrectResponseFeedback) => qti.defaultIncorrect = incorrectResponseFeedback.child.text
+      case Some(incorrectResponseFeedback) => qti.defaultIncorrect =
+        clearScope(incorrectResponseFeedback).child.flatten mkString
       case None =>
     }
+  }
+
+  private def clearScope(x: Node):Node = x match {
+    case e:Elem => e.copy(scope=TopScope, child = e.child.map(clearScope))
+    case o => o
   }
 
 }
