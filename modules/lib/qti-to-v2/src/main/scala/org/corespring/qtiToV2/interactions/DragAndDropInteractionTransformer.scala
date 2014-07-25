@@ -41,9 +41,12 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
         })),
       "model" -> partialObj(
         "choices" -> Some(JsArray((node \\ "draggableChoice").map(n =>
-          Json.obj(
-            "id" -> (n \ "@identifier").text,
-            "content" -> n.child.map(clearNamespace).mkString)))),
+          partialObj(
+            "id" -> Some(JsString((n \ "@identifier").text)),
+            "content" -> Some(JsString(n.child.map(clearNamespace).mkString)),
+            "moveOnDrag" -> (if ((n \ "@copyOnDrag").text == "true") Some(JsBoolean(true)) else None)
+          )
+        ))),
         "answerArea" -> ((node \\ "answerArea") match {
           case empty: Seq[Node] if empty.isEmpty => None
           case _ => Some(JsString(
