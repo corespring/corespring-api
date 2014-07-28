@@ -235,9 +235,62 @@ class QtiItemTest extends Specification {
     "find feedback blocks" in {
       QtiItem(feedbackXml).getFeedback("id", "3") must not beNone
     }
-
   }
 
+  "qti item " should {
+    val identifier = "Q_01"
+    val correctResponse = "correct answer"
+    val testXml =
+      <assessmentItem>
+
+        <correctResponseFeedback>Correct Answer <a href="http://www.google.com">Google</a></correctResponseFeedback>
+        <incorrectResponseFeedback>Correct Answer <a href="http://www.google.com"></a></incorrectResponseFeedback>
+
+        <responseDeclaration identifier='Q_01' cardinality='single' baseType='identifier'>
+          <correctResponse>
+            <value>ChoiceA</value>
+          </correctResponse>
+        </responseDeclaration>
+
+        <outcomeDeclaration identifier='SCORE' cardinality='single' baseType='integer'>
+          <defaultValue>
+            <value>0</value>
+          </defaultValue>
+        </outcomeDeclaration>
+
+        <itemBody>
+
+          <p class='intro-2'>INTRO HERE</p>
+
+          <div class='imagewrapper'>
+            <img src='IMAGE.png'/>
+          </div>
+
+          <choiceInteraction responseIdentifier='Q_01' shuffle='false' maxChoices='1'>
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier='ChoiceA'>ChoiceA text (Correct Choice)
+              <feedbackInline identifier='ChoiceA' defaultFeedback='true'/>
+            </simpleChoice>
+            <simpleChoice identifier='ChoiceB'>ChoiceB text
+              <feedbackInline identifier='ChoiceB' defaultFeedback='true'/>
+            </simpleChoice>
+            <simpleChoice identifier='ChoiceC'>ChoiceC text
+              <feedbackInline identifier='ChoiceC' defaultFeedback='true'/>
+            </simpleChoice>
+            <simpleChoice identifier='ChoiceD'>ChoiceD text
+              <feedbackInline identifier='ChoiceD' defaultFeedback='true'/>
+            </simpleChoice>
+          </choiceInteraction>
+        </itemBody>
+
+      </assessmentItem>
+
+    val qti = QtiItem(testXml)
+
+    "contain an anchor" in {
+      qti.defaultCorrect.toString must equalTo("Correct Answer <a target=\"_blank\" href=\"http://www.google.com\">Google</a>")
+    }
+  }
 }
 
 class ItemBodyTest extends Specification {

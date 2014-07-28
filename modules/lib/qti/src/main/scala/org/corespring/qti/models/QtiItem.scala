@@ -6,7 +6,7 @@ import scala.Some
 import scala.xml._
 import org.corespring.qti.models.responses.processing.ResponseProcessing
 
-case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline], responseProcessing: Option[ResponseProcessing] = None) {
+case class QtiItem(responseDeclarations: Seq[ResponseDeclaration], itemBody: ItemBody, modalFeedbacks: Seq[FeedbackInline], responseProcessing: Option[ResponseProcessing] = None){
   var defaultCorrect = "Correct!"
   var defaultIncorrect = "Your answer"
 
@@ -177,26 +177,38 @@ object QtiItem {
   private def addCorrectResponseFeedback(qti: QtiItem, n: Node) {
     (n \ "correctResponseFeedback").headOption match {
       case Some(correctResponseFeedback) => qti.defaultCorrect =
-        clearScope(correctResponseFeedback).child.flatten mkString
+        clearNamespaceAndTransform(correctResponseFeedback,Seq(addTargetToAnchor _)).child.flatten mkString
       case None =>
     }
   }
 
+  private def addTargetToAnchor(node:Node): Node = node match {
+    case node:Elem => node match {
+        case <a>{ n @ _* }</a> => node % new UnprefixedAttribute("target","_blank",Null)
+        case _ => node
+    }
+    case _ => node
+  }
 
+  private def clearNamespaceAndTransform(node: Node, transformations: Seq[Node => Node]): Node = {
+
+    val composedFuncs = transformations reduce (_ andThen _)
+
+    def traverse (node: Node): Node =  composedFuncs(node) match {
+      case elem:Elem => elem.copy(scope = TopScope, child = node.child.map(traverse))
+      case _ => node
+    }
+
+    traverse(node)
+  }
 
   private def addIncorrectResponseFeedback(qti: QtiItem, n: Node) {
     (n \ "incorrectResponseFeedback").headOption match {
       case Some(incorrectResponseFeedback) => qti.defaultIncorrect =
-        clearScope(incorrectResponseFeedback).child.flatten mkString
+        clearNamespaceAndTransform(incorrectResponseFeedback,Seq(addTargetToAnchor _)).child.flatten mkString
       case None =>
     }
   }
-
-  private def clearScope(x: Node):Node = x match {
-    case e:Elem => e.copy(scope=TopScope, child = e.child.map(clearScope))
-    case o => o
-  }
-
 }
 
 case class ResponseDeclaration(identifier: String, cardinality: String, baseType: String, exactMatch: Boolean, correctResponse: Option[CorrectResponse], mapping: Option[Mapping]) {
