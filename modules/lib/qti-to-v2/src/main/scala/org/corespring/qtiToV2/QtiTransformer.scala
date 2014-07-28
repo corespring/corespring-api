@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2
 
+import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.interactions._
 
 import scala.xml.transform.RuleTransformer

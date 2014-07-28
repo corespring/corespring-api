@@ -1,5 +1,7 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.common.xml.XMLNamespaceClearer
+
 import scala.Predef._
 import scala.xml._
 

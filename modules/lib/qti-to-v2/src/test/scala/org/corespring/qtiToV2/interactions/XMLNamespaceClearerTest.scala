@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.common.xml.XMLNamespaceClearer
 import org.specs2.mutable.Specification
 
 class XMLNamespaceClearerTest extends Specification with XMLNamespaceClearer {
