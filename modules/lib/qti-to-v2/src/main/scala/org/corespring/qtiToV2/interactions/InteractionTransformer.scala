@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.interactions
 import org.corespring.qti.models.QtiItem
 
 import scala.reflect.ClassTag
-import scala.xml.{NodeSeq, Node}
+import scala.xml.{XML, NodeSeq, Node}
 import scala.xml.transform.RewriteRule
 
 import play.api.libs.json._
@@ -61,7 +61,9 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
      * Prepends a <p/> with the prompt in it if present in the source XML
      */
     def withPrompt(node: Node): Seq[Node] = prompt(node) match {
-      case Some(prompt) => Seq(<p>{ prompt }</p>, interaction)
+      case Some(prompt) =>
+        val promptXml = XML.loadString(String.format("<p>%s</p>", prompt))
+        Seq(promptXml, interaction)
       case _ => interaction
     }
   }
