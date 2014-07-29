@@ -67,6 +67,7 @@ object PlayerOptions {
         } catch {
           case _ => None
         }
+        case _ => None
       }
 
       JsSuccess {

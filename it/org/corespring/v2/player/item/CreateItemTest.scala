@@ -3,6 +3,7 @@ package org.corespring.v2.player.item
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.User
+import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
@@ -38,7 +39,7 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
       u => secureSocialCookie(u)) {
       status(result) === BAD_REQUEST
       logger.debug(s"content: ${contentAsString(result)}")
-      (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString).message)
+      (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString, Permission.Write.name).message)
     }
 
     "should work for a auth request with json + collection id" in new createItem(false,
