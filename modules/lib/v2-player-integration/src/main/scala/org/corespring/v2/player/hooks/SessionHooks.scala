@@ -26,11 +26,14 @@ trait SessionHooks
 
   def transformItem: Item => JsValue
 
-  lazy val logger = V2LoggerFactory.getLogger("session.hooks")
+  lazy val logger = V2LoggerFactory.getLogger("SessionHooks")
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
-  override def loadEverything(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] =
+    Future(Left(NOT_FOUND -> "Not implemented"))
+
+  override def loadItemAndSession(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
     buildSession(id, (item, session) =>
       FullSession(Json.obj("item" -> item, "session" -> session), isSecure(header)))
   }
@@ -46,7 +49,6 @@ trait SessionHooks
   }
 
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
-
     logger.trace(s"save $id")
 
     val out = for {
@@ -71,7 +73,5 @@ trait SessionHooks
   private def isSecure(r: RequestHeader) = renderOptions(r).map {
     ro => ro.secure
   }.getOrElse(true)
-
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future(Left(NOT_FOUND -> "Not implemented"))
-
 }
+

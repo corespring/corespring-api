@@ -41,17 +41,16 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
         })),
       "model" -> partialObj(
         "choices" -> Some(JsArray((node \\ "draggableChoice").map(n =>
-          Json.obj(
-            "id" -> (n \ "@identifier").text,
-            "content" -> n.child.map(clearNamespace).mkString)))),
-        "prompt" -> ((node \ "prompt") match {
-          case seq: Seq[Node] if seq.isEmpty => None
-          case seq: Seq[Node] => Some(JsString(seq.head.child.map(clearNamespace).mkString))
-        }),
-        "answerArea" -> ((node \ "answerArea") match {
+          partialObj(
+            "id" -> Some(JsString((n \ "@identifier").text)),
+            "content" -> Some(JsString(n.child.map(clearNamespace).mkString)),
+            "moveOnDrag" -> (if ((n \ "@copyOnDrag").text == "true") Some(JsBoolean(true)) else None)
+          )
+        ))),
+        "answerArea" -> ((node \\ "answerArea") match {
           case empty: Seq[Node] if empty.isEmpty => None
           case _ => Some(JsString(
-            new RuleTransformer(AnswerAreaTransformer).transform((node \ "answerArea").head)
+            new RuleTransformer(AnswerAreaTransformer).transform((node \\ "answerArea").head)
               .head.child.map(clearNamespace).mkString))
         }),
         "config" -> Some(partialObj(
@@ -83,7 +82,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "dragAndDropInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-drag-and-drop id={ identifier }></corespring-drag-and-drop>
+      <corespring-drag-and-drop id={ identifier }></corespring-drag-and-drop>.withPrompt(node)
     }
     case _ => node
   }

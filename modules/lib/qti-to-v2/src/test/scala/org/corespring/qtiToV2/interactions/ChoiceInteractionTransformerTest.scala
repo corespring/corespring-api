@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 import scala.xml.transform.RuleTransformer
-import scala.xml.{ Elem, Node }
+import scala.xml.{XML, Elem, Node}
 
 class ChoiceInteractionTransformerTest extends Specification {
 
@@ -24,11 +24,14 @@ class ChoiceInteractionTransformerTest extends Specification {
       { correctResponse }
     </responseDeclaration>
 
-  def choiceInteraction =
+  def prompt = "ITEM <b>PROMPT</b>"
+
+  def choiceInteraction = XML.loadString(s"""
+
     <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
-      <prompt>ITEM PROMPT?</prompt>
+      <prompt>$prompt</prompt>
       <simpleChoice identifier="A">
-        { a }
+        $a
         <feedbackInline identifier="A" defaultFeedback="true"/>
       </simpleChoice>
       <simpleChoice identifier="B">
@@ -36,6 +39,7 @@ class ChoiceInteractionTransformerTest extends Specification {
         <feedbackInline identifier="B" defaultFeedback="true"/>
       </simpleChoice>
     </choiceInteraction>
+  """)
 
   def inlineInteraction =
     <inlineChoiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
@@ -71,10 +75,11 @@ class ChoiceInteractionTransformerTest extends Specification {
   "ChoiceInteractionTransformer" should {
 
     "transform choiceInteraction" in {
-
+      val out = new RuleTransformer(ChoiceInteractionTransformer).transform(singleChoice)
       val componentsJson = ChoiceInteractionTransformer.interactionJs(singleChoice)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
+      (out \\ "p").head.child.mkString === prompt
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
       (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === a.toString

@@ -3,11 +3,12 @@ package org.corespring.v2.player.hooks
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.{ItemTransformationCache, PlayItemTransformationCache, Item}
+import org.corespring.platform.core.models.item.{ ItemTransformationCache, PlayItemTransformationCache, Item }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.errors.Errors.{ cantParseItemId, errorSaving, generalError }
+import org.corespring.v2.log.V2LoggerFactory
 import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
@@ -29,9 +30,12 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
   def auth: SessionAuth
 
-  lazy val logger = LoggerFactory.getLogger("v2.integration.PlayerHooks")
+  lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
 
   override def loadItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+
+    logger.trace(s"loadItem - sessionId: $sessionId")
+
     val s = for {
       models <- auth.loadForRead(sessionId)
     } yield models
@@ -68,8 +72,12 @@ trait PlayerHooks extends ContainerPlayerHooks {
   }
 
   override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
+    logger.trace(s"loadPlayerForSession: sessionId")
     auth.loadForRead(sessionId) match {
-      case Failure(e) => Some(UNAUTHORIZED -> e.message)
+      case Failure(e) => {
+        logger.trace(s"loadPlayerForSession failed: $sessionId: Error: $e")
+        Some(UNAUTHORIZED -> e.message)
+      }
       case _ => None
     }
   }

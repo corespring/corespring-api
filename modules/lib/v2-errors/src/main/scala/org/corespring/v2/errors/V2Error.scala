@@ -32,6 +32,8 @@ private[v2] object Errors {
 
   case class noClientIdAndOptionsInSession(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in session")
 
+  case class invalidQueryStringParameter(badName: String, expectedName: String) extends V2Error(s"Bad query string parameter name: $badName - you should be using $expectedName")
+
   case class noClientIdAndOptionsInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in queryString")
 
   case class noToken(rh: RequestHeader) extends identificationFailed(rh, "No access token")

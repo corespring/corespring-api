@@ -10,7 +10,7 @@ case class CorrectResponseMultiple(value: Seq[String]) extends CorrectResponse {
     value.sortWith(_ < _) == responseList.sortWith(_ < _)
   }
 
-  def isPartOfCorrect(responseValue: String): Boolean = {
+  override def isPartOfCorrect(responseValue: String): Boolean = {
     val responseList = responseValue.split(",").toList
     responseList.foldLeft(true)((acc, r) => acc && value.contains(r))
   }

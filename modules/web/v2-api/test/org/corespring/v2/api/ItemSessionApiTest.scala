@@ -12,19 +12,19 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.RequestHeader
+import play.api.mvc.{Request, Action, SimpleResult, RequestHeader}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito {
 
   class apiScope(
-    val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-    val maybeSessionId: Option[ObjectId] = None,
-    val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
+                  val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
+                  val maybeSessionId: Option[ObjectId] = None,
+                  val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
       override def sessionAuth: SessionAuth = {
@@ -53,13 +53,13 @@ class ItemSessionApiTest extends Specification with Mockito {
 
     "when calling create" should {
       "fail when auth fails" in new apiScope() {
-        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", ""))
+        val result = api.create(VersionedId(ObjectId.get))(FakeRequest().withBody(Some()))
         status(result) === BAD_REQUEST
         contentAsJson(result) === Json.obj("errorType" -> "generalError", "message" -> "no")
       }
 
       "fail when service fails" in new apiScope(Success(true)) {
-        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", ""))
+        val result = api.create(VersionedId(ObjectId.get))(FakeRequest().withBody(Some()))
         status(result) === BAD_REQUEST
         (contentAsJson(result) \ "errorType").as[String] === "errorSaving"
       }
@@ -67,7 +67,16 @@ class ItemSessionApiTest extends Specification with Mockito {
       "work" in new apiScope(
         Success(true),
         Some(ObjectId.get)) {
-        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", ""))
+        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "").withBody(Some()))
+        status(result) === OK
+        contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
+      }
+
+      "work with json header, but no body" in new apiScope(
+        Success(true),
+        Some(ObjectId.get)) {
+        val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "")
+          .withHeaders(("Content-Type", "application/json")).withBody(None))
         status(result) === OK
         contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
       }

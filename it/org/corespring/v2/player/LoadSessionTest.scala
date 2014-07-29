@@ -40,7 +40,7 @@ class LoadSessionTest extends IntegrationSpecification {
     import org.corespring.container.client.controllers.resources.routes.Session
 
     lazy val result = {
-      val call = Session.loadEverything(sessionId.toString)
+      val call = Session.loadItemAndSession(sessionId.toString)
       val request = makeRequest(call)
       logger.trace(s"load session make request: ${request.uri}")
       implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)

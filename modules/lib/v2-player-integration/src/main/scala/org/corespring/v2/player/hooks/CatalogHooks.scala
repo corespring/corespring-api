@@ -4,6 +4,7 @@ import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogH
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.JsValue
@@ -19,7 +20,7 @@ trait CatalogHooks extends ContainerCatalogHooks {
 
   def transform: Item => JsValue
 
-  private lazy val logger = Logger("v2player.catalog.client.actions")
+  private lazy val logger = V2LoggerFactory.getLogger("Catalog")
 
   private def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     val result: Validation[String, Item] = for {

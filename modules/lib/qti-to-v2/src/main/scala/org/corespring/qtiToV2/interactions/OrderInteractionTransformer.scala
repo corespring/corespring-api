@@ -8,35 +8,60 @@ object OrderInteractionTransformer extends InteractionTransformer {
   override def interactionJs(qti: Node) = (qti \\ "orderInteraction").map(implicit node => {
     val responses = (responseDeclaration(node, qti) \ "correctResponse" \\ "value").map(_.text)
     val identifier = (node \ "@responseIdentifier").text
+    val prompt = ((node \ "prompt") match {
+      case seq: Seq[Node] if seq.isEmpty => ""
+      case seq: Seq[Node] => seq.head.child.mkString
+    })
 
-    identifier -> Json.obj(
-      "componentType" -> "corespring-ordering",
-      "correctResponse" -> responses,
-      "model" ->
-        Json.obj(
-          "prompt" -> ((node \ "prompt") match {
-            case seq: Seq[Node] if seq.isEmpty => ""
-            case seq: Seq[Node] => seq.head.child.mkString
-          }),
-          "config" -> Json.obj(
-            "shuffle" -> JsBoolean((node \\ "@shuffle").text == "true")),
-          "choices" -> (node \\ "simpleChoice")
-            .map(choice =>Json.obj(
-                "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
-                "value" -> (choice \ "@identifier").text,
-                "content" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
-                "id" -> (choice \ "@identifier").text)),
-          "correctResponse" -> responses,
-          "feedback" -> feedback(node, qti))
-        )
+    identifier -> partialObj(
+      "componentType" ->
+        Some(JsString(if (isPlacementOrdering(node)) "corespring-placement-ordering" else "corespring-ordering")),
+      "correctResponse" -> Some(JsArray(responses.map(JsString(_)))),
+      "feedback" -> (
+        if (isPlacementOrdering(node)) Some(Json.obj(
+          "correctFeedbackType" -> "default",
+          "partialFeedbackType" -> "default",
+          "incorrectFeedbackType" -> "default"
+        ))
+        else None
+      ),
+      "model" -> Some(partialObj(
+        "config" -> Some(partialObj(
+          "shuffle" -> Some(JsBoolean((node \\ "@shuffle").text == "true")),
+          "choiceAreaLayout" -> (
+            if (isPlacementOrdering(node) && (node \\ "@orientation").text.equalsIgnoreCase("horizontal"))
+              Some(JsString("horizontal"))
+            else Some(JsString("vertical"))
+           ),
+          "answerAreaLabel" -> (
+            if (isPlacementOrdering(node)) Some(JsString("Place answers here")) else None
+           )
+        )),
+        "choices" -> Some(JsArray((node \\ "simpleChoice")
+          .map(choice => Json.obj(
+            "label" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
+            "value" -> (choice \ "@identifier").text,
+            "content" -> choice.child.filter(_.label != "feedbackInline").mkString.trim,
+            "id" -> (choice \ "@identifier").text,
+            "moveOnDrag" -> true)
+          ))),
+        "correctResponse" -> Some(JsArray(responses.map(JsString(_)))),
+        "feedback" -> (if (isPlacementOrdering(node)) None else Some(feedback(node, qti)))
+      ))
+    )
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "orderInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      <corespring-ordering id={ identifier }></corespring-ordering>
+      isPlacementOrdering(node) match {
+        case true => <corespring-placement-ordering id={ identifier }></corespring-placement-ordering>.withPrompt(node)
+        case _ => <corespring-ordering id={ identifier }></corespring-ordering>.withPrompt(node)
+      }
     }
     case _ => node
   }
+
+  private def isPlacementOrdering(node: Node) = (node \ "@csOrderingType").text.equalsIgnoreCase("placement")
 
 }

@@ -43,7 +43,7 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrg
       tf(rh)
     }
 
-    out.find(_.isSuccess).getOrElse {
+    val result: Validation[V2Error, B] = identifiers.map(_(rh)).find(_.isSuccess).getOrElse {
       logger.trace(s"identify result: ${out.mkString(",")}")
 
       Failure(
@@ -52,6 +52,10 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] with HeaderAsOrg
           out.filter(_.isFailure).map(_.toEither).map(_.left.get),
           UNAUTHORIZED))
     }
+
+    logger.trace(s"identification result $result")
+
+    result
   }
 }
 

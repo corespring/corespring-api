@@ -1,9 +1,10 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qti.models.QtiItem
 
 import scala.reflect.ClassTag
-import scala.xml.Node
+import scala.xml.{XML, NodeSeq, Node}
 import scala.xml.transform.RewriteRule
 
 import play.api.libs.json._
@@ -49,6 +50,25 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
     }.flatten.distinct
     JsArray(feedbackObjects)
   }
+
+  implicit class AddPrompt(interaction: Node) {
+
+    private def prompt(node: Node): Option[String] = (node \ "prompt") match {
+      case seq: NodeSeq if seq.nonEmpty => Some(seq.head.child.map(clearNamespace).mkString)
+      case _ => None
+    }
+
+    /**
+     * Prepends a <p/> with the prompt in it if present in the source XML
+     */
+    def withPrompt(node: Node): Seq[Node] = prompt(node) match {
+      case Some(prompt) =>
+        val promptXml = XML.loadString(String.format("<p>%s</p>", prompt))
+        Seq(promptXml, interaction)
+      case _ => interaction
+    }
+  }
+
 
   /**
    * Returns an Option of JsValue subtype T for an attribute of the implicit node. For example:

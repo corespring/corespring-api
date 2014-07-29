@@ -15,6 +15,7 @@
     <logger name="play" level="DEBUG" />
     <logger name="application" level="DEBUG" />
     <logger name="org.corespring.v2" level="TRACE" />
+    <logger name="container" level="TRACE" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

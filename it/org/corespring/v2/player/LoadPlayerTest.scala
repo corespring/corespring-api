@@ -21,9 +21,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 class LoadPlayerTest
   extends IntegrationSpecification with Mockito {
 
-  import org.corespring.container.client.controllers.apps.Player
+  import org.corespring.container.client.controllers.apps.BasePlayer
 
-  class MockPlayer(sessionId: String) extends Player {
+  class MockPlayer(sessionId: String) extends BasePlayer {
+
+    def showErrorInUi = false
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def hooks: PlayerHooks = new PlayerHooks {
@@ -86,7 +88,7 @@ class LoadPlayerTest
     protected def global: GlobalSettings = Play.current.global
 
     lazy val createSessionResult: Future[SimpleResult] = {
-      val player = global.getControllerInstance(classOf[Player])
+      val player = global.getControllerInstance(classOf[BasePlayer])
       val createSession = player.createSessionForItem(itemId.toString)
       val request = makeRequest(Call("", ""))
       createSession(request)

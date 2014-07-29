@@ -15,7 +15,7 @@ case class FeedbackInline(csFeedbackId: String,
   def defaultContent(qtiItem: QtiItem): String =
     qtiItem.responseDeclarations.find(_.identifier == outcomeIdentifier) match {
       case Some(rd) =>
-        rd.isCorrect(identifier) match {
+        rd.isPartOfCorrect(identifier) match {
           case Correctness.Correct => qtiItem.defaultCorrect
           case Correctness.Incorrect => qtiItem.defaultIncorrect
           case _ => ""

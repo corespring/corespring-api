@@ -1,6 +1,6 @@
-package org.corespring.qtiToV2.interactions
+package org.corespring.common.xml
 
-import scala.xml.{ Elem, Node, TopScope }
+import scala.xml.{Elem, Node, TopScope}
 
 trait XMLNamespaceClearer {
 

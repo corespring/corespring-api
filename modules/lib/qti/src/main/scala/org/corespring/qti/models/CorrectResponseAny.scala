@@ -5,6 +5,7 @@ import scala.xml.Node
 case class CorrectResponseAny(value: Seq[String]) extends CorrectResponse {
 
   def isCorrect(responseValue: String) = value.find(_ == responseValue).isDefined
+
   def isValueCorrect(v: String, index: Option[Int]) = value.contains(v)
 
 }
