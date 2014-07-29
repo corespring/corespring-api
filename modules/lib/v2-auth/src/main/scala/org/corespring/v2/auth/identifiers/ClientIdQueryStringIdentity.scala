@@ -80,9 +80,6 @@ trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[
     }
   }.getOrElse {
     logger.trace(s"queryString -> ${rh.queryString}")
-    val d = decrypt(rh.queryString.get(Keys.options).map(_.head).get, orgId, rh)
-    logger.trace(s"d -> $d")
-    logger.trace(s"parsed -> ${Json.parse(d.get).asOpt[PlayerOptions]}")
     logger.warn(s"restricting player option access for $orgId")
     PlayerOptions.NOTHING
   }
