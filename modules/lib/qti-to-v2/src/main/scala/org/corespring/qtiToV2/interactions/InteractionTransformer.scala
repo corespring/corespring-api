@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qti.models.QtiItem
 
 import scala.reflect.ClassTag
