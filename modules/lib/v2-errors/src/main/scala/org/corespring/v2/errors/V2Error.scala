@@ -64,7 +64,7 @@ private[v2] object Errors {
 
   case class invalidCollectionId(collectionId: String, itemId: VersionedId[ObjectId]) extends V2Error(s"invalid collectionId in item $collectionId in item ${itemId}")
 
-  case class orgCantAccessCollection(orgId: ObjectId, collectionId: String) extends V2Error(s"The org: $orgId can't access collection: $collectionId")
+  case class orgCantAccessCollection(orgId: ObjectId, collectionId: String, accessType: String) extends V2Error(s"The org: $orgId can't access ($accessType) collection: $collectionId")
 
   case object default extends V2Error("Failed to grant access")
 
