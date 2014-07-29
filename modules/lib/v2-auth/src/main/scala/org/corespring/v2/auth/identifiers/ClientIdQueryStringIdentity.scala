@@ -56,20 +56,36 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
 
 trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[(ObjectId, PlayerOptions)] {
 
+  override lazy val logger = V2LoggerFactory.getLogger("auth", "ClientIdQueryStringWithDecrypt")
+
   def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String]
 
   def toPlayerOptions(orgId: ObjectId, rh: RequestHeader): PlayerOptions = {
+
     for {
       optsString <- rh.queryString.get(Keys.options).map(_.head)
       decrypted <- decrypt(optsString, orgId, rh)
       json <- try {
         Some(Json.parse(decrypted))
       } catch {
-        case _: Throwable => None
+        case _: Throwable => {
+          logger.error(s"Error parsing decrypted options: $decrypted")
+          None
+        }
       }
       playerOptions <- json.asOpt[PlayerOptions]
-    } yield playerOptions
-  }.getOrElse(PlayerOptions.NOTHING)
+    } yield {
+      logger.trace(s"decrypted: $decrypted")
+      playerOptions
+    }
+  }.getOrElse {
+    logger.trace(s"queryString -> ${rh.queryString}")
+    val d = decrypt(rh.queryString.get(Keys.options).map(_.head).get, orgId, rh)
+    logger.trace(s"d -> $d")
+    logger.trace(s"parsed -> ${Json.parse(d.get).asOpt[PlayerOptions]}")
+    logger.warn(s"restricting player option access for $orgId")
+    PlayerOptions.NOTHING
+  }
 
   override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> toPlayerOptions(org.id, rh))
 

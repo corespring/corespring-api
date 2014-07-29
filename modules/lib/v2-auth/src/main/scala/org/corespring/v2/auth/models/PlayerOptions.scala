@@ -40,6 +40,44 @@ object PlayerOptions {
     }
   }
 
-  implicit val optionsFormat = Json.format[PlayerOptions]
+  implicit val optionsFormat = new Format[PlayerOptions] {
+    override def writes(o: PlayerOptions): JsValue = {
+
+      JsObject(
+        Seq(
+          Some("itemId" -> JsString(o.itemId)),
+          o.sessionId.map {
+            "sessionId" -> JsString(_)
+          },
+          Some("secure" -> JsBoolean(o.secure)),
+          o.expires.map {
+            "expires" -> JsNumber(_)
+          },
+          o.mode.map {
+            "mode" -> JsString(_)
+          }).flatten)
+    }
+
+    override def reads(json: JsValue): JsResult[PlayerOptions] = {
+
+      val expires: Option[Long] = (json \ "expires") match {
+        case JsNumber(n) => Some(n.toLong)
+        case JsString(s) => try {
+          Some(s.toLong)
+        } catch {
+          case _ => None
+        }
+      }
+
+      JsSuccess {
+        PlayerOptions(
+          (json \ "itemId").asOpt[String].getOrElse("____"),
+          (json \ "sessionId").asOpt[String],
+          (json \ "secure").asOpt[Boolean].getOrElse(true),
+          expires,
+          (json \ "mode").asOpt[String])
+      }
+    }
+  }
 }
 
