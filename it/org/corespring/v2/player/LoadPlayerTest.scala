@@ -59,18 +59,23 @@ class LoadPlayerTest
       status(createSessionResult) === UNAUTHORIZED
     }
 
+    def locationNoQueryParams(of: Future[SimpleResult]): String = {
+      headers(of).get(LOCATION).map(l =>
+        if (l.indexOf("?") == -1) l else l.split("\\?")(0)).getOrElse(throw new RuntimeException("no location in header"))
+    }
+
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === SEE_OTHER
       val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
-      headers(createSessionResult) === headers(mockResult)
+      locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
     "create session for access token" in new token_CreateSession() {
       status(createSessionResult) === SEE_OTHER
       val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
-      headers(createSessionResult) === headers(mockResult)
+      locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
     "fail - create session for client id + options query string" in new clientIdAndOpts_queryString_CreateSession("Let me in") {
@@ -81,7 +86,7 @@ class LoadPlayerTest
       status(createSessionResult) === SEE_OTHER
       val mockResult = getMockResult(itemId)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
-      headers(createSessionResult) === headers(mockResult)
+      locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
   }
 
