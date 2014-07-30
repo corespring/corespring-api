@@ -36,6 +36,8 @@ class LoadPlayerTest
       }
 
       override def loadItem(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+
+      override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]
