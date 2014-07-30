@@ -82,5 +82,17 @@ trait PlayerHooks extends ContainerPlayerHooks {
     }
   }
 
+  override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+    logger.trace(s"loadSessionAndItem: $sessionId")
+
+    val o = for {
+      models <- auth.loadForRead(sessionId)
+    } yield models
+
+    o.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
+      val (session, item) = models
+      (session, itemTransformer.transformToV2Json(item))
+    }.toEither
+  }
 }
 
