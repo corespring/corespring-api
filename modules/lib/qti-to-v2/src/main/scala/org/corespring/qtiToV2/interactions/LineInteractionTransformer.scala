@@ -7,6 +7,7 @@ import play.api.libs.json._
 object LineInteractionTransformer extends InteractionTransformer {
 
   override def interactionJs(qti: Node) = (qti \\ "lineInteraction").map(implicit node => {
+    val exhibit = booleanFor("locked", default = false)
     (node \\ "@responseIdentifier").text ->
       Json.obj(
         "componentType" -> "corespring-line",
@@ -24,9 +25,13 @@ object LineInteractionTransformer extends InteractionTransformer {
               case empty: Seq[Node] if empty.isEmpty => None
               case nodes: Seq[Node] => Some(JsArray(nodes.map(n => JsString(n.text))))
             }),
-            "exhibitOnly" -> Some(JsBoolean(false)),
-            "showInputs" -> booleanFor("show-inputs"),
-            "showLabels" -> booleanFor("show-labels"))))
+            "initialCurve" -> ((node \ "graphcurve").text match {
+              case curve: String if curve.nonEmpty => Some(JsString(curve))
+              case _ => None
+            }),
+            "exhibitOnly" -> Some(JsBoolean(exhibit)),
+            "showInputs" -> Some(JsBoolean(booleanFor("show-inputs") && !exhibit)),
+            "showLabels" -> Some(JsBoolean(booleanFor("show-labels") && !exhibit)))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
@@ -38,10 +43,10 @@ object LineInteractionTransformer extends InteractionTransformer {
   }
 
   private def booleanFor(attribute: String, default: Boolean = true)(implicit node: Node) =
-    Some(JsBoolean(((node \\ s"@$attribute").text) match {
+    ((node \\ s"@$attribute").text) match {
       case "true" => true
       case "false" => false
       case _ => default
-    }))
+    }
 
 }
