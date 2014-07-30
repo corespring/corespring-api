@@ -25,7 +25,8 @@ object LineInteractionTransformer extends InteractionTransformer {
               case nodes: Seq[Node] => Some(JsArray(nodes.map(n => JsString(n.text))))
             }),
             "exhibitOnly" -> Some(JsBoolean(false)),
-            "showInputs" -> Some(JsBoolean(true)))))
+            "showInputs" -> booleanFor("show-inputs"),
+            "showLabels" -> booleanFor("show-labels"))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
@@ -35,5 +36,12 @@ object LineInteractionTransformer extends InteractionTransformer {
     }
     case _ => node
   }
+
+  private def booleanFor(attribute: String, default: Boolean = true)(implicit node: Node) =
+    Some(JsBoolean(((node \\ s"@$attribute").text) match {
+      case "true" => true
+      case "false" => false
+      case _ => default
+    }))
 
 }
