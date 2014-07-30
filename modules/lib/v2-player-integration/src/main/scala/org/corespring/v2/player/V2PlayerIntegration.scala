@@ -1,16 +1,20 @@
 package org.corespring.v2.player
 
+import java.io.File
+
 import scala.concurrent.ExecutionContext
 
 import com.mongodb.casbah.MongoDB
+import com.typesafe.config.ConfigFactory
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
 import org.corespring.common.encryption.{ AESCrypto, NullCrypto }
-import org.corespring.container.client.component._
-import org.corespring.container.client.controllers.Assets
+import org.corespring.container.client.CompressedAndMinifiedComponentSets
+import org.corespring.container.client.controllers.{ Assets, ComponentSets }
 import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
+import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
@@ -24,14 +28,12 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.{ Mode, PlayerOptions }
-import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.errors.Errors.permissionNotGranted
 import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
-import org.corespring.v2.player.urls.ComponentSetsWired
 import play.api.{ Configuration, Logger, Mode => PlayMode, Play }
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
@@ -179,8 +181,44 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val playS3 = new ConcreteS3Service(key, secret)
 
-  override def componentUrls: ComponentUrls = new ComponentSetsWired {
+  override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
+
+    import Play.current
+
     override def allComponents: Seq[Component] = V2PlayerIntegration.this.components
+
+    override def configuration = {
+      val rc = V2PlayerIntegration.this.configuration
+      val c = ConfigFactory.parseString(
+        s"""
+             |minify: ${rc.getBoolean("components.minify").getOrElse(Play.mode == PlayMode.Prod)}
+             |gzip: ${rc.getBoolean("components.gzip").getOrElse(Play.mode == PlayMode.Prod)}
+           """.stripMargin)
+
+      new Configuration(c)
+    }
+
+    override def dependencyResolver: DependencyResolver = new DependencyResolver {
+      override def components: Seq[Component] = V2PlayerIntegration.this.components
+    }
+
+    override def resource(path: String): Option[String] = Play.resource(s"container-client/bower_components/$path").map { url =>
+      logger.trace(s"load resource $path")
+      scala.io.Source.fromInputStream(url.openStream())(scala.io.Codec.UTF8).getLines().mkString("\n")
+    }
+
+    override def loadLibrarySource(path: String): Option[String] = {
+      val componentsPath = V2PlayerIntegration.this.configuration.getString("components.path").getOrElse("?")
+      val fullPath = s"$componentsPath/$path"
+      val file = new File(fullPath)
+
+      if (file.exists()) {
+        logger.trace(s"load file: $path")
+        Some(scala.io.Source.fromFile(file)(scala.io.Codec.UTF8).getLines().mkString("\n"))
+      } else {
+        Some(s"console.warn('failed to log $fullPath');")
+      }
+    }
   }
 
   override def assets: Assets = new apiControllers.Assets {
