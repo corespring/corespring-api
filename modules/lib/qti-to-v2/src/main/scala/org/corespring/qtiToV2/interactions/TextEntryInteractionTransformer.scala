@@ -26,40 +26,32 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
     (node \ "@responseIdentifier").text -> partialObj(
       "weight" -> Some(JsNumber(1)),
-      "componentType" -> Option(isEquation(node, qti) match {
+      "componentType" -> Some(isEquation(node, qti) match {
         case true => JsString("corespring-function-entry")
         case _ => JsString("corespring-text-entry")
       }),
       "model" -> Some(Json.obj(
         "answerBlankSize" -> answerBlankSize,
-        "answerAlignment" -> "left"
-      )),
-      "correctResponses" -> Some(Json.obj(
-        "award" -> 100,
-        "values" -> (correctResponses.size match {
-          case 0 => equationConfig(responseDeclarationNode) match {
-            case Some(config) => config
-            case None => Json.arr()
-          }
-          case 1 => isEquation(node, qti) match {
-            case true => equationConfig(responseDeclarationNode).getOrElse(Json.obj()) + ("equation" -> JsString(correctResponses.head))
-            case _ => JsString(correctResponses.head)
-          }
-          case _ => JsArray(correctResponses.map(JsString(_)).toSeq)
-        }),
-        "ignoreWhitespace" -> true,
-        "ignoreCase" -> true,
-        "feedback" -> Json.obj(
-          "type" -> "default"
-        )
-      )),
+        "answerAlignment" -> "left")),
+      "feedback" -> Some(Json.obj(
+        "correctFeedbackType" -> JsString("default"),
+        "incorrectFeedbackType" -> JsString("default"))),
+      isEquation(node, qti) match {
+        case true => "correctResponse" -> Some(Json.obj(
+          "equation" -> JsString(correctResponses.head)
+        ) ++ equationConfig(responseDeclarationNode).getOrElse(Json.obj()))
+        case _ => "correctResponses" -> Some(Json.obj(
+          "award" -> 100,
+          "values" -> JsArray(correctResponses.map(JsString(_)).toSeq),
+          "ignoreWhitespace" -> true,
+          "ignoreCase" -> true,
+          "feedback" -> Json.obj(
+            "type" -> "default")))
+      },
       "incorrectResponses" -> Some(Json.obj(
         "award" -> 0,
         "feedback" -> Json.obj(
-          "type" -> "default"
-        )
-      ))
-    )
+          "type" -> "default"))))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
