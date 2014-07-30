@@ -17,9 +17,12 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
   val equationRegex = "eqn[:]?(.*)?".r
 
+  val DefaultAnswerBlankSize: Int = 5
+
   override def interactionJs(qti: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
     val responseDeclarationNode = responseDeclaration(node, qti)
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
+    val answerBlankSize: Int = (node \ "@expectedLength").text.toIntOption.getOrElse(DefaultAnswerBlankSize)
 
     (node \ "@responseIdentifier").text -> partialObj(
       "weight" -> Some(JsNumber(1)),
@@ -28,7 +31,7 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
         case _ => JsString("corespring-text-entry")
       }),
       "model" -> Some(Json.obj(
-        "answerBlankSize" -> 8,
+        "answerBlankSize" -> answerBlankSize,
         "answerAlignment" -> "left"
       )),
       "correctResponses" -> Some(Json.obj(
@@ -97,6 +100,17 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
         Some(JsObject(values))
       }
       case _ => None
+    }
+  }
+
+  implicit class StringWithIntOption(string: String) {
+    // Tries to convert a String to an Integer. Returns Some[Int] if successful, None otherwise.
+    def toIntOption: Option[Int] = {
+      try {
+        Some(string.toInt)
+      } catch {
+        case e: Exception => None
+      }
     }
   }
 
