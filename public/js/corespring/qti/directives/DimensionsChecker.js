@@ -1,38 +1,53 @@
-angular.module('qti.directives').directive('dimensionsChecker', function(){
+angular.module('qti.directives').directive('dimensionsChecker', function() {
 
   return {
 
-    link: function($scope, $element){
+    link: function($scope, $element) {
 
       var $body = $element.find('body');
 
       var lastW = null;
       var lastH = null;
 
-      var different = function(w,h){
-        if(!lastW || !lastH){
+      function different(w, h) {
+        if (!lastW || !lastH) {
           return true;
         }
         return lastW !== w || lastH !== h;
-      };
+      }
 
-      var getParent = function(){ return (parent && parent != window) ? parent : null; };
+      function getParent() {
+        return (parent && parent != window) ? parent : null;
+      }
 
-      var dispatchDimensions = function(){
+      function postMessage(msg) {
+        if (getParent() && getParent().postMessage) {
+          getParent().postMessage(JSON.stringify(msg), "*");
+          return true;
+        }
+        return false;
+      }
+
+      function dimensionsUpdate(w, h) {
+        return {
+          message: 'dimensionsUpdate',
+          w: w,
+          h: h
+        }
+      }
+
+      function dispatchDimensions() {
         var b = $body[0];
         if (!b) return;
 
         var w = b.clientWidth;
         var h = b.clientHeight;
 
-        if(different(w,h)){
+        if (different(w, h) && postMessage(dimensionsUpdate(w, h))) {
           lastW = w;
           lastH = h;
-          var msg = {message:'dimensionsUpdate', w: w, h: h};
-          if (getParent() && getParent().postMessage)
-            getParent().postMessage(JSON.stringify(msg), "*");
         }
-      };
+      }
 
       setInterval(dispatchDimensions, 400);
       dispatchDimensions();

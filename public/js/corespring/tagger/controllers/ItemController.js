@@ -67,7 +67,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     new com.corespring.players.ItemPlayer("#item-preview-target", {
       mode : "preview",
       itemId : $scope.itemData.id,
-      height: "100%",
       omitSubmitButton: false
       }
     );
