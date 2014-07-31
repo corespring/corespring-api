@@ -143,7 +143,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     try {
       getItemXMLByObjectId(params.itemId, orgId) match {
         case Some(xmlData: Elem) => {
-          val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
+          val qtiKeys = QtiKeys((xmlData)(0))
           val finalXml = prepareQti(xmlData, params.renderingMode)
           val playerParams = params.toPlayerParams(finalXml, qtiKeys)
           Some(params.templateFn(playerParams))

@@ -24,7 +24,7 @@ var feedbackDirectiveFunction = function (QtiUtils) {
                 if(!responses || !scope.isFeedbackEnabled()) return;
 
                 var feedback = scope.itemSession.sessionData.feedbackContents[csFeedbackId];
-                scope.feedback = ( feedback || "" );
+                scope.feedback = ( feedback || "" ).replace(/<tex.*?>/, "\\(").replace(/<\/tex>/, "\\)");
 
               setTimeout(function () {
                 if (typeof(MathJax) != "undefined") {
