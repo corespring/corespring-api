@@ -11,11 +11,11 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.RequestedAccess
-import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams, ExceptionMessage}
+import org.corespring.player.v1.views.models.{ QtiKeys, PlayerParams, ExceptionMessage }
 import org.corespring.qti.models.RenderingMode._
 import org.corespring.web.common.controllers.deployment.{ AssetsLoader, AssetsLoaderImpl }
 import org.xml.sax.SAXParseException
-import play.api.mvc.{SimpleResult, Action}
+import play.api.mvc.{ SimpleResult, Action }
 import play.api.templates.Html
 import scala.Some
 import scala.concurrent.Future
@@ -38,7 +38,7 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
     renderItem(p)
   }
 
-  def render(sessionId: ObjectId, role:String) = {
+  def render(sessionId: ObjectId, role: String) = {
     DefaultItemSession.get(sessionId)(false) match {
       case Some(session) => {
         val p = RenderParams(itemId = session.itemId, sessionId = Some(sessionId), sessionMode = RequestedAccess.Mode.Render, role = role)
@@ -131,12 +131,13 @@ class Views(auth: TokenizedRequestActionBuilder[RequestedAccess], val itemServic
   }
 
   protected def renderItem(params: RenderParams) = auth.ValidatedAction(params.toRequestedAccess) {
-    tokenRequest => ApiAction { implicit request =>
-      prepareHtml(params, request.ctx.organization) match {
-        case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
-        case None => NotFound("not found")
-      }
-    }(tokenRequest)
+    tokenRequest =>
+      ApiAction { implicit request =>
+        prepareHtml(params, request.ctx.organization) match {
+          case Some(html: Html) => Ok(html).withSession(request.session + activeModeCookie(params.sessionMode))
+          case None => NotFound("not found")
+        }
+      }(tokenRequest)
   }
 
   protected def prepareHtml(params: RenderParams, orgId: ObjectId): Option[Html] =
