@@ -1,15 +1,15 @@
 package org.corespring.v2.api
 
+import scala.concurrent.Future
+
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.slf4j.LoggerFactory
+import org.corespring.v2.errors.Errors._
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json._
 import play.api.mvc.{ Action, AnyContent, Request, RequestHeader }
-
-import scala.concurrent.Future
 import scalaz.{ Failure, Success, Validation }
 
 trait ItemApi extends V2Api {
@@ -25,12 +25,19 @@ trait ItemApi extends V2Api {
    */
   def defaultCollection(implicit header: RequestHeader): Option[String]
 
-  protected lazy val logger = LoggerFactory.getLogger("v2Api.ItemApi")
+  protected lazy val logger = V2LoggerFactory.getLogger("v2Api.ItemApi")
 
   /**
-   * POST no content type + empty body ==> need header
-   * POST content type json + empty body ==> bad request / invalid json
-   * POST content type json + {} ==> new item
+   * Create an Item. Will set the collectionId to the default id for the
+   * requestor's Organization.
+   *
+   * ## Authentication
+   *
+   * Requires that the request is authenticated. This can be done using the following means:
+   *
+   * UserSession authentication (only possible when using the tagger app)
+   * adding an `access_token` query parameter to the call
+   * adding `apiClient` and `options` query parameter to the call
    */
   def create = Action.async { implicit request =>
     import scalaz.Scalaz._

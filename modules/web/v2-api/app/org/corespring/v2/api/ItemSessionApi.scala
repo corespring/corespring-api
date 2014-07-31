@@ -25,9 +25,26 @@ trait ItemSessionApi extends V2Api {
   def itemTransformer: ItemTransformer
 
   /**
-   * Create an v2 session for the given itemId
-   * @param itemId
-   * @return json - either the id of the session, or error json
+   * Creates a new v2 ItemSession in the database.
+   *
+   * @param itemId  - the item to point to
+   *
+   * @return json - either:
+   *
+   * { "id" -> "$new_session_id" }
+   *
+   * Or:
+   * a json representation of a V2Error
+   * @see V2Error
+   *
+   * ## Authentication
+   *
+   * Requires that the request is authenticated. This can be done using the following means:
+   *
+   * UserSession authentication (only possible when using the tagger app)
+   * adding an `access_token` query parameter to the call
+   * adding `apiClient` and `options` query parameter to the call
+   *
    */
   def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
     future {
@@ -57,10 +74,22 @@ trait ItemSessionApi extends V2Api {
   }
 
   /**
-   * Load a session.
-   * Returns either the Session json, or error json.
-   * @param sessionId
-   * @return
+   * retrieve a v2 ItemSession in the database.
+   *
+   * @param sessionId  - the item to point to
+   *
+   * @return json - either the session json or a json representation of a V2Error
+   *
+   * @see V2Error
+   *
+   * ## Authentication
+   *
+   * Requires that the request is authenticated. This can be done using the following means:
+   *
+   * UserSession authentication (only possible when using the tagger app)
+   * adding an `access_token` query parameter to the call
+   * adding `apiClient` and `options` query parameter to the call
+   *
    */
   def get(sessionId: String) = Action.async { implicit request =>
     Future {
