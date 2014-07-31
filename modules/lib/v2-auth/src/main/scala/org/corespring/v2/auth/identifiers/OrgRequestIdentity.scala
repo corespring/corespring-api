@@ -6,7 +6,6 @@ import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import org.slf4j.{ Logger, LoggerFactory }
 import play.api.mvc.RequestHeader
 
 import scalaz.Validation
@@ -28,7 +27,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
 
-  lazy val logger: Logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")
+  lazy val logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")
 
   def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
