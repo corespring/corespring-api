@@ -134,11 +134,11 @@
   display: none;
 }
 
-.incorrect-response + .feedback-container [feedbackinline] span {
+.incorrect-response + .feedback-container [feedbackinline] span.span {
   background: url(/assets/images/wrong-icon.png) no-repeat 0 15px;
 }
 
-.correct-response + .feedback-container [feedbackinline] span {
+.correct-response + .feedback-container [feedbackinline] span.span {
   background: url(/assets/images/correct-icon.png) no-repeat 0 15px;
 }
 
@@ -151,7 +151,7 @@
   display: table-cell;
 }
 
-[feedbackinline] span {
+[feedbackinline] span.span {
   padding: 15px 0 15px 35px;
   margin-left: -10px;
 }
