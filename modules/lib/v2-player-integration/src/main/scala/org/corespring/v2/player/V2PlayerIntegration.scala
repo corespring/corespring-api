@@ -2,6 +2,8 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import org.corespring.v2.log.V2LoggerFactory
+
 import scala.concurrent.ExecutionContext
 
 import com.mongodb.casbah.MongoDB
@@ -45,7 +47,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   db: MongoDB)
   extends org.corespring.container.client.integration.DefaultIntegration {
 
-  lazy val logger = Logger("v2player.integration")
+  lazy val logger = V2LoggerFactory.getLogger("V2PlayerIntegration")
 
   def ec: ExecutionContext = ExecutionContext.Implicits.global
 

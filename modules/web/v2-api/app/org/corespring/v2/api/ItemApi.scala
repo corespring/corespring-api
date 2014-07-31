@@ -5,6 +5,7 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import play.api.mvc.{ Action, AnyContent, Request, RequestHeader }
@@ -25,7 +26,7 @@ trait ItemApi extends V2Api {
    */
   def defaultCollection(implicit header: RequestHeader): Option[String]
 
-  protected lazy val logger = LoggerFactory.getLogger("v2Api.ItemApi")
+  protected lazy val logger = V2LoggerFactory.getLogger("ItemApi")
 
   /**
    * POST no content type + empty body ==> need header
