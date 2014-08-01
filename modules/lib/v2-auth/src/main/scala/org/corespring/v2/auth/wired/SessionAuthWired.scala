@@ -28,11 +28,14 @@ trait SessionAuthWired extends SessionAuth with LoadOrgAndOptions {
   override def loadForWrite(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = load(sessionId)
 
   private def load(sessionId: String)(implicit header: RequestHeader): Validation[V2Error, (JsValue, Item)] = {
+
+    logger.debug(s"[load] $sessionId")
+
     val out = for {
       orgAndOpts <- getOrgIdAndOptions(header)
       json <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
       itemId <- (json \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
-      item <- itemAuth.loadForRead(itemId)
+      item <- itemAuth.loadFo˜rRead(itemId)
       hasPerms <- hasPermissions(item.id.toString, sessionId, orgAndOpts._2)
     } yield (json, item)
     logger.trace(s"loadFor sessionId: $sessionId - result successful")

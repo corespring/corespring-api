@@ -19,7 +19,7 @@ import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.encryption.{ MemoizedDecrypter, OrgEncrypter }
 import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayItemTransformationCache }
@@ -88,7 +88,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def userService: UserService = UserServiceWired
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = org.id -> PlayerOptions.ANYTHING
+      override def data(rh: RequestHeader, org: Organization, defaultCollecttion: ObjectId): (ObjectId, PlayerOptions) = org.id -> PlayerOptions.ANYTHING
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -99,26 +99,21 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = org.id -> PlayerOptions.ANYTHING
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
-
-    }
-
-    lazy val clientIdAndOptsSession = new ClientIdSessionIdentity[(ObjectId, PlayerOptions)] {
-
-      override def orgService: OrgService = V2PlayerIntegration.this.orgService
-
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = {
-        renderOptions(rh).map(org.id -> _).getOrElse(throw new RuntimeException("No render options found"))
-      }
     }
 
     lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
 
-      override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = for {
-        client <- ApiClient.findByKey(apiClientId)
-        org <- Organization.findOneById(client.orgId)
-      } yield org.id
+      override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = {
+
+        logger.trace(s"client to orgId -> $apiClientId")
+
+        for {
+          client <- ApiClient.findByKey(apiClientId)
+          org <- Organization.findOneById(client.orgId)
+        } yield org.id
+      }
 
       private def encryptionEnabled(r: RequestHeader): Boolean = {
         val m = Play.current.mode
@@ -131,10 +126,11 @@ class V2PlayerIntegration(comps: => Seq[Component],
         enabled
       }
 
+      lazy val decrypter = new MemoizedDecrypter(AESCrypto)
+
       override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = for {
         encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
-        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
-        out <- orgEncrypter.decrypt(encrypted)
+        out <- decrypter.decrypt(orgId, encrypted)
       } yield out
 
     }
@@ -144,8 +140,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
       requestIdentifiers.clientIdAndOptsQueryString,
       requestIdentifiers.token,
-      requestIdentifiers.userSession,
-      requestIdentifiers.clientIdAndOptsSession)
+      requestIdentifiers.userSession)
   }
 
   lazy val itemAuth = new ItemAuthWired {
