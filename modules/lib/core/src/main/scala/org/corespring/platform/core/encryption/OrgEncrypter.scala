@@ -2,11 +2,8 @@ package org.corespring.platform.core.encryption
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
-import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.common.log.PackageLogging
-
-import scala.collection.mutable
-import scalaz.Memo
+import org.corespring.platform.core.models.auth.ApiClient
 
 class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
 
@@ -29,26 +26,3 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
   }
 }
 
-/*class MemoizedDecrypter(encrypter: Crypto) extends PackageLogging {
-
-  import scalaz.Memo._
-
-  val memo: Memo[(ObjectId, String), Option[String]] = weakHashMapMemo[(ObjectId, String), Option[String]]
-
-  def decrypt(orgId: ObjectId, s: String): Option[String] = {
-
-    logger.debug(s"decrypt: $orgId")
-    memo {
-      t =>
-        val (orgId, s) = t
-
-        logger.debug(s"find api client by org id: $orgId")
-        ApiClient.findOneByOrgId(orgId).map {
-          client =>
-            val out = encrypter.decrypt(s, client.clientSecret)
-            out
-        }
-    }.apply(orgId, s)
-
-  }
-}*/
