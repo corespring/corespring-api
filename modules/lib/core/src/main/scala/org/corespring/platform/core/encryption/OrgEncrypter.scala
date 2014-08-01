@@ -29,7 +29,7 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
   }
 }
 
-class MemoizedDecrypter(encrypter: Crypto) extends PackageLogging {
+/*class MemoizedDecrypter(encrypter: Crypto) extends PackageLogging {
 
   import scalaz.Memo._
 
@@ -51,4 +51,4 @@ class MemoizedDecrypter(encrypter: Crypto) extends PackageLogging {
     }.apply(orgId, s)
 
   }
-}
+}*/

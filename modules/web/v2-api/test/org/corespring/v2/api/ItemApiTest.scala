@@ -1,5 +1,7 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
+
 import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
@@ -41,21 +43,17 @@ class ItemApiTest extends Specification with Mockito {
         m
       }
 
-      override def itemAuth: ItemAuth = {
-        val m = mock[ItemAuth]
-        m.canCreateInCollection(anyString)(any[RequestHeader]) returns canCreate
+      override def itemAuth: ItemAuth[OrgAndOpts] = {
+        val m = mock[ItemAuth[OrgAndOpts]]
+        m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
         m
       }
 
-      /**
-       * For a known organization (derived from the request) return Some(id)
-       * If it is an unknown user return None
-       * @return
-       */
-      override def defaultCollection(implicit header: RequestHeader): Option[String] = Some(defaultCollectionId.toString)
-
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
+      override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
+
+      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING))
     }
   }
 

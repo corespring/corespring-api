@@ -41,9 +41,9 @@ class ItemApiTest extends IntegrationSpecification {
         out
       }
 
-      s"$BAD_REQUEST - for plain request" in {
+      s"$UNAUTHORIZED - for plain request" in {
         val r: FakeRequest[AnyContentAsEmpty.type] = createRequest[AnyContentAsEmpty.type]()
-        assertCall(r, BAD_REQUEST)
+        assertCall(r, UNAUTHORIZED)
       }
 
       s"$BAD_REQUEST - for token based request with no json header" in new orgWithAccessToken {

@@ -13,6 +13,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.HeaderAsOrgId
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
 import org.corespring.v2.errors.V2Error
@@ -34,10 +35,10 @@ class Bootstrap(
   val sessionService: MongoService,
   val userService: UserService,
   val secureSocialService: SecureSocialService,
-  val itemAuth: ItemAuth,
-  val sessionAuth: SessionAuth,
-  val headerToOrgIdentifier: HeaderAsOrgId,
-  val itemTransformer : ItemTransformer) {
+  val itemAuth: ItemAuth[OrgAndOpts],
+  val sessionAuth: SessionAuth[OrgAndOpts],
+  val itemTransformer: ItemTransformer,
+  val headerToOrgAndOpts: RequestHeader => Validation[V2Error, OrgAndOpts]) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -65,19 +66,22 @@ class Bootstrap(
   }
 
   private lazy val itemApi = new ItemApi {
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     override def itemService: ItemService = Bootstrap.this.itemService
 
-    override def itemAuth: ItemAuth = Bootstrap.this.itemAuth
+    override def itemAuth: ItemAuth[OrgAndOpts] = Bootstrap.this.itemAuth
 
-    override def defaultCollection(implicit header: RequestHeader): Option[String] = {
+    override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = {
 
       val out: Validation[V2Error, String] = for {
-        orgId <- headerToOrgIdentifier.headerToOrgId(header)
-        org <- orgService.org(orgId).toSuccess(cantFindOrgWithId(orgId))
-        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(noDefaultCollection(orgId))
-      } yield dc
+        org <- orgService.org(identity.orgId).toSuccess(cantFindOrgWithId(identity.orgId))
+        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(noDefaultCollection(identity.orgId))
+      } yield {
+        dc
+      }
 
       out match {
         case Failure(msg) =>
@@ -90,10 +94,11 @@ class Bootstrap(
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-    override def sessionAuth: SessionAuth = Bootstrap.this.sessionAuth
+    override def sessionAuth: SessionAuth[OrgAndOpts] = Bootstrap.this.sessionAuth
 
     override def sessionService = Bootstrap.this.sessionService
 

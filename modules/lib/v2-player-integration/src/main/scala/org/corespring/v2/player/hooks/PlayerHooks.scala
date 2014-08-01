@@ -3,13 +3,13 @@ package org.corespring.v2.player.hooks
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.{ ItemTransformationCache, PlayItemTransformationCache, Item }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.SessionAuth
+import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, errorSaving, generalError }
 import org.corespring.v2.log.V2LoggerFactory
-import org.slf4j.LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
@@ -17,10 +17,8 @@ import play.api.mvc._
 import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
 
-trait PlayerHooks extends ContainerPlayerHooks {
+trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   def sessionService: MongoService
 
@@ -28,7 +26,7 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
   def itemTransformer: ItemTransformer
 
-  def auth: SessionAuth
+  def auth: SessionAuth[OrgAndOpts]
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
 
@@ -37,7 +35,8 @@ trait PlayerHooks extends ContainerPlayerHooks {
     logger.trace(s"loadItem - sessionId: $sessionId")
 
     val s = for {
-      models <- auth.loadForRead(sessionId)
+      identity <- getOrgIdAndOptions(header)
+      models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
     s.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
@@ -57,7 +56,8 @@ trait PlayerHooks extends ContainerPlayerHooks {
       "itemId" -> vid.toString)
 
     val result = for {
-      canWrite <- auth.canCreate(itemId)
+      identity <- getOrgIdAndOptions(header)
+      canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemTransformer.updateV2Json(vid).toSuccess(generalError("Error generating item v2 JSON"))
@@ -73,7 +73,13 @@ trait PlayerHooks extends ContainerPlayerHooks {
 
   override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
     logger.trace(s"loadPlayerForSession: sessionId")
-    auth.loadForRead(sessionId) match {
+
+    val out = for {
+      identity <- getOrgIdAndOptions(header)
+      id <- auth.loadForRead(sessionId)(identity)
+    } yield id
+
+    out match {
       case Failure(e) => {
         logger.trace(s"loadPlayerForSession failed: $sessionId: Error: $e")
         Some(UNAUTHORIZED -> e.message)
@@ -86,7 +92,8 @@ trait PlayerHooks extends ContainerPlayerHooks {
     logger.trace(s"loadSessionAndItem: $sessionId")
 
     val o = for {
-      models <- auth.loadForRead(sessionId)
+      identity <- getOrgIdAndOptions(header)
+      models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
     o.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
