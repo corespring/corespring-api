@@ -23,7 +23,10 @@ trait ItemTransformer {
         case None => try {
           updateV2Json(item)
         } catch {
-          case e: Exception => None
+          case e: Exception => {
+            e.printStackTrace
+            None
+          }
         }
         case _ => Some(item)
       }
