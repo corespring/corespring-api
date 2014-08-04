@@ -12,7 +12,6 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
-import org.corespring.v2.auth.identifiers.HeaderAsOrgId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
