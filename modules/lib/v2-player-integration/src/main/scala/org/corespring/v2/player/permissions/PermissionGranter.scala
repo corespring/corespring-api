@@ -18,11 +18,12 @@ class SimpleWildcardChecker extends PermissionGranter {
 
   import org.corespring.v2.player.permissions.SimpleWildcardChecker._
   def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Either[String, Boolean] = {
+
+    logger.warn("Note: Mode is not being checked at the moment - we need to see if it still applies in v2. see: https://thesib.atlassian.net/browse/CA-1743")
+
     (options.allowItemId(itemId)
       &&
-      sessionId.map(options.allowSessionId(_)).getOrElse(true)
-      &&
-      options.allowMode(mode)) match {
+      sessionId.map(options.allowSessionId(_)).getOrElse(true)) match {
         case true => Right(true)
         case false => {
 

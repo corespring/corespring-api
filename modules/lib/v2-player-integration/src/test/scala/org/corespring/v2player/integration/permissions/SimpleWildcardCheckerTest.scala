@@ -29,7 +29,7 @@ class SimpleWildcardCheckerTest extends Specification {
 
     "not allow if mode is wrong" in {
       checker.allow("*", None, Mode.view, PlayerOptions("*", Some("1"), false, mode = Some("gather"))) === Left(notGrantedMsg)
-    }
+    }.pendingUntilFixed("See:https://thesib.atlassian.net/browse/CA-1743")
 
     "allow if mode is wrong" in {
       checker.allow("*", None, Mode.view, PlayerOptions("*", Some("1"), false, mode = Some("*"))) === Right(true)
