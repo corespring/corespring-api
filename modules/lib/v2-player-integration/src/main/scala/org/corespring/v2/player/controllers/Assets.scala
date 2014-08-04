@@ -5,12 +5,13 @@ import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.{ LoadOrgAndOptions, ItemAuth }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 
-trait Assets extends ContainerAssets {
+trait Assets extends ContainerAssets with LoadOrgAndOptions {
 
   private lazy val key = AppConfig.amazonKey
   private lazy val secret = AppConfig.amazonSecret
@@ -20,7 +21,8 @@ trait Assets extends ContainerAssets {
 
   def sessionService: MongoService
 
-  def itemAuth: ItemAuth
+  def itemAuth: ItemAuth[OrgAndOpts]
+
   import scalaz.Scalaz._
   import scalaz._
 
@@ -28,7 +30,8 @@ trait Assets extends ContainerAssets {
 
     val decodedFilename = java.net.URI.create(file).getPath
     val storedFile: Validation[V2Error, StoredFile] = for {
-      item <- itemAuth.loadForRead(itemId)(request)
+      identity <- getOrgIdAndOptions(request)
+      item <- itemAuth.loadForRead(itemId)(identity)
       data <- item.data.toSuccess(generalError(s"item doesn't contain a 'data' property': $itemId"))
       asset <- data.files.find(_.name == decodedFilename).toSuccess(generalError(s"can't find a file with name: $decodedFilename in ${data}"))
     } yield asset.asInstanceOf[StoredFile]

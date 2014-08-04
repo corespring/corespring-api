@@ -8,6 +8,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.matcher.{ Expectable, Matcher }
@@ -52,16 +53,18 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
       override def transform: (Item) => JsValue = (i: Item) => emptyItemJson
 
-      override def auth: ItemAuth = {
-        val m = mock[ItemAuth]
-        m.loadForRead(anyString)(any[RequestHeader]) returns authResult
-        m.loadForWrite(anyString)(any[RequestHeader]) returns authResult
-        m.canCreateInCollection(anyString)(any[RequestHeader]) returns authResult.map { i => true }
-        m.insert(any[Item])(any[RequestHeader]) returns Some(vid)
+      override def auth: ItemAuth[OrgAndOpts] = {
+        val m = mock[ItemAuth[OrgAndOpts]]
+        m.loadForRead(anyString)(any[OrgAndOpts]) returns authResult
+        m.loadForWrite(anyString)(any[OrgAndOpts]) returns authResult
+        m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns authResult.map { i => true }
+        m.insert(any[Item])(any[OrgAndOpts]) returns Some(vid)
         m
       }
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING))
     }
   }
 
@@ -147,11 +150,11 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
   "create" should {
 
-    "return no json error" in new createContext(None) {
+    "return no json error" in new createContext(None, Success(Item())) {
       result must returnError(noJson)
     }
 
-    "return property not found" in new createContext(Some(Json.obj())) {
+    "return property not found" in new createContext(Some(Json.obj()), Success(Item())) {
       result must returnError(propertyNotFoundInJson("collectionId"))
     }
 

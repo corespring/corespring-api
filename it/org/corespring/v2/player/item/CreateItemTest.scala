@@ -7,6 +7,7 @@ import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
+import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.errors.Errors.{ orgCantAccessCollection, propertyNotFoundInJson, noJson }
 import org.corespring.v2.player.scopes.user
 import play.api.libs.json.{ JsValue, Json }
@@ -18,15 +19,9 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
   "calling create item" should {
 
     "should fail for a plain request with no json" in new createItem {
-      status(result) === BAD_REQUEST
+      status(result) === UNAUTHORIZED
       logger.debug(s"content: ${contentAsString(result)}")
-      (contentAsJson(result) \ "error").asOpt[String] === Some(noJson.message)
-    }
-
-    "should fail for a plain request with json" in new createItem(false, id => Some(Json.obj())) {
-      status(result) === BAD_REQUEST
-      logger.debug(s"content: ${contentAsString(result)}")
-      (contentAsJson(result) \ "error").asOpt[String] === Some(propertyNotFoundInJson("collectionId").message)
+      (contentAsJson(result) \ "error").asOpt[String] === Some(WithRequestIdentitySequence.errorMessage)
     }
 
     "should fail for a plain request with json + collection id" in new createItem(false, id => Some(Json.obj("collectionId" -> id))) {
@@ -40,6 +35,15 @@ class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
       status(result) === BAD_REQUEST
       logger.debug(s"content: ${contentAsString(result)}")
       (contentAsJson(result) \ "error").asOpt[String] === Some(orgCantAccessCollection(orgId, badCollectionId.toString, Permission.Write.name).message)
+    }
+
+    "should fail for a plain request with json" in new createItem(
+      false,
+      id => Some(Json.obj()),
+      u => secureSocialCookie(u)) {
+      status(result) === BAD_REQUEST
+      logger.debug(s"content: ${contentAsString(result)}")
+      (contentAsJson(result) \ "error").asOpt[String] === Some(propertyNotFoundInJson("collectionId").message)
     }
 
     "should work for a auth request with json + collection id" in new createItem(false,

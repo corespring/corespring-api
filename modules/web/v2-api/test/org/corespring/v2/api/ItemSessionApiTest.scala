@@ -6,31 +6,34 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
+import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{Request, Action, SimpleResult, RequestHeader}
+import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito {
 
   class apiScope(
-                  val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-                  val maybeSessionId: Option[ObjectId] = None,
-                  val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
+    val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
+    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING)),
+    val maybeSessionId: Option[ObjectId] = None,
+    val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
-      override def sessionAuth: SessionAuth = {
-        val m = mock[SessionAuth]
-        m.canCreate(anyString)(any[RequestHeader]) returns canCreate
-        m.loadForRead(anyString)(any[RequestHeader]) returns sessionAndItem
+      override def sessionAuth: SessionAuth[OrgAndOpts] = {
+        val m = mock[SessionAuth[OrgAndOpts]]
+        m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
+        m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
+
         m
       }
 
@@ -46,6 +49,8 @@ class ItemSessionApiTest extends Specification with Mockito {
         val m = mock[ItemTransformer]
         m
       }
+
+      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
     }
   }
 
@@ -66,7 +71,7 @@ class ItemSessionApiTest extends Specification with Mockito {
 
       "work" in new apiScope(
         Success(true),
-        Some(ObjectId.get)) {
+        maybeSessionId = Some(ObjectId.get)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "").withBody(Some()))
         status(result) === OK
         contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
@@ -74,7 +79,7 @@ class ItemSessionApiTest extends Specification with Mockito {
 
       "work with json header, but no body" in new apiScope(
         Success(true),
-        Some(ObjectId.get)) {
+        maybeSessionId = Some(ObjectId.get)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "")
           .withHeaders(("Content-Type", "application/json")).withBody(None))
         status(result) === OK
@@ -88,7 +93,8 @@ class ItemSessionApiTest extends Specification with Mockito {
         status(result) === BAD_REQUEST
       }
 
-      "work" in new apiScope(sessionAndItem = Success((Json.obj(), Item()))) {
+      "work" in new apiScope(
+        sessionAndItem = Success((Json.obj(), Item()))) {
         val result = api.get("sessionId")(FakeRequest("", ""))
         status(result) === OK
       }

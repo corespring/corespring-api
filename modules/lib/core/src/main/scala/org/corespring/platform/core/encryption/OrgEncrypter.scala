@@ -2,8 +2,8 @@ package org.corespring.platform.core.encryption
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
-import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.ApiClient
 
 class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
 
@@ -25,3 +25,4 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
       out
   }
 }
+

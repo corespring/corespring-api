@@ -31,7 +31,7 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
   override lazy val logger = V2LoggerFactory.getLogger("auth", "ClientIdQueryString")
 
   override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
-    logger.trace("Try from query params")
+    logger.trace(s"[headerToOrgId] ${rh.path}")
 
     if (rh.getQueryString("apiClientId").isDefined) {
       Failure(invalidQueryStringParameter("apiClientId", Keys.apiClient))

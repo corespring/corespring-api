@@ -24,8 +24,8 @@ class ItemSessionApiTest extends IntegrationSpecification {
         val e = compoundError("Failed to identify an Organization from the request", Seq(
           noClientIdAndOptionsInQueryString(req),
           noToken(req),
-          noUserSession(req),
-          noClientIdAndOptionsInSession(req)), UNAUTHORIZED)
+          noUserSession(req)),
+          UNAUTHORIZED)
 
         contentAsJson(result) === e.json
         status(result) === e.statusCode
@@ -54,8 +54,8 @@ class ItemSessionApiTest extends IntegrationSpecification {
         val e = compoundError("Failed to identify an Organization from the request", Seq(
           noClientIdAndOptionsInQueryString(req),
           noToken(req),
-          noUserSession(req),
-          noClientIdAndOptionsInSession(req)), UNAUTHORIZED)
+          noUserSession(req)),
+          UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }

@@ -18,12 +18,10 @@ trait RequestIdentity[B] {
   def apply(rh: RequestHeader): Validation[V2Error, B]
 }
 
-trait HeaderAsOrgId {
-  def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId]
-}
-
-trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
+trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def orgService: OrgService
+
+  def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId]
 
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
 
@@ -31,6 +29,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] with HeaderAsOrgId {
 
   def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
+    logger.trace(s"apply: ${rh.path}")
     import scalaz.Scalaz._
 
     for {

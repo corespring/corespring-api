@@ -1,5 +1,7 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.auth.models.OrgAndOpts
+
 import scala.concurrent.Future
 
 import org.corespring.platform.core.models.item.Item
@@ -14,16 +16,16 @@ import scalaz.{ Failure, Success, Validation }
 
 trait ItemApi extends V2Api {
 
-  def itemAuth: ItemAuth
+  def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
 
   /**
    * For a known organization (derived from the request) return Some(id)
    * If it is an unknown user return None
-   * @param header
+   * @param identity
    * @return
    */
-  def defaultCollection(implicit header: RequestHeader): Option[String]
+  def defaultCollection(implicit identity: OrgAndOpts): Option[String]
 
   protected lazy val logger = V2LoggerFactory.getLogger("ItemApi")
 
@@ -43,10 +45,12 @@ trait ItemApi extends V2Api {
     import scalaz.Scalaz._
     Future {
       val out = for {
-        json <- loadJson(defaultCollection)(request)
-        validJson <- validatedJson(defaultCollection)(json).toSuccess(incorrectJsonFormat(json))
+        identity <- getOrgIdAndOptions(request)
+        dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.orgId))
+        json <- loadJson(dc)(request)
+        validJson <- validatedJson(dc)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
-        canCreate <- itemAuth.canCreateInCollection(collectionId)
+        canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
         vid <- if (canCreate)
           itemService.insert(item).toSuccess(errorSaving("Insert failed"))
@@ -60,7 +64,7 @@ trait ItemApi extends V2Api {
     }
   }
 
-  private def defaultItem(collectionId: Option[String]): JsValue = validatedJson(collectionId)(Json.obj()).get
+  private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 
   lazy val defaultPlayerDefinition = Json.obj(
     "components" -> Json.obj(),
@@ -79,19 +83,15 @@ trait ItemApi extends V2Api {
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
 
-  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: Option[String]): JsObject = {
-    defaultCollectionId.map { dci =>
-      addIfNeeded[String](json, "collectionId", JsString(dci))
-    }.getOrElse(json)
-  }
+  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: String): JsObject = addIfNeeded[String](json, "collectionId", JsString(defaultCollectionId))
 
-  private def validatedJson(defaultCollectionId: Option[String])(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
+  private def validatedJson(defaultCollectionId: String)(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
     val noId = (rawObj - "id").as[JsObject]
     val steps = addDefaultPlayerDefinition _ andThen (addDefaultCollectionId(_, defaultCollectionId))
     steps(noId)
   }
 
-  private def loadJson(defaultCollectionId: Option[String])(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
+  private def loadJson(defaultCollectionId: String)(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
 
     def hasJsonHeader: Boolean = {
       val types = Seq("application/json", "text/json")
