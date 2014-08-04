@@ -1,9 +1,9 @@
 package org.corespring.qtiToV2.interactions
 
+import scala.xml.transform.RuleTransformer
+
 import org.specs2.mutable.Specification
 import play.api.libs.json._
-
-import scala.xml.transform.RuleTransformer
 
 class LineInteractionTransformerTest extends Specification {
 
@@ -48,19 +48,34 @@ class LineInteractionTransformerTest extends Specification {
       </itemBody>
     </assessmentItem>
 
-  "PointInteractionTransformer" should {
+  def qtiNoResponseDeclaration(locked: Boolean) = <assessmentItem>
+                                                    <itemBody>
+                                                      <lineInteraction locked={ locked.toString } responseIdentifier={ anotherIdentifier }/>
+                                                    </itemBody>
+                                                  </assessmentItem>
+
+  "LineInteractionTransformer" should {
+
+    def json(m: Map[String, JsValue], id: String) = m.get(id).getOrElse {
+      throw new RuntimeException(s"No json for: $id")
+    }
 
     val input = qti(correctResponse)
     val output = new RuleTransformer(LineInteractionTransformer).transform(input)
-
-    val interactionResult = LineInteractionTransformer.interactionJs(input).get(identifier)
-      .getOrElse(throw new RuntimeException(s"No component called $identifier"))
-
-    val noConfigInteractionResult = LineInteractionTransformer.interactionJs(qtiNoConfig).get(anotherIdentifier)
-      .getOrElse(throw new RuntimeException(s"No component called $anotherIdentifier"))
+    val interactionResult = json(LineInteractionTransformer.interactionJs(input), identifier)
+    val noConfigInteractionResult = json(LineInteractionTransformer.interactionJs(qtiNoConfig), anotherIdentifier)
 
     val config = (interactionResult \ "model" \ "config")
     val noConfig = (noConfigInteractionResult \ "model" \ "config")
+
+    "returns an object with no correctResponse if the interaction is locked and has no responseDeclaration" in {
+      val jsonResult = json(LineInteractionTransformer.interactionJs(qtiNoResponseDeclaration(true)), anotherIdentifier)
+      (jsonResult \ "correctResponse").asOpt[JsObject] === None
+    }
+
+    "throws an exception if the interaction is not locked and there is no responseDeclaration" in {
+      LineInteractionTransformer.interactionJs(qtiNoResponseDeclaration(false)) must throwA[IllegalArgumentException]
+    }
 
     "return the correct component type" in {
       (interactionResult \ "componentType").as[String] must be equalTo "corespring-line"
@@ -123,7 +138,6 @@ class LineInteractionTransformerTest extends Specification {
       (config \ "exhibitOnly").as[JsBoolean].value must beFalse
       (config \ "exhibitOnly").as[JsBoolean].value must beFalse
     }
-
 
   }
 
