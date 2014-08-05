@@ -1,21 +1,21 @@
 package org.corespring.qtiToV2.transformers
 
+import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.qtiToV2.QtiTransformer
 import org.corespring.platform.core.models.Standard
-import org.corespring.platform.core.models.item.resource.{CDataHandler, Resource, VirtualFile}
-import org.corespring.platform.core.models.item.{PlayItemTransformationCache, PlayerDefinition, Item, ItemTransformationCache}
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile }
+import org.corespring.platform.core.models.item.{ PlayItemTransformationCache, PlayerDefinition, Item, ItemTransformationCache }
 import org.corespring.common.json.JsonTransformer
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import scala.xml.Node
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.bson.types.ObjectId
-import org.corespring.platform.core.services.item.{ItemServiceWired, ItemService}
-
+import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 
 trait ItemTransformer {
 
   def cache: ItemTransformationCache
-  def itemService: ItemService
+  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
@@ -37,15 +37,15 @@ trait ItemTransformer {
   def updateV2Json(item: Item): Option[Item] = {
     transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
       .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-      case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-        case true => Some(updatedItem)
-        case _ => {
-          itemService.save(updatedItem)
-          Some(updatedItem)
+        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+          case true => Some(updatedItem)
+          case _ => {
+            itemService.save(updatedItem)
+            Some(updatedItem)
+          }
         }
+        case _ => None
       }
-      case _ => None
-    }
   }
 
   def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
@@ -84,8 +84,7 @@ trait ItemTransformer {
         "priorGradeLevel" -> item.priorGradeLevels,
         "priorUse" -> item.priorUse,
         "priorUseOther" -> item.priorUseOther,
-        "lexile" -> item.lexile
-      )
+        "lexile" -> item.lexile)
   }
 
   def mapTaskInfo(taskInfoJson: JsValue): JsValue = {

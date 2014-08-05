@@ -14,6 +14,6 @@ GET     /assignment/:configId/:resultSourcedId/:filename org.corespring.lti.web.
 GET     /chooser/partials/main              org.corespring.lti.web.controllers.Partials.main
 GET     /chooser/partials/browse            org.corespring.lti.web.controllers.Partials.browse
 GET     /chooser/partials/view              org.corespring.lti.web.controllers.Partials.view
-GET     /api/items                          org.corespring.lti.web.controllers.api.v1.Item.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /api/items                          @org.corespring.lti.web.controllers.api.v1.Item.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /api/collections                    org.corespring.lti.web.controllers.api.v1.Collection.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /routes.js                          org.corespring.lti.web.controllers.JsRoutes.index

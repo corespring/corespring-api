@@ -3,7 +3,7 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
-import com.novus.salat.dao.SalatInsertError
+import com.novus.salat.dao.{ SalatMongoCursor, SalatInsertError }
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.CorespringS3Service
@@ -16,6 +16,7 @@ import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.search.SearchFields
+import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
@@ -25,6 +26,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.{ Action, Result, AnyContent }
 import scala.Some
+import scala.xml.Elem
 import scalaz.Scalaz._
 import scalaz._
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -33,16 +35,11 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
+class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService, val itemTransformer: ItemTransformer)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
   import Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
-
-  val itemTransformer = new ItemTransformer {
-    def cache: ItemTransformationCache = PlayItemTransformationCache
-    def itemService: ItemService = service
-  }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
@@ -92,7 +89,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- service.findOneById(id).toSuccess("Can't find item")
       } yield service.sessionCount(item)
       c match {
-        case Success(_) => Ok(JsObject(Seq("sessionCount"->JsNumber(c.toOption.get))))
+        case Success(_) => Ok(JsObject(Seq("sessionCount" -> JsNumber(c.toOption.get))))
         case _ => BadRequest
       }
   }
@@ -135,8 +132,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
     })
   }
-
-
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version
@@ -388,6 +383,4 @@ object dependencies {
     }
   }
 }
-
-object ItemApi extends ItemApi(CorespringS3ServiceExtended, ItemServiceWired, dependencies.metadataSetService)
 
