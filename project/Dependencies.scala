@@ -7,6 +7,7 @@ object Dependencies {
   //V2 Player
   val containerVersion = "0.5.2-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
+  val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
   val componentLoader = "org.corespring" %% "component-loader" % containerVersion
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion

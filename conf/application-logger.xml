@@ -40,10 +40,10 @@
     <logger name="ContentCollection" level="TRACE"/>
     <logger name="s3-play-plugin" level="TRACE"/>
     <logger name="org.corespring.platform.core.models.mongoContext" level="OFF"/>
-    <logger name="org.corespring.platform.core" level="INFO"/>
+    <logger name="org.corespring.platform.core" level="TRACE"/>
     <logger name="org.corespring.platform.core.encryption" level="DEBUG"/>
-    <logger name="org.corespring.api.v1" level="INFO"/>
-    <logger name="org.corespring.v2" level="TRACE"/>
+    <logger name="org.corespring.api.v1" level="TRACE"/>
+    <logger name="org.corespring.v2" level="INFO"/>
     <logger name="org.corespring.container" level="INFO"/>
 
 
