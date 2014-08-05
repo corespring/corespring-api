@@ -131,8 +131,7 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(
-      playJson, containerJsProcessing % "test")).dependsOn(core, qti)
+    libraryDependencies ++= Seq(playJson)).dependsOn(core, qti)
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
