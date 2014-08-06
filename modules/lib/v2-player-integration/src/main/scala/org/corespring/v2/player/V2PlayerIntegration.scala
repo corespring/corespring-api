@@ -220,9 +220,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def assets: Assets = new apiControllers.Assets {
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
-
     override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+
+    override def itemService: ItemService = ItemServiceWired
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
@@ -241,7 +241,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
     }
 
-    override def itemAuth: ItemAuth[OrgAndOpts] = V2PlayerIntegration.this.itemAuth
   }
 
   override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
