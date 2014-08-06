@@ -11,6 +11,11 @@ class CustomScoringTransformer {
   def toLocalVar(key: String, config: JsObject): String = {
 
     s"""
+        if(!session || !session.components){
+          console.log("Error: session has no components: " + JSON.stringify(session));
+          return "";
+        }
+
 var $key = toResponseProcessingModel(session.components.$key, '${(config \ "componentType").as[String]}');
 
      """
@@ -19,10 +24,12 @@ var $key = toResponseProcessingModel(session.components.$key, '${(config \ "comp
   def template(qtiJs: String, components: Map[String, JsObject]): String = {
     s"""
 
+console.log("-------------> init");
+
 var componentTypeFunctions = {
-   'corespring-multiple-choice' : function(answers){
+   'corespring-multiple-choice' : function(comp){
      return {
-       value: answers ? answers : []
+       value: comp && comp.answers ? comp.answers : []
      }
    }
 };
@@ -31,14 +38,19 @@ function toResponseProcessingModel(answer, componentType){
   var fn = componentTypeFunctions[componentType];
 
   if(!fn){
-    throw new Error('Can\'t find mapping function for ' + componentType);
+    throw new Error('Can\\\'t find mapping function for ' + componentType);
   }
   return fn(answer);
 }
 
 exports.process = function(item, session){
 
+  console.log("---------> session: " + JSON.stringify(session));
+
   ${components.map(t => toLocalVar(t._1, t._2)).mkString("\n")}
+
+
+  ${components.map(t => s"console.log( '->' + JSON.stringify(${t._1}) ); ").mkString("\n")}
 
   /// ----------- this is qti js - can't edit
   $qtiJs
