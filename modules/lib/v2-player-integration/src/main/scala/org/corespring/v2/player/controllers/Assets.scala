@@ -5,13 +5,11 @@ import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.v2.auth.{ LoadOrgAndOptions, ItemAuth }
-import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders
+import org.corespring.platform.data.mongo.models.VersionedId
 
 trait Assets extends ContainerAssets {
 
@@ -31,7 +29,7 @@ trait Assets extends ContainerAssets {
 
     val decodedFilename = java.net.URI.create(file).getPath
     val storedFile: Validation[V2Error, StoredFile] = for {
-      id <- Binders.stringToVersionedId(itemId).toSuccess(cantParseItemId(itemId))
+      id <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
       data <- item.data.toSuccess(generalError(s"item doesn't contain a 'data' property': $id"))
       asset <- data.files.find(_.name == decodedFilename).toSuccess(generalError(s"can't find a file with name: $decodedFilename in ${data}"))
