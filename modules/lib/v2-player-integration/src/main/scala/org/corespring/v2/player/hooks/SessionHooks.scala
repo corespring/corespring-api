@@ -17,7 +17,6 @@ import scala.concurrent.Future
 
 trait SessionHooks
   extends ContainerSessionHooks
-  with V2PlayerCookieReader
   with LoadOrgAndOptions {
 
   def auth: SessionAuth[OrgAndOpts]
@@ -36,18 +35,18 @@ trait SessionHooks
     Future(Left(NOT_FOUND -> "Not implemented"))
 
   override def loadItemAndSession(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
-    buildSession(id, (item, session) =>
-      FullSession(Json.obj("item" -> item, "session" -> session), isSecure(header)))
+    buildSession(id, (item, session, orgAndOpts) =>
+      FullSession(Json.obj("item" -> item, "session" -> session), orgAndOpts.opts.secure))
   }
 
   override def getScore(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
-    buildSession(id, (item, session) =>
-      SessionOutcome(item, session, isSecure(header), isComplete(session)))
+    buildSession(id, (item, session, orgAndOpts) =>
+      SessionOutcome(item, session, orgAndOpts.opts.secure, isComplete(session)))
   }
 
   override def loadOutcome(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
-    buildSession(id, (item, session) =>
-      SessionOutcome(item, session, isSecure(header), isComplete(session)))
+    buildSession(id, (item, session, orgAndOpts) =>
+      SessionOutcome(item, session, orgAndOpts.opts.secure, isComplete(session)))
   }
 
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
@@ -58,24 +57,20 @@ trait SessionHooks
       models <- auth.loadForWrite(id)(identity)
     } yield {
       val (session, _) = models
-      SaveSession(session, isSecure(header), isComplete(session), sessionService.save(_, _))
+      SaveSession(session, identity.opts.secure, isComplete(session), sessionService.save(_, _))
     }
     out.leftMap(s => (BAD_REQUEST -> s.message)).toEither
   }
 
-  private def buildSession[A](id: String, make: (JsValue, JsValue) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
+  private def buildSession[A](id: String, make: (JsValue, JsValue, OrgAndOpts) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
     val out = for {
       identity <- getOrgIdAndOptions(header)
       models <- auth.loadForRead(id)(identity)
     } yield {
       val (session, item) = models
-      make(transformItem(item), session)
+      make(transformItem(item), session, identity)
     }
     out.leftMap { s => UNAUTHORIZED -> s.message }.toEither
   }
-
-  private def isSecure(r: RequestHeader) = renderOptions(r).map {
-    ro => ro.secure
-  }.getOrElse(true)
 }
 
