@@ -21,6 +21,8 @@ package object scopes {
     val user = UserHelper.create(orgId, "test_user")
     val accessToken = AccessTokenHelper.create(orgId, "test_user")
 
+    println(s"[accessToken] is: $accessToken")
+
     def before: Any = {
       logger.debug(s"[before] apiClient ready: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
     }

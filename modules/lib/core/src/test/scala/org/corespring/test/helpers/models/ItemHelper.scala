@@ -12,7 +12,6 @@ import com.mongodb.util.JSON
 
 object ItemHelper {
 
-  // It would be great if this could return the item id
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
 
     val qti = VirtualFile("qti.xml", "text/xml", true, "<assessmentItem><itemBody></itemBody></assessmentItem>")
@@ -20,17 +19,20 @@ object ItemHelper {
     val item = Item(collectionId = Some(collectionId.toString), data = Some(data))
 
     ItemServiceWired.insert(item) match {
-      case Some(versionedId) => versionedId
+      case Some(versionedId) => {
+        println(s"[ItemHelper] created new item with id $versionedId")
+        versionedId
+      }
       case _ => throw new Exception("Error creating item")
     }
   }
 
-  def publish(query:DBObject) = {
+  def publish(query: DBObject) = {
     println(s"[publish] query: ${JSON.serialize(query)}")
-    ItemServiceWired.collection.update(query, MongoDBObject( "$set" -> MongoDBObject("published" -> true)), multi = true)
-    println( s"[publish] query count : ${ItemServiceWired.collection.count(query)}")
+    ItemServiceWired.collection.update(query, MongoDBObject("$set" -> MongoDBObject("published" -> true)), multi = true)
+    println(s"[publish] query count : ${ItemServiceWired.collection.count(query)}")
     val result = ItemServiceWired.collection.find(query, MongoDBObject("published" -> 1)).toSeq.map(JSON.serialize(_)).mkString(",")
-    println( s"[publish] query result : $result")
+    println(s"[publish] query result : $result")
   }
 
   def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
@@ -46,6 +48,9 @@ object ItemHelper {
    */
   def publicCount: Int = count(Some(CollectionHelper.public))
 
-  def delete(itemId: VersionedId[ObjectId]) = ItemServiceWired.deleteUsingDao(itemId)
+  def delete(itemId: VersionedId[ObjectId]) = {
+    println(s"[ItemHelper] Deleting: $itemId")
+    ItemServiceWired.deleteUsingDao(itemId)
+  }
 
 }
