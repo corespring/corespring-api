@@ -9,14 +9,16 @@ import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.web.common.controllers.SimpleJsRoutes
 import play.api.mvc.{ AnyContent, Controller }
 
-class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery], itemApi: Api) extends Controller with SimpleJsRoutes {
+class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery]) extends Controller with SimpleJsRoutes {
 
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) =
     auth.ValidatedAction(o => o.allowItemId("*")) { r: TokenizedRequest[AnyContent] =>
-      itemApi.list(q, f, c, sk, l, sort)(r)
+      Api.list(q, f, c, sk, l, sort)(r)
     }
 
   def read(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(o => o.allowItemId(itemId.toString())) { r: TokenizedRequest[AnyContent] =>
-    itemApi.getDetail(itemId)(r)
+    Api.getDetail(itemId)(r)
   }
 }
+
+object Item extends Item(QuerySessionRenderOptions)

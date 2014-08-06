@@ -107,13 +107,7 @@ object Global
     itemTransformer,
     integration.getOrgIdAndOptions)
 
-  lazy val v1ItemApi = new ItemApi(CorespringS3ServiceExtended, ItemServiceWired, dependencies.metadataSetService, itemTransformer)
-
-  lazy val v1Item = new org.corespring.player.v1.controllers.Item(CheckSessionAccess, v1ItemApi)
-
-  lazy val ltiV1Item = new org.corespring.lti.web.controllers.api.v1.Item(QuerySessionRenderOptions, v1ItemApi)
-
-  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers ++ Seq(v1ItemApi, v1Item, ltiV1Item)
+  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {

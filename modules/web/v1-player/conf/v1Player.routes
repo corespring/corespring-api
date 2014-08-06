@@ -4,9 +4,9 @@ GET    /api/:itemId/session/:sessionId              org.corespring.player.v1.con
 PUT    /api/:itemId/session/:sessionId              org.corespring.player.v1.controllers.Session.update(itemId:VersionedId[ObjectId],sessionId:ObjectId, role:String ?= "student", action : Option[String] ?= None)
 POST   /api/:itemId/session/:quizId/aggregate       org.corespring.player.v1.controllers.Session.aggregate(quizId:ObjectId, itemId:VersionedId[ObjectId])
 GET    /routes.js                                   org.corespring.player.v1.controllers.Session.jsRoutes
-GET    /api/:itemId/details                         @org.corespring.player.v1.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
+GET    /api/:itemId/details                         org.corespring.player.v1.controllers.Item.getDetail(itemId:VersionedId[ObjectId])
 ## JS Routes
-GET    /item/routes.js                              @org.corespring.player.v1.controllers.Item.jsRoutes
+GET    /item/routes.js                              org.corespring.player.v1.controllers.Item.jsRoutes
 ## Encrypt
 POST    /encrypt-options                            org.corespring.player.v1.controllers.Encrypter.encryptOptions
 ## Views

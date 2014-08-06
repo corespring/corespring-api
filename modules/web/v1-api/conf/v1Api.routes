@@ -32,19 +32,19 @@ DELETE  /users/:id                       org.corespring.api.v1.UserApi.deleteUse
 GET     /organizations/:orgId/users      org.corespring.api.v1.UserApi.getUsersByOrg(orgId: ObjectId)
 
 # Items API
-GET     /items                           @org.corespring.api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /items/query                     @org.corespring.api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-GET     /organizations/:orgId/items      @org.corespring.api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /items                           org.corespring.api.v1.ItemApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /items/query                     org.corespring.api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET     /organizations/:orgId/items      org.corespring.api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /contributors                    org.corespring.api.v1.ContributorApi.getContributorsList()
-GET     /items/:id                       @org.corespring.api.v1.ItemApi.get(id: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
-GET     /collections/:collId/items       @org.corespring.api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
-DELETE  /items/:id                       @org.corespring.api.v1.ItemApi.delete(id: VersionedId[ObjectId])
-GET     /items/:id/detail                @org.corespring.api.v1.ItemApi.getDetail(id: VersionedId[ObjectId])
-POST    /items                           @org.corespring.api.v1.ItemApi.create
-PUT     /items/:id                       @org.corespring.api.v1.ItemApi.update(id: VersionedId[ObjectId])
-POST    /items/:id                       @org.corespring.api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
-PUT     /items/:id/extended/:property    @org.corespring.api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
-GET     /items/:id/extended/:property    @org.corespring.api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
+GET     /items/:id                       org.corespring.api.v1.ItemApi.get(id: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
+GET     /collections/:collId/items       org.corespring.api.v1.ItemApi.listWithColl(collId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+DELETE  /items/:id                       org.corespring.api.v1.ItemApi.delete(id: VersionedId[ObjectId])
+GET     /items/:id/detail                org.corespring.api.v1.ItemApi.getDetail(id: VersionedId[ObjectId])
+POST    /items                           org.corespring.api.v1.ItemApi.create
+PUT     /items/:id                       org.corespring.api.v1.ItemApi.update(id: VersionedId[ObjectId])
+POST    /items/:id                       org.corespring.api.v1.ItemApi.cloneItem(id:VersionedId[ObjectId])
+PUT     /items/:id/extended/:property    org.corespring.api.v1.ItemApi.updateMetadata(id:VersionedId[ObjectId],property:String)
+GET     /items/:id/extended/:property    org.corespring.api.v1.ItemApi.getMetadata(id:VersionedId[ObjectId],property:String)
 
 GET     /metadata/item/:id               org.corespring.api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
 
@@ -85,7 +85,7 @@ GET     /field_values/collection/:collectionId   org.corespring.api.v1.FieldValu
 
 POST    /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 GET     /items/:itemId/sessions                         org.corespring.api.v1.ItemSessionApi.list(itemId:VersionedId[ObjectId])
-GET     /items/:itemId/sessions/count                   @org.corespring.api.v1.ItemApi.countSessions(itemId:VersionedId[ObjectId])
+GET     /items/:itemId/sessions/count                   org.corespring.api.v1.ItemApi.countSessions(itemId:VersionedId[ObjectId])
 GET     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.get(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student")
 PUT     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.ItemSessionApi.update(itemId:VersionedId[ObjectId], sessionId: ObjectId, role:String ?= "student", action : Option[String] ?= None)
 PUT     /items/:itemId/sessions/:sessionId/reopen       org.corespring.api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)

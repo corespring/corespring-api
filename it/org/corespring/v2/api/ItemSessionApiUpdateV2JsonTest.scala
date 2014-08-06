@@ -10,7 +10,7 @@ class ItemSessionApiUpdateV2JsonTest extends IntegrationSpecification {
 
   class orgWithTokenAndTwoItems extends orgWithAccessTokenAndItem {
 
-    lazy val secondItemId = {
+    val secondItemId = {
       println(s"find: $itemId")
       ItemServiceWired.findOneById(itemId).map { item =>
         ItemServiceWired.save(item, true)
@@ -22,7 +22,7 @@ class ItemSessionApiUpdateV2JsonTest extends IntegrationSpecification {
       }
     }
 
-    lazy val item = ItemServiceWired.findOneById(itemId).getOrElse {
+    val item = ItemServiceWired.findOneById(itemId).getOrElse {
       throw new RuntimeException("Can't find item")
     }
 
@@ -34,14 +34,6 @@ class ItemSessionApiUpdateV2JsonTest extends IntegrationSpecification {
 
   "v2 - ItemSessionApi" should {
     "not throw an error when updating v2 json on a 'versioned' item" in new orgWithTokenAndTwoItems {
-
-      /**
-       * Don't delete - this invocation is required to build these items
-       * There is some weird timing issue that means we can't make these vals
-       * will investigate
-       */
-      secondItemId
-      item
 
       val call = org.corespring.v2.api.routes.ItemSessionApi.create(itemId)
       route(FakeRequest(call.method, s"{call.url}?access_token=$accessToken")).map { result =>
