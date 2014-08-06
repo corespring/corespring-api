@@ -4,7 +4,6 @@ import org.corespring.container.client.hooks.{ PlayerJs, PlayerLauncherHooks => 
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.services.UserService
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.cookies.V2PlayerCookieWriter
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.compoundError
 import org.corespring.v2.log.V2LoggerFactory
