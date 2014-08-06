@@ -1,16 +1,3 @@
-import com.mongodb.casbah.Imports
-import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat._
-import org.corespring.assets.CorespringS3ServiceExtended
-import org.corespring.lti.web.accessControl.auth.QuerySessionRenderOptions
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayItemTransformationCache }
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.player.accessControl.auth.CheckSessionAccess
-import org.corespring.qtiToV2.transformers.ItemTransformer
-
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.duration._
-
 import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -18,23 +5,25 @@ import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
-import org.corespring.api.v1.{ dependencies, ItemApi }
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
-import org.corespring.platform.core.services.{ BaseFindAndSaveService, UserServiceWired }
+import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
-import org.corespring.v2.player.V2PlayerIntegration
+import org.corespring.v2.player.{ AllItemVersionTransformer, V2PlayerIntegration }
 import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.libs.concurrent.Akka
-import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.mvc._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -65,28 +54,7 @@ object Global
     } yield modeConfig
   }.getOrElse(Configuration.empty)
 
-  lazy val itemTransformer = new ItemTransformer {
-    def cache: ItemTransformationCache = PlayItemTransformationCache
-    def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
-
-      override def findOneById(id: VersionedId[Imports.ObjectId]): Option[Item] = ItemServiceWired.findOneById(id)
-
-      /**
-       * Note: Whilst we support v1 and v2 players, we need to allow the item transformer to save 'versioned' items (aka not the most recent item).
-       * This is not possible using the SalatVersioningDao as it has logic in place that prevents that happening.
-       * @param i
-       * @param createNewVersion
-       * @see SalatVersioningDao
-       */
-      override def save(i: Item, createNewVersion: Boolean): Unit = {
-        import com.mongodb.casbah.Imports._
-        import org.corespring.platform.core.models.mongoContext.context
-        logger.debug(s"[itemTransformer.save] - saving versioned content directly")
-        val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
-        ItemServiceWired.dao.currentCollection.save(dbo)
-      }
-    }
-  }
+  lazy val itemTransformer = new AllItemVersionTransformer()
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
   lazy val integration = new V2PlayerIntegration(
