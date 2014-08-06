@@ -2,7 +2,6 @@ package org.corespring.v2.player
 
 import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
-import org.corespring.v2.auth.cookies.V2PlayerCookieKeys
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.player.scopes.{ HasItemId, IdAndOptionsRequestBuilder, RequestBuilder, clientIdAndOptions }
 import play.api.libs.json.Json
