@@ -67,6 +67,7 @@ trait SessionHooks
       models <- auth.loadForRead(id)(identity)
     } yield {
       val (session, item) = models
+      logger.trace(s"[buildSession] org and opts: $identity")
       make(transformItem(item), session, identity)
     }
     out.leftMap { s => UNAUTHORIZED -> s.message }.toEither
