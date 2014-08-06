@@ -17,16 +17,16 @@ class LoadPlayerJsTest extends IntegrationSpecification {
 
     "load player js with client id + options query string sets session" in new queryString_loadJs(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
       status(playerJsResult) === OK
-      session(playerJsResult).get(V2PlayerCookieKeys.orgId) === Some(orgId.toString)
-      session(playerJsResult).get(V2PlayerCookieKeys.renderOptions) === Some(options)
+      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'")
+      contentAsString(playerJsResult).contains(s"options = '$options'")
     }
 
     """load player js with client id + options
       query string sets session""" in new queryString_loadJs(
       Json.stringify(Json.toJson(new PlayerOptions(itemId = "*", secure = true)))) {
       status(playerJsResult) === OK
-      session(playerJsResult).get(V2PlayerCookieKeys.orgId) === Some(orgId.toString)
-      session(playerJsResult).get(V2PlayerCookieKeys.renderOptions) === Some(options)
+      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'")
+      contentAsString(playerJsResult).contains(s"options = '$options'")
     }
   }
 

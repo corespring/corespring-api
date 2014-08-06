@@ -13,18 +13,13 @@ import play.api.mvc._
 import scala.concurrent.Future
 import scalaz._
 
-trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCookieWriter with LoadOrgAndOptions {
+trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerLauncherHooks")
 
   def secureSocialService: SecureSocialService
 
   def userService: UserService
-
-  /** A helper method to allow you to create a new session out of the existing and a variable number of Key values pairs */
-  override def sumSession(s: Session, keyValues: (String, String)*): Session = {
-    keyValues.foldRight(s)((kv: (String, String), acc: Session) => acc + (kv._1, kv._2))
-  }
 
   override def playerJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
 
@@ -35,13 +30,7 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with V2PlayerCook
     logger.trace(s"load js...")
     getOrgIdAndOptions(header) match {
       case Success(OrgAndOpts(orgId, opts, _)) => {
-        val newSession = sumSession(header.session, playerCookies(orgId, Some(opts)): _*)
-        logger.trace(s"auth success: call player js with session: $newSession")
-        /**
-         * Note: setting a session cookie when loading the js is going to be deprecated,
-         * Once we have url based authentication up and running.
-         */
-        PlayerJs(opts.secure, newSession)
+        PlayerJs(opts.secure, header.session)
       }
       case Failure(error) => error match {
 

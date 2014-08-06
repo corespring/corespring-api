@@ -185,7 +185,9 @@ object Global
 
   private def timeLeftUntil2am = {
     implicit val postfixOps = scala.language.postfixOps
-    (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(2).withZone(DateTimeZone.forID("America/New_York"))
+    // Looks like Play is not adjusting the timezone properly here, so it's set for 7am, which ought to be
+    // 6am UTC -> 2am EDT
+    (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(6).withZone(DateTimeZone.forID("America/New_York"))
       .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
   }
 
