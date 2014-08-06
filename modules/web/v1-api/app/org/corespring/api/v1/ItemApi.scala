@@ -92,7 +92,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         item <- service.findOneById(id).toSuccess("Can't find item")
       } yield service.sessionCount(item)
       c match {
-        case Success(_) => Ok(JsObject(Seq("sessionCount"->JsNumber(c.toOption.get))))
+        case Success(_) => Ok(JsObject(Seq("sessionCount" -> JsNumber(c.toOption.get))))
         case _ => BadRequest
       }
   }
@@ -135,8 +135,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       }
     })
   }
-
-
 
   /**
    * Note: we remove the version - so that the dao automatically returns the latest version

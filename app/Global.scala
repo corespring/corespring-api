@@ -3,28 +3,27 @@ import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
-import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
+import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.platform.core.models.item.PlayItemTransformationCache
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
-import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.play.utils._
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
-import org.corespring.v2.player.V2PlayerIntegration
-import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
-import org.joda.time.{ DateTimeZone, DateTime }
+import org.corespring.v2.player.{ AllItemVersionTransformer, V2PlayerIntegration }
+import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -32,7 +31,7 @@ object Global
   with GlobalSettings
   with ClassLogging {
 
-  import ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   val INIT_DATA: String = "INIT_DATA"
 
@@ -55,13 +54,14 @@ object Global
     } yield modeConfig
   }.getOrElse(Configuration.empty)
 
-  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
+  lazy val itemTransformer = new AllItemVersionTransformer()
 
-  lazy val itemTransformer = new ItemTransformer {
-    def cache = PlayItemTransformationCache
-    def itemService = ItemServiceWired
-  }
+  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
+  lazy val integration = new V2PlayerIntegration(
+    componentLoader.all,
+    containerConfig,
+    SeedDb.salatDb(),
+    itemTransformer)
 
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,

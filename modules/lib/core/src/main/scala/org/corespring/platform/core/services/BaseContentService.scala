@@ -8,9 +8,15 @@ import org.corespring.platform.core.models.error.CorespringInternalError
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.platform.core.models.item.Item.Keys._
 import com.novus.salat.dao.SalatMongoCursor
-import scala.Some
 
-trait BaseContentService[ContentType <: Content[ID], ID] {
+trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
+
+  def save(i: ContentType, createNewVersion: Boolean = false)
+
+  def findOneById(id: ID): Option[ContentType]
+}
+
+trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSaveService[ContentType, ID] {
 
   def clone(content: ContentType): Option[ContentType]
 
@@ -20,11 +26,7 @@ trait BaseContentService[ContentType <: Content[ID], ID] {
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[ContentType]
 
-  def findOneById(id: ID): Option[ContentType]
-
   def findOne(query: DBObject): Option[ContentType]
-
-  def save(i: ContentType, createNewVersion: Boolean = false)
 
   def insert(i: ContentType): Option[ID]
 

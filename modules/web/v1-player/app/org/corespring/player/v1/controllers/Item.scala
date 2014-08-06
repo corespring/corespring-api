@@ -3,7 +3,7 @@ package org.corespring.player.v1.controllers
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.models.RequestedAccess
 import org.corespring.web.common.controllers.SimpleJsRoutes
 import play.api.mvc._
@@ -18,7 +18,7 @@ class Item(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Control
   def jsRoutes = Action {
     implicit request =>
 
-     import org.corespring.player.v1.controllers.routes.javascript.{ Item => JsItem }
+      import org.corespring.player.v1.controllers.routes.javascript.{ Item => JsItem }
 
       val jsRoutes = List(
         JsItem.getDetail)

@@ -1,13 +1,13 @@
 package org.corespring.lti.web.controllers.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.api.v1.{ItemApi => Api}
+import org.corespring.api.v1.{ ItemApi => Api }
 import org.corespring.lti.web.accessControl.auth.QuerySessionRenderOptions
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.web.common.controllers.SimpleJsRoutes
-import play.api.mvc.{AnyContent, Controller}
+import play.api.mvc.{ AnyContent, Controller }
 
 class Item(auth: TokenizedRequestActionBuilder[QuerySessionRenderOptions.RenderOptionQuery]) extends Controller with SimpleJsRoutes {
 
