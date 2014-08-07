@@ -74,24 +74,31 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
     }
   }
 
-  def loadFileSets(dir: String): Seq[TestSet] = {
+  "bad js" should {
+    val sets = loadFileSets("badJs", "qti.js", (f: File) => scala.io.Source.fromFile(f).getLines.mkString("\n"))
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
+  def xmlFileToJs(f: File): String = {
+    try {
+      val xml = scala.xml.XML.loadFile(f)
+      (xml \ "responseProcessing").text
+    } catch {
+      case e: Throwable => {
+        e.printStackTrace()
+        throw new RuntimeException("Can't parse file: ", e)
+      }
+    }
+  }
+  val QtiXml = "qti.xml"
+
+  def loadFileSets(dir: String, fileName: String = QtiXml, fn: File => String = xmlFileToJs): Seq[TestSet] = {
     val url = this.getClass.getResource(dir)
     require(url != null, "The url is null")
 
     val file = new File(url.toURI)
-
-    def xmlFileToJs(f: File): Option[String] = {
-      try {
-        val xml = scala.xml.XML.loadFile(f)
-        val js = (xml \ "responseProcessing").text
-        Some(js)
-      } catch {
-        case e: Throwable => {
-          e.printStackTrace()
-          None
-        }
-      }
-    }
 
     def mkSet(qti: File, s: File): TestSet = {
 
@@ -101,20 +108,17 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
         case e: Throwable => throw new RuntimeException(s"Error parsing: ${s.getAbsolutePath}")
       }
 
-      xmlFileToJs(qti).map { js =>
+      val item = (json \ "item" \ "components").as[Map[String, JsObject]].map { (t: (String, JsObject)) =>
+        (t._1 -> ((t._2) \ "componentType").as[String])
+      }
 
-        val item = (json \ "item" \ "components").as[Map[String, JsObject]].map { (t: (String, JsObject)) =>
-          (t._1 -> ((t._2) \ "componentType").as[String])
-        }
-
-        TestSet(
-          s"${s.getParentFile.getName}/${s.getName}",
-          qti = js,
-          (json \ "session").as[JsObject],
-          (json \ "outcomes").asOpt[JsObject].getOrElse(Json.obj()),
-          item,
-          (json \ "expected").as[JsObject])
-      }.getOrElse(throw new RuntimeException(s"no js in xml file? ${qti.getAbsolutePath}"))
+      TestSet(
+        s"${s.getParentFile.getName}/${s.getName}",
+        qti = fn(qti), //js,
+        (json \ "session").as[JsObject],
+        (json \ "outcomes").asOpt[JsObject].getOrElse(Json.obj()),
+        item,
+        (json \ "expected").as[JsObject])
     }
 
     /**
@@ -123,7 +127,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
      * @return
      */
     def setList(dir: File): Seq[TestSet] = {
-      val QtiFile = "qti.xml"
+      val QtiFile = fileName //"qti.xml"
       val split = dir.listFiles.toSeq.groupBy(f => if (f.getName == QtiFile) QtiFile else "sessions")
 
       require(split.get(QtiFile).isDefined && split.get(QtiFile).get.headOption.isDefined, s"no $QtiFile in dir: ${dir.getAbsolutePath} ")

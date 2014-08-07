@@ -85,7 +85,19 @@ exports.process = function(item, session, outcomes){
   ${session.map(t => s"//console.log( '->' + JSON.stringify(${t._1}) ); ").mkString("\n")}
 
   /// ----------- this is qti js - can't edit
-  $qtiJs
+
+  try{
+    $qtiJs
+  } catch(e){
+    return {
+      components: {},
+      summary: {
+        percentage: 0,
+        note: 'Error occurred processing: ' + e
+      }
+    };
+  }
+
   /// -------------- end qti js
   return {
     components: {},
