@@ -1,8 +1,14 @@
 {
+  "item" : {
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice"
+      }
+    }
+  },
   "session" : {
     "components" : {
       "RESPONSE" : {
-        "componentType" : "corespring-multiple-choice",
         "answers" : ["1"]
       }
     }

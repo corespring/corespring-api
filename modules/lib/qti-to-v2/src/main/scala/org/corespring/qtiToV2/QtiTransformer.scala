@@ -43,8 +43,9 @@ object QtiTransformer extends XMLNamespaceClearer {
       (html, transformer) => transformer.transform(html).head)
 
     val customScoring = (qti \\ "responseProcessing").headOption.map { rp =>
-      val wrappedJs = new CustomScoringTransformer().generate(rp.text, components)
-      Json.obj("customScoring" -> wrappedJs)
+      //val wrappedJs = new CustomScoringTransformer().generate(rp.text, components)
+      //Json.obj("customScoring" -> wrappedJs)
+      ???
     }.getOrElse(Json.obj())
 
     (html, JsObject(components.toSeq) ++ customScoring)

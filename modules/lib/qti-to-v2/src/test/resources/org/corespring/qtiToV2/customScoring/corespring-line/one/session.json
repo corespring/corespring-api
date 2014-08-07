@@ -1,12 +1,20 @@
 {
+  "item" : {
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice"
+      },
+      "graphTest" : {
+        "componentType" : "corespring-line"
+      }
+    }
+  },
   "session" : {
     "components" : {
       "RESPONSE" : {
-        "componentType" : "corespring-multiple-choice",
          "answers" : [ "3" ]
       },
       "graphTest" : {
-        "componentType" : "corespring-line",
         "answers" : {
           "A" : {
             "x" : 1,
@@ -20,10 +28,17 @@
       }
     }
   },
+  "outcomes" : {
+    "components" : {
+      "graphTest" : {
+        "correctness" : "correct"
+      }
+    }
+  },
   "expected" : {
     "components":{},
     "summary":{
-      "percentage":60,
+      "percentage":100,
       "note": "Overridden score"
     }
   }

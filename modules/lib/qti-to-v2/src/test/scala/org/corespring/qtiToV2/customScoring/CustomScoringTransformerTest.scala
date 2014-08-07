@@ -8,15 +8,21 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsString, JsValue, JsObject, Json }
 
-case class TestSet(name: String, qti: String, session: JsObject, expected: JsValue)
+case class TestSet(
+  name: String,
+  qti: String,
+  session: JsObject,
+  outcomes: JsObject,
+  typeMap: Map[String, String],
+  expected: JsValue)
 
 class CustomScoringTransformerTest extends Specification with JsContext with JsFunctionCalling {
 
   private def jsExecutionWorks(s: TestSet): Result = {
     val answers = (s.session \ "components").as[Map[String, JsObject]]
     val transformer = new CustomScoringTransformer()
-    val js = transformer.generate(s.qti, answers)
-    val result = executeJs(js, s.session)
+    val js = transformer.generate(s.qti, answers, s.typeMap)
+    val result = executeJs(js, s.session, s.outcomes)
     result === Right(s.expected)
   }
 
@@ -29,7 +35,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
   "CustomScoring" should {
     "wrap the js" in {
       val transformer = new CustomScoringTransformer()
-      transformer.generate("//qti-js", Map()) === transformer.template("//qti-js", Map())
+      transformer.generate("//qti-js", Map(), Map()) === transformer.generate("//qti-js", Map(), Map())
     }
   }
 
@@ -96,10 +102,17 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
       }
 
       xmlFileToJs(qti).map { js =>
+
+        val item = (json \ "item" \ "components").as[Map[String, JsObject]].map { (t: (String, JsObject)) =>
+          (t._1 -> ((t._2) \ "componentType").as[String])
+        }
+
         TestSet(
           s"${s.getParentFile.getName}/${s.getName}",
           qti = js,
           (json \ "session").as[JsObject],
+          (json \ "outcomes").asOpt[JsObject].getOrElse(Json.obj()),
+          item,
           (json \ "expected").as[JsObject])
       }.getOrElse(throw new RuntimeException(s"no js in xml file? ${qti.getAbsolutePath}"))
     }
@@ -143,7 +156,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
 
   import org.mozilla.javascript.{ Context, Scriptable, Function => RhinoFunction }
 
-  private def executeJs(js: String, answers: JsObject): Either[Throwable, JsObject] = {
+  private def executeJs(js: String, answers: JsObject, outcomes: JsObject): Either[Throwable, JsObject] = {
 
     val wrapped =
       s"""
@@ -161,7 +174,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
 
       withJsContext(wrapped) { (context: Context, scope: Scriptable) =>
         val process = getProcess(context, scope)
-        val result = callJsFunction(wrapped, process, process.getParentScope, Array(Json.obj(), answers))(context, scope)
+        val result = callJsFunction(wrapped, process, process.getParentScope, Array(Json.obj(), answers, outcomes))(context, scope)
         println(result)
         result
       }
