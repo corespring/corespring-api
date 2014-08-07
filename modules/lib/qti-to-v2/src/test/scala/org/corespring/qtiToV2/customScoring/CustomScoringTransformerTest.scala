@@ -1,51 +1,97 @@
 package org.corespring.qtiToV2.customScoring
 
+import java.io.File
+
 import org.mozilla.javascript.{ Context, Scriptable }
+import org.specs2.execute.Result
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 import play.api.libs.json.{ JsString, JsValue, JsObject, Json }
 
+case class TestSet(name: String, qti: String, session: JsObject, expected: JsValue)
+
 class CustomScoringTransformerTest extends Specification with JsContext with JsFunctionCalling {
+
+  private def jsExecutionWorks(s: TestSet): Result = {
+    val answers = (s.session \ "components").as[Map[String, JsObject]]
+    val transformer = new CustomScoringTransformer()
+    val js = transformer.generate(s.qti, answers)
+    val result = executeJs(js, s.session)
+    result === Right(s.expected)
+  }
+
+  trait BaseScope extends Scope {
+    def sets: Seq[TestSet]
+  }
+
+  class TestSetScope(val sets: Seq[TestSet]) extends BaseScope
 
   "CustomScoring" should {
     "wrap the js" in {
       val transformer = new CustomScoringTransformer()
       transformer.generate("//qti-js", Map()) === transformer.template("//qti-js", Map())
     }
+  }
 
-    "executes the js" in {
+  "variations" should {
+    val sets = loadFileSets("corespring-multiple-choice")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
 
-      val qtiJs =
-        """
-          |var correctAnswers = 0;
-          |if (RESPONSE.value.indexOf("1") != -1) correctAnswers += 1;
-          |if (RESPONSE.value.indexOf("2") != -1) correctAnswers += 1;
-          |if (RESPONSE.value.indexOf("3") != -1) correctAnswers += 1;
-          |
-          |var score = 0;
-          |if (correctAnswers == 1) score = 0.5
-          |if (correctAnswers == 2) score = 0.8
-          |if (correctAnswers == 3) score = 1.0
-          |
-          |var outcome = {};
-          |outcome.score = score;
-          |outcome;
-        """
-          .stripMargin
-      val transformer = new CustomScoringTransformer()
+  def loadFileSets(dir: String): Seq[TestSet] = {
+    val url = this.getClass.getResource(dir)
+    require(url != null, "The url is null")
 
-      val answers = Map(
-        "RESPONSE" -> Json.obj(
-          "componentType" -> "corespring-multiple-choice",
-          "answers" -> Json.arr("1", "2", "3")))
+    val file = new File(url.toURI)
 
-      val js = transformer.generate(qtiJs, answers)
-
-      val result = executeJs(js, Json.obj("components" -> answers))
-
-      result === Right(Json.parse("""{"components":{},"summary":{"percentage":100,"note":"Overridden score"}}"""))
-
+    def mkSet(qti: File, s: File): TestSet = {
+      val json = Json.parse(scala.io.Source.fromFile(s).getLines().mkString("\n"))
+      TestSet(
+        s"${s.getParentFile.getName}/${s.getName}",
+        qti = scala.io.Source.fromFile(qti).getLines.mkString("\n"),
+        (json \ "session").as[JsObject],
+        (json \ "expected").as[JsObject])
     }
 
+    /**
+     * A dir containing 1 qti.js and n session.json files
+     * @param dir
+     * @return
+     */
+    def setList(dir: File): Seq[TestSet] = {
+      val split = dir.listFiles.toSeq.groupBy(f => if (f.getName == "qti.js") "qti.js" else "sessions")
+
+      require(split.get("qti.js").isDefined && split.get("qti.js").get.headOption.isDefined, s"no qti in dir: ${dir.getAbsolutePath} ")
+
+      val out = for {
+        qtiSeq <- split.get("qti.js")
+        qti <- qtiSeq.headOption
+        sessions <- split.get("sessions")
+      } yield {
+        for (s <- sessions) yield mkSet(qti, s)
+      }
+
+      out.getOrElse {
+        throw new RuntimeException(s"Error loading qti + sessions from: ${dir.getAbsolutePath}")
+      }
+    }
+
+    lazy val sets: Seq[TestSet] = {
+      if (file.exists) {
+        println(url)
+        println(file)
+        println(file.exists)
+        val out: Seq[Seq[TestSet]] = file.listFiles.toSeq.map(setList)
+        val o: Seq[TestSet] = out.flatten
+        o
+      } else {
+        println(s"Error - missing dir: $dir")
+        Seq.empty
+      }
+    }
+    sets
   }
 
   import org.mozilla.javascript.{ Context, Scriptable, Function => RhinoFunction }
@@ -66,9 +112,6 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
 
     try {
 
-      println("--")
-      println(wrapped)
-      println("--")
       withJsContext(wrapped) { (context: Context, scope: Scriptable) =>
         val process = getProcess(context, scope)
         val result = callJsFunction(wrapped, process, process.getParentScope, Array(Json.obj(), answers))(context, scope)

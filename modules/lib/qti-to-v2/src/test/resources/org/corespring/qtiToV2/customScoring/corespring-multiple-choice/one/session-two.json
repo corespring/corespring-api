@@ -1,0 +1,17 @@
+{
+  "session" : {
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice",
+        "answers" : ["1", "3"]
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":80,
+      "note": "Overridden score"
+    }
+  }
+}
