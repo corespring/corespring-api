@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<assessmentItem xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'
+                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+                xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd'
+                identifier='composite' title='Composite Item' adaptive='false' timeDependent='false'>
+
+    <!-- definition for question one, a short text entry response with correct answer = 'CORRECT ANSWER' -->
+
+    <responseDeclaration identifier='Q_01' cardinality='single' baseType='string'>
+        <correctResponse>
+            <value>20</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier='Q_02' cardinality='single' baseType='string'>
+        <correctResponse>
+            <value>30</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier='Q_03' cardinality='single' baseType='string'>
+        <correctResponse>
+            <value>200</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier='Q_04' cardinality='single' baseType='string'>
+        <correctResponse>
+            <value>150</value>
+        </correctResponse>
+    </responseDeclaration>
+    <responseDeclaration identifier='Q_05' cardinality='single' baseType='string'>
+        <correctResponse>
+            <value>300</value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+<p>Harold and Christine are planning a party. They decide they need 2 hamburgers and 3 pieces of fruit for each person. They make a chart so that they can know how many of each to buy depending on how many people show up. Then, while mixing lemonade, Harold spills some on their chart!</p>
+        <p class='prompt'>Help Harold and Christine with their planning by filling in the missing numbers.</p>
+<table>
+    <tr>
+        <td bgcolor="#B8CACA">People</td>
+        <td bgcolor="#E3EAEA" class="text-centered">5</td>
+        <td bgcolor="#E3EAEA" class="text-centered">10</td>
+        <td bgcolor="#E3EAEA" class="text-centered">15</td>
+        <td bgcolor="#E3EAEA"><textEntryInteraction responseIdentifier='Q_01' expectedLength='2'/></td>
+        <td bgcolor="#E3EAEA" class="text-centered">50</td>
+        <td bgcolor="#E3EAEA" class="text-centered">100</td>
+    </tr>
+    <tr>
+        <td bgcolor="#C28585">Hamburgers</td>
+        <td bgcolor="#E0C2C2" class="text-centered">10</td>
+        <td bgcolor="#E0C2C2" class="text-centered">20</td>
+        <td bgcolor="#E0C2C2"><textEntryInteraction responseIdentifier='Q_02' expectedLength='2'/></td>
+        <td bgcolor="#E0C2C2" class="text-centered">40</td>
+        <td bgcolor="#E0C2C2" class="text-centered">100</td>
+        <td bgcolor="#E0C2C2"><textEntryInteraction responseIdentifier='Q_03' expectedLength='2'/></td>
+    </tr>
+    <tr>
+        <td bgcolor="#F0D466">Pieces of Fruit</td>
+        <td bgcolor="#F9EEC2" class="text-centered">15</td>
+        <td bgcolor="#F9EEC2" class="text-centered">30</td>
+        <td bgcolor="#F9EEC2" class="text-centered">45</td>
+        <td bgcolor="#F9EEC2" class="text-centered">60</td>
+        <td bgcolor="#F9EEC2"><textEntryInteraction responseIdentifier='Q_04' expectedLength='2'/></td>
+        <td bgcolor="#F9EEC2"><textEntryInteraction responseIdentifier='Q_05' expectedLength='2'/></td>
+    </tr>
+</table>
+
+</itemBody>
+<responseProcessing type="script">
+      <script type="text/javascript">
+        var points = 0;
+        if(Q_01.value == "20") points += 1
+        if(Q_02.value == "30") points += 1
+        if(Q_03.value == "200") points += 1
+        if(Q_04.value == "150") points += 1
+        if(Q_05.value == "300") points += 1
+        
+        
+        var grade = (1/5) * points; 
+        var outcome = {};
+        outcome.score = grade;
+        outcome;
+    </script>
+    </responseProcessing>
+</assessmentItem>

@@ -1,0 +1,37 @@
+{
+  "session" : {
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "2"
+      },
+      "Q_02" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "7"
+      },
+      "Q_03" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "18"
+      },
+      "Q_04" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "21"
+      },
+      "Q_05" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "28"
+      },
+      "Q_06" : {
+        "componentType" : "corespring-inline-choice",
+        "answers" : "35"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}

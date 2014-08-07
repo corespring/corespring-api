@@ -1,0 +1,93 @@
+<assessmentItem  title='' adaptive='false' timeDependent='false'>
+
+    <responseDeclaration identifier='RESPONSE' cardinality='multiple' baseType='identifier'>
+
+        <correctResponseFeedback>Correct!</correctResponseFeedback>
+        <incorrectResponseFeedback>Your answer.</incorrectResponseFeedback>
+
+
+        <correctResponse>
+            <value>1</value>
+            <value>2</value>
+            <value>3</value>
+        </correctResponse>
+        <mapping lowerBound='0' upperBound='3' defaultValue='-3'>
+            <mapEntry mapKey='1' mappedValue='1'/>
+            <mapEntry mapKey='2' mappedValue='1'/>
+            <mapEntry mapKey='3' mappedValue='1'/>
+            <mapEntry mapKey='4' mappedValue='0'/>
+            <mapEntry mapKey='6' mappedValue='0'/>
+            <mapEntry mapKey='5' mappedValue='-1'/>
+        </mapping>
+    </responseDeclaration>
+    <outcomeDeclaration identifier='SCORE' cardinality='single' baseType='float'/>
+    <itemBody>
+        <lineInteraction    responseIdentifier="graphTest"
+                            jsxgraphcore=''
+                            graph-width='300px'
+                            graph-height='300px'
+                            domain='10'
+                            range='10'
+                            scale='1'
+                            domain-label='x'
+                            range-label='y'
+                            tick-label-frequency='10'
+                            sigfigs='-1'
+                            show-inputs='false'
+                            locked='true'
+                >
+
+            <graphcurve>y=3x-4
+            </graphcurve>
+        </lineInteraction>
+        <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='0'>
+            <prompt>Check the box next to the coordinate pair or pairs that lie on the line <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <semantics>
+                    <mrow>
+                        <mrow>
+                            <mi>y</mi>
+                            <mo stretchy="false">=</mo>
+                            <mrow>
+                                <mn>3x</mn>
+                                <mo stretchy="false">−</mo>
+                                <mn>4</mn>
+                            </mrow>
+                        </mrow>
+                    </mrow>
+                    <annotation encoding="StarMath 5.0">y=3x-4</annotation>
+                </semantics>
+
+                <p>
+
+                </p>
+
+            </math> shown above.</prompt>
+            <simpleChoice identifier='1' fixed='false'>(1,-1)<feedbackInline identifier='1' defaultFeedback='true'/></simpleChoice>
+            <simpleChoice identifier='2' fixed='false'>(-2,-10)<feedbackInline identifier='2' defaultFeedback='true'/></simpleChoice>
+            <simpleChoice identifier='3' fixed='false'>(4,9)<feedbackInline identifier='3' defaultFeedback='true'/></simpleChoice>
+            <simpleChoice identifier='4' fixed='false'>(-1,1)<feedbackInline identifier='4' defaultFeedback='true'/></simpleChoice>
+            <simpleChoice identifier='5' fixed='false'>(2,7)<feedbackInline identifier='5' defaultFeedback='true'/></simpleChoice>
+            <simpleChoice identifier='6' fixed='false'>(9,4)<feedbackInline identifier='6' defaultFeedback='true'/></simpleChoice>
+        </choiceInteraction>
+
+    </itemBody>
+
+    <responseProcessing type="script">
+        <script type="text/javascript">
+            var correctAnswers = 0;
+            if (RESPONSE.value.indexOf("1") != -1) correctAnswers += 1;
+            if (RESPONSE.value.indexOf("2") != -1) correctAnswers += 1;
+            if (RESPONSE.value.indexOf("3") != -1) correctAnswers += 1;
+
+            var score = 0;
+            if (correctAnswers == 1) score = 0.5
+            if (correctAnswers == 2) score = 0.8
+            if (correctAnswers == 3) score = 1.0
+
+            var outcome = {};
+            outcome.score = score;
+            outcome;
+
+        </script>
+    </responseProcessing>
+</assessmentItem>

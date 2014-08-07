@@ -24,14 +24,39 @@ var $key = toResponseProcessingModel(session.components.$key, '${(config \ "comp
   def template(qtiJs: String, components: Map[String, JsObject]): String = {
     s"""
 
-console.log("-------------> init");
+var mkValue = function(defaultValue){
+  return function(comp){
+    return {
+      value: comp && comp.answers ? comp.answers : defaultValue
+    };
+  }
+};
+
+var toCommaString = function(xy){
+  return xy.x + ',' + xy.y;
+}
+
+var lineToValue = function(comp){
+
+  if(comp && comp.answers){
+    return {
+      value: [ toCommaString(comp.answers.A), toCommaString(comp.answers.B) ],
+      isCorrect: false
+    }
+  } else {
+    return {
+      value: ['0,0', '0,0'],
+      isCorrect: false
+    }
+  }
+}
 
 var componentTypeFunctions = {
-   'corespring-multiple-choice' : function(comp){
-     return {
-       value: comp && comp.answers ? comp.answers : []
-     }
-   }
+ 'corespring-multiple-choice' : mkValue([]),
+ 'corespring-drag-and-drop' : mkValue([]),
+ 'corespring-text-entry' : mkValue('?'),
+ 'corespring-inline-choice' : mkValue('?'),
+ 'corespring-line' : lineToValue
 };
 
 function toResponseProcessingModel(answer, componentType){
@@ -48,9 +73,7 @@ exports.process = function(item, session){
   console.log("---------> session: " + JSON.stringify(session));
 
   ${components.map(t => toLocalVar(t._1, t._2)).mkString("\n")}
-
-
-  ${components.map(t => s"console.log( '->' + JSON.stringify(${t._1}) ); ").mkString("\n")}
+  ${components.map(t => s"//console.log( '->' + JSON.stringify(${t._1}) ); ").mkString("\n")}
 
   /// ----------- this is qti js - can't edit
   $qtiJs
@@ -58,7 +81,7 @@ exports.process = function(item, session){
   return {
     components: {},
     summary: {
-      percentage: (outcome.score * 100),
+      percentage: Math.floor(outcome.score * 100),
       note: 'Overridden score'
     }
   };

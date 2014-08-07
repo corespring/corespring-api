@@ -1,0 +1,30 @@
+{
+  "session" : {
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice",
+         "answers" : [ "3" ]
+      },
+      "graphTest" : {
+        "componentType" : "corespring-line",
+        "answers" : {
+          "A" : {
+            "x" : 1,
+            "y" : 1
+          },
+          "B" : {
+            "x" : 1,
+            "y" : 1
+          }
+        }
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}

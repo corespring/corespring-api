@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<assessmentItem>
+    
+<responseDeclaration identifier='Q_01' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>2</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <responseDeclaration identifier='Q_02' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>7</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <responseDeclaration identifier='Q_03' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>18</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <responseDeclaration identifier='Q_04' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>21</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <responseDeclaration identifier='Q_05' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>28</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <responseDeclaration identifier='Q_06' cardinality='single' baseType='identifier'>
+        <correctResponse>
+            <value>35</value> <!-- # of choice with CORRECT ANSWER -->
+        </correctResponse>
+    </responseDeclaration>
+    
+    <itemBody>
+        <p class='intro-2'>Mr. Goldstein's science class is learning about how to represent data. Each student is given a set of data and gets to choose how he or she represents the data: in a table, in a graph, or as an equation. Mr. Goldstein then asks the class whose data represents the greatest RATE OF CHANGE.</p>
+<hr class='element-separator'></hr>
+<p>Indicate RATES OF CHANGES (from greatest to least) for the graphs, charts, and equations below.</p>
+
+
+<table class='no-border'>
+<tr>
+<td><b>Student 1</b><p/><img src='kid1.png' height='225' width='226'/><p/><inlineChoiceInteraction
+            responseIdentifier='Q_01'
+            required='false'>
+            <inlineChoice identifier='1'>Greatest<feedbackInline identifier='1'>Correct Answer = 2ND </feedbackInline></inlineChoice>
+            <inlineChoice identifier='2'>2nd<feedbackInline identifier='2' defaultFeedback='true'></feedbackInline></inlineChoice>
+            <inlineChoice identifier='3'>3rd<feedbackInline identifier='3'>Correct Answer = 2ND</feedbackInline></inlineChoice>
+            <inlineChoice identifier='4'>4th<feedbackInline identifier='4'>Correct Answer = 2ND</feedbackInline></inlineChoice>
+            <inlineChoice identifier='5'>5th<feedbackInline identifier='5'>Correct Answer = 2ND</feedbackInline></inlineChoice>
+            <inlineChoice identifier='6'>Least<feedbackInline identifier='6'>Correct Answer = 2ND</feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>
+        </td>
+    <td> <b>Student 2</b><p/><img src="kid3.png" height='225' width='226' /><p/>
+            <inlineChoiceInteraction
+            responseIdentifier='Q_02'
+            required='false'>
+           <inlineChoice identifier='7'>Greatest<feedbackInline identifier='7' defaultFeedback='true'></feedbackInline></inlineChoice>
+            <inlineChoice identifier='8'>2nd<feedbackInline identifier='8'>Correct Answer = GREATEST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='9'>3rd<feedbackInline identifier='9'>Correct Answer = GREATEST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='10'>4th<feedbackInline identifier='10'>Correct Answer = GREATEST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='11'>5th<feedbackInline identifier='11'>Correct Answer = GREATEST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='12'>Least<feedbackInline identifier='12'>Correct Answer = GREATEST</feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>
+       </td>
+       </tr>
+  
+   <tr>
+       <td><b>Student 3</b><p/><img src="kid5.png" height='225' width='226'/><p/>
+           <inlineChoiceInteraction
+            responseIdentifier='Q_03'
+            required='false'>
+            <inlineChoice identifier='13'>Greatest<feedbackInline identifier='13'>Correct Answer = LEAST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='14'>2nd<feedbackInline identifier='14'>Correct Answer = LEAST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='15'>3rd<feedbackInline identifier='15'>Correct Answer = LEAST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='16'>4th<feedbackInline identifier='16' >Correct Answer = LEAST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='17'>5TH<feedbackInline identifier='17'>Correct Answer = LEAST</feedbackInline></inlineChoice>
+            <inlineChoice identifier='18'>Least<feedbackInline identifier='18' defaultFeedback='true'></feedbackInline></inlineChoice>
+        </inlineChoiceInteraction></td>
+        
+         <td><b>Student 4</b><p/><img src="kid6.png" height='225' width='226'/><p/> <inlineChoiceInteraction
+            responseIdentifier='Q_04'
+            required='false'>
+            <inlineChoice identifier='19'>Greatest<feedbackInline identifier='19'>Correct Answer = 3RD</feedbackInline></inlineChoice>
+            <inlineChoice identifier='20'>2nd<feedbackInline identifier='20'>Correct Answer = 3RD</feedbackInline></inlineChoice>
+            <inlineChoice identifier='21'>3rd<feedbackInline identifier='21' defaultFeedback='true'/></inlineChoice>
+            <inlineChoice identifier='22'>4th<feedbackInline identifier='22'>Correct Answer = 3RD</feedbackInline></inlineChoice>
+            <inlineChoice identifier='23'>5th<feedbackInline identifier='23'>Correct Answer = 3RD</feedbackInline></inlineChoice>
+            <inlineChoice identifier='24'>Least<feedbackInline identifier='24'>Correct Answer = 3RD</feedbackInline></inlineChoice>
+        </inlineChoiceInteraction></td>
+   </tr>
+   
+   <tr>
+       <td>
+       <b>Student 5</b> <p/><img src="kid4.png" height='225' width='226'/><p/>
+       <inlineChoiceInteraction
+            responseIdentifier='Q_05'
+            required='false'>
+            <inlineChoice identifier='25'>Greatest<feedbackInline identifier='25'>Correct Answer = 4TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='26'>2nd<feedbackInline identifier='26'>Correct Answer = 4TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='27'>3rd<feedbackInline identifier='27'>Correct Answer = 4TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='28'>4th<feedbackInline identifier='28' defaultFeedback='true'/></inlineChoice>
+            <inlineChoice identifier='29'>5th<feedbackInline identifier='29'>Correct Answer = 4TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='30'>Least<feedbackInline identifier='30'>Correct Answer = 4TH</feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>
+            
+        </td>
+ 
+       <td>
+       <b>Student 6</b><p/><img src="kid2.png" height='225' width='226'/><p/> <inlineChoiceInteraction
+            responseIdentifier='Q_06'
+            required='false'>
+            <inlineChoice identifier='31'>Greatest<feedbackInline identifier='31'>Correct Answer = 5TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='32'>2nd<feedbackInline identifier='33'>Correct Answer = 5TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='33'>3rd<feedbackInline identifier='33'>Correct Answer = 5TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='34'>4th<feedbackInline identifier='34'>Correct Answer = 5TH</feedbackInline></inlineChoice>
+            <inlineChoice identifier='35'>5th<feedbackInline identifier='35' defaultFeedback='true'/></inlineChoice>
+            <inlineChoice identifier='36'>Least<feedbackInline identifier='36'>Correct Answer = 5TH</feedbackInline></inlineChoice>
+        </inlineChoiceInteraction>
+        </td>
+   </tr>
+    
+</table>
+        
+
+    </itemBody>
+    
+    <responseProcessing type="script">
+        <script type="text/javascript">
+
+            <![CDATA[
+            var choose = function (elems, len) {
+              var result = [];
+              for (var i=0; i < elems.length; i++) {
+                if (len == 1) {
+                  result.push([elems[i]]);
+                } else {
+                  var remainingItems = choose(elems.slice(i+1, elems.length), len - 1);
+                  for (var j=0; j < remainingItems.length; j++)
+                    result.push([elems[i]].concat(remainingItems[j]));
+                }
+              }
+              return result;
+            };
+
+            var getScore = function (answer, choices) {
+              var score = 0;
+
+              for (var i=0;i < choices.length;i++) {
+                if(answer.indexOf(choices[i][0]) <  answer.indexOf(choices[i][1])) {
+                  score +=1;
+                }
+              }
+              return score;
+            };
+
+            // get sequence
+            var choices = choose(["2","7","18","21","28","35"], 2);
+
+                var answerAsArray = [Q_01.value, Q_02.value,Q_03.value, Q_04.value, Q_05.value, Q_06.value];
+
+                var points = getScore(answerAsArray, choices);
+                var maxPoints = 15;
+                var score = (1 / maxPoints) * points;
+                var outcome = {};
+                outcome.score = score;
+                outcome;
+
+            ]]>
+
+
+
+        </script>
+    </responseProcessing>
+
+</assessmentItem>

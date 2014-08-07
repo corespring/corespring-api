@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<assessmentItem  title='' adaptive='false' timeDependent='false'>
+
+<responseDeclaration identifier='graphTest' baseType='line' cardinality='single'>
+    <correctResponse>
+        <value>y=-2x+2</value>
+    </correctResponse>
+</responseDeclaration>
+
+<responseDeclaration identifier='RESPONSE' cardinality='single' baseType='identifier'>
+
+    <correctResponse>
+        <value>3</value>
+    </correctResponse>
+   
+</responseDeclaration>
+<outcomeDeclaration identifier='SCORE' cardinality='single' baseType='float'/>
+<itemBody>
+    <p class='intro-2'>Below is a graph of the equation <tex>y=-4x+6</tex>.</p>
+    <lineInteraction    responseIdentifier="graphTest"
+                        jsxgraphcore=''
+                        graph-width='300px'
+                         graph-height='300px'
+                         domain='10'
+                         range='10'
+                         scale='1'
+                         domain-label='x'
+                         range-label='y'
+                         tick-label-frequency='10'
+                         sigfigs='-1'
+                         show-inputs='false'
+                         >      
+                <graphcurve>y=-4x+6
+                           </graphcurve>
+                </lineInteraction>
+                <p></p>
+                <p>Each of the systems below contains <tex>y=-4x+6</tex> and another equation.</p>
+    <choiceInteraction responseIdentifier='RESPONSE' shuffle='true' maxChoices='1'>
+        
+        <prompt><p>Which of the following systems' solutions lies in Quadrant IV?</p>
+        <p>Demonstrate that your answer is correct by graphing the OTHER equation in that system on the graph above.</p></prompt>
+ 
+        <simpleChoice identifier='1' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\ y=2x+2 \end{cases}</tex><p/>       
+        </simpleChoice>
+       <simpleChoice identifier='2' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\ y=2x-2 \end{cases}</tex>
+         <p/>
+        </simpleChoice>
+        <simpleChoice identifier='3' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\ y=-2x+2 \end{cases}</tex><p/>
+        </simpleChoice>
+        <simpleChoice identifier='4' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\ y=-4x+9 \end{cases}</tex><p/>
+        </simpleChoice>
+        <simpleChoice identifier='5' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\y=4x-2 \end{cases}</tex><p/>
+        </simpleChoice>
+        <simpleChoice identifier='6' fixed='false'>
+         <tex>\begin{cases} y=-4x+6 \\y=4x+2 \end{cases}</tex><p/>
+         
+        </simpleChoice>
+       
+    </choiceInteraction>
+   
+</itemBody>
+
+
+
+
+
+<responseProcessing type="script">
+    <script type="text/javascript">
+    var score = 0;
+    var point1xy = graphTest.value[0];
+    var point2xy = graphTest.value[1];
+    var x1 = point1xy.charAt(0);
+    var y1 = point1xy.charAt(2);
+    var x2 = point2xy.charAt(0);
+    var y2 = point2xy.charAt(2);
+    if (graphTest.outcome.isCorrect) {score += 0.4};
+    
+   
+    
+    var correctAnswers = 0;
+    if (RESPONSE.value.indexOf("3") != -1) score += 0.6;
+    
+   
+    
+    
+    var outcome = {};
+    outcome.score = score;
+    outcome;
+
+    </script>
+    </responseProcessing>
+
+</assessmentItem>

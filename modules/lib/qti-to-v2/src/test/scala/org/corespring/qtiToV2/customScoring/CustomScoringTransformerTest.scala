@@ -33,8 +33,29 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
     }
   }
 
-  "variations" should {
+  "multiple-choice" should {
     val sets = loadFileSets("corespring-multiple-choice")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
+  "drag-and-drop" should {
+    val sets = loadFileSets("corespring-drag-and-drop")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
+  "text-entry" should {
+    val sets = loadFileSets("corespring-text-entry")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
+  "inline-choice" should {
+    val sets = loadFileSets("corespring-inline-choice")
     examplesBlock {
       sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
     }
@@ -46,13 +67,34 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
 
     val file = new File(url.toURI)
 
+    def xmlFileToJs(f: File): Option[String] = {
+      try {
+        val xml = scala.xml.XML.loadFile(f)
+        val js = (xml \ "responseProcessing").text
+        Some(js)
+      } catch {
+        case e: Throwable => {
+          e.printStackTrace()
+          None
+        }
+      }
+    }
+
     def mkSet(qti: File, s: File): TestSet = {
-      val json = Json.parse(scala.io.Source.fromFile(s).getLines().mkString("\n"))
-      TestSet(
-        s"${s.getParentFile.getName}/${s.getName}",
-        qti = scala.io.Source.fromFile(qti).getLines.mkString("\n"),
-        (json \ "session").as[JsObject],
-        (json \ "expected").as[JsObject])
+
+      val json = try {
+        Json.parse(scala.io.Source.fromFile(s).getLines().mkString("\n"))
+      } catch {
+        case e: Throwable => throw new RuntimeException(s"Error parsing: ${s.getAbsolutePath}")
+      }
+
+      xmlFileToJs(qti).map { js =>
+        TestSet(
+          s"${s.getParentFile.getName}/${s.getName}",
+          qti = js,
+          (json \ "session").as[JsObject],
+          (json \ "expected").as[JsObject])
+      }.getOrElse(throw new RuntimeException(s"no js in xml file? ${qti.getAbsolutePath}"))
     }
 
     /**
@@ -61,16 +103,17 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
      * @return
      */
     def setList(dir: File): Seq[TestSet] = {
-      val split = dir.listFiles.toSeq.groupBy(f => if (f.getName == "qti.js") "qti.js" else "sessions")
+      val QtiFile = "qti.xml"
+      val split = dir.listFiles.toSeq.groupBy(f => if (f.getName == QtiFile) QtiFile else "sessions")
 
-      require(split.get("qti.js").isDefined && split.get("qti.js").get.headOption.isDefined, s"no qti in dir: ${dir.getAbsolutePath} ")
+      require(split.get(QtiFile).isDefined && split.get(QtiFile).get.headOption.isDefined, s"no $QtiFile in dir: ${dir.getAbsolutePath} ")
 
       val out = for {
-        qtiSeq <- split.get("qti.js")
+        qtiSeq <- split.get(QtiFile)
         qti <- qtiSeq.headOption
         sessions <- split.get("sessions")
       } yield {
-        for (s <- sessions) yield mkSet(qti, s)
+        for (s <- sessions.filter(_.getName.endsWith("json"))) yield mkSet(qti, s)
       }
 
       out.getOrElse {
@@ -80,9 +123,6 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
 
     lazy val sets: Seq[TestSet] = {
       if (file.exists) {
-        println(url)
-        println(file)
-        println(file.exists)
         val out: Seq[Seq[TestSet]] = file.listFiles.toSeq.map(setList)
         val o: Seq[TestSet] = out.flatten
         o
@@ -119,7 +159,11 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
         result
       }
     } catch {
-      case e: Throwable => Left(e)
+      case e: Throwable => {
+        e.printStackTrace()
+        println(e.getMessage)
+        Left(e)
+      }
     }
   }
 
@@ -134,7 +178,10 @@ class TestErrorReporter extends ErrorReporter {
   override def error(s: String, s1: String, i: Int, s2: String, i1: Int): Unit = println(s)
 
   override def runtimeError(s: String, s1: String, i: Int, s2: String, i1: Int): EvaluatorException = {
+    println("---------> runtimeError")
     println(s)
+    println(s1)
+    println(s2)
     new EvaluatorException(s)
   }
 }
@@ -166,7 +213,11 @@ trait JsContext {
       addSrcToContext("test", src)
       f(ctx, scope)
     } catch {
-      case e: RhinoException => Left(e)
+      case e: RhinoException => {
+        println("------ failing js -----------------")
+        println(src)
+        Left(e)
+      }
       case e: Throwable => Left(e)
     } finally {
       Context.exit()
@@ -199,8 +250,22 @@ trait JsFunctionCalling {
       val jsonOut = Json.parse(jsonString.toString)
       Right(jsonOut.asInstanceOf[JsObject])
     } catch {
-      case e: EcmaError => Left(e)
-      case e: Throwable => Left(new RuntimeException("General error while processing js", e))
+      case e: EcmaError => {
+        println("----------------- failing js")
+        println(rawJs)
+        println("--")
+        e.printStackTrace()
+        println(e.details())
+        Left(e)
+      }
+      case e: Throwable => {
+        println("----------------- failing js")
+        println(rawJs)
+        println("--")
+        e.printStackTrace()
+        e.printStackTrace()
+        Left(new RuntimeException("General error while processing js", e))
+      }
     }
   }
 }

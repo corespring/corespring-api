@@ -1,0 +1,33 @@
+{
+  "session" : {
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-text-entry",
+        "answers" : "20"
+      },
+      "Q_02" : {
+        "componentType" : "corespring-text-entry",
+        "answers" : "30"
+      },
+      "Q_03" : {
+        "componentType" : "corespring-text-entry",
+        "answers" : "200"
+      },
+      "Q_04" : {
+        "componentType" : "corespring-text-entry",
+        "answers" : "150"
+      },
+      "Q_05" : {
+        "componentType" : "corespring-text-entry",
+        "answers" : "300"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}
