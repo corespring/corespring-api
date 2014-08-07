@@ -41,12 +41,16 @@ var lineToValue = function(comp){
   if(comp && comp.answers){
     return {
       value: [ toCommaString(comp.answers.A), toCommaString(comp.answers.B) ],
-      isCorrect: false
+      outcome: {
+        isCorrect: false
+      }
     }
   } else {
     return {
       value: ['0,0', '0,0'],
-      isCorrect: false
+      outcome: {
+        isCorrect: false
+      }
     }
   }
 }

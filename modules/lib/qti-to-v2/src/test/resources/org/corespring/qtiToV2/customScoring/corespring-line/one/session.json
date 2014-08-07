@@ -23,7 +23,7 @@
   "expected" : {
     "components":{},
     "summary":{
-      "percentage":100,
+      "percentage":60,
       "note": "Overridden score"
     }
   }

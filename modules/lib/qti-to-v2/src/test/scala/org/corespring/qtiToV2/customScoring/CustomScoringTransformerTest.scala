@@ -61,6 +61,13 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
     }
   }
 
+  "line" should {
+    val sets = loadFileSets("corespring-line")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
   def loadFileSets(dir: String): Seq[TestSet] = {
     val url = this.getClass.getResource(dir)
     require(url != null, "The url is null")
@@ -214,8 +221,6 @@ trait JsContext {
       f(ctx, scope)
     } catch {
       case e: RhinoException => {
-        println("------ failing js -----------------")
-        println(src)
         Left(e)
       }
       case e: Throwable => Left(e)
@@ -243,6 +248,14 @@ trait JsFunctionCalling {
   def toJsonString(implicit scope: Scriptable): RhinoFunction = jsJson.get("stringify", jsJson).asInstanceOf[RhinoFunction]
 
   def callJsFunction(rawJs: String, fn: RhinoFunction, parentScope: Scriptable, args: Array[JsValue])(implicit ctx: Context, rootScope: Scriptable): Either[Throwable, JsObject] = {
+    def logError(e: Throwable): Unit = {
+      println("----------------- failing js")
+      val out: String = rawJs.lines.toSeq.zipWithIndex.map { t => s"${t._2}: ${t._1}" }.mkString("\n")
+      println(out)
+      println("--")
+      e.printStackTrace()
+    }
+
     try {
       val jsArgs: Array[AnyRef] = args.toArray.map(jsObject(_))
       val result = fn.call(ctx, rootScope, parentScope, jsArgs)
@@ -251,19 +264,12 @@ trait JsFunctionCalling {
       Right(jsonOut.asInstanceOf[JsObject])
     } catch {
       case e: EcmaError => {
-        println("----------------- failing js")
-        println(rawJs)
-        println("--")
-        e.printStackTrace()
+        logError(e)
         println(e.details())
         Left(e)
       }
       case e: Throwable => {
-        println("----------------- failing js")
-        println(rawJs)
-        println("--")
-        e.printStackTrace()
-        e.printStackTrace()
+        logError(e)
         Left(new RuntimeException("General error while processing js", e))
       }
     }
