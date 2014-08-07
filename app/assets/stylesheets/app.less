@@ -271,12 +271,29 @@
             background-color: #fff;
 
         }
+
+        .other-version {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          background: #ffffff;
+          padding: 2px 9px;
+          border-top: 1px solid #ccc;
+          border-top-left-radius: 4px;
+          display: none;
+          min-width: 55px;
+          border-left: 1px solid #ccc;
+        }
     }
 
     .preview.preview-open
     {
         width: @cs-preview-width;
         overflow: scroll;
+
+        .other-version {
+          display: inline-block;
+        }
     }
 
     .editor-panel{
