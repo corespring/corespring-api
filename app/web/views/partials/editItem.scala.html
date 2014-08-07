@@ -211,21 +211,16 @@
     </div>
 
     @if(useV2) {
-        <div class="preview" ng-class="previewClassName">
+        <div class="preview" ng-class="previewClassName" data-version="2">
             <div class="inner">
-
                 <div class="well">
-                    <ul>
-                        <li><a ng-click="launchV1Player()">V1 Player</a></li>
-                        <li><a ng-click="launchV2Player()">V2 Player</a></li>
-                        <li><a ng-href="{{v2Editor}}" target="_blank">V2 Editor</a></li>
-                    </ul>
                     <div class="preview-container" id="item-preview-target"></div>
                 </div>
             </div>
+            <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
         </div>
     } else {
-        <div class="preview" ng-class="previewClassName">
+        <div class="preview" ng-class="previewClassName" data-version="1">
             <div class="inner">
                 <a ng-click="launchV1Player()">Refresh</a>
                 &nbsp;&nbsp;

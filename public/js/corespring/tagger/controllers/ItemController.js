@@ -83,10 +83,32 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
   };
 
+
+  function isV2() {
+    return $scope.versionOverride ? $scope.versionOverride === 2 : $('.preview').data('version') === 2;
+  }
+
+  $scope.changePlayerVersion = function() {
+    $scope.versionOverride = $scope.versionOverride === 1 ? 2 : 1;
+    if (isV2()) {
+      $scope.launchV2Player();
+    } else {
+      $scope.launchV1Player();
+    }
+  };
+
+  $scope.otherPlayerVersion = function() {
+    return isV2() ? 1 : 2;
+  };
+
   $scope.togglePreview = function () {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
-    $scope.launchV1Player();
+    if (isV2()) {
+      $scope.launchV2Player();
+    } else {
+      $scope.launchV1Player();
+    }
   };
 
   $scope.$watch("previewVisible", function (newValue) {
