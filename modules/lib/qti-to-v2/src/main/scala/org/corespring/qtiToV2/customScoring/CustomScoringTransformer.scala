@@ -66,11 +66,18 @@ var unknownTypeValue = function(comp, outcome){
 };
 
 var componentTypeFunctions = {
- 'corespring-multiple-choice' : mkValue([]),
+ 'corespring-extended-text-entry' : mkValue('?'),
  'corespring-drag-and-drop' : mkValue([]),
- 'corespring-text-entry' : mkValue('?'),
+ 'corespring-focus-task' : mkValue([]),
  'corespring-inline-choice' : mkValue('?'),
  'corespring-line' : lineToValue,
+ 'corespring-multiple-choice' : mkValue([]),
+ 'corespring-ordering' : mkValue([]),
+ 'corespring-placement-ordering' : mkValue([]),
+ 'corespring-point-intercept' : mkValue(['0,0', '0,0']),
+ 'corespring-select-text' : mkValue([]),
+ 'corespring-text-entry' : mkValue('?'),
+ //If all else fails use this:
  'unknown-type' : unknownTypeValue
 };
 
@@ -83,10 +90,14 @@ function toResponseProcessingModel(answer, componentType, outcome){
   return fn(answer, outcome);
 }
 
+/**
+ * CustomScoringTransformer
+ * This is a generated js file that wraps qti js in a v2 compatible format.
+ */
 exports.process = function(item, session, outcomes){
 
-  console.log("---------> session: " + JSON.stringify(session));
-  console.log("---------> outcomes:  " + JSON.stringify(outcomes));
+  //console.log("---------> session: " + JSON.stringify(session));
+  //console.log("---------> outcomes:  " + JSON.stringify(outcomes));
 
   outcomes = outcomes || { components: {} };
   outcomes.components = outcomes.components || {};
