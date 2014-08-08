@@ -20,14 +20,10 @@ case class TestSet(
 class CustomScoringTransformerTest extends Specification with JsContext with JsFunctionCalling {
 
   private def jsExecutionWorks(s: TestSet): Result = {
-
-    println(s"-> ${s.name}, ${s.exceptionExpected}")
     val answers = (s.session \ "components").as[Map[String, JsObject]]
     val transformer = new CustomScoringTransformer()
     transformer.generate(s.qti, answers, s.typeMap) match {
       case Left(CustomTransformException(msg, t)) => {
-        println(s"------------> got exception: $msg")
-
         if (s.exceptionExpected) success else {
           t.printStackTrace()
           failure(s"Bad js: $msg")
@@ -39,11 +35,9 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
         } else {
           val result = executeJs(js, s.session, s.outcomes)
           result === Right(s.expected)
-
         }
       }
     }
-
   }
 
   trait BaseScope extends Scope {
