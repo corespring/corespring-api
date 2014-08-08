@@ -20,7 +20,7 @@ object ItemHelper {
   }
 
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {
-    ItemServiceWired.insert(item) match {
+    ItemServiceWired.insert(item.copy(collectionId = Some(collectionId.toString))) match {
       case Some(versionedId) => versionedId
       case _ => throw new Exception("Error creating item")
     }

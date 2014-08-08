@@ -8,7 +8,10 @@ import scala.xml.transform.RuleTransformer
 import scala.xml.{ Elem, Node }
 
 import play.api.libs.json._
+
 object QtiTransformer extends XMLNamespaceClearer {
+
+  val scoringTransformer = new CustomScoringTransformer
 
   def transform(qti: Elem): (Node, JsValue) = {
 
@@ -42,10 +45,13 @@ object QtiTransformer extends XMLNamespaceClearer {
     val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
       (html, transformer) => transformer.transform(html).head)
 
+    val typeMap = components.map(t => (t._1 -> (t._2 \ "componentType").as[String]))
+
     val customScoring = (qti \\ "responseProcessing").headOption.map { rp =>
-      //val wrappedJs = new CustomScoringTransformer().generate(rp.text, components)
-      //Json.obj("customScoring" -> wrappedJs)
-      ???
+      scoringTransformer.generate(rp.text, components, typeMap) match {
+        case Left(e) => throw e
+        case Right(js) => Json.obj("customScoring" -> js)
+      }
     }.getOrElse(Json.obj())
 
     (html, JsObject(components.toSeq) ++ customScoring)
