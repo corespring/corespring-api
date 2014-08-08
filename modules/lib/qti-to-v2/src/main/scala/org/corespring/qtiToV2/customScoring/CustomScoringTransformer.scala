@@ -2,9 +2,24 @@ package org.corespring.qtiToV2.customScoring
 
 import play.api.libs.json.JsObject
 
+case class CustomTransformException(msg: String, t: Throwable = null) extends RuntimeException(msg, t)
+
 class CustomScoringTransformer {
 
-  def generate(qtiJs: String, session: Map[String, JsObject], typeMap: Map[String, String]): String = {
+  def generate(qtiJs: String, session: Map[String, JsObject], typeMap: Map[String, String]): Either[CustomTransformException, String] = synchronized {
+    HasSyntaxErrors(qtiJs) match {
+      case Left(e) => Left(e)
+      case Right(js) => Right(wrapJs(js, session, typeMap))
+    }
+  }
+
+  private def getType(key: String, m: Map[String, String]) = m.getOrElse(key, "unknown-type")
+
+  private def toLocalVar(key: String, config: JsObject, componentType: String): String = {
+    s"""var $key = toResponseProcessingModel(session.components.$key, '$componentType', outcomes.components.$key || {});"""
+  }
+
+  private def wrapJs(js: String, session: Map[String, JsObject], typeMap: Map[String, String]): String = {
     s"""
 
 var mkValue = function(defaultValue){
@@ -87,7 +102,7 @@ exports.process = function(item, session, outcomes){
   /// ----------- this is qti js - can't edit
 
   try{
-    $qtiJs
+    $js
   } catch(e){
     return {
       components: {},
@@ -108,11 +123,5 @@ exports.process = function(item, session, outcomes){
   };
 };
 """
-  }
-
-  private def getType(key: String, m: Map[String, String]) = m.getOrElse(key, "unknown-type")
-
-  private def toLocalVar(key: String, config: JsObject, componentType: String): String = {
-    s"""var $key = toResponseProcessingModel(session.components.$key, '$componentType', outcomes.components.$key || {});"""
   }
 }

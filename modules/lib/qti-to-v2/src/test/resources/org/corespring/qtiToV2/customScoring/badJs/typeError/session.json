@@ -20,7 +20,7 @@
     "components":{},
     "summary":{
       "percentage":0,
-      "note": "Overridden score"
+      "note":"Error occurred processing: TypeError: Cannot read property \"other\" from undefined"
     }
   }
 }
