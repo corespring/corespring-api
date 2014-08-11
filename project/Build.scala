@@ -171,7 +171,7 @@ object Build extends sbt.Build {
 
   val devTools = builders.web("dev-tools").settings(
     routesImport ++= customImports,
-    libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
+    libraryDependencies ++= Seq(containerClientWeb, mongoJsonService)).dependsOn(v1Player, playerLib, core, v2Auth)
 
   /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
