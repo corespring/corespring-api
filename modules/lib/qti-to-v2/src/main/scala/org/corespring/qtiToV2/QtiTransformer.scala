@@ -3,17 +3,16 @@ package org.corespring.qtiToV2
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
-
-import scala.xml.transform.RuleTransformer
-import scala.xml.{ Elem, Node }
-
 import play.api.libs.json._
+
+import scala.xml.Elem
+import scala.xml.transform.RuleTransformer
 
 object QtiTransformer extends XMLNamespaceClearer {
 
   val scoringTransformer = new CustomScoringTransformer
 
-  def transform(qti: Elem): (Node, JsValue) = {
+  def transform(qti: Elem): JsValue = {
 
     val transformers = Seq(
       ChoiceInteractionTransformer,
@@ -54,8 +53,9 @@ object QtiTransformer extends XMLNamespaceClearer {
       }
     }.getOrElse(Json.obj())
 
-    (html, JsObject(components.toSeq) ++ customScoring)
-
+    Json.obj(
+      "xhtml" -> html.toString,
+      "components" -> components) ++ customScoring
   }
 
 }

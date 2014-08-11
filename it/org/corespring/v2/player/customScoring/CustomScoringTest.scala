@@ -50,11 +50,11 @@ class CustomScoringTest extends IntegrationSpecification {
     override def itemService: ItemService = ItemServiceWired
 
     override def cache: ItemTransformationCache = new ItemTransformationCache {
-      override def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit = {}
+      override def setCachedTransformation(item: Item, transformation: JsValue): Unit = {}
 
       override def removeCachedTransformation(item: Item): Unit = {}
 
-      override def getCachedTransformation(item: Item): Option[(Node, JsValue)] = None
+      override def getCachedTransformation(item: Item): Option[JsValue] = None
     }
   }
 
