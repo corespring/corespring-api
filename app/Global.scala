@@ -164,7 +164,6 @@ object Global
         }
         seedStaticData()
         seedDemoData()
-        reportingDaemon(app)
       }
     }
 
