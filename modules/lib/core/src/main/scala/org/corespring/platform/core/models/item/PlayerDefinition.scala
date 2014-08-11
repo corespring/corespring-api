@@ -20,7 +20,12 @@ import org.slf4j.LoggerFactory
  */
 
 object PlayerDefinition {
-  def apply(files: Seq[BaseFile], xhtml: String, components: JsValue, summaryFeedback: String) = new PlayerDefinition(files, xhtml, components, summaryFeedback)
+  def apply(
+    files: Seq[BaseFile],
+    xhtml: String,
+    components: JsValue,
+    summaryFeedback: String,
+    customScoring: Option[String]) = new PlayerDefinition(files, xhtml, components, summaryFeedback, customScoring)
 
   implicit object Format extends Format[PlayerDefinition] {
     override def writes(o: PlayerDefinition): JsValue = {
@@ -28,7 +33,7 @@ object PlayerDefinition {
         "xhtml" -> o.xhtml,
         "files" -> o.files.map(f => Json.toJson(f)),
         "components" -> o.components,
-        "summaryFeedback" -> o.summaryFeedback)
+        "summaryFeedback" -> o.summaryFeedback) ++ o.customScoring.map { cs => Json.obj("customScoring" -> cs) }.getOrElse(Json.obj())
     }
 
     override def reads(json: JsValue): JsResult[PlayerDefinition] = json match {
@@ -37,7 +42,8 @@ object PlayerDefinition {
           (json \ "files").asOpt[Seq[BaseFile]].getOrElse(Seq.empty),
           (json \ "xhtml").as[String],
           (json \ "components").asOpt[JsValue].getOrElse(Json.obj()),
-          (json \ "summaryFeedback").asOpt[String].getOrElse("")))
+          (json \ "summaryFeedback").asOpt[String].getOrElse(""),
+          (json \ "customScoring").asOpt[String]))
       }
       case _ => JsError("empty object")
     }
@@ -45,7 +51,7 @@ object PlayerDefinition {
 
 }
 
-class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String) {
+class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String, val customScoring: Option[String]) {
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
 
   override def hashCode() = {
@@ -54,11 +60,12 @@ class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val componen
       .append(xhtml)
       .append(components)
       .append(summaryFeedback)
+      .append(customScoring)
       .toHashCode
   }
 
   override def equals(other: Any) = other match {
-    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) && p.summaryFeedback == summaryFeedback
+    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) && p.summaryFeedback == summaryFeedback && p.customScoring == customScoring
     case _ => false
   }
 }
@@ -87,6 +94,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "xhtml" -> a.xhtml
     builder += "components" -> ToDBObject(a.components)
     builder += "summaryFeedback" -> a.summaryFeedback
+    builder += "customScoring" -> a.customScoring
     builder.result()
   } catch {
     case e: Throwable => {
@@ -106,11 +114,15 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     val prepped: Seq[BaseFile] = l.toList.map {
       dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
     }
+
+    val customScoring = if (b.get("customScoring") != null) Some(b.get("customScoring").asInstanceOf[String]) else None
+
     new PlayerDefinition(
       prepped,
       b.get("xhtml").asInstanceOf[String],
       json,
-      b.get("summaryFeedback").asInstanceOf[String])
+      b.get("summaryFeedback").asInstanceOf[String],
+      customScoring)
   } catch {
     case e: Throwable => {
       logger.error(e.getMessage)

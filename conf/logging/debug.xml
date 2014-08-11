@@ -16,6 +16,8 @@
     <logger name="application" level="DEBUG" />
     <logger name="api" level="DEBUG" />
     <logger name="org.corespring.container" level="TRACE" />
+    <logger name="org.corespring.v2" level="TRACE" />
+    <logger name="org.corespring.qtiToV2" level="TRACE" />
 
 
     <root level="DEBUG">

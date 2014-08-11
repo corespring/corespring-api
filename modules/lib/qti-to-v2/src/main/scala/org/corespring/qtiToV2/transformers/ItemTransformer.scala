@@ -8,9 +8,12 @@ import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache,
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 
 trait ItemTransformer {
+
+  lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
   def cache: ItemTransformationCache
   def itemService: ItemService
@@ -56,9 +59,12 @@ trait ItemTransformer {
       case None => item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
     })
     val profile = toProfile(item)
-    root ++ Json.obj(
+    val out = root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials))
+
+    logger.trace(s"[transformToV2Json] ${Json.stringify(out)}")
+    out
   }
 
   private def toProfile(item: Item): JsValue = {
