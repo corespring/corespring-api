@@ -44,7 +44,7 @@ object QtiTransformer extends XMLNamespaceClearer {
     val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
       (html, transformer) => transformer.transform(html).head)
 
-    val typeMap = components.map(t => (t._1 -> (t._2 \ "componentType").as[String]))
+    val typeMap = components.map { case (k, v) => (k -> (v \ "componentType").as[String]) }
 
     val customScoring = (qti \\ "responseProcessing").headOption.map { rp =>
       scoringTransformer.generate(rp.text, components, typeMap) match {
