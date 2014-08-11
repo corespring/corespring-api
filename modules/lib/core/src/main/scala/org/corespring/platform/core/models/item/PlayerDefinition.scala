@@ -94,7 +94,10 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     builder += "xhtml" -> a.xhtml
     builder += "components" -> ToDBObject(a.components)
     builder += "summaryFeedback" -> a.summaryFeedback
-    builder += "customScoring" -> a.customScoring
+    a.customScoring.foreach { cs =>
+      builder += "customScoring" -> cs
+    }
+
     builder.result()
   } catch {
     case e: Throwable => {
