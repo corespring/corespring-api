@@ -1,0 +1,47 @@
+{
+  "item" : {
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-text-entry"
+      },
+      "Q_02" : {
+        "componentType" : "corespring-text-entry"
+      },
+      "Q_03" : {
+        "componentType" : "corespring-text-entry"
+      },
+      "Q_04" : {
+        "componentType" : "corespring-text-entry"
+      },
+      "Q_05" : {
+        "componentType" : "corespring-text-entry"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "Q_01" : {
+        "answers" : "20"
+      },
+      "Q_02" : {
+        "answers" : "30"
+      },
+      "Q_03" : {
+        "answers" : "200"
+      },
+      "Q_04" : {
+        "answers" : "150"
+      },
+      "Q_05" : {
+        "answers" : "300"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}

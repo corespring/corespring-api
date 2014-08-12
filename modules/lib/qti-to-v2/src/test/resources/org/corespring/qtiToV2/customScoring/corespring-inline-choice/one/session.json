@@ -1,0 +1,53 @@
+{
+  "item" : {
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-inline-choice"
+      },
+      "Q_02" : {
+        "componentType" : "corespring-inline-choice"
+      },
+      "Q_03" : {
+        "componentType" : "corespring-inline-choice"
+      },
+      "Q_04" : {
+        "componentType" : "corespring-inline-choice"
+      },
+      "Q_05" : {
+        "componentType" : "corespring-inline-choice"
+      },
+      "Q_06" : {
+        "componentType" : "corespring-inline-choice"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "Q_01" : {
+        "answers" : "2"
+      },
+      "Q_02" : {
+        "answers" : "7"
+      },
+      "Q_03" : {
+        "answers" : "18"
+      },
+      "Q_04" : {
+        "answers" : "21"
+      },
+      "Q_05" : {
+        "answers" : "28"
+      },
+      "Q_06" : {
+        "answers" : "35"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":100,
+      "note": "Overridden score"
+    }
+  }
+}

@@ -129,10 +129,9 @@ object Build extends sbt.Build {
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
-
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson)).dependsOn(core, qti)
+    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti)
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -172,7 +171,7 @@ object Build extends sbt.Build {
 
   val devTools = builders.web("dev-tools").settings(
     routesImport ++= customImports,
-    libraryDependencies ++= Seq(containerClientWeb)).dependsOn(v1Player, playerLib, core)
+    libraryDependencies ++= Seq(containerClientWeb, mongoJsonService)).dependsOn(v1Player, playerLib, core, v2Auth)
 
   /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
@@ -211,6 +210,11 @@ object Build extends sbt.Build {
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
     Keys.logBuffered := false,
+    /**
+     * Note: Adding qtiToV2 resources so they can be reused in the integration tests
+     *
+     */
+    unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "modules/lib/qti-to-v2/src/test/resources",
     testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
     testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test")),
 
@@ -240,7 +244,36 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
-    .dependsOn(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core % "it->test;compile->compile", apiUtils, commonViews, testLib % "test->compile;test->test;it->test", v2PlayerIntegration, v2Api, clientLogging % "compile->compile;test->test")
-    .aggregate(scormWeb, reports, public, ltiWeb, v1Api, v1Player, playerLib, core, apiUtils, commonViews, testLib, v2PlayerIntegration, v2Api, clientLogging, qtiToV2)
+    .dependsOn(scormWeb,
+      reports,
+      public,
+      ltiWeb,
+      v1Api,
+      v1Player,
+      playerLib,
+      core % "it->test;compile->compile",
+      apiUtils,
+      commonViews,
+      testLib % "test->compile;test->test;it->test",
+      v2PlayerIntegration,
+      v2Api,
+      clientLogging % "compile->compile;test->test",
+      qtiToV2)
+    .aggregate(
+      scormWeb,
+      reports,
+      public,
+      ltiWeb,
+      v1Api,
+      v1Player,
+      playerLib,
+      core,
+      apiUtils,
+      commonViews,
+      testLib,
+      v2PlayerIntegration,
+      v2Api,
+      clientLogging,
+      qtiToV2)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
