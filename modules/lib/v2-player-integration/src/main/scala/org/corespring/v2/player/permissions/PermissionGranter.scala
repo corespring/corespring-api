@@ -10,7 +10,9 @@ trait PermissionGranter {
 }
 
 object SimpleWildcardChecker {
-  val notGrantedMsg = "Permission not granted"
+  def notGrantedMsg(itemId: String, sessionId: Option[String], options: PlayerOptions) = {
+    s"Permission not granted: itemId ($itemId) allowed? ${options.allowItemId(itemId)}, sessionId: ($sessionId) allowed? ${sessionId.map { options.allowSessionId(_) }.getOrElse(true)}, mode: allowed? true. Options: ${Json.toJson(options)}"
+  }
 }
 
 class SimpleWildcardChecker extends PermissionGranter {
@@ -31,8 +33,7 @@ class SimpleWildcardChecker extends PermissionGranter {
           logger.trace(s"itemId? $itemId -> ${options.allowItemId(itemId)}")
           sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${options.allowSessionId(sid)}") }
           logger.trace(s"allowMode? $mode -> ${options.allowMode(mode)}")
-          val msg = s"$notGrantedMsg: itemId ($itemId) allowed? ${options.allowItemId(itemId)}, sessionId: ($sessionId) allowed? ${sessionId.map { options.allowSessionId(_) }.getOrElse(true)}, mode: allowed? true. Options: ${Json.toJson(options)}"
-          Left(msg)
+          Left(notGrantedMsg(itemId, sessionId, options))
         }
       }
   }

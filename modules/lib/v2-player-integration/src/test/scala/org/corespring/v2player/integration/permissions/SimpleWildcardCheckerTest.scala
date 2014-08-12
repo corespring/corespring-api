@@ -16,11 +16,11 @@ class SimpleWildcardCheckerTest extends Specification {
     }
 
     "not allow if bad item id" in {
-      checker.allow("*", Some("*"), Mode.view, PlayerOptions("1", Some("*"), false)) === Left(notGrantedMsg)
+      checker.allow("*", Some("*"), Mode.view, PlayerOptions("1", Some("*"), false)) === Left(notGrantedMsg("*", Some("*"), PlayerOptions("1", Some("*"), false)))
     }
 
     "not allow if bad session id" in {
-      checker.allow("*", Some("*"), Mode.view, PlayerOptions("*", Some("1"), false)) === Left(notGrantedMsg)
+      checker.allow("*", Some("*"), Mode.view, PlayerOptions("*", Some("1"), false)) === Left(notGrantedMsg("*", Some("*"), PlayerOptions("*", Some("1"), false)))
     }
 
     "allow if only item id" in {
@@ -28,7 +28,7 @@ class SimpleWildcardCheckerTest extends Specification {
     }
 
     "not allow if mode is wrong" in {
-      checker.allow("*", None, Mode.view, PlayerOptions("*", Some("1"), false, mode = Some("gather"))) === Left(notGrantedMsg)
+      checker.allow("*", None, Mode.view, PlayerOptions("*", Some("1"), false, mode = Some("gather"))) === Left(notGrantedMsg("*", None, PlayerOptions("*", Some("*"), false)))
     }.pendingUntilFixed("See:https://thesib.atlassian.net/browse/CA-1743")
 
     "allow if mode is wrong" in {
