@@ -16,7 +16,7 @@ class CustomScoringTransformer {
   private def getType(key: String, m: Map[String, String]) = m.getOrElse(key, "unknown-type")
 
   private def toLocalVar(key: String, config: JsObject, componentType: String): String = {
-    s"""var $key = toResponseProcessingModel(session.components.$key, '$componentType', outcomes.components.$key || {});"""
+    s"""var $key = toResponseProcessingModel('$key', session.components.$key, '$componentType', outcomes.components.$key || {});"""
   }
 
   private def wrapJs(js: String, session: Map[String, JsObject], typeMap: Map[String, String]): String = {
@@ -68,7 +68,9 @@ var unknownTypeValue = function(comp, outcome){
 var componentTypeFunctions = {
  'corespring-extended-text-entry' : mkValue('?'),
  'corespring-drag-and-drop' : mkValue([]),
+ 'corespring-feedback-block' : function(){ return {}; },
  'corespring-focus-task' : mkValue([]),
+ 'corespring-function-entry' : mkValue('?'),
  'corespring-inline-choice' : mkValue('?'),
  'corespring-line' : lineToValue,
  'corespring-multiple-choice' : mkValue([]),
@@ -81,11 +83,11 @@ var componentTypeFunctions = {
  'unknown-type' : unknownTypeValue
 };
 
-function toResponseProcessingModel(answer, componentType, outcome){
+function toResponseProcessingModel(key, answer, componentType, outcome){
   var fn = componentTypeFunctions[componentType];
 
   if(!fn){
-    throw new Error('Can\\\'t find mapping function for ' + componentType);
+    throw new Error(key + ' - Can\\\'t find mapping function for ' + componentType);
   }
   return fn(answer, outcome);
 }
@@ -125,10 +127,15 @@ exports.process = function(item, session, outcomes){
   }
 
   /// -------------- end qti js
+
+  if(Math.floor(outcome.score * 100) > 100){
+    console.log("Error: outcome is > 100% - setting it to 100");
+  }
+
   return {
     components: {},
     summary: {
-      percentage: Math.floor(outcome.score * 100),
+      percentage: Math.min(100, Math.floor(outcome.score * 100)),
       note: 'Overridden score'
     }
   };

@@ -7,63 +7,64 @@ import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.{Organization => OrgModel}
+import org.corespring.platform.core.models.{ Organization => OrgModel }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.PlayerOptions
 import play.api.Play
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContent, Controller, Request}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ AnyContent, Controller, Request }
 import se.radley.plugin.salat.SalatPlugin
 
 import scalaz.Scalaz._
-import scalaz.{Validation, _}
+import scalaz.{ Validation, _ }
 
 object CustomScoring extends Controller {
 
-  lazy val db : MongoDB = {
-    val salat =  Play.current.plugin[SalatPlugin]
+  lazy val db: MongoDB = {
+    val salat = Play.current.plugin[SalatPlugin]
     salat.get.db()
   }
 
+  lazy val hasResponseProcessing = MongoDBObject(
+    "data.files.content" -> MongoDBObject("$regex" -> """.*<responseProcessing .*?>.*""", "$options" -> "m"))
 
-  lazy val sessionService : MongoService = new MongoService(db("v2.itemSessions"))
+  var items: Seq[Item] = {
 
-  def list = DevToolsAction{ r =>
-
-
-    //"{\"data.files.name\" : \"qti.xml\", \"data.files.content\" : { \$regex: \".*<responseProcessing type=\\\"script\\\">.*\", \$options: \"m\" }}"
-
-    val hasResponseProcessing = MongoDBObject(
-      "data.files.content" -> MongoDBObject("$regex" -> """.*<responseProcessing .*?>.*""", "$options" -> "m" )
-    )
-
-
-
-    val items = ItemServiceWired.collection.find(hasResponseProcessing).map{ dbo =>
+    ItemServiceWired.collection.find(hasResponseProcessing).map { dbo =>
       import com.mongodb.casbah.Implicits._
       import org.corespring.platform.core.models.mongoContext._
       com.novus.salat.grater[Item].asObject(dbo)
     }.toSeq
+  }
 
-    println(items)
+  lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  def list = DevToolsAction { r =>
+
+    r.getQueryString("flush").map {
+      case "true" => {
+        items = ItemServiceWired.collection.find(hasResponseProcessing).map { dbo =>
+          import com.mongodb.casbah.Implicits._
+          import org.corespring.platform.core.models.mongoContext._
+          com.novus.salat.grater[Item].asObject(dbo)
+        }.toSeq
+      }
+    }
     Ok(org.corespring.dev.tools.views.html.CustomScoringList(items))
   }
 
+  def createSessionForItem(itemId: VersionedId[ObjectId]) = DevToolsAction { r: Request[AnyContent] =>
 
-  def createSessionForItem(itemId:VersionedId[ObjectId]) = DevToolsAction{r : Request[AnyContent] =>
+    def mkSession(itemId: VersionedId[ObjectId]): JsValue = Json.obj(
+      "itemId" -> itemId.toString,
+      "isTmp" -> true)
 
-    def mkSession(itemId:VersionedId[ObjectId]) : JsValue =  Json.obj(
-        "itemId" -> itemId.toString,
-        "isTmp" -> true
-      )
-      
-
-    val out : Validation[String,(String,String,String)] = for {
+    val out: Validation[String, (String, String, String)] = for {
       item <- ItemServiceWired.findOneById(itemId).toSuccess("No item")
       collectionId <- item.collectionId.toSuccess("No collectionId")
       o <- Success(println(s"collectionId: $collectionId"))
-      org <- OrgModel.findOne( MongoDBObject("contentcolls.collectionId" -> new ObjectId(collectionId)) ).toSuccess("no org")
+      org <- OrgModel.findOne(MongoDBObject("contentcolls.collectionId" -> new ObjectId(collectionId))).toSuccess("no org")
       v2SessionId <- sessionService.create(mkSession(itemId)).toSuccess("error creating session")
       client <- ApiClient.findOneByOrgId(org.id).toSuccess("No api client")
       opts <- Success(AESCrypto.encrypt(Json.stringify(Json.toJson(PlayerOptions.ANYTHING)), client.clientSecret))

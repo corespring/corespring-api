@@ -88,6 +88,13 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
     }
   }
 
+  "function-entry" should {
+    val sets = loadFileSets("corespring-function-entry")
+    examplesBlock {
+      sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
+    }
+  }
+
   "bad js" should {
     val sets = loadFileSets("badJs", "qti.js", (f: File) => scala.io.Source.fromFile(f).getLines.mkString("\n"))
     examplesBlock {
@@ -245,7 +252,6 @@ trait JsContext {
     try {
 
       def addSrcToContext(name: String, src: String) = {
-        println(s"add  $name to context")
         ctx.evaluateString(scope, src, name, 1, null)
       }
 
