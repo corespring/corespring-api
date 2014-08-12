@@ -57,21 +57,25 @@ object CustomScoring extends Controller {
         "itemId" -> itemId.toString,
         "isTmp" -> true
       )
+      
 
     val out : Validation[String,(String,String,String)] = for {
       item <- ItemServiceWired.findOneById(itemId).toSuccess("No item")
       collectionId <- item.collectionId.toSuccess("No collectionId")
-      org <-  OrgModel.findOne( MongoDBObject("contentcolls.collectionId" -> collectionId) ).toSuccess("no org")
+      o <- Success(println(s"collectionId: $collectionId"))
+      org <- OrgModel.findOne( MongoDBObject("contentcolls.collectionId" -> new ObjectId(collectionId)) ).toSuccess("no org")
       v2SessionId <- sessionService.create(mkSession(itemId)).toSuccess("error creating session")
       client <- ApiClient.findOneByOrgId(org.id).toSuccess("No api client")
       opts <- Success(AESCrypto.encrypt(Json.stringify(Json.toJson(PlayerOptions.ANYTHING)), client.clientSecret))
     } yield {
+
       (v2SessionId.toString, client.clientId.toString, opts)
     }
     out match {
       case Success((sessionId, client, opts)) => {
-        val call = org.corespring.container.client.controllers.apps.routes.BasePlayer.loadPlayerForSession(sessionId)
-        SeeOther(s"${call.url}?apiClient=$client&options=$opts")
+        val call = org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs
+        val url = s"${call.url}?apiClient=$client&options=$opts"
+        Ok(org.corespring.dev.tools.views.html.CustomScoringPlayer(url, sessionId))
       }
       case Failure(msg) => BadRequest(msg)
     }

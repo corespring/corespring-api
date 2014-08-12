@@ -1,0 +1,39 @@
+@(jsUrl:String, sessionId:String)
+<html>
+
+    <body>
+
+
+      <div id="player-holder">
+
+      </div>
+
+      <button onclick="loadOutcome()">Load Outcome</button>
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      <script type="text/javascript" src="@jsUrl"></script>
+
+      <script type="text/javascript">
+
+           player = null;
+
+           function loadOutcome(){
+              player.saveResponses(false, function(err){
+                player.setMode('evaluate');
+              });
+           }
+           document.addEventListener("DOMContentLoaded", function(event) {
+              console.log("DOM fully loaded and parsed");
+
+              var opts = {
+                sessionId: '@sessionId',
+                mode: 'gather',
+                evaluate: {
+                  showFeedback:true
+                }
+              }
+              player =  new org.corespring.players.ItemPlayer("#player-holder", opts);
+
+           });
+      </script>
+    </body>
+</html>
