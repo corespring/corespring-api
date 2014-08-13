@@ -35,16 +35,25 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
   }
 
   private def choices(implicit node: Node): JsArray = {
-    def isCorrect(string: String) = {
-      XML.loadString("<div>" + string + "</div>") \ "correct" match {
-        case empty: NodeSeq if empty.length == 0 => false
-        case _ => true
-      }
-    }
+    def isCorrect(string: String) = string.indexOf("<correct>") >= 0
     def stripCorrectness(string: String) =
       string.replaceAll("<[/]*correct>","")
 
-    val text = clearNamespace(node.child).mkString
+    def removeBlockLevelElements(fromText: String) = {
+      val validTags = List("correct","b","i","u","strong","span","small","img","a","sub","sup")
+      def isValid(tag:String) = {
+        val strippedTag = new Regex("<[\\s/]*(\\S+)[^>]*?>","tag").findFirstMatchIn(tag) match {
+          case Some(mm) => mm.group("tag")
+          case _ => ""
+        }
+        validTags.contains(strippedTag)
+      }
+      s"<.*?>".r.replaceAllIn (fromText, { m =>
+        if (isValid(m.toString)) m.toString else ""
+      })
+    }
+
+    val text = removeBlockLevelElements(clearNamespace(node.child).mkString)
     val choices = optForAttr[JsString]("selectionType") match {
       case Some(selection) if selection.equals(JsString("word")) => TextSplitter.words(text)
       case _ => TextSplitter.sentences(text)
