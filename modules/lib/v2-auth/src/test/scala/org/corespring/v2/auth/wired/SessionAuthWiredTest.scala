@@ -33,7 +33,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
       hasPerms: Validation[V2Error, Boolean] = Success(true),
       orgAndOpts: Validation[V2Error, (ObjectId, PlayerOptions)] = Success(ObjectId.get, PlayerOptions.ANYTHING)) extends Scope {
       val auth = new SessionAuthWired {
-        override def sessionService: MongoService = {
+        override def mainSessionService: MongoService = {
           val m = mock[MongoService]
           m.load(anyString) returns session
           m

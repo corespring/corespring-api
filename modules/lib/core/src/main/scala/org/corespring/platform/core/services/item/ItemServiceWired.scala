@@ -132,7 +132,7 @@ class ItemServiceWired(
     sessionCompanion.count(query) + v2SessionCount(item.id)
   }
 
-  def v2SessionCount(itemId:VersionedId[ObjectId]) : Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
+  def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
 
   def bucket: String = AppConfig.assetsBucket
 
@@ -160,6 +160,5 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
 object ItemServiceWired extends ItemServiceWired(
   CorespringS3ServiceExtended,
   DefaultItemSession,
-  ItemVersioningDao
-)
+  ItemVersioningDao)
 
