@@ -1,6 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
+import org.corespring.v2.auth.models.{ AuthMode, PlayerOptions, OrgAndOpts }
 
 import scala.concurrent.ExecutionContext
 
@@ -53,7 +53,7 @@ class ItemApiTest extends Specification with Mockito {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING))
+      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.AccessToken))
     }
   }
 

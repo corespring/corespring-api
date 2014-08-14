@@ -8,7 +8,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
+import org.corespring.v2.auth.models.{ AuthMode, PlayerOptions, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.matcher.{ Expectable, Matcher }
@@ -64,7 +64,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING))
+      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.AccessToken))
     }
   }
 

@@ -157,7 +157,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
       permissionGranter.allow(itemId, None, Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }
 
   lazy val sessionAuth: SessionAuth[OrgAndOpts] = new SessionAuthWired {
