@@ -6,8 +6,8 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerOptions }
-import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -15,7 +15,7 @@ import org.corespring.v2.log.V2LoggerFactory
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemAuthWired extends ItemAuth[OrgAndOpts] with LoadOrgAndOptions {
+trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
   lazy val logger = V2LoggerFactory.getLogger("auth.ItemAuth")
 
@@ -54,7 +54,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] with LoadOrgAndOptions {
       canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
         Success(true)
       else
-        Failure(orgCantAccessCollection(identity.orgId, item.collectionId.getOrElse("?"), Permission.Write.name))
+        Failure(orgCantAccessCollection(identity.orgId, item.collectionId.getOrElse("?"), p.name))
       permissionAccess <- hasPermissions(itemId, identity.opts)
     } yield {
       logger.trace(s"orgCanAccessItem: $canAccess")

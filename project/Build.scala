@@ -273,6 +273,7 @@ object Build extends sbt.Build {
       testLib,
       v2PlayerIntegration,
       v2Api,
+      v2Auth,
       clientLogging,
       qtiToV2)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")

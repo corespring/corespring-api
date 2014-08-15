@@ -89,7 +89,7 @@ class ItemServiceImplTest extends BaseTest with Mockito {
         taskInfo = Some(TaskInfo(title = Some("just a test item"))))
       service.v2SessionCount(item.id) === 0
       val session = MongoDBObject("itemId" -> item.id.toString)
-      val db : MongoDB = Play.current.plugin[SalatPlugin].get.db()
+      val db: MongoDB = Play.current.plugin[SalatPlugin].get.db()
       db("v2.itemSessions").insert(session)
       service.v2SessionCount(item.id) === 1
       db("v2.itemSessions").remove(MongoDBObject("itemId" -> item.id.toString))

@@ -2,6 +2,8 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import org.corespring.v2.auth.models.AuthMode.AuthMode
+import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.log.V2LoggerFactory
 
 import scala.concurrent.{ Future, ExecutionContext }
@@ -29,7 +31,7 @@ import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
-import org.corespring.v2.auth.models.{ OrgAndOpts, Mode, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, Mode, PlayerOptions }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.V2Error
@@ -81,23 +83,26 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
   }
 
-  lazy val sessionService: MongoService = new MongoService(db("v2.itemSessions"))
+  lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+
+  lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
 
   object requestIdentifiers {
-    lazy val userSession = new UserSessionOrgIdentity[(ObjectId, PlayerOptions)] {
+    lazy val userSession = new UserSessionOrgIdentity[(ObjectId, PlayerOptions, AuthMode)] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
       override def userService: UserService = UserServiceWired
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollecttion: ObjectId): (ObjectId, PlayerOptions) = org.id -> PlayerOptions.ANYTHING
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions, AuthMode) = (org.id, PlayerOptions.ANYTHING, AuthMode.UserSession)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val token = new TokenOrgIdentity[(ObjectId, PlayerOptions)] {
+    lazy val token = new TokenOrgIdentity[(ObjectId, PlayerOptions, AuthMode)] {
       override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = org.id -> PlayerOptions.ANYTHING
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions, AuthMode) =
+        (org.id, PlayerOptions.ANYTHING, AuthMode.AccessToken)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -122,28 +127,24 @@ class V2PlayerIntegration(comps: => Seq[Component],
         enabled
       }
 
-      //lazy val decrypter = new MemoizedDecrypter(AESCrypto)
-
       override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = for {
         encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
         orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
         out <- orgEncrypter.decrypt(encrypted)
-        //out <- .decrypt(orgId, encrypted)
       } yield out
-
     }
   }
 
-  lazy val requestIdentifier = new WithRequestIdentitySequence[(ObjectId, PlayerOptions)] {
-    override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions)]] = Seq(
+  lazy val requestIdentifier = new WithRequestIdentitySequence[(ObjectId, PlayerOptions, AuthMode)] {
+    override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions, AuthMode)]] = Seq(
       requestIdentifiers.clientIdAndOptsQueryString,
       requestIdentifiers.token,
       requestIdentifiers.userSession)
   }
 
   def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-    val out: Validation[V2Error, (ObjectId, PlayerOptions)] = requestIdentifier(request)
-    out.map { t => OrgAndOpts(t._1, t._2) }
+    val out: Validation[V2Error, (ObjectId, PlayerOptions, AuthMode)] = requestIdentifier(request)
+    out.map { case (orgId, playerOpts, authMode) => OrgAndOpts(orgId, playerOpts, authMode) }
   }
 
   lazy val itemAuth = new ItemAuthWired {
@@ -156,21 +157,24 @@ class V2PlayerIntegration(comps: => Seq[Component],
       permissionGranter.allow(itemId, None, Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }
 
   lazy val sessionAuth: SessionAuth[OrgAndOpts] = new SessionAuthWired {
     override def itemAuth: ItemAuth[OrgAndOpts] = V2PlayerIntegration.this.itemAuth
 
-    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+    override def mainSessionService: MongoService = V2PlayerIntegration.this.mainSessionService
 
     override def hasPermissions(itemId: String, sessionId: String, options: PlayerOptions): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
       permissionGranter.allow(itemId, Some(sessionId), Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
-
+    /**
+     * The preview session service holds 'preview' sessions -
+     * This service is used when the identity -> AuthMode == UserSession
+     * @return
+     */
+    override def previewSessionService: MongoService = V2PlayerIntegration.this.previewSessionService
   }
 
   private lazy val key = AppConfig.amazonKey
@@ -220,7 +224,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def assets: Assets = new apiControllers.Assets {
 
-    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
+    override def sessionService: MongoService = V2PlayerIntegration.this.mainSessionService
 
     override def itemService: ItemService = ItemServiceWired
 
@@ -275,8 +279,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
 
-    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
-
     override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
@@ -315,8 +317,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {
     override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
-
-    override def sessionService: MongoService = V2PlayerIntegration.this.sessionService
 
     override def itemService: ItemService = ItemServiceWired
 

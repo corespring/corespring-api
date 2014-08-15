@@ -3,7 +3,9 @@ package org.corespring.v2.auth.identifiers
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.identifiers.ClientIdQueryStringIdentity.Keys
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.AuthMode.AuthMode
+import org.corespring.v2.auth.models.AuthMode.AuthMode
+import org.corespring.v2.auth.models.{ AuthMode, PlayerOptions }
 import org.corespring.v2.errors.Errors.{ invalidQueryStringParameter, noClientIdAndOptionsInQueryString }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -54,7 +56,7 @@ trait ClientIdQueryStringIdentity[B] extends OrgRequestIdentity[B] {
   }
 }
 
-trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[(ObjectId, PlayerOptions)] {
+trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[(ObjectId, PlayerOptions, AuthMode)] {
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "ClientIdQueryStringWithDecrypt")
 
@@ -84,7 +86,8 @@ trait ClientIdAndOptsQueryStringWithDecrypt extends ClientIdQueryStringIdentity[
     PlayerOptions.NOTHING
   }
 
-  override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions) = (org.id -> toPlayerOptions(org.id, rh))
+  override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions, AuthMode) =
+    (org.id, toPlayerOptions(org.id, rh), AuthMode.ClientIdAndOpts)
 
 }
 
