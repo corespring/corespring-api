@@ -1,5 +1,8 @@
 package org.corespring.platform.core.models.item.service
 
+import com.mongodb.DBObject
+import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
@@ -12,6 +15,9 @@ import org.corespring.test.BaseTest
 import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
+import play.api.Play
+import play.api.libs.json.Json
+import se.radley.plugin.salat.SalatPlugin
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 
@@ -75,6 +81,19 @@ class ItemServiceImplTest extends BaseTest with Mockito {
       DefaultItemSession.remove(session)
 
       service.sessionCount(item) === 0
+    }
+
+    "v2 session count" in {
+      val id = VersionedId(ObjectId.get)
+      val item = Item(id = id,
+        taskInfo = Some(TaskInfo(title = Some("just a test item"))))
+      service.v2SessionCount(item.id) === 0
+      val session = MongoDBObject("itemId" -> item.id.toString)
+      val db : MongoDB = Play.current.plugin[SalatPlugin].get.db()
+      db("v2.itemSessions").insert(session)
+      service.v2SessionCount(item.id) === 1
+      db("v2.itemSessions").remove(MongoDBObject("itemId" -> item.id.toString))
+      service.v2SessionCount(item.id) === 0
     }
   }
 }
