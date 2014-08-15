@@ -2,7 +2,7 @@ package org.corespring.test.helpers.models
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{TaskInfo, Item}
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import scala.Some
@@ -11,12 +11,22 @@ import com.mongodb.DBObject
 import com.mongodb.util.JSON
 
 object ItemHelper {
-
+  val qtiXmlTemplate = "<assessmentItem><itemBody>::version::</itemBody></assessmentItem>"
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {
-    val qti = VirtualFile("qti.xml", "text/xml", true, "<assessmentItem><itemBody></itemBody></assessmentItem>")
+    val qti = VirtualFile("qti.xml", "text/xml", true, qtiXmlTemplate)
     val data: Resource = Resource(name = "data", files = Seq(qti))
-    val item = Item(collectionId = Some(collectionId.toString), data = Some(data))
+    val item = Item(collectionId = Some(collectionId.toString), data = Some(data), taskInfo = Some(TaskInfo(title = Some("Title"))))
     create(collectionId, item)
+  }
+
+  def get(id: VersionedId[ObjectId]): Option[Item] = {
+    ItemServiceWired.findOneById(id)
+  }
+
+  def publish(id: VersionedId[ObjectId]) = {
+    ItemServiceWired.findOneById(id) match {
+      case Some(item) => ItemServiceWired.save(item.copy(published = true))
+    }
   }
 
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {
