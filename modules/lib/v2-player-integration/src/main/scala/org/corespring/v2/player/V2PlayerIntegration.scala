@@ -49,7 +49,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   db: MongoDB)
   extends org.corespring.container.client.integration.DefaultIntegration {
 
-  override lazy val logger = V2LoggerFactory.getLogger("V2PlayerIntegration")
+  lazy val logger = V2LoggerFactory.getLogger("V2PlayerIntegration")
 
   def ec: ExecutionContext = ExecutionContext.Implicits.global
 
