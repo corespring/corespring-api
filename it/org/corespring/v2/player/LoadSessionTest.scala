@@ -50,7 +50,11 @@ class LoadSessionTest extends IntegrationSpecification {
   }
 
   class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder {}
-  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {}
+
+  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {
+    override def collection = "v2.itemSessions_preview"
+  }
+
   class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {}
   class clientId_loadSession(val options: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndOptions with IdAndOptionsRequestBuilder with HasSessionId {
     override lazy val sessionId: ObjectId = V2SessionHelper.create(itemId)

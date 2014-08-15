@@ -109,10 +109,11 @@ package object scopes {
   }
 
   trait userWithItemAndSession extends userAndItem with HasItemId with HasSessionId {
-    val sessionId = V2SessionHelper.create(itemId)
+    def collection = "v2.itemSessions"
+    val sessionId = V2SessionHelper.create(itemId, collection)
     override def after: Any = {
       super.after
-      V2SessionHelper.delete(sessionId)
+      V2SessionHelper.delete(sessionId, collection)
     }
   }
 
