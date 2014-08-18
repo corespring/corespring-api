@@ -1,15 +1,16 @@
 import actors.reporting.ReportActor
-import akka.actor.Props
+import akka.actor.{ ActorRef, Props }
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
+import org.corespring.api.tracking.{ ApiCall, TrackingService, LogRequest, ApiTrackingActor }
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.item.PlayItemTransformationCache
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
@@ -36,11 +37,15 @@ object Global
 
   val INIT_DATA: String = "INIT_DATA"
 
+  val arsta = arstarstarst
+
   private lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
     val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
-      .getOrElse { Play.current.mode == Mode.Prod }
+      .getOrElse {
+        Play.current.mode == Mode.Prod
+      }
 
     val out = new FileComponentLoader(path, showReleasedOnlyComponents)
     out.reload
@@ -60,6 +65,7 @@ object Global
 
   lazy val itemTransformer = new ItemTransformer {
     def cache = PlayItemTransformationCache
+
     def itemService = ItemServiceWired
   }
 
@@ -77,11 +83,27 @@ object Global
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
+  lazy val trackingService = new TrackingService {
+
+    private val logger = Logger("org.corespring.api.tracking")
+
+    override def log(c: => ApiCall): Unit = {
+      logger.info(c.toKeyValues)
+    }
+  }
+
+  lazy val apiTracker: ActorRef = Akka.system.actorOf(
+    Props.create(classOf[ApiTrackingActor], trackingService, integration.tokenService, ApiClient)
+      .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
+
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
+        if (request.path.contains("api")) {
+          apiTracker ! LogRequest(request)
+        }
         super.onRouteRequest(request)
       }
     }
@@ -228,4 +250,3 @@ object Global
   }
 
 }
-

@@ -59,7 +59,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
-  protected val tokenService = new TokenService {
+  lazy val tokenService = new TokenService {
     override def orgForToken(token: String): Option[Organization] = {
       AccessToken.findByToken(token).map(t => orgService.org(t.organization)).flatten
     }

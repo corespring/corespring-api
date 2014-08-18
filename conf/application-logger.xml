@@ -7,6 +7,14 @@
             <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
         </encoder>
     </appender>
+
+    <appender name="API_TRACKING" class="ch.qos.logback.core.FileAppender">
+        <file>${application.home}/logs/api-tracking.log</file>
+        <encoder>
+            <pattern>%date - %logger %message%n%xException</pattern>
+        </encoder>
+    </appender>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
@@ -45,11 +53,16 @@
     <logger name="org.corespring.api.v1" level="TRACE"/>
     <logger name="org.corespring.v2" level="INFO"/>
     <logger name="org.corespring.container" level="INFO"/>
-
-
     <logger name="components.outcome" level="TRACE"/>
     <logger name="js.processing" level="TRACE"/>
     <logger name="session" level="TRACE"/>
+
+    <logger name="org.corespring.api.tracking">
+        <level value="INFO" />
+        <appender-ref ref="API_TRACKING"/>
+    </logger>
+
+
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

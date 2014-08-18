@@ -33,7 +33,12 @@ case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String) 
     clientSecret)
 }
 
-object ApiClient extends ModelCompanion[ApiClient, ObjectId] {
+trait ApiClientService {
+
+  def findByKey(key: String): Option[ApiClient]
+}
+
+object ApiClient extends ApiClientService with ModelCompanion[ApiClient, ObjectId] {
 
   lazy val logger = LoggerFactory.getLogger("org.corespring.core.ApiClient")
   val orgId = "orgId"
