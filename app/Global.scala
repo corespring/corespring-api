@@ -100,6 +100,13 @@ object Global
     out
   }
 
+  private def isLoggable(path: String): Boolean = {
+
+    val isV2Player = "/v2/player/.*/player.html".r.findFirstIn(path).isDefined
+    val isV2Editor = "/v2/player/editor/.*/index.html".r.findFirstIn(path).isDefined
+    logRequests && (path.contains("api") || isV2Player || isV2Editor)
+  }
+
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
