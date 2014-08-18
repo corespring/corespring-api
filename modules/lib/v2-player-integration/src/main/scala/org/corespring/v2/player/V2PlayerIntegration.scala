@@ -5,7 +5,9 @@ import java.io.File
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.log.V2LoggerFactory
+
 import scala.concurrent.{ Future, ExecutionContext }
+
 import com.mongodb.casbah.MongoDB
 import com.typesafe.config.ConfigFactory
 import org.bson.types.ObjectId
@@ -22,7 +24,7 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
-import org.corespring.platform.core.models.item.{ FieldValue, Item }
+import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayItemTransformationCache }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -34,19 +36,17 @@ import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.errors.Errors.permissionNotGranted
-import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
-import play.api.{ Configuration, Mode => PlayMode, Play }
+import play.api.{ Configuration, Logger, Mode => PlayMode, Play }
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import scalaz.{ Failure, Success, Validation }
 import securesocial.core.{ Identity, SecureSocial }
 
 class V2PlayerIntegration(comps: => Seq[Component],
-  val configuration: Configuration,
-  db: MongoDB,
-  val itemTransformer: ItemTransformer)
+                          val configuration: Configuration,
+                          db: MongoDB)
   extends org.corespring.container.client.integration.DefaultIntegration {
 
   lazy val logger = V2LoggerFactory.getLogger("V2PlayerIntegration")
@@ -63,6 +63,12 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def orgForToken(token: String): Option[Organization] = {
       AccessToken.findByToken(token).map(t => orgService.org(t.organization)).flatten
     }
+  }
+
+  lazy val itemTransformer = new ItemTransformer {
+    def itemService = ItemServiceWired
+
+    def cache = PlayItemTransformationCache
   }
 
   /** A wrapper around organization */
@@ -178,7 +184,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
 
-    import play.api.Play.current
+    import Play.current
 
     override def allComponents: Seq[Component] = V2PlayerIntegration.this.components
 
