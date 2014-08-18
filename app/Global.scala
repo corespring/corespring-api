@@ -94,12 +94,18 @@ object Global
     Props.create(classOf[ApiTrackingActor], trackingService, integration.tokenService, ApiClient)
       .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
 
+  lazy val logRequests = {
+    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(false)
+    logger.info(s"Log api requests? ${out}")
+    out
+  }
+
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        if (request.path.contains("api")) {
+        if (logRequests && request.path.contains("api")) {
           apiTracker ! LogRequest(request)
         }
         super.onRouteRequest(request)
