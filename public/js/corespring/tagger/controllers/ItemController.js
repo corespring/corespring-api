@@ -347,7 +347,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.saveSelectedFileFinished = function (error) {
     $scope.isSaving = false;
     $scope.suppressSave = false;
-    if(error) $scope.showSaveWarning = true;
+    if (error) {
+      $scope.showSaveWarning = true;
+    } else {
+      $scope.reloadPlayer();
+    }
   };
 
   $scope.backToCollections = function(){
@@ -398,6 +402,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
                 $rootScope.itemData = data;
                 $scope.$broadcast("dataLoaded")
             }
+            $scope.reloadPlayer();
           },
           function onError(err) {
             $scope.isSaving = false;
@@ -407,6 +412,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
+  $scope.reloadPlayer = function() {
+    if (isV2()) {
+      $scope.launchV2Player();
+    } else {
+      $scope.launchV1Player();
+    }
+  };
 
   var subjectFormatResult = function (subject) {
     var separator = " ";
