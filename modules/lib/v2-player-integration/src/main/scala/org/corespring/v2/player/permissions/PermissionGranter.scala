@@ -3,13 +3,16 @@ package org.corespring.v2.player.permissions
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerOptions
 import org.corespring.v2.log.V2LoggerFactory
+import play.api.libs.json.Json
 
 trait PermissionGranter {
   def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Either[String, Boolean]
 }
 
 object SimpleWildcardChecker {
-  val notGrantedMsg = "Permission not granted"
+  def notGrantedMsg(itemId: String, sessionId: Option[String], options: PlayerOptions) = {
+    s"Permission not granted: itemId ($itemId) allowed? ${options.allowItemId(itemId)}, sessionId: ($sessionId) allowed? ${sessionId.map { options.allowSessionId(_) }.getOrElse(true)}, mode: allowed? true. Options: ${Json.toJson(options)}"
+  }
 }
 
 class SimpleWildcardChecker extends PermissionGranter {
@@ -26,12 +29,11 @@ class SimpleWildcardChecker extends PermissionGranter {
       sessionId.map(options.allowSessionId(_)).getOrElse(true)) match {
         case true => Right(true)
         case false => {
-
           logger.trace(s"player options: $options")
           logger.trace(s"itemId? $itemId -> ${options.allowItemId(itemId)}")
           sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${options.allowSessionId(sid)}") }
           logger.trace(s"allowMode? $mode -> ${options.allowMode(mode)}")
-          Left(notGrantedMsg)
+          Left(notGrantedMsg(itemId, sessionId, options))
         }
       }
   }

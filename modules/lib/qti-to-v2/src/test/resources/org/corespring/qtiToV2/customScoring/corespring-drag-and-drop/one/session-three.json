@@ -1,0 +1,26 @@
+{
+  "item" : {
+    "components" : {
+      "alphabet1" : {
+        "componentType" : "corespring-drag-and-drop"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "alphabet1" : {
+        "answers" : {
+          "target1" : ["4", "5"],
+          "target2" : ["1", "2", "3"]
+        }
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":70,
+      "note": "Overridden score"
+    }
+  }
+}

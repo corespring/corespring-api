@@ -103,6 +103,8 @@ class ItemSessionApiTest extends IntegrationSpecification {
   }
 
   class user_getSession extends sessionLoader with SessionRequestBuilder with userWithItemAndSession with SecureSocialHelpers {
+
+    override def collection = "v2.itemSessions_preview"
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
   }
 

@@ -1,5 +1,6 @@
 package org.corespring.v2.auth
 
+import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.errors.V2Error
@@ -9,8 +10,11 @@ import scalaz.Validation
 object SessionAuth {
   type Session = JsValue
 }
+
 trait SessionAuth[A] {
   def loadForRead(sessionId: String)(implicit identity: A): Validation[V2Error, (Session, Item)]
   def loadForWrite(sessionId: String)(implicit identity: A): Validation[V2Error, (Session, Item)]
   def canCreate(itemId: String)(implicit identity: A): Validation[V2Error, Boolean]
+  def saveSession(implicit identity: A): Validation[V2Error, (String, Session) => Option[Session]]
+  def create(session: Session)(implicit identity: A): Validation[V2Error, ObjectId]
 }

@@ -14,6 +14,8 @@ import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemServic
 
 trait ItemTransformer {
 
+  lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
+
   def cache: ItemTransformationCache
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
@@ -58,9 +60,12 @@ trait ItemTransformer {
       case None => item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
     })
     val profile = toProfile(item)
-    root ++ Json.obj(
+    val out = root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials))
+
+    logger.trace(s"[transformToV2Json] ${Json.stringify(out)}")
+    out
   }
 
   private def toProfile(item: Item): JsValue = {
@@ -95,7 +100,7 @@ trait ItemTransformer {
   }
 
   private def createFromQti(item: Item): JsObject = {
-    val (xhtml, components) = getTransformation(item)
+    val transformedJson = getTransformation(item)
 
     Json.obj(
       "metadata" -> Json.obj(
@@ -105,14 +110,12 @@ trait ItemTransformer {
           .filter(f => f.name != "qti.xml")
           .map(f => Json.obj("name" -> f.name, "contentType" -> f.contentType))
         case _ => Seq.empty[JsObject]
-      }),
-      "xhtml" -> JsString(xhtml.toString),
-      "components" -> components)
+      })) ++ transformedJson.as[JsObject]
   }
 
-  private def getTransformation(item: Item): (Node, JsObject) =
+  private def getTransformation(item: Item): JsValue =
     cache.getCachedTransformation(item) match {
-      case Some((node: Node, json: JsValue)) => (node, json.as[JsObject])
+      case Some(json: JsValue) => json
       case _ => {
         val qti = for {
           data <- item.data
@@ -121,10 +124,10 @@ trait ItemTransformer {
 
         require(qti.isDefined, s"item: ${item.id} has no qti xml")
 
-        val (node, json) = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
-        cache.setCachedTransformation(item, (node, json))
+        val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
+        cache.setCachedTransformation(item, transformedJson)
+        transformedJson
 
-        (node, json.as[JsObject])
       }
     }
 

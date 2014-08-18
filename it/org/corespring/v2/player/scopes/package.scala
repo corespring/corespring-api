@@ -28,6 +28,7 @@ package object scopes {
     }
 
     def after: Any = {
+      println("[orgWithAccessToken] after")
       logger.trace(s"[after] deleting db data: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
       ApiClientHelper.delete(apiClient)
       OrganizationHelper.delete(orgId)
@@ -50,6 +51,7 @@ package object scopes {
     val itemId = ItemHelper.create(collectionId)
 
     override def after: Any = {
+      println("[orgWithAccessTokenAndItem] after")
       super.after
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
@@ -60,6 +62,7 @@ package object scopes {
     val sessionId = V2SessionHelper.create(itemId)
 
     override def after: Any = {
+      println("[orgWithAccessTokenAndItemAndSession] after")
       V2SessionHelper.delete(sessionId)
     }
 
@@ -108,10 +111,11 @@ package object scopes {
   }
 
   trait userWithItemAndSession extends userAndItem with HasItemId with HasSessionId {
-    val sessionId = V2SessionHelper.create(itemId)
+    def collection = "v2.itemSessions"
+    val sessionId = V2SessionHelper.create(itemId, collection)
     override def after: Any = {
       super.after
-      V2SessionHelper.delete(sessionId)
+      V2SessionHelper.delete(sessionId, collection)
     }
   }
 

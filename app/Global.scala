@@ -67,7 +67,7 @@ object Global
     ItemServiceWired,
     Organization,
     AccessToken,
-    integration.sessionService,
+    integration.mainSessionService,
     UserServiceWired,
     integration.secureSocialService,
     integration.itemAuth,

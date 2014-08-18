@@ -2,7 +2,7 @@ package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
-import org.corespring.v2.errors.Errors.compoundError
+import org.corespring.v2.errors.Errors.generalError
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Around, Specification }
@@ -31,7 +31,7 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
   "with org transformer sequence" should {
 
     "fails for an empty sequence" in new scope(Seq.empty) {
-      seq(FakeRequest("", "")) must_== Failure(compoundError(WithRequestIdentitySequence.errorMessage, Seq.empty, UNAUTHORIZED))
+      seq(FakeRequest("", "")) must_== Failure(generalError(WithRequestIdentitySequence.emptySequenceErrorMessage, INTERNAL_SERVER_ERROR))
     }
 
     "return the first success in a sequence" in new scope(Seq(

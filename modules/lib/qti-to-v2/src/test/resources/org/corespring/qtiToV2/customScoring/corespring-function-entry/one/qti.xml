@@ -1,0 +1,26 @@
+<assessmentItem>
+    <responseDeclaration identifier='equationEntryTest' cardinality='single' baseType='line'>
+        <correctResponse>
+            <value>y=-.4x+2</value>
+        </correctResponse>
+    </responseDeclaration>
+    <itemBody>
+        <p>The equation for the line is:
+            <!-- will become a corespring-function-entry component -->
+            <textEntryInteraction responseIdentifier='equationEntryTest' expectedLength='20' />
+        </p>
+    </itemBody>
+    <responseProcessing type="script">
+    <script type="text/javascript">
+    var credit = 0; // initialize credit
+    var equationCredit = 40;
+        console.log(JSON.stringify(equationEntryTest.outcome));
+    if (equationEntryTest.outcome.isCorrect) credit += equationCredit;
+    var maxCredit = 100;
+    var score = (1 / maxCredit) * credit;
+    var outcome = {};
+    outcome.score = score;
+    outcome;
+    </script>
+  </responseProcessing>
+</assessmentItem>
