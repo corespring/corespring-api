@@ -37,8 +37,6 @@ object Global
 
   val INIT_DATA: String = "INIT_DATA"
 
-  val arsta = arstarstarst
-
   private lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
