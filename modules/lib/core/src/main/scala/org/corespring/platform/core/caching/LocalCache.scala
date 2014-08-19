@@ -14,7 +14,9 @@ trait SimpleCache[A] extends LocalCache[A] {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  private val c: Cache[A] = LruCache(timeToLive = 2.minutes)
+  def timeToLiveInMinutes: Double = 3
+
+  private val c: Cache[A] = LruCache(timeToLive = timeToLiveInMinutes.minutes)
 
   override def get(key: String): Option[A] = {
     val r: Option[Future[A]] = c.get(key)

@@ -94,7 +94,10 @@ object Global
 
   lazy val cachingApiClientService = new ApiClientService {
 
-    val localCache = new SimpleCache[ApiClient] {}
+    val localCache = new SimpleCache[ApiClient] {
+      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
+
+    }
 
     override def findByKey(key: String): Option[ApiClient] = localCache.get(key).orElse {
       val out = ApiClient.findByKey(key)
@@ -104,7 +107,9 @@ object Global
   }
 
   lazy val cachingTokenService = new TokenService {
-    val localCache = new SimpleCache[Organization] {}
+    val localCache = new SimpleCache[Organization] {
+      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
+    }
 
     override def orgForToken(token: String): Option[Organization] = localCache.get(token).orElse {
       val out = integration.tokenService.orgForToken(token)
