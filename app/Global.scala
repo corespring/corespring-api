@@ -8,15 +8,17 @@ import org.bson.types.ObjectId
 import org.corespring.api.tracking.{ ApiCall, TrackingService, LogRequest, ApiTrackingActor }
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.platform.core.caching.{ SimpleCache }
 import org.corespring.platform.core.models.item.PlayItemTransformationCache
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
+import org.corespring.platform.core.models.auth.{ ApiClientService, ApiClient, AccessToken }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
+import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
@@ -90,8 +92,29 @@ object Global
     }
   }
 
+  lazy val cachingApiClientService = new ApiClientService {
+
+    val localCache = new SimpleCache[ApiClient] {}
+
+    override def findByKey(key: String): Option[ApiClient] = localCache.get(key).orElse {
+      val out = ApiClient.findByKey(key)
+      out.foreach(localCache.set(key, _))
+      out
+    }
+  }
+
+  lazy val cachingTokenService = new TokenService {
+    val localCache = new SimpleCache[Organization] {}
+
+    override def orgForToken(token: String): Option[Organization] = localCache.get(token).orElse {
+      val out = integration.tokenService.orgForToken(token)
+      out.foreach(localCache.set(token, _))
+      out
+    }
+  }
+
   lazy val apiTracker: ActorRef = Akka.system.actorOf(
-    Props.create(classOf[ApiTrackingActor], trackingService, integration.tokenService, ApiClient)
+    Props.create(classOf[ApiTrackingActor], trackingService, cachingTokenService, cachingApiClientService)
       .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
 
   lazy val logRequests = {

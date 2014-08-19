@@ -91,6 +91,7 @@ object Build extends sbt.Build {
       securesocial,
       assetsLoader,
       mockito,
+      sprayCaching,
       playTest % "test",
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
