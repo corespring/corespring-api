@@ -83,6 +83,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
   };
 
+  $scope.launchV2Preview = function() {
+    function openInNewTab(url) {
+      var win = window.open(url, '_blank');
+      win.focus();
+    }
+    openInNewTab($('#iframe-player').attr('src'));
+  };
 
   function isV2() {
     return $scope.versionOverride ? $scope.versionOverride === 2 : $('.preview').data('version') === 2;

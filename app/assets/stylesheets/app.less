@@ -264,12 +264,29 @@
             border-left: solid 1px lighten(@cs-dark-grey, 50%);
         }
 
+
+        .preview-btn {
+            position: absolute;
+            top: 32px;
+            left: 32px;
+            background: #f0ad4e;
+            text-shadow: none;
+            font-size: 14px;
+            border: 1px solid #eea236;
+            color: white;
+            padding: 6px 12px;
+
+            &:hover {
+              background: #ec971f;
+              border: 1px soild #ec971f;
+            }
+        }
+
         .preview-container{
             padding-top: 0px;
             .mixin-box-shadow( 10px);
             height: 90%;
             background-color: #fff;
-
         }
 
         .other-version {
