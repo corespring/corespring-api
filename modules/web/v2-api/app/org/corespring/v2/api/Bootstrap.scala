@@ -56,13 +56,11 @@ class Bootstrap(
       def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
     }
 
-    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = {
-      for {
-        accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-        unexpiredToken <- (!accessToken.isExpired).toOption(accessToken).toSuccess(expiredToken(rh))
-        org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
-      } yield org
-    }
+    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
+      accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
+      unexpiredToken <- (!accessToken.isExpired).toOption(accessToken).toSuccess(expiredToken(rh))
+      org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
+    } yield org
   }
 
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
