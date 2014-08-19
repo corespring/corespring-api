@@ -47,9 +47,10 @@ object Dependencies {
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
+  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
-  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
+  val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
 
   val all = Seq(
     play.Keys.cache,

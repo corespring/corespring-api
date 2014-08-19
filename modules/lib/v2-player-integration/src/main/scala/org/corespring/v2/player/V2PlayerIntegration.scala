@@ -61,7 +61,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
-  protected val tokenService = new TokenService {
+  lazy val tokenService = new TokenService {
     implicit class RichBoolean(val b: Boolean) {
       def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
     }

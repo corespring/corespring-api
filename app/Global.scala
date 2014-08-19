@@ -1,21 +1,25 @@
 import actors.reporting.ReportActor
-import akka.actor.Props
+import akka.actor.{ ActorRef, Props }
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
 import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
+import org.corespring.api.tracking.{ ApiCall, TrackingService, LogRequest, ApiTrackingActor }
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.platform.core.caching.{ SimpleCache }
 import org.corespring.platform.core.models.item.PlayItemTransformationCache
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.platform.core.models.auth.{ ApiClientService, ApiClient, AccessToken }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
+import org.corespring.v2.auth.services.TokenService
+import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
@@ -25,6 +29,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.Validation
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -40,7 +45,9 @@ object Global
     val path = containerConfig.getString("components.path").toSeq
 
     val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
-      .getOrElse { Play.current.mode == Mode.Prod }
+      .getOrElse {
+        Play.current.mode == Mode.Prod
+      }
 
     val out = new FileComponentLoader(path, showReleasedOnlyComponents)
     out.reload
@@ -60,6 +67,7 @@ object Global
 
   lazy val itemTransformer = new ItemTransformer {
     def cache = PlayItemTransformationCache
+
     def itemService = ItemServiceWired
   }
 
@@ -77,11 +85,71 @@ object Global
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
+  lazy val trackingService = new TrackingService {
+
+    private val logger = Logger("org.corespring.api.tracking")
+
+    override def log(c: => ApiCall): Unit = {
+      logger.info(c.toKeyValues)
+    }
+  }
+
+  lazy val cachingApiClientService = new ApiClientService {
+
+    val localCache = new SimpleCache[ApiClient] {
+      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
+
+    }
+
+    override def findByKey(key: String): Option[ApiClient] = localCache.get(key).orElse {
+      val out = ApiClient.findByKey(key)
+      out.foreach(localCache.set(key, _))
+      out
+    }
+  }
+
+  lazy val cachingTokenService = new TokenService {
+    val localCache = new SimpleCache[Validation[V2Error, Organization]] {
+      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
+    }
+
+    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] =
+      localCache.get(token).orElse {
+        val out = integration.tokenService.orgForToken(token)(rh)
+        localCache.set(token, out)
+        Some(out)
+      } match {
+        case Some(validation) => validation
+        case _ => throw new IllegalStateException("This shouldn't be possible")
+      }
+    }
+
+  lazy val apiTracker: ActorRef = Akka.system.actorOf(
+    Props.create(classOf[ApiTrackingActor], trackingService, cachingTokenService, cachingApiClientService)
+      .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
+
+  lazy val logRequests = {
+    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
+    logger.info(s"Log api requests? ${out}")
+    out
+  }
+
+  private def isLoggable(path: String): Boolean = {
+    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.ProdHtmlPlayer.config(".*").url.r
+    val v2EditorRegex = org.corespring.container.client.controllers.apps.routes.Editor.editItem(".*").url.r
+    val isV2Player = v2PlayerRegex.findFirstIn(path).isDefined
+    val isV2Editor = v2EditorRegex.findFirstIn(path).isDefined
+    logRequests && (path.contains("api") || isV2Player || isV2Editor)
+  }
+
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
+        if (logRequests && isLoggable(request.path)) {
+          apiTracker ! LogRequest(request)
+        }
         super.onRouteRequest(request)
       }
     }
@@ -228,4 +296,3 @@ object Global
   }
 
 }
-
