@@ -91,6 +91,7 @@ object Build extends sbt.Build {
       securesocial,
       assetsLoader,
       mockito,
+      sprayCaching,
       playTest % "test",
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
@@ -151,6 +152,10 @@ object Build extends sbt.Build {
   val v2Auth = builders.lib("v2-auth").settings(
     libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
     .dependsOn(v2Errors, core, playerLib)
+
+  val apiTracking = builders.lib("api-tracking")
+    .settings(
+      libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
 
   val v2Api = builders.web("v2-api")
     .settings(
@@ -257,6 +262,7 @@ object Build extends sbt.Build {
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
       v2Api,
+      apiTracking,
       clientLogging % "compile->compile;test->test",
       qtiToV2)
     .aggregate(
@@ -273,6 +279,7 @@ object Build extends sbt.Build {
       testLib,
       v2PlayerIntegration,
       v2Api,
+      apiTracking,
       v2Auth,
       clientLogging,
       qtiToV2)

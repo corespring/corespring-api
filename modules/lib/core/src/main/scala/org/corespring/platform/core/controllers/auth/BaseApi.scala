@@ -1,15 +1,13 @@
 package org.corespring.platform.core.controllers.auth
 
 import org.bson.types.ObjectId
-import org.corespring.common.log.{ ClassLogging, PackageLogging }
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ User, Organization }
-import play.api.libs.json._
-import play.api.libs.json.{ JsString, JsObject, Json }
-import play.api.mvc._
-import scala.Some
-import securesocial.core.SecureSocial
 import org.corespring.api.v1.errors.ApiError
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.{ Organization, User }
+import play.api.libs.json.{ JsObject, JsString, Json, _ }
+import play.api.mvc._
+import securesocial.core.SecureSocial
 
 /**
  * A class that adds an AuthorizationContext to the Request object
