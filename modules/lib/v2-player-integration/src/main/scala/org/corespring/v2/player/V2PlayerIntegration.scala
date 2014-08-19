@@ -3,7 +3,6 @@ package org.corespring.v2.player
 import java.io.File
 
 import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.log.V2LoggerFactory
 
 import scala.concurrent.{ Future, ExecutionContext }
@@ -42,7 +41,10 @@ import play.api.{ Configuration, Logger, Mode => PlayMode, Play }
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 import securesocial.core.{ Identity, SecureSocial }
+import org.corespring.v2.errors.Errors._
+
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -60,8 +62,17 @@ class V2PlayerIntegration(comps: => Seq[Component],
   }
 
   protected val tokenService = new TokenService {
-    override def orgForToken(token: String): Option[Organization] = {
-      AccessToken.findByToken(token).map(t => orgService.org(t.organization)).flatten
+    implicit class RichBoolean(val b: Boolean) {
+      def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
+    }
+
+    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = {
+      val result: Validation[V2Error, Organization] = for {
+        accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
+        unexpiredToken <- (!accessToken.isExpired).toOption(accessToken).toSuccess(expiredToken(rh))
+        org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
+      } yield org
+      result
     }
   }
 

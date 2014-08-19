@@ -42,6 +42,10 @@ private[v2] object Errors {
 
   case class invalidToken(rh: RequestHeader) extends identificationFailed(rh, "Invalid access token")
 
+  case class expiredToken(rh: RequestHeader) extends identificationFailed(rh, "Expired access token")
+
+  case class noOrgForToken(rh: RequestHeader) extends identificationFailed(rh, "No organization for access token")
+
   case class noDefaultCollection(orgId: ObjectId) extends V2Error(s"No default collection defined for org ${orgId}")
 
   case class generalError(msg: String, override val statusCode: Int = BAD_REQUEST) extends V2Error(msg, statusCode)
