@@ -95,15 +95,16 @@ object Global
       .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
 
   lazy val logRequests = {
-    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(false)
+    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
     logger.info(s"Log api requests? ${out}")
     out
   }
 
   private def isLoggable(path: String): Boolean = {
-
-    val isV2Player = "/v2/player/.*/player.html".r.findFirstIn(path).isDefined
-    val isV2Editor = "/v2/player/editor/.*/index.html".r.findFirstIn(path).isDefined
+    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.ProdHtmlPlayer.config(".*").url.r
+    val v2EditorRegex = org.corespring.container.client.controllers.apps.routes.Editor.editItem(".*").url.r
+    val isV2Player = v2PlayerRegex.findFirstIn(path).isDefined
+    val isV2Editor = v2EditorRegex.findFirstIn(path).isDefined
     logRequests && (path.contains("api") || isV2Player || isV2Editor)
   }
 
@@ -112,7 +113,7 @@ object Global
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        if (logRequests && request.path.contains("api")) {
+        if (logRequests && isLoggable(request.path)) {
           apiTracker ! LogRequest(request)
         }
         super.onRouteRequest(request)
