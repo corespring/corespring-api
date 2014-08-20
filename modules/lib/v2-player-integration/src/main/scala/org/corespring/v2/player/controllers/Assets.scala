@@ -20,6 +20,7 @@ trait Assets extends ContainerAssets {
   lazy val playS3 = new ConcreteS3Service(key, secret)
 
   def sessionService: MongoService
+  def previewSessionService: MongoService
   def itemService: ItemService
 
   import scalaz.Scalaz._
@@ -49,6 +50,10 @@ trait Assets extends ContainerAssets {
 
   def getItemId(sessionId: String): Option[String] = sessionService.load(sessionId).map {
     s => (s \ "itemId").as[String]
+  }.orElse {
+    previewSessionService.load(sessionId).map {
+      s => (s \ "itemId").as[String]
+    }
   }
 
 }
