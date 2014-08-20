@@ -7,10 +7,12 @@ object TexTransformer extends InteractionTransformer {
 
   implicit class TexConverter(child: Seq[Node]) {
 
-    def convertToTex(implicit parent: Node): Node = Text((parent \ "@inline").text match {
-      case "false" => s"$$$$${child.map(clearNamespace).mkString}$$$$"
-      case _ => s"\\(${child.map(clearNamespace).mkString}\\)"
-    })
+    def convertToTex(implicit parent: Node): Node = {
+      scala.xml.XML.loadString((parent \ "@inline").text match {
+        case "false" => s"<span>$$$$${child.map(clearNamespace).mkString}$$$$</span>"
+        case _ => s"<span>\\(${child.map(clearNamespace).mkString}\\)</span>"
+      })
+    }
 
   }
 

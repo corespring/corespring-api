@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<assessmentItem>
+    <responseDeclaration identifier='alphabet1' cardinality='targeted' baseType='identifier'>
+        <correctResponse>
+            <value identifier='target1'>
+                <value>3</value>
+                <value>4</value>
+                <value>5</value>
+            </value>
+            <value identifier='target2'>
+                <value>1</value>
+                <value>2</value>
+            </value>
+        </correctResponse>
+    </responseDeclaration>
+
+    <itemBody>
+
+        <p class='intro-2'>Felicia is going to get a pet octopus for her birthday! </p>
+        <p><img src="Octopuspicture.png"/></p>
+        <p>
+        The species of octopus she wants needs to be kept in a tank that is at least 12,000 cubic inches. She and her parents go to the pet store to shop, and there are 5 different tanks available. When she looks at the labels, however, only the dimensions of the tank (length, width, and height) are given!</p>
+        <p></p>
+        
+        <dragAndDropInteraction responseIdentifier='alphabet1'>
+            <prompt>Help Felicia by separating the tanks into two groups: those that have volumes GREATER than 12,000 cubic inches and those whose volumes are LESS.</prompt>
+<table class="no-border">
+    <tr>
+        <td> 
+            <draggableChoiceGroup shuffle="true" itemsPerRow='3'>
+                <draggableChoice identifier='1'><img src="Tank1.PNG"></img></draggableChoice>
+                <draggableChoice identifier='2'><img src="Tank2.PNG"></img></draggableChoice>
+                <draggableChoice identifier='3'><img src="Tank3.PNG"></img></draggableChoice>
+                <draggableChoice identifier='4'><img src="Tank4.PNG"></img></draggableChoice>
+                <draggableChoice identifier='5'><img src="Tank5.PNG"></img></draggableChoice>
+                
+            </draggableChoiceGroup>
+        </td>
+        </tr>
+         <answerArea>
+    <tr>
+        <td>
+            <landingPlace cardinality='multiple' identifier='target1' columnsPerRow="1" label='Greater than 12,000' class="inline"/>
+        <landingPlace cardinality='multiple' identifier='target2' columnsPerRow="1" label='Less than 12,000' class="inline"/> 
+        </td>
+    </tr>
+    </answerArea>
+</table>
+           
+
+
+            
+        </dragAndDropInteraction>
+
+    </itemBody>
+    <responseProcessing type="script">
+      <script type="text/javascript">
+        var points = 0;
+        var box1 = alphabet1.value.target1;
+        var box2 = alphabet1.value.target2;
+        
+        if(box1.indexOf("3") != "-1") points += 1;
+        if(box1.indexOf("4") != "-1") points += 1;
+        if(box1.indexOf("5") != "-1") points += 1;
+        if(box2.indexOf("1") != "-1") points += 1;
+        if(box2.indexOf("2") != "-1") points += 1;
+       
+        
+        
+        if(box1.indexOf("1") != "-1") points -= .5;
+        if(box1.indexOf("2") != "-1") points -= .5;
+        
+        if(box2.indexOf("3") != "-1") points -= .5;
+        if(box2.indexOf("4") != "-1") points -= .5;
+        if(box2.indexOf("5") != "-1") points -= .5;
+          
+        var grade = (1/5) * points; 
+        var outcome = {};
+        outcome.score = grade;
+        outcome;
+    </script>
+    </responseProcessing>
+</assessmentItem>

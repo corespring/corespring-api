@@ -46,7 +46,7 @@
               contentType : "text/plain; charset=utf-8",
               success : function ( result ) {
               $('#xml' ).val(result.xhtml);
-              $('#json' ).val(JSON.stringify(result.data, null, 2));
+              $('#json' ).val(JSON.stringify(result.components, null, 2));
             }});
           });
         });

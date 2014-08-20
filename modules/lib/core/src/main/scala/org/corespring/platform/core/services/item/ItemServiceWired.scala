@@ -129,8 +129,10 @@ class ItemServiceWired(
     import com.novus.salat._
     val dbo = grater[VersionedId[ObjectId]].asDBObject(item.id)
     val query = MongoDBObject("itemId" -> dbo)
-    sessionCompanion.count(query)
+    sessionCompanion.count(query) + v2SessionCount(item.id)
   }
+
+  def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
 
   def bucket: String = AppConfig.assetsBucket
 
@@ -145,7 +147,7 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 
-  protected def db: casbah.MongoDB = salatDb()
+  def db: casbah.MongoDB = salatDb()
 
   protected def collectionName: String = "content"
 
@@ -155,5 +157,8 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
 
 }
 
-object ItemServiceWired extends ItemServiceWired(CorespringS3ServiceExtended, DefaultItemSession, ItemVersioningDao)
+object ItemServiceWired extends ItemServiceWired(
+  CorespringS3ServiceExtended,
+  DefaultItemSession,
+  ItemVersioningDao)
 

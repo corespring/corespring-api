@@ -72,17 +72,16 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
   def update(id: VersionedId[ObjectId]) = ValidatedItemApiAction(id, Permission.Write) {
     request =>
-
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        withV2DataItem <- itemTransformer.updateV2Json(validatedItem).toSuccess("Error generating item v2 JSON")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
+        withV2DataItem <- itemTransformer.updateV2Json(savedResult).toSuccess("Error generating item v2 JSON")
       } yield {
         PlayItemTransformationCache.removeCachedTransformation(item)
-        savedResult
+        withV2DataItem
       }
   }
 

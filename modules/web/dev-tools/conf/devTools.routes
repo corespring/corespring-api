@@ -10,3 +10,6 @@ GET    /player/session/:sessionId/*filename                org.corespring.dev.to
 GET   /orgs                                                org.corespring.dev.tools.controllers.Organization.list()
 GET   /encrypt-options                                    org.corespring.dev.tools.controllers.Encrypter.encryptPage
 POST  /encrypt-options/:orgId                             org.corespring.dev.tools.controllers.Encrypter.encrypt(orgId:String)
+
+GET  /custom-scoring                                      org.corespring.dev.tools.controllers.CustomScoring.list()
+GET  /custom-scoring/run-v2-player/:itemId                org.corespring.dev.tools.controllers.CustomScoring.createSessionForItem(itemId:VersionedId[ObjectId])

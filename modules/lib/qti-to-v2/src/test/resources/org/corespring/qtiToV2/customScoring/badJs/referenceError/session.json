@@ -1,0 +1,26 @@
+{
+  "item" : {
+    "components" : {
+      "alphabet1" : {
+        "componentType" : "corespring-drag-and-drop"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "alphabet1" : {
+        "answers" : {
+          "target1" : ["3", "4", "5"],
+          "target2" : ["1", "2"]
+        }
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":0,
+      "note":"Error occurred processing: ReferenceError: \"y\" is not defined."
+    }
+  }
+}

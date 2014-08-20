@@ -8,30 +8,32 @@ import se.radley.plugin.salat.SalatPlugin
 
 object V2SessionHelper {
 
-  lazy val collection = {
+  val v2ItemSessions = "v2.itemSessions"
+  val v2ItemSessionsPreview = "v2.itemSessions_preview"
+
+  lazy val db = {
     Play.current.plugin[SalatPlugin].map {
       p =>
-        p.db()("v2.itemSessions")
-
+        p.db()
     }.getOrElse(throw new RuntimeException("Error loading salat plugin"))
   }
 
-  def create(itemId: VersionedId[ObjectId]): ObjectId = {
+  def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
     val oid = ObjectId.get
-    collection.insert(MongoDBObject(
+    db(name).insert(MongoDBObject(
       "_id" -> oid,
       "itemId" -> itemId.toString))
     oid
   }
 
-  def findSessionForItemId(vid: VersionedId[ObjectId]): ObjectId = {
-    collection.findOne(MongoDBObject("itemId" -> vid.toString()))
+  def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
+    db(name).findOne(MongoDBObject("itemId" -> vid.toString()))
       .map(o => o.get("_id").asInstanceOf[ObjectId])
       .getOrElse(throw new RuntimeException(s"Can't find sesssion for item id: $vid"))
   }
 
-  def delete(sessionId: ObjectId): Unit = {
-    collection.remove(MongoDBObject("_id" -> sessionId))
+  def delete(sessionId: ObjectId, name: String = v2ItemSessions): Unit = {
+    db(name).remove(MongoDBObject("_id" -> sessionId))
   }
 
 }

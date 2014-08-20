@@ -72,7 +72,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
   override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
     def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
-      val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "")
+      val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
         collectionId = Some(collectionId),
         playerDefinition = Some(definition))

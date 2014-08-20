@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -24,7 +24,7 @@ class ItemSessionApiTest extends Specification with Mockito {
 
   class apiScope(
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING)),
+    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.AccessToken)),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
 

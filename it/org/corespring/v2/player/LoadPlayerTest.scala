@@ -45,8 +45,8 @@ class LoadPlayerTest
     override def components: Seq[Component] = Seq.empty
   }
 
-  def getMockResult(itemId: VersionedId[ObjectId]) = {
-    val sessionId = V2SessionHelper.findSessionForItemId(itemId)
+  def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {
+    val sessionId = V2SessionHelper.findSessionForItemId(itemId, collection)
     val mockPlayer = new MockPlayer(sessionId.toString)
     val mockResult = mockPlayer.createSessionForItem(itemId.toString)(FakeRequest("", ""))
     logger.debug(s"mockresult - headers: ${headers(mockResult)}")
@@ -66,14 +66,14 @@ class LoadPlayerTest
 
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === SEE_OTHER
-      val mockResult = getMockResult(itemId)
+      val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
     "create session for access token" in new token_CreateSession() {
       status(createSessionResult) === SEE_OTHER
-      val mockResult = getMockResult(itemId)
+      val mockResult = getMockResult(itemId, "v2.itemSessions")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
@@ -84,7 +84,7 @@ class LoadPlayerTest
 
     "create session for client id + options query string" in new clientIdAndOpts_queryString_CreateSession(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
       status(createSessionResult) === SEE_OTHER
-      val mockResult = getMockResult(itemId)
+      val mockResult = getMockResult(itemId, "v2.itemSessions")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }

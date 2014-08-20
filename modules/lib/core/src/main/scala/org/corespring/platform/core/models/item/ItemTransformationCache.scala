@@ -1,15 +1,14 @@
 package org.corespring.platform.core.models.item
 
+import play.api.Logger
 import play.api.cache.Cache
 import play.api.libs.json.JsValue
-import scala.xml.Node
-import play.api.Logger
 
 trait ItemTransformationCache {
 
-  def getCachedTransformation(item: Item): Option[(Node, JsValue)]
+  def getCachedTransformation(item: Item): Option[JsValue]
 
-  def setCachedTransformation(item: Item, transformation: (Node, JsValue)): Unit
+  def setCachedTransformation(item: Item, transformation: JsValue): Unit
 
   def removeCachedTransformation(item: Item): Unit
 }
@@ -20,8 +19,8 @@ class PlayItemTransformationCache extends ItemTransformationCache {
 
   private def transformKey(item: Item) = s"qti_transformation_${item.id}"
 
-  def getCachedTransformation(item: Item): Option[(Node, JsValue)] = Cache.get(transformKey(item)) match {
-    case Some((node: Node, json: JsValue)) => Some(node, json)
+  def getCachedTransformation(item: Item): Option[JsValue] = Cache.get(transformKey(item)) match {
+    case Some(json: JsValue) => Some(json)
     case Some(_) => {
       Logger.debug(s"Invalid transformation serialization in cache for item ${item.id}")
       None
@@ -29,7 +28,7 @@ class PlayItemTransformationCache extends ItemTransformationCache {
     case _ => None
   }
 
-  def setCachedTransformation(item: Item, transformation: (Node, JsValue)) = {
+  def setCachedTransformation(item: Item, transformation: JsValue) = {
     Logger.debug(s"Adding cached transformation for ${item.id}")
     Cache.set(transformKey(item), transformation)
   }

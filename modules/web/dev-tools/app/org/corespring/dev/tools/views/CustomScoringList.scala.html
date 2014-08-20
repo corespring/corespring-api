@@ -1,0 +1,9 @@
+@(items:Seq[org.corespring.platform.core.models.item.Item])
+<html>
+    <body>
+        <h1>Items with custom scoring js in a <code>responseProcessing</code> node</h1>
+        @items.map{ i =>
+            <a href="custom-scoring/run-v2-player/@i.id">@i.taskInfo.get.title.get</a><br/>
+         }
+    </body>
+</html>

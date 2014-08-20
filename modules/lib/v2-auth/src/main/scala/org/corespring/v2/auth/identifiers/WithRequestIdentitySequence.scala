@@ -10,6 +10,7 @@ import scalaz.{ Success, Failure, Validation }
 
 object WithRequestIdentitySequence {
   val errorMessage = "Failed to identify an Organization from the request"
+  val emptySequenceErrorMessage = "No authentication mechanisms were provided - can't authenticate"
 }
 
 trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
@@ -20,7 +21,9 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
   override def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
-    identifiers.foldLeft[Validation[V2Error, B]](Failure(generalError("?"))) { (acc, tf) =>
+    import WithRequestIdentitySequence.emptySequenceErrorMessage
+
+    identifiers.foldLeft[Validation[V2Error, B]](Failure(generalError(emptySequenceErrorMessage, INTERNAL_SERVER_ERROR))) { (acc, tf) =>
       val out = acc match {
         case Success(d) => {
           logger.trace(s"identity is successful")

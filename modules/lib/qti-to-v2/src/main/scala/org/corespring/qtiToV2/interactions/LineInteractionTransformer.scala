@@ -11,8 +11,8 @@ object LineInteractionTransformer extends InteractionTransformer {
     val exhibit = booleanFor("locked", default = false)
 
     /**
-     * Correct Response aren't required if locked=""
-     * or noninteractive="" is an attribute.
+     * Correct Response aren't required if locked="true"
+     * or noninteractive="true" is an attribute on the node
      */
     val correctResponse: JsObject = {
       try {

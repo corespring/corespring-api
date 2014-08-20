@@ -25,7 +25,7 @@ class PlayerDefinitionTransformerTest extends Specification {
         Seq(VirtualFile("test.js", "text/javascript", false, "hello")),
         "",
         Json.obj(),
-        ""),
+        "", None),
       MongoDBObject(
         "xhtml" -> "",
         "summaryFeedback" -> "",
@@ -46,11 +46,12 @@ class PlayerDefinitionTransformerTest extends Specification {
         Seq(StoredFile("test.js", "text/javascript", false, "key")),
         "",
         Json.obj(),
-        ""),
+        "", Some("function(){}")),
       MongoDBObject(
         "xhtml" -> "",
         "summaryFeedback" -> "",
         "components" -> MongoDBObject(),
+        "customScoring" -> "function(){}",
         "files" -> unwrapDBList(MongoDBList(
           MongoDBObject(
             "_t" -> "org.corespring.platform.core.models.item.resource.StoredFile",
@@ -63,7 +64,7 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize json" in new serialize(
-      new PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed")), ""),
+      new PlayerDefinition(Nil, "", Json.obj("2" -> Json.obj("name" -> "ed")), "", None),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "",
@@ -74,7 +75,7 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize xhtml" in new serialize(
-      new PlayerDefinition(Nil, "<div>something</div>", Json.obj(), ""),
+      new PlayerDefinition(Nil, "<div>something</div>", Json.obj(), "", None),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "<div>something</div>",
@@ -85,7 +86,7 @@ class PlayerDefinitionTransformerTest extends Specification {
     }
 
     "serialize + deserialize summaryFeedback" in new serialize(
-      new PlayerDefinition(Nil, "", Json.obj(), "The show ended with a riot of feedbacking guitars."),
+      new PlayerDefinition(Nil, "", Json.obj(), "The show ended with a riot of feedbacking guitars.", None),
       MongoDBObject(
         "files" -> unwrapDBList(MongoDBList()),
         "xhtml" -> "",
