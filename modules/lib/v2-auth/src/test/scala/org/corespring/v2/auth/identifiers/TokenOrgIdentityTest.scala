@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors.{ generalError, noToken, noDefaultCollection }
+import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -28,7 +29,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       val transformer = new TokenOrgIdentity[String] {
         override def tokenService: TokenService = {
           val m = mock[TokenService]
-          m.orgForToken(any[String])(FakeRequest()) returns org
+          m.orgForToken(any[String])(FakeRequest()) returns Success(org.get)
           m
         }
 
