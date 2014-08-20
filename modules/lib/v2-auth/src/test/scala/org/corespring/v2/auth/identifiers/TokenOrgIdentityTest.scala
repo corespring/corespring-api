@@ -28,7 +28,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       val transformer = new TokenOrgIdentity[String] {
         override def tokenService: TokenService = {
           val m = mock[TokenService]
-          m.orgForToken(any[String]) returns org
+          m.orgForToken(any[String])(FakeRequest()) returns org
           m
         }
 
