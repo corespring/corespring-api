@@ -58,7 +58,7 @@ class Bootstrap(
 
     override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
       accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-      unexpiredToken <- (!accessToken.isExpired).toOption(accessToken).toSuccess(expiredToken(rh))
+      unexpiredToken <- if(accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
     } yield org
   }

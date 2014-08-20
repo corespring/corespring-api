@@ -62,13 +62,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
   }
 
   lazy val tokenService = new TokenService {
-    implicit class RichBoolean(val b: Boolean) {
-      def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
-    }
-
     override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
       accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-      unexpiredToken <- (!accessToken.isExpired).toOption(accessToken).toSuccess(expiredToken(rh))
+      unexpiredToken <- if(accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
     } yield org
   }
