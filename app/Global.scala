@@ -19,6 +19,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
 import org.corespring.v2.auth.services.TokenService
+import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
@@ -28,6 +29,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.Validation
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -107,16 +109,20 @@ object Global
   }
 
   lazy val cachingTokenService = new TokenService {
-    val localCache = new SimpleCache[Organization] {
+    val localCache = new SimpleCache[Validation[V2Error, Organization]] {
       override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
     }
 
-    override def orgForToken(token: String): Option[Organization] = localCache.get(token).orElse {
-      val out = integration.tokenService.orgForToken(token)
-      out.foreach(localCache.set(token, _))
-      out
+    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] =
+      localCache.get(token).orElse {
+        val out = integration.tokenService.orgForToken(token)(rh)
+        localCache.set(token, out)
+        Some(out)
+      } match {
+        case Some(validation) => validation
+        case _ => throw new IllegalStateException("This shouldn't be possible")
+      }
     }
-  }
 
   lazy val apiTracker: ActorRef = Akka.system.actorOf(
     Props.create(classOf[ApiTrackingActor], trackingService, cachingTokenService, cachingApiClientService)

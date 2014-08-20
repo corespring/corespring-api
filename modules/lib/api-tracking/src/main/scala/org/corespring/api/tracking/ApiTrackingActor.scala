@@ -5,6 +5,8 @@ import akka.event.Logging
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.ApiClientService
 import org.corespring.v2.auth.services.TokenService
+import scalaz.Success
+import org.corespring.platform.core.models.Organization
 
 case class ApiCall(method: String, path: String, orgId: Option[String], accessToken: Option[String], clientId: Option[String]) {
   def toKeyValues = {
@@ -29,10 +31,7 @@ class ApiTrackingActor(trackingService: TrackingService,
       val clientId = rh.queryString.get("apiClient").map(_.head)
 
       val orgId: Option[ObjectId] = {
-        token.map { t =>
-          val o = tokenService.orgForToken(t)
-          o.map { _.id }
-        }.getOrElse {
+        token.map { tokenService.orgForToken(_)(rh).toOption.map(_.id) }.getOrElse {
           clientId.map { cid =>
             apiClientService.findByKey(cid).map(_.orgId)
           }.getOrElse(None)
