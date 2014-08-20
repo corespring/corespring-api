@@ -229,6 +229,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   override def assets: Assets = new apiControllers.Assets {
 
     override def sessionService: MongoService = V2PlayerIntegration.this.mainSessionService
+    override def previewSessionService: MongoService = V2PlayerIntegration.this.previewSessionService
 
     override def itemService: ItemService = ItemServiceWired
 
