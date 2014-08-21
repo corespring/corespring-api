@@ -14,10 +14,14 @@ import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ ApiClientService, ApiClient, AccessToken }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.UserServiceWired
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
+import org.corespring.v2.auth.identifiers.RequestIdentity
+import org.corespring.v2.auth.models.AuthMode.AuthMode
+import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegration
@@ -71,6 +75,32 @@ object Global
     def itemService = ItemServiceWired
   }
 
+  lazy val v2RequestApiIdentifier = {
+
+    new RequestIdentity[OrgAndOpts] {
+
+      val underlyingIdentifier = configuration.getString("v2Api.authMode") match {
+        case Some("old") => integration.requestIdentifier
+        case _ => integration.requestIdentifiers.token
+      }
+
+      def toOrgAndOpts(oid: ObjectId, playerOptions: PlayerOptions, mode: AuthMode): OrgAndOpts = {
+        OrgAndOpts(oid, playerOptions, mode)
+      }
+      override def apply(rh: RequestHeader): Validation[V2Error, OrgAndOpts] = underlyingIdentifier(rh).map { t => toOrgAndOpts(t._1, t._2, t._3) }
+    }
+  }
+
+  lazy val v2SessionCreatedHandler: Option[VersionedId[ObjectId] => Unit] = configuration.getString("v2Api.authMode") match {
+    case Some("old") => {
+      Some(itemId => {
+        itemTransformer.updateV2Json(itemId)
+        println("Old style..")
+      })
+    }
+    case _ => None
+  }
+
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,
     Organization,
@@ -80,8 +110,8 @@ object Global
     integration.secureSocialService,
     integration.itemAuth,
     integration.sessionAuth,
-    itemTransformer,
-    integration.getOrgIdAndOptions)
+    v2RequestApiIdentifier,
+    v2SessionCreatedHandler)
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
 
@@ -122,7 +152,7 @@ object Global
         case Some(validation) => validation
         case _ => throw new IllegalStateException("This shouldn't be possible")
       }
-    }
+  }
 
   lazy val apiTracker: ActorRef = Akka.system.actorOf(
     Props.create(classOf[ApiTrackingActor], trackingService, cachingTokenService, cachingApiClientService)
