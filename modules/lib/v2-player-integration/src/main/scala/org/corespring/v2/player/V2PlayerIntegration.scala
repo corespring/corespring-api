@@ -59,8 +59,13 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val cdnDomain = {
     val out = configuration.getString("cdn.domain")
-    logger.info(s"CDN for v2 production player: ${out.getOrElse("none")}")
-    out
+
+    if (out.isDefined && !out.get.startsWith("//")) {
+      logger.warn("cdn domain must start with // - ignoring")
+    }
+    val validDomain = out.filter(_.startsWith("//"))
+    logger.info(s"CDN for v2 production player: ${validDomain.getOrElse("none")}")
+    validDomain
   }
 
   override def resolveDomain(path: String): String = cdnDomain.map {
