@@ -7,7 +7,7 @@ import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.platform.core.models.item.PlayItemTransformationCache
+import org.corespring.platform.core.models.item.{ContentType, PlayItemTransformationCache}
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.item.ItemServiceWired
@@ -20,7 +20,9 @@ import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
 import play.api._
+import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 import scala.concurrent.duration._
@@ -99,7 +101,11 @@ object Global
     }
 
     Future {
-      InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+      if(request.accepts(ContentTypes.JSON)){
+        InternalServerError(Json.obj("error" -> throwable.getMessage, "uid" -> uid))
+      } else {
+        InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+      }
     }
   }
 
@@ -228,4 +234,3 @@ object Global
   }
 
 }
-
