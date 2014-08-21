@@ -135,4 +135,7 @@ DEV_TOOLS_ENABLED needs to be set to true on the env for this to work:
 The V2 Production player can load assets from a CDN. To enable this set the following env-var: `CONTAINER_CDN_DOMAIN`.
 If it's not set the assets will be retrieved locally. Note that this domain needs to use the corespring-api server as it's origin.
 
+## Cloudfront 
+
+We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfront/home
 
