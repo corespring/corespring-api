@@ -130,4 +130,9 @@ DEV_TOOLS_ENABLED needs to be set to true on the env for this to work:
 
    GET /dev/tools/v2-player/:itemId -> run the item in the new v2 player.
 
+## Container Configuration
+
+The V2 Production player can load assets from a CDN. To enable this set the following env-var: `CONTAINER_CDN_DOMAIN`.
+If it's not set the assets will be retrieved locally. Note that this domain needs to use the corespring-api server as it's origin.
+
 
