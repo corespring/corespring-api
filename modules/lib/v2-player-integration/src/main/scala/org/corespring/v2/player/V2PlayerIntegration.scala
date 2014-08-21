@@ -4,6 +4,7 @@ import java.io.File
 
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.web.common.views.helpers.Defaults
 
 import scala.concurrent.{ Future, ExecutionContext }
 
@@ -45,7 +46,6 @@ import scalaz.Scalaz._
 import securesocial.core.{ Identity, SecureSocial }
 import org.corespring.v2.errors.Errors._
 
-
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
   db: MongoDB)
@@ -57,6 +57,19 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def components: Seq[Component] = comps
 
+  lazy val cdnDomain = {
+    val out = configuration.getString("cdn.domain")
+    logger.info(s"CDN for v2 production player: ${out.getOrElse("none")}")
+    out
+  }
+
+  override def resolveDomain(path: String): String = cdnDomain.map {
+    d =>
+      val separator = if (path.startsWith("/")) "" else "/"
+      val query = if (configuration.getBoolean("cdn.add-version-as-query-param").getOrElse(false)) s"?version=${Defaults.commitHashShort}" else ""
+      s"$d$separator$path$query"
+  }.getOrElse(path)
+
   lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
@@ -64,7 +77,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
   lazy val tokenService = new TokenService {
     override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
       accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-      unexpiredToken <- if(accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
+      unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
     } yield org
   }
