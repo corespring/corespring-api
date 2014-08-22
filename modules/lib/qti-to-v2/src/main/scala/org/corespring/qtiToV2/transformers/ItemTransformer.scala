@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.transformers
 import org.bson.types.ObjectId
 import org.corespring.common.json.JsonTransformer
 import org.corespring.platform.core.models.Standard
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile }
+import org.corespring.platform.core.models.item.resource.{XMLCleaner, CDataHandler, Resource, VirtualFile}
 import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -123,7 +123,7 @@ trait ItemTransformer {
 
         require(qti.isDefined, s"item: ${item.id} has no qti xml")
 
-        val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(CDataHandler.addCDataTags(qti.get.content)))
+        val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
         cache.setCachedTransformation(item, transformedJson)
         transformedJson
 
