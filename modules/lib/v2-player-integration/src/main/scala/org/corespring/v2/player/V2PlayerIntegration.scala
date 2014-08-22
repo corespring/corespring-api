@@ -2,12 +2,6 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.web.common.views.helpers.Defaults
-
-import scala.concurrent.{ Future, ExecutionContext }
-
 import com.mongodb.casbah.MongoDB
 import com.typesafe.config.ConfigFactory
 import org.bson.types.ObjectId
@@ -22,29 +16,32 @@ import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
-import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayItemTransformationCache }
+import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, Mode, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerOptions }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
+import org.corespring.v2.errors.Errors.{ permissionNotGranted, _ }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.errors.Errors.permissionNotGranted
-import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
+import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
-import play.api.{ Configuration, Logger, Mode => PlayMode, Play }
+import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
+import org.corespring.web.common.views.helpers.Defaults
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import scalaz.{ Failure, Success, Validation }
-import scalaz.Scalaz._
+import play.api.{ Configuration, Play, Mode => PlayMode }
 import securesocial.core.{ Identity, SecureSocial }
-import org.corespring.v2.errors.Errors._
+
+import scala.concurrent.ExecutionContext
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -110,21 +107,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
 
   object requestIdentifiers {
-    lazy val userSession = new UserSessionOrgIdentity[(ObjectId, PlayerOptions, AuthMode)] {
+    lazy val userSession = new UserSessionOrgIdentity[OrgAndOpts] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
       override def userService: UserService = UserServiceWired
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions, AuthMode) = (org.id, PlayerOptions.ANYTHING, AuthMode.UserSession)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerOptions.ANYTHING, AuthMode.UserSession)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val token = new TokenOrgIdentity[(ObjectId, PlayerOptions, AuthMode)] {
+    lazy val token = new TokenOrgIdentity[OrgAndOpts] {
       override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): (ObjectId, PlayerOptions, AuthMode) =
-        (org.id, PlayerOptions.ANYTHING, AuthMode.AccessToken)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerOptions.ANYTHING, AuthMode.AccessToken)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -157,17 +153,14 @@ class V2PlayerIntegration(comps: => Seq[Component],
     }
   }
 
-  lazy val requestIdentifier = new WithRequestIdentitySequence[(ObjectId, PlayerOptions, AuthMode)] {
-    override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions, AuthMode)]] = Seq(
+  lazy val requestIdentifier = new WithRequestIdentitySequence[OrgAndOpts] {
+    override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
       requestIdentifiers.clientIdAndOptsQueryString,
       requestIdentifiers.token,
       requestIdentifiers.userSession)
   }
 
-  def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-    val out: Validation[V2Error, (ObjectId, PlayerOptions, AuthMode)] = requestIdentifier(request)
-    out.map { case (orgId, playerOpts, authMode) => OrgAndOpts(orgId, playerOpts, authMode) }
-  }
+  def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = requestIdentifier(request)
 
   lazy val itemAuth = new ItemAuthWired {
     override def orgService: OrganizationService = Organization
@@ -206,7 +199,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
 
-    import Play.current
+    import play.api.Play.current
 
     override def allComponents: Seq[Component] = V2PlayerIntegration.this.components
 

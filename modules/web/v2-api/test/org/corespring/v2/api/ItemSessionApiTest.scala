@@ -33,7 +33,6 @@ class ItemSessionApiTest extends Specification with Mockito {
         val m = mock[SessionAuth[OrgAndOpts]]
         m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
         m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
-
         m
       }
 
@@ -45,12 +44,13 @@ class ItemSessionApiTest extends Specification with Mockito {
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def itemTransformer: ItemTransformer = {
-        val m = mock[ItemTransformer]
-        m
-      }
-
       override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+
+      /**
+       * A session has been created for an item with the given item id.
+       * @param itemId
+       */
+      override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = {}
     }
   }
 

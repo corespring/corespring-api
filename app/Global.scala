@@ -1,40 +1,22 @@
 import actors.reporting.ReportActor
-import akka.actor.Actor.Receive
-import akka.actor.{ Actor, ActorRef, Props }
+import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import common.seed.SeedDb
 import common.seed.SeedDb._
-import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
+import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
-import org.corespring.api.tracking.{ ApiCall, TrackingService, LogRequest, ApiTrackingActor }
+import org.corespring.api.tracking.LogRequest
 import org.corespring.common.log.ClassLogging
-import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.platform.core.caching.{ SimpleCache }
-import org.corespring.platform.core.models.item.PlayItemTransformationCache
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ ApiClientService, ApiClient, AccessToken }
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.UserServiceWired
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.play.utils._
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
-import org.corespring.v2.api.Bootstrap
-import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence, RequestIdentity }
-import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
-import org.corespring.v2.auth.services.TokenService
-import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.V2PlayerIntegration
-import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
-import org.joda.time.{ DateTimeZone, DateTime }
+import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.libs.concurrent.Akka
 import play.api.mvc.Results._
 import play.api.mvc._
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.Validation
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -42,179 +24,21 @@ object Global
   with GlobalSettings
   with ClassLogging {
 
-  import ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   val INIT_DATA: String = "INIT_DATA"
 
-  private lazy val componentLoader: ComponentLoader = {
-    val path = containerConfig.getString("components.path").toSeq
-
-    val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
-      .getOrElse {
-        Play.current.mode == Mode.Prod
-      }
-
-    val out = new FileComponentLoader(path, showReleasedOnlyComponents)
-    out.reload
-    out
-  }
-
-  lazy val containerConfig = {
-    for {
-      container <- current.configuration.getConfig("container")
-      modeSpecific <- current.configuration.getConfig(s"container-${current.mode.toString.toLowerCase}").orElse(Some(Configuration.empty))
-    } yield {
-      val out = container ++ modeSpecific
-      logger.info(s"Container config: ${out.underlying.root.render}")
-      out
-    }
-  }.getOrElse(Configuration.empty)
-
-  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
-
-  lazy val itemTransformer = new ItemTransformer {
-    def cache = PlayItemTransformationCache
-
-    def itemService = ItemServiceWired
-  }
-
-  lazy val v2RequestApiIdentifier = {
-
-    new RequestIdentity[OrgAndOpts] {
-
-      val underlyingIdentifier = Play.current.configuration.getString("v2Api.tokenAuthOnly") match {
-        case Some("true") => {
-          logger.info("token only auth enabled")
-          new WithRequestIdentitySequence[(ObjectId, PlayerOptions, AuthMode)] {
-            override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions, AuthMode)]] = Seq(
-              integration.requestIdentifiers.token,
-              integration.requestIdentifiers.clientIdAndOptsQueryString)
-          }
-        }
-        case _ => {
-          println(Play.current.configuration.getConfig("v2Api").get.underlying.root.render)
-          logger.info("all auth techniques enabled")
-          integration.requestIdentifier
-        }
-      }
-
-      def toOrgAndOpts(oid: ObjectId, playerOptions: PlayerOptions, mode: AuthMode): OrgAndOpts = {
-        OrgAndOpts(oid, playerOptions, mode)
-      }
-      override def apply(rh: RequestHeader): Validation[V2Error, OrgAndOpts] = underlyingIdentifier(rh).map { t => toOrgAndOpts(t._1, t._2, t._3) }
-    }
-  }
-
-  case class UpdateItem(itemId: VersionedId[ObjectId])
-
-  class ItemTransformerActor(transformer: ItemTransformer) extends Actor {
-    override def receive: Actor.Receive = {
-      case UpdateItem(itemId) => {
-        transformer.updateV2Json(itemId)
-      }
-    }
-  }
-
-  lazy val itemTransformerActor = Akka.system.actorOf(Props.create(classOf[ItemTransformerActor], itemTransformer))
-
-  lazy val v2SessionCreatedHandler: Option[VersionedId[ObjectId] => Unit] = Play.current.configuration.getString("v2Api.transformOnSessionCreate") match {
-    case Some("true") => {
-
-      logger.info("transform item on session create")
-      Some(itemId => {
-        itemTransformer.updateV2Json(itemId)
-        println("Old style..")
-      })
-    }
-    case Some("actor") => {
-      logger.info("using actor to delegate the call..")
-      Some(itemId =>
-        itemTransformerActor ! UpdateItem(itemId))
-    }
-    case _ => {
-      println(configuration.underlying.root().render)
-      logger.info("do *not* transform item on session create")
-      None
-    }
-  }
-
-  lazy val v2ApiBootstrap = new Bootstrap(
-    ItemServiceWired,
-    Organization,
-    AccessToken,
-    integration.mainSessionService,
-    UserServiceWired,
-    integration.secureSocialService,
-    integration.itemAuth,
-    integration.sessionAuth,
-    v2RequestApiIdentifier,
-    v2SessionCreatedHandler)
+  import org.corespring.wiring.AppWiring._
 
   def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
-
-  lazy val trackingService = new TrackingService {
-
-    private val logger = Logger("org.corespring.api.tracking")
-
-    override def log(c: => ApiCall): Unit = {
-      logger.info(c.toKeyValues)
-    }
-  }
-
-  lazy val cachingApiClientService = new ApiClientService {
-
-    val localCache = new SimpleCache[ApiClient] {
-      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
-
-    }
-
-    override def findByKey(key: String): Option[ApiClient] = localCache.get(key).orElse {
-      val out = ApiClient.findByKey(key)
-      out.foreach(localCache.set(key, _))
-      out
-    }
-  }
-
-  lazy val cachingTokenService = new TokenService {
-    val localCache = new SimpleCache[Validation[V2Error, Organization]] {
-      override def timeToLiveInMinutes = configuration.getDouble("api.cache.ttl-in-minutes").getOrElse(3)
-    }
-
-    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] =
-      localCache.get(token).orElse {
-        val out = integration.tokenService.orgForToken(token)(rh)
-        localCache.set(token, out)
-        Some(out)
-      } match {
-        case Some(validation) => validation
-        case _ => throw new IllegalStateException("This shouldn't be possible")
-      }
-  }
-
-  lazy val apiTracker: ActorRef = Akka.system.actorOf(
-    Props.create(classOf[ApiTrackingActor], trackingService, cachingTokenService, cachingApiClientService)
-      .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
-
-  lazy val logRequests = {
-    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
-    logger.info(s"Log api requests? ${out}")
-    out
-  }
-
-  private def isLoggable(path: String): Boolean = {
-    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.ProdHtmlPlayer.config(".*").url.r
-    val v2EditorRegex = org.corespring.container.client.controllers.apps.routes.Editor.editItem(".*").url.r
-    val isV2Player = v2PlayerRegex.findFirstIn(path).isDefined
-    val isV2Editor = v2EditorRegex.findFirstIn(path).isDefined
-    logRequests && (path.contains("api") || isV2Player || isV2Editor)
-  }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
+        import org.corespring.wiring.apiTracking.ApiTrackingWiring._
+
         if (logRequests && isLoggable(request.path)) {
           apiTracker ! LogRequest(request)
         }
