@@ -59,12 +59,15 @@ object Global
     out
   }
 
-  def containerConfig = {
+  lazy val containerConfig = {
     for {
       container <- current.configuration.getConfig("container")
-      modeKey <- if (current.mode == Mode.Prod) Some("prod") else Some("non-prod")
-      modeConfig <- container.getConfig(modeKey)
-    } yield modeConfig
+      modeSpecific <- current.configuration.getConfig(s"container-${current.mode.toString.toLowerCase}").orElse(Some(Configuration.empty))
+    } yield {
+      val out = container ++ modeSpecific
+      logger.info(s"Container config: ${out.underlying.root.render}")
+      out
+    }
   }.getOrElse(Configuration.empty)
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
