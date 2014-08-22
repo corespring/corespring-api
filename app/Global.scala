@@ -1,5 +1,6 @@
 import actors.reporting.ReportActor
-import akka.actor.{ ActorRef, Props }
+import akka.actor.Actor.Receive
+import akka.actor.{ Actor, ActorRef, Props }
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb
 import common.seed.SeedDb._
@@ -19,7 +20,7 @@ import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
-import org.corespring.v2.auth.identifiers.RequestIdentity
+import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence, RequestIdentity }
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.{ PlayerOptions, OrgAndOpts }
 import org.corespring.v2.auth.services.TokenService
@@ -79,9 +80,20 @@ object Global
 
     new RequestIdentity[OrgAndOpts] {
 
-      val underlyingIdentifier = configuration.getString("v2Api.authMode") match {
-        case Some("old") => integration.requestIdentifier
-        case _ => integration.requestIdentifiers.token
+      val underlyingIdentifier = Play.current.configuration.getString("v2Api.tokenAuthOnly") match {
+        case Some("true") => {
+          logger.info("token only auth enabled")
+          new WithRequestIdentitySequence[(ObjectId, PlayerOptions, AuthMode)] {
+            override def identifiers: Seq[OrgRequestIdentity[(ObjectId, PlayerOptions, AuthMode)]] = Seq(
+              integration.requestIdentifiers.token,
+              integration.requestIdentifiers.clientIdAndOptsQueryString)
+          }
+        }
+        case _ => {
+          println(Play.current.configuration.getConfig("v2Api").get.underlying.root.render)
+          logger.info("all auth techniques enabled")
+          integration.requestIdentifier
+        }
       }
 
       def toOrgAndOpts(oid: ObjectId, playerOptions: PlayerOptions, mode: AuthMode): OrgAndOpts = {
@@ -91,14 +103,37 @@ object Global
     }
   }
 
-  lazy val v2SessionCreatedHandler: Option[VersionedId[ObjectId] => Unit] = configuration.getString("v2Api.authMode") match {
-    case Some("old") => {
+  case class UpdateItem(itemId: VersionedId[ObjectId])
+
+  class ItemTransformerActor(transformer: ItemTransformer) extends Actor {
+    override def receive: Actor.Receive = {
+      case UpdateItem(itemId) => {
+        transformer.updateV2Json(itemId)
+      }
+    }
+  }
+
+  lazy val itemTransformerActor = Akka.system.actorOf(Props.create(classOf[ItemTransformerActor], itemTransformer))
+
+  lazy val v2SessionCreatedHandler: Option[VersionedId[ObjectId] => Unit] = Play.current.configuration.getString("v2Api.transformOnSessionCreate") match {
+    case Some("true") => {
+
+      logger.info("transform item on session create")
       Some(itemId => {
         itemTransformer.updateV2Json(itemId)
         println("Old style..")
       })
     }
-    case _ => None
+    case Some("actor") => {
+      logger.info("using actor to delegate the call..")
+      Some(itemId =>
+        itemTransformerActor ! UpdateItem(itemId))
+    }
+    case _ => {
+      println(configuration.underlying.root().render)
+      logger.info("do *not* transform item on session create")
+      None
+    }
   }
 
   lazy val v2ApiBootstrap = new Bootstrap(
