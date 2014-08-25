@@ -2,11 +2,6 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.web.common.views.helpers.Defaults
-
-import scala.concurrent.{ Future, ExecutionContext }
 import com.mongodb.casbah.MongoDB
 import com.typesafe.config.ConfigFactory
 import org.bson.types.ObjectId
@@ -34,20 +29,19 @@ import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerOptions }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
-import org.corespring.v2.errors.Errors.permissionNotGranted
+import org.corespring.v2.errors.Errors.{ permissionNotGranted, _ }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
 import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
+import org.corespring.web.common.views.helpers.Defaults
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import scalaz.{ Failure, Success, Validation }
-import scalaz.Scalaz._
 import play.api.{ Configuration, Play, Mode => PlayMode }
 import securesocial.core.{ Identity, SecureSocial }
-import org.corespring.v2.errors.Errors._
 
 import scala.concurrent.ExecutionContext
+import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 class V2PlayerIntegration(comps: => Seq[Component],

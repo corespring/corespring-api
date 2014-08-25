@@ -3,7 +3,6 @@ package org.corespring.qtiToV2.transformers
 import org.bson.types.ObjectId
 import org.corespring.common.json.JsonTransformer
 import org.corespring.platform.core.models.Standard
-import org.corespring.platform.core.models.item.resource.{XMLCleaner, CDataHandler, Resource, VirtualFile}
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
 import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
