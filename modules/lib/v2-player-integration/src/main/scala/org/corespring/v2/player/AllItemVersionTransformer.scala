@@ -31,7 +31,19 @@ class AllItemVersionTransformer extends ItemTransformer {
       logger.debug(s"[itemTransformer.save] - saving versioned content directly")
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
-      def collectionToSaveIn = i.id.version.map { v =>
+      /**
+       * Note: we have an auto boxing issue here - using VersionedIdImplicits.Reads to get around it.
+       *
+       * @return
+       */
+
+      def version(id: VersionedId[ObjectId]): Option[Int] = {
+        import org.corespring.platform.core.models.versioning.VersionedIdImplicits._
+        val json = play.api.libs.json.Json.toJson(id)
+        (json \ "id").asOpt[Int]
+      }
+
+      def collectionToSaveIn = version(i.id).map { v =>
         val versionedCount = ItemServiceWired.dao.versionedCollection.count(MongoDBObject("_id._id" -> i.id.id, "_id.version" -> v))
         if (versionedCount == 1) {
           ItemServiceWired.dao.versionedCollection
