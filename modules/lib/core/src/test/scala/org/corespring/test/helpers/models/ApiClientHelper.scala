@@ -18,7 +18,7 @@ object ApiClientHelper extends AuthTokenGenerating {
   def delete(client: ApiClient): Unit = {
     println(s"[ApiClientHelper] delete api client with id: ${client.clientId}")
     if (ApiClient.findByKey(client.clientId.toString).isEmpty) {
-      throw new RuntimeException(s"Can't find api client: $client")
+      println(s"[ApiClientHelper] Can't find api client: $client")
     }
     ApiClient.remove(client)
   }

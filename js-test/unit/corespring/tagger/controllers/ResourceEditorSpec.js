@@ -29,6 +29,7 @@ describe('ResourceEditor should', function () {
     var prepareBackend = function ($backend) {
 
         var urls = [
+          {method: 'PUT', url: '/bad/url', status: 500, response: {ok:false}},
             {method:'PUT', url:/.*/, response:{ ok:true }},
             {method:'POST', url:/.*/, data: {}, response:{ ok:true }},
             {method:'DELETE', url:/.*/, data: {}, response:{ ok:true }}
@@ -36,7 +37,7 @@ describe('ResourceEditor should', function () {
 
         for (var i = 0; i < urls.length; i++) {
             var definition = urls[i];
-            $backend.when(definition.method, definition.url).respond(200, definition.response);
+            $backend.when(definition.method, definition.url).respond(definition.status || 200, definition.response);
         }
     };
 
@@ -51,6 +52,20 @@ describe('ResourceEditor should', function () {
         } catch (e) {
             throw("Error with the controller: " + e);
         }
+    }));
+
+    it('should $emit an error', inject(function($rootScope){
+      var errorCalled = false;
+      scope.urls = {
+        updateFile: '/bad/url'
+      };
+      $rootScope.$on('error', function(event, info, data){
+        errorCalled = true;
+      });
+      scope.update({contentType: 'xml', name: 'qti.xml'});
+      $httpBackend.flush();
+      scope.$digest();
+      expect(errorCalled).toBe(true);
     }));
 
 
@@ -149,5 +164,3 @@ describe('ResourceEditor should', function () {
     }));
 
 });
-
-
