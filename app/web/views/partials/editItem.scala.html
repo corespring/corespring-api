@@ -1,4 +1,4 @@
-@(useV2: Boolean)
+@(useV2: Boolean, isLatest: Boolean)
 
 <div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px" xmlns="http://www.w3.org/1999/html">
     <h2>Delete Item</h2>
@@ -194,6 +194,18 @@
 
                 <img ng-show="!selectedFile.content" ng:src="{{selectedFileImageUrl}}"/>
 
+                @if(!isLatest) {
+                  <script type="text/javascript">
+                    setTimeout(function() {
+                      $('.not-latest').slideDown();
+                    }, 500);
+                  </script>
+                  <div class="alert alert-warning not-latest" role="start">
+                      <strong>This is not the current version of this item</strong>. You cannot edit content for previously
+                      published item versions. Please visit the current version of this item <a href="google.com">here</a>.
+                  </div>
+                }
+
                 <div class="code-editor"
                      ace-editor
                      ng-show="showEditor"
@@ -201,6 +213,7 @@
                      ace-theme="eclipse"
                      ace-mode="getAceMode(selectedFile.contentType)"
                      ng-class="fileListClassName"
+                     editable="isLatest()"
                      ace-resize-events="tabSelected,panelOpen,dataLoaded"
                         ></div>
             </div>

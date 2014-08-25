@@ -15,7 +15,8 @@
    ace-model="myText"
    ace-resize-trigger="some"
    ace-theme="sometheme"
-   ace-mode="mode"></div>
+   ace-mode="mode"
+   editable="true"></div>
   dependencies:
   ace.js + whatever theme and mode you wish to use
   @param ace-model - a ng model that contains the text to display in the editor. When the code is changed in
@@ -23,6 +24,7 @@
   @param ace-resize-events - a comma delimited list of ng events that that should trigger a resize
   @param ace-theme - an ace theme - loads them using "ace/theme/" + the them you specify. (you need to include the js for it)
   @param ace-mode - an ace mode - as above loads a mode.
+  @param editable - if false will disable interaction with the editor
   */
 
 
@@ -80,6 +82,25 @@
           }
           scope.editor = ace.edit(element[0]);
           scope.editor.getSession().setUseWrapMode(true);
+
+          scope.disable = function() {
+            var cover = $('<div/>').css({
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              'z-index': 1000,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(150,150,150,0.8)'
+            });
+            element.append(cover);
+            scope.editor.setReadOnly(true);
+          };
+
+          if (attrs['editable'] === 'false') {
+            scope.disable();
+          }
+
           theme = attrs["aceTheme"] || "eclipse";
           scope.editor.setTheme("ace/theme/" + theme);
           scope.$watch(attrs["aceMode"], function(newValue, oldValue) {

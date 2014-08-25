@@ -58,12 +58,17 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
 
-  $scope.getAceMode = function (contentType) {
+  $scope.getAceMode = function(contentType) {
     if (!contentType) {
       return "unknown";
     }
     var split = contentType.split("/");
     return split.length == 2 ? split[1] : "unknown";
+  };
+
+  $scope.isLatest = function() {
+    console.log('wat');
+    return 'false';
   };
 
 
