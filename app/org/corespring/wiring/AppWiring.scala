@@ -60,7 +60,7 @@ object AppWiring {
   }.getOrElse(Configuration.empty)
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
+  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb(), ItemTransformWiring.itemTransformer)
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.

@@ -69,7 +69,19 @@
 
     @org.corespring.web.common.views.html.mainNav(templates, username)
 
-
+  <div class="error-box" ui-modal ng-model="showErrorBox">
+    <h3>An error has occured</h3>
+    <div class="sub-type">{{errorSubType}}</div>
+    <br/>
+    <button class="btn btn-success btn-xs show-details" ng-click="showDetails = !showDetails">Details</button>
+    <br/>
+    <div class="error-details" ng-show="showDetails">
+      <div>{{errorDetails}}</div>
+    </div>
+    <div class="use-id">If you believe this is a system error please use this id when reporting: {{errorUid}}</div>
+    <br/>
+    <button class="btn btn-info acknowledge-button" ng-click="errorAcknowledged()">Ok</button>
+  </div>
     <div ng-view class="extra-large-window"></div>
 </body>
 </html>

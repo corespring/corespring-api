@@ -2,16 +2,18 @@ import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import common.seed.SeedDb._
-import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
+import filters.{AccessControlFilter, AjaxFilter, Headers, IEHeaders}
 import org.bson.types.ObjectId
 import org.corespring.api.tracking.LogRequest
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
-import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api._
+import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -59,7 +61,11 @@ object Global
     }
 
     Future {
-      InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+      if (request.accepts(ContentTypes.JSON)) {
+        InternalServerError(Json.obj("error" -> throwable.getMessage, "uid" -> uid))
+      } else {
+        InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
+      }
     }
   }
 

@@ -1,19 +1,15 @@
 package org.corespring.wiring.itemTransform
 
-import akka.actor.{ Actor, Props }
+import akka.actor.{Actor, Props}
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.PlayItemTransformationCache
-import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.player.AllItemVersionTransformer
 import play.libs.Akka
 
 object ItemTransformWiring {
-  lazy val itemTransformer = new ItemTransformer {
-    def cache = PlayItemTransformationCache
 
-    def itemService = ItemServiceWired
-  }
+  lazy val itemTransformer = new AllItemVersionTransformer
 
   lazy val itemTransformerActor = Akka.system.actorOf(Props.create(classOf[ItemTransformerActor], itemTransformer))
 
