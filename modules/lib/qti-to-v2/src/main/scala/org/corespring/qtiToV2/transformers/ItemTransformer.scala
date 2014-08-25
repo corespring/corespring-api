@@ -3,9 +3,9 @@ package org.corespring.qtiToV2.transformers
 import org.bson.types.ObjectId
 import org.corespring.common.json.JsonTransformer
 import org.corespring.platform.core.models.Standard
-import org.corespring.platform.core.models.item.resource.{XMLCleaner, CDataHandler, Resource, VirtualFile}
+import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
 import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayerDefinition }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
 import play.api.Logger
@@ -16,7 +16,7 @@ trait ItemTransformer {
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
   def cache: ItemTransformationCache
-  def itemService: ItemService
+  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
@@ -38,15 +38,15 @@ trait ItemTransformer {
   def updateV2Json(item: Item): Option[Item] = {
     transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
       .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-      case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-        case true => Some(updatedItem)
-        case _ => {
-          itemService.save(updatedItem)
-          Some(updatedItem)
+        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+          case true => Some(updatedItem)
+          case _ => {
+            itemService.save(updatedItem)
+            Some(updatedItem)
+          }
         }
+        case _ => None
       }
-      case _ => None
-    }
   }
 
   def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)

@@ -7,7 +7,7 @@ import filters.{ IEHeaders, Headers, AjaxFilter, AccessControlFilter }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.platform.core.models.item.{ContentType, PlayItemTransformationCache}
+import org.corespring.platform.core.models.item.{ ContentType, PlayItemTransformationCache }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.item.ItemServiceWired
@@ -16,7 +16,7 @@ import org.corespring.play.utils._
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.v2.api.Bootstrap
-import org.corespring.v2.player.V2PlayerIntegration
+import org.corespring.v2.player.{ AllItemVersionTransformer, V2PlayerIntegration }
 import org.corespring.web.common.controllers.deployment.{ LocalAssetsLoaderImpl, AssetsLoaderImpl }
 import org.joda.time.{ DateTimeZone, DateTime }
 import play.api._
@@ -58,12 +58,9 @@ object Global
   }.getOrElse(Configuration.empty)
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb())
+  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb(), itemTransformer)
 
-  lazy val itemTransformer = new ItemTransformer {
-    def cache = PlayItemTransformationCache
-    def itemService = ItemServiceWired
-  }
+  lazy val itemTransformer = new AllItemVersionTransformer
 
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,
@@ -101,7 +98,7 @@ object Global
     }
 
     Future {
-      if(request.accepts(ContentTypes.JSON)){
+      if (request.accepts(ContentTypes.JSON)) {
         InternalServerError(Json.obj("error" -> throwable.getMessage, "uid" -> uid))
       } else {
         InternalServerError(org.corespring.web.common.views.html.onError(uid, throwable))
