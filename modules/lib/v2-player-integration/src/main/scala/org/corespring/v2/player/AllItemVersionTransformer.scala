@@ -33,10 +33,7 @@ class AllItemVersionTransformer extends ItemTransformer {
 
       /**
        * Note: we have an auto boxing issue here - using VersionedIdImplicits.Reads to get around it.
-       *
-       * @return
        */
-
       def version(id: VersionedId[ObjectId]): Option[Int] = {
         import org.corespring.platform.core.models.versioning.VersionedIdImplicits._
         val json = play.api.libs.json.Json.toJson(id)
