@@ -170,14 +170,14 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
       service.findFieldsById(id, fields)
         .map(dbo => com.novus.salat.grater[Item].asObject[Imports.DBObject](dbo))
-        .map(i => Ok(Json.toJson(i).as[JsObject] + ("latest" -> JsBoolean(isLatestVersion(id)))))
+        .map(i => Ok(Json.toJson(i).as[JsObject] + ("latest" -> JsNumber(latestVersion(id)))))
         .getOrElse(NotFound)
   }
 
-  private def isLatestVersion(id: VersionedId[ObjectId]) = service.findOneById(id.copy(version = None)) match {
-    case Some(item) => item.id.version == id.version
-    case None => true
-  }
+  private def latestVersion(id: VersionedId[ObjectId]): Int = (service.findOneById(id.copy(version = None)) match {
+    case Some(item) => item.id.version
+    case None => id.version
+  }).getOrElse(0).toString.toInt // not sure why we need the toString.toInt, but get ClassCastException otherwise
 
   def getDetail(id: VersionedId[ObjectId]) = get(id, Some("detailed"))
 

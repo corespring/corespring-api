@@ -192,7 +192,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       urls.createFile = ServiceLookup.getUrlFor('createDataFile', substitutions);
       urls.updateFile = ServiceLookup.getUrlFor('updateDataFile', substitutions);
       urls.deleteFile = ServiceLookup.getUrlFor('deleteDataFile', substitutions);
-      $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls, ["qti.xml"], $scope.itemData.latest);
+      $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls, ["qti.xml"],
+        $scope.itemData.id, $scope.itemData.latest);
     }
     else {
       $rootScope.$broadcast('leaveEditor');

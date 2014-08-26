@@ -84,17 +84,20 @@
           scope.editor.getSession().setUseWrapMode(true);
 
           scope.disable = function() {
-            var cover = $('<div class="cover"/>').css({
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              'z-index': 1000,
-              width: '100%',
-              height: '100%',
-              background: 'rgba(150,150,150,0.8)'
-            });
-            element.append(cover);
-            scope.editor.setReadOnly(true);
+            var cover;
+            if ($('.cover', element).length === 0) {
+              cover = $('<div class="cover"/>').css({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                'z-index': 1000,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(150,150,150,0.8)'
+              });
+              element.append(cover);
+              scope.editor.setReadOnly(true);
+            }
           };
 
           scope.enable = function() {

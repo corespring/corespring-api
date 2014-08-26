@@ -21,18 +21,35 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
   $scope.showEditor = false;
   $scope.previewVisible = false;
 
-  $scope.$on('leaveEditor', function (event) {
+  $scope.$on('leaveEditor', function(event) {
     $scope.resourceToEdit = null;
     $scope.lockedFiles = [];
   });
 
-  $scope.$on('enterEditor', function (event, resource, showBackNav, urls, lockedFiles, latest) {
+  $scope.$on('enterEditor', function(event, resource, showBackNav, urls, lockedFiles, itemId, latestVersion) {
+
+    function versionedId(id) {
+      var match = id.match(/(.*)\:([0-9]*)/);
+      return (match && match.length === 3) ? {
+        id: match[1],
+        version: parseInt(match[2])
+      } : {};
+    }
+
+    function urlForVersion(id, version) {
+      var match = location.hash.match(/.*\/edit\/(.*)\?.*/);
+      return (match && match[1]) ?
+        location.hash.replace(match[1], id + ':' + version) :
+        "#/edit/" + id + ':' + latestVersion;
+    }
+
     $scope.resourceToEdit = resource;
     $scope.showBackNav = showBackNav;
     $scope.lockedFiles = (lockedFiles || []);
-    $scope.latest = latest === undefined ? true : latest;
+    $scope.latest = latestVersion === versionedId(itemId).version;
+    $scope.latestItemUrl = urlForVersion(versionedId(itemId).id, latestVersion);
 
-    if (latest) {
+    if ($scope.latest) {
       $scope.$emit('setEditable');
     } else {
       $scope.$emit('setUneditable');
@@ -224,11 +241,11 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
   });
 
   $scope.$on("setUneditable", function() {
-    $('.not-latest', $element).delay(500).slideDown();
+    $('.not-latest', $element).slideDown();
   });
 
   $scope.$on("setEditable", function() {
-    $('.not-latest', $element).slideUp();
+    $('.not-latest', $element).hide();
   });
 
   /**
