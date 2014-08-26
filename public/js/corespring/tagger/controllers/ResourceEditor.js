@@ -73,7 +73,7 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
     $scope.resource = newValue;
 
     var defaultFile = _.find($scope.resource.files, function (f) {
-      return f["default"] == true
+      return f["default"] === true;
     });
     $scope.showFile(defaultFile);
   });
@@ -199,10 +199,14 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
         $scope.showFile($scope.fileToRename);
         $scope.saveSelectedFileFinished();
     }).error(function (data, status, headers, config) {
+
       if (typeof data.flags != "undefined" && _.contains(data.flags, "alert_increment")) {
         fileToUpdate.name = oldFilename;
         $scope.saveSelectedFileFinished(true);
-      } else $scope.saveSelectedFileFinished();
+      } else {
+        $scope.$emit("error", "Error saving " + filename , data);
+        $scope.saveSelectedFileFinished();
+      }
     });
 
     $scope.clearRename();
@@ -289,19 +293,22 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
     }).success(function (data, status, headers, config) {
         $scope.showFile(file);
         $scope.saveSelectedFileFinished();
-      }).error(function (data, status, headers, config) {
-        if (typeof data.flags != "undefined" && _.contains(data.flags, "alert_increment")) {
+    }).error(function(data, status, headers, config) {
+        if (data.flags && _.contains(data.flags, "alert_increment")) {
           $scope.saveSelectedFileFinished(true);
-        } else $scope.saveSelectedFileFinished();
-
-      });
+        } else {
+          var msg = "Error updating " + filename;
+          $scope.$emit("error", msg, data);
+          $scope.saveSelectedFileFinished();
+        }
+    });
   };
 
   $scope.getSelectedFileImageUrl = function () {
     if (!$scope.selectedFile || $scope.selectedFile.storageKey) {
       return "/web/empty.png";
     }
-    return "/api/v1/files/{storageKey}"
+    return "/api/v1/files/{storageKey}";
   };
 
   $scope.confirmRemoveFile = function () {
@@ -321,7 +328,7 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
       }).error(function (data, status, headers, config) {
         $scope.showRemoveFileModal = false;
         $scope.fileToRemove = null;
-        alert("Error deleting file");
+        $scope.$emit( "error", "Error deleting file", data);
       });
   };
 
@@ -407,7 +414,7 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
         $scope.addFile(newVirtualFile);
         $scope.showFile(newVirtualFile);
       }).error(function (data, status, headers, config) {
-        throw "Error saving file";
+        $scope.$emit("error", "Error saving file");
       });
   };
 }
