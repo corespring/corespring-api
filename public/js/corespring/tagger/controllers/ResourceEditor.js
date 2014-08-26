@@ -15,7 +15,7 @@
  * @param AccessToken
  * @constructor
  */
-function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $http, ServiceLookup) {
+function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup) {
 
   $scope.selectedFileImageUrl = '/assets/images/empty.png';
   $scope.showEditor = false;
@@ -245,11 +245,11 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
   });
 
   $scope.$on("setUneditable", function() {
-    $('.not-latest', $element).slideDown();
+    $('.not-latest').slideDown();
   });
 
   $scope.$on("setEditable", function() {
-    $('.not-latest', $element).hide();
+    $('.not-latest').hide();
   });
 
   /**
@@ -421,7 +421,6 @@ function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $h
 
 ResourceEditor.$inject = [ '$scope',
   '$rootScope',
-  '$element',
   '$timeout',
   '$routeParams',
   '$http',

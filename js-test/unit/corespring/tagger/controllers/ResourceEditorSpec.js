@@ -17,7 +17,7 @@ describe('ResourceEditor should', function () {
                 updateFile:"{filename}",
                 deleteFile:"{filename"
             };
-            $rootScope.$broadcast('enterEditor', resource, false, urls);
+            $rootScope.$broadcast('enterEditor', resource, false, urls, '123:0', '0');
         });
     };
 
