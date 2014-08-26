@@ -192,7 +192,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       urls.createFile = ServiceLookup.getUrlFor('createDataFile', substitutions);
       urls.updateFile = ServiceLookup.getUrlFor('updateDataFile', substitutions);
       urls.deleteFile = ServiceLookup.getUrlFor('deleteDataFile', substitutions);
-      $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls, ["qti.xml"]);
+      $rootScope.$broadcast('enterEditor', $scope.itemData.data, false, urls, ["qti.xml"], $scope.itemData.latest);
     }
     else {
       $rootScope.$broadcast('leaveEditor');
@@ -200,15 +200,15 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   }
 
   //event handlers for the enter/leave edit events.
-  $scope.$on('enterEditor', function () {
-    $scope.showResourceEditor = true
+  $scope.$on('enterEditor', function() {
+    $scope.showResourceEditor = true;
   });
 
-  $scope.$on('leaveEditor', function () {
-    $scope.showResourceEditor = false
+  $scope.$on('leaveEditor', function() {
+    $scope.showResourceEditor = false;
   });
 
-  var isViewingMetadataPanel = function(){
+  var isViewingMetadataPanel = function() {
    return $scope.currentPanel == "orgMetadata";
   };
 
@@ -267,7 +267,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   };
 
 
-  $scope.loadItem = function () {
+  $scope.loadItem = function() {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $rootScope.itemData = itemData;
 

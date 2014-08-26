@@ -28,6 +28,17 @@ import scala.Some
 import scalaz.Scalaz._
 import scalaz._
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
+import com.novus.salat.dao.SalatInsertError
+import scalaz.Failure
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsNumber
+import scalaz.Success
+import org.corespring.platform.core.models.search.SearchFields
+import org.corespring.platform.core.controllers.auth.ApiRequest
+import play.api.libs.json.JsObject
 
 /**
  * Items API
@@ -159,8 +170,13 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
       service.findFieldsById(id, fields)
         .map(dbo => com.novus.salat.grater[Item].asObject[Imports.DBObject](dbo))
-        .map(i => Ok(Json.toJson(i)))
+        .map(i => Ok(Json.toJson(i).as[JsObject] + ("latest" -> JsBoolean(isLatestVersion(id)))))
         .getOrElse(NotFound)
+  }
+
+  private def isLatestVersion(id: VersionedId[ObjectId]) = service.findOneById(id.copy(version = None)) match {
+    case Some(item) => item.id.version == id.version
+    case None => true
   }
 
   def getDetail(id: VersionedId[ObjectId]) = get(id, Some("detailed"))

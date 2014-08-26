@@ -48,7 +48,7 @@ GET    /web                                    web.controllers.Main.index
 
 # Item Preview
 
-GET    /web/partials/editItem/:itemId          web.controllers.Partials.editItem(itemId)
+GET    /web/partials/editItem                  web.controllers.Partials.editItem
 GET    /web/partials/createItem                web.controllers.Partials.createItem
 GET    /web/partials/home                      web.controllers.Partials.home
 GET    /web/partials/viewItem                  web.controllers.Partials.viewItem

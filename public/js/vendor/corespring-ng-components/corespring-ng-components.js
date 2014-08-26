@@ -24,7 +24,6 @@
   @param ace-resize-events - a comma delimited list of ng events that that should trigger a resize
   @param ace-theme - an ace theme - loads them using "ace/theme/" + the them you specify. (you need to include the js for it)
   @param ace-mode - an ace mode - as above loads a mode.
-  @param editable - if false will disable interaction with the editor
   */
 
 
@@ -74,6 +73,7 @@
             }
             return null;
           };
+
           if (attrs["aceResizeEvents"] != null) {
             attachResizeEvents(attrs["aceResizeEvents"]);
           }
@@ -84,7 +84,7 @@
           scope.editor.getSession().setUseWrapMode(true);
 
           scope.disable = function() {
-            var cover = $('<div/>').css({
+            var cover = $('<div class="cover"/>').css({
               position: 'absolute',
               top: 0,
               left: 0,
@@ -97,9 +97,18 @@
             scope.editor.setReadOnly(true);
           };
 
-          if (attrs['editable'] === 'false') {
+          scope.enable = function() {
+            var cover = $('.cover', element).remove();
+            scope.editor.setReadOnly(false);
+          };
+
+          scope.$on('setEditable', function() {
+            scope.enable();
+          });
+
+          scope.$on('setUneditable', function() {
             scope.disable();
-          }
+          });
 
           theme = attrs["aceTheme"] || "eclipse";
           scope.editor.setTheme("ace/theme/" + theme);

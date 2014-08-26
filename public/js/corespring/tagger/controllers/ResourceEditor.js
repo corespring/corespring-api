@@ -7,6 +7,7 @@
  *
  * @param $scope
  * @param $rootScope
+ * @param $element
  * @param $timeout
  * @param $routeParams
  * @param ItemService
@@ -14,7 +15,7 @@
  * @param AccessToken
  * @constructor
  */
-function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, ServiceLookup) {
+function ResourceEditor($scope, $rootScope, $element, $timeout, $routeParams, $http, ServiceLookup) {
 
   $scope.selectedFileImageUrl = '/assets/images/empty.png';
   $scope.showEditor = false;
@@ -25,10 +26,17 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.lockedFiles = [];
   });
 
-  $scope.$on('enterEditor', function (event, resource, showBackNav, urls, lockedFiles) {
+  $scope.$on('enterEditor', function (event, resource, showBackNav, urls, lockedFiles, latest) {
     $scope.resourceToEdit = resource;
     $scope.showBackNav = showBackNav;
     $scope.lockedFiles = (lockedFiles || []);
+    $scope.latest = latest === undefined ? true : latest;
+
+    if (latest) {
+      $scope.$emit('setEditable');
+    } else {
+      $scope.$emit('setUneditable');
+    }
 
     /**
      * An upload url template that contains {filename} - which will be replaced with
@@ -65,12 +73,6 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     var split = contentType.split("/");
     return split.length == 2 ? split[1] : "unknown";
   };
-
-  $scope.isLatest = function() {
-    console.log('wat');
-    return 'false';
-  };
-
 
   /**
    * Depending on the file type show it.
@@ -200,7 +202,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.nameAlreadyTaken = false;
   };
 
-  $scope.makeDefault = function (f) {
+  $scope.makeDefault = function(f) {
 
     if (!f) {
       return;
@@ -217,14 +219,22 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.update(f);
   };
 
-  $scope.$on("saveSelectedFile", function () {
+  $scope.$on("saveSelectedFile", function() {
     $scope.update($scope.selectedFile);
+  });
+
+  $scope.$on("setUneditable", function() {
+    $('.not-latest', $element).delay(500).slideDown();
+  });
+
+  $scope.$on("setEditable", function() {
+    $('.not-latest', $element).slideUp();
   });
 
   /**
    * Ensure that only text types have the 'content' property'
    */
-  function validateFile(f){
+  function validateFile(f) {
 
     var textTypes = ['html', 'js', 'css', 'xml', 'txt'];
 
@@ -387,6 +397,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
 ResourceEditor.$inject = [ '$scope',
   '$rootScope',
+  '$element',
   '$timeout',
   '$routeParams',
   '$http',
