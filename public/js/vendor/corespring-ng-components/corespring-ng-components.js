@@ -15,7 +15,8 @@
    ace-model="myText"
    ace-resize-trigger="some"
    ace-theme="sometheme"
-   ace-mode="mode"></div>
+   ace-mode="mode"
+   editable="true"></div>
   dependencies:
   ace.js + whatever theme and mode you wish to use
   @param ace-model - a ng model that contains the text to display in the editor. When the code is changed in
@@ -72,6 +73,7 @@
             }
             return null;
           };
+
           if (attrs["aceResizeEvents"] != null) {
             attachResizeEvents(attrs["aceResizeEvents"]);
           }
@@ -80,6 +82,37 @@
           }
           scope.editor = ace.edit(element[0]);
           scope.editor.getSession().setUseWrapMode(true);
+
+          scope.disable = function() {
+            var cover;
+            if ($('.cover', element).length === 0) {
+              cover = $('<div class="cover"/>').css({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                'z-index': 1000,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(150,150,150,0.8)'
+              });
+              element.append(cover);
+              scope.editor.setReadOnly(true);
+            }
+          };
+
+          scope.enable = function() {
+            var cover = $('.cover', element).remove();
+            scope.editor.setReadOnly(false);
+          };
+
+          scope.$on('setEditable', function() {
+            scope.enable();
+          });
+
+          scope.$on('setUneditable', function() {
+            scope.disable();
+          });
+
           theme = attrs["aceTheme"] || "eclipse";
           scope.editor.setTheme("ace/theme/" + theme);
           scope.$watch(attrs["aceMode"], function(newValue, oldValue) {

@@ -194,6 +194,11 @@
 
                 <img ng-show="!selectedFile.content" ng:src="{{selectedFileImageUrl}}"/>
 
+                <div class="alert alert-warning not-latest" role="start">
+                    <strong>This is not the current version of this item</strong>. You cannot edit content for previously
+                    published item versions. Please visit the current version of this item <a ng-href="{{latestItemUrl}}">here</a>.
+                </div>
+
                 <div class="code-editor"
                      ace-editor
                      ng-show="showEditor"

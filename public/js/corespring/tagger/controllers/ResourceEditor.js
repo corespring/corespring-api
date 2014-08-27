@@ -7,6 +7,7 @@
  *
  * @param $scope
  * @param $rootScope
+ * @param $element
  * @param $timeout
  * @param $routeParams
  * @param ItemService
@@ -20,15 +21,39 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   $scope.showEditor = false;
   $scope.previewVisible = false;
 
-  $scope.$on('leaveEditor', function (event) {
+  $scope.$on('leaveEditor', function(event) {
     $scope.resourceToEdit = null;
     $scope.lockedFiles = [];
   });
 
-  $scope.$on('enterEditor', function (event, resource, showBackNav, urls, lockedFiles) {
+  $scope.$on('enterEditor', function(event, resource, showBackNav, urls, lockedFiles, itemId, latestVersion) {
+
+    function versionedId(id) {
+      var match = id.match(/(.*)\:([0-9]*)/);
+      return (match && match.length === 3) ? {
+        id: match[1],
+        version: parseInt(match[2])
+      } : {};
+    }
+
+    function urlForVersion(id, version) {
+      var match = location.hash.match(/.*\/edit\/(.*)\?.*/);
+      return (match && match[1]) ?
+        location.hash.replace(match[1], id + ':' + version) :
+        "#/edit/" + id + ':' + latestVersion;
+    }
+
     $scope.resourceToEdit = resource;
     $scope.showBackNav = showBackNav;
     $scope.lockedFiles = (lockedFiles || []);
+    $scope.latest = latestVersion === versionedId(itemId).version;
+    $scope.latestItemUrl = urlForVersion(versionedId(itemId).id, latestVersion);
+
+    if ($scope.latest) {
+      $scope.$emit('setEditable');
+    } else {
+      $scope.$emit('setUneditable');
+    }
 
     /**
      * An upload url template that contains {filename} - which will be replaced with
@@ -58,14 +83,13 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
 
-  $scope.getAceMode = function (contentType) {
+  $scope.getAceMode = function(contentType) {
     if (!contentType) {
       return "unknown";
     }
     var split = contentType.split("/");
     return split.length == 2 ? split[1] : "unknown";
   };
-
 
   /**
    * Depending on the file type show it.
@@ -199,7 +223,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.nameAlreadyTaken = false;
   };
 
-  $scope.makeDefault = function (f) {
+  $scope.makeDefault = function(f) {
 
     if (!f) {
       return;
@@ -216,14 +240,22 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.update(f);
   };
 
-  $scope.$on("saveSelectedFile", function () {
+  $scope.$on("saveSelectedFile", function() {
     $scope.update($scope.selectedFile);
+  });
+
+  $scope.$on("setUneditable", function() {
+    $('.not-latest').slideDown();
+  });
+
+  $scope.$on("setEditable", function() {
+    $('.not-latest').hide();
   });
 
   /**
    * Ensure that only text types have the 'content' property'
    */
-  function validateFile(f){
+  function validateFile(f) {
 
     var textTypes = ['html', 'js', 'css', 'xml', 'txt'];
 

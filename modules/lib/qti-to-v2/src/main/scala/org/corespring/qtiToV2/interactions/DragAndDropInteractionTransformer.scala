@@ -44,7 +44,10 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
           partialObj(
             "id" -> Some(JsString((n \ "@identifier").text)),
             "content" -> Some(JsString(n.child.map(clearNamespace).mkString)),
-            "moveOnDrag" -> (if ((n \ "@copyOnDrag").text == "true") Some(JsBoolean(true)) else None)
+            "moveOnDrag" -> (n.attributes.find(_.key.toLowerCase == "copyondrag") match {
+              case Some(copyOnDragAttr) if (copyOnDragAttr.value.text.toLowerCase == "true") => Some(JsBoolean(false))
+              case _ => Some(JsBoolean(true))
+            })
           )
         ))),
         "answerArea" -> ((node \\ "answerArea") match {
