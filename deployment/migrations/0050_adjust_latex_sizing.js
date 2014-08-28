@@ -60,12 +60,12 @@ var latexHelper = {
    * Removes empty text nodes from a string of LaTeX content.
    */
   removeEmptyText: function(latex) {
-    var emptyTextStrings = ['\\text{}', '\\text {}', '\\text { }', '\\text{ }'];
+    var emptyTextStrings = ['text{}', 'text {}', 'text { }', 'text{ }'];
     var results = [];
     latex.forEach(function(latexItem) {
       var result = latexItem;
       emptyTextStrings.forEach(function(emptyTextString) {
-        result = result.replace(emptyTextString, '');
+        result = result.replace(RegExp('[\\\\]' + emptyTextString, 'g'), '');
       });
       results.push(result);
     });
