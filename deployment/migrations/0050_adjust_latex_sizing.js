@@ -7,7 +7,7 @@ var latexHelper = {
    * Returns true if the content contains LaTeX tags.
    */
   hasLatex: function(content) {
-    return this.getLatexTags(content).length >= 0;
+    return content.indexOf(startTag) >= 0;
   },
 
   /**
