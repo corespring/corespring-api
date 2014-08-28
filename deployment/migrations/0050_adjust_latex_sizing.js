@@ -16,9 +16,9 @@ var latexHelper = {
   getLatexTags: function(content) {
     var latex = [];
     for(var i = 0; i <= content.length - startTag.length; i++) {
-      if (content.substr(i, startTag.length) === startTag) {
+      if (content.toLowerCase().substr(i, startTag.length) === startTag) {
         for(var j = i; j <= content.length - endTag.length; j++) {
-          if (content.substr(j, endTag.length) === endTag) {
+          if (content.toLowerCase().substr(j, endTag.length) === endTag) {
             latex.push(content.substring(i, j + endTag.length));
             break;
           }
