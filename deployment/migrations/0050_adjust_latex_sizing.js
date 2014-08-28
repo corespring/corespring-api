@@ -89,7 +89,7 @@ var latexHelper = {
     var result = [];
     latex.forEach(function(latexItem) {
       if (needsDisplayStyle(latexItem)) {
-        result.push('\\displayStyle ' + latexItem.trim());
+        result.push('\\displaystyle ' + latexItem.trim());
       } else {
         result.push(latexItem.trim());
       }
