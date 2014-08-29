@@ -175,7 +175,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   private def latestVersion(id: VersionedId[ObjectId]): Int = (service.findOneById(id.copy(version = None)) match {
     case Some(item) => item.id.version
     case None => id.version
-  }).getOrElse(0).toString.toInt // not sure why we need the toString.toInt, but get ClassCastException otherwise
+  }).getOrElse(0).toString.toDouble.toInt // not sure why we need the toString.toInt, but get ClassCastException otherwise
 
   def getDetail(id: VersionedId[ObjectId]) = get(id, Some("detailed"))
 
