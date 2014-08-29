@@ -22,4 +22,12 @@ This documents our current release process.
 
     git push origin release
     
+## check ci tests/builds
+
+Jenkins will run it's own tests + builds make sure they all pass.
+
+## release notes
+
+
+    
     
