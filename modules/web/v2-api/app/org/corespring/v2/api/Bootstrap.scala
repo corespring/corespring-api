@@ -4,17 +4,19 @@ import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.AccessTokenService
+import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
+import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
-import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.JsValue
 import play.api.mvc._
@@ -36,8 +38,8 @@ class Bootstrap(
   val secureSocialService: SecureSocialService,
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
-  val itemTransformer: ItemTransformer,
-  val headerToOrgAndOpts: RequestHeader => Validation[V2Error, OrgAndOpts]) {
+  val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
+  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -51,9 +53,16 @@ class Bootstrap(
   }
 
   protected val tokenService = new TokenService {
-    override def orgForToken(token: String): Option[Organization] = {
-      accessTokenService.findByToken(token).map(t => v1OrgService.findOneById(t.organization)).flatten
+
+    implicit class RichBoolean(val b: Boolean) {
+      def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
     }
+
+    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
+      accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
+      unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
+      org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
+    } yield org
   }
 
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
@@ -101,7 +110,7 @@ class Bootstrap(
 
     override def sessionService = Bootstrap.this.sessionService
 
-    override def itemTransformer = Bootstrap.this.itemTransformer
+    override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)

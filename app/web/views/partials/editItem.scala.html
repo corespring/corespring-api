@@ -194,6 +194,11 @@
 
                 <img ng-show="!selectedFile.content" ng:src="{{selectedFileImageUrl}}"/>
 
+                <div class="alert alert-warning not-latest" role="start">
+                    <strong>This is not the current version of this item</strong>. You cannot edit content for previously
+                    published item versions. Please visit the current version of this item <a ng-href="{{latestItemUrl}}">here</a>.
+                </div>
+
                 <div class="code-editor"
                      ace-editor
                      ng-show="showEditor"
@@ -214,6 +219,7 @@
         <div class="preview" ng-class="previewClassName" data-version="2">
             <div class="inner">
                 <div class="well">
+                    <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank">Preview</a>
                     <div class="preview-container" id="item-preview-target"></div>
                 </div>
             </div>

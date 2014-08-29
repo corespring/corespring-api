@@ -16,6 +16,10 @@
     <logger name="application" level="WARN" />
     <logger name="api" level="WARN" />
 
+    <logger name="org.corespring.api.tracking" level="INFO"/>
+
+    <logger name="client-logger" level="INFO"/>
+
     <root level="ERROR">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

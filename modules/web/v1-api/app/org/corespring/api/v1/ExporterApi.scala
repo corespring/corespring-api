@@ -1,22 +1,20 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.{ Crypto, AESCrypto }
+import org.corespring.common.encryption.{ AESCrypto, Crypto }
 import org.corespring.common.url.BaseUrl
 import org.corespring.lti.export.CCExporter
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.encryption.{EncryptionFailure, EncryptionSuccess, OrgEncrypter}
+import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionSuccess, OrgEncrypter }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{ Item, Content }
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.core.models.item.{ Content, Item }
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RenderOptions
 import org.corespring.scorm.export.ScormExporter
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
 import play.api.mvc._
-import scala.Some
 
 class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
 
@@ -70,7 +68,7 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
   }
 
   private def validObjectIds(ids: String): List[VersionedId[ObjectId]] = {
-    import VersionedIdImplicits.Binders._
+    import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
     ids.split(",").toList.map(stringToVersionedId).flatten
   }
 

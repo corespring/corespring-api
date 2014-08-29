@@ -26,7 +26,9 @@ object PointInteractionTransformer extends InteractionTransformer {
           "locked" -> ((node \\ "@locked").isEmpty match {
             case true => None
             case _ => Some(JsBoolean(true))
-          }))))
+          }),
+          "showFeedback" -> Some(JsBoolean(false)) // Don't show internal feedback in v1 originated items
+        )))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {

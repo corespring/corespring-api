@@ -1,18 +1,17 @@
 package org.corespring.reporting.controllers
 
-import com.mongodb.casbah.Imports._
 import java.io.StringReader
+
+import com.mongodb.casbah.Imports._
+import net.quux00.simplecsv.CsvReader
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.reporting.services.ReportGenerator.ReportKeys
-import org.corespring.reporting.services.{ReportGenerator, ReportsService}
+import org.corespring.reporting.services.{ ReportGenerator, ReportsService }
 import org.corespring.reporting.utils.CsvWriter
-import net.quux00.simplecsv.CsvReader
 import play.api.libs.json.Json
 import play.api.mvc.SimpleResult
-import scala.Some
-
 
 class Reports(service: ReportsService, generator: ReportGenerator) extends BaseApi with CsvWriter {
 
@@ -35,8 +34,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
       case Some((date, _, false)) => Ok(Json.obj(
         "report" -> reportKey,
         "status" -> "Finished",
-        "timestamp" -> date.toString("MM/dd/YYYY hh:mm aa z")
-      ))
+        "timestamp" -> date.toString("MM/dd/YYYY hh:mm aa z")))
       case _ => Accepted(Json.obj("report" -> reportKey, "status" -> s"In Progress"))
     }
   }
@@ -62,38 +60,36 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
    * Only report current user's visible collections
    */
   def getStandardsByCollectionReport = ApiAction {
-    request => {
-      val collections: Seq[ContentCollection] =
-        ContentCollection.find(
-          MongoDBObject("_id" -> MongoDBObject(
-            "$in" -> ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read, true).map(_.collectionId))
-          )
-        ).toSeq
+    request =>
+      {
+        val collections: Seq[ContentCollection] =
+          ContentCollection.find(
+            MongoDBObject("_id" -> MongoDBObject(
+              "$in" -> ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read, true).map(_.collectionId)))).toSeq
 
-      import scala.collection.JavaConversions._
+        import scala.collection.JavaConversions._
 
-      generator.getReport(ReportKeys.standardsByCollection) match {
-        case Some((date, Some(string), inProgress)) => {
-          val csvReader = new CsvReader(new StringReader(string))
-          val lines = csvReader.readAll.toList
-          val header = lines.head
-          val whitelist: Seq[Int] = 0 +: header.tail.map(new ObjectId(_)).zipWithIndex
-            .filter{ case (id, index) => collections.map(_.id).contains(id) }.map{ case (id, index) => index + 1}
-          val filtered = lines.map(_.zipWithIndex.filter{case (_, index) => whitelist.contains(index) }
-            .map{ case (string, _) => string }.toList)
-          val withHeaders = filtered.head.map( header => {
-            header match {
-              case "Standards" => header
-              case _ => collections.find(_.id == new ObjectId(header)).getOrElse(throw new RuntimeException("OMG")).name
-            }
-          }) +: filtered.tail
-          Ok(withHeaders.toCsv).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=${ReportKeys.standardsByCollection}.csv"))
+        generator.getReport(ReportKeys.standardsByCollection) match {
+          case Some((date, Some(string), inProgress)) => {
+            val csvReader = new CsvReader(new StringReader(string))
+            val lines = csvReader.readAll.toList
+            val header = lines.head
+            val whitelist: Seq[Int] = 0 +: header.tail.map(new ObjectId(_)).zipWithIndex
+              .filter { case (id, index) => collections.map(_.id).contains(id) }.map { case (id, index) => index + 1 }
+            val filtered = lines.map(_.zipWithIndex.filter { case (_, index) => whitelist.contains(index) }
+              .map { case (string, _) => string }.toList)
+            val withHeaders = filtered.head.map(header => {
+              header match {
+                case "Standards" => header
+                case _ => collections.find(_.id == new ObjectId(header)).getOrElse(throw new RuntimeException("OMG")).name
+              }
+            }) +: filtered.tail
+            Ok(withHeaders.toCsv).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=${ReportKeys.standardsByCollection}.csv"))
+          }
+          case _ => InternalServerError("There was an error generating this report. Please check the logs.")
         }
-        case _ => InternalServerError("There was an error generating this report. Please check the logs.")
       }
-    }
   }
-
 
   private def getReport(reportKey: String): SimpleResult = generator.getReport(reportKey) match {
     case Some((date, Some(string), inProgress)) =>

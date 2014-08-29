@@ -62,14 +62,6 @@ class ItemApiTest extends IntegrationSpecification {
           OK)
       }
 
-      s"$OK - for session based request" in new user with SecureSocialHelpers {
-
-        val cookie = secureSocialCookie(Some(user)).get
-
-        assertCall(
-          createRequest[AnyContentAsJson](contentTypeHeader = Some("application/json"), json = Some(Json.obj())).withCookies(cookie),
-          OK)
-      }
     }
   }
 
