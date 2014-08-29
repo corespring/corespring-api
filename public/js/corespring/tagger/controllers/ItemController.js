@@ -77,7 +77,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     var options = {
       mode: "gather",
       itemId : $scope.itemData.id,
-      evaluate: $scope.modeSettings
+      evaluate: $scope.modeSettings,
+      width: '100%'
     };
 
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
