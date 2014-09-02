@@ -7,7 +7,7 @@ import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import play.api.Logger
+import play.api.{ Play, Configuration, Logger }
 
 /**
  * Note: Whilst we support v1 and v2 players, we need to allow the item transformer to save 'versioned' items (aka not the most recent item).
@@ -19,6 +19,7 @@ class AllItemVersionTransformer extends ItemTransformer {
   override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")
 
   def cache: ItemTransformationCache = PlayItemTransformationCache
+  override def configuration: Configuration = Play.current.configuration
 
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
 
@@ -28,7 +29,7 @@ class AllItemVersionTransformer extends ItemTransformer {
       import com.mongodb.casbah.Imports._
       import com.novus.salat._
       import org.corespring.platform.core.models.mongoContext.context
-      logger.debug(s"[itemTransformer.save] - saving versioned content directly")
+      logger.debug(s"itemId=${i.id} function=save createNewVersion=$createNewVersion")
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
       /**
@@ -49,6 +50,5 @@ class AllItemVersionTransformer extends ItemTransformer {
       collectionToSaveIn.save(dbo)
     }
   }
-
 }
 

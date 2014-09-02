@@ -6,6 +6,7 @@ import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile
 import org.corespring.platform.core.services.item.ItemService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
@@ -21,6 +22,8 @@ class ItemTransformerTest extends Specification with Mockito {
   val itemTransformer = new ItemTransformer {
     def cache = cacheMock
     def itemService = itemServiceMock
+
+    override def configuration: Configuration = Configuration.empty
   }
 
   val qti =

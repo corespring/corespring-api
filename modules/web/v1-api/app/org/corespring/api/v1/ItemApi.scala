@@ -6,8 +6,7 @@ import com.mongodb.util.JSONParseException
 import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.assets.CorespringS3Service
-import org.corespring.assets.CorespringS3ServiceExtended
+import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.controllers.auth.ApiRequest
 import org.corespring.platform.core.models._
@@ -16,29 +15,18 @@ import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.metadata.{ MetadataSetServiceImpl, MetadataSetService }
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataSetServiceImpl }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.Json._
-import play.api.libs.json._
-import play.api.mvc.{ Action, Result, AnyContent }
-import scala.Some
-import scalaz.Scalaz._
-import scalaz._
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
-import com.novus.salat.dao.SalatInsertError
-import scalaz.Failure
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsNumber
-import scalaz.Success
-import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.controllers.auth.ApiRequest
-import play.api.libs.json.JsObject
+import play.api.{ Configuration, Play }
+import play.api.libs.json.Json._
+import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
+import play.api.mvc.{ Action, AnyContent, Result }
+
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, _ }
 
 /**
  * Items API
@@ -47,12 +35,13 @@ import play.api.libs.json.JsObject
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
   extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
 
-  import Item.Keys._
+  import org.corespring.platform.core.models.item.Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
 
   val itemTransformer = new ItemTransformer {
-    def cache: ItemTransformationCache = PlayItemTransformationCache
-    def itemService: ItemService = service
+    override def cache: ItemTransformationCache = PlayItemTransformationCache
+    override def itemService: ItemService = service
+    override def configuration: Configuration = Play.current.configuration
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
@@ -164,7 +153,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
       logger.debug("[ItemApi.get] fields: " + fields)
 
-      import Imports._
+      import com.mongodb.casbah.Imports._
 
       service.findFieldsById(id, fields)
         .map(dbo => com.novus.salat.grater[Item].asObject[Imports.DBObject](dbo))
