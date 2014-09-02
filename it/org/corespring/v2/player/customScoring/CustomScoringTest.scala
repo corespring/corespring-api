@@ -12,7 +12,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
 import org.corespring.v2.player.scopes.orgWithAccessToken
-import play.api.Play
+import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
@@ -85,6 +85,8 @@ class CustomScoringTest extends IntegrationSpecification {
 
         override def getCachedTransformation(item: Item): Option[JsValue] = None
       }
+
+      override def configuration: Configuration = Configuration.empty
     }
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {

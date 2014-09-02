@@ -2,26 +2,20 @@ package org.corespring.api.v1
 
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
+import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
-import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.item.{ Content, _ }
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
 import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.Json._
-import play.api.libs.json._
-import play.api.mvc._
-import scala.Some
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsString
-import scala.Some
-import org.corespring.platform.core.models.item.Content
-import org.corespring.platform.core.controllers.auth.ApiRequest
-import play.api.libs.json.JsObject
+import play.api.{ Configuration, Play }
+import play.api.libs.json.Json._
+import play.api.libs.json.{ JsArray, JsObject, JsString, _ }
+import play.api.mvc._
 
 class ResourceApi(s3service: CorespringS3Service, service: ItemService)
   extends BaseApi {
@@ -29,6 +23,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
   def itemTransformer = new ItemTransformer {
     def itemService = service
     def cache = PlayItemTransformationCache
+    override def configuration: Configuration = Play.current.configuration
   }
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
@@ -90,7 +85,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
    */
   private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
     logger.debug("handle itemId: " + itemId)
-    import VersionedIdImplicits.Binders._
+    import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
     stringToVersionedId(itemId)
   }
 

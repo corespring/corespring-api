@@ -50,6 +50,8 @@
     <logger name="js.processing" level="TRACE"/>
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
+
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>

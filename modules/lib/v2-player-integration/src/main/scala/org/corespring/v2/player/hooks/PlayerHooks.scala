@@ -29,7 +29,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   override def loadItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
 
-    logger.trace(s"loadItem - sessionId: $sessionId")
+    logger.debug(s"sessionId=$sessionId function=loadItem")
 
     val s = for {
       identity <- getOrgIdAndOptions(header)
@@ -45,7 +45,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
 
-    logger.trace(s"createSessionForItem: $itemId")
+    logger.debug(s"itemId=$itemId function=createSessionForItem")
 
     def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
       "_id" -> Json.obj(
@@ -69,7 +69,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
   }
 
   override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
-    logger.trace(s"loadPlayerForSession: sessionId")
+    logger.debug(s"sessionId=$sessionId function=loadPlayerForSession")
 
     val out = for {
       identity <- getOrgIdAndOptions(header)
@@ -78,7 +78,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
     out match {
       case Failure(e) => {
-        logger.trace(s"loadPlayerForSession failed: $sessionId: Error: $e")
+        logger.debug(s"sessionId=$sessionId function=loadPlayerForSession error=$e")
         Some(UNAUTHORIZED -> e.message)
       }
       case _ => None
@@ -86,7 +86,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
   }
 
   override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
-    logger.trace(s"loadSessionAndItem: $sessionId")
+    logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 
     val o = for {
       identity <- getOrgIdAndOptions(header)
