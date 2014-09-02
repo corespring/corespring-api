@@ -3,4 +3,8 @@ URL=$1
 ID=$2
 SECRET=$3
 
-curl -X POST -d "client_id=$ID&client_secret=$SECRET" $URL/auth/access_token #--header "Content-Type:application/json"
+SALT=$(date +%s | md5 | base64 | head -c 32)
+
+echo $SALT
+
+curl -X POST -d "client_id=$ID&client_secret=$SECRET&scope=$SALT" $URL/auth/access_token #--header "Content-Type:application/json"
