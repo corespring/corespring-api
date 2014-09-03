@@ -6,23 +6,21 @@ import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended 
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.{ Content, _ }
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.models.item.{ Content, _ }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import play.api.{ Configuration, Play }
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsArray, JsObject, JsString, _ }
 import play.api.mvc._
+import play.api.{ Configuration, Play }
 
 class ResourceApi(s3service: CorespringS3Service, service: ItemService)
   extends BaseApi {
 
   def itemTransformer = new ItemTransformer {
     def itemService = service
-    def cache = PlayItemTransformationCache
     override def configuration: Configuration = Play.current.configuration
   }
 
@@ -240,7 +238,6 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
                 itemTransformer.updateV2Json(item) match {
                   case Some(updatedItem) => {
-                    PlayItemTransformationCache.removeCachedTransformation(updatedItem)
                     Ok(toJson(processedUpdate))
                   }
                   case None => InternalServerError(s"Could not update item $itemId")

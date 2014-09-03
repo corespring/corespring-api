@@ -39,7 +39,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   import org.corespring.platform.core.models.mongoContext.context
 
   val itemTransformer = new ItemTransformer {
-    override def cache: ItemTransformationCache = PlayItemTransformationCache
     override def itemService: ItemService = service
     override def configuration: Configuration = Play.current.configuration
   }
@@ -80,7 +79,6 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
         withV2DataItem <- itemTransformer.updateV2Json(savedResult).toSuccess("Error generating item v2 JSON")
       } yield {
-        PlayItemTransformationCache.removeCachedTransformation(item)
         withV2DataItem
       }
   }
