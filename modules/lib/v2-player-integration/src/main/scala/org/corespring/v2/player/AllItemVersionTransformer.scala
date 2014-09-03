@@ -2,7 +2,7 @@ package org.corespring.v2.player
 
 import com.mongodb.casbah.Imports
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayItemTransformationCache }
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -18,7 +18,6 @@ class AllItemVersionTransformer extends ItemTransformer {
 
   override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")
 
-  def cache: ItemTransformationCache = PlayItemTransformationCache
   override def configuration: Configuration = Play.current.configuration
 
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {

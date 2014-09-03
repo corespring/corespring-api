@@ -6,7 +6,7 @@ import common.seed.SeedDb
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, TaskInfo }
+import org.corespring.platform.core.models.item.{ Item, TaskInfo }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -77,15 +77,6 @@ class CustomScoringTest extends IntegrationSpecification {
 
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired
-
-      override def cache: ItemTransformationCache = new ItemTransformationCache {
-        override def setCachedTransformation(item: Item, transformation: JsValue): Unit = {}
-
-        override def removeCachedTransformation(item: Item): Unit = {}
-
-        override def getCachedTransformation(item: Item): Option[JsValue] = None
-      }
-
       override def configuration: Configuration = Configuration.empty
     }
 

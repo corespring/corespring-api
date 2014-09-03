@@ -11,16 +11,9 @@ import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
-  val cacheMock = new ItemTransformationCache {
-    override def setCachedTransformation(item: Item, transformation: JsValue): Unit = {}
-    override def removeCachedTransformation(item: Item): Unit = {}
-    override def getCachedTransformation(item: Item): Option[JsValue] = None
-  }
-
   val itemServiceMock = mock[ItemService]
 
   val itemTransformer = new ItemTransformer {
-    def cache = cacheMock
     def itemService = itemServiceMock
 
     override def configuration: Configuration = Configuration.empty

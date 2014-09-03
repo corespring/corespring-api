@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayerDefinition }
+import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
@@ -14,14 +14,12 @@ import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 trait ItemTransformer {
 
   def configuration: Configuration
-  def useCache: Boolean = configuration.getBoolean("v2.itemTransformer.useCache").getOrElse(true)
-  def checkCacheIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkCacheIsUpToDate").getOrElse(false)
+
+  def checkModelIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false)
 
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
-  logger.trace(s"useCache=$useCache")
-
-  def cache: ItemTransformationCache
+  //TODO: Remove service - transform should only transform.
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
@@ -71,7 +69,7 @@ trait ItemTransformer {
       case None => {
 
         val itemPlayerDef: Option[JsObject] = item.playerDefinition.map(Json.toJson(_).as[JsObject])
-        if (checkCacheIsUpToDate) {
+        if (checkModelIsUpToDate) {
           val rawMappedThroughPlayerDef = createFromQti(item).asOpt[PlayerDefinition].map(Json.toJson(_))
           for {
             rawPd <- rawMappedThroughPlayerDef
@@ -141,48 +139,25 @@ trait ItemTransformer {
     JsonCompare.caseInsensitiveSubTree(a, b) match {
       case Left(diffs) => {
         diffs.foreach { d =>
-          logger.warn(s"itemId=${itemId} msg=$msg function=compareCache json diff: $d")
-          logger.trace(s"itemId=$itemId a=${Json.prettyPrint(a)}")
-          logger.trace(s"itemId=$itemId b=${Json.prettyPrint(b)}")
+          logger.warn(s"itemId=${itemId} msg=$msg function=compareJson diff=$d")
         }
+        logger.trace(s"itemId=$itemId a=${Json.prettyPrint(a)}")
+        logger.trace(s"itemId=$itemId b=${Json.prettyPrint(b)}")
       }
-      case Right(_) => logger.debug(s"itemId=${itemId} msg=$msg function=compareCache - json in cache is up to date")
+      case Right(_) => logger.debug(s"itemId=${itemId} msg=$msg function=compareJson - json is identical")
     }
   }
 
   private def getTransformation(item: Item): JsValue = {
-
-    def generate(addToCache: Boolean) = {
-      logger.debug(s"itemId=${item.id} function=getTransformation - generating json")
-      val qti = for {
-        data <- item.data
-        qti <- data.files.find(_.name == "qti.xml")
-      } yield qti.asInstanceOf[VirtualFile]
-      require(qti.isDefined, s"item: ${item.id} has no qti xml")
-      val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
-      if (addToCache) {
-        logger.debug(s"itemId=${item.id} function=getTransformation - call cache.setCachedTransformation")
-        cache.setCachedTransformation(item, transformedJson)
-      }
-      logger.trace(s"itemId=${item.id} function=getTransformation generatedJson=${Json.stringify(transformedJson)}")
-      transformedJson
-    }
-
-    cache.getCachedTransformation(item) match {
-      case Some(json: JsValue) => {
-        if (useCache) {
-          logger.debug(s"itemId=${item.id} function=getTransformation - found cachedJson")
-          logger.trace(s"itemId=${item.id} function=getTransformation cachedJson=${Json.stringify(json)}")
-
-          if (checkCacheIsUpToDate) {
-            val generated = generate(false)
-            compareJson(item.id, "generated-vs-cached", generated, json)
-          }
-          json
-        } else generate(useCache)
-      }
-      case _ => generate(useCache)
-    }
+    logger.debug(s"itemId=${item.id} function=getTransformation - generating json")
+    val qti = for {
+      data <- item.data
+      qti <- data.files.find(_.name == "qti.xml")
+    } yield qti.asInstanceOf[VirtualFile]
+    require(qti.isDefined, s"item: ${item.id} has no qti xml")
+    val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
+    logger.trace(s"itemId=${item.id} function=getTransformation generatedJson=${Json.stringify(transformedJson)}")
+    transformedJson
   }
 
 }
