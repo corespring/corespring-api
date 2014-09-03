@@ -96,6 +96,14 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     return $scope.versionOverride ? $scope.versionOverride === 2 : $('.preview').data('version') === 2;
   }
 
+  $scope.isV1 = function(){
+    return !isV2()
+  }
+
+  $scope.isV2 = function(){
+    return isV2()
+  }
+
   $scope.changePlayerVersion = function() {
     $scope.versionOverride = $scope.versionOverride === 1 ? 2 : 1;
     if (isV2()) {
