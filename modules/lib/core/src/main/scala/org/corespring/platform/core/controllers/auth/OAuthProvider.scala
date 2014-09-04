@@ -75,7 +75,6 @@ object OAuthProvider extends AuthTokenGenerating{
 
               // credentials are ok, delete if there's a previous token for the same org and scope
               val org = client.orgId
-              AccessToken.find(org, scope).foreach(AccessToken.remove(_))
               val creationTime = DateTime.now()
               val token = AccessToken(org, scope, generateToken(), creationTime, creationTime.plusHours(24))
               AccessToken.insert(token) match {
