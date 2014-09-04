@@ -15,12 +15,8 @@
     <logger name="play" level="WARN" />
     <logger name="application" level="WARN" />
     <logger name="api" level="WARN" />
-
     <logger name="org.corespring.api.tracking" level="INFO"/>
-
-    <!-- CA-1947 -->
     <logger name="SalatVersioningDao" level="TRACE"/>
-
     <logger name="client-logger" level="INFO"/>
 
     <root level="ERROR">

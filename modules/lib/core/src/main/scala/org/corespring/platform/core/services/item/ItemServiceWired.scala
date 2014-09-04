@@ -19,8 +19,7 @@ import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, D
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
-import play.api.Application
-import play.api.PlayException
+import play.api.{ Play, Application, PlayException }
 import scala.Some
 import scala.xml.Elem
 import scalaz._
@@ -154,6 +153,8 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
   protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
 
   protected implicit def context: Context = org.corespring.platform.core.models.mongoContext.context
+
+  override def checkCurrentCollectionIntegrity: Boolean = Play.current.configuration.getBoolean("ItemVersioningDao.checkCurrentCollectionIntegrity").getOrElse(false)
 
 }
 
