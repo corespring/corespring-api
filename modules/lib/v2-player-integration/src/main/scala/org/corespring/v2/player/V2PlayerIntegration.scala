@@ -159,7 +159,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
         if (!encryptionEnabled(header)) {
           Some(encrypted)
         } else {
-          None
           orgEncryptionService.decrypt(orgId, encrypted)
         }
     }
