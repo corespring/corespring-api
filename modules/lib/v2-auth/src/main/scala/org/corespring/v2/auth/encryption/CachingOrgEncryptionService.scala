@@ -27,6 +27,9 @@ class CachingOrgEncryptionService(underlying: OrgEncryptionService, timeToLive: 
   }
 
   override def decrypt(orgId: ObjectId, s: String): Option[String] = {
+
+    logger.debug(s"function=decrypt orgId=$orgId")
+
     val f = decryptionCache(key(orgId, s)) {
       logger.trace(s"function=decrypt orgId=$orgId s=$s - calling underlying service")
       underlying.decrypt(orgId, s)
