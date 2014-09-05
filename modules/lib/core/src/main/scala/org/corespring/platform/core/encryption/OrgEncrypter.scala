@@ -4,10 +4,18 @@ import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.ApiClient
+import spray.caching.Cache
 
-class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
+import scala.concurrent.{ Future, Await }
 
-  def encrypt(s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
+trait OrgEncryptionService {
+  def encrypt(orgId: ObjectId, s: String): Option[EncryptionResult]
+  def decrypt(orgId: ObjectId, s: String): Option[String]
+}
+
+class OrgEncrypter(encrypter: Crypto) extends OrgEncryptionService with PackageLogging {
+
+  override def encrypt(orgId: ObjectId, s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
     client =>
       try {
         val data = encrypter.encrypt(s, client.clientSecret)
@@ -17,7 +25,7 @@ class OrgEncrypter(orgId: ObjectId, encrypter: Crypto) extends PackageLogging {
       }
   }
 
-  def decrypt(s: String): Option[String] = ApiClient.findOneByOrgId(orgId).map {
+  override def decrypt(orgId: ObjectId, s: String): Option[String] = ApiClient.findOneByOrgId(orgId).map {
     client =>
       logger.debug(s"decrypt: $s with secret: ${client.clientSecret}")
       val out = encrypter.decrypt(s, client.clientSecret)
