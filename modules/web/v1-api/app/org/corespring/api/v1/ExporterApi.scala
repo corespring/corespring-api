@@ -28,9 +28,9 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
     request =>
 
       logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
-      val orgEncrypter = new OrgEncrypter(request.ctx.organization, encrypter)
+      val orgEncrypter = new OrgEncrypter(encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
-      val maybeResult = orgEncrypter.encrypt(Json.toJson(options).toString())
+      val maybeResult = orgEncrypter.encrypt(request.ctx.organization, Json.toJson(options).toString())
 
       maybeResult match {
         case Some(EncryptionSuccess(clientId, data, _)) => {

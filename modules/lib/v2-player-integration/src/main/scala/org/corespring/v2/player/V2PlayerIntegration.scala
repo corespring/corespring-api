@@ -5,43 +5,44 @@ import java.io.File
 import com.mongodb.casbah.MongoDB
 import com.typesafe.config.ConfigFactory
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.{ConcreteS3Service, S3Service}
+import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
-import org.corespring.common.encryption.{AESCrypto, NullCrypto}
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.container.client.CompressedAndMinifiedComponentSets
-import org.corespring.container.client.controllers.{Assets, ComponentSets}
+import org.corespring.container.client.controllers.{ Assets, ComponentSets }
 import org.corespring.container.client.hooks._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.OrgEncrypter
-import org.corespring.platform.core.models.auth.{AccessToken, ApiClient}
-import org.corespring.platform.core.models.item.{FieldValue, Item}
-import org.corespring.platform.core.models.{Organization, Standard, Subject}
+import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
+import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
+import org.corespring.platform.core.models.item.{ FieldValue, Item }
+import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.services._
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
+import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.identifiers._
-import org.corespring.v2.auth.models.{AuthMode, Mode, OrgAndOpts, PlayerOptions}
-import org.corespring.v2.auth.services.{OrgService, TokenService}
-import org.corespring.v2.auth.wired.{ItemAuthWired, SessionAuthWired}
-import org.corespring.v2.errors.Errors.{permissionNotGranted, _}
+import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
+import org.corespring.v2.errors.Errors.{ permissionNotGranted, _ }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
-import org.corespring.v2.player.{controllers => apiControllers, hooks => apiHooks}
+import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import org.corespring.web.common.views.helpers.Defaults
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import play.api.{Configuration, Play, Mode => PlayMode}
-import securesocial.core.{Identity, SecureSocial}
+import play.api.{ Configuration, Play, Mode => PlayMode }
+import securesocial.core.{ Identity, SecureSocial }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class V2PlayerIntegration(comps: => Seq[Component],
   val configuration: Configuration,
@@ -120,6 +121,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
+    lazy val orgEncryptionService: OrgEncryptionService = {
+      val basicEncrypter = new OrgEncrypter(AESCrypto)
+
+      if (configuration.getBoolean("cache-decrypted-options").getOrElse(false)) {
+        logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")
+        import scala.concurrent.duration._
+        val ttl = configuration.getInt("cache-decrypted-options-ttl-in-minutes").getOrElse(10)
+        new CachingOrgEncryptionService(basicEncrypter, ttl.minutes)
+      } else {
+        logger.debug(s"orgEncryptionService - using non caching OrgEncryptionService")
+        basicEncrypter
+      }
+    }
+
     lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
@@ -140,11 +155,12 @@ class V2PlayerIntegration(comps: => Seq[Component],
         enabled
       }
 
-      override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = for {
-        encrypter <- Some(if (encryptionEnabled(header)) AESCrypto else NullCrypto)
-        orgEncrypter <- Some(new OrgEncrypter(orgId, encrypter))
-        out <- orgEncrypter.decrypt(encrypted)
-      } yield out
+      override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] =
+        if (!encryptionEnabled(header)) {
+          Some(encrypted)
+        } else {
+          orgEncryptionService.decrypt(orgId, encrypted)
+        }
     }
   }
 
@@ -266,13 +282,14 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override val fieldValueJson: JsObject = {
       val dbo = FieldValue.collection.find().toSeq.head
-      import com.mongodb.util.{JSON => MongoJson}
-      import play.api.libs.json.{Json => PlayJson}
+      import com.mongodb.util.{ JSON => MongoJson }
+      import play.api.libs.json.{ Json => PlayJson }
       PlayJson.parse(MongoJson.serialize(dbo)).as[JsObject]
     }
 
     override val standardsTreeJson: JsArray = {
       import play.api.Play.current
+
       import scala.io.Codec
       Play.resourceAsStream("public/web/standards_tree.json").map { is =>
         val contents = scala.io.Source.fromInputStream(is)(Codec.UTF8).getLines().mkString("\n")
