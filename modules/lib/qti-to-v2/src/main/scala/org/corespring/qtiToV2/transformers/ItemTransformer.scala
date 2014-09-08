@@ -18,6 +18,15 @@ trait ItemTransformer {
   def cache: ItemTransformationCache
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
+  //TODO: Remove service - transform should only transform.
+  def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
+    itemService.findOneById(itemId) match {
+      case Some(item) if (item.createdByApiVersion == 1) => updateV2Json(item)
+      case Some(item) => Some(item)
+      case _ => None
+    }
+  }
+
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
       case Some(item) => item.playerDefinition match {
