@@ -51,6 +51,7 @@ object Dependencies {
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
+  val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
 
   val all = Seq(
     play.Keys.cache,
@@ -73,12 +74,13 @@ object Dependencies {
     playPluginMailer,
     playPluginUtil,
     salatPlay,
-    securesocial,
     scalaz,
     closureCompiler,
     containerClientWeb,
     componentLoader,
-    componentModel)
+    componentModel,
+    newRelic
+  )
 
   object Resolvers {
 
