@@ -141,11 +141,12 @@ We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfr
 
 ## New Relic
 
-New Relic is included as a dependency.
+New Relic is included as a dependency. It is not our intention yet (as of 9/9) to use this in production, but as an option we can
+turn on in devt/staging to analyze performance.
 
 It is configured with the file `newrelic.yml`
 
-It will only be run if the new relic agent is included in the JAVA_OPTS
+It will only be running if the new relic agent is included in the JAVA_OPTS
 
     -Dnewrelic.bootstrap_classpath=true -javaagent:target/universal/stage/lib/com.newrelic.agent.java.newrelic-agent-3.10.0.jar
 
@@ -154,4 +155,8 @@ Heroku instances will override the New Relic license information specified in th
 See:
 
 https://devcenter.heroku.com/articles/newrelic#add-on-installation
+
+RUM (Real User Monitoring) features are not enabled as yet.
+
+https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timing-java#manual_instrumentation
 
