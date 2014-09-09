@@ -22,6 +22,15 @@ trait ItemTransformer {
   //TODO: Remove service - transform should only transform.
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
+  //TODO: Remove service - transform should only transform.
+  def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
+    itemService.findOneById(itemId) match {
+      case Some(item) if (item.createdByApiVersion == 1) => updateV2Json(item)
+      case Some(item) => Some(item)
+      case _ => None
+    }
+  }
+
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
 
     logger.debug(s"itemId=${itemId} function=updateV2Json#VersionedId[ObjectId]")
