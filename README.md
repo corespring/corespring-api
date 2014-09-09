@@ -139,3 +139,19 @@ If it's not set the assets will be retrieved locally. Note that this domain need
 
 We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfront/home
 
+## New Relic
+
+New Relic is included as a dependency.
+
+It is configured with the file `newrelic.yml`
+
+It will only be run if the new relic agent is included in the JAVA_OPTS
+
+    -Dnewrelic.bootstrap_classpath=true -javaagent:target/universal/stage/lib/com.newrelic.agent.java.newrelic-agent-3.10.0.jar
+
+Heroku instances will override the New Relic license information specified in the newrelic.yml file.
+
+See:
+
+https://devcenter.heroku.com/articles/newrelic#add-on-installation
+
