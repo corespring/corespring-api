@@ -88,7 +88,8 @@ class ItemTransformerTest extends Specification with Mockito {
               VirtualFile(
                 name = "qti.xml",
                 contentType = "text/xml",
-                content = qti.toString),
+                content = qti.toString,
+                isMain = true),
               VirtualFile(
                 name = "kittens.jpeg",
                 contentType = "image/jpeg",
