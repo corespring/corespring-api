@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/corespring -Dhttp.port=${PORT} -Dlogger.file=${ENV_LOGGER} -J-javaagent:target/universal/stage/lib/com.newrelic.agent.java.newrelic-agent-3.10.0.jar -J-Dnewrelic.config.file=conf/newrelic.yml
+web: target/universal/stage/bin/corespring -Dhttp.port=${PORT} -Dlogger.file=${ENV_LOGGER} ${JAVA_OPTS}
