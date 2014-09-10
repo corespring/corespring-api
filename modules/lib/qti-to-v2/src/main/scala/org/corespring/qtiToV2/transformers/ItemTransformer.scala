@@ -78,7 +78,7 @@ trait ItemTransformer {
       case None => {
 
         val itemPlayerDef: Option[JsObject] = item.playerDefinition.map(Json.toJson(_).as[JsObject])
-        if (checkModelIsUpToDate) {
+        if (checkModelIsUpToDate && item.createdByApiVersion == 1) {
           val rawMappedThroughPlayerDef = createFromQti(item).asOpt[PlayerDefinition].map(Json.toJson(_))
           for {
             rawPd <- rawMappedThroughPlayerDef
@@ -87,7 +87,11 @@ trait ItemTransformer {
             compareJson(item.id, "createdFromQti-vs-item.playerDefinition", rawPd, itemPd)
           }
         }
-        itemPlayerDef.getOrElse(createFromQti(item))
+        itemPlayerDef match {
+          case Some(itemPlayer) => itemPlayer
+          case None if item.createdByApiVersion == 1 => createFromQti(item)
+          case _ => throw new IllegalArgumentException(s"Item ${item.id} did not contain QTI XML or component JSON")
+        }
       }
     })
     val profile = toProfile(item)
@@ -144,6 +148,7 @@ trait ItemTransformer {
       })) ++ transformedJson.as[JsObject]
   }
 
+  // Is this meant to return Unit?!
   private def compareJson(itemId: VersionedId[ObjectId], msg: String, a: JsValue, b: JsValue) = {
     JsonCompare.caseInsensitiveSubTree(a, b) match {
       case Left(diffs) => {
