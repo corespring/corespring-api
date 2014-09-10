@@ -51,19 +51,24 @@ trait ItemTransformer {
   }
 
   def updateV2Json(item: Item): Option[Item] = {
-    logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
-    transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
-      .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-          case true => Some(updatedItem)
-          case _ => {
-            logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
-            itemService.save(updatedItem)
-            Some(updatedItem)
+    item.createdByApiVersion match {
+      case 1 => {
+        logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
+        transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
+          .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
+          case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+            case true => Some(updatedItem)
+            case _ => {
+              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+              itemService.save(updatedItem)
+              Some(updatedItem)
+            }
           }
+          case _ => None
         }
-        case _ => None
       }
+      case _ => Some(item)
+    }
   }
 
   def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
