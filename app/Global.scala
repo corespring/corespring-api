@@ -1,3 +1,5 @@
+import java.lang.management.{ManagementFactory, RuntimeMXBean}
+
 import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
@@ -77,6 +79,9 @@ object Global
 
   override def onStart(app: Application): Unit = {
 
+    logMemory()
+    logEnv()
+
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
 
       if (componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
@@ -133,6 +138,23 @@ object Global
       }
     }
 
+  }
+
+  private def logMemory() = {
+    val runtime = Runtime.getRuntime()
+    val megs = 1024 * 1024
+    var freeMemory = runtime.freeMemory() / megs
+    var totalMemory = runtime.totalMemory() / megs
+    var maxMemory = runtime.maxMemory() / megs
+    logger.info(s"memory max $maxMemory M total $totalMemory M free $freeMemory M")
+  }
+
+  private def logEnv() = {
+    val mxbean = ManagementFactory.getRuntimeMXBean()
+    val inputArguments = mxbean.getInputArguments
+    val systemProperties = mxbean.getSystemProperties
+    logger.info(s"inputArguments $inputArguments");
+    logger.info(s"systemProperties $systemProperties");
   }
 
   private def isSafeToSeedDb(implicit app: Application): Boolean = {
