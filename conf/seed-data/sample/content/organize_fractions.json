@@ -1,0 +1,129 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b1a7973adef248da4c786"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2010"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/NECAP-2010-Gr4-Math-Released-Items.pdf"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Operate", 
+      "Employ", 
+      "Demonstrate"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Fractions.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n  <p class=\"intro-2\">You may use this model to help answer the question.</p>\n    \n    <div class=\"imagewrapper\">\n      <img src=\"Fractions.png\"/>\n    </div>\n    \n  <p>Order the following fractions from <b>least</b> to <b>greatest</b>:</p><corespring-ordering id=\"Q_01\"></corespring-ordering>\n\n\n    \n  </itemBody>",
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-ordering",
+        "correctResponse" : [ 
+          "c", 
+          "a", 
+          "b"
+        ],
+        "feedback" : {
+          "correctFeedbackType" : "default",
+          "partialFeedbackType" : "default",
+          "incorrectFeedbackType" : "default"
+        },
+        "model" : {
+          "config" : {
+            "shuffle" : false,
+            "choiceAreaLayout" : "horizontal",
+            "answerAreaLabel" : "Place answers here",
+            "placementType" : "placement"
+          },
+          "choices" : [ 
+            {
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
+              "value" : "a",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
+              "id" : "a",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
+              "value" : "b",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
+              "id" : "b",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
+              "value" : "c",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
+              "id" : "c",
+              "moveOnDrag" : true
+            }
+          ],
+          "correctResponse" : [ 
+            "c", 
+            "a", 
+            "b"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "4.NF.A.1"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "04"
+    ],
+    "title" : "You may use this model to help answer the question. Order the following fractions from least to greatest:",
+    "itemType" : "Ordering"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

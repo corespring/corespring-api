@@ -1,0 +1,159 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b21298d0412f06fa2f35a"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2010"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Solve", 
+      "Write", 
+      "Explain", 
+      "Examine", 
+      "Compute", 
+      "Calculate", 
+      "Translate", 
+      "Understand", 
+      "Identify", 
+      "Name"
+    ],
+    "demonstratedKnowledge" : "Procedural"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n<p class=\"intro-2\">A package of 3 tubes of toothpaste costs $3.49. The cost of a single tube of toothpaste is $1.25.</p>   \n<p class=\"prompt\">How much more will it cost to buy 3 single tubes of toothpaste than to buy \na package of 3 tubes of toothpaste?</p>\n\n<p class=\"p-indent-20\">It will cost $<corespring-text-entry id=\"Q_01\"></corespring-text-entry>more.</p>\n\n  <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n\n  \n\n\n\n  \n  \n\n\n<p class=\"prompt\">Show your work or explain how you know.</p>\n<corespring-extended-text-entry id=\"Q_02\"></corespring-extended-text-entry>\n\n  </itemBody>",
+    "components" : {
+      "Q_01_feedback" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "correct" : [ 
+            {
+              "input" : "0.26",
+              "feedback" : "Nice work, that's correct!"
+            }, 
+            {
+              "input" : ".26",
+              "feedback" : "Nice work, that's correct!"
+            }
+          ],
+          "incorrect" : [ 
+            {
+              "input" : "*",
+              "feedback" : "Good try, but it will cost $0.26."
+            }
+          ]
+        }
+      },
+      "Q_01" : {
+        "weight" : 1,
+        "componentType" : "corespring-text-entry",
+        "model" : {
+          "answerBlankSize" : 5,
+          "answerAlignment" : "left"
+        },
+        "feedback" : {
+          "correctFeedbackType" : "default",
+          "incorrectFeedbackType" : "default"
+        },
+        "correctResponses" : {
+          "award" : 100,
+          "values" : [ 
+            "0.26", 
+            ".26"
+          ],
+          "ignoreWhitespace" : true,
+          "ignoreCase" : true,
+          "feedback" : {
+            "type" : "default"
+          }
+        },
+        "incorrectResponses" : {
+          "award" : 0,
+          "feedback" : {
+            "type" : "default"
+          }
+        }
+      },
+      "Q_02" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLength" : 200,
+            "expectedLines" : 5,
+            "maxStrings" : 20,
+            "minStrings" : 10
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "5.NBT.B.7"
+  ],
+  "supportingMaterials" : [ 
+    {
+      "name" : "Scoring Guide",
+      "files" : [ 
+        {
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
+          "name" : "index.html",
+          "contentType" : "text/html",
+          "isMain" : true,
+          "content" : "<html>\n<head><title>Scoring Guide</title></head>\n<body>\n<h2>Scoring Guide</h2>\n<table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>2</b></td>\n<td>for correct answer, ($)<b>0.26</b>, <b>26¢</b>, or <b>26 cents</b>, with sufficient explanation or work shown to indicate correct strategy</td>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>for correct answer with insufficient or no explanation or work shown\n<p/>or\n<p/>for sufficient strategy with incorrect or no answer</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n<p><b>Sample Response:</b></p>\n<p>It cost 1.25 + 1.25 + 1.25 = $3.75 to buy three single tubes, so it will cost 3.75 – 3.49 = $0.26 more.</p>\n</body>\n</html>"
+        }
+      ]
+    }
+  ],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "05"
+    ],
+    "title" : "A package of 3 tubes of toothpaste costs $3.49. The cost of a single tube of toothpaste is $1.25. How much more will it cost to buy 3 single tubes of toothpaste than to buy a package of 3 tubes of toothpaste?",
+    "description" : "Description goes here",
+    "itemType" : "Constructed Response - Short Answer"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

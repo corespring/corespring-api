@@ -1,0 +1,471 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b21498d0412f06fa2f35d"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "Kentucky Department of Education",
+    "contributor" : "Kentucky Department of Education",
+    "copyright" : {
+      "owner" : "Kentucky Department of Education",
+      "year" : "2012"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://education.ky.gov/AA/items/Documents/K-PREP%20Sampler%202012%20RD%20gr5%20Annotation.pdf"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [ 
+      "Define", 
+      "Describe", 
+      "Classify", 
+      "Distinguish", 
+      "Explain", 
+      "Express", 
+      "Examine", 
+      "Model"
+    ]
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Deepwater drilling rig.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n    \n\n    <corespring-tabs>\n      <corespring-tab title=\"Passage\">\n\n        <resource url=\"http://education.ky.gov/AA/items/Documents/K-PREP%20Sampler%202012%20RD%20gr5%20Annotation.pdf\" licenseType=\"CC BY/CC BY-NC/CC BY-ND/CC BY NC-SA\" cost=\"$xx.xx\" copyrightExpires=\"yyyy\" copyrightYear=\"2012\" copyrightOwner=\"Kentucky Department of Education\" title=\"Disaster at the Deepwater Horizon\" type=\"passage\"/>\n\n        <h1 class=\"text-centered\">Disaster at the Deepwater Horizon</h1>\n\n        <corespring-numbered-lines id=\"numbered_lines_1\"></corespring-numbered-lines>\n\n        <div class=\"note-tip\">Copyright © 2012 Kentucky Department of Education</div>\n\n      </corespring-tab>\n      \n    </corespring-tabs>\n\n   <p>1.  What does <i>extracting</i> mean as used in paragraph 2?</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n    <p>2.  The author compares deepwater drilling rigs to “small floating villages” because the rigs are</p><corespring-multiple-choice id=\"Q_02\"></corespring-multiple-choice>\n    \n    <p>3.  Read the following list of actions performed by the crew aboard a deepwater drilling rig and use your mouse to put them in the order in which these actions are performed.</p><corespring-ordering id=\"Q_03\"></corespring-ordering>\n\n    <p>4.  What is the <i>most likely</i> reason that the author includes the information in paragraph 9?</p><corespring-multiple-choice id=\"Q_04\"></corespring-multiple-choice>\n    \n    <p>5.  With which of these statements would the author most likely agree?</p><corespring-multiple-choice id=\"Q_05\"></corespring-multiple-choice> \n    \n    <p>6.  Which statement <i>best</i> describes the structure of the passage?</p><corespring-multiple-choice id=\"Q_06\"></corespring-multiple-choice>    \n    \n    <p class=\"prompt\">7.  Using specific details from the passage, explain how an oil spill can affect the\nfood chain in the ocean.</p>\n    <corespring-extended-text-entry id=\"Q_07\"></corespring-extended-text-entry>\n    \n    <p class=\"prompt\">8.  Explain how humans and bacteria worked together to clean up the oil spill. Use\nspecific details from the passage to support your answer.</p>\n    <corespring-extended-text-entry id=\"Q_08\"></corespring-extended-text-entry>\n  </itemBody>",
+    "components" : {
+      "Q_07" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLines" : 7
+          }
+        }
+      },
+      "numbered_lines_1" : {
+        "componentType" : "corespring-numbered-lines",
+        "weight" : 0,
+        "model" : {
+          "lines" : [ 
+            "Petroleum and natural gas power much of modern civilization. Burning petroleum in cars allows them to move; burning natural gas in power plants allows them to produce the\nelectricity you access through a wall outlet. Petroleum and natural gas are classified as fossil fuels. Found in underground deposits, fossil fuels have formed through physical and chemical changes to plant and animal remains over millions of years.", 
+            "Humans obtain petroleum and natural gas by drilling into deposits and extracting them through wells. Most wells are on land, but the deposits easiest to extract have already been consumed. Drilling must now go deeper to less easily reached resources. The drilling involves greater cost than it once did.", 
+            "Enormous fossil fuel deposits lay underneath the ocean floor as well as on land. In the past, no technology existed for obtaining fossil fuels from beneath the ocean floor. As technology has improved and extraction costs on land have risen, it has begun to make practical and economic sense to drill for the fossil fuel resources at sea. This has given rise to the deepwater drilling rig", 
+            "Deepwater drilling rigs are among the largest movable structures built by humans; some of them are like small floating villages. They have drills that reach to the ocean floor. The drills cut through rock to fossil fuel deposits. The deposits are brought to the surface through long pipes. Onboard the rigs, raw fossil fuels can be processed to separate them into petroleum, natural gas, and other products, which can be stored until transport ships dock at the rig. Apart from the drilling and processing equipment, the rigs often house crews numbering up to hundreds of people.", 
+            "The Deepwater Horizon was a deepwater drilling rig that operated in the Gulf of Mexico, off the southeastern coast of the United States, in early 2010. The Gulf of Mexico is an area with a complex ecosystem, a community of organisms that live and function in the same environment. Ecosystems center around food webs, networks of predator-prey connections between organisms. Food webs allow energy to flow from organism to organism. At the base of ocean food webs are plankton, tiny organisms that capture energy from sunlight and store it in chemicals. Larger organisms, like krill, shrimp, fish, and whales, consume plankton. In addition, fish prey on other fish. Where energy-bearing food is available, some organisms in an ecosystem will adapt to consume it so that the ecosystem can support as much life as possible.", 
+            "In April 2010, an explosion damaged the Deepwater Horizon. The rig later sank to the ocean floor. This event left broken pipes spilling thousands of barrels of oil into the ocean each day. The flow of oil was not stopped until four months later.", 
+            "The enormous oil spill had a long list of possible effects on the Gulf of Mexico ecosystem. First of all, the spill could damage the larger organisms like fish, turtles, and dolphins. Breathing or swallowing the oil allows the oil into their bodies, which can cause organ damage and endanger the lives of the animals. The oil in their environment can also disrupt the animals’ feeding habits and reproduction patterns. ", 
+            "Possible damage was not limited to the larger organisms. Oil is poisonous, and it can eliminate large communities of plankton, cutting off the entry point of energy into the ocean ecosystem and starving the other organisms in the food web.", 
+            "The explosion at the Deepwater Horizon could have destroyed the ecosystem in the Gulf of Mexico. Although the long-term effects of this disaster will not be understood for years, many efforts are underway to avoid the worst-case outcome. ", 
+            "Human efforts to clean up the spilled oil helped, but amazingly, microscopic organisms called bacteria were the most effective cleaners. Because oil has naturally leaked into the Gulf of Mexico for a long time, bacteria exist within the ecosystem. These bacteria are able to consume this oil as their source of energy.", 
+            "Scientists discovered huge new populations of bacteria rapidly consuming spilled oil and methane (a gas mixed with the oil). Large bodies of oil would disappear within a few days. Large amounts of methane in Gulf water vanished. One of the most effective measures taken by humans to help clean up the oil turned out to be the spreading of dispersants, chemicals that break up large globs of spilled oil into smaller globs. \nAlthough it was not intentional, these dispersants helped to make the oil more accessible to oil-consuming bacteria, speeding their natural cleanup of the spill. Today, parts of the ocean ecosystem appear to be healthy, but the effects of this disaster on the Gulf of Mexico and future generations in this ecosystem will not be known for many years.", 
+            "Many questions remain unanswered. How much of the spilled oil was cleaned by\nhumans? How much was eaten by bacteria? How much is still in the ocean? How has this affected the Gulf ecosystem? What effects will this disaster have on future generations of organisms in the Gulf of Mexico? Scientists continue to research the effects of the Deepwater Horizon disaster to find the answers to these questions."
+          ]
+        }
+      },
+      "Q_03" : {
+        "componentType" : "corespring-ordering",
+        "correctResponse" : [ 
+          "Q_03_B", 
+          "Q_03_D", 
+          "Q_03_C", 
+          "Q_03_A"
+        ],
+        "model" : {
+          "config" : {
+            "shuffle" : false,
+            "choiceAreaLayout" : "vertical",
+            "placementType" : "inPlace"
+          },
+          "choices" : [ 
+            {
+              "label" : "The crew stores the fossil fuels until transport ships  collect it.",
+              "value" : "Q_03_A",
+              "content" : "The crew stores the fossil fuels until transport ships  collect it.",
+              "id" : "Q_03_A",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "The crew uses drills to reach fossil fuel deposits.",
+              "value" : "Q_03_B",
+              "content" : "The crew uses drills to reach fossil fuel deposits.",
+              "id" : "Q_03_B",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "The crew separates fossil fuels into petroleum, natural gas, and other products.",
+              "value" : "Q_03_C",
+              "content" : "The crew separates fossil fuels into petroleum, natural gas, and other products.",
+              "id" : "Q_03_C",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "The crew brings fossil fuel deposits to the surface through long pipes.",
+              "value" : "Q_03_D",
+              "content" : "The crew brings fossil fuel deposits to the surface through long pipes.",
+              "id" : "Q_03_D",
+              "moveOnDrag" : true
+            }
+          ],
+          "correctResponse" : [ 
+            "Q_03_B", 
+            "Q_03_D", 
+            "Q_03_C", 
+            "Q_03_A"
+          ],
+          "feedback" : []
+        }
+      },
+      "Q_01" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "1.  What does extracting mean as used in paragraph 2?",
+          "choices" : [ 
+            {
+              "label" : "Thrusting",
+              "value" : "Q_01_ChoiceA"
+            }, 
+            {
+              "label" : "Inspecting",
+              "value" : "Q_01_ChoiceB"
+            }, 
+            {
+              "label" : "Removing",
+              "value" : "Q_01_ChoiceC"
+            }, 
+            {
+              "label" : "Discovering",
+              "value" : "Q_01_ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "Q_01_ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_01_ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_01_ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_01_ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "Q_01_ChoiceC"
+          ]
+        }
+      },
+      "Q_06" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "6.  Which statement best describes the structure of the passage?",
+          "choices" : [ 
+            {
+              "label" : "The passage begins with the step-by-step process of drilling and ends by detailing the effects of an oil spill caused by the explosion of a deepwater drilling rig.",
+              "value" : "Q_06_ChoiceA"
+            }, 
+            {
+              "label" : "The passage begins by describing drilling and deepwater drilling rigs and ends by focusing on solutions for the problems caused by an oil spill beneath a rig.",
+              "value" : "Q_06_ChoiceB"
+            }, 
+            {
+              "label" : "The passage begins by showing the advantages and disadvantages of drilling at sea and ends by showing the problems related to cleaning up an oil spill.",
+              "value" : "Q_06_ChoiceC"
+            }, 
+            {
+              "label" : "The passage begins by comparing drilling on land and\nat sea and ends by describing the step-by-step process of cleaning up an oil spill.",
+              "value" : "Q_06_ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "Q_06_ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_06_ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_06_ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_06_ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "Q_06_ChoiceB"
+          ]
+        }
+      },
+      "Q_02" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "2.  The author compares deepwater drilling rigs to “small floating villages” because the rigs are",
+          "choices" : [ 
+            {
+              "label" : "similar to a town in building\nstyle",
+              "value" : "Q_02_ChoiceA"
+            }, 
+            {
+              "label" : "built with simple tools like drills",
+              "value" : "Q_02_ChoiceB"
+            }, 
+            {
+              "label" : "used to store all the equipment\nthat may be needed",
+              "value" : "Q_02_ChoiceC"
+            }, 
+            {
+              "label" : "used to house a community of\nhundreds of workers",
+              "value" : "Q_02_ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "Q_02_ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_02_ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_02_ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_02_ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "Q_02_ChoiceD"
+          ]
+        }
+      },
+      "Q_05" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "5.  With which of these statements would the author most likely agree?",
+          "choices" : [ 
+            {
+              "label" : "Drilling for fossil fuels on land is less dangerous than drilling at sea.",
+              "value" : "Q_05_ChoiceA"
+            }, 
+            {
+              "label" : "The drilling industry should take extra care to prevent damage to the ocean.",
+              "value" : "Q_05_ChoiceB"
+            }, 
+            {
+              "label" : "The ocean’s ecosystem can cope with the effects of drilling accidents.",
+              "value" : "Q_05_ChoiceC"
+            }, 
+            {
+              "label" : "Drilling at sea is worth the risks\nbecause of humans’ dependence upon fossil fuels.",
+              "value" : "Q_05_ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "Q_05_ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_05_ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_05_ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_05_ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "Q_05_ChoiceB"
+          ]
+        }
+      },
+      "Q_08" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLines" : 7
+          }
+        }
+      },
+      "Q_04" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "4.  What is the most likely reason that the author includes the information in paragraph 9?",
+          "choices" : [ 
+            {
+              "label" : "To end the discussion of deepwater drilling",
+              "value" : "Q_04_ChoiceA"
+            }, 
+            {
+              "label" : "To express an opinion about the oil industry",
+              "value" : "Q_04_ChoiceB"
+            }, 
+            {
+              "label" : "To make a statement in support of drilling",
+              "value" : "Q_04_ChoiceC"
+            }, 
+            {
+              "label" : "To shift to the topic of cleaning up oil spills",
+              "value" : "Q_04_ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "Q_04_ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_04_ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_04_ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "Q_04_ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "Q_04_ChoiceD"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "L.5.4a", 
+    "L.5.5a", 
+    "RI.5.3", 
+    "RI.5.5", 
+    "RI.5.8"
+  ],
+  "supportingMaterials" : [ 
+    {
+      "name" : "Rubric & Sample Responses",
+      "files" : [ 
+        {
+          "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+          "name" : "Grade 5 rubric.pdf",
+          "contentType" : "application/pdf",
+          "isMain" : true,
+          "storageKey" : "519a7784e4b01051c1be4329/0/materials/Rubric & Sample Responses/Grade 5 rubric.pdf"
+        }
+      ]
+    }
+  ],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ac"
+      }
+    },
+    "gradeLevel" : [ 
+      "05"
+    ],
+    "title" : "Drilling for oil can have a powerful impact on the environment. Read the passage about one such situation with a large ecological impact. Then answer the questions about vocabulary, events, structure, and the author's point of view.",
+    "itemType" : "Passage With Questions"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

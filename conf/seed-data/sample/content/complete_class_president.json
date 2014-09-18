@@ -1,0 +1,226 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b211a8d0412f06fa2f358"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2011"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [ 
+      "Arrange", 
+      "List", 
+      "Identify", 
+      "Explain", 
+      "Express", 
+      "Translate", 
+      "Understand", 
+      "Compute", 
+      "Analyze", 
+      "Breakdown", 
+      "Compare", 
+      "Diagram", 
+      "Examine", 
+      "Produce", 
+      "Solve", 
+      "Write", 
+      "Illustrate"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n<p class=\"intro-2\">Amy, Ben, and Cal ran for class president.\n  <ul>\n<li>Amy received <math>\n <semantics>\n  <mrow>\n   <mfrac>\n  <mrow>\n   <mn>1</mn>\n  </mrow>\n  <mrow>\n   <mn>3</mn>\n  </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {3} </annotation>\n </semantics>\n</math> of the votes.</li>\n<li>Ben received <math>\n <semantics>\n  <mrow>\n   <mfrac>\n  <mrow>\n   <mn>1</mn>\n  </mrow>\n  <mrow>\n   <mn>6</mn>\n  </mrow>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">{1} over {3} </annotation>\n </semantics>\n</math> of the votes.</li>\n<li>Cal received the rest of the votes.</li>\n</ul>\n  \n</p>  \n<p class=\"prompt\">List the students in order from the most votes received to the least votes received.</p> \n   <p> <corespring-inline-choice id=\"Q_01\"></corespring-inline-choice> \n    got the most votes, followed by\n    <corespring-inline-choice id=\"Q_02\"></corespring-inline-choice> \n    , and then\n    <corespring-inline-choice id=\"Q_03\"></corespring-inline-choice> \n    got the least amount of votes.\n</p>\n<p class=\"prompt\">Show your work or explain how you know.</p>\n    <corespring-extended-text-entry id=\"Q_04\"></corespring-extended-text-entry>  \n    \n    \n  \n</itemBody>",
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-inline-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : false
+          },
+          "prompt" : "",
+          "choices" : [ 
+            {
+              "label" : "Amy",
+              "value" : "1"
+            }, 
+            {
+              "label" : "Ben",
+              "value" : "2"
+            }, 
+            {
+              "label" : "Cal",
+              "value" : "3"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "1",
+            "feedback" : "Cal",
+            "notChosenFeedback" : "Cal"
+          }, 
+          {
+            "value" : "2",
+            "feedback" : "Cal",
+            "notChosenFeedback" : "Cal"
+          }, 
+          {
+            "value" : "3",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }
+        ],
+        "correctResponse" : "3"
+      },
+      "Q_02" : {
+        "componentType" : "corespring-inline-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : false
+          },
+          "prompt" : "",
+          "choices" : [ 
+            {
+              "label" : "Amy",
+              "value" : "4"
+            }, 
+            {
+              "label" : "Ben",
+              "value" : "5"
+            }, 
+            {
+              "label" : "Cal",
+              "value" : "6"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "4",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "5",
+            "feedback" : "Amy",
+            "notChosenFeedback" : "Amy"
+          }, 
+          {
+            "value" : "6",
+            "feedback" : "Amy",
+            "notChosenFeedback" : "Amy"
+          }
+        ],
+        "correctResponse" : "4"
+      },
+      "Q_03" : {
+        "componentType" : "corespring-inline-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : false
+          },
+          "prompt" : "",
+          "choices" : [ 
+            {
+              "label" : "Amy",
+              "value" : "7"
+            }, 
+            {
+              "label" : "Ben",
+              "value" : "8"
+            }, 
+            {
+              "label" : "Cal",
+              "value" : "9"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "7",
+            "feedback" : "Ben",
+            "notChosenFeedback" : "Ben"
+          }, 
+          {
+            "value" : "8",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "9",
+            "feedback" : "Ben",
+            "notChosenFeedback" : "Ben"
+          }
+        ],
+        "correctResponse" : "8"
+      },
+      "Q_04" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLength" : 200,
+            "expectedLines" : 5
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "5.NF.A.2"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "05"
+    ],
+    "title" : "Amy, Ben, and Cal ran for class president. The fractions of the votes that each student received are given. List the students in order from the most votes received to the least votes received.",
+    "itemType" : "Multiple Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

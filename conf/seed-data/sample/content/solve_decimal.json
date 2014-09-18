@@ -1,0 +1,116 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b152ff265428922753dcf"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New Classrooms Innovation Partners",
+    "contributor" : "New Classrooms Innovation Partners",
+    "copyright" : {
+      "owner" : "New Classrooms",
+      "year" : "2013"
+    },
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.newclassrooms.org/"
+  },
+  "otherAlignments" : {
+    "keySkills" : [],
+    "demonstratedKnowledge" : "None"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n  <p>\n    What is 437% as a decimal?\n    <p><i>\n    NOTE:  Your answer should be only a NUMBER in DECIMAL FORM. Example: \n    </i>\n    1.8</p>\n    <p>\n    <corespring-text-entry id=\"QUE_0_4_582FD9C64972431590A6E9472546B296_RS\"></corespring-text-entry>\n    </p>\n  </p>\n  <corespring-feedback-block id=\"QUE_0_4_582FD9C64972431590A6E9472546B296_RS_feedback\"></corespring-feedback-block>\n  \n  </itemBody>",
+    "components" : {
+      "QUE_0_4_582FD9C64972431590A6E9472546B296_RS_feedback" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "QUE_0_4_582FD9C64972431590A6E9472546B296_RS"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "correct" : [ 
+            {
+              "input" : "4.37",
+              "feedback" : "Correct!"
+            }
+          ],
+          "incorrect" : [ 
+            {
+              "input" : "*",
+              "feedback" : "Good try, but 4.37 is the correct answer. <p>\n      <b>Remember:</b> To convert a percentage into a decimal, you move the decimal point two places to the left.\n    </p>"
+            }
+          ]
+        }
+      },
+      "QUE_0_4_582FD9C64972431590A6E9472546B296_RS" : {
+        "weight" : 1,
+        "componentType" : "corespring-text-entry",
+        "model" : {
+          "answerBlankSize" : 15,
+          "answerAlignment" : "left"
+        },
+        "feedback" : {
+          "correctFeedbackType" : "default",
+          "incorrectFeedbackType" : "default"
+        },
+        "correctResponses" : {
+          "award" : 100,
+          "values" : [ 
+            "4.37"
+          ],
+          "ignoreWhitespace" : true,
+          "ignoreCase" : true,
+          "feedback" : {
+            "type" : "default"
+          }
+        },
+        "incorrectResponses" : {
+          "award" : 0,
+          "feedback" : {
+            "type" : "default"
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Formative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {
+      "new_classrooms" : {
+        "credits" : "2",
+        "family" : "A",
+        "masterQuestion" : "7",
+        "skillNumber" : "260"
+      }
+    },
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c3"
+      }
+    },
+    "gradeLevel" : [],
+    "title" : "Read, write, and identify percents less than 1% and greater then 100%.",
+    "description" : "260 - Master Question 7 SA #5",
+    "itemType" : "Constructed Response - Short Answer"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : true
+  }
+}

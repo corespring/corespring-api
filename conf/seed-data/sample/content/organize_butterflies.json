@@ -1,0 +1,163 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b1a7273adef248da4c785"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2009"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Understanding",
+    "keySkills" : [ 
+      "Arrange", 
+      "Describe", 
+      "Identify", 
+      "Order", 
+      "Recall", 
+      "Classify"
+    ],
+    "demonstratedKnowledge" : "Factual",
+    "relatedCurriculum" : "New England Common Assessment Program Released Items"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "7.butterfly.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "butterfly2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "cocoon2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "caterpillar.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "egg2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n<p class=\"intro-2\">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>\n\n<div class=\"image-wrapper\"><img src=\"7.butterfly.png\"/></div>\n     \n    \n    <p>Arrange the stages of life of a butterfly in order from beginning to end.</p><corespring-ordering id=\"RESPONSE\"></corespring-ordering>\n    \n  </itemBody>",
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-ordering",
+        "correctResponse" : [ 
+          "ChoiceC", 
+          "ChoiceA", 
+          "ChoiceB", 
+          "ChoiceD"
+        ],
+        "model" : {
+          "config" : {
+            "shuffle" : true,
+            "choiceAreaLayout" : "vertical",
+            "placementType" : "inPlace"
+          },
+          "choices" : [ 
+            {
+              "label" : "<img src=\"caterpillar.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "ChoiceA",
+              "content" : "<img src=\"caterpillar.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "ChoiceA",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"cocoon2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "ChoiceB",
+              "content" : "<img src=\"cocoon2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "ChoiceB",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"egg2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "ChoiceC",
+              "content" : "<img src=\"egg2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "ChoiceC",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"butterfly2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "ChoiceD",
+              "content" : "<img src=\"butterfly2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "ChoiceD",
+              "moveOnDrag" : true
+            }
+          ],
+          "correctResponse" : [ 
+            "ChoiceC", 
+            "ChoiceA", 
+            "ChoiceB", 
+            "ChoiceD"
+          ],
+          "feedback" : []
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2d9"
+      }
+    },
+    "gradeLevel" : [ 
+      "04"
+    ],
+    "title" : "The life cycle of butterflies has four stages. Arrange the stages of life of a butterfly in order from beginning to end.",
+    "itemType" : "Ordering"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}
