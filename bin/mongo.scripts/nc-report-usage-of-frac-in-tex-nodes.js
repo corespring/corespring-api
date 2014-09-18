@@ -42,7 +42,7 @@ function toInfo(it) {
 }
 
 function toUrl(it) {
-  return 'http://www.corespring.org/web#/edit/' + toId(it) + '?panel=metadata';
+  return 'http://platform.corespring.org/web#/edit/' + toId(it) + '?panel=metadata';
 }
 
 function toOutput(it) {
