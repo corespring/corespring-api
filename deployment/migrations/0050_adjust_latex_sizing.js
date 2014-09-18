@@ -120,7 +120,7 @@ function up() {
         var latex = latexHelper.getLatexContent(file.content);
         var processedLatex = latexHelper.processLatex(latex);
         for (var i in latex) {
-          file.content = file.content.replace(latex[i], processedLatex[i]);
+          file.content = file.content.replace('<tex>' + latex[i] + '</tex>', '<tex>' + processedLatex[i] + '</tex>');
         }
         db.content.save(content);
       }
