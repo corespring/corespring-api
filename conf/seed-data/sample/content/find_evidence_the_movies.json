@@ -1,0 +1,158 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b21408d0412f06fa2f35c"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "Louisiana Department of Education",
+    "contributor" : "Louisiana Department of Education",
+    "copyright" : {
+      "owner" : "Louisiana Department of Education",
+      "year" : "2013"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.louisianabelieves.com/docs/assessment/practice-test-math-grade-7.pdf?sfvrsn=4"
+  },
+  "otherAlignments" : {
+    "keySkills" : [],
+    "demonstratedKnowledge" : "None"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "q37.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n    <p class=\"intro-2\">A movie theater kept track of the attendance on Fridays and Saturdays. The results are shown in the box plots below.</p>\n    \n    <div class=\"imagewrapper\">\n      <img src=\"q37.jpg\"/>\n    </div>\n    \n    <p class=\"prompt\">From the sentences below, pick the conclusion that can be drawn from the box plots.</p>\n    <hr style=\"border: none; height:1px; background-color:#111; margin-left: 10%; margin-right: 10%;\"/>\n    <corespring-select-text id=\"selectText\"></corespring-select-text>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesBelowMin\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesExceedMax\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesIncorrect\"></corespring-feedback-block>\n\n  </itemBody>",
+    "components" : {
+      "selectText_feedback_responsesIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesIncorrect" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">The correct answer is highlighted in green.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "selectText_feedback_responsesExceedMax" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesExceedMax" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try, but either you chose too many words, or did not choose the right ones.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "selectText_feedback_responsesBelowMin" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesBelowMin" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try, but please choose two words.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "selectText" : {
+        "componentType" : "corespring-select-text",
+        "model" : {
+          "choices" : [ 
+            {
+              "data" : "The attendance on Friday and the attendance on Saturday have the same median and interquartile range."
+            }, 
+            {
+              "data" : "The attendance on Friday has a greater median and a greater interquartile range than attendance on Saturday."
+            }, 
+            {
+              "data" : "The attendance on Friday has a greater interquartile range than attendance on Saturday, but both data sets have the same median."
+            }, 
+            {
+              "data" : " The attendance on Friday has a greater median than attendance on Saturday, but both data sets have the same interquartile range.",
+              "correct" : true
+            }
+          ],
+          "config" : {
+            "selectionUnit" : "sentence",
+            "checkIfCorrect" : "yes",
+            "minSelections" : 1,
+            "maxSelections" : 1,
+            "showFeedback" : false
+          }
+        }
+      },
+      "selectText_feedback_responsesCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesCorrect" : {
+              "text" : "\n      <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Well done!</div>\n    ",
+              "correct" : true
+            }
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Other",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "7.SP.B.3"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "07"
+    ],
+    "title" : "A movie theater kept track of the attendance on Fridays and Saturdays. The results are shown in the box plots below.",
+    "itemType" : "Select Evidence in Text"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b101ce92dd2a071f1a137"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New York State Education Department",
+    "contributor" : "New York State Education Department",
+    "copyright" : {
+      "owner" : "New York State Education Department",
+      "year" : "2012",
+      "imageName" : "nysed.png"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions"
+  },
+  "otherAlignments" : {
+    "keySkills" : [],
+    "demonstratedKnowledge" : "None"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n\n<p class=\"intro-2\">Appliances at Discount City Store are on sale for 70% of the original price. Eli has \na coupon for an 18% discount on the sale price.</p>\n     \n    <p>If the original price of a \nmicrowave oven is $500, how much will Eli pay for the oven before tax?</p><corespring-multiple-choice id=\"RESPONSE\"></corespring-multiple-choice>\n  </itemBody>",
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "If the original price of a \nmicrowave oven is $500, how much will Eli pay for the oven before tax?",
+          "choices" : [ 
+            {
+              "label" : "$440",
+              "value" : "ChoiceA"
+            }, 
+            {
+              "label" : "$287",
+              "value" : "ChoiceB"
+            }, 
+            {
+              "label" : "$260",
+              "value" : "ChoiceC"
+            }, 
+            {
+              "label" : "$240",
+              "value" : "ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceB",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceB"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "7.RP.A.3"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "07"
+    ],
+    "title" : "Appliances at Discount City Store are on sale for 70% of the original price. Eli has a coupon for an 18% discount on the sale price. If the original price of a microwave oven is $500, how much will Eli pay for the oven before tax?",
+    "itemType" : "Multiple Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : false,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

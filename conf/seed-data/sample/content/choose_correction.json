@@ -1,0 +1,137 @@
+{
+  "_id" : {
+    "_id" : {
+       "$oid" : "541b1012e92dd2a071f1a136"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "TIMSS",
+    "contributor" : "TIMSS",
+    "copyright" : {
+      "owner" : "TIMSS",
+      "year" : "1995-2003"
+    },
+    "credentials" : "Assessment Developer",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://nces.ed.gov/timss/index.asp"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [ 
+      "Name", 
+      "Select", 
+      "Understand", 
+      "Interpret", 
+      "Solve", 
+      "Analyze"
+    ],
+    "demonstratedKnowledge" : "Conceptual",
+    "relatedCurriculum" : "Trends in International Mathematics and Science Study"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n\n<p class=\"intro-2\">John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. </p>\n\n\n\n    <p>What could he do to correct his mistake?</p><corespring-multiple-choice id=\"RESPONSE\"></corespring-multiple-choice>\n  </itemBody>",
+    "components" : {
+      "RESPONSE" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "What could he do to correct his mistake?",
+          "choices" : [ 
+            {
+              "label" : "Add 200.",
+              "value" : "ChoiceA"
+            }, 
+            {
+              "label" : "Add 2.",
+              "value" : "ChoiceB"
+            }, 
+            {
+              "label" : "Subtract 2.",
+              "value" : "ChoiceC"
+            }, 
+            {
+              "label" : "Subtract 200.",
+              "value" : "ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceB",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceC",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceD",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceA"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "International Benchmark",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric", 
+    "All"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "4.NBT.B.4"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
+      }
+    },
+    "gradeLevel" : [ 
+      "04"
+    ],
+    "title" : "John wanted to use his calculator to add 1,463 and 319. He entered 1,263 + 319 by mistake. What could he do to correct his mistake?",
+    "itemType" : "Multiple Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

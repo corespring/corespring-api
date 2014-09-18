@@ -1,0 +1,121 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b111ff1aafa2c13fd430a"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "Louisiana Department of Education",
+    "contributor" : "Louisiana Department of Education",
+    "copyright" : {
+      "owner" : "Louisiana Department of Education",
+      "year" : "2013"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.louisianabelieves.com/docs/assessment/practice-test-math-grade-8.pdf?sfvrsn=4"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Understanding",
+    "keySkills" : [ 
+      "Understand", 
+      "Predict", 
+      "Extend"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n  <p class=\"intro-2\">Paul creates a scatter plot with a negative association. The x-axis of the scatter plot is titled, &quot;Minutes Spent at Mall&quot;. Which label is most likely the title of the y-axis of Paul’s scatter plot?</p> \n  \n  <p class=\"prompt\">The title of the y-axis of Paul's scatter plot is most likely\n      <corespring-inline-choice id=\"Q_01\"></corespring-inline-choice> \n      .\n  </p>\n\n  \n</itemBody>",
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-inline-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : false
+          },
+          "prompt" : "",
+          "choices" : [ 
+            {
+              "label" : "Distance Walked",
+              "value" : "1"
+            }, 
+            {
+              "label" : "Money Available to Spend",
+              "value" : "2"
+            }, 
+            {
+              "label" : "Number of Movies Seen",
+              "value" : "3"
+            }, 
+            {
+              "label" : "Number of Stores Visited",
+              "value" : "4"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "1",
+            "feedback" : "The correct answer is Money Available to Spend.",
+            "notChosenFeedback" : "The correct answer is Money Available to Spend."
+          }, 
+          {
+            "value" : "2",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "3",
+            "feedback" : "The correct answer is Money Available to Spend.",
+            "notChosenFeedback" : "The correct answer is Money Available to Spend."
+          }, 
+          {
+            "value" : "4",
+            "feedback" : "The correct answer is Money Available to Spend.",
+            "notChosenFeedback" : "The correct answer is Money Available to Spend."
+          }
+        ],
+        "correctResponse" : "2"
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Other",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "8.SP.A.1"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "08"
+    ],
+    "title" : "Paul creates a scatter plot with a negative association. The x-axis of the scatter plot is titled, \"Minutes Spent at Mall\". Which label is most likely the title of the y-axis of Paul’s scatter plot?",
+    "itemType" : "Inline Choice"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

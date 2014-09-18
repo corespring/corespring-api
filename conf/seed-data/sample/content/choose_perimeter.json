@@ -1,0 +1,158 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b102fe92dd2a071f1a13a"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2013"
+    },
+    "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/Fall-2013/NECAP_2013_Gr3_Math_Released_Items.pdf"
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Interpret", 
+      "Solve", 
+      "Apply"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SpoonRec.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n<p><p>Sharon is using spoons to measure the perimeter of this rectangle.</p>\n    <p><img src=\"SpoonRec.png\"/></p>\n    What is the perimeter of this rectangle in spoons?\n  </p><corespring-focus-task id=\"Q_01\"></corespring-focus-task>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesExceedMax\"></corespring-feedback-block>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesCorrect\"></corespring-feedback-block>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesIncorrect\"></corespring-feedback-block>\n\n</itemBody>",
+    "components" : {
+      "Q_01_feedback_responsesExceedMax" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesExceedMax" : {
+              "text" : "\n  <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try, but you selected too many items.</div>\n",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "Q_01_feedback_responsesCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesCorrect" : {
+              "text" : "\n  <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Your selection is correct!</div>\n",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "Q_01_feedback_responsesIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesIncorrect" : {
+              "text" : "\n  <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Nice try! The correct answer is 14.</div>\n",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "Q_01" : {
+        "componentType" : "corespring-focus-task",
+        "correctResponse" : {
+          "value" : [ 
+            "C"
+          ]
+        },
+        "model" : {
+          "config" : {
+            "shuffle" : false,
+            "itemShape" : "circle",
+            "checkIfCorrect" : "yes",
+            "minSelections" : 1,
+            "maxSelections" : 1
+          },
+          "choices" : [ 
+            {
+              "label" : "7",
+              "value" : "A"
+            }, 
+            {
+              "label" : "12",
+              "value" : "B"
+            }, 
+            {
+              "label" : "14",
+              "value" : "C"
+            }, 
+            {
+              "label" : "16",
+              "value" : "D"
+            }
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "3.MD.D.8"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "03"
+    ],
+    "title" : "Sharon is using spoons to measure the perimeter of this rectangle.",
+    "itemType" : "Visual Multi Choice"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}
