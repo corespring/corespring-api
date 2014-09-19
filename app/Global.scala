@@ -124,7 +124,7 @@ object Global
       }
       case Mode.Dev => {
         if (initData) {
-          onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData, seedSampleData)
+          onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
         }
         seedStaticData()
       }
@@ -198,12 +198,8 @@ object Global
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
-  }
-
-  private def seedSampleData() {
     seedData("conf/seed-data/sample")
   }
-
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */
   private def seedStaticData() {
