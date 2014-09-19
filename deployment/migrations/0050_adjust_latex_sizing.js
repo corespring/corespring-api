@@ -105,8 +105,8 @@ function up() {
   newClassroomsContent.forEach(function(content) {
     content.data.files.forEach(function(file) {
       if (file.isMain && file.content && latexHelper.hasLatex(file.content)) {
-        file.content.replace(/<tex>(.*?)<\/tex>/g, function(latex) {
-          return latexHelper.processLatex(latex);
+        var fixed = file.content.replace(/<tex>(.*?)<\/tex>/g, function(match, latex) {
+          return '<tex>' + latexHelper.processLatex(latex) + '</tex>';
         });
         db.content.save(content);
       }
