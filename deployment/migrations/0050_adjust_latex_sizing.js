@@ -108,6 +108,7 @@ function up() {
         var fixed = file.content.replace(/<tex>(.*?)<\/tex>/g, function(match, latex) {
           return '<tex>' + latexHelper.processLatex(latex) + '</tex>';
         });
+        file.content = fixed;
         db.content.save(content);
       }
     });
