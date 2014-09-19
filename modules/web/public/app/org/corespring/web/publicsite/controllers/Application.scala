@@ -55,7 +55,10 @@ object Application extends Controller with securesocial.core.SecureSocial with P
   }
 
   def getItems = Action {
-    Ok(Json.parse(io.Source.fromFile(Play.getFile("public/public/conf/items.json"))(new Codec(Charset.forName("UTF-8"))).mkString))
+    val d = io.Source.fromFile(Play.getFile("public/public/conf/items.json"))(new Codec(Charset.forName("UTF-8")))
+    val content = Json.parse(d.mkString)
+    d.close()
+    Ok(content)
   }
 
   def features = Action {

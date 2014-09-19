@@ -198,7 +198,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def resource(path: String): Option[String] = Play.resource(s"container-client/bower_components/$path").map { url =>
       logger.trace(s"load resource $path")
-      scala.io.Source.fromInputStream(url.openStream())(scala.io.Codec.UTF8).getLines().mkString("\n")
+      val d = scala.io.Source.fromInputStream(url.openStream())(scala.io.Codec.UTF8)
+      val content = d.getLines().mkString("\n")
+      d.close()
+      content
     }
 
     override def loadLibrarySource(path: String): Option[String] = {
@@ -208,7 +211,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       if (file.exists()) {
         logger.trace(s"load file: $path")
-        Some(scala.io.Source.fromFile(file)(scala.io.Codec.UTF8).getLines().mkString("\n"))
+        val d = scala.io.Source.fromFile(file)(scala.io.Codec.UTF8)
+        val returnValue = Some(d.getLines().mkString("\n"))
+        d.close()
+        returnValue
       } else {
         Some(s"console.warn('failed to log $fullPath');")
       }
@@ -259,7 +265,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       import scala.io.Codec
       Play.resourceAsStream("public/web/standards_tree.json").map { is =>
-        val contents = scala.io.Source.fromInputStream(is)(Codec.UTF8).getLines().mkString("\n")
+        val d = scala.io.Source.fromInputStream(is)(Codec.UTF8)
+        val contents = d.getLines().mkString("\n")
+        d.close()
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }

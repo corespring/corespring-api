@@ -19,7 +19,9 @@ object RemoteItemRunnerTemplate {
     if (f == null || !f.exists() || !f.getName.endsWith(Name)) {
       None
     } else {
-      val template: String = Source.fromFile(f).mkString
+      val d = Source.fromFile(f)
+      val template: String = d.mkString
+      d.close()
       val contents = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
       Some(FinalName, contents)
     }

@@ -159,7 +159,10 @@ object AssetLoadingDefaults extends PackageLogging {
     private def load(p: String): String = {
       Play.resource(p).map { url =>
         val stream = url.openStream()
-        io.Source.fromInputStream(stream).getLines.mkString("\n")
+        val d = io.Source.fromInputStream(stream)
+        val content = d.getLines.mkString("\n")
+        d.close()
+        content
       }.getOrElse {
         logger.warn(s"Can't find resource: $p")
         ""
