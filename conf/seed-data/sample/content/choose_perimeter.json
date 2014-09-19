@@ -17,6 +17,18 @@
     },
     "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/Fall-2013/NECAP_2013_Gr3_Math_Released_Items.pdf"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SpoonRec.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "534b4038e4b02c1c0d5866b2/0/data/SpoonRec.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Applying",
     "keySkills" : [ 

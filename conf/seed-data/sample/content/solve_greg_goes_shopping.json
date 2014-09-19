@@ -19,6 +19,25 @@
     "licenseType" : "CC-BY-SA",
     "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "baseballgame.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5023cbb6e4b08be40d045d58/0/data/baseballgame.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "woodchess.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5023cbb6e4b08be40d045d58/0/data/woodchess.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Analyzing",
     "keySkills" : [ 

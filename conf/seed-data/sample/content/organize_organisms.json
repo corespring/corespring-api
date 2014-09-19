@@ -19,6 +19,39 @@
     "licenseType" : "CC BY",
     "sourceUrl" : "http://www.doe.k12.de.us/infosuites/staff/sci_assess/"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed1.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed3.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed3.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed4.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed4.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Applying",
     "keySkills" : [ 
