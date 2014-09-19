@@ -45,15 +45,11 @@ var latexHelper = {
    */
   removeDisplayModifiers: function(latex) {
     var displayModifiers = ['small', 'displaystyle', 'normalsize', 'large'];
-    var results = [];
-    latex.forEach(function(latexItem) {
-      var result = latexItem;
-      displayModifiers.forEach(function(modifier) {
-        result = result.replace(RegExp('[\\\\]' + modifier, 'g'), '');
-      });
-      results.push(result);
+    var result = latex;
+    displayModifiers.forEach(function(modifier) {
+      result = result.replace(RegExp('[\\\\]' + modifier, 'g'), '');
     });
-    return results;
+    return result;
   },
 
   /**
@@ -61,15 +57,11 @@ var latexHelper = {
    */
   removeEmptyText: function(latex) {
     var emptyTextStrings = ['text{}', 'text {}', 'text { }', 'text{ }'];
-    var results = [];
-    latex.forEach(function(latexItem) {
-      var result = latexItem;
-      emptyTextStrings.forEach(function(emptyTextString) {
-        result = result.replace(RegExp('[\\\\]' + emptyTextString, 'g'), '');
-      });
-      results.push(result);
+    var result = latex;
+    emptyTextStrings.forEach(function(emptyTextString) {
+      result = result.replace(RegExp('[\\\\]' + emptyTextString, 'g'), '');
     });
-    return results;
+    return result;
   },
 
   /**
@@ -86,15 +78,11 @@ var latexHelper = {
       });
       return result;
     }
-    var result = [];
-    latex.forEach(function(latexItem) {
-      if (needsDisplayStyle(latexItem)) {
-        result.push('\\displaystyle ' + latexItem.trim());
-      } else {
-        result.push(latexItem.trim());
-      }
-    });
-    return result;
+    if (needsDisplayStyle(latex)) {
+      return '\\displaystyle ' + latex.trim();
+    } else {
+      return latex.trim();
+    }
   },
 
   /**
@@ -113,15 +101,13 @@ var latexHelper = {
 function up() {
   var NEW_CLASSROOMS_COLLECTION_ID = "51df104fe4b073dbbb1c84fa";
   var newClassroomsContent = db.content.find({ "collectionId": NEW_CLASSROOMS_COLLECTION_ID });
-
+  
   newClassroomsContent.forEach(function(content) {
     content.data.files.forEach(function(file) {
       if (file.isMain && file.content && latexHelper.hasLatex(file.content)) {
-        var latex = latexHelper.getLatexContent(file.content);
-        var processedLatex = latexHelper.processLatex(latex);
-        for (var i in latex) {
-          file.content = file.content.replace('<tex>' + latex[i] + '</tex>', '<tex>' + processedLatex[i] + '</tex>');
-        }
+        file.content.replace(/<tex>(.*?)<\/tex>/g, function(latex) {
+          return latexHelper.processLatex(latex);
+        });
         db.content.save(content);
       }
     });
