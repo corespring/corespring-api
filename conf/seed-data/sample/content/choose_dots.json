@@ -19,6 +19,18 @@
     "licenseType" : "CC-BY-NC",
     "sourceUrl" : "http://www.illustrativemathematics.org/"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "dot array.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5193cc53e4b0354c6d0a0dba/0/data/dot array.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Understanding",
     "keySkills" : [ 

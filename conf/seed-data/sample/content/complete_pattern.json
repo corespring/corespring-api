@@ -19,6 +19,53 @@
     "licenseType" : "CC BY",
     "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/NECAP-2011-Gr3-Math-Released-Items.pdf"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "FigurePattern.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/FigurePattern.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Pattern1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern1.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Pattern2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Pattern3.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern3.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Pattern4.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern4.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "FigurePattern2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/FigurePattern2.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Analyzing",
     "keySkills" : [ 

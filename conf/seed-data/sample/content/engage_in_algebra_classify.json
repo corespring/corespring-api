@@ -11,6 +11,18 @@
     "additionalCopyrights" : [],
     "copyright" : {}
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "hats.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "51f80523e4b097670d816a2b/0/data/hats.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "keySkills" : [],
     "demonstratedKnowledge" : "None"

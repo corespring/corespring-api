@@ -19,6 +19,39 @@
     "licenseType" : "CC BY",
     "sourceUrl" : "http://www.louisianabelieves.com/docs/assessment/practice-test-math-grade-4.pdf?sfvrsn=4"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "17a.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17a.jpg"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "17b.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17b.jpg"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "17c.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17c.jpg"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "17d.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17d.jpg"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Applying",
     "keySkills" : [ 

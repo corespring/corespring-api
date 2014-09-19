@@ -19,6 +19,18 @@
     "licenseType" : "CC BY",
     "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/NECAP-2010-Gr4-Math-Released-Items.pdf"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Fractions.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5378bf0ae4b0bc778cd0bbb7/0/data/Fractions.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Applying",
     "keySkills" : [ 

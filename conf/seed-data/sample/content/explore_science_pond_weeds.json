@@ -19,6 +19,60 @@
     "licenseType" : "CC-BY-SA",
     "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "DataTable2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/DataTable2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "weevil2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/weevil2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "experimental.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/experimental.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "graph1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/graph1.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "graph2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/graph2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "graph3.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/graph3.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "DataTable1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50b653a1e4b0ec03f29344b0/0/data/DataTable1.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Analyzing",
     "keySkills" : [ 

@@ -18,6 +18,18 @@
     "credentials" : "Other",
     "sourceUrl" : "www.readworks.org"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "balloon.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "52e1c972e4b05a512d24da7f/0/data/balloon.jpg"
+      }
+    ]
+  },
   "lexile" : "950",
   "otherAlignments" : {
     "bloomsTaxonomy" : "Analyzing",

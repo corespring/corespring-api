@@ -19,6 +19,46 @@
     "licenseType" : "CC-BY-SA",
     "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "7.butterfly.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "504e9571e4b07f3e2e432371/0/data/7.butterfly.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "butterfly2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "504e9571e4b07f3e2e432371/0/data/butterfly2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "cocoon2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "504e9571e4b07f3e2e432371/0/data/cocoon2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "caterpillar.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "504e9571e4b07f3e2e432371/0/data/caterpillar.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "egg2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "504e9571e4b07f3e2e432371/0/data/egg2.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Understanding",
     "keySkills" : [ 

@@ -19,6 +19,46 @@
     "licenseType" : "CC BY",
     "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/Fall-2013/NECAP_2013_Gr4_Math_Released_Items.pdf"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Butterflies.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/Butterflies.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceA.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceA.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceB.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceB.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceC.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceC.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceD.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceD.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Applying",
     "keySkills" : [ 

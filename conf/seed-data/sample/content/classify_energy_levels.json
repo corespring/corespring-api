@@ -19,6 +19,18 @@
     "licenseType" : "CC-BY-SA",
     "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
   },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "table2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50075deee4b071cb5ef7816e/0/data/table2.png"
+      }
+    ]
+  },
   "otherAlignments" : {
     "bloomsTaxonomy" : "Analyzing",
     "keySkills" : [],
