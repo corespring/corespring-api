@@ -25,7 +25,7 @@
         "name" : "SpoonRec.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "534b4038e4b02c1c0d5866b2/0/data/SpoonRec.png"
+        "storageKey" : "541b102fe92dd2a071f1a13a/0/data/SpoonRec.png"
       }
     ]
   },
@@ -45,7 +45,7 @@
         "name" : "SpoonRec.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b102fe92dd2a071f1a13a/0/data/SpoonRec.png"
       }
     ],
     "xhtml" : "<itemBody>\n<p><p>Sharon is using spoons to measure the perimeter of this rectangle.</p>\n    <p><img src=\"SpoonRec.png\"/></p>\n    What is the perimeter of this rectangle in spoons?\n  </p><corespring-focus-task id=\"Q_01\"></corespring-focus-task>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesExceedMax\"></corespring-feedback-block>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesCorrect\"></corespring-feedback-block>\n\n<corespring-feedback-block id=\"Q_01_feedback_responsesIncorrect\"></corespring-feedback-block>\n\n</itemBody>",

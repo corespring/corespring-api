@@ -27,7 +27,7 @@
         "name" : "dot array.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5193cc53e4b0354c6d0a0dba/0/data/dot array.png"
+        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot array.png"
       }
     ]
   },
@@ -54,7 +54,7 @@
         "name" : "dot array.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b11073240f90fb67ce9df/0/data/dot array.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n   \n<div class=\"imagewrapper\">\n    <img src=\"dot array.png\"/>\n  </div>\n  <p>Which of the following are equal to the number of dots in the picture? (Choose all that apply.)</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n\n  </itemBody>",

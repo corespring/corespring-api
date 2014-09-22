@@ -27,7 +27,7 @@
         "name" : "q34.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21368d0412f06fa2f35b/0/data/q34.jpg"
       }
     ]
   },
@@ -42,7 +42,7 @@
         "name" : "q34.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21368d0412f06fa2f35b/0/data/q34.jpg"
       }
     ],
     "xhtml" : "<itemBody>\n    <p class=\"intro-2\">Lovelle and Rachel are cutting out stars to decorate a poster. In the graph below, Lovelle’s progress is represented by the point L, and Rachel’s progress is represented by the point R.</p>\n    \n    <p class=\"para-center\"><img src=\"q34.jpg\"/></p>\n    \n    <p class=\"prompt\">From the sentences below, pick the statement that is true about Lovelle and Rachel’s progress.</p>\n    <hr style=\"border: none; height:1px; background-color:#111; margin-left: 10%; margin-right: 10%;\"/>\n    <corespring-select-text id=\"selectText\"></corespring-select-text>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesBelowMin\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesExceedMax\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesIncorrect\"></corespring-feedback-block>\n\n  </itemBody>",

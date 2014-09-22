@@ -27,28 +27,28 @@
         "name" : "Seed1.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed1.png"
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed1.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed2.png"
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed2.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed3.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed3.png"
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed3.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed4.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed4.png"
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed4.png"
       }
     ]
   },
@@ -70,28 +70,28 @@
         "name" : "Seed1.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed1.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed2.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed3.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed3.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Seed4.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a8173adef248da4c787/0/data/Seed4.png"
       }
     ],
     "xhtml" : "<itemBody>\n    <h1>Organisms II</h1>\n    <p>Look at the pictures below. Show the order of how a seed grows into a plant. Drag each picture into the space below in the correct order.</p><corespring-ordering id=\"alphabet\"></corespring-ordering>\n\n\n\n  </itemBody>",
@@ -176,7 +176,7 @@
           "name" : "Organisms_Rubrics5.pdf",
           "contentType" : "application/pdf",
           "isMain" : true,
-          "storageKey" : "540c6047e4b087faf031772e/0/materials/Rubric/Organisms_Rubrics5.pdf"
+          "storageKey" : "541b1a8173adef248da4c787/0/materials/Rubric/Organisms_Rubrics5.pdf"
         }
       ]
     }
