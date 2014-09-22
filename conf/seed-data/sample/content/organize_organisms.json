@@ -1,0 +1,206 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b1a8173adef248da4c787"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "Science Coalition Specialists and DOE Staff",
+    "contributor" : "Delaware Department of Education",
+    "copyright" : {
+      "owner" : "Delaware Department of Education",
+      "year" : "none"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.doe.k12.de.us/infosuites/staff/sci_assess/"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed1.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed2.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed3.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed3.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed4.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "540c6047e4b087faf031772e/0/data/Seed4.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Demonstrate", 
+      "Interpret", 
+      "Understand", 
+      "Operate", 
+      "Apply"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed1.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed3.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Seed4.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n    <h1>Organisms II</h1>\n    <p>Look at the pictures below. Show the order of how a seed grows into a plant. Drag each picture into the space below in the correct order.</p><corespring-ordering id=\"alphabet\"></corespring-ordering>\n\n\n\n  </itemBody>",
+    "components" : {
+      "alphabet" : {
+        "componentType" : "corespring-ordering",
+        "correctResponse" : [ 
+          "b", 
+          "a", 
+          "d", 
+          "c"
+        ],
+        "feedback" : {
+          "correctFeedbackType" : "default",
+          "partialFeedbackType" : "default",
+          "incorrectFeedbackType" : "default"
+        },
+        "model" : {
+          "config" : {
+            "shuffle" : true,
+            "choiceAreaLayout" : "horizontal",
+            "answerAreaLabel" : "Place answers here",
+            "placementType" : "placement"
+          },
+          "choices" : [ 
+            {
+              "label" : "<img src=\"Seed1.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "a",
+              "content" : "<img src=\"Seed1.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "a",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"Seed2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "b",
+              "content" : "<img src=\"Seed2.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "b",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"Seed3.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "c",
+              "content" : "<img src=\"Seed3.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "c",
+              "moveOnDrag" : true
+            }, 
+            {
+              "label" : "<img src=\"Seed4.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "value" : "d",
+              "content" : "<img src=\"Seed4.png\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\"/>",
+              "id" : "d",
+              "moveOnDrag" : true
+            }
+          ],
+          "correctResponse" : [ 
+            "b", 
+            "a", 
+            "d", 
+            "c"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [ 
+    "01"
+  ],
+  "priorUse" : "Other",
+  "published" : false,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [],
+  "supportingMaterials" : [ 
+    {
+      "name" : "Rubric",
+      "files" : [ 
+        {
+          "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+          "name" : "Organisms_Rubrics5.pdf",
+          "contentType" : "application/pdf",
+          "isMain" : true,
+          "storageKey" : "540c6047e4b087faf031772e/0/materials/Rubric/Organisms_Rubrics5.pdf"
+        }
+      ]
+    }
+  ],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2d1"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2d6"
+      }
+    },
+    "gradeLevel" : [ 
+      "01"
+    ],
+    "title" : "Look at the pictures below. Show the order of how a seed grows into a plant. Drag each picture into the space below in the correct order.",
+    "itemType" : "Ordering"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

@@ -213,6 +213,7 @@ object Global
    */
   private def seedDemoData() {
     seedData("conf/seed-data/demo")
+    seedData("conf/seed-data/sample")
   }
 
   /* Data that needs to get seeded regardless of the INIT_DATA setting */

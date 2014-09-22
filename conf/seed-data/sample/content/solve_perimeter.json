@@ -1,0 +1,177 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b153df265428922753dd1"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2010"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "11Figure.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5023fa37e4b08be40d045d7a/0/data/11Figure.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Identify", 
+      "Translate", 
+      "Understand", 
+      "Compute", 
+      "Solve"
+    ],
+    "demonstratedKnowledge" : "Procedural"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "11Figure.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n<p class=\"intro-2\">The ﬁgure below is made of squares that are all the same size.</p>\n\n<div class=\"imagewrapper\"><img src=\"11Figure.png\"/></div>\n\n<p class=\"prompt\">What is the perimeter of the ﬁgure?</p>\n\n<p class=\"p-indent-20\">The perimeter of the figure is <corespring-text-entry id=\"Q_01\"></corespring-text-entry> units</p>\n\n  <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n   \n   \n   \n  \n   \n \n  \n  \n\n  </itemBody>",
+    "components" : {
+      "Q_01_feedback" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "correct" : [ 
+            {
+              "input" : "16",
+              "feedback" : "Nice work, that's correct!"
+            }, 
+            {
+              "input" : "16.0",
+              "feedback" : "Nice work, that's correct!"
+            }, 
+            {
+              "input" : "SIXTEEN",
+              "feedback" : "Nice work, that's correct!"
+            }, 
+            {
+              "input" : "sixteen",
+              "feedback" : "Nice work, that's correct!"
+            }, 
+            {
+              "input" : "Sixteen",
+              "feedback" : "Nice work, that's correct!"
+            }
+          ],
+          "incorrect" : [ 
+            {
+              "input" : "*",
+              "feedback" : "Good try, but the perimeter of the figure is 16 units."
+            }
+          ]
+        }
+      },
+      "Q_01" : {
+        "weight" : 1,
+        "componentType" : "corespring-text-entry",
+        "model" : {
+          "answerBlankSize" : 5,
+          "answerAlignment" : "left"
+        },
+        "feedback" : {
+          "correctFeedbackType" : "default",
+          "incorrectFeedbackType" : "default"
+        },
+        "correctResponses" : {
+          "award" : 100,
+          "values" : [ 
+            "SIXTEEN", 
+            "16", 
+            "16.0", 
+            "sixteen", 
+            "Sixteen"
+          ],
+          "ignoreWhitespace" : true,
+          "ignoreCase" : true,
+          "feedback" : {
+            "type" : "default"
+          }
+        },
+        "incorrectResponses" : {
+          "award" : 0,
+          "feedback" : {
+            "type" : "default"
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "4.MD.A.3"
+  ],
+  "supportingMaterials" : [ 
+    {
+      "name" : "Scoring Guide",
+      "files" : [ 
+        {
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
+          "name" : "index.html",
+          "contentType" : "text/html",
+          "isMain" : true,
+          "content" : "<html>\n<head><title>Scoring Guide</title></head>\n<body>\n<h2>Scoring Guide</h2>\n<table>\n<tr>\n<th>Score</th>\n<th>Description</th>\n</tr>\n<tr>\n<td><b>1</b></td>\n<td>for correct answer, <b>16</b> (units)</td>\n</tr>\n<tr>\n<td><b>0</b></td>\n<td>Response is incorrect or contains some correct work that is irrelevant to the skill or concept being measured.\n</td>\n</tr>\n<tr>\n<td><b>Blank</b></td>\n<td>No response</td>\n</tr>\n</table>\n</body>\n</html>"
+        }
+      ]
+    }
+  ],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "04"
+    ],
+    "title" : "The ﬁgure is made of squares that are all the same size. What is the perimeter of the ﬁgure?",
+    "itemType" : "Constructed Response - Short Answer"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

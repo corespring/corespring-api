@@ -1,0 +1,161 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b11073240f90fb67ce9df"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "Illustrative Mathematics",
+    "contributor" : "Illustrative Mathematics",
+    "copyright" : {
+      "owner" : "Illustrative Mathematics",
+      "year" : "2012"
+    },
+    "credentials" : "Other",
+    "licenseType" : "CC-BY-NC",
+    "sourceUrl" : "http://www.illustrativemathematics.org/"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "dot array.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5193cc53e4b0354c6d0a0dba/0/data/dot array.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Understanding",
+    "keySkills" : [ 
+      "Identify", 
+      "Match", 
+      "Name", 
+      "Recognize", 
+      "Relate", 
+      "Select", 
+      "Describe", 
+      "Translate", 
+      "Understand", 
+      "Express"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "dot array.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n   \n<div class=\"imagewrapper\">\n    <img src=\"dot array.png\"/>\n  </div>\n  <p>Which of the following are equal to the number of dots in the picture? (Choose all that apply.)</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n\n  </itemBody>",
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : false
+          },
+          "prompt" : "Which of the following are equal to the number of dots in the picture? (Choose all that apply.)",
+          "choices" : [ 
+            {
+              "label" : "3 + 3 + 3",
+              "value" : "ChoiceA"
+            }, 
+            {
+              "label" : "3 + 4",
+              "value" : "ChoiceB"
+            }, 
+            {
+              "label" : "4 + 4 + 4",
+              "value" : "ChoiceC"
+            }, 
+            {
+              "label" : "4 + 4 + 4 + 4",
+              "value" : "ChoiceD"
+            }, 
+            {
+              "label" : "3 + 3 + 3 + 3",
+              "value" : "ChoiceE"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceB",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceC",
+            "feedback" : "Correct Answer",
+            "notChosenFeedback" : "Correct Answer"
+          }, 
+          {
+            "value" : "ChoiceD",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceE",
+            "feedback" : "Correct Answer",
+            "notChosenFeedback" : "Correct Answer"
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceC", 
+            "ChoiceE"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "2.OA.C.4"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "02"
+    ],
+    "title" : "Which of the following are equal to the number of dots in the picture below? (Choose all that apply.)",
+    "itemType" : "Multi-Multi Choice"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}

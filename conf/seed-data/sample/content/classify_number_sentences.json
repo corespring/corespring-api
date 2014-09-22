@@ -1,0 +1,219 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b1a6c73adef248da4c784"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2013"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/Fall-2013/NECAP_2013_Gr4_Math_Released_Items.pdf"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Butterflies.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/Butterflies.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceA.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceA.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceB.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceB.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceC.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceC.png"
+      },
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceD.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "5377e76ee4b0fc8e64f59897/0/data/SentenceD.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [ 
+      "Apply", 
+      "Interpret", 
+      "Demonstrate", 
+      "Choose"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "Butterflies.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceA.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceB.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceC.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }, 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "SentenceD.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n    <p class=\"intro-2\">Look at this group of butterflies.</p>\n    \n    <div class=\"imagewrapper\">\n      <img src=\"Butterflies.png\"/>\n    </div>\n    \n    <p>Holly wrote two different number sentences that correctly represent this group of butterflies. Which two number sentences did she write?</p><corespring-drag-and-drop id=\"alphabet1\"></corespring-drag-and-drop>\n\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseIncorrect\"></corespring-feedback-block>\n\n\n  </itemBody>",
+    "components" : {
+      "alphabet1" : {
+        "componentType" : "corespring-drag-and-drop",
+        "correctResponse" : {
+          "target1" : [ 
+            "4"
+          ]
+        },
+        "model" : {
+          "choices" : [ 
+            {
+              "id" : "1",
+              "content" : "<img src=\"SentenceA.png\"/>",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "2",
+              "content" : "<img src=\"SentenceB.png\"/>",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "3",
+              "content" : "<img src=\"SentenceC.png\"/>",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "4",
+              "content" : "<img src=\"SentenceD.png\"/>",
+              "moveOnDrag" : true
+            }
+          ],
+          "answerArea" : "\n        <p>Put the correct pair in the space below.</p>\n\n        <span cardinality=\"single\" id=\"target1\" identifier=\"target1\" label=\"Number Sentences\" landing-place=\"landing-place\"/>\n      ",
+          "config" : {
+            "shuffle" : true,
+            "expandHorizontal" : false,
+            "itemsPerRow" : 2,
+            "choicesPosition" : "above"
+          }
+        },
+        "feedback" : []
+      },
+      "alphabet1_feedback_responseCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "alphabet1"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responseCorrect" : {
+              "text" : "\n      <div class=\"feedback-block-correct\">Your answer is correct!</div>\n    ",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "alphabet1_feedback_responseIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "alphabet1"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responseIncorrect" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\">Your answer is incorrect, take a look at the correct answer.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "3.OA.A.1"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+    },
+    "gradeLevel" : [ 
+      "03"
+    ],
+    "title" : "Look at this group of butterflies. Holly wrote two different number sentences that correctly represent this group of butterflies. Which two number sentences did she write?",
+    "itemType" : "Drag & Drop"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

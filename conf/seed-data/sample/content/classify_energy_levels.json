@@ -1,0 +1,156 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b1a6673adef248da4c783"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New England Common Assessment Program",
+    "contributor" : "New England Common Assessment Program",
+    "copyright" : {
+      "owner" : "New England Common Assessment Program",
+      "year" : "2009"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC-BY-SA",
+    "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "table2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "50075deee4b071cb5ef7816e/0/data/table2.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [],
+    "demonstratedKnowledge" : "Conceptual"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "table2.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : ""
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n<p class=\"intro-2\">The graph below shows the potential energy levels of products and reactants during a reaction.</p>\n\n<div class=\"imagewrapper\"><img src=\"table2.png\"/></div>\n     \n    <p>Select the best statement that describes the reaction shown in the graph and drag it into the box below.</p><corespring-drag-and-drop id=\"alphabet1\"></corespring-drag-and-drop>\n    \n    <corespring-feedback-block id=\"alphabet1_feedback_responseCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseIncorrect\"></corespring-feedback-block>\n    \n  </itemBody>",
+    "components" : {
+      "alphabet1" : {
+        "componentType" : "corespring-drag-and-drop",
+        "correctResponse" : {
+          "target1" : [ 
+            "3"
+          ]
+        },
+        "model" : {
+          "choices" : [ 
+            {
+              "id" : "1",
+              "content" : "The reaction is exothermic because the products have less energy than the reactants.",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "2",
+              "content" : "The reaction is endothermic because the reactants have more energy than the products.",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "3",
+              "content" : "The reaction is endothermic because the products have more energy than the reactants.",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "4",
+              "content" : "The reaction is exothermic because the reactants have less energy than the products.",
+              "moveOnDrag" : true
+            }
+          ],
+          "answerArea" : "\n        <span cardinality=\"single\" id=\"target1\" identifier=\"target1\" label=\"Reaction\" landing-place=\"landing-place\"/>\n      ",
+          "config" : {
+            "shuffle" : true,
+            "expandHorizontal" : false,
+            "itemsPerRow" : 1,
+            "choicesPosition" : "above"
+          }
+        },
+        "feedback" : []
+      },
+      "alphabet1_feedback_responseCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "alphabet1"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responseCorrect" : {
+              "text" : "\n      <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Your answer is correct!</div>\n    ",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "alphabet1_feedback_responseIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "alphabet1"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responseIncorrect" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Your answer is incorrect, take a look at the correct answer.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Summative",
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial", 
+    "Bias", 
+    "Fairness", 
+    "Content", 
+    "Psychometric"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2d1"
+      }
+    },
+    "gradeLevel" : [ 
+      "11"
+    ],
+    "title" : "The graph shows the potential energy levels of products and reactants during a reaction. Which statement best describes the reaction shown in the graph?",
+    "itemType" : "Drag & Drop"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

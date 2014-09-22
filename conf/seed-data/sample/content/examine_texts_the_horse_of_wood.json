@@ -1,0 +1,191 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b215a8d0412f06fa2f35f"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "New York State Education Department",
+    "contributor" : "New York State Education Department",
+    "copyright" : {
+      "owner" : "New York State Education Department",
+      "year" : "2012",
+      "imageName" : "nysed.png"
+    },
+    "credentials" : "State Department of Education",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions"
+  },
+  "otherAlignments" : {
+    "keySkills" : []
+  },
+  "playerDefinition" : {
+    "files" : [],
+    "xhtml" : "<itemBody>\n\n<corespring-tabs>\n<corespring-tab title=\"Passage\">\n\n<h1 class=\"para-center\">The Horse of Wood</h1>\n<center class=\"passage-author\">by Alfred J. Church </center>\n\n\n<corespring-numbered-lines id=\"numbered_lines_1\"></corespring-numbered-lines>\n\n\n</corespring-tab>\n</corespring-tabs>\n\n<hr class=\"element-seperator\"/>\n\n    \n    <p>How does Laocoön’s opinion differ from those of other Trojans?</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n    \n        <p> According to lines 1 through 9, what was one problem with Troy’s defense against the Greeks?</p><corespring-multiple-choice id=\"Q_02\"></corespring-multiple-choice>\n    \n  </itemBody>",
+    "components" : {
+      "Q_01" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "How does Laocoön’s opinion differ from those of other Trojans?",
+          "choices" : [ 
+            {
+              "label" : "He thinks they should keep the horse.",
+              "value" : "ChoiceA"
+            }, 
+            {
+              "label" : "He thinks they should not trust the Greeks.",
+              "value" : "ChoiceB"
+            }, 
+            {
+              "label" : "He thinks the Greeks have gone away for good.",
+              "value" : "ChoiceC"
+            }, 
+            {
+              "label" : "He thinks the horse is a gift from the Greeks.",
+              "value" : "ChoiceD"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }, 
+          {
+            "value" : "ChoiceB",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceC",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }, 
+          {
+            "value" : "ChoiceD",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceB"
+          ]
+        }
+      },
+      "Q_02" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "false",
+            "orientation" : "vertical",
+            "choiceStyle" : "",
+            "singleChoice" : true
+          },
+          "prompt" : "According to lines 1 through 9, what was one problem with Troy’s defense against the Greeks?",
+          "choices" : [ 
+            {
+              "label" : "They had lost many of the bravest chiefs.",
+              "value" : "ChoiceE"
+            }, 
+            {
+              "label" : "They had not tested the strategy for very long.",
+              "value" : "ChoiceF"
+            }, 
+            {
+              "label" : "They were not able to leave their city.",
+              "value" : "ChoiceG"
+            }, 
+            {
+              "label" : "They could not keep the Greeks out of Troy.",
+              "value" : "ChoiceH"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceE",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }, 
+          {
+            "value" : "ChoiceF",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }, 
+          {
+            "value" : "ChoiceG",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceH",
+            "feedback" : "Your answer",
+            "notChosenFeedback" : "Your answer"
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceG"
+          ]
+        }
+      },
+      "numbered_lines_1" : {
+        "componentType" : "corespring-numbered-lines",
+        "weight" : 0,
+        "model" : {
+          "lines" : [ 
+            "The Greeks <b xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">besieged</b> the city of Troy for nearly ten years. They could not take \nit because the walls were so high and strong—some said that they had been built by \nthe hands of gods—but they kept the Trojans inside. This had not always been so. \nThere had been a time when the Trojans had gone out and fought with their enemies \non the plain, sometimes they had beaten them in battle, and once they had very\nnearly burnt their ships. But this was all changed. They had lost some of the bravest \nof their chiefs, such as Hector, the best of the sons of Priam, and Paris the great \narcher, and many great princes, who had come from the countries round about to \nhelp them.", 
+            "We can easily believe then that Priam, King of Troy, and his people were very \nglad to hear that one day the Greeks had gone home. Two Trojans, who had left the \ncity two weeks or so before on a message from King Priam to one of his allies, came \nback saying that they had gone to the camp of the Greeks and had found it empty, \nand that there were no ships to be seen. Everyone who was not ill or too old to move \nabout made all the <b xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">haste</b> they could to get out of the city. The gates were opened \nwide for the first time during ten years, and men, women, and children hurried out \nto see the plain where so many battles had been fought, and the camp in which the \nenemy had lived, and the place where the ships had been dragged up on the shore. ", 
+            "As you may suppose, those who had fought in the battles had a great deal to say \n about what they had done and what they had seen. There were many things to see, \nbut the strangest one of all was a great Horse of Wood, which was standing not far \nfrom the walls of the city. No one was quite sure what it was, or what it meant. One \nman said: “It is a very curious thing. Let us drag it into the city that it may  be a \nmonument of all that we have suffered for the last ten years.” Others said: “Not so; \nwe had better burn it, or drag it down to the sea that the water may cover it, or cut it \nopen to see whether there is anything inside.” Of these no one was more vehement \nthan Laocoön, priest of Neptune. “Take heed what you do, men of Troy,” he cried. \n“Who knows whether the Greeks have really gone away? It may be that there are \narmed men inside this Horse; it may be that it has been made so big to overtop the \n walls of the city. Anyhow I am afraid of these Greeks, even when they give us gifts.”\nAnd as he spoke, he threw the spear which he had in his hand at the Horse of Wood, \nand struck it on the side. A great rattling sound was heard, and the Trojans, if they \nhad not been very blind and foolish, might have known that there was something \nwrong. ", 
+            "While the dispute was going on, some shepherds came up, bringing with them \na man whose hands were bound behind his back. He had come out from a hidingplace, they said, of his own <b xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">accord</b>, when they were in the field. The young Trojans \ncrowded round him, and began to mock at him, but he cried out in a very piteous \nvoice: “What shall I do? Where shall I go? The Greeks will not let me live, and the \nTrojans cry out for vengeance upon me.” Then they began to pity him, and they \n<b xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">bade</b> him say who he was and what he had to tell.", 
+            "Then King Priam had pity on him and bade them unbind his hands, saying: \n“Forget your own people; from to-day you are one of us. But tell us now, why did the \nGreeks make this great Horse of Wood that we see?”", 
+            "Then Sinon lifted up his hands to the sky and said: “O sun and moon and stars, I \ncall you to witness that I have a good right to tell the secrets of my countrymen. \nListen, O King. From the beginning, when the Greeks first came to this place, their \nhope has been in the help of Minerva. But she was angry with them for this cause. \nUlysses and Diomed made their way into your city, and climbed into the <b xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">citadel</b>, and \nkilled the guards. And then with hands all bloody from the slaughter, they laid hold \nof her image and carried it away. It was this that made the goddess angry, that they \nshould dare to touch her with hands stained with blood. I saw with my own eyes \nhow the eyes of the image, when these two brought it into the  camp, flashed with \nanger, and how the drops of sweat stood upon it; yes, and how it leapt three times \nfrom the ground, shaking shield and spear. Then the prophet said: ‘You must go back \nto Greece, and come again, and begin the war again, if you wish to take the city of \nTroy’—and this they are doing now; they have gone back to Greece, and they will \nsoon return. Furthermore, he said: ‘You must make a Horse of Wood to be a peaceoffering to Minerva. Make it, I advise you, very great, so that the Trojans may not \ntake it within their walls. For, if they do so take it, then you will never conquer their \ncity. Nay, they will come to our own land, and lay siege to our cities, and our children \nwill suffer the things which we have sought to bring on them. But if they hurt the \nthing, then they themselves shall perish.’ ”", 
+            "Then they all cried out together that the Horse of Wood should be drawn into \nthe citadel. So they opened the great gate of the city, pulling down part of the wall \nthat there might be more room, and they put rollers under the feet of the Horse, and \nthey fastened ropes to it. Then they drew it into the city, boys and girls laying hold of \nthe ropes, and singing songs with great joy. And everyone thought it a great thing if \nhe could put his hand to a rope. But there were not wanting signs of evil to come. \nFour times did the Horse halt as they dragged it, before it passed through the gate, \nand each time there might have been heard a great clashing of arms within. Also \nCassandra opened her mouth, and that she should speak the truth and not be \nbelieved. So the Trojans drew the Horse of Wood into the city. That night they kept a \nfeast to the gods with great joy, not knowing that the end of their city was now close \nat hand. "
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "published" : true,
+  "reviewsPassed" : [ 
+    "Editorial"
+  ],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "RL.6.1"
+  ],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ad"
+      }
+    },
+    "gradeLevel" : [ 
+      "06"
+    ],
+    "title" : "Read the passage <i>The Horse of Wood</i> by Alfred J. Church. How does Laocoön’s opinion differ from those of other Trojans? What was one problem with Troy’s defense against the Greeks?",
+    "itemType" : "Passage With Questions"
+  },
+  "workflow" : {
+    "setup" : true,
+    "tagged" : true,
+    "standardsAligned" : true,
+    "qaReview" : false
+  }
+}
