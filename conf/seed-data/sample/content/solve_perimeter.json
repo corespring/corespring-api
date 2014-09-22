@@ -27,7 +27,7 @@
         "name" : "11Figure.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5023fa37e4b08be40d045d7a/0/data/11Figure.png"
+        "storageKey" : "541b153df265428922753dd1/0/data/11Figure.png"
       }
     ]
   },
@@ -49,7 +49,7 @@
         "name" : "11Figure.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b153df265428922753dd1/0/data/11Figure.png"
       }
     ],
     "xhtml" : "<itemBody>\n<p class=\"intro-2\">The ﬁgure below is made of squares that are all the same size.</p>\n\n<div class=\"imagewrapper\"><img src=\"11Figure.png\"/></div>\n\n<p class=\"prompt\">What is the perimeter of the ﬁgure?</p>\n\n<p class=\"p-indent-20\">The perimeter of the figure is <corespring-text-entry id=\"Q_01\"></corespring-text-entry> units</p>\n\n  <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n   \n   \n   \n  \n   \n \n  \n  \n\n  </itemBody>",

@@ -27,42 +27,42 @@
         "name" : "FigurePattern.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/FigurePattern.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/FigurePattern.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern1.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern1.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern1.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern2.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern2.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern3.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern3.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern3.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern4.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/Pattern4.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern4.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "FigurePattern2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5353ec19e4b01d4bbe467e90/0/data/FigurePattern2.png"
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/FigurePattern2.png"
       }
     ]
   },
@@ -85,42 +85,42 @@
         "name" : "FigurePattern.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/FigurePattern.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern1.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern1.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern2.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern3.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern3.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "Pattern4.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/Pattern4.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "FigurePattern2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21238d0412f06fa2f359/0/data/FigurePattern2.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n    <p class=\"intro-2\">Look at this pattern. <img src=\"FigurePattern2.png\"/>\n    </p>\n    <p>What figure comes next in the pattern?</p><corespring-drag-and-drop id=\"alphabet1\"></corespring-drag-and-drop>\n\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseIncorrect\"></corespring-feedback-block>\n\n\n  </itemBody>",

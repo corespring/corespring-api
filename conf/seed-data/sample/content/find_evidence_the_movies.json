@@ -27,7 +27,7 @@
         "name" : "q37.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21408d0412f06fa2f35c/0/data/q37.jpg"
       }
     ]
   },
@@ -42,7 +42,7 @@
         "name" : "q37.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b21408d0412f06fa2f35c/0/data/q37.jpg"
       }
     ],
     "xhtml" : "<itemBody>\n    <p class=\"intro-2\">A movie theater kept track of the attendance on Fridays and Saturdays. The results are shown in the box plots below.</p>\n    \n    <div class=\"imagewrapper\">\n      <img src=\"q37.jpg\"/>\n    </div>\n    \n    <p class=\"prompt\">From the sentences below, pick the conclusion that can be drawn from the box plots.</p>\n    <hr style=\"border: none; height:1px; background-color:#111; margin-left: 10%; margin-right: 10%;\"/>\n    <corespring-select-text id=\"selectText\"></corespring-select-text>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesBelowMin\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesExceedMax\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesIncorrect\"></corespring-feedback-block>\n\n  </itemBody>",

@@ -27,7 +27,7 @@
         "name" : "Fractions.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5378bf0ae4b0bc778cd0bbb7/0/data/Fractions.png"
+        "storageKey" : "541b1a7973adef248da4c786/0/data/Fractions.png"
       }
     ]
   },
@@ -47,7 +47,7 @@
         "name" : "Fractions.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7973adef248da4c786/0/data/Fractions.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n  <p class=\"intro-2\">You may use this model to help answer the question.</p>\n    \n    <div class=\"imagewrapper\">\n      <img src=\"Fractions.png\"/>\n    </div>\n    \n  <p>Order the following fractions from <b>least</b> to <b>greatest</b>:</p><corespring-ordering id=\"Q_01\"></corespring-ordering>\n\n\n    \n  </itemBody>",
