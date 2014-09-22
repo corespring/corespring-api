@@ -27,14 +27,14 @@
         "name" : "baseballgame.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5023cbb6e4b08be40d045d58/0/data/baseballgame.png"
+        "storageKey" : "541b1538f265428922753dd0/0/data/baseballgame.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "woodchess.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "5023cbb6e4b08be40d045d58/0/data/woodchess.png"
+        "storageKey" : "541b1538f265428922753dd0/0/data/woodchess.png"
       }
     ]
   },
@@ -60,14 +60,14 @@
         "name" : "baseballgame.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1538f265428922753dd0/0/data/baseballgame.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "woodchess.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1538f265428922753dd0/0/data/woodchess.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n <div class=\"imagewrapper\"><img src=\"woodchess.png\"/></div>\n <div class=\"image-copyright\">Copyright 2009 cogdog</div>\n\n<h1>Where's the Best Deal?</h1>\n  <p class=\"intro-2\">Greg wants to buy a computer chess game with a regular price of $40. A hobby shop sells the computer chess game at a discounted price of 30% off the regular price. </p>\n\n  <p class=\"prompt\">What is the discounted price, in dollars, of the computer chess game at the hobby shop?</p> \n     <p> The discounted price of the chess game is $<corespring-text-entry id=\"Q_01\"></corespring-text-entry>.00 </p>\n     \n       <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n \n  \n\n  <p>A department store sells the same computer chess game at a discounted price of 20% off the regular \nprice of $40. On Saturday, the department store will take an additional 10% off the already discounted \nprice of this computer chess game.</p>\n\n    <p>Should Greg buy the computer chess game at the hobby shop or at the department store on Saturday?</p><corespring-multiple-choice id=\"Q_02\"></corespring-multiple-choice>\n    \n    \n <div class=\"imagewrapper\"><img src=\"baseballgame.png\"/></div>\n <div class=\"image-copyright\">Copyright 2006 Rafael Amado Deras</div>\n \n <h1>What's the regular price?</h1>\n <p>Later that week Greg bought a computer baseball game at the department store. The department store sold the computer baseball game at a discounted price of 20% off the regular price. The store took an additional 10% off the already discounted price. After both discounts, Greg paid $18 for the game.</p>\n  <p class=\"prompt\">What is the regular price of the computer baseball game?</p>\n    <p>The regular price is $<corespring-text-entry id=\"Q_03\"></corespring-text-entry>.00</p>\n    \n  <corespring-feedback-block id=\"Q_03_feedback\"></corespring-feedback-block>\n   \n \n  \n  \n\n    <p class=\"prompt\">How do you know? Explain.</p>\n    <corespring-extended-text-entry id=\"Q_04\"></corespring-extended-text-entry>\n\n\n  </itemBody>",
@@ -248,56 +248,56 @@
           "name" : "0pointa.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/0pointa.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/0pointa.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "1pointa.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/1pointa.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/1pointa.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "2pointa.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/2pointa.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/2pointa.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "2pointb.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/2pointb.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/2pointb.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "3pointa.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/3pointa.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/3pointa.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "3pointb.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/3pointb.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/3pointb.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "4pointa.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/4pointa.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/4pointa.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
           "name" : "4pointb.png",
           "contentType" : "image/png",
           "isMain" : false,
-          "storageKey" : "5023cbb6e4b08be40d045d58/0/materials/Scoring Guide/4pointb.png"
+          "storageKey" : "541b1538f265428922753dd0/0/materials/Scoring Guide/4pointb.png"
         }, 
         {
           "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",

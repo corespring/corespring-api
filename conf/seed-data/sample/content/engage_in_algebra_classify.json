@@ -19,7 +19,7 @@
         "name" : "hats.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "51f80523e4b097670d816a2b/0/data/hats.png"
+        "storageKey" : "541b217a8d0412f06fa2f362/0/data/hats.png"
       }
     ]
   },
@@ -34,7 +34,7 @@
         "name" : "hats.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b217a8d0412f06fa2f362/0/data/hats.png"
       }
     ],
     "xhtml" : "<itemBody>\n    \n    <div class=\"image-wrapper\"><img src=\"hats.png\"/><div class=\"note-tip\">Image courtesy of PermaClass</div></div> \n    <p>Elizabeth and Hector both love to collect hats. \n     <ul>\n     <li>\n       Elizabeth has three times as many hats as Hector.\n        </li>\n        <li>In total, they have 56 hats. </li>\n        <li>The number of hats Hector has is represented by <i>h</i>. </li>\n    </ul></p>\n  \n\n    <p>Drag each expression to the category that correctly describes whether the expression does or does not equal the total number of hats. </p><corespring-drag-and-drop id=\"hats\"></corespring-drag-and-drop>\n\n  </itemBody>",

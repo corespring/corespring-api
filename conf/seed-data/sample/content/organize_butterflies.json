@@ -27,35 +27,35 @@
         "name" : "7.butterfly.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "504e9571e4b07f3e2e432371/0/data/7.butterfly.png"
+        "storageKey" : "541b1a7273adef248da4c785/0/data/7.butterfly.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "butterfly2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "504e9571e4b07f3e2e432371/0/data/butterfly2.png"
+        "storageKey" : "541b1a7273adef248da4c785/0/data/butterfly2.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "cocoon2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "504e9571e4b07f3e2e432371/0/data/cocoon2.png"
+        "storageKey" : "541b1a7273adef248da4c785/0/data/cocoon2.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "caterpillar.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "504e9571e4b07f3e2e432371/0/data/caterpillar.png"
+        "storageKey" : "541b1a7273adef248da4c785/0/data/caterpillar.png"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "egg2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : "504e9571e4b07f3e2e432371/0/data/egg2.png"
+        "storageKey" : "541b1a7273adef248da4c785/0/data/egg2.png"
       }
     ]
   },
@@ -79,35 +79,35 @@
         "name" : "7.butterfly.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7273adef248da4c785/0/data/7.butterfly.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "butterfly2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7273adef248da4c785/0/data/butterfly2.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "cocoon2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7273adef248da4c785/0/data/cocoon2.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "caterpillar.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7273adef248da4c785/0/data/caterpillar.png"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "egg2.png",
         "contentType" : "image/png",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a7273adef248da4c785/0/data/egg2.png"
       }
     ],
     "xhtml" : "<itemBody>\n\n<p class=\"intro-2\">The life cycle of butterﬂies has four stages. One of these stages is pictured below.</p>\n\n<div class=\"image-wrapper\"><img src=\"7.butterfly.png\"/></div>\n     \n    \n    <p>Arrange the stages of life of a butterfly in order from beginning to end.</p><corespring-ordering id=\"RESPONSE\"></corespring-ordering>\n    \n  </itemBody>",

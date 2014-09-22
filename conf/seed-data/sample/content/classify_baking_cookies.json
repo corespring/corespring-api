@@ -27,28 +27,28 @@
         "name" : "17a.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17a.jpg"
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17a.jpg"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17b.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17b.jpg"
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17b.jpg"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17c.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17c.jpg"
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17c.jpg"
       },
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17d.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : "53425ce1e4b0ae64d5f8690e/0/data/17d.jpg"
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17d.jpg"
       }
     ]
   },
@@ -68,28 +68,28 @@
         "name" : "17a.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17a.jpg"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17b.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17b.jpg"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17c.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17c.jpg"
       }, 
       {
         "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
         "name" : "17d.jpg",
         "contentType" : "image/jpg",
         "isMain" : false,
-        "storageKey" : ""
+        "storageKey" : "541b1a5d73adef248da4c782/0/data/17d.jpg"
       }
     ],
     "xhtml" : "<itemBody>\n\n    <p class=\"intro-2\">Bradley uses <span>\\(\\frac{2}{3}\\)</span> of a cup of sugar to make a batch of cookies. The expression below shows how much sugar, in cups, he uses to make 4 batches of cookies.\n    </p>\n    \n    <p class=\"para-center\"><span>\\(\\small 4 \\times \\frac{2}{3}\\)</span></p>\n    \n    <p>Which fraction model is equal to the number of cups of sugar Bradley uses for all 4 batches of cookies? Select the model and drag to the box below.</p><corespring-drag-and-drop id=\"alphabet1\"></corespring-drag-and-drop>\n\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"alphabet1_feedback_responseIncorrect\"></corespring-feedback-block>\n\n\n  </itemBody>",
