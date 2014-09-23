@@ -199,7 +199,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def resource(path: String): Option[String] = Play.resource(s"container-client/bower_components/$path").map { url =>
       logger.trace(s"load resource $path")
-      IOUtils.toString(url.openStream(), "UTF-8")
+      val input = url.openStream()
+      val content = IOUtils.toString(input, "UTF-8")
+      IOUtils.closeQuietly(input)
+      content
     }
 
     override def loadLibrarySource(path: String): Option[String] = {
@@ -261,6 +264,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
       import scala.io.Codec
       Play.resourceAsStream("public/web/standards_tree.json").map { is =>
         val contents = IOUtils.toString(is,"UTF-8")
+        IOUtils.closeQuietly(is)
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
