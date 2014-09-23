@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client}
 import com.ee.assets.deployment.ContentInfo
 import com.typesafe.config.ConfigFactory
 import java.io._
-import org.apache.commons.io.FileUtils
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.{Before, Specification}
 import play.api.Play
@@ -39,7 +38,7 @@ class S3DeployerTest extends Specification {
       import play.api.Play.current
 
       val file = Play.getFile(path)
-      val source: String = FileUtils.readFileToString(file)
+      val source: String = scala.io.Source.fromFile(file.getAbsolutePath).getLines().mkString("\n")
       val inputStream = new ByteArrayInputStream(source.getBytes("UTF-8"))
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript")) match {
         case Left(e) => failure(e)

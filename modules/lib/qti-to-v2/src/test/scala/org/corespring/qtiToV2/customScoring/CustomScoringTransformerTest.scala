@@ -2,7 +2,6 @@ package org.corespring.qtiToV2.customScoring
 
 import java.io.File
 
-import org.apache.commons.io.FileUtils
 import org.mozilla.javascript.{ Context, Scriptable }
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
@@ -97,7 +96,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
   }
 
   "bad js" should {
-    val sets = loadFileSets("badJs", "qti.js", FileUtils.readFileToString)
+    val sets = loadFileSets("badJs", "qti.js", (f: File) => scala.io.Source.fromFile(f).getLines.mkString("\n"))
     examplesBlock {
       sets.map { s => s"execute the js + session for: ${s.name}" >> jsExecutionWorks(s) }
     }
@@ -125,7 +124,7 @@ class CustomScoringTransformerTest extends Specification with JsContext with JsF
     def mkSet(qti: File, s: File): TestSet = {
 
       val json = try {
-        Json.parse(FileUtils.readFileToString(s))
+        Json.parse(scala.io.Source.fromFile(s).getLines().mkString("\n"))
       } catch {
         case e: Throwable => throw new RuntimeException(s"Error parsing: ${s.getAbsolutePath}")
       }

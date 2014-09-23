@@ -1,6 +1,5 @@
 package org.corespring.player.v1.controllers.launcher
 
-import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.{ AESCrypto, Crypto }
 import org.corespring.common.log.PackageLogging
@@ -160,7 +159,10 @@ object AssetLoadingDefaults extends PackageLogging {
     private def load(p: String): String = {
       Play.resource(p).map { url =>
         val stream = url.openStream()
-        IOUtils.toString(stream)
+        val d = io.Source.fromInputStream(stream)
+        val content = d.getLines.mkString("\n")
+        d.close()
+        content
       }.getOrElse {
         logger.warn(s"Can't find resource: $p")
         ""
