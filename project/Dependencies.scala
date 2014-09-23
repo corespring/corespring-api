@@ -13,7 +13,7 @@ object Dependencies {
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.0")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.0-1")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
@@ -26,6 +26,7 @@ object Dependencies {
     .exclude("com.google.code.findbugs", "jsr305")
     .exclude("com.googlecode.jarjar", "jarjar")
     .exclude("junit", "junit")
+  val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
@@ -57,6 +58,7 @@ object Dependencies {
     assetsLoader,
     aws,
     closureCompiler,
+    commonsIo,
     commonsLang,
     jbcrypt,
     mongoDbSeeder,
