@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model._
 import com.ee.assets.deployment.{ ContentInfo, Deployer }
 import java.io.{ InputStream, ByteArrayInputStream }
 import java.util.Date
+import com.ee.assets.transformers.{ SimpleDeployedElement, DeployedElement }
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.utils.string
 import scala.collection.mutable
@@ -20,7 +21,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   def listAssets: Map[String, String] = deployed.toMap
 
-  def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
+  override def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, DeployedElement] = {
 
     val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
@@ -40,7 +41,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
         }
     }.getOrElse(None)
 
-    def uploadFileAndReturnUrl: Either[String, String] = {
+    def uploadFileAndReturnUrl: Either[String, DeployedElement] = {
       client.map {
         s3 =>
           try {
@@ -56,7 +57,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             val bytesInputStream = new ByteArrayInputStream(bytes)
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
             deployed += (key -> S3Deployer.url(bucket, deploymentPath))
-            Right(deployed.get(key).get)
+            Right(SimpleDeployedElement(deployed.get(key).get))
           } catch {
             case e: Throwable => Left(e.getMessage)
           }
@@ -64,7 +65,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
     }
 
     val url: Option[String] = deployed.get(key).orElse(checkS3)
-    url.map(Right(_)).getOrElse(uploadFileAndReturnUrl)
+    url.map(u => Right(SimpleDeployedElement(u))).getOrElse(uploadFileAndReturnUrl)
   }
 
   private def toByteArray(is: InputStream) = {
