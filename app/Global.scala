@@ -55,7 +55,7 @@ object Global
       modeKey <- if (current.mode == Mode.Prod) Some("prod") else Some("non-prod")
       modeConfig <- container.getConfig(modeKey)
       commonConfig <- container.getConfig("common")
-    } yield modeConfig ++ commonConfig
+    } yield commonConfig ++ modeConfig
   }.getOrElse(Configuration.empty)
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
