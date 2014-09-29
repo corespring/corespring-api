@@ -55,6 +55,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             metadata.setContentLength(bytes.length)
             val bytesInputStream = new ByteArrayInputStream(bytes)
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
+            bytesInputStream.close()
             deployed += (key -> S3Deployer.url(bucket, deploymentPath))
             Right(deployed.get(key).get)
           } catch {
