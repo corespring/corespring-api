@@ -1,0 +1,285 @@
+{
+	"_id" : {
+		"_id" : {
+      "$oid" : "5429c271be21836918134f7f"
+    },
+		"version" : 0
+	},
+	"collectionId" : "541b00bd5966943aed30daf9",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"additionalCopyrights" : [ ],
+		"author" : "Illustrative Mathematics",
+		"contributor" : "Illustrative Mathematics",
+		"copyright" : {
+			"owner" : "Illustrative Mathematics",
+			"year" : "2013"
+		},
+		"credentials" : "Other",
+		"licenseType" : "CC BY-NC-SA",
+		"sourceUrl" : "www.illustrativemathematics.org"
+	},
+	"otherAlignments" : {
+		"bloomsTaxonomy" : "Analyzing",
+		"keySkills" : [
+			"Apply",
+			"Demonstrate",
+			"Modify",
+			"Explain",
+			"Analyze",
+			"Breakdown",
+			"Describe",
+			"Interpret"
+		],
+		"demonstratedKnowledge" : "Procedural"
+	},
+	"playerDefinition" : {
+		"files" : [ ],
+		"xhtml" : "<itemBody>\n\n        <h1>Chicken and Steak, Variation 2</h1>\n        <p class=\"intro-2\">Consider the relationship between the number of pounds of chicken and the number of pounds of steak that can be purchased for a barbecue on a fixed budget.</p>\n        \n        <p class=\"prompt\">a. Write an equation for this relationship given that chicken costs $2.00 per pound, steak costs $4.00 per pound, and the total allotment for both is $100. </p>\n        \n        <p/>\n        <corespring-text-entry id=\"Q_01\"></corespring-text-entry>\n        <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n\n        \n\n        \n        <hr/>\n        <p class=\"prompt\">b. Sketch a graph for the equation. Place points A and B on any two points that lie on the line. </p>\n        <corespring-line id=\"graphTest\"></corespring-line>\n\n        <corespring-feedback-block id=\"graphTest_feedback_incorrect\"></corespring-feedback-block>\n\n        <corespring-feedback-block id=\"graphTest_feedback_correct\"></corespring-feedback-block>\n\n        <p class=\"prompt\">Describe how the amount of steak that can be purchased depends on the amount of chicken purchased. What is the significance of the graph’s x- and y-intercepts?</p>\n        \n        <corespring-extended-text-entry id=\"Q_02\"></corespring-extended-text-entry>\n        \n        <hr/>\n       <p class=\"prompt\">c. Re-write the equation to show the amount of steak purchased in terms of the amount of chicken purchased. </p> \n       <p>Equation:<corespring-text-entry id=\"Q_03a\"></corespring-text-entry></p>\n        <corespring-feedback-block id=\"Q_03a_feedback\"></corespring-feedback-block>\n\n        \n\n        \n        \n       <p>Use this equation to describe how the amount of steak purchased changes with each pound of chicken purchased.</p> <corespring-extended-text-entry id=\"Q_03b\"></corespring-extended-text-entry>\n        <hr/>\n        <p class=\"prompt\">d. Both the equation and the graph can be used to find amounts of chicken and steak that can be purchased for the barbecue on a fixed budget of $100. Explain how important features of the graph can be seen or found with the equation and describe what they say about the relationship between chicken and steak purchases.  </p>\n        \n        <corespring-extended-text-entry id=\"Q_04\"></corespring-extended-text-entry>\n\n\n\n    </itemBody>",
+		"components" : {
+			"Q_03a" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 10,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"y=-0.5x+25",
+						"y=-.5x+25",
+						"y=-1/2x+25"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"Q_03a_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_03a"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "y=-0.5x+25",
+							"feedback" : "Nice work, that's correct!"
+						},
+						{
+							"input" : "y=-.5x+25",
+							"feedback" : "Nice work, that's correct!"
+						},
+						{
+							"input" : "y=-1/2x+25",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is y=-.5x+25."
+						}
+					]
+				}
+			},
+			"Q_01" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 10,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"2x+4y=100"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"Q_03b" : {
+				"componentType" : "corespring-extended-text-entry",
+				"model" : {
+					"config" : {
+						"expectedLines" : 7
+					}
+				}
+			},
+			"Q_02" : {
+				"componentType" : "corespring-extended-text-entry",
+				"model" : {
+					"config" : {
+						"expectedLines" : 5
+					}
+				}
+			},
+			"Q_01_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_01"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "2x+4y=100",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 2x+4y=100"
+						}
+					]
+				}
+			},
+			"graphTest" : {
+				"componentType" : "corespring-line",
+				"model" : {
+					"config" : {
+						"domain" : 60,
+						"range" : 30,
+						"scale" : 0,
+						"domainLabel" : "x",
+						"rangeLabel" : "y",
+						"tickLabelFrequency" : 1,
+						"sigfigs" : -1,
+						"exhibitOnly" : false,
+						"showInputs" : true,
+						"showLabels" : true
+					}
+				},
+				"correctResponse" : "y=-0.5x+25"
+			},
+			"graphTest_feedback_incorrect" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "graphTest"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"outcome" : {
+						"incorrect" : {
+							"text" : "\n            <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try.</div>\n        ",
+							"correct" : false
+						}
+					}
+				}
+			},
+			"graphTest_feedback_correct" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "graphTest"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"outcome" : {
+						"correct" : {
+							"text" : "\n            <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Correct!</div>\n        ",
+							"correct" : true
+						}
+					}
+				}
+			},
+			"Q_04" : {
+				"componentType" : "corespring-extended-text-entry",
+				"model" : {
+					"config" : {
+						"expectedLines" : 7
+					}
+				}
+			}
+		},
+		"summaryFeedback" : ""
+	},
+	"priorGradeLevels" : [
+		"08"
+	],
+	"priorUse" : "Formative",
+	"published" : true,
+	"reviewsPassed" : [ ],
+	"sharedInCollections" : [ ],
+	"standards" : [
+		"8.F.B.4"
+	],
+	"supportingMaterials" : [
+		{
+			"name" : "Solution",
+			"files" : [
+				{
+					"_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+					"name" : "Solutions.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5429c271be21836918134f7f/0/materials/Solution/Solutions.pdf"
+				}
+			]
+		},
+		{
+			"name" : "Commentary",
+			"files" : [
+				{
+					"_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+					"name" : "Commentary.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5429c271be21836918134f7f/0/materials/Commentary/Commentary.pdf"
+				}
+			]
+		}
+	],
+	"taskInfo" : {
+		"extended" : {
+			
+		},
+		"subjects" : {
+			"primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+			"related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c7"
+      }
+		},
+		"gradeLevel" : [
+			"08"
+		],
+		"title" : "Chicken and Steak, Variation 2",
+		"itemType" : "Plot Lines"
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	}
+}

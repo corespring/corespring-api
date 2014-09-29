@@ -1,0 +1,458 @@
+{
+	"_id" : {
+		"_id" : {
+      "$oid" : "5429c348be21836918134f80"
+    },
+		"version" : 0
+	},
+	"collectionId" : "541b00bd5966943aed30daf9",
+	"contentType" : "item",
+	"contributorDetails" : {
+		"additionalCopyrights" : [ ],
+		"author" : "Illustrative Mathematics",
+		"contributor" : "Illustrative Mathematics",
+		"copyright" : {
+			"owner" : "Illustrative Mathematics",
+			"year" : "2013"
+		},
+		"credentials" : "Other",
+		"licenseType" : "CC BY-NC-SA",
+		"sourceUrl" : "www.illustrativemathematics.org"
+	},
+	"data" : {
+		"name" : "data",
+		"files" : [
+			{
+				"_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
+				"name" : "qti.xml",
+				"contentType" : "text/xml",
+				"isMain" : true,
+				"content" : "<?xml version='1.0' encoding='UTF-8'?>\n<assessmentItem xmlns='http://www.imsglobal.org/xsd/imsqti_v2p1'\n                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n                xsi:schemaLocation='http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd'\n                identifier='composite' title='Composite Item' adaptive='false' timeDependent='false'>\n\n     <responseDeclaration identifier='Q_01' cardinality='single' baseType='string'>\n        <correctResponse>\n            <value>2</value>\n            <value>two</value>\n            <value>Two</value>\n            <value>TWO</value>\n        </correctResponse>\n    </responseDeclaration>\n    \n    <responseDeclaration identifier='Q_02' cardinality='single' baseType='string'/>\n\n    <responseDeclaration identifier='Q_03a' cardinality='single' baseType='string'>\n        <correctResponse>\n            <value>5</value>\n        </correctResponse>\n    </responseDeclaration>\n    <!-- definition for question one, a short text entry response with correct answer = 'CORRECT ANSWER' -->\n    <responseDeclaration identifier='Q_03b' cardinality='single' baseType='string'>\n        <correctResponse>\n            <value>6</value>\n        </correctResponse>\n    </responseDeclaration>\n    <!-- definition for question one, a short text entry response with correct answer = 'CORRECT ANSWER' -->\n    <responseDeclaration identifier='Q_03c' cardinality='single' baseType='string'>\n        <correctResponse>\n            <value>5</value>\n        </correctResponse>\n    </responseDeclaration>\n    <!-- definition for question one, a short text entry response with correct answer = 'CORRECT ANSWER' -->\n    <responseDeclaration identifier='Q_03d' cardinality='single' baseType='string'>\n        <correctResponse>\n            <value>2</value>\n        </correctResponse>\n    </responseDeclaration>\n\n    <responseDeclaration identifier='interceptTest' baseType='string' cardinality='ordered'>\n        <correctResponse>\n            <value>0,2</value>\n            <value>1,5</value>\n            <value>2,6</value>\n            <value>3,5</value>\n            <value>4,2</value>\n        </correctResponse>\n    </responseDeclaration>\n    \n    <responseDeclaration identifier='Q_04' cardinality='single' baseType='string'/>\n    \n    <itemBody>\n        <h1>Medieval Archer (Extended) </h1>\n    \n        <p class='intro-2'>A computer game uses functions to simulate the paths of an archer’s arrows. The <tex>\\small x</tex>-axis represents the level ground on which the archer stands, and the coordinate pair <tex>\\small (2, 5)</tex> represents the top of a castle wall over which he is trying to fire an arrow.</p>\n        <p>In response to user input, the first arrow followed a path defined by the function <tex>\\small f(x)=6-x^2</tex>, failing to clear the castle wall.</p>\n        <div class=\"image-wrapper\">\n            <img src=\"q62.jpg\"/>\n        </div>\n        <p>The next arrow must be launched with the same force and trajectory, so the user must reposition the archer in order for his next arrow to have any chance of clearing the wall. </p>\n        <hr/>\n        \n        <p class='prompt'>a. How much closer to the wall must the archer stand in order for the arrow to clear the wall by the greatest possible distance? </p>\n            <p class='p-indent-20'>The archer must stand <textEntryInteraction responseIdentifier='Q_01' expectedLength='1'/> units closer to the wall.</p> \n        <feedbackBlock\n                outcomeIdentifier='responses.Q_01.value'\n                identifier='2'>\n            <div class='feedback-block-correct'>Nice work, that's correct!</div>\n        </feedbackBlock>\n\n        <feedbackBlock\n                outcomeIdentifier='responses.Q_01.value'\n                identifier='two'>\n            <div class='feedback-block-correct'>Nice work, that's correct!</div>\n        </feedbackBlock>\n\n        <feedbackBlock\n                outcomeIdentifier='responses.Q_01.value'\n                identifier='Two'>\n            <div class='feedback-block-correct'>Nice work, that's correct!</div>\n        </feedbackBlock>\n\n        <feedbackBlock\n                outcomeIdentifier='responses.Q_01.value'\n                identifier='TWO'>\n            <div class='feedback-block-correct'>Nice work, that's correct!</div>\n        </feedbackBlock>\n\n        <!-- this is for any response not defined as a correct response in responseDeclaration -->\n        <feedbackBlock\n                outcomeIdentifier='responses.Q_01.value'\n                incorrectResponse='true'>\n            <div class='feedback-block-incorrect'>Good try, but the answer is 2 units.</div>\n        </feedbackBlock>\n        <hr/>\n        \n        <p class='prompt'>b. What function must the user enter in order to accomplish this? Be sure to distribute the function so it ends in the '<tex>\\small f(x)=ax^2+bx+c</tex>' format.</p>\n        <extendedTextInteraction responseIdentifier='Q_02' expectedLines='7'/>\n        <hr/>\n        \n        <p class='prompt'>c. Complete the following table, inputting the <tex>\\small x</tex> coordinates into the function you computed in question (b) to calculate the <tex>\\small y</tex>-values:</p>\n        <table>\n            <tr>\n                <td style=\"background-color: #EEE;\"><b><tex>\\small x</tex>-values</b></td>\n                <td>0</td>\n                <td>1</td>\n                <td>2</td>\n                <td>3</td>\n                <td>4</td>\n            </tr>\n            <tr>\n                <td style=\"background-color: #EEE;\"><b><tex>\\small y</tex>-values</b></td>\n                <td>2</td>\n                <td>\n                    <textEntryInteraction responseIdentifier='Q_03a' expectedLength='1'/>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03a.value' identifier='5'>\n                        <div class='feedback-block-correct'>Nice work, that's correct!</div>\n                    </feedbackBlock>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03a.value' incorrectResponse='true'>\n                        <div class='feedback-block-incorrect'>Good try, but the answer is 5.</div>\n                    </feedbackBlock>\n                </td>\n                <td>\n                    <textEntryInteraction responseIdentifier='Q_03b' expectedLength='1'/>\n\n                    <feedbackBlock outcomeIdentifier='responses.Q_03b.value' identifier='6'>\n                        <div class='feedback-block-correct'>Nice work, that's correct!</div>\n                    </feedbackBlock>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03b.value' incorrectResponse='true'>\n                        <div class='feedback-block-incorrect'>Good try, but the answer is 6.</div>\n                    </feedbackBlock>\n                </td>\n                <td>\n                    <textEntryInteraction responseIdentifier='Q_03c' expectedLength='1'/>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03c.value' identifier='5'>\n                        <div class='feedback-block-correct'>Nice work, that's correct!</div>\n                    </feedbackBlock>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03c.value' incorrectResponse='true'>\n                        <div class='feedback-block-incorrect'>Good try, but the answer is 5.</div>\n                    </feedbackBlock>\n                </td>\n                <td>\n                    <textEntryInteraction responseIdentifier='Q_03d' expectedLength='1'/>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03d.value' identifier='2'>\n                        <div class='feedback-block-correct'>Nice work, that's correct!</div>\n                    </feedbackBlock>\n                    \n                    <feedbackBlock outcomeIdentifier='responses.Q_03d.value' incorrectResponse='true'>\n                        <div class='feedback-block-incorrect'>Good try, but the answer is 2.</div>\n                    </feedbackBlock>\n                </td>\n            </tr>\n        </table>\n        <hr/>\n        <p class='p-indent-20'>Now plot the data in the graph below:</p>\n        \n        <pointInteraction responseIdentifier='interceptTest'\n                          graph-width='500px'\n                          graph-height='500px'\n                          domain='5'\n                          range='8'\n                          scale='1'\n                          range-label='y'\n                          domain-label='x'\n                          tick-label-frequency='2'\n                          point-labels='0,1,2,3,4'\n                          additional-text='Begin with the provided point, (0,2). You may click and drag any points after placing them on the graph.'\n                          max-points='5'\n                         />\n\n        <feedbackBlock outcomeIdentifier='responses.interceptTest.outcome.incorrect'>\n            <div class='feedback-block-incorrect'>Good try.</div>\n        </feedbackBlock>\n\n        <feedbackBlock outcomeIdentifier='responses.interceptTest.outcome.correct'>\n            <div class='feedback-block-correct'>Correct!</div>\n        </feedbackBlock>\n        \n        <hr/>\n        \n        <p class='prompt'>d. If the user can only enter functions of the form <tex>\\small f(x+k)</tex>, what are all the values of <tex>\\small k</tex> that would result in the arrow clearing the castle wall? Express you answer as an inequality.</p>\n        <extendedTextInteraction responseIdentifier='Q_04' expectedLines='10'/>\n        \n    </itemBody>\n</assessmentItem>"
+			},
+			{
+				"_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+				"name" : "q62.jpg",
+				"contentType" : "image/jpg",
+				"isMain" : false,
+				"storageKey" : "5429c348be21836918134f80/0/data/q62.jpg"
+			}
+		]
+	},
+	"otherAlignments" : {
+		"bloomsTaxonomy" : "Evaluating",
+		"keySkills" : [
+			"Devise",
+			"Formulate",
+			"Analyze",
+			"Calculate",
+			"Solve"
+		],
+		"demonstratedKnowledge" : "Procedural"
+	},
+	"playerDefinition" : {
+		"files" : [
+			{
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "q62.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "5429c348be21836918134f80/0/data/q62.jpg"
+			}
+		],
+		"xhtml" : "<itemBody>\n        <h1>Medieval Archer (Extended) </h1>\n    \n        <p class=\"intro-2\">A computer game uses functions to simulate the paths of an archer’s arrows. The <span>\\(\\small x\\)</span>-axis represents the level ground on which the archer stands, and the coordinate pair <span>\\(\\small (2, 5)\\)</span> represents the top of a castle wall over which he is trying to fire an arrow.</p>\n        <p>In response to user input, the first arrow followed a path defined by the function <span>\\(\\small f(x)=6-x^2\\)</span>, failing to clear the castle wall.</p>\n        <div class=\"image-wrapper\">\n            <img src=\"q62.jpg\"/>\n        </div>\n        <p>The next arrow must be launched with the same force and trajectory, so the user must reposition the archer in order for his next arrow to have any chance of clearing the wall. </p>\n        <hr/>\n        \n        <p class=\"prompt\">a. How much closer to the wall must the archer stand in order for the arrow to clear the wall by the greatest possible distance? </p>\n            <p class=\"p-indent-20\">The archer must stand <corespring-text-entry id=\"Q_01\"></corespring-text-entry> units closer to the wall.</p> \n        <corespring-feedback-block id=\"Q_01_feedback\"></corespring-feedback-block>\n\n        \n\n        \n\n        \n\n        \n        \n        <hr/>\n        \n        <p class=\"prompt\">b. What function must the user enter in order to accomplish this? Be sure to distribute the function so it ends in the '<span>\\(\\small f(x)=ax^2+bx+c\\)</span>' format.</p>\n        <corespring-extended-text-entry id=\"Q_02\"></corespring-extended-text-entry>\n        <hr/>\n        \n        <p class=\"prompt\">c. Complete the following table, inputting the <span>\\(\\small x\\)</span> coordinates into the function you computed in question (b) to calculate the <span>\\(\\small y\\)</span>-values:</p>\n        <table>\n            <tr>\n                <td style=\"background-color: #EEE;\"><b><span>\\(\\small x\\)</span>-values</b></td>\n                <td>0</td>\n                <td>1</td>\n                <td>2</td>\n                <td>3</td>\n                <td>4</td>\n            </tr>\n            <tr>\n                <td style=\"background-color: #EEE;\"><b><span>\\(\\small y\\)</span>-values</b></td>\n                <td>2</td>\n                <td>\n                    <corespring-text-entry id=\"Q_03a\"></corespring-text-entry>\n                    \n                    <corespring-feedback-block id=\"Q_03a_feedback\"></corespring-feedback-block>\n                    \n                    \n                </td>\n                <td>\n                    <corespring-text-entry id=\"Q_03b\"></corespring-text-entry>\n\n                    <corespring-feedback-block id=\"Q_03b_feedback\"></corespring-feedback-block>\n                    \n                    \n                </td>\n                <td>\n                    <corespring-text-entry id=\"Q_03c\"></corespring-text-entry>\n                    \n                    <corespring-feedback-block id=\"Q_03c_feedback\"></corespring-feedback-block>\n                    \n                    \n                </td>\n                <td>\n                    <corespring-text-entry id=\"Q_03d\"></corespring-text-entry>\n                    \n                    <corespring-feedback-block id=\"Q_03d_feedback\"></corespring-feedback-block>\n                    \n                    \n                </td>\n            </tr>\n        </table>\n        <hr/>\n        <p class=\"p-indent-20\">Now plot the data in the graph below:</p>\n        \n        <corespring-point-intercept id=\"interceptTest\"></corespring-point-intercept>\n\n        <corespring-feedback-block id=\"interceptTest_feedback_incorrect\"></corespring-feedback-block>\n\n        <corespring-feedback-block id=\"interceptTest_feedback_correct\"></corespring-feedback-block>\n        \n        <hr/>\n        \n        <p class=\"prompt\">d. If the user can only enter functions of the form <span>\\(\\small f(x+k)\\)</span>, what are all the values of <span>\\(\\small k\\)</span> that would result in the arrow clearing the castle wall? Express you answer as an inequality.</p>\n        <corespring-extended-text-entry id=\"Q_04\"></corespring-extended-text-entry>\n        \n    </itemBody>",
+		"components" : {
+			"Q_03a" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 1,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"5"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"Q_03a_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_03a"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "5",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 5."
+						}
+					]
+				}
+			},
+			"interceptTest_feedback_incorrect" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "interceptTest"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"outcome" : {
+						"incorrect" : {
+							"text" : "\n            <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try.</div>\n        ",
+							"correct" : false
+						}
+					}
+				}
+			},
+			"Q_03c" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 1,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"5"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"interceptTest" : {
+				"componentType" : "corespring-point-intercept",
+				"correctResponse" : [
+					"0,2",
+					"1,5",
+					"2,6",
+					"3,5",
+					"4,2"
+				],
+				"model" : {
+					"config" : {
+						"maxPoints" : "5",
+						"scale" : 1,
+						"domain" : 5,
+						"range" : 8,
+						"domainLabel" : "x",
+						"rangeLabel" : "y",
+						"tickLabelFrequency" : 2,
+						"pointLabels" : "0,1,2,3,4"
+					}
+				}
+			},
+			"Q_03b_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_03b"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "6",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 6."
+						}
+					]
+				}
+			},
+			"Q_01" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 1,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"2",
+						"two",
+						"Two",
+						"TWO"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"interceptTest_feedback_correct" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "interceptTest"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"outcome" : {
+						"correct" : {
+							"text" : "\n            <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Correct!</div>\n        ",
+							"correct" : true
+						}
+					}
+				}
+			},
+			"Q_03b" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 1,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"6"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"Q_03d_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_03d"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "2",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 2."
+						}
+					]
+				}
+			},
+			"Q_02" : {
+				"componentType" : "corespring-extended-text-entry",
+				"model" : {
+					"config" : {
+						"expectedLines" : 7
+					}
+				}
+			},
+			"Q_01_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_01"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "2",
+							"feedback" : "Nice work, that's correct!"
+						},
+						{
+							"input" : "two",
+							"feedback" : "Nice work, that's correct!"
+						},
+						{
+							"input" : "Two",
+							"feedback" : "Nice work, that's correct!"
+						},
+						{
+							"input" : "TWO",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 2 units."
+						}
+					]
+				}
+			},
+			"Q_03d" : {
+				"weight" : 1,
+				"componentType" : "corespring-text-entry",
+				"model" : {
+					"answerBlankSize" : 1,
+					"answerAlignment" : "left"
+				},
+				"feedback" : {
+					"correctFeedbackType" : "default",
+					"incorrectFeedbackType" : "default"
+				},
+				"correctResponses" : {
+					"award" : 100,
+					"values" : [
+						"2"
+					],
+					"ignoreWhitespace" : true,
+					"ignoreCase" : true,
+					"feedback" : {
+						"type" : "default"
+					}
+				},
+				"incorrectResponses" : {
+					"award" : 0,
+					"feedback" : {
+						"type" : "default"
+					}
+				}
+			},
+			"Q_03c_feedback" : {
+				"componentType" : "corespring-feedback-block",
+				"target" : {
+					"id" : "Q_03c"
+				},
+				"weight" : 0,
+				"feedback" : {
+					"correct" : [
+						{
+							"input" : "5",
+							"feedback" : "Nice work, that's correct!"
+						}
+					],
+					"incorrect" : [
+						{
+							"input" : "*",
+							"feedback" : "Good try, but the answer is 5."
+						}
+					]
+				}
+			},
+			"Q_04" : {
+				"componentType" : "corespring-extended-text-entry",
+				"model" : {
+					"config" : {
+						"expectedLines" : 10
+					}
+				}
+			}
+		},
+		"summaryFeedback" : ""
+	},
+	"priorGradeLevels" : [ ],
+	"priorUse" : "Formative",
+	"published" : true,
+	"reviewsPassed" : [ ],
+	"sharedInCollections" : [ ],
+	"standards" : [
+		"HSF-BF.B.3"
+	],
+	"supportingMaterials" : [
+		{
+			"name" : "Commentary",
+			"files" : [
+				{
+					"_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+					"name" : "commentary.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5429c348be21836918134f80/0/materials/Commentary/commentary.pdf"
+				}
+			]
+		},
+		{
+			"name" : "Solutions",
+			"files" : [
+				{
+					"_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+					"name" : "solutions.pdf",
+					"contentType" : "application/pdf",
+					"isMain" : true,
+					"storageKey" : "5429c348be21836918134f80/0/materials/Solutions/solutions.pdf"
+				}
+			]
+		}
+	],
+	"taskInfo" : {
+		"extended" : {
+			
+		},
+		"subjects" : {
+			"primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      }
+		},
+		"gradeLevel" : [
+			"09",
+			"10",
+			"11",
+			"12"
+		],
+		"title" : "Medieval Archer (Extended)",
+		"itemType" : "Composite - Algebra"
+	},
+	"workflow" : {
+		"setup" : false,
+		"tagged" : false,
+		"standardsAligned" : false,
+		"qaReview" : false
+	}
+}
