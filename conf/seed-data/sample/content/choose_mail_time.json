@@ -88,7 +88,9 @@
     },
     "summaryFeedback" : ""
   },
-  "priorGradeLevels" : [],
+  "priorGradeLevels" : [
+    "08"
+  ],
   "priorUse" : "Other",
   "published" : true,
   "reviewsPassed" : [ 
@@ -104,6 +106,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c9"
       }
     },
     "gradeLevel" : [ 

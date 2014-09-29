@@ -15,6 +15,8 @@
       "owner" : "New England Common Assessment Program",
       "year" : "2013"
     },
+    "credentials" : "Other",
+    "licenseType" : "CC BY",
     "sourceUrl" : "http://www.ride.ri.gov/Portals/0/Uploads/Documents/Instruction-and-Assessment-World-Class-Standards/Assessment/NECAP/Released-Items/Fall-2013/NECAP_2013_Gr3_Math_Released_Items.pdf"
   },
   "data" : {
@@ -133,7 +135,9 @@
     },
     "summaryFeedback" : ""
   },
-  "priorGradeLevels" : [],
+  "priorGradeLevels" : [
+    "03"
+  ],
   "priorUse" : "Summative",
   "published" : true,
   "reviewsPassed" : [ 
@@ -153,6 +157,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
       }
     },
     "gradeLevel" : [ 

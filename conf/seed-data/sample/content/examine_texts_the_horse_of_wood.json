@@ -160,6 +160,7 @@
     "summaryFeedback" : ""
   },
   "priorGradeLevels" : [],
+  "priorUse" : "Other",
   "published" : true,
   "reviewsPassed" : [ 
     "Editorial"
@@ -173,6 +174,9 @@
     "extended" : {},
     "subjects" : {
       "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ac"
+      },
+      "related" : {
         "$oid" : "4ffb535f6bb41e469c0bf2ad"
       }
     },

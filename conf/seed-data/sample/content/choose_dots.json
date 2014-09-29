@@ -16,7 +16,7 @@
       "year" : "2012"
     },
     "credentials" : "Other",
-    "licenseType" : "CC-BY-NC",
+    "licenseType" : "CC BY-NC-SA",
     "sourceUrl" : "http://www.illustrativemathematics.org/"
   },
   "data" : {
@@ -129,7 +129,10 @@
     },
     "summaryFeedback" : ""
   },
-  "priorGradeLevels" : [],
+  "priorGradeLevels" : [
+    "02"
+  ],
+  "priorUse" : "Formative",
   "published" : true,
   "reviewsPassed" : [ 
     "Editorial"
@@ -144,9 +147,12 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
       }
     },
-    "gradeLevel" : [ 
+    "gradeLevel" : [
       "02"
     ],
     "title" : "Which of the following are equal to the number of dots in the picture below? (Choose all that apply.)",

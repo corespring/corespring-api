@@ -32,8 +32,15 @@
     ]
   },
   "otherAlignments" : {
-    "keySkills" : [],
-    "demonstratedKnowledge" : "None"
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [
+      "Analyze",
+      "Apply",
+      "Compare",
+      "Examine"
+    ],
+    "demonstratedKnowledge" : "Conceptual"
+
   },
   "playerDefinition" : {
     "files" : [ 
@@ -153,6 +160,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c9"
       }
     },
     "gradeLevel" : [ 

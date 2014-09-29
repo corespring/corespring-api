@@ -199,7 +199,7 @@
     "summaryFeedback" : ""
   },
   "priorGradeLevels" : [],
-  "priorUse" : "Summative",
+  "priorUse" : "Other",
   "published" : true,
   "reviewsPassed" : [ 
     "Editorial", 
@@ -209,7 +209,7 @@
     "Psychometric"
   ],
   "sharedInCollections" : [],
-  "standards" : [ 
+  "standards" : [
     "3.OA.A.3"
   ],
   "supportingMaterials" : [],
@@ -218,13 +218,16 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
       }
     },
     "gradeLevel" : [ 
       "03"
     ],
     "title" : "Look at this pattern. What figure comes next in the pattern?",
-    "itemType" : "Drag & Drop"
+    "itemType" : "Inline Choice"
   },
   "workflow" : {
     "setup" : false,

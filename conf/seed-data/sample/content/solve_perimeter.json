@@ -16,7 +16,7 @@
       "year" : "2010"
     },
     "credentials" : "State Department of Education",
-    "licenseType" : "CC-BY-SA",
+    "licenseType" : "CC BY",
     "sourceUrl" : "http://www.ride.ri.gov/InstructionAssessment/Assessment/NECAPAssessment/NECAPReleasedItems/tabid/426/LiveAccID/15410/Default.aspx"
   },
   "data" : {
@@ -160,6 +160,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
       }
     },
     "gradeLevel" : [ 
