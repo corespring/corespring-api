@@ -123,6 +123,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2d1"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2d9"
       }
     },
     "gradeLevel" : [ 

@@ -21,8 +21,14 @@
     "sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions"
   },
   "otherAlignments" : {
-    "keySkills" : [],
-    "demonstratedKnowledge" : "None"
+    "bloomsTaxonomy" : "Applying",
+    "keySkills" : [
+      "Apply",
+      "Solve",
+      "Compute",
+      "Calculate"
+    ],
+    "demonstratedKnowledge" : "Procedural"
   },
   "playerDefinition" : {
     "files" : [],
@@ -89,6 +95,7 @@
     "summaryFeedback" : ""
   },
   "priorGradeLevels" : [],
+  "priorUse": "Other",
   "published" : true,
   "reviewsPassed" : [ 
     "Editorial"
@@ -103,6 +110,9 @@
     "subjects" : {
       "primary" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c2"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c8"
       }
     },
     "gradeLevel" : [ 

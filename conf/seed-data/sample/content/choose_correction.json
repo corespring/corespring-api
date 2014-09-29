@@ -16,7 +16,7 @@
       "year" : "1995-2003"
     },
     "credentials" : "Assessment Developer",
-    "licenseType" : "CC-BY-SA",
+    "licenseType" : "CC-BY-NC",
     "sourceUrl" : "http://nces.ed.gov/timss/index.asp"
   },
   "otherAlignments" : {
@@ -116,7 +116,7 @@
     "extended" : {},
     "subjects" : {
       "primary" : {
-        "$oid" : "4ffb535f6bb41e469c0bf2c8"
+        "$oid" : "4ffb535f6bb41e469c0bf2c2"
       },
       "related" : {
         "$oid" : "4ffb535f6bb41e469c0bf2c8"

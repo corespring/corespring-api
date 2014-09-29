@@ -16,6 +16,7 @@
       "year" : "2013"
     },
     "credentials" : "Other",
+    "licenseType" : "CC BY",
     "sourceUrl" : "www.readworks.org"
   },
   "data" : {
@@ -484,6 +485,7 @@
     "summaryFeedback" : ""
   },
   "priorGradeLevels" : [],
+  "priorUse" : "Formative",
   "published" : true,
   "reviewsPassed" : [],
   "sharedInCollections" : [],
@@ -516,6 +518,9 @@
     "extended" : {},
     "subjects" : {
       "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ac"
+      },
+      "related" : {
         "$oid" : "4ffb535f6bb41e469c0bf2ad"
       }
     },
