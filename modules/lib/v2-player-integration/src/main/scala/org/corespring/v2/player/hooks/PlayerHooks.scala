@@ -57,7 +57,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
+      item <- itemTransformer.updateV2Json(vid).toSuccess(generalError("Error generating item v2 JSON"))
       json <- Success(createSessionJson(vid))
       sessionId <- auth.create(json)(identity)
     } yield sessionId
