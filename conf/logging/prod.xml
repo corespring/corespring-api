@@ -12,9 +12,6 @@
 
     <logger name="org.corespring.api.tracking" level="INFO"/>
 
-    <!-- CA-1947 -->
-    <logger name="SalatVersioningDao" level="TRACE"/>
-
     <logger name="client-logger" level="INFO"/>
 
     <root level="ERROR">

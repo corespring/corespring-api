@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.5.9-SNAPSHOT"
+  val containerVersion = "0.6.0-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
@@ -79,8 +79,7 @@ object Dependencies {
     containerClientWeb,
     componentLoader,
     componentModel,
-    newRelic
-  )
+    newRelic)
 
   object Resolvers {
 
