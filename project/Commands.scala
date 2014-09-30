@@ -1,3 +1,6 @@
+import sbt.Keys._
+import sbt._
+
 object Commands {
 
   def runJsTests(u:Unit) : Unit = {
@@ -10,4 +13,5 @@ object Commands {
     if (exitCode != 0) sys.error("error")
     u
   }
+
 }
