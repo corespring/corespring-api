@@ -17,3 +17,4 @@ mongo-migrator.log
 .heroku-helper-env.conf
 *.iml
 atlassian-*
+.ensime*

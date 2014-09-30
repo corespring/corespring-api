@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.5.7-memory-leak-SNAPSHOT"
+  val containerVersion = "0.5.10-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
@@ -13,7 +13,7 @@ object Dependencies {
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.0-memory-leak-SNAPSHOT")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
