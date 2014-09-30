@@ -21,7 +21,14 @@
     "sourceUrl" : "www.p12.nysed.gov/apda/common-core-sample-questions"
   },
   "otherAlignments" : {
-    "keySkills" : []
+    "bloomsTaxonomy" : "Understand",
+    "keySkills" : [
+      "Understand",
+      "Explain",
+      "Generalize",
+      "Interpret"
+    ],
+    "demonstratedKnowledge" : "Factual"
   },
   "playerDefinition" : {
     "files" : [],
