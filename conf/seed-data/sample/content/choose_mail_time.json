@@ -38,7 +38,7 @@
           "config" : {
             "shuffle" : "",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : false
           },
           "prompt" : "",
