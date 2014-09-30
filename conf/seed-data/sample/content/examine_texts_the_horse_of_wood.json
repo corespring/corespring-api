@@ -40,7 +40,8 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "How does Laocoön’s opinion differ from those of other Trojans?",
@@ -97,7 +98,8 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "According to lines 1 through 9, what was one problem with Troy’s defense against the Greeks?",

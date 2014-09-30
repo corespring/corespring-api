@@ -65,7 +65,8 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : false
           },
           "prompt" : "Which of the following are equal to the number of dots in the picture? (Choose all that apply.)",

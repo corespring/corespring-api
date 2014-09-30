@@ -40,7 +40,8 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "If the original price of a \nmicrowave oven is $500, how much will Eli pay for the oven before tax?",
