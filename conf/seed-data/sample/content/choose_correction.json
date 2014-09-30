@@ -42,7 +42,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "What could he do to correct his mistake?",

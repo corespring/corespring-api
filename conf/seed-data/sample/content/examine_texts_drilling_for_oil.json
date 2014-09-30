@@ -144,7 +144,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "1.  What does extracting mean as used in paragraph 2?",
@@ -201,7 +201,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "6.  Which statement best describes the structure of the passage?",
@@ -258,7 +258,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "2.  The author compares deepwater drilling rigs to “small floating villages” because the rigs are",
@@ -315,7 +315,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "5.  With which of these statements would the author most likely agree?",
@@ -380,7 +380,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "",
+            "choiceStyle" : "radio",
             "singleChoice" : true
           },
           "prompt" : "4.  What is the most likely reason that the author includes the information in paragraph 9?",
