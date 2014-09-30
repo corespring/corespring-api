@@ -42,13 +42,16 @@ case class Item(
 
   /** We're going to update this with a flag **/
   def createdByApiVersion: Int =
-    data
-      .find(_.defaultFile.isDefined)
-      .map(_.defaultFile).map(_ match {
-        case Some(file) => if (file.name == Item.QtiResource.QtiXml) 1 else 2
-        case _ => 2
-      })
-      .getOrElse(2)
+    data match {
+      case Some(data) => {
+        data.files.find(file => (file.isMain, file.name) match {
+          case (true, Item.QtiResource.QtiXml) => true
+          case _ => false
+        }).map(_ => 1).getOrElse(2)
+      }
+      case _ => 2
+    }
+
 
 }
 
