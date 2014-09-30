@@ -38,7 +38,8 @@
           "config" : {
             "shuffle" : "",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : false
           },
           "prompt" : "",

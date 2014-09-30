@@ -62,7 +62,8 @@
           "config" : {
             "shuffle" : "true",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : false
           },
           "prompt" : "",
@@ -235,7 +236,8 @@
           "config" : {
             "shuffle" : "true",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "2. What problem does Keith Rodriguez solve?",
@@ -365,7 +367,8 @@
           "config" : {
             "shuffle" : "true",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "5. What is this story mainly about?",
@@ -430,7 +433,8 @@
           "config" : {
             "shuffle" : "true",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "4.  Based on information in the passage, what would make a good landing area for a hot\nair balloon?",

@@ -157,7 +157,8 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceStyle" : "radio",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
             "singleChoice" : true
           },
           "prompt" : "Should Greg buy the computer chess game at the hobby shop or at the department store on Saturday?",
