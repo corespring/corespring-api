@@ -8,6 +8,7 @@ import MongoDbSeederPlugin._
 object Build extends sbt.Build {
 
   import Dependencies._
+  import ComponentsBuilder._
 
   val appName = "corespring"
   val appVersion = "1.0"
@@ -249,6 +250,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
+    .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .dependsOn(scormWeb,
       reports,
       public,
