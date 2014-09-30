@@ -65,7 +65,7 @@
           "config" : {
             "shuffle" : "false",
             "orientation" : "vertical",
-            "choiceType" : "radio",
+            "choiceType" : "checkbox",
             "choiceLabels" : "letters",
             "singleChoice" : false
           },
