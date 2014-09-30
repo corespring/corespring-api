@@ -95,7 +95,7 @@ trait ItemTransformer {
         itemPlayerDef match {
           case Some(itemPlayer) => itemPlayer
           case None if item.createdByApiVersion == 1 => createFromQti(item)
-          case _ => throw new IllegalArgumentException(s"Item ${item.id} did not contain QTI XML or component JSON")
+          case _ => throw new IllegalArgumentException(s"Item ${item.id} did not contain QTI XML or component JSON, ${item.createdByApiVersion}")
         }
       }
     })

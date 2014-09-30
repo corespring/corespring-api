@@ -25,13 +25,6 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
         values.map(n => JsString(n.text.trim))
       }
 
-      def choiceStyle = {
-        ((node \ "@choiceStyle").text, correctResponses.length) match {
-          case (choiceStyle, responseCount) if (choiceStyle.isEmpty) => if (responseCount == 1) "radio" else "checkbox"
-          case (choiceStyle, responseCount) => choiceStyle
-        }
-      }
-
       val json = Json.obj(
         "componentType" -> (node.label match {
           case "choiceInteraction" => "corespring-multiple-choice"
@@ -42,7 +35,8 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
           "config" -> Json.obj(
             "shuffle" -> (node \ "@shuffle").text,
             "orientation" -> JsString(if ((node \ "@orientation").text == "horizontal") "horizontal" else "vertical"),
-            "choiceStyle" -> JsString(choiceStyle),
+            "choiceType" -> JsString(if (correctResponses.length == 1) "radio" else "checkbox"),
+            "choiceStyle" -> JsString((node \ "@choiceStyle").text),
             "singleChoice" -> JsBoolean(((node \ "@maxChoices").text == "1"))),
           "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
           "choices" -> JsArray(((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n =>
