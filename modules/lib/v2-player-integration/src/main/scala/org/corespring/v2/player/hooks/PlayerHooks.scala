@@ -10,7 +10,7 @@ import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.http.Status._
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.Future
@@ -95,7 +95,15 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
     o.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
       val (session, item) = models
-      (session, itemTransformer.transformToV2Json(item))
+      val v2Json = itemTransformer.transformToV2Json(item)
+
+      //Ensure that only the requested properties are returned
+      val playerV2Json = Json.obj(
+        "xhtml" -> (v2Json \ "xhtml").as[String],
+        "components" -> (v2Json \ "components").as[JsValue],
+        "summaryFeedback" -> (v2Json \ "summaryFeedback").as[String])
+
+      (session, playerV2Json)
     }.toEither
   }
 }
