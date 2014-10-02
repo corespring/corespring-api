@@ -82,10 +82,11 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     if (!items || items.length == 0) {
       return "None Selected";
     }
-    var out = _.map(items, function (i) {
-      return i.key
+    var out = _.pluck(items, "key").map(function (key) {
+      var numericKey = parseInt(key)
+      return isNaN(numericKey) ? key : numericKey
     });
-    return out.join(", ").replace(/^\s*0+/g, "");
+    return out.join(", ")
   };
 
   function applyPermissions(items){
