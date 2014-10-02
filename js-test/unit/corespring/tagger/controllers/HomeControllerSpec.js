@@ -87,6 +87,11 @@ describe('HomeController', function () {
       expect(scope.items).toEqual(["item"]);
     });
 
+    it("getSelectedTitle should not remove 0 from 10", function () {
+      var result = scope.getSelectedTitle([{key:"10"}]);
+      expect(result).toEqual("10");
+    });
+
   });
 
 });

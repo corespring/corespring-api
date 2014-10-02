@@ -85,7 +85,7 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     var out = _.map(items, function (i) {
       return i.key
     });
-    return out.join(", ").replace(/0/g, "");
+    return out.join(", ").replace(/^\s*0+/g, "");
   };
 
   function applyPermissions(items){
