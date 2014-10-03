@@ -21,9 +21,7 @@ object ComponentsBuilder {
         (npmCmd, "install grunt-cli"),
         (npmCmd, "install"),
         (bowerCmd, "install"),
-        (gruntCmd, "less"),
-        ("rm -r", componentsRoot + "/node_modules"),
-        ("rm -r", componentsRoot + "/bower_components"))
+        (gruntCmd, "buildcomponents"))
 
       commands.foreach {
         c => {
