@@ -11,6 +11,8 @@
     <logger name="api" level="WARN" />
     <logger name="SalatVersioningDao" level="TRACE"/>
     <logger name="org.corespring.v2.player.AllItemsVersionTransformer" level="TRACE"/>
+    <logger name="org.corespring.api.tracking" level="INFO"/>
+
 
     <root level="ERROR">
         <appender-ref ref="STDOUT" />
