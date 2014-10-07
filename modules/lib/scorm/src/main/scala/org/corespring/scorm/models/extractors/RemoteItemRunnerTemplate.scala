@@ -1,6 +1,7 @@
 package org.corespring.scorm.models.extractors
 
 import java.io.File
+import org.apache.commons.io.FileUtils
 import org.corespring.common.utils.string
 import scala.io.Source
 
@@ -19,7 +20,7 @@ object RemoteItemRunnerTemplate {
     if (f == null || !f.exists() || !f.getName.endsWith(Name)) {
       None
     } else {
-      val template: String = Source.fromFile(f).mkString
+      val template: String = FileUtils.readFileToString(f)
       val contents = string.interpolate(template, string.replaceKey(tokens), string.DollarRegex)
       Some(FinalName, contents)
     }

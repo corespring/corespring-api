@@ -157,6 +157,7 @@ object Build extends sbt.Build {
   val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+    .dependsOn(v2Errors, core, playerLib, testLib % "test->compile")
 
   val v2Api = builders.web("v2-api")
     .settings(

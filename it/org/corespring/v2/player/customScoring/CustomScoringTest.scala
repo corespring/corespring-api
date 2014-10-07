@@ -3,6 +3,7 @@ package org.corespring.v2.player.customScoring
 import java.io.File
 
 import common.seed.SeedDb
+import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
@@ -92,7 +93,7 @@ class CustomScoringTest extends IntegrationSpecification {
       require(url != null)
       val file = new File(url.toURI)
       require(file.exists)
-      scala.io.Source.fromFile(file).getLines.mkString("\n")
+      FileUtils.readFileToString(file)
     }
 
     private def seedItem(collectionId: ObjectId): VersionedId[ObjectId] = {

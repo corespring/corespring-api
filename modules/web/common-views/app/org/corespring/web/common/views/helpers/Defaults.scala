@@ -13,12 +13,14 @@ object Defaults {
   val propsFile = "/buildInfo.properties"
 
   private val properties = {
-    val url = Play.resource( propsFile )
-    url.map{ u =>
+    val url = Play.resource(propsFile)
+    url.map { u =>
+      val input = u.openStream()
       val props = new Properties()
-      props.load(u.openStream())
+      props.load(input)
+      input.close()
       props
-    }.getOrElse( new Properties() )
+    }.getOrElse(new Properties())
   }
 
   lazy val fieldValues: String = FieldValue.findOne(MongoDBObject()) match {
@@ -33,7 +35,7 @@ object Defaults {
   }
 
   lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
-  lazy val pushDate: String = properties.getProperty("date", "?" )
+  lazy val pushDate: String = properties.getProperty("date", "?")
   lazy val branch: String = properties.getProperty("branch", "?")
 
   def envName(default: String): String = get("ENV_NAME").getOrElse(default)

@@ -35,6 +35,7 @@ The libraries and modules are located in the modules folder:
 ## Testing
 
 Note: The seeding of the app is now part of the sbt build - It won't happen as part of the app start up. To seed before you test run:
+Note: Make sure that the app is using the same db as the MongoSeeder. At the moment MongoSeeder uses "api"   
 
     > seed-test
     > test

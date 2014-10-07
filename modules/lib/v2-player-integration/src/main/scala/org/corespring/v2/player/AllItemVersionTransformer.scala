@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import com.mongodb.casbah.Imports
+import com.mongodb.util.JSON
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.BaseFindAndSaveService
@@ -28,26 +29,35 @@ class AllItemVersionTransformer extends ItemTransformer {
       import com.mongodb.casbah.Imports._
       import com.novus.salat._
       import org.corespring.platform.core.models.mongoContext.context
-      logger.debug(s"itemId=${i.id} function=save createNewVersion=$createNewVersion")
+      logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
-      /**
-       * Note: we have an auto boxing issue here - using VersionedIdImplicits.Reads to get around it.
-       */
-      def version(id: VersionedId[ObjectId]): Option[Int] = {
-        import org.corespring.platform.core.models.versioning.VersionedIdImplicits._
-        val json = play.api.libs.json.Json.toJson(id)
-        (json \ "id").asOpt[Int]
-      }
+      val collectionToSaveIn: Option[MongoCollection] = i.id.version.map { v =>
+        val query = MongoDBObject("_id._id" -> i.id.id, "_id.version" -> v)
 
-      def collectionToSaveIn = version(i.id).map { v =>
-        val versionedCount = ItemServiceWired.dao.versionedCollection.count(MongoDBObject("_id._id" -> i.id.id, "_id.version" -> v))
+        logger.trace(s"function=collectionToSaveIn query=${com.mongodb.util.JSON.serialize(query)}")
+
+        val idOnly = MongoDBObject("_id._id" -> i.id.id)
+
+        logger.debug(s"function=collectionToSaveIn - find id only in versioned and current collections: ${JSON.serialize(idOnly)}")
+
+        val versionedCount = ItemServiceWired.dao.versionedCollection.count(query)
+        val currentCount = ItemServiceWired.dao.currentCollection.count(query)
+
         if (versionedCount == 1) {
-          ItemServiceWired.dao.versionedCollection
-        } else ItemServiceWired.dao.currentCollection
-      }.getOrElse(ItemServiceWired.dao.currentCollection)
-      collectionToSaveIn.save(dbo)
+          Some(ItemServiceWired.dao.versionedCollection)
+        } else if (currentCount == 1) {
+          Some(ItemServiceWired.dao.currentCollection)
+        } else None
+      }.flatten
+
+      logger.trace(s"function=save id=${i.id} collection=${collectionToSaveIn}")
+
+      collectionToSaveIn.foreach { c => c.save(dbo) }
+
+      if (collectionToSaveIn.isEmpty) {
+        logger.warn(s"function=save - no collection found that can save the item with the id: ${i.id}")
+      }
     }
   }
 }
-
