@@ -28,7 +28,7 @@ class AllItemVersionTransformer extends ItemTransformer {
       import com.mongodb.casbah.Imports._
       import com.novus.salat._
       import org.corespring.platform.core.models.mongoContext.context
-      logger.debug(s"[itemTransformer.save] - saving versioned content directly")
+      logger.debug(s"function=save id=${i.id}")
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
       /**
@@ -49,6 +49,7 @@ class AllItemVersionTransformer extends ItemTransformer {
           ItemServiceWired.dao.versionedCollection
         } else ItemServiceWired.dao.currentCollection
       }.getOrElse(ItemServiceWired.dao.currentCollection)
+      logger.trace(s"function=save id=${i.id} collection=${collectionToSaveIn.name}")
       collectionToSaveIn.save(dbo)
     }
   }
