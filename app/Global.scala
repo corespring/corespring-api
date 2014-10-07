@@ -150,7 +150,7 @@ object Global
 
     logger.debug(s"App mode: ${app.mode}")
 
-    /*app.mode match {
+    app.mode match {
 
       case Mode.Test => {
         seedStaticData()
@@ -169,7 +169,7 @@ object Global
         seedStaticData()
         seedDemoData()
       }
-    }*/
+    }
 
   }
 
