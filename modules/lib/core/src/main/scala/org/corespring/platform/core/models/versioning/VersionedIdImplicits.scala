@@ -42,7 +42,7 @@ object VersionedIdImplicits {
         val arr = s.split(":")
         val id = arr(0)
         val v = arr(1)
-        vId(id, int(v))
+        vId(id, long(v))
       } else {
         vId(s)
       }
@@ -50,14 +50,14 @@ object VersionedIdImplicits {
 
     def versionedIdToString(id: VersionedId[ObjectId]): String = id.version.map((l: Any) => s"${id.id.toString}:$l").getOrElse(id.id.toString)
 
-    private def vId(id: String, v: Option[Int] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {
+    private def vId(id: String, v: Option[Long] = None): Option[VersionedId[ObjectId]] = if (ObjectId.isValid(id)) {
       Some(VersionedId(new ObjectId(id), v))
     } else {
       None
     }
 
-    private def int(i: String): Option[Int] = try {
-      Some(i.toInt)
+    private def long(i: String): Option[Long] = try {
+      Some(i.toLong)
     } catch {
       case _: Throwable => None
     }
