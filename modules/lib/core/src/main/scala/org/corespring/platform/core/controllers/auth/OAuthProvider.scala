@@ -10,13 +10,13 @@ import org.joda.time.DateTime
 import play.api.Logger
 import scala.Some
 
-trait AuthTokenGenerating{
+trait AuthTokenGenerating {
   /**
    * Generates a random token
    *
    * @return a token
    */
-  def generateToken(keyLength : Int = AESCrypto.KEY_LENGTH) = {
+  def generateToken(keyLength: Int = AESCrypto.KEY_LENGTH) = {
     BigInt.probablePrime(keyLength * 8, scala.util.Random).toString(AESCrypto.KEY_RADIX)
   }
 }
@@ -24,7 +24,7 @@ trait AuthTokenGenerating{
 /**
  * A OAuth provider
  */
-object OAuthProvider extends AuthTokenGenerating{
+object OAuthProvider extends AuthTokenGenerating {
 
   /**
    * Creates an ApiClient for an organization.  This allows organizations to receive API calls
@@ -75,7 +75,6 @@ object OAuthProvider extends AuthTokenGenerating{
 
               // credentials are ok, delete if there's a previous token for the same org and scope
               val org = client.orgId
-              AccessToken.find(org, scope).foreach(AccessToken.remove(_))
               val creationTime = DateTime.now()
               val token = AccessToken(org, scope, generateToken(), creationTime, creationTime.plusHours(24))
               AccessToken.insert(token) match {

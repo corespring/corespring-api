@@ -86,7 +86,9 @@ object ScormExporter {
     stringFiles.foreach((p: (String, String)) => addStringFileToZip(p._1, p._2))
 
     zip.close()
-    byteOutStream.toByteArray
+    val returnValue = byteOutStream.toByteArray
+    byteOutStream.close()
+    returnValue
   }
 
 }

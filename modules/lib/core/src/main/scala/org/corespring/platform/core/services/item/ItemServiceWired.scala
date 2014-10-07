@@ -154,8 +154,7 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
 
   protected implicit def context: Context = org.corespring.platform.core.models.mongoContext.context
 
-  override def checkCurrentCollectionIntegrity: Boolean = Play.current.configuration.getBoolean("ItemVersioningDao.checkCurrentCollectionIntegrity").getOrElse(false)
-
+  override def checkCurrentCollectionIntegrity: Boolean = false
 }
 
 object ItemServiceWired extends ItemServiceWired(

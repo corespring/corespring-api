@@ -4,6 +4,7 @@ import java.io.File
 
 import com.mongodb.casbah.MongoDB
 import com.typesafe.config.ConfigFactory
+import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ ConcreteS3Service, S3Service }
 import org.corespring.common.config.AppConfig
@@ -231,7 +232,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def resource(path: String): Option[String] = Play.resource(s"container-client/bower_components/$path").map { url =>
       logger.trace(s"load resource $path")
-      scala.io.Source.fromInputStream(url.openStream())(scala.io.Codec.UTF8).getLines().mkString("\n")
+      val input = url.openStream()
+      val content = IOUtils.toString(input, "UTF-8")
+      IOUtils.closeQuietly(input)
+      content
     }
 
     override def loadLibrarySource(path: String): Option[String] = {
@@ -241,7 +245,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       if (file.exists()) {
         logger.trace(s"load file: $path")
-        Some(scala.io.Source.fromFile(file)(scala.io.Codec.UTF8).getLines().mkString("\n"))
+        Some(FileUtils.readFileToString(file, "UTF-8"))
       } else {
         Some(s"console.warn('failed to log $fullPath');")
       }
@@ -292,7 +296,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       import scala.io.Codec
       Play.resourceAsStream("public/web/standards_tree.json").map { is =>
-        val contents = scala.io.Source.fromInputStream(is)(Codec.UTF8).getLines().mkString("\n")
+        val contents = IOUtils.toString(is, "UTF-8")
+        IOUtils.closeQuietly(is)
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
