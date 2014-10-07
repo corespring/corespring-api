@@ -85,11 +85,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   };
 
   $scope.launchV2Preview = function() {
-    function openInNewTab(url) {
-      var win = window.open(url, '_blank');
-      win.focus();
-    }
-    openInNewTab($('#iframe-player').attr('src'));
+    $scope.v2CatalogUrl = '/v2/player/item/' + $scope.itemData.id + '/preview'
+    $scope.showV2Preview = true;
   };
 
   function isV2() {
