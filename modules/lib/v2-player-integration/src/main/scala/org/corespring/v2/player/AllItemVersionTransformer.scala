@@ -9,7 +9,6 @@ import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import play.api.Logger
-import play.api.libs.json.Json
 
 /**
  * Note: Whilst we support v1 and v2 players, we need to allow the item transformer to save 'versioned' items (aka not the most recent item).
@@ -62,6 +61,4 @@ class AllItemVersionTransformer extends ItemTransformer {
       }
     }
   }
-
 }
-
