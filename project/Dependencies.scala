@@ -51,35 +51,33 @@ object Dependencies {
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
+  val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
 
   val all = Seq(
-    play.Keys.cache,
     amapClient,
     assetsLoader,
     aws,
     closureCompiler,
     commonsIo,
     commonsLang,
+    componentLoader,
+    componentModel,
+    containerClientWeb,
     jbcrypt,
-    mongoDbSeeder,
-    playS3,
     mockito,
+    mongoDbSeeder,
+    newRelic,
+    play.Keys.cache,
+    playMemcached,
+    playPluginMailer,
+    playPluginUtil,
+    playS3,
     salatPlay,
     salatVersioningDao,
     scalaFaker,
     scalaz,
     securesocial,
-    slf4j,
-    playMemcached,
-    playPluginMailer,
-    playPluginUtil,
-    salatPlay,
-    securesocial,
-    scalaz,
-    closureCompiler,
-    containerClientWeb,
-    componentLoader,
-    componentModel)
+    slf4j)
 
   object Resolvers {
 

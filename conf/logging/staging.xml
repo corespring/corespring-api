@@ -35,7 +35,7 @@
   <logger name="ContentCollection" level="TRACE"/>
   <logger name="components.outcome" level="TRACE"/>
   <logger name="js.processing" level="TRACE"/>
-  <logger name="memcached" level="DEBUG"/>
+  <logger name="memcached" level="INFO"/>
   <logger name="play" level="INFO"/>
   <logger name="org.corespring.api.v1" level="TRACE"/>
   <logger name="org.corespring.container" level="INFO"/>
