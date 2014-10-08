@@ -25,7 +25,7 @@ trait PlayerTokenApi extends V2Api {
     def encryptionToValidation(er: EncryptionResult): Validation[V2Error, String] = {
       er match {
         case EncryptionSuccess(clientId, encrypted, requested) => {
-          logger.trace(s"function=createPlayerToken clientId=clientId request=$requested")
+          logger.trace(s"function=createPlayerToken clientId=$clientId request=$requested")
           Success(encrypted)
         }
         case EncryptionFailure(msg, e) => {
