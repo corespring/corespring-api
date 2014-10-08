@@ -14,4 +14,4 @@ function down() {
     content.otherAlignments.demonstratedKnowledge = value;
     db.content.save(content);
   });
-}
+} 
