@@ -24,6 +24,8 @@ sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Fai
 
 private[v2] object Errors {
 
+  case class encryptionFailed(msg: String) extends V2Error(s"encryption failed: $msg", BAD_REQUEST)
+
   case class permissionNotGranted(msg: String) extends V2Error(msg, UNAUTHORIZED)
 
   case class compoundError(msg: String, errs: Seq[V2Error], override val statusCode: Int) extends V2Error(msg, statusCode) {

@@ -30,7 +30,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = {
     val (accessSettings, maybeWarning) = toAccessSettings(org.id, rh)
-    OrgAndOpts(org.id, accessSettings, AuthMode.ClientIdAndOpts, Some(org), maybeWarning.toSeq)
+    OrgAndOpts(org.id, accessSettings, AuthMode.ClientIdAndPlayerToken, Some(org), maybeWarning.toSeq)
   }
 
   /** for a given apiClient return the org Id */

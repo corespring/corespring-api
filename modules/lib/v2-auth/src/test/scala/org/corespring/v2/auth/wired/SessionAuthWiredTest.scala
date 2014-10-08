@@ -105,7 +105,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
     }
 
     "load for write - access token - uses main service" should {
-      run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndOpts)), "main")
+      run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
 
     "load for read - user session - uses preview service" should {
@@ -117,7 +117,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
     }
 
     "load for read - access token - uses main service" should {
-      run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndOpts)), "main")
+      run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
 
     "can load session for write if item is load for read only" in new authScope(

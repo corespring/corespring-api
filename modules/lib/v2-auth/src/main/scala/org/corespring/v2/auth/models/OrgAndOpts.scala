@@ -7,7 +7,7 @@ import org.corespring.v2.warnings.V2Warning
 
 object AuthMode extends Enumeration {
   type AuthMode = Value
-  val UserSession, AccessToken, ClientIdAndOpts = Value
+  val UserSession, AccessToken, ClientIdAndPlayerToken = Value
 }
 
 case class OrgAndOpts(
