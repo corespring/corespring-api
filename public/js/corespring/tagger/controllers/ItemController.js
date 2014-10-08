@@ -84,6 +84,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
   };
 
+  $scope.$watch('showV2Preview',function(newValue){
+    if (!newValue){
+      $scope.v2CatalogUrl = ""
+    }
+  });
+
   $scope.launchV2Preview = function() {
     $scope.v2CatalogUrl = '/v2/player/item/' + $scope.itemData.id + '/preview'
     $scope.showV2Preview = true;
