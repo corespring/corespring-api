@@ -42,18 +42,18 @@ class ItemTest extends BaseTest {
       val item = Item(
         otherAlignments = Some(
           Alignments(
-            demonstratedKnowledge = Some("Factual"),
+            depthOfKnowledge = Some("Recall & Reproduction"),
             bloomsTaxonomy = Some("Applying"))))
 
       val json = Json.toJson(item)
 
       import Alignments.Keys
-      (json \ Keys.demonstratedKnowledge).asOpt[String] === Some("Factual")
+      (json \ Keys.depthOfKnowledge).asOpt[String] === Some("Recall & Reproduction")
       (json \ Keys.bloomsTaxonomy).asOpt[String] === Some("Applying")
 
       val parsed = json.as[Item]
 
-      parsed.otherAlignments.get.demonstratedKnowledge must equalTo(Some("Factual"))
+      parsed.otherAlignments.get.depthOfKnowledge must equalTo(Some("Recall & Reproduction"))
       parsed.otherAlignments.get.bloomsTaxonomy must equalTo(Some("Applying"))
     }
 

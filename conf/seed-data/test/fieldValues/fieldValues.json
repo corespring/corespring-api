@@ -28,22 +28,22 @@
         }
     ],
 
-    "demonstratedKnowledge" : [
+    "depthOfKnowledge" : [
         {
-            "key" : "Factual",
-            "value" : "Factual"
+            "key" : "Recall & Reproduction",
+            "value" : "Recall & Reproduction"
         },
         {
-            "key" : "Conceptual",
-            "value" : "Conceptual"
+            "key" : "Strategic Thinking & Reasoning",
+            "value" : "Strategic Thinking & Reasoning"
         },
         {
-            "key" : "Procedural",
-            "value" : "Procedural"
+            "key" : "Skills & Concepts",
+            "value" : "Skills & Concepts"
         },
         {
-            "key" : "Metacognitive",
-            "value" : "Metacognitive"
+            "key" : "Extended Thinking",
+            "value" : "Extended Thinking"
         }
     ],
 
