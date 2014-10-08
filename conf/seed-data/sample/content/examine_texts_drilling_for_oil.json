@@ -43,7 +43,7 @@
       "Examine", 
       "Model"
     ],
-    "demonstratedKnowledge" : "Conceptual"
+    "depthOfKnowledge" : "Conceptual"
   },
   "playerDefinition" : {
     "files" : [ 

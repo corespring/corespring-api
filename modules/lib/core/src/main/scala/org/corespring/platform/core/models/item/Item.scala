@@ -98,7 +98,7 @@ object Item {
     val credentialsOther = "credentialsOther"
     val data = "data"
     val dateModified = "dateModified"
-    val demonstratedKnowledge = "demonstratedKnowledge"
+    val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
     val extended = "extended"
     val files = "files"

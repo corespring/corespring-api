@@ -205,7 +205,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
   def buildStandardsGroupReport() = {
     val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList.sorted
-    val demonstratedKnowledge = FieldValue.current.demonstratedKnowledge.map(_.value).toList.sorted
+    val depthOfKnowledge = FieldValue.current.depthOfKnowledge.map(_.value).toList.sorted
     val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList.sorted
 
     val lines: List[List[String]] = Standard.groupMap.map{ case (group, standards) =>
@@ -216,18 +216,18 @@ class ReportsService(ItemCollection: MongoCollection,
       val bloomsKeyCount = ReportLineResult.zeroedKeyCountList[String](bloomsTaxonomy)
       runMapReduceForProperty[String](bloomsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.bloomsTaxonomy"))
 
-      val demonstratedKnowledgeKeyCount = ReportLineResult.zeroedKeyCountList[String](demonstratedKnowledge)
-      runMapReduceForProperty[String](demonstratedKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.demonstratedKnowledge"))
+      val depthOfKnowledgeKeyCount = ReportLineResult.zeroedKeyCountList[String](depthOfKnowledge)
+      runMapReduceForProperty[String](depthOfKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.demonstratedKnowledge"))
 
       val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
       runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
 
       (Seq(group, ItemCollection.count(query).toString) ++
-        Seq(bloomsKeyCount, demonstratedKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten)
+        Seq(bloomsKeyCount, depthOfKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten)
         .toList
     }.toList
 
-    val header = List("Substandard" :: "Total" :: (bloomsTaxonomy ++ demonstratedKnowledge ++ itemTypes))
+    val header = List("Substandard" :: "Total" :: (bloomsTaxonomy ++ depthOfKnowledge ++ itemTypes))
     (header ++ lines).toCsv
   }
 

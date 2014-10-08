@@ -47,7 +47,7 @@
 			"Calculate",
 			"Solve"
 		],
-		"demonstratedKnowledge" : "Procedural"
+		"depthOfKnowledge" : "Procedural"
 	},
 	"playerDefinition" : {
 		"files" : [

@@ -75,7 +75,7 @@ window.fieldValues = {"version":"0.0.1", "gradeLevels":[
     {"key":"Benchmark", "value":"Benchmark"},
     {"key":"Summative", "value":"Summative"},
     {"key":"Other", "value":"Other"}
-], "demonstratedKnowledge":[
+], "depthOfKnowledge":[
     {"key":"Factual", "value":"Factual"},
     {"key":"Conceptual", "value":"Conceptual"},
     {"key":"Procedural", "value":"Procedural"},

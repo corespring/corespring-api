@@ -28,7 +28,7 @@
       "Compute",
       "Calculate"
     ],
-    "demonstratedKnowledge" : "Procedural"
+    "depthOfKnowledge" : "Procedural"
   },
   "playerDefinition" : {
     "files" : [],

@@ -38,7 +38,7 @@
       "Employ", 
       "Demonstrate"
     ],
-    "demonstratedKnowledge" : "Conceptual"
+    "depthOfKnowledge" : "Conceptual"
   },
   "playerDefinition" : {
     "files" : [ 

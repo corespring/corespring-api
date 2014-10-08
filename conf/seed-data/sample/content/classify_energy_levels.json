@@ -38,7 +38,7 @@
       "Examine",
       "Infer"
     ],
-    "demonstratedKnowledge" : "Conceptual"
+    "depthOfKnowledge" : "Conceptual"
   },
   "playerDefinition" : {
     "files" : [ 

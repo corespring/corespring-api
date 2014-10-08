@@ -33,7 +33,7 @@
       "Identify", 
       "Name"
     ],
-    "demonstratedKnowledge" : "Procedural"
+    "depthOfKnowledge" : "Procedural"
   },
   "playerDefinition" : {
     "files" : [],

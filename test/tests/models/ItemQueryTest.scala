@@ -328,7 +328,7 @@ class ItemQueryTest extends BaseTest{
     "copyrightExpirationDate" -> "\"meh\"",
     "copyrightImageName" -> "\"meh\"",
     "lexile" -> "\"meh\"",
-    "demonstratedKnowledge" -> "\"meh\"",
+    "depthOfKnowledge" -> "\"meh\"",
     "originId" -> "\"meh\"",
     "collectionId" -> "\"meh\"",
     "contentType" -> "\"meh\"",

@@ -59,7 +59,7 @@
       "Illustrate", 
       "Apply"
     ],
-    "demonstratedKnowledge" : "Conceptual"
+    "depthOfKnowledge" : "Conceptual"
   },
   "playerDefinition" : {
     "files" : [ 

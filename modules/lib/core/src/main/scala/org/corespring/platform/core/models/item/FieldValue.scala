@@ -27,7 +27,7 @@ case class FieldValue(
   var itemTypes: Seq[ListKeyValue] = Seq(),
   var licenseTypes: Seq[StringKeyValue] = Seq(),
   var priorUses: Seq[StringKeyValue] = Seq(),
-  var demonstratedKnowledge: Seq[StringKeyValue] = Seq(),
+  var depthOfKnowledge: Seq[StringKeyValue] = Seq(),
   var credentials: Seq[StringKeyValue] = Seq(),
   var bloomsTaxonomy: Seq[StringKeyValue] = Seq(),
   var id: ObjectId = new ObjectId())
@@ -55,7 +55,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
   val PriorUses = "priorUses"
   val Credentials = "credentials"
   val BloomsTaxonomy = "bloomsTaxonomy"
-  val DemonstratedKnowledge = "demonstratedKnowledge"
+  val DepthOfKnowledge = "depthOfKnowledge"
 
   def getSeqForFieldName(fieldValue: FieldValue, fieldName: String): Option[JsValue] = {
 
@@ -70,7 +70,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       case PriorUses => o(fieldValue.priorUses)
       case Credentials => o(fieldValue.credentials)
       case BloomsTaxonomy => o(fieldValue.bloomsTaxonomy)
-      case DemonstratedKnowledge => o(fieldValue.demonstratedKnowledge)
+      case DepthOfKnowledge => o(fieldValue.depthOfKnowledge)
       case _ => None
     }
   }
@@ -87,7 +87,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
       iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
       iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
       iseq = iseq :+ (BloomsTaxonomy -> JsArray(fieldValue.bloomsTaxonomy.map(Json.toJson(_))))
-      iseq = iseq :+ (DemonstratedKnowledge -> JsArray(fieldValue.demonstratedKnowledge.map(Json.toJson(_))))
+      iseq = iseq :+ (DepthOfKnowledge -> JsArray(fieldValue.depthOfKnowledge.map(Json.toJson(_))))
       JsObject(iseq)
     }
   }
@@ -101,5 +101,5 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
     PriorUses -> "prior uses",
     Credentials -> "credentials",
     BloomsTaxonomy -> "bloomsTaxonomy stuff",
-    DemonstratedKnowledge -> "Demonstrated Knowledge")
+    DepthOfKnowledge -> "Depth of Knowledge")
 }

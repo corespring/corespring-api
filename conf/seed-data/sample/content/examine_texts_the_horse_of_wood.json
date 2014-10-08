@@ -28,7 +28,7 @@
       "Generalize",
       "Interpret"
     ],
-    "demonstratedKnowledge" : "Factual"
+    "depthOfKnowledge" : "Factual"
   },
   "playerDefinition" : {
     "files" : [],

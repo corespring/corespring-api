@@ -67,7 +67,7 @@
       "Demonstrate", 
       "Choose"
     ],
-    "demonstratedKnowledge" : "Conceptual"
+    "depthOfKnowledge" : "Conceptual"
   },
   "playerDefinition" : {
     "files" : [ 

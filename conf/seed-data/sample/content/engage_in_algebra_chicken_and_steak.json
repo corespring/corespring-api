@@ -31,7 +31,7 @@
 			"Describe",
 			"Interpret"
 		],
-		"demonstratedKnowledge" : "Procedural"
+		"depthOfKnowledge" : "Procedural"
 	},
 	"playerDefinition" : {
 		"files" : [ ],
