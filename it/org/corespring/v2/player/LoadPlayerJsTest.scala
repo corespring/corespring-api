@@ -2,31 +2,46 @@ package org.corespring.v2.player
 
 import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
+import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
+import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
-import play.api.mvc.{ Call, SimpleResult }
+import play.api.mvc.{ Request, AnyContent, Call, SimpleResult }
+import play.api.test.FakeRequest
 import play.api.{ GlobalSettings, Play }
 
 import scala.concurrent.Future
 
 class LoadPlayerJsTest extends IntegrationSpecification {
 
+  val anythingJson = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
   "launch player js" should {
 
-    "load player js with client id + options query string sets session" in new queryString_loadJs(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
-      status(playerJsResult) === OK
-      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'")
-      contentAsString(playerJsResult).contains(s"options = '$playerToken'")
-    }
+    "load player js with client id + playerToken query string sets session" in
+      new queryString_loadJs(anythingJson) {
+        status(playerJsResult) === OK
+        val js = contentAsString(playerJsResult)
+        js.contains(s"apiClient = '${apiClient.clientId}'") === true
+      }
 
-    """load player js with client id + options
+    """load player js with client id + playerToken
       query string sets session""" in new queryString_loadJs(
       Json.stringify(Json.toJson(new PlayerAccessSettings(itemId = "*", secure = true)))) {
       status(playerJsResult) === OK
-      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'")
-      contentAsString(playerJsResult).contains(s"options = '$playerToken'")
+      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'") === true
     }
+
+    """load player js returns a warning when you load using 'options'""" in
+      new queryStringWithOptions_loadJs(anythingJson) {
+        status(playerJsResult) === OK
+        val js = contentAsString(playerJsResult)
+        js.contains(s"apiClient = '${apiClient.clientId}'") === true
+        val warning = deprecatedQueryStringParameter(PlayerTokenInQueryStringIdentity.Keys.options, PlayerTokenInQueryStringIdentity.Keys.playerToken)
+        js.contains(warning.code) === true
+        js.contains(warning.message) === true
+      }
+
   }
 
   trait HasPlayerJsResult { self: HasItemId with RequestBuilder =>
@@ -40,6 +55,20 @@ class LoadPlayerJsTest extends IntegrationSpecification {
     }
   }
 
+  trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndPlayerToken =>
+
+    import PlayerTokenInQueryStringIdentity.Keys
+
+    def skipDecryption: Boolean
+
+    override def makeRequest(call: Call): Request[AnyContent] = {
+      val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.options}=$playerToken"
+      val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
+      FakeRequest(call.method, finalUrl)
+    }
+  }
+
   class queryString_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndPlayerTokenRequestBuilder {}
+  class queryStringWithOptions_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndOptionsRequestBuilder {}
 
 }

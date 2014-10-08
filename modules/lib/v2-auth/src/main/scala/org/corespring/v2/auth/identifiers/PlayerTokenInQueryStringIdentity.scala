@@ -17,6 +17,7 @@ object PlayerTokenInQueryStringIdentity {
 
   object Keys {
     val apiClient = "apiClient"
+    /** deprecated("Still supported but is going to be removed", "1.1") */
     val options = "options"
     val playerToken = "playerToken"
     val skipDecryption = "skipDecryption"
@@ -49,7 +50,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     token.map(t => (t, None)).orElse {
       val deprecatedOptions = rh.getQueryString(Keys.options)
       deprecatedOptions.foreach { _ =>
-        logger.warn(s"path=${rh.path} ${Keys.apiClient}=${rh.getQueryString(Keys.apiClient)} - Query string contains 'options' parameter. This is deprecated use 'playerToken' instead.")
+        logger.warn(s"path=${rh.path} ${Keys.apiClient}=${rh.getQueryString(Keys.apiClient)} - Query string contains 'options' parameter. Inform client to use 'playerToken' instead.")
       }
       deprecatedOptions.map { t => (t, Some(deprecatedQueryStringParameter(Keys.options, Keys.playerToken))) }
     }
