@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models._
-import org.corespring.v2.auth.identifiers.ClientIdQueryStringIdentity
+import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ ContentTypeOf, Writeable }
@@ -119,9 +119,9 @@ package object scopes {
     }
   }
 
-  trait clientIdAndOptions extends orgWithAccessTokenAndItem {
+  trait clientIdAndPlayerToken extends orgWithAccessTokenAndItem {
     val clientId = apiClient.clientId
-    def options: String
+    def playerToken: String
   }
 
   trait itemLoader { self: RequestBuilder with HasItemId =>
@@ -193,14 +193,14 @@ package object scopes {
     }
   }
 
-  trait IdAndOptionsRequestBuilder extends RequestBuilder { self: clientIdAndOptions =>
+  trait IdAndPlayerTokenRequestBuilder extends RequestBuilder { self: clientIdAndPlayerToken =>
 
-    import ClientIdQueryStringIdentity.Keys
+    import PlayerTokenInQueryStringIdentity.Keys
 
     def skipDecryption: Boolean
 
     override def makeRequest(call: Call): Request[AnyContent] = {
-      val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.options}=$options"
+      val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl)
     }

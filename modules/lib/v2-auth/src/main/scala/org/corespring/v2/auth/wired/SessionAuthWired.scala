@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.v2.auth.SessionAuth.Session
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
@@ -41,7 +41,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts] {
     mainSessionService
   }
 
-  def hasPermissions(itemId: String, sessionId: String, options: PlayerOptions): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, sessionId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, Item)] = load(sessionId)
 

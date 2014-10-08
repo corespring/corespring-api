@@ -5,7 +5,7 @@ import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ generalError, noOrgIdAndOptions }
 import org.corespring.v2.player.scopes._
 import org.slf4j.LoggerFactory
@@ -37,11 +37,11 @@ class LoadEditorTest
       status(result) === OK
     }
 
-    "fail if there are bad options" in new clientIdAndOptions_editItemLoader("let me in") {
+    "fail if there are bad options" in new clientIdAndPlayerToken_editItemLoader("let me in") {
       status(result) === UNAUTHORIZED
     }
 
-    "work if the options are good" in new clientIdAndOptions_editItemLoader(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+    "work if the options are good" in new clientIdAndPlayerToken_editItemLoader(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(result) === OK
     }
 
@@ -60,7 +60,7 @@ class LoadEditorTest
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 
-  class clientIdAndOptions_editItemLoader(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with itemLoader {
+  class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemLoader {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
   }
 }

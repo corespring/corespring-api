@@ -1,16 +1,16 @@
 package org.corespring.v2.player.permissions
 
 import org.corespring.v2.auth.models.Mode.Mode
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.Json
 
 trait PermissionGranter {
-  def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Either[String, Boolean]
+  def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerAccessSettings): Either[String, Boolean]
 }
 
 object SimpleWildcardChecker {
-  def notGrantedMsg(itemId: String, sessionId: Option[String], options: PlayerOptions) = {
+  def notGrantedMsg(itemId: String, sessionId: Option[String], options: PlayerAccessSettings) = {
     s"Permission not granted: itemId ($itemId) allowed? ${options.allowItemId(itemId)}, sessionId: ($sessionId) allowed? ${sessionId.map { options.allowSessionId(_) }.getOrElse(true)}, mode: allowed? true. Options: ${Json.toJson(options)}"
   }
 }
@@ -20,7 +20,7 @@ class SimpleWildcardChecker extends PermissionGranter {
   lazy val logger = V2LoggerFactory.getLogger("SimpleWildcardChecker")
 
   import org.corespring.v2.player.permissions.SimpleWildcardChecker._
-  def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerOptions): Either[String, Boolean] = {
+  def allow(itemId: String, sessionId: Option[String], mode: Mode, options: PlayerAccessSettings): Either[String, Boolean] = {
 
     logger.warn("Note: Mode is not being checked at the moment - we need to see if it still applies in v2. see: https://thesib.atlassian.net/browse/CA-1743")
 

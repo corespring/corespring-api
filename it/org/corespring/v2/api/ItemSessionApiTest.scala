@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
@@ -21,7 +21,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
 
         val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noClientIdAndOptionsInQueryString(req)),
+          Seq(noToken(req), noapiClientAndPlayerTokenInQueryString(req)),
           UNAUTHORIZED)
 
         contentAsJson(result) === e.json
@@ -33,7 +33,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
 
-      s"return $OK for client id and options" in new clientIdAndOptions_getSession(Json.stringify(Json.toJson(PlayerOptions.ANYTHING)), true) {
+      s"return $OK for client id and options" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
         status(result) === OK
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
@@ -44,7 +44,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
         val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noClientIdAndOptionsInQueryString(req)),
+          Seq(noToken(req), noapiClientAndPlayerTokenInQueryString(req)),
           UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
@@ -56,8 +56,8 @@ class ItemSessionApiTest extends IntegrationSpecification {
         status(result) === OK
       }
 
-      s"return $OK for client id and options" in new clientIdAndOptions_createSession(
-        Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+      s"return $OK for client id and options" in new clientIdAndPlayerToken_createSession(
+        Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
         val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true
         status(result) === OK
@@ -78,7 +78,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
   }
 
-  class clientIdAndOptions_createSession(val options: String, val skipDecryption: Boolean = true) extends createSession with clientIdAndOptions with IdAndOptionsRequestBuilder {
+  class clientIdAndPlayerToken_createSession(val playerToken: String, val skipDecryption: Boolean = true) extends createSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder {
     override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.create(itemId)
   }
 
@@ -86,7 +86,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
   }
 
-  class clientIdAndOptions_getSession(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with IdAndOptionsRequestBuilder with sessionLoader with HasSessionId {
+  class clientIdAndPlayerToken_getSession(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with sessionLoader with HasSessionId {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
 
     lazy override val sessionId: ObjectId = V2SessionHelper.create(itemId)
