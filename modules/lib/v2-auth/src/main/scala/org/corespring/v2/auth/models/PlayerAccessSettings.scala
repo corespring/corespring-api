@@ -40,6 +40,15 @@ object PlayerAccessSettings {
     }
   }
 
+  def permissiveRead(json: JsValue): PlayerAccessSettings = {
+    PlayerAccessSettings(
+      itemId = (json \ "itemId").asOpt[String].getOrElse(STAR),
+      sessionId = (json \ "sessionId").asOpt[String].orElse(Some(STAR)),
+      mode = (json \ "mode").asOpt[String].orElse(Some(STAR)),
+      expires = (json \ "expires").asOpt[Long].orElse(None),
+      secure = (json \ "secure").asOpt[Boolean].getOrElse(false))
+  }
+
   implicit val optionsFormat = new Format[PlayerAccessSettings] {
     override def writes(o: PlayerAccessSettings): JsValue = {
 
