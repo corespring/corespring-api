@@ -21,8 +21,9 @@ trait PlayerTokenApi extends V2Api {
   /**
    * Creates a player token.
    * param json - access settings in the json body
-   * If the json doesn't specify any of the AccessSetting properties,
-   * The property will be set to a wildcard value.
+   * If the json doesn't specify any of the AccessSetting properties, an error will be returned.
+   * If they specify at a minimum the required 'expires' property,
+   * The remaining properties will be set to a wildcard value.
    * return json - playerToken, clientId and accessSettings used
    * @see PlayerAccessSettings
    */
