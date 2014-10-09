@@ -5,7 +5,7 @@ import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, invalidQueryStringParameter, noapiClientAndPlayerTokenInQueryString }
+import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, invalidQueryStringParameter, noApiClientAndPlayerTokenInQueryString }
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.warnings.V2Warning
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
@@ -73,7 +73,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
         logger.trace(s"function=headerToOrgId orgId=$orgId ${Keys.apiClient}=$apiClientId")
         orgId
       }
-      out.map(Success(_)).getOrElse(Failure(noapiClientAndPlayerTokenInQueryString(rh)))
+      out.map(Success(_)).getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
     }
   }
 

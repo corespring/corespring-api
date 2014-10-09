@@ -38,7 +38,7 @@ private[v2] object Errors {
 
   case class invalidQueryStringParameter(badName: String, expectedName: String) extends V2Error(s"Bad query string parameter name: $badName - you should be using $expectedName")
 
-  case class noapiClientAndPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No 'apiClient' and 'playerToken' in queryString")
+  case class noApiClientAndPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No 'apiClient' and 'playerToken' in queryString")
 
   case class noToken(rh: RequestHeader) extends identificationFailed(rh, "No access token")
 

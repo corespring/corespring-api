@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.OrgService
-import org.corespring.v2.errors.Errors.{ invalidQueryStringParameter, noapiClientAndPlayerTokenInQueryString }
+import org.corespring.v2.errors.Errors.{ invalidQueryStringParameter, noApiClientAndPlayerTokenInQueryString }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -39,7 +39,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     }
 
     "return no apiClientAndPlayerToken error" in {
-      identifier(FakeRequest("GET", "bad")) must_== Failure(noapiClientAndPlayerTokenInQueryString(FakeRequest("GET", "bad")))
+      identifier(FakeRequest("GET", "bad")) must_== Failure(noApiClientAndPlayerTokenInQueryString(FakeRequest("GET", "bad")))
     }
 
     "return a warning if 'options' is used as a queryString param" in {

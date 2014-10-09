@@ -21,7 +21,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
 
         val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noapiClientAndPlayerTokenInQueryString(req)),
+          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
           UNAUTHORIZED)
 
         contentAsJson(result) === e.json
@@ -44,7 +44,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
         val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noapiClientAndPlayerTokenInQueryString(req)),
+          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
           UNAUTHORIZED)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
