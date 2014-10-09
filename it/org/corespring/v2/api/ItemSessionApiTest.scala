@@ -33,7 +33,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
 
-      s"return $OK for client id and options" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_getSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), true) {
         status(result) === OK
         contentAsJson(result) === Json.obj("id" -> sessionId.toString(), "itemId" -> itemId.toString())
       }
@@ -56,7 +56,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
         status(result) === OK
       }
 
-      s"return $OK for client id and options" in new clientIdAndPlayerToken_createSession(
+      s"return $OK for client id and player token" in new clientIdAndPlayerToken_createSession(
         Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
         val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true

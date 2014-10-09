@@ -44,7 +44,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         m
       }
 
-      override def hasPermissions(itemId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+      override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
         perms
       }
 

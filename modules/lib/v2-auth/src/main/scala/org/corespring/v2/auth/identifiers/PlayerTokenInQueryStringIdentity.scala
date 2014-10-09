@@ -82,7 +82,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
   /** convert the orgId and header into PlayerOptions */
   protected def toAccessSettings(orgId: ObjectId, rh: RequestHeader): (PlayerAccessSettings, Option[V2Warning]) = {
 
-    def toSettings(json: JsValue): Option[PlayerAccessSettings] = PlayerAccessSettings.optionsFormat.reads(json) match {
+    def toSettings(json: JsValue): Option[PlayerAccessSettings] = PlayerAccessSettings.format.reads(json) match {
       case JsError(errs) => {
         //TODO: Should we be returning a V2Error here?
         logger.warn(s"path=${rh.path} orgId=$orgId - Error parsing PlayerAccessSettings: ${errs.mkString(", ")}")

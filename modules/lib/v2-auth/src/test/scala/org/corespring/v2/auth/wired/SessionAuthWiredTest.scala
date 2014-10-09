@@ -55,7 +55,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
           m
         }
 
-        override def hasPermissions(itemId: String, sessionId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+        override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
           hasPerms
         }
 

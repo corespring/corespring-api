@@ -36,7 +36,7 @@ object PlayerAccessSettings {
       secure = (json \ "secure").asOpt[Boolean].getOrElse(false)))
   }.getOrElse(JsError("Missing 'expires'"))
 
-  implicit val optionsFormat = new Format[PlayerAccessSettings] {
+  implicit val format = new Format[PlayerAccessSettings] {
     override def writes(o: PlayerAccessSettings): JsValue = {
 
       JsObject(

@@ -23,7 +23,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
   def itemService: ItemService
 
-  def hasPermissions(itemId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
 

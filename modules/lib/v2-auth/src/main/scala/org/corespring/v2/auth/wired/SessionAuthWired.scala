@@ -41,7 +41,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts] {
     mainSessionService
   }
 
-  def hasPermissions(itemId: String, sessionId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, Item)] = load(sessionId)
 

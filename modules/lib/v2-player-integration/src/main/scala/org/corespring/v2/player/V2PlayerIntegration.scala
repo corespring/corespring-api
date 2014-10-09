@@ -179,9 +179,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def hasPermissions(itemId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+    override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
-      permissionGranter.allow(itemId, None, Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
+      permissionGranter.allow(itemId, None, Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
   }
@@ -191,9 +191,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def mainSessionService: MongoService = V2PlayerIntegration.this.mainSessionService
 
-    override def hasPermissions(itemId: String, sessionId: String, options: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+    override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
-      permissionGranter.allow(itemId, Some(sessionId), Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
+      permissionGranter.allow(itemId, Some(sessionId), Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
     /**

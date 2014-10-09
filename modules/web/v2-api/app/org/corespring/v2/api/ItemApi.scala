@@ -39,7 +39,7 @@ trait ItemApi extends V2Api {
    *
    * UserSession authentication (only possible when using the tagger app)
    * adding an `access_token` query parameter to the call
-   * adding `apiClient` and `options` query parameter to the call
+   * adding `apiClient` and `playerToken` query parameter to the call
    */
   def create = Action.async { implicit request =>
     import scalaz.Scalaz._
