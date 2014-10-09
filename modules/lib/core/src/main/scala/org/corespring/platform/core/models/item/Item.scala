@@ -39,6 +39,20 @@ case class Item(
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
     copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
   }
+
+  /** We're going to update this with a flag **/
+  def createdByApiVersion: Int =
+    data match {
+      case Some(data) => {
+        data.files.find(file => (file.isMain, file.name) match {
+          case (true, Item.QtiResource.QtiXml) => true
+          case _ => false
+        }).map(_ => 1).getOrElse(2)
+      }
+      case _ => 2
+    }
+
+
 }
 
 object Item {
@@ -84,7 +98,7 @@ object Item {
     val credentialsOther = "credentialsOther"
     val data = "data"
     val dateModified = "dateModified"
-    val demonstratedKnowledge = "demonstratedKnowledge"
+    val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
     val extended = "extended"
     val files = "files"

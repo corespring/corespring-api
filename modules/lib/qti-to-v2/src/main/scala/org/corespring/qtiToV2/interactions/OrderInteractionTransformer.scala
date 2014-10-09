@@ -15,7 +15,7 @@ object OrderInteractionTransformer extends InteractionTransformer {
 
     identifier -> partialObj(
       "componentType" ->
-        Some(JsString(if (isPlacementOrdering(node)) "corespring-placement-ordering" else "corespring-ordering")),
+        Some(JsString("corespring-ordering")),
       "correctResponse" -> Some(JsArray(responses.map(JsString(_)))),
       "feedback" -> (
         if (isPlacementOrdering(node)) Some(Json.obj(
@@ -35,6 +35,9 @@ object OrderInteractionTransformer extends InteractionTransformer {
            ),
           "answerAreaLabel" -> (
             if (isPlacementOrdering(node)) Some(JsString("Place answers here")) else None
+           ),
+           "placementType" -> (
+             if (isPlacementOrdering(node)) Some(JsString("placement")) else Some(JsString("inPlace"))
            )
         )),
         "choices" -> Some(JsArray((node \\ "simpleChoice")
@@ -54,10 +57,7 @@ object OrderInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "orderInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
-      isPlacementOrdering(node) match {
-        case true => <corespring-placement-ordering id={ identifier }></corespring-placement-ordering>.withPrompt(node)
-        case _ => <corespring-ordering id={ identifier }></corespring-ordering>.withPrompt(node)
-      }
+      <corespring-ordering id={ identifier }></corespring-ordering>.withPrompt(node)
     }
     case _ => node
   }

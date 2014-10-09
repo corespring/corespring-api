@@ -7,7 +7,8 @@ function RootController($scope) {
   $scope.$on("error", function(event, errorSubType, data){
     $scope.showErrorBox = true;
     $scope.errorSubType = errorSubType;
-    $scope.errorDetails = (data && data.error) ? data.error : null;
+    var details = data ? data.error || data.message : null;
+    $scope.errorDetails = details;
     $scope.errorUid = (data && data.uid) ? data.uid : null;
   });
 

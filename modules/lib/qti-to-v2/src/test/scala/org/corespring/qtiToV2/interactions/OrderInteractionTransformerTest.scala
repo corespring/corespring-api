@@ -65,12 +65,19 @@ class OrderInteractionTransformerTest extends Specification {
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
+    val placementInteractionResult =
+      placementComponentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
+
     "result must contain <corespring-ordering/> if not placement ordering" in {
       (output \\ "corespring-ordering").find(n => (n \ "@id").text == identifier) must not beEmpty
+      val placementType = (interactionResult \ "model" \ "config" \ "placementType").as[JsString]
+      placementType === JsString("inPlace")
     }
 
-    "result must contain <corespring-placement-ordering/> if placement ordering" in {
-      (placementOutput \\ "corespring-placement-ordering").find(n => (n \ "@id").text == identifier) must not beEmpty
+    "result must contain <corespring-ordering/> if placement ordering" in {
+      (placementOutput \\ "corespring-ordering").find(n => (n \ "@id").text == identifier) must not beEmpty
+      val placementType = (placementInteractionResult \ "model" \ "config" \ "placementType").as[JsString]
+      placementType === JsString("placement")
     }
 
     "result must contain model.config.choiceAreaLayout = 'horizontal'" in {

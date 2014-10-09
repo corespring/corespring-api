@@ -1,24 +1,39 @@
 package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.common.json.JsonTransformer
+import org.corespring.common.json.{ JsonCompare, JsonTransformer }
 import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, PlayerDefinition }
+import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
-import play.api.Logger
+import play.api.{ Configuration, Play, Logger }
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 
 trait ItemTransformer {
 
+  def configuration: Configuration
+
+  def checkModelIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false)
+
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
-  def cache: ItemTransformationCache
+  //TODO: Remove service - transform should only transform.
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
+  //TODO: Remove service - transform should only transform.
+  def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
+    itemService.findOneById(itemId) match {
+      case Some(item) if (item.createdByApiVersion == 1) => updateV2Json(item)
+      case Some(item) => Some(item)
+      case _ => None
+    }
+  }
+
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
+
+    logger.debug(s"itemId=${itemId} function=updateV2Json#VersionedId[ObjectId]")
     itemService.findOneById(itemId) match {
       case Some(item) => item.playerDefinition match {
         case None => try {
@@ -36,34 +51,60 @@ trait ItemTransformer {
   }
 
   def updateV2Json(item: Item): Option[Item] = {
-    transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
-      .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-        case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-          case true => Some(updatedItem)
-          case _ => {
-            itemService.save(updatedItem)
-            Some(updatedItem)
+    item.createdByApiVersion match {
+      case 1 => {
+        logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
+        transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
+          .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
+          case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+            case true => Some(updatedItem)
+            case _ => {
+              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+              itemService.save(updatedItem)
+              Some(updatedItem)
+            }
           }
+          case _ => None
         }
-        case _ => None
       }
+      case _ => Some(item)
+    }
   }
 
   def transformToV2Json(item: Item): JsValue = transformToV2Json(item, None)
 
   def transformToV2Json(item: Item, rootJson: Option[JsObject]): JsValue = {
+    logger.debug(s"itemId=${item.id} function=transformToV2Json")
+    logger.trace(s"itemId=${item.id} function=transformToV2Json -> rootJson=${rootJson.map(Json.stringify)}")
     implicit val ResourceFormat = Resource.Format
 
     val root: JsObject = (rootJson match {
       case Some(json) => json
-      case None => item.playerDefinition.map(Json.toJson(_).as[JsObject]).getOrElse(createFromQti(item))
+      case None => {
+
+        val itemPlayerDef: Option[JsObject] = item.playerDefinition.map(Json.toJson(_).as[JsObject])
+        if (checkModelIsUpToDate && item.createdByApiVersion == 1) {
+          val rawMappedThroughPlayerDef = createFromQti(item).asOpt[PlayerDefinition].map(Json.toJson(_))
+          for {
+            rawPd <- rawMappedThroughPlayerDef
+            itemPd <- itemPlayerDef
+          } yield {
+            compareJson(item.id, "createdFromQti-vs-item.playerDefinition", rawPd, itemPd)
+          }
+        }
+        itemPlayerDef match {
+          case Some(itemPlayer) => itemPlayer
+          case None if item.createdByApiVersion == 1 => createFromQti(item)
+          case _ => throw new IllegalArgumentException(s"Item ${item.id} did not contain QTI XML or component JSON, ${item.createdByApiVersion}")
+        }
+      }
     })
     val profile = toProfile(item)
     val out = root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials))
 
-    logger.trace(s"[transformToV2Json] ${Json.stringify(out)}")
+    logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out
   }
 
@@ -112,22 +153,30 @@ trait ItemTransformer {
       })) ++ transformedJson.as[JsObject]
   }
 
-  private def getTransformation(item: Item): JsValue =
-    cache.getCachedTransformation(item) match {
-      case Some(json: JsValue) => json
-      case _ => {
-        val qti = for {
-          data <- item.data
-          qti <- data.files.find(_.name == "qti.xml")
-        } yield qti.asInstanceOf[VirtualFile]
-
-        require(qti.isDefined, s"item: ${item.id} has no qti xml")
-
-        val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
-        cache.setCachedTransformation(item, transformedJson)
-        transformedJson
-
+  // Is this meant to return Unit?!
+  private def compareJson(itemId: VersionedId[ObjectId], msg: String, a: JsValue, b: JsValue) = {
+    JsonCompare.caseInsensitiveSubTree(a, b) match {
+      case Left(diffs) => {
+        diffs.foreach { d =>
+          logger.warn(s"itemId=${itemId} msg=$msg function=compareJson diff=$d")
+        }
+        logger.trace(s"itemId=$itemId a=${Json.prettyPrint(a)}")
+        logger.trace(s"itemId=$itemId b=${Json.prettyPrint(b)}")
       }
+      case Right(_) => logger.debug(s"itemId=${itemId} msg=$msg function=compareJson - json is identical")
     }
+  }
+
+  private def getTransformation(item: Item): JsValue = {
+    logger.debug(s"itemId=${item.id} function=getTransformation - generating json")
+    val qti = for {
+      data <- item.data
+      qti <- data.files.find(_.name == "qti.xml")
+    } yield qti.asInstanceOf[VirtualFile]
+    require(qti.isDefined, s"item: ${item.id} has no qti xml")
+    val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
+    logger.trace(s"itemId=${item.id} function=getTransformation generatedJson=${Json.stringify(transformedJson)}")
+    transformedJson
+  }
 
 }

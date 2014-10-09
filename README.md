@@ -139,3 +139,24 @@ If it's not set the assets will be retrieved locally. Note that this domain need
 
 We are using cloudfront for the CDN. see: https://console.aws.amazon.com/cloudfront/home
 
+## New Relic
+
+New Relic is included as a dependency. It is not our intention yet (as of 9/9) to use this in production, but as an option we can
+turn on in devt/staging to analyze performance.
+
+It is configured with the file `newrelic.yml`
+
+It will only be running if the new relic agent is included in the environment as NEW_RELIC_CONF
+
+    heroku config:set NEW_RELIC_CONF="-J-javaagent:target/universal/stage/lib/com.newrelic.agent.java.newrelic-agent-3.10.0.jar -J-Dnewrelic.config.file=conf/newrelic.yml"
+
+Heroku instances with the new relic add-on installed override the New Relic license information specified in the newrelic.yml file.
+
+See:
+
+https://devcenter.heroku.com/articles/newrelic#add-on-installation
+
+RUM (Real User Monitoring) features are not enabled as yet.
+
+https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timing-java#manual_instrumentation
+

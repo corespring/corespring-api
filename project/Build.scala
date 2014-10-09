@@ -8,6 +8,7 @@ import MongoDbSeederPlugin._
 object Build extends sbt.Build {
 
   import Dependencies._
+  import ComponentsBuilder._
 
   val appName = "corespring"
   val appVersion = "1.0"
@@ -132,7 +133,7 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti)
+    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils)
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -156,6 +157,7 @@ object Build extends sbt.Build {
   val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
+    .dependsOn(v2Errors, core, playerLib, testLib % "test->compile")
 
   val v2Api = builders.web("v2-api")
     .settings(
@@ -249,6 +251,7 @@ object Build extends sbt.Build {
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
+    .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .dependsOn(scormWeb,
       reports,
       public,

@@ -215,29 +215,29 @@
 
     </div>
 
-    @if(useV2) {
-        <div class="preview" ng-class="previewClassName" data-version="2">
-            <div class="inner">
-                <div class="well">
-                    <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank">Preview</a>
-                    <div class="preview-container" id="item-preview-target"></div>
+
+    <div class="preview" ng-class="previewClassName" data-version="2">
+        <div class="inner">
+            <div class="well" >
+                <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank" ng-show="isV2()">Preview</a>
+
+                <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
+                   <div class="catalog-preview-content">
+                     <button ng-click="showV2Preview=false" class="button btn-sm btn btn-success close-btn">Close</button>
+                     <iframe src="{{v2CatalogUrl}}" frameborder="0"></iframe>
+                   </div>
                 </div>
-            </div>
-            <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
-        </div>
-    } else {
-        <div class="preview" ng-class="previewClassName" data-version="1">
-            <div class="inner">
-                <a ng-click="launchV1Player()">Refresh</a>
-                &nbsp;&nbsp;
-                <a href="{{fullPreviewUrl}}" target="_blank">Preview in new window</a>
 
-                <div class="preview-container" id="item-preview-target">
+                <div ng-show="isV1()">
+                    <a ng-click="launchV1Player()">Refresh &nbsp;&nbsp;</a>
+
+                    <a href="{{fullPreviewUrl}}" target="_blank" >Preview in new window</a>
                 </div>
+
+                <div class="preview-container" id="item-preview-target"></div>
             </div>
         </div>
-    }
-
-
+        <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
+    </div>
 
 </div>

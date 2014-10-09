@@ -40,6 +40,12 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
 
   import org.corespring.platform.core.models.mongoContext.context
 
+  // Not sure when to call this.
+  def index = Seq(
+    MongoDBObject("tokenId" -> 1),
+    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)
+  ).foreach(collection.ensureIndex(_))
+
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
   def removeToken(tokenId: String): Either[CorespringInternalError, Unit] = {

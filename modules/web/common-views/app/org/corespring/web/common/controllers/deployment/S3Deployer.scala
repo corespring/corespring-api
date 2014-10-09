@@ -7,6 +7,8 @@ import java.io.{ InputStream, ByteArrayInputStream }
 import java.util.Date
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.utils.string
+import com.ee.assets.transformers.{ SimpleDeployedElement, DeployedElement }
+
 import scala.collection.mutable
 
 /** An implementation of the Assets-Loader Deployer trait that writes the assets to s3 and returns the s3 url back */
@@ -20,7 +22,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   def listAssets: Map[String, String] = deployed.toMap
 
-  def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, String] = {
+  override def deploy(relativePath: String, lastModified: Long, stream: => InputStream, info: ContentInfo): Either[String, DeployedElement] = {
 
     val deploymentPath = (prefix + "/" + relativePath).replaceAll("//", "/")
 
@@ -40,7 +42,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
         }
     }.getOrElse(None)
 
-    def uploadFileAndReturnUrl: Either[String, String] = {
+    def uploadFileAndReturnUrl: Either[String, DeployedElement] = {
       client.map {
         s3 =>
           try {
@@ -55,8 +57,9 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
             metadata.setContentLength(bytes.length)
             val bytesInputStream = new ByteArrayInputStream(bytes)
             s3.putObject(bucket, deploymentPath, bytesInputStream, metadata)
+            bytesInputStream.close()
             deployed += (key -> S3Deployer.url(bucket, deploymentPath))
-            Right(deployed.get(key).get)
+            Right(SimpleDeployedElement(deployed.get(key).get))
           } catch {
             case e: Throwable => Left(e.getMessage)
           }
@@ -64,7 +67,7 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
     }
 
     val url: Option[String] = deployed.get(key).orElse(checkS3)
-    url.map(Right(_)).getOrElse(uploadFileAndReturnUrl)
+    url.map(s => Right(SimpleDeployedElement(s))).getOrElse(uploadFileAndReturnUrl)
   }
 
   private def toByteArray(is: InputStream) = {

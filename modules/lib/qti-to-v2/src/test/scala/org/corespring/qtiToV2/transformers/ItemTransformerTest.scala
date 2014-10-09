@@ -6,21 +6,17 @@ import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile
 import org.corespring.platform.core.services.item.ItemService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
-  val cacheMock = new ItemTransformationCache {
-    override def setCachedTransformation(item: Item, transformation: JsValue): Unit = {}
-    override def removeCachedTransformation(item: Item): Unit = {}
-    override def getCachedTransformation(item: Item): Option[JsValue] = None
-  }
-
   val itemServiceMock = mock[ItemService]
 
   val itemTransformer = new ItemTransformer {
-    def cache = cacheMock
     def itemService = itemServiceMock
+
+    override def configuration: Configuration = Configuration.empty
   }
 
   val qti =
@@ -92,7 +88,8 @@ class ItemTransformerTest extends Specification with Mockito {
               VirtualFile(
                 name = "qti.xml",
                 contentType = "text/xml",
-                content = qti.toString),
+                content = qti.toString,
+                isMain = true),
               VirtualFile(
                 name = "kittens.jpeg",
                 contentType = "image/jpeg",

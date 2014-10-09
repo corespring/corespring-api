@@ -1,6 +1,7 @@
 package org.corespring.web.publicsite.controllers
 
 import java.nio.charset.Charset
+import org.apache.commons.io.FileUtils
 import org.corespring.common.config.AppConfig
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
@@ -55,7 +56,9 @@ object Application extends Controller with securesocial.core.SecureSocial with P
   }
 
   def getItems = Action {
-    Ok(Json.parse(io.Source.fromFile(Play.getFile("public/public/conf/items.json"))(new Codec(Charset.forName("UTF-8"))).mkString))
+    val content = FileUtils.readFileToString(Play.getFile("public/public/conf/items.json"), "UTF-8")
+    val json = Json.parse(content)
+    Ok(json)
   }
 
   def features = Action {

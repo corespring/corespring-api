@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.5.8"
+  val containerVersion = "0.6.0-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
@@ -13,7 +13,7 @@ object Dependencies {
   val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
-  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.0")
+  val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
@@ -26,6 +26,7 @@ object Dependencies {
     .exclude("com.google.code.findbugs", "jsr305")
     .exclude("com.googlecode.jarjar", "jarjar")
     .exclude("junit", "junit")
+  val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
@@ -43,26 +44,36 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.6"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.12.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
-  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
+  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
+  //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
+  val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
 
   val all = Seq(
-    play.Keys.cache,
     amapClient,
     assetsLoader,
     aws,
     closureCompiler,
+    commonsIo,
     commonsLang,
+    componentLoader,
+    componentModel,
+    containerClientWeb,
     jbcrypt,
-    mongoDbSeeder,
-    playS3,
     mockito,
+    mongoDbSeeder,
+    newRelic,
+    play.Keys.cache,
+    playMemcached,
+    playPluginMailer,
+    playPluginUtil,
+    playS3,
     salatPlay,
     salatVersioningDao,
     scalaFaker,
@@ -73,12 +84,13 @@ object Dependencies {
     playPluginMailer,
     playPluginUtil,
     salatPlay,
-    securesocial,
     scalaz,
     closureCompiler,
     containerClientWeb,
     componentLoader,
-    componentModel)
+    componentModel,
+    newRelic,
+    slf4j)
 
   object Resolvers {
 

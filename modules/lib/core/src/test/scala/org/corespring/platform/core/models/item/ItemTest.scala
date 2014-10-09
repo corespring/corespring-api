@@ -9,8 +9,32 @@ import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.test.BaseTest
 import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
 import scala.Some
+import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
 
 class ItemTest extends BaseTest {
+
+  "createdByApiVersion" should {
+
+    val v1Item = Item(
+      data = Some(Resource(
+        name = "qti.xml",
+        files = Seq(VirtualFile(
+          name = "qti.xml", contentType = BaseFile.ContentTypes.XML, isMain = true, content = "<root/>")))))
+
+    val v2Item = Item(
+      data = Some(Resource(
+        name = "item.json",
+        files = Seq(VirtualFile(
+          name = "item.json", contentType = BaseFile.ContentTypes.JSON, isMain = true, content = "{lol: 'wat'}")))))
+
+    "identify v1 items" in {
+      v1Item.createdByApiVersion === 1
+    }
+
+    "identify v2 items" in {
+      v2Item.createdByApiVersion === 2
+    }
+  }
 
   "parse" should {
 
@@ -18,18 +42,18 @@ class ItemTest extends BaseTest {
       val item = Item(
         otherAlignments = Some(
           Alignments(
-            demonstratedKnowledge = Some("Factual"),
+            depthOfKnowledge = Some("Recall & Reproduction"),
             bloomsTaxonomy = Some("Applying"))))
 
       val json = Json.toJson(item)
 
       import Alignments.Keys
-      (json \ Keys.demonstratedKnowledge).asOpt[String] === Some("Factual")
+      (json \ Keys.depthOfKnowledge).asOpt[String] === Some("Recall & Reproduction")
       (json \ Keys.bloomsTaxonomy).asOpt[String] === Some("Applying")
 
       val parsed = json.as[Item]
 
-      parsed.otherAlignments.get.demonstratedKnowledge must equalTo(Some("Factual"))
+      parsed.otherAlignments.get.depthOfKnowledge must equalTo(Some("Recall & Reproduction"))
       parsed.otherAlignments.get.bloomsTaxonomy must equalTo(Some("Applying"))
     }
 

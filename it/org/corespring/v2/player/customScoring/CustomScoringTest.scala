@@ -3,16 +3,17 @@ package org.corespring.v2.player.customScoring
 import java.io.File
 
 import common.seed.SeedDb
+import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, ItemTransformationCache, TaskInfo }
+import org.corespring.platform.core.models.item.{ Item, TaskInfo }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
 import org.corespring.v2.player.scopes.orgWithAccessToken
-import play.api.Play
+import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
@@ -77,14 +78,7 @@ class CustomScoringTest extends IntegrationSpecification {
 
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired
-
-      override def cache: ItemTransformationCache = new ItemTransformationCache {
-        override def setCachedTransformation(item: Item, transformation: JsValue): Unit = {}
-
-        override def removeCachedTransformation(item: Item): Unit = {}
-
-        override def getCachedTransformation(item: Item): Option[JsValue] = None
-      }
+      override def configuration: Configuration = Configuration.empty
     }
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
@@ -99,7 +93,7 @@ class CustomScoringTest extends IntegrationSpecification {
       require(url != null)
       val file = new File(url.toURI)
       require(file.exists)
-      scala.io.Source.fromFile(file).getLines.mkString("\n")
+      FileUtils.readFileToString(file)
     }
 
     private def seedItem(collectionId: ObjectId): VersionedId[ObjectId] = {

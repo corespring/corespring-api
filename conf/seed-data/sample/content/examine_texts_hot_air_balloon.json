@@ -1,0 +1,543 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b21528d0412f06fa2f35e"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "author" : "ReadWorks, Inc.",
+    "contributor" : "ReadWorks, Inc.",
+    "copyright" : {
+      "owner" : "ReadWorks, Inc.",
+      "year" : "2013"
+    },
+    "credentials" : "Other",
+    "licenseType" : "CC BY",
+    "sourceUrl" : "www.readworks.org"
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "balloon.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "541b21528d0412f06fa2f35e/0/data/balloon.jpg"
+      }
+    ]
+  },
+  "lexile" : "950",
+  "otherAlignments" : {
+    "bloomsTaxonomy" : "Analyzing",
+    "keySkills" : [ 
+      "Identify", 
+      "Infer", 
+      "Recall", 
+      "Explain", 
+      "Choose", 
+      "Examine"
+    ],
+    "depthOfKnowledge" : "Strategic Thinking & Reasoning"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "balloon.jpg",
+        "contentType" : "image/jpg",
+        "isMain" : false,
+        "storageKey" : "541b21528d0412f06fa2f35e/0/data/balloon.jpg"
+      }
+    ],
+    "xhtml" : "<itemBody>\n\n    \n\n        <resource url=\"http://www.readworks.org\" licenseType=\"CC BY\" cost=\"$xx.xx\" copyrightExpires=\"yyyy\" copyrightYear=\"2013\" copyrightOwner=\"ReadWorks\" title=\"Adventure on a Hot Air Balloon\" type=\"passage\"/>\n<p/>\n\n<h1 class=\"center\">Adventure on a Hot Air Balloon</h1>\n<center class=\"passage-author\">\n\n    </center>\n       <div class=\"image-wrapper\"> <img height=\"200px\" width=\"200px\" src=\"balloon.jpg\"/></div>\n\n<p>\nThe wind is starting to blow stronger, and when you’re riding in a basket under a hot air\nballoon, just 400 feet above ground, that’s not necessarily a good thing. Keith Rodriguez looks\nto the horizon and squints. He had planned to take off from Scioto Downs, a horse racetrack\nsouth of Columbus, Ohio, fly a few miles north, and land his balloon in a barren cornfield next\nto his pickup truck.\n</p><p>\nThen the wind changed. Instead of a light breeze from the south, now Rodriguez’s bright red\nballoon is getting hit by stronger, colder winds from the west. He has plenty of propane fuel in\nhis tank—he probably could ride the wind halfway to Pennsylvania. But that would be\ndangerous. Rodriguez’s choice of landing sites just became very limited. As the balloon\nswitches direction and floats east, everything below becomes a wide carpet of suburban\nsprawl—big‐box stores, major highways, strip malls. Beyond the stores lie forests.\n</p><p>\nThe only factor in Rodriguez’s favor is that it’s early, just after 7 a.m. The highways are filling\nup with people driving to work, but otherwise the morning is quiet and still.\n</p><p>\n“Oh boy,” Rodriguez thinks. “If I don’t land, like now, this could get bad.”\n</p><p>\nThe balloon has no propeller or engine, so Rodriguez can’t change direction on his own—he’s\nentirely dependent on the wind. The only thing he controls is altitude. He does this by\nchanging the properties of two invisible gases: air and propane. Sitting on the floor of the\nwicker gondola are three tanks of propane, compressed to its liquid form. The tanks are\nconnected via black rubber hoses to two burners overhead. Each burner is nearly as big as\nRodriguez’s head.\n</p><p>\nRodriguez turns a knob on one side of the burners. This releases propane from a tank into the\nheating coil, where it is ignited by a pilot light. This heats the propane from a liquid into a gas.\nThe gas catches fire, and flames leap two feet high into the balloon.\n</p><p>\nThe balloon rises. Rodriguez has a plan in mind. The flame heats the air inside the nylon\nballoon. This works on a simple principle: hot air is lighter than cold air. One cubic foot of air\nweighs about an ounce. If you heat that air by 100 degrees, its weight drops by about 7 grams.\nSo every foot of heated air inside Rodriguez’s balloon can lift about 7 grams. Just by himself,\nRodriguez weighs 170 pounds, which equals 77,110 grams. That means he needs about 11,015\ncubic feet of hot air just to raise his own body off the ground. This is why hot air balloons are\nso big—they must trap tremendous amounts of heated air. Rodriguez’s balloon is a common\nsize, trapping about 100,000 square feet of air. The balloon is 90 feet tall and 65 feet wide.\n</p><p>\nAs Rodriguez gives his short burst of flame, the air inside swirls in complicated, invisible\npatterns. Little of it escapes out the hole in the bottom—instead, it cools off gradually by\ncoming into contact with the surrounding air outside the balloon’s thin nylon wall. As this\nhappens, the balloon gradually sinks. To drop altitude more quickly, Rodriguez can pull a cord\nattached to a parachute valve at the very top of the balloon. Since the hottest air sits at the\ntop, this releases the balloon’s most buoyant air and increases the speed of descent.\n</p><p>\nRodriguez gives the cord a short pull, and the gondola drops.\n</p><p>\n“I don’t have an altimeter, and I can’t really see anything happening inside the balloon,”\nRodriguez thinks. “I have to pilot by feel.”\n</p><p>\nPushed by the wind, the balloon is flying quickly now. It’s floating over the back wall of a Wal‐\nMart when Rodriguez grabs hold of the parachute valve cord and gives it a long, hard tug. The\nballoon drops. Quickly. The hot air balloon is sinking, but still flying forward.\n</p><p>\nIt looks as though it’s about to slam into the edge of Wal‐Mart’s roof but it sails over it, with\nonly about 15 feet to spare. Still, Rodriguez does not let go of the cord. He drops and drops,\nright between the light poles of the nearly empty parking lot. Just a few feet above the\nground, Rodriguez releases the parachute cord, turns the knob above his head and fires both\nburners. The steep descent slows. The gondola touches lightly against the asphalt, and then\ndrags to a stop. There are only two people in the parking lot, standing near the entrance to the\nstore. They look toward the balloon, their eyes and mouths open wide in shock.\n</p><p>\n“That was a little closer than I expected,” Rodriguez says to himself, laughing. “I really needed\nto land quick.”\n</p>\n\n        <div class=\"note-tip\">© 2013 ReadWorks, Inc.  All Rights Reserved  </div>\n\n         <hr class=\"element-separator\"/>\n\n    \n    <p>1. What makes landing the hot air balloon a challenge?</p><corespring-focus-task id=\"Q_01\"></corespring-focus-task>\n\n\t\t<corespring-feedback-block id=\"Q_01_feedback_responsesCorrect\"></corespring-feedback-block>\n\t\t<corespring-feedback-block id=\"Q_01_feedback_responsesIncorrect\"></corespring-feedback-block>\n    <hr class=\"element-separator\"/>\n       \t\n    <p>2. What problem does Keith Rodriguez solve?</p><corespring-multiple-choice id=\"Q_02\"></corespring-multiple-choice>\n<hr class=\"element-separator\"/>\n    \n    <prompt>3. A hot air balloon floats because the air inside the balloon is warmer than the air outside of it.\n<br/><br/>From the sentences given below, select the information from the story that supports this statement.</prompt>\n<hr style=\"border: none; height:1px; background-color:#111; margin-left: 10%; margin-right: 10%;\"/>\n      \n        <corespring-select-text id=\"selectText\"></corespring-select-text>\n    <corespring-feedback-block id=\"selectText_feedback_responsesCorrect\"></corespring-feedback-block>\n\n    <corespring-feedback-block id=\"selectText_feedback_responsesIncorrect\"></corespring-feedback-block> \n    <hr class=\"element-separator\"/>\n       \t\t\t\n     <p>4.  Based on information in the passage, what would make a good landing area for a hot\nair balloon?</p><corespring-multiple-choice id=\"Q_04\"></corespring-multiple-choice>\n    <hr class=\"element-separator\"/>\n    \n      \t\t\t\n     <p>5. What is this story mainly about?</p><corespring-multiple-choice id=\"Q_05\"></corespring-multiple-choice>\n  \t\t\t<hr class=\"element-separator\"/>\n    \n    <p>6. Read the following sentences: “To drop <b>altitude</b> more quickly, Rodriguez can pull a\ncord attached to a parachute valve at the very top of the balloon. Since the hottest air\nsits at the top, this releases the balloon’s most buoyant air and increases the speed of\ndescent.”\n</p>\n     <p>What does the word <b>altitude</b> mean in the sentence above? Put your answer in the space below.</p><corespring-drag-and-drop id=\"Q_06\"></corespring-drag-and-drop>\n    \n    <corespring-feedback-block id=\"Q_06_feedback_responseCorrect\"></corespring-feedback-block>\n    <hr class=\"element-separator\"/>\n    \n    <p>7. Choose the answer that best completes the sentence below.</p>\n        <table><tr><td><p>Keith Rodriguez was planning to land in a cornfield;\n           <corespring-inline-choice id=\"Q_07\"></corespring-inline-choice>           \n               \t, he changes his mind because of the wind.</p>\t\t</td></tr></table>\n    \t\t<hr class=\"element-separator\"/> \n \n <p class=\"prompt\">8. What effect does pulling the cord attached to the parachute valve have on\nRodriguez’s balloon?</p>\n     <corespring-extended-text-entry id=\"Q_08\"></corespring-extended-text-entry>\n\n<hr class=\"element-separator\"/> \n\n<p class=\"prompt\">9. Based on what the story explains about air temperature, why does pulling the cord\nhave this effect?</p>\n     <corespring-extended-text-entry id=\"Q_09\"></corespring-extended-text-entry>\n\n<hr class=\"element-separator\"/>  \n\n<p class=\"prompt\">10. Keith Rodriguez makes a successful but dangerous landing in a parking lot. Based\non information in the story about his location, the weather, and how hot air balloons\nwork, explain whether his decision to land in the parking lot was or was not a good idea.\nPlease use evidence from the passage.</p>\n      <corespring-extended-text-entry id=\"Q_10\"></corespring-extended-text-entry>\n  </itemBody>",
+    "components" : {
+      "Q_07" : {
+        "componentType" : "corespring-inline-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "true",
+            "orientation" : "vertical",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
+            "singleChoice" : false
+          },
+          "prompt" : "",
+          "choices" : [ 
+            {
+              "label" : "previously",
+              "value" : "1"
+            }, 
+            {
+              "label" : "however",
+              "value" : "2"
+            }, 
+            {
+              "label" : "as a result",
+              "value" : "3"
+            }, 
+            {
+              "label" : "for example",
+              "value" : "4"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "1",
+            "feedback" : "&quot;however&quot;",
+            "notChosenFeedback" : "&quot;however&quot;"
+          }, 
+          {
+            "value" : "2",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "3",
+            "feedback" : "&quot;however&quot;",
+            "notChosenFeedback" : "&quot;however&quot;"
+          }, 
+          {
+            "value" : "4",
+            "feedback" : "&quot;however&quot;",
+            "notChosenFeedback" : "&quot;however&quot;"
+          }
+        ],
+        "correctResponse" : "2"
+      },
+      "Q_01_feedback_responsesIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesIncorrect" : {
+              "text" : "\n\t\t  <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Good try! The wind makes landing the hot air balloon a challenge.</div>\n\t\t",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "Q_01_feedback_responsesCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_01"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesCorrect" : {
+              "text" : "\n\t\t  <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Correct!</div>\n\t\t",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "selectText_feedback_responsesIncorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesIncorrect" : {
+              "text" : "\n      <div class=\"feedback-block-incorrect\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">The correct sentence is highlighted in green.</div>\n    ",
+              "correct" : false
+            }
+          }
+        }
+      },
+      "Q_01" : {
+        "componentType" : "corespring-focus-task",
+        "correctResponse" : {
+          "value" : [ 
+            "B.1"
+          ]
+        },
+        "model" : {
+          "config" : {
+            "shuffle" : true,
+            "itemShape" : "circle",
+            "checkIfCorrect" : "yes",
+            "minSelections" : 1,
+            "maxSelections" : 1
+          },
+          "choices" : [ 
+            {
+              "label" : "the gondola",
+              "value" : "A.1"
+            }, 
+            {
+              "label" : "the wind",
+              "value" : "B.1"
+            }, 
+            {
+              "label" : "the parking lot",
+              "value" : "C.1"
+            }, 
+            {
+              "label" : "the time of day",
+              "value" : "D.1"
+            }
+          ]
+        }
+      },
+      "Q_06" : {
+        "componentType" : "corespring-drag-and-drop",
+        "correctResponse" : {
+          "target2" : [ 
+            "3"
+          ]
+        },
+        "model" : {
+          "choices" : [ 
+            {
+              "id" : "1",
+              "content" : "length\n        ",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "2",
+              "content" : "width ",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "3",
+              "content" : "height\n        ",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "4",
+              "content" : "volume\n        ",
+              "moveOnDrag" : true
+            }
+          ],
+          "answerArea" : "\n        <span cardinality=\"single\" id=\"target2\" identifier=\"target2\" label=\"altitude means\" landing-place=\"landing-place\"/>\n      ",
+          "config" : {
+            "shuffle" : true,
+            "expandHorizontal" : false,
+            "itemsPerRow" : 4,
+            "choicesPosition" : "below"
+          }
+        },
+        "feedback" : []
+      },
+      "Q_02" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "true",
+            "orientation" : "vertical",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
+            "singleChoice" : true
+          },
+          "prompt" : "2. What problem does Keith Rodriguez solve?",
+          "choices" : [ 
+            {
+              "label" : "how to fly from Ohio to Pennsylvania in his hot air balloon",
+              "value" : "ChoiceA1"
+            }, 
+            {
+              "label" : "how to increase the altitude of his hot air balloon",
+              "value" : "ChoiceB1"
+            }, 
+            {
+              "label" : "how to safely land his hot air balloon",
+              "value" : "ChoiceC1"
+            }, 
+            {
+              "label" : "how to change direction on his own in his hot air balloon",
+              "value" : "ChoiceD1"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA1",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceB1",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceC1",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceD1",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceC1"
+          ]
+        }
+      },
+      "Q_10" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLines" : 4
+          }
+        }
+      },
+      "selectText" : {
+        "componentType" : "corespring-select-text",
+        "model" : {
+          "choices" : [ 
+            {
+              "data" : "Hot air is lighter than cold air.",
+              "correct" : true
+            }, 
+            {
+              "data" : "One cubic foot of air weighs about an ounce."
+            }, 
+            {
+              "data" : "The air inside the balloon swirls in complicated, invisible patterns."
+            }, 
+            {
+              "data" : "The hot air balloon is sinking, but still flying forward."
+            }
+          ],
+          "config" : {
+            "selectionUnit" : "sentence",
+            "checkIfCorrect" : "yes",
+            "minSelections" : 1,
+            "maxSelections" : 1,
+            "showFeedback" : false
+          }
+        }
+      },
+      "Q_06_feedback_responseCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "Q_06"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responseCorrect" : {
+              "text" : "\n      <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Correct!</div>\n    ",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "Q_09" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLines" : 4
+          }
+        }
+      },
+      "selectText_feedback_responsesCorrect" : {
+        "componentType" : "corespring-feedback-block",
+        "target" : {
+          "id" : "selectText"
+        },
+        "weight" : 0,
+        "feedback" : {
+          "outcome" : {
+            "responsesCorrect" : {
+              "text" : "\n      <div class=\"feedback-block-correct\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">Well done!</div>\n    ",
+              "correct" : true
+            }
+          }
+        }
+      },
+      "Q_05" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "true",
+            "orientation" : "vertical",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
+            "singleChoice" : true
+          },
+          "prompt" : "5. What is this story mainly about?",
+          "choices" : [ 
+            {
+              "label" : "a hot air balloon that scares lots of people when it lands in a parking lot",
+              "value" : "ChoiceA4"
+            }, 
+            {
+              "label" : "a hot air balloon that does not work properly",
+              "value" : "ChoiceB4"
+            }, 
+            {
+              "label" : "a person who gets stuck up in the air and does not know what to do",
+              "value" : "ChoiceC4"
+            }, 
+            {
+              "label" : "a person trying to land a hot air balloon in difficult conditions",
+              "value" : "ChoiceD4"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA4",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceB4",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceC4",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceD4",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceD4"
+          ]
+        }
+      },
+      "Q_08" : {
+        "componentType" : "corespring-extended-text-entry",
+        "model" : {
+          "config" : {
+            "expectedLines" : 4
+          }
+        }
+      },
+      "Q_04" : {
+        "componentType" : "corespring-multiple-choice",
+        "model" : {
+          "config" : {
+            "shuffle" : "true",
+            "orientation" : "vertical",
+            "choiceType" : "radio",
+            "choiceLabels" : "letters",
+            "singleChoice" : true
+          },
+          "prompt" : "4.  Based on information in the passage, what would make a good landing area for a hot\nair balloon?",
+          "choices" : [ 
+            {
+              "label" : "a large, open space with no buildings",
+              "value" : "ChoiceA3"
+            }, 
+            {
+              "label" : "a large space with lots of tall buildings",
+              "value" : "ChoiceB3"
+            }, 
+            {
+              "label" : "a small, narrow space near a highway",
+              "value" : "ChoiceC3"
+            }, 
+            {
+              "label" : "a small space, such as the roof of a building",
+              "value" : "ChoiceD3"
+            }
+          ]
+        },
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA3",
+            "feedback" : "Correct!",
+            "notChosenFeedback" : "Correct!"
+          }, 
+          {
+            "value" : "ChoiceB3",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceC3",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }, 
+          {
+            "value" : "ChoiceD3",
+            "feedback" : "Your answer.",
+            "notChosenFeedback" : "Your answer."
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceA3"
+          ]
+        }
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "priorUse" : "Formative",
+  "published" : true,
+  "reviewsPassed" : [],
+  "sharedInCollections" : [],
+  "standards" : [ 
+    "RI.5.1", 
+    "RI.5.4", 
+    "RI.5.10", 
+    "L.5.3", 
+    "RI.5.8", 
+    "L.5.4", 
+    "L.5.4a", 
+    "L.5.1", 
+    "W.5.2"
+  ],
+  "supportingMaterials" : [ 
+    {
+      "name" : "Scoring Guide",
+      "files" : [ 
+        {
+          "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",
+          "name" : "index.html",
+          "contentType" : "text/html",
+          "isMain" : true,
+          "content" : "<html>\n\n\n<head>\n\n</head>\n\n<body>\n\n<div style=\"margin: 0 auto; width: 600px;\">\n<h1>Scoring Guide for Open Ended Questions</h1>\n  \n  <p><i><b>8.</b> What effect does pulling the cord attached to the parachute valve have on Rodriguez’s balloon?\n  </i></p>\n  <p class='p-indent-20'><b>Suggested answer:</b> \n  Pulling the cord causes the balloon to sink, or decrease altitude.\n  </p>\n\n  <hr class=\"element-separator\"/>\n\n  <p><i><b>9.</b> \n    Based on what the story explains about air temperature, why does pulling the cord have this effect?\n  </i></p>\n  <p class='p-indent-20'><b>Suggested answer:</b> \n  Pulling the cord causes the balloon to drop because it lets hot air out of the balloon.\nWithout as much hot air, the balloon becomes heavier and starts to sink.\n  </p>\n  \n   \n    <hr class=\"element-separator\"/>\n    \n     <p><i><b>10.</b> \n       Keith Rodriguez makes a successful but dangerous landing in a parking lot. Based on information in\nthe story about his location, the weather, and how hot air balloons work, explain whether his decision to\nland in the parking lot was or was not a good idea. Please use evidence from the passage.\n     </i></p>\n  <p class='p-indent-20'><b>Suggested answer (answers may vary): </b>\n    Students could say that it was a good idea, citing the\nevidence that it was indeed a successful landing, and that he was heading toward the forest where he\nwouldn’t be able to land.\n<br/><br/>Other students could say that if he had waited he might have found a better landing spot, citing evidence\nthat Rodriguez had a lot of propane fuel, which means he could have kept the air in the balloon hot and\ncould have floated for a long time.\n  </p>\n  \n  \n  \n  </div>\n</body></html>\n"
+        }
+      ]
+    }
+  ],
+  "taskInfo" : {
+    "extended" : {},
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ac"
+      },
+      "related" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2ad"
+      }
+    },
+    "gradeLevel" : [ 
+      "05"
+    ],
+    "title" : "Read the story <i>Adventure on a Hot Air Balloon</i> and answer the questions.",
+    "itemType" : "Passage With Questions"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

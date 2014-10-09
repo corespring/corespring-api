@@ -2,19 +2,19 @@ package org.corespring.web.common.controllers.deployment
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.model.SetBucketPolicyRequest
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client}
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.ee.assets.deployment.ContentInfo
 import com.typesafe.config.ConfigFactory
 import java.io._
+import org.apache.commons.io.FileUtils
 import org.corespring.test.PlaySingleton
-import org.specs2.mutable.{Before, Specification}
+import org.specs2.mutable.{ Before, Specification }
 import play.api.Play
 import scala.Left
 import scala.Right
 import scala.Some
 
 class S3DeployerTest extends Specification {
-
 
   PlaySingleton.start()
 
@@ -30,15 +30,13 @@ class S3DeployerTest extends Specification {
 
   "s3 deployer" should {
 
-
     "deploy files" in new RemoveFileBefore(null, bucket, "test/tests/files/one.js") {
       true === true
-
 
       import play.api.Play.current
 
       val file = Play.getFile(path)
-      val source: String = scala.io.Source.fromFile(file.getAbsolutePath).getLines().mkString("\n")
+      val source: String = FileUtils.readFileToString(file)
       val inputStream = new ByteArrayInputStream(source.getBytes("UTF-8"))
       deployer.deploy(path, file.lastModified(), inputStream, ContentInfo(contentType = "text/javascript")) match {
         case Left(e) => failure(e)
@@ -53,14 +51,13 @@ class S3DeployerTest extends Specification {
 
     }.pendingUntilFixed("broken?")
 
-    "deploy gz file" in new RemoveFileBefore(null, bucket, "test/tests/files/cs-common.min.gz.js"){
-
+    "deploy gz file" in new RemoveFileBefore(null, bucket, "test/tests/files/cs-common.min.gz.js") {
 
       import play.api.Play.current
 
       val file = Play.getFile(path)
 
-      def gzip(file: File): InputStream =  new BufferedInputStream(new FileInputStream(path))
+      def gzip(file: File): InputStream = new BufferedInputStream(new FileInputStream(path))
 
       deployer.deploy(path, file.lastModified(), gzip(file), ContentInfo(contentType = "text/javascript", contentEncoding = Some("gzip"))) match {
         case Left(e) => failure(e)
@@ -77,10 +74,9 @@ class S3DeployerTest extends Specification {
 class RemoveFileBefore(val client: AmazonS3, val bucket: String, val path: String) extends Before {
 
   lazy val prefix = "my_test_prefix"
-  lazy val deployer = new S3Deployer(Some(client), bucket, prefix )
+  lazy val deployer = new S3Deployer(Some(client), bucket, prefix)
 
-
-  def prefixPath(p:String) = prefix + "/" + p
+  def prefixPath(p: String) = prefix + "/" + p
 
   def before {
 

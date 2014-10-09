@@ -122,8 +122,8 @@ com.corespring.model.ItemDataProcessor = function () {
             item.standards = [];
         }
 
-        if (item.demonstratedKnowledge == null) {
-            item.demonstratedKnowledge = "None";
+        if (item.depthOfKnowledge == null) {
+            item.depthOfKnowledge = "None";
         }
 
         if (item.primaryStandard != null) {
@@ -149,7 +149,7 @@ com.corespring.model.ItemDataProcessor = function () {
         item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, getKey);
         item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, getKey);
         item.$itemTypeDataProvider = _.filter( window.fieldValues.itemTypes, function(c){ return c.value != "Other" });
-        item.$demonstratedKnowledgeDataProvider = _.map(window.fieldValues.demonstratedKnowledge, getKey);
+        item.$depthOfKnowledgeDataProvider = _.map(window.fieldValues.depthOfKnowledge, getKey);
 
         if (!item.keySkills) {
             item.keySkills = [];

@@ -53,14 +53,18 @@ object AppWiring {
       container <- current.configuration.getConfig("container")
       modeSpecific <- current.configuration.getConfig(s"container-${Play.current.mode.toString.toLowerCase}").orElse(Some(Configuration.empty))
     } yield {
-      val out = container ++ modeSpecific
-      logger.info(s"Container config: ${out.underlying.root.render}")
+      val out = container ++ modeSpecific ++ current.configuration.getConfig("v2.auth").getOrElse(Configuration.empty)
+      logger.debug(s"Container config: \n${out.underlying.root.render}")
       out
     }
   }.getOrElse(Configuration.empty)
 
   //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(componentLoader.all, containerConfig, SeedDb.salatDb(), ItemTransformWiring.itemTransformer)
+  lazy val integration = new V2PlayerIntegration(
+    componentLoader.all,
+    containerConfig,
+    SeedDb.salatDb(),
+    ItemTransformWiring.itemTransformer)
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.

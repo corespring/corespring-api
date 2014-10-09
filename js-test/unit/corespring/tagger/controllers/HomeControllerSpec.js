@@ -86,6 +86,35 @@ describe('HomeController', function () {
       expect(MockSearchService.search).toHaveBeenCalled();
       expect(scope.items).toEqual(["item"]);
     });
+  });
+
+  describe("getSelectedTitle", function(){
+
+    it("should not remove 0 from 10", function () {
+      var result = scope.getSelectedTitle([{key:"10"}]);
+      expect(result).toEqual("10");
+    });
+
+    it("should remove leading 0", function () {
+      var result = scope.getSelectedTitle([{key:"02"}]);
+      expect(result).toEqual("2");
+    });
+
+    it("should remove multiple leading 0", function () {
+      var result = scope.getSelectedTitle([{key:"0002"}]);
+      expect(result).toEqual("2");
+    });
+
+    it("should remove leading 0 in multiple items", function () {
+      var result = scope.getSelectedTitle([{key:"02"},{key:"03"}]);
+      expect(result).toEqual("2, 3");
+    });
+
+
+    it("should leave non numeric values alone", function () {
+      var result = scope.getSelectedTitle([{key:"abc"}]);
+      expect(result).toEqual("abc");
+    });
 
   });
 

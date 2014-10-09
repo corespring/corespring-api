@@ -1,4 +1,4 @@
-package common.utils
+package org.corespring.common.json
 
 import play.api.libs.json._
 

@@ -1,0 +1,127 @@
+{
+  "_id" : {
+    "_id" : {
+      "$oid" : "541b217a8d0412f06fa2f362"
+    },
+    "version" : 0
+  },
+  "collectionId" : "541b00bd5966943aed30daf9",
+  "contentType" : "item",
+  "contributorDetails" : {
+    "additionalCopyrights" : [],
+    "copyright" : {}
+  },
+  "data" : {
+    "name" : "data",
+    "files" : [
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "hats.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "541b217a8d0412f06fa2f362/0/data/hats.png"
+      }
+    ]
+  },
+  "otherAlignments" : {
+    "keySkills" : [],
+    "depthOfKnowledge" : "None"
+  },
+  "playerDefinition" : {
+    "files" : [ 
+      {
+        "_t" : "org.corespring.platform.core.models.item.resource.StoredFile",
+        "name" : "hats.png",
+        "contentType" : "image/png",
+        "isMain" : false,
+        "storageKey" : "541b217a8d0412f06fa2f362/0/data/hats.png"
+      }
+    ],
+    "xhtml" : "<itemBody>\n    \n    <div class=\"image-wrapper\"><img src=\"hats.png\"/><div class=\"note-tip\">Image courtesy of PermaClass</div></div> \n    <p>Elizabeth and Hector both love to collect hats. \n     <ul>\n     <li>\n       Elizabeth has three times as many hats as Hector.\n        </li>\n        <li>In total, they have 56 hats. </li>\n        <li>The number of hats Hector has is represented by <i>h</i>. </li>\n    </ul></p>\n  \n\n    <p>Drag each expression to the category that correctly describes whether the expression does or does not equal the total number of hats. </p><corespring-drag-and-drop id=\"hats\"></corespring-drag-and-drop>\n\n  </itemBody>",
+    "components" : {
+      "hats" : {
+        "componentType" : "corespring-drag-and-drop",
+        "correctResponse" : {
+          "target1" : [ 
+            "1", 
+            "2"
+          ],
+          "target2" : [ 
+            "3", 
+            "4", 
+            "5"
+          ]
+        },
+        "model" : {
+          "choices" : [ 
+            {
+              "id" : "1",
+              "content" : "3h+h",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "2",
+              "content" : "4h",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "3",
+              "content" : "3h",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "4",
+              "content" : "3+h",
+              "moveOnDrag" : true
+            }, 
+            {
+              "id" : "5",
+              "content" : "h+h+h",
+              "moveOnDrag" : true
+            }
+          ],
+          "answerArea" : "\n      <table class=\"no-border\">\n      <tr>\n      <td><span cardinality=\"multiple\" id=\"target1\" identifier=\"target1\" label=\"Expression equals 56\" landing-place=\"landing-place\"/></td>\n        \n       <td>\n        <span cardinality=\"multiple\" id=\"target2\" identifier=\"target2\" label=\"Expression does not equal 56\" landing-place=\"landing-place\"/>  </td>\n        </tr>\n        </table>\n        <p/>\n        <p/>\n    \n      ",
+          "config" : {
+            "shuffle" : true,
+            "expandHorizontal" : false,
+            "itemsPerRow" : 5,
+            "choicesPosition" : "below"
+          }
+        },
+        "feedback" : []
+      }
+    },
+    "summaryFeedback" : ""
+  },
+  "priorGradeLevels" : [],
+  "published" : true,
+  "reviewsPassed" : [],
+  "sharedInCollections" : [],
+  "standards" : [],
+  "supportingMaterials" : [],
+  "taskInfo" : {
+    "extended" : {
+      "new_classrooms" : {
+        "skillNumber" : "358",
+        "family" : "B",
+        "masterQuestion" : "1",
+        "credits" : "2"
+      }
+    },
+    "subjects" : {
+      "primary" : {
+        "$oid" : "4ffb535f6bb41e469c0bf2c3"
+      }
+    },
+    "gradeLevel" : [],
+    "title" : "Analyze and solve verbal problems whose solution requires solving a linear equation in one variable.",
+    "description" : "358-Master Question 1 Question IQ#1",
+    "itemType" : "Drag & Drop"
+  },
+  "workflow" : {
+    "setup" : false,
+    "tagged" : false,
+    "standardsAligned" : false,
+    "qaReview" : false
+  }
+}

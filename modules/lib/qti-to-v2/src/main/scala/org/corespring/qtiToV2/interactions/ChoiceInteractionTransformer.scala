@@ -35,6 +35,8 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
           "config" -> Json.obj(
             "shuffle" -> (node \ "@shuffle").text,
             "orientation" -> JsString(if ((node \ "@orientation").text == "horizontal") "horizontal" else "vertical"),
+            "choiceType" -> JsString(if (correctResponses.length == 1) "radio" else "checkbox"),
+            "choiceLabels" -> JsString("letters"),
             "choiceStyle" -> JsString((node \ "@choiceStyle").text),
             "singleChoice" -> JsBoolean(((node \ "@maxChoices").text == "1"))),
           "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
