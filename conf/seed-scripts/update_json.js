@@ -20,7 +20,7 @@ function adjustDocs(item, save){
     var otherAlignments = {};
     addIfThere("bloomsTaxonomy", item, otherAlignments );
     addIfThere("keySkills", item, otherAlignments );
-    addIfThere("demonstratedKnowledge", item, otherAlignments );
+    addIfThere("depthOfKnowledge", item, otherAlignments );
     addIfThere("relatedCurriculum", item, otherAlignments );
 
     if(hasProps(otherAlignments)){
@@ -29,7 +29,7 @@ function adjustDocs(item, save){
 
     delete item.bloomsTaxonomy;
     delete item.keySkills;
-    delete item.demonstratedKnowledge;
+    delete item.depthOfKnowledge;
     delete item.relatedCurriculum;
   }
 

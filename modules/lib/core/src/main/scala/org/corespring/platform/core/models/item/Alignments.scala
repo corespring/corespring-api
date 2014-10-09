@@ -7,7 +7,6 @@ import org.corespring.platform.core.models.JsonUtil
 
 case class Alignments(bloomsTaxonomy: Option[String] = None,
   keySkills: Seq[String] = Seq(),
-  demonstratedKnowledge: Option[String] = None,
   depthOfKnowledge: Option[String] = None,
   relatedCurriculum: Option[String] = None)
 
@@ -16,7 +15,6 @@ object Alignments extends ValueGetter with JsonUtil {
   object Keys {
     val bloomsTaxonomy = "bloomsTaxonomy"
     val keySkills = "keySkills"
-    val demonstratedKnowledge = "demonstratedKnowledge"
     val depthOfKnowledge = "depthOfKnowledge"
     val relatedCurriculum = "relatedCurriculum"
   }
@@ -30,12 +28,11 @@ object Alignments extends ValueGetter with JsonUtil {
     def writes(alignments: Alignments): JsValue = {
       import Keys._
       partialObj(
-        demonstratedKnowledge -> (alignments.demonstratedKnowledge match {
+        bloomsTaxonomy -> alignments.bloomsTaxonomy.map(JsString(_)),
+        depthOfKnowledge -> (alignments.depthOfKnowledge match {
           case Some(demonstrated) if demonstrated != Values.none => Some(demonstrated)
           case _ => None
         }).map(JsString(_)),
-        bloomsTaxonomy -> alignments.bloomsTaxonomy.map(JsString(_)),
-        depthOfKnowledge -> alignments.depthOfKnowledge.map(JsString(_)),
         keySkills -> (alignments.keySkills.map(JsString(_)) match {
           case skills: Seq[JsString] if (skills.isEmpty) => None
           case skills: Seq[JsString] => Some(JsArray(skills))
@@ -52,10 +49,9 @@ object Alignments extends ValueGetter with JsonUtil {
       import Keys._
 
       JsSuccess(new Alignments(
-        demonstratedKnowledge = getValidatedValue(fieldValues.demonstratedKnowledge)(json, demonstratedKnowledge),
         bloomsTaxonomy = getValidatedValue(fieldValues.bloomsTaxonomy)(json, bloomsTaxonomy),
         keySkills = (json \ keySkills).asOpt[Seq[String]].getOrElse(Seq.empty),
-        depthOfKnowledge = (json \ depthOfKnowledge).asOpt[String],
+        depthOfKnowledge = getValidatedValue(fieldValues.depthOfKnowledge)(json, depthOfKnowledge),
         relatedCurriculum = (json \ relatedCurriculum).asOpt[String]))
     }
 

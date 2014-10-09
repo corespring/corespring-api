@@ -186,7 +186,7 @@ object FieldValuesApi extends BaseApi {
 
   /**
    * Returns available field values for gradeLevel, itemType, standard, keySkill, bloomsTaxonomy, and
-   * demonstratedKnowledge, scoped by a provided {@link MongoDBObject} for querying.
+   * depthOfKnowledge, scoped by a provided {@link MongoDBObject} for querying.
    */
   private def getFieldValues(query: MongoDBObject): Either[JsValue, MapReduceError] = {
 
@@ -241,8 +241,8 @@ object FieldValuesApi extends BaseApi {
                 if (this.otherAlignments.bloomsTaxonomy) {
                   emit({bloomsTaxonomy: this.otherAlignments.bloomsTaxonomy}, {exists: 1});
                 }
-                if (this.otherAlignments.demonstratedKnowledge) {
-                  emit({demonstratedKnowledge: this.otherAlignments.demonstratedKnowledge}, {exists: 1});
+                if (this.otherAlignments.depthOfKnowledge) {
+                  emit({depthOfKnowledge: this.otherAlignments.depthOfKnowledge}, {exists: 1});
                 }
               }
             }""",

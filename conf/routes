@@ -28,7 +28,7 @@ POST        /auth/register                                            org.coresp
 POST        /auth/access_token                                        org.corespring.platform.core.controllers.auth.AuthController.getAccessToken
 GET         /auth/isvalid                                             org.corespring.platform.core.controllers.auth.AuthController.isValid(token)
 
-->          /                                                         public.Routes
+GET         /                                                         web.controllers.Partials.redirect(url = "http://www.corespring.org")
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /logger                                                   clientlogging.Routes
