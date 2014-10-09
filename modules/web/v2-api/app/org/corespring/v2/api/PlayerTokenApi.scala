@@ -2,10 +2,10 @@ package org.corespring.v2.api
 
 import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, EncryptionSuccess, OrgEncrypter }
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.errors.Errors.{ encryptionFailed, generalError, noJson }
-import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed, generalError, noJson }
+import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.log.V2LoggerFactory
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json._
 import play.api.mvc.Action
 
 import scala.concurrent.Future
@@ -21,8 +21,8 @@ trait PlayerTokenApi extends V2Api {
   /**
    * Creates a player token.
    * param json - access settings in the json body
-   *   If the json doesn't specify any of the AccessSetting properties,
-   *   The property will be set to a wildcard value.
+   * If the json doesn't specify any of the AccessSetting properties,
+   * The property will be set to a wildcard value.
    * return json - playerToken, clientId and accessSettings used
    * @see PlayerAccessSettings
    */
@@ -43,11 +43,16 @@ trait PlayerTokenApi extends V2Api {
       }
     }
 
+    def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
+      case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
+      case JsSuccess(o, _) => Success(o)
+    }
+
     Future {
       val out: Validation[V2Error, (String, String, JsValue)] = for {
         identity <- getOrgIdAndOptions(request)
         json <- request.body.asJson.toSuccess(noJson)
-        accessSettings <- Success(PlayerAccessSettings.permissiveRead(json))
+        accessSettings <- toAccessSettings(json)
         encryptionResult <- encrypter.encrypt(identity.orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: ${identity.orgId} - Unknown error trying to encrypt"))
         clientIdAndToken <- encryptionToValidation(encryptionResult)
       } yield {

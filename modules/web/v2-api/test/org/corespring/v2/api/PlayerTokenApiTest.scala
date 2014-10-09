@@ -3,8 +3,8 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, EncryptionSuccess, OrgEncrypter }
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.errors.Errors.{ encryptionFailed, generalError, noJson }
-import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed, generalError, noJson }
+import org.corespring.v2.errors.{ Field, V2Error }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -62,9 +62,16 @@ class PlayerTokenApiTest extends Specification
         (contentAsJson(result) \ "message").as[String] ==== noJson.message
       }
 
+      "fail to create if missing 'expires' in json request body" in new playerScope(
+        orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
+        val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
+        status(result) === BAD_REQUEST
+        (contentAsJson(result) \ "message").as[String] ==== missingRequiredField(Field("expires", "number")).message
+      }
+
       "fail to create if encrypter returns None" in new playerScope(
         orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
-        val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("a" -> "b"))))
+        val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("expires" -> 0))))
         val error = encryptionFailed(s"orgId: $mockOrgId - Unknown error trying to encrypt")
         status(result) === error.statusCode
         (contentAsJson(result) \ "message").as[String] === error.message
@@ -73,7 +80,7 @@ class PlayerTokenApiTest extends Specification
       "fail to create if encrypter returns failure" in new playerScope(
         orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
         encryptionResult = Some(EncryptionFailure("A Failure", new RuntimeException("?")))) {
-        val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("a" -> "b"))))
+        val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("expires" -> 0))))
         val error = encryptionFailed("A Failure")
         status(result) === error.statusCode
         (contentAsJson(result) \ "message").as[String] === error.message
@@ -81,22 +88,22 @@ class PlayerTokenApiTest extends Specification
     }
 
     "with a valid request" should {
-      "ignore json properties that arent part of access settings and default to wildcards" in new withJsonPlayerScope(Json.obj("a" -> "b")) {
+      "ignore json properties that arent part of access settings and default to wildcards" in new withJsonPlayerScope(Json.obj("expires" -> 0)) {
         (jsonResult \ "playerToken").as[String] === "encrypted"
         (jsonResult \ "apiClient").as[String] === "clientid"
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "*", "sessionId" -> "*", "secure" -> false, "mode" -> "*")
+          Json.obj("itemId" -> "*", "sessionId" -> "*", "secure" -> false, "expires" -> 0, "mode" -> "*")
       }
 
-      "pass in itemId" in new withJsonPlayerScope(Json.obj("itemId" -> "itemId")) {
+      "pass in itemId" in new withJsonPlayerScope(Json.obj("expires" -> 0, "itemId" -> "itemId")) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "*", "secure" -> false, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "*", "secure" -> false, "expires" -> 0, "mode" -> "*")
       }
 
       "pass in itemId, sessionId" in new withJsonPlayerScope(
-        Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId")) {
+        Json.obj("expires" -> 0, "itemId" -> "itemId", "sessionId" -> "sessionId")) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "expires" -> 0, "mode" -> "*")
       }
 
       /**

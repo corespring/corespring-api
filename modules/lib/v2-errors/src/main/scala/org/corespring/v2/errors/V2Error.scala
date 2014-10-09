@@ -20,9 +20,13 @@ sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQ
 
 }
 
+case class Field(name: String, fieldType: String)
+
 sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(s"${rh.path} - $msg", UNAUTHORIZED)
 
 private[v2] object Errors {
+
+  case class missingRequiredField(fields: Field*) extends V2Error(s"Missing the following required field(s): ${fields.map(f => s"${f.name} : ${f.fieldType}").mkString(", ")}")
 
   case class encryptionFailed(msg: String) extends V2Error(s"encryption failed: $msg", BAD_REQUEST)
 

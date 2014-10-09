@@ -5,11 +5,11 @@ import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.errors.Errors.{ invalidQueryStringParameter, noapiClientAndPlayerTokenInQueryString }
+import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, invalidQueryStringParameter, noapiClientAndPlayerTokenInQueryString }
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.warnings.V2Warning
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsSuccess, JsValue, JsError, Json }
 import play.api.mvc.RequestHeader
 import scalaz.{ Failure, Success, Validation }
 
@@ -82,6 +82,15 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
   /** convert the orgId and header into PlayerOptions */
   protected def toAccessSettings(orgId: ObjectId, rh: RequestHeader): (PlayerAccessSettings, Option[V2Warning]) = {
 
+    def toSettings(json: JsValue): Option[PlayerAccessSettings] = PlayerAccessSettings.optionsFormat.reads(json) match {
+      case JsError(errs) => {
+        //TODO: Should we be returning a V2Error here?
+        logger.warn(s"path=${rh.path} orgId=$orgId - Error parsing PlayerAccessSettings: ${errs.mkString(", ")}")
+        Some(PlayerAccessSettings.NOTHING)
+      }
+      case JsSuccess(s, _) => Some(s)
+    }
+
     for {
       tokenWithWarning <- playerToken(rh)
       decrypted <- decrypt(tokenWithWarning._1, orgId, rh)
@@ -93,7 +102,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
           None
         }
       }
-      playerOptions <- json.asOpt[PlayerAccessSettings]
+      playerOptions <- toSettings(json)
     } yield {
       logger.trace(s"decrypted: $decrypted")
       (playerOptions -> tokenWithWarning._2)

@@ -24,30 +24,17 @@ case class PlayerAccessSettings(itemId: String,
 
 object PlayerAccessSettings {
   val STAR = "*"
-  val ANYTHING = PlayerAccessSettings(STAR, Some(STAR), false)
+  val ANYTHING = PlayerAccessSettings(STAR, Some(STAR), false, expires = Some(0))
   val NOTHING = PlayerAccessSettings("____", Some("____"), false)
 
-  def fromJson(s: String) = try {
-    optionsFormat.reads(Json.parse(s)) match {
-      case JsSuccess(o, _) => Some(o)
-      case JsError(errs) => {
-        None
-      }
-    }
-  } catch {
-    case e: Throwable => {
-      None
-    }
-  }
-
-  def permissiveRead(json: JsValue): PlayerAccessSettings = {
-    PlayerAccessSettings(
+  def permissiveRead(json: JsValue): JsResult[PlayerAccessSettings] = (json \ "expires").asOpt[Long].map { e =>
+    JsSuccess(PlayerAccessSettings(
       itemId = (json \ "itemId").asOpt[String].getOrElse(STAR),
       sessionId = (json \ "sessionId").asOpt[String].orElse(Some(STAR)),
       mode = (json \ "mode").asOpt[String].orElse(Some(STAR)),
-      expires = (json \ "expires").asOpt[Long].orElse(None),
-      secure = (json \ "secure").asOpt[Boolean].getOrElse(false))
-  }
+      expires = Some(e),
+      secure = (json \ "secure").asOpt[Boolean].getOrElse(false)))
+  }.getOrElse(JsError("Missing 'expires'"))
 
   implicit val optionsFormat = new Format[PlayerAccessSettings] {
     override def writes(o: PlayerAccessSettings): JsValue = {
@@ -79,15 +66,21 @@ object PlayerAccessSettings {
         case _ => None
       }
 
-      JsSuccess {
-        PlayerAccessSettings(
-          (json \ "itemId").asOpt[String].getOrElse("____"),
-          (json \ "sessionId").asOpt[String],
-          (json \ "secure").asOpt[Boolean].getOrElse(true),
-          expires,
-          (json \ "mode").asOpt[String])
+      expires match {
+        case Some(e) => {
+          JsSuccess {
+            PlayerAccessSettings(
+              (json \ "itemId").asOpt[String].getOrElse("____"),
+              (json \ "sessionId").asOpt[String],
+              (json \ "secure").asOpt[Boolean].getOrElse(true),
+              Some(e),
+              (json \ "mode").asOpt[String])
+          }
+        }
+        case _ => JsError("Missing 'expires'")
       }
     }
+
   }
 }
 
