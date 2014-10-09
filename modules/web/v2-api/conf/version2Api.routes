@@ -5,5 +5,5 @@ POST /items/:itemId/sessions    @org.corespring.v2.api.ItemSessionApi.create(ite
 
 POST /items                     @org.corespring.v2.api.ItemApi.create()
 
-POST /player-token              @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+POST /create-player-token       @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
 

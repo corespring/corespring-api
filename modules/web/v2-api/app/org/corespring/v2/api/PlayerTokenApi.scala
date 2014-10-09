@@ -48,7 +48,7 @@ trait PlayerTokenApi extends V2Api {
         identity <- getOrgIdAndOptions(request)
         json <- request.body.asJson.toSuccess(noJson)
         accessSettings <- Success(PlayerAccessSettings.permissiveRead(json))
-        encryptionResult <- encrypter.encrypt(identity.orgId, Json.stringify(json)).toSuccess(encryptionFailed(s"orgId: ${identity.orgId} - Unknown error trying to encrypt"))
+        encryptionResult <- encrypter.encrypt(identity.orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: ${identity.orgId} - Unknown error trying to encrypt"))
         clientIdAndToken <- encryptionToValidation(encryptionResult)
       } yield {
         (clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))

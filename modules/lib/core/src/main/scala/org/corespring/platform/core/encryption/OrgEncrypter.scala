@@ -21,6 +21,7 @@ class OrgEncrypter(encrypter: Crypto) extends OrgEncryptionService {
   override def encrypt(orgId: ObjectId, s: String): Option[EncryptionResult] = ApiClient.findOneByOrgId(orgId).map {
     client =>
       try {
+        logger.debug(s"function=encrypt code=$s")
         val data = encrypter.encrypt(s, client.clientSecret)
         EncryptionSuccess(client.clientId.toString, data, Some(s))
       } catch {
