@@ -27,7 +27,18 @@ object PlayerAccessSettings {
   val ANYTHING = PlayerAccessSettings(STAR, Some(STAR), false, expires = Some(0))
   val NOTHING = PlayerAccessSettings("____", Some("____"), false)
 
-  def permissiveRead(json: JsValue): JsResult[PlayerAccessSettings] = (json \ "expires").asOpt[Long].map { e =>
+  def readExpires(expires: JsValue): Option[Long] =
+    expires match {
+      case JsNumber(n) => Some(n.toLong)
+      case JsString(s) => try {
+        Some(s.toLong)
+      } catch {
+        case _ => None
+      }
+      case _ => None
+    }
+
+  def permissiveRead(json: JsValue): JsResult[PlayerAccessSettings] = readExpires(json \ "expires").map { e =>
     JsSuccess(PlayerAccessSettings(
       itemId = (json \ "itemId").asOpt[String].getOrElse(STAR),
       sessionId = (json \ "sessionId").asOpt[String].orElse(Some(STAR)),
@@ -46,8 +57,8 @@ object PlayerAccessSettings {
             "sessionId" -> JsString(_)
           },
           Some("secure" -> JsBoolean(o.secure)),
-          o.expires.map {
-            "expires" -> JsNumber(_)
+          o.expires.map { e =>
+            "expires" -> JsString(e.toString)
           },
           o.mode.map {
             "mode" -> JsString(_)
@@ -56,17 +67,7 @@ object PlayerAccessSettings {
 
     override def reads(json: JsValue): JsResult[PlayerAccessSettings] = {
 
-      val expires: Option[Long] = (json \ "expires") match {
-        case JsNumber(n) => Some(n.toLong)
-        case JsString(s) => try {
-          Some(s.toLong)
-        } catch {
-          case _ => None
-        }
-        case _ => None
-      }
-
-      expires match {
+      readExpires(json \ "expires") match {
         case Some(e) => {
           JsSuccess {
             PlayerAccessSettings(
