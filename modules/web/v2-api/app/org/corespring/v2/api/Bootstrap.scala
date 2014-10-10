@@ -1,8 +1,10 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
+import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
 import org.corespring.platform.core.models.item.Item
@@ -113,5 +115,13 @@ class Bootstrap(
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi)
+  lazy val playerTokenApi = new PlayerTokenApi {
+    override def encrypter: OrgEncrypter = new OrgEncrypter(AESCrypto)
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+  }
+
+  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi)
 }

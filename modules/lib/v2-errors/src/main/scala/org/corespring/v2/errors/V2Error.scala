@@ -20,9 +20,15 @@ sealed abstract class V2Error(val message: String, val statusCode: Int = BAD_REQ
 
 }
 
+case class Field(name: String, fieldType: String)
+
 sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(s"${rh.path} - $msg", UNAUTHORIZED)
 
 private[v2] object Errors {
+
+  case class missingRequiredField(fields: Field*) extends V2Error(s"Missing the following required field(s): ${fields.map(f => s"${f.name} : ${f.fieldType}").mkString(", ")}")
+
+  case class encryptionFailed(msg: String) extends V2Error(s"encryption failed: $msg", BAD_REQUEST)
 
   case class permissionNotGranted(msg: String) extends V2Error(msg, UNAUTHORIZED)
 
@@ -30,11 +36,9 @@ private[v2] object Errors {
     override def json: JsObject = super.json ++ Json.obj("subErrors" -> errs.map(_.json))
   }
 
-  case class noClientIdAndOptionsInSession(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in session")
-
   case class invalidQueryStringParameter(badName: String, expectedName: String) extends V2Error(s"Bad query string parameter name: $badName - you should be using $expectedName")
 
-  case class noClientIdAndOptionsInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No clientId and options in queryString")
+  case class noApiClientAndPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No 'apiClient' and 'playerToken' in queryString")
 
   case class noToken(rh: RequestHeader) extends identificationFailed(rh, "No access token")
 

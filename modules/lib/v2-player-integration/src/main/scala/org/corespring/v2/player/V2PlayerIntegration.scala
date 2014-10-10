@@ -27,7 +27,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.identifiers._
-import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors.{ permissionNotGranted, _ }
@@ -109,7 +109,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def userService: UserService = UserServiceWired
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerOptions.ANYTHING, AuthMode.UserSession)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -117,7 +117,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     lazy val token = new TokenOrgIdentity[OrgAndOpts] {
       override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerOptions.ANYTHING, AuthMode.AccessToken)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -136,7 +136,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
       }
     }
 
-    lazy val clientIdAndOptsQueryString = new ClientIdAndOptsQueryStringWithDecrypt {
+    lazy val clientIdAndPlayerTokenQueryString = new PlayerTokenInQueryStringIdentity {
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
 
@@ -167,7 +167,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val requestIdentifier = new WithRequestIdentitySequence[OrgAndOpts] {
     override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
-      requestIdentifiers.clientIdAndOptsQueryString,
+      requestIdentifiers.clientIdAndPlayerTokenQueryString,
       requestIdentifiers.token,
       requestIdentifiers.userSession)
   }
@@ -179,9 +179,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemService: ItemService = ItemServiceWired
 
-    override def hasPermissions(itemId: String, options: PlayerOptions): Validation[V2Error, Boolean] = {
+    override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
-      permissionGranter.allow(itemId, None, Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
+      permissionGranter.allow(itemId, None, Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
   }
@@ -191,9 +191,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def mainSessionService: MongoService = V2PlayerIntegration.this.mainSessionService
 
-    override def hasPermissions(itemId: String, sessionId: String, options: PlayerOptions): Validation[V2Error, Boolean] = {
+    override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
       val permissionGranter = new SimpleWildcardChecker()
-      permissionGranter.allow(itemId, Some(sessionId), Mode.evaluate, options).fold(m => Failure(permissionNotGranted(m)), Success(_))
+      permissionGranter.allow(itemId, Some(sessionId), Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
     /**

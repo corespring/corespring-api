@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes._
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json
@@ -30,7 +30,7 @@ class LoadSessionTest extends IntegrationSpecification {
       status(result) ==== UNAUTHORIZED
     }
 
-    "work for client id and options" in new clientId_loadSession(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+    "work for client id and options" in new clientId_loadSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(result) ==== OK
     }
 
@@ -56,7 +56,7 @@ class LoadSessionTest extends IntegrationSpecification {
   }
 
   class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {}
-  class clientId_loadSession(val options: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndOptions with IdAndOptionsRequestBuilder with HasSessionId {
+  class clientId_loadSession(val playerToken: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId {
     override lazy val sessionId: ObjectId = V2SessionHelper.create(itemId)
 
     override def after = {
