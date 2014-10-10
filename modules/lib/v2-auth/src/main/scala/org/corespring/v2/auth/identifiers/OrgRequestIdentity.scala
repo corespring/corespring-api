@@ -21,8 +21,10 @@ trait RequestIdentity[B] {
 trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def orgService: OrgService
 
+  /** get either a V2Error or the org id from the request header */
   def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId]
 
+  /** convert the header, org and defaultCollection into the expected output type B */
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
 
   lazy val logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")

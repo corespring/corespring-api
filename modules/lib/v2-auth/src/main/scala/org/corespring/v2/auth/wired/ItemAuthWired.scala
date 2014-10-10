@@ -7,7 +7,7 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -23,7 +23,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
   def itemService: ItemService
 
-  def hasPermissions(itemId: String, options: PlayerOptions): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
 

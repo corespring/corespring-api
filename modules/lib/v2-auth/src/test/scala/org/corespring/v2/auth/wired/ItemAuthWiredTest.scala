@@ -7,7 +7,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -22,7 +22,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
   val defaultPermFailure = generalError("Perm failure")
   val defaultOrgAndOptsFailure = generalError("Org and opts failure")
 
-  implicit val identity: OrgAndOpts = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+  implicit val identity: OrgAndOpts = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
 
   case class authContext(
     item: Option[Item] = None,
@@ -44,7 +44,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         m
       }
 
-      override def hasPermissions(itemId: String, options: PlayerOptions): Validation[V2Error, Boolean] = {
+      override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
         perms
       }
 
@@ -66,7 +66,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
 
       "fail if can't find org" in new authContext(
         item = Some(Item())) {
-        val identity = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+        val identity = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
         val vid = VersionedId(ObjectId.get, None)
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(cantFindOrgWithId(identity.orgId))
       }
@@ -75,7 +75,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+        val identity = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.orgId, item.get.collectionId.get, Permission.Read.name))
       }
 
@@ -83,7 +83,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+        val identity = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.orgId, item.get.collectionId.get, Permission.Read.name))
       }
 
@@ -92,7 +92,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         org = Some(mock[Organization]),
         canAccess = true) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+        val identity = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(defaultPermFailure)
       }
 
@@ -102,7 +102,7 @@ class ItemAuthWiredTest extends Specification with Mockito {
         perms = Success(true),
         canAccess = true) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+        val identity = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Success(item.get)
       }
     }

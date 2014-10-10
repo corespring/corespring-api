@@ -8,7 +8,7 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.libs.json.{ JsValue, Json }
@@ -78,11 +78,11 @@ class LoadPlayerTest
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
-    "fail - create session for client id + options query string" in new clientIdAndOpts_queryString_CreateSession("Let me in") {
+    "fail - create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession("Let me in") {
       status(createSessionResult) === UNAUTHORIZED
     }
 
-    "create session for client id + options query string" in new clientIdAndOpts_queryString_CreateSession(Json.stringify(Json.toJson(PlayerOptions.ANYTHING))) {
+    "create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(createSessionResult) === SEE_OTHER
       val mockResult = getMockResult(itemId, "v2.itemSessions")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
@@ -105,5 +105,5 @@ class LoadPlayerTest
   class unknownIdentity_CreateSession extends HasCreateSessionResult with PlainRequestBuilder with orgWithAccessTokenAndItem {}
   class user_CreateSession extends userAndItem with HasCreateSessionResult with SessionRequestBuilder with SecureSocialHelpers {}
   class token_CreateSession extends orgWithAccessTokenAndItem with HasCreateSessionResult with TokenRequestBuilder {}
-  class clientIdAndOpts_queryString_CreateSession(val options: String, val skipDecryption: Boolean = true) extends clientIdAndOptions with HasCreateSessionResult with IdAndOptionsRequestBuilder {}
+  class clientIdAndToken_queryString_CreateSession(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasCreateSessionResult with IdAndPlayerTokenRequestBuilder {}
 }

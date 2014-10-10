@@ -72,7 +72,7 @@ object AppWiring {
   lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
     override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
       integration.requestIdentifiers.token,
-      integration.requestIdentifiers.clientIdAndOptsQueryString)
+      integration.requestIdentifiers.clientIdAndPlayerTokenQueryString)
   }
 
 }
