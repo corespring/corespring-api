@@ -92,18 +92,18 @@ class PlayerTokenApiTest extends Specification
         (jsonResult \ "playerToken").as[String] === "encrypted"
         (jsonResult \ "apiClient").as[String] === "clientid"
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "*", "sessionId" -> "*", "secure" -> false, "expires" -> 0, "mode" -> "*")
+          Json.obj("itemId" -> "*", "sessionId" -> "*", "secure" -> false, "expires" -> "0", "mode" -> "*")
       }
 
-      "pass in itemId" in new withJsonPlayerScope(Json.obj("expires" -> 0, "itemId" -> "itemId")) {
+      "pass in itemId" in new withJsonPlayerScope(Json.obj("expires" -> "0", "itemId" -> "itemId")) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "*", "secure" -> false, "expires" -> 0, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "*", "secure" -> false, "expires" -> "0", "mode" -> "*")
       }
 
       "pass in itemId, sessionId" in new withJsonPlayerScope(
         Json.obj("expires" -> 0, "itemId" -> "itemId", "sessionId" -> "sessionId")) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "expires" -> 0, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "expires" -> "0", "mode" -> "*")
       }
 
       /**
@@ -112,15 +112,15 @@ class PlayerTokenApiTest extends Specification
        */
 
       "pass in itemId, sessionId, expires" in new withJsonPlayerScope(
-        Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "expires" -> 19)) {
+        Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "expires" -> "19")) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "expires" -> 19, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> false, "expires" -> "19", "mode" -> "*")
       }
 
       "pass in itemId, sessionId, expires and secure" in new withJsonPlayerScope(
-        Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "expires" -> 19, "secure" -> true)) {
+        Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "expires" -> "19", "secure" -> true)) {
         (jsonResult \ "accessSettings").as[JsObject] ===
-          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> true, "expires" -> 19, "mode" -> "*")
+          Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> true, "expires" -> "19", "mode" -> "*")
       }
 
     }
