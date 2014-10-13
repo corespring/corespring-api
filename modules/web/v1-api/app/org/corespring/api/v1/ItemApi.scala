@@ -379,6 +379,14 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     logger.trace(s"[cleanDbFields] search fields now: ${searchFields.toString}")
   }
 
+  def forceTransform(id: VersionedId[ObjectId]) = Action {
+    val version = latestVersion(id)
+    itemTransformer.updateV2Json(VersionedId[ObjectId](id = id.id, version = Some(version.toLong))) match {
+      case Some(item) => Ok("Item transformed")
+      case None => InternalServerError("There was a problem transforming the item")
+    }
+  }
+
 }
 object dependencies {
 

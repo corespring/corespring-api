@@ -1,6 +1,6 @@
 package org.corespring.it
 
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 
 import scala.concurrent.Future
 
@@ -21,8 +21,8 @@ trait IntegrationHelpers extends PlaySpecification {
     req.withCookies(c: _*)
   }
 
-  def urlWithEncryptedOptions(call: Call, apiClient: ApiClient, options: PlayerOptions = PlayerOptions.ANYTHING) = {
-    val options = Json.stringify(Json.toJson(PlayerOptions.ANYTHING))
+  def urlWithEncryptedOptions(call: Call, apiClient: ApiClient, options: PlayerAccessSettings = PlayerAccessSettings.ANYTHING) = {
+    val options = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
     val encrypted = AESCrypto.encrypt(options, apiClient.clientSecret)
     s"${call.url}?apiClient=${apiClient.clientId}&options=$encrypted"
   }

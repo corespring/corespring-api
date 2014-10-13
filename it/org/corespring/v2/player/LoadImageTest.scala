@@ -69,7 +69,6 @@ class LoadImageTest extends IntegrationSpecification {
       route(r)(writeable).map { r =>
         status(r) === OK
       }.getOrElse(failure("Can't load asset"))
-
     }
   }
 }

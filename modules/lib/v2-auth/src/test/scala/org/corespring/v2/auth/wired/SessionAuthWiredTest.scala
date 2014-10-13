@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerOptions }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.{ generalError, noItemIdInSession, cantLoadSession }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -25,7 +25,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
 
   "SessionAuth" should {
 
-    implicit val rh: OrgAndOpts = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)
+    implicit val rh: OrgAndOpts = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
 
     case class authScope(
       session: Option[JsValue] = None,
@@ -33,7 +33,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
       itemLoadForRead: Boolean = true,
       itemLoadForWrite: Boolean = true,
       hasPerms: Validation[V2Error, Boolean] = Success(true),
-      orgAndOpts: Validation[V2Error, (ObjectId, PlayerOptions, AuthMode)] = Success(ObjectId.get, PlayerOptions.ANYTHING, AuthMode.UserSession)) extends Scope {
+      orgAndOpts: Validation[V2Error, (ObjectId, PlayerAccessSettings, AuthMode)] = Success(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)) extends Scope {
       val auth = new SessionAuthWired {
 
         override def previewSessionService: MongoService = {
@@ -55,7 +55,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
           m
         }
 
-        override def hasPermissions(itemId: String, sessionId: String, options: PlayerOptions): Validation[V2Error, Boolean] = {
+        override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
           hasPerms
         }
 
@@ -94,7 +94,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
       }
     }
 
-    def opts(m: AuthMode) = OrgAndOpts(ObjectId.get, PlayerOptions.ANYTHING, m)
+    def opts(m: AuthMode) = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, m)
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")
@@ -105,7 +105,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
     }
 
     "load for write - access token - uses main service" should {
-      run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndOpts)), "main")
+      run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
 
     "load for read - user session - uses preview service" should {
@@ -117,7 +117,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
     }
 
     "load for read - access token - uses main service" should {
-      run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndOpts)), "main")
+      run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
 
     "can load session for write if item is load for read only" in new authScope(

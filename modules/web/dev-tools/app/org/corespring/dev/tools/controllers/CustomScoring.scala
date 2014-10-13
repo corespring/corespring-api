@@ -10,7 +10,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.{ Organization => OrgModel }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.PlayerOptions
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import play.api.Play
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ AnyContent, Controller, Request }
@@ -67,7 +67,7 @@ object CustomScoring extends Controller {
       org <- OrgModel.findOne(MongoDBObject("contentcolls.collectionId" -> new ObjectId(collectionId))).toSuccess("no org")
       v2SessionId <- sessionService.create(mkSession(itemId)).toSuccess("error creating session")
       client <- ApiClient.findOneByOrgId(org.id).toSuccess("No api client")
-      opts <- Success(AESCrypto.encrypt(Json.stringify(Json.toJson(PlayerOptions.ANYTHING)), client.clientSecret))
+      opts <- Success(AESCrypto.encrypt(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING)), client.clientSecret))
     } yield {
 
       (v2SessionId.toString, client.clientId.toString, opts)
