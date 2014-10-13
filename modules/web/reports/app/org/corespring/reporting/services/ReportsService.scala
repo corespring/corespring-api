@@ -217,7 +217,7 @@ class ReportsService(ItemCollection: MongoCollection,
       runMapReduceForProperty[String](bloomsKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.bloomsTaxonomy"))
 
       val depthOfKnowledgeKeyCount = ReportLineResult.zeroedKeyCountList[String](depthOfKnowledge)
-      runMapReduceForProperty[String](depthOfKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.demonstratedKnowledge"))
+      runMapReduceForProperty[String](depthOfKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.depthOfKnowledge"))
 
       val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
       runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
