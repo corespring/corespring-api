@@ -28,7 +28,7 @@ function down() {
     'Strategic Thinking & Reasoning' : 'Conceptual',
     'Extended Thinking' : 'Metacognitive',
     'None' : 'None'
-  }
+  };
 
   db.content.find({"otherAlignments.depthOfKnowledge": {$exists: true}}).forEach(function(content) {
     var value = content.otherAlignments.depthOfKnowledge;
