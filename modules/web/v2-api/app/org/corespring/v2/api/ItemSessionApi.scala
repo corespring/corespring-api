@@ -8,8 +8,9 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ noJson, errorSaving, generalError }
+import org.corespring.v2.errors.Errors.{ sessionDoesNotContainResponses, noJson, errorSaving, generalError }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ AnyContent, Action }
 
@@ -18,6 +19,8 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 trait ItemSessionApi extends V2Api {
+
+  private lazy val logger = V2LoggerFactory.getLogger("ItemSessionApi")
 
   def sessionService: MongoService
 
@@ -113,7 +116,15 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
+  /**
+   * Returns the score for the given session.
+   * If the session doesn't contain a 'components' object, an error will be returned.
+   * @param sessionId
+   * @return
+   */
   def loadScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    logger.debug(s"function=loadScore sessionId=$sessionId")
 
     def withResponses(session: JsValue): Option[JsValue] = {
       (session \ "components").asOpt[JsObject].map(_ => session)
@@ -125,7 +136,7 @@ trait ItemSessionApi extends V2Api {
         sessionAndItem <- sessionAuth.loadForWrite(sessionId)(identity)
         session <- Success(sessionAndItem._1)
         item <- Success(sessionAndItem._2)
-        sessionWithResponses <- withResponses(session).toSuccess(generalError(s"This session doesn't have any saved respons"))
+        sessionWithResponses <- withResponses(session).toSuccess(sessionDoesNotContainResponses(sessionId))
         playerDefinition <- item.playerDefinition.toSuccess(generalError("This item has no player definition"))
       } yield {
         val itemJson = Json.toJson(playerDefinition)
@@ -136,6 +147,9 @@ trait ItemSessionApi extends V2Api {
   }
 
   def checkScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    logger.debug(s"function=checkScore sessionId=$sessionId")
+
     Future {
       val out: Validation[V2Error, JsValue] = for {
         identity <- getOrgIdAndOptions(request)
