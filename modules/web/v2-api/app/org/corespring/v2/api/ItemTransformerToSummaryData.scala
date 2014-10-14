@@ -3,15 +3,16 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.{ Standard, Subject }
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.Logger
 import play.api.libs.json._
 
 trait ItemTransformerToSummaryData {
 
-  lazy val logger = Logger("org.corespring.v2.api.V2ItemTransformer")
+  lazy val logger = V2LoggerFactory.getLogger("api", "V2ItemTransformer")
 
   def transform(item: Item, detail: Option[String] = None): JsValue = {
-    if(logger.isTraceEnabled) logger.debug(s"itemId=${item.id} function=transform $detail")
+    logger.debug(s"itemId=${item.id} function=transform $detail")
 
     val normal = Json.obj(
       "id" -> item.id.toString(),
@@ -41,7 +42,7 @@ trait ItemTransformerToSummaryData {
     }
 
     val out = normal ++ details
-    if(logger.isTraceEnabled) logger.trace(s"itemId=${item.id} function=transform $detail json=${Json.stringify(out)}")
+    logger.trace(s"itemId=${item.id} function=transform $detail json=${Json.stringify(out)}")
     out
   }
 

@@ -156,15 +156,11 @@ class ItemApiTest extends IntegrationSpecification {
           (jsonResult \ "title").asOpt[String] === Some("Title")
           (jsonResult \ "primarySubject" \ "subject").asOpt[String] === Some("AP Art History")
           (jsonResult \ "relatedSubject" \ "subject").asOpt[String] === Some("AP English Literature")
-          // detail only (jsonResult \ "copyrightOwner").asOpt[String] === Some("Copyright Owner")
-          // detail only (jsonResult \ "credentials").asOpt[String] === Some("Test Item Writer")
           (jsonResult \ "gradeLevel").as[Seq[String]] === Seq("GradeLevel1", "GradeLevel2")
           (jsonResult \ "itemType").asOpt[String] === Some("ItemType")
           val standards: Seq[JsValue] = (jsonResult \ "standards").as[Seq[JsValue]]
           (standards(0) \ "dotNotation").asOpt[String] === Some("RL.1.5")
           (standards(1) \ "dotNotation").asOpt[String] === Some("RI.5.8")
-          // detail only (jsonResult \ "keySkills").as[Seq[String]] === Seq("KeySkill1", "KeySkill2")
-          // detail only (jsonResult \ "bloomsTaxonomy").asOpt[String] === Some("BloomsTaxonomy")
           (jsonResult \ "priorUse" \ "use").asOpt[String] === Some("PriorUse")
         })
       }
