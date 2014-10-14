@@ -37,9 +37,15 @@ class ItemApiTest extends Specification with Mockito {
     canCreate: Validation[V2Error, Boolean] = Success(true)) extends Scope {
     lazy val api = new ItemApi {
 
+      override def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent] = getItemWithV1Impl
+
+      private def getItemWithV1Impl(id:VersionedId[ObjectId],detail:Option[String]) = Action {
+        NotImplemented
+      }
+
       override def transform: (Item, Option[String]) => JsValue = transformItemToJson
 
-      def transformItemToJson(item: Item, detail: Option[String]): JsValue = {
+      private def transformItemToJson(item: Item, detail: Option[String]): JsValue = {
         Json.toJson(item)
       }
 
@@ -71,6 +77,11 @@ class ItemApiTest extends Specification with Mockito {
 
     lazy val api = new ItemApi {
 
+      override def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent] = getItemWithV1Impl
+
+      private def getItemWithV1Impl(id:VersionedId[ObjectId],detail:Option[String]) = Action {
+        NotImplemented
+      }
       override def transform: (Item, Option[String]) => JsValue = transformItemToJson
 
       def transformItemToJson(item: Item, detail:Option[String] = None):JsValue = {
