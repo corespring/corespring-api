@@ -1,6 +1,7 @@
 package org.corespring.wiring
 
 import common.seed.SeedDb
+import org.corespring.api.v1.ItemApi
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
@@ -23,6 +24,8 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
+
+
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,
     Organization,
@@ -33,6 +36,7 @@ object AppWiring {
     integration.itemAuth,
     integration.sessionAuth,
     v2ApiRequestIdentity,
+    ItemApi.get,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
 
   lazy val componentLoader: ComponentLoader = {

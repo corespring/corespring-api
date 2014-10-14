@@ -1,5 +1,7 @@
 package org.corespring.v2.api
 
+import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 
 import scala.concurrent.Future
@@ -11,8 +13,10 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.errors.Errors._
 import play.api.libs.json._
-import play.api.mvc.{ Action, AnyContent, Request, RequestHeader }
+import play.api.mvc._
+import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
+
 
 trait ItemApi extends V2Api {
 
@@ -63,6 +67,25 @@ trait ItemApi extends V2Api {
       validationToResult[Item](i => Ok(Json.toJson(i)))(out)
     }
   }
+
+  def transform:(Item,Option[String]) => JsValue
+
+  def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent]
+
+  def get(itemId: String, detail: Option[String]) = Action.async { implicit request =>
+    import scalaz.Scalaz._
+
+    Future {
+      val out = for {
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        identity <- getOrgIdAndOptions(request)
+        item <- itemAuth.loadForRead(itemId)(identity)
+      } yield transform(item,detail)
+
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 
