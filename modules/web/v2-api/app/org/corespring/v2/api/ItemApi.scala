@@ -72,7 +72,7 @@ trait ItemApi extends V2Api {
 
   def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent]
 
-  def get(itemId: String, detail: Option[String]) = Action.async { implicit request =>
+  def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
 
     Future {
