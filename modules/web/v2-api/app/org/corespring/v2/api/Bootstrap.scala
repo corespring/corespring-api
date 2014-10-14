@@ -41,6 +41,7 @@ class Bootstrap(
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
+  val v1ItemGet: (VersionedId[ObjectId], Option[String]) => Action[AnyContent],
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
 
   protected val orgService: OrgService = new OrgService {
@@ -76,6 +77,13 @@ class Bootstrap(
   }
 
   private lazy val itemApi = new ItemApi {
+
+    private lazy val itemTransformer = new ItemTransformerToSummaryData {}
+
+    override def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent] = v1ItemGet
+
+    override def transform:(Item, Option[String]) => JsValue = itemTransformer.transform
+
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

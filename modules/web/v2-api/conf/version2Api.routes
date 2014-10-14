@@ -1,9 +1,13 @@
 
-GET  /sessions/:sessionId       @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+GET         /sessions/:sessionId           @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
-POST /items/:itemId/sessions    @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+POST        /items/:itemId/sessions        @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
-POST /items                     @org.corespring.v2.api.ItemApi.create()
+POST        /items                         @org.corespring.v2.api.ItemApi.create()
 
-POST /player-token              @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+GET         /items/:itemId                 @org.corespring.v2.api.ItemApi.get(itemId:String, detail : Option[String] ?= Some("normal"))
+
+GET         /items/:itemId/full            @org.corespring.v2.api.ItemApi.getItemWithV1(itemId:VersionedId[ObjectId], detail : Option[String])
+
+POST        /player-token                  @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
 
