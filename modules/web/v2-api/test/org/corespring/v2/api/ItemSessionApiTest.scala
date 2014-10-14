@@ -1,6 +1,8 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -51,6 +53,16 @@ class ItemSessionApiTest extends Specification with Mockito {
        * @param itemId
        */
       override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = {}
+
+      override def outcomeProcessor: OutcomeProcessor = {
+        val m = mock[OutcomeProcessor]
+        m
+      }
+
+      override def scoreProcessor: ScoreProcessor = {
+        val m = mock[ScoreProcessor]
+        m
+      }
     }
   }
 

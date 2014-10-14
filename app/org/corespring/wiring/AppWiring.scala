@@ -33,7 +33,9 @@ object AppWiring {
     integration.itemAuth,
     integration.sessionAuth,
     v2ApiRequestIdentity,
-    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
+    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
+    integration.outcomeProcessor,
+    integration.scoreProcessor)
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq

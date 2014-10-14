@@ -1,9 +1,14 @@
 
-GET  /sessions/:sessionId       @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
-POST /items/:itemId/sessions    @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+## Check a score
+PUT  /sessions/:sessionId/check-score.json @org.corespring.v2.api.ItemSessionApi.checkScore(sessionId:String)
+## Load the score based on the saved response
+GET  /sessions/:sessionId/score.json       @org.corespring.v2.api.ItemSessionApi.loadScore(sessionId:String)
 
-POST /items                     @org.corespring.v2.api.ItemApi.create()
+POST /items/:itemId/sessions               @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
-POST /player-token              @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+POST /items                                @org.corespring.v2.api.ItemApi.create()
+
+POST /player-token                         @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
 

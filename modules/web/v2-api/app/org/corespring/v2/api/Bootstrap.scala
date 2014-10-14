@@ -2,6 +2,8 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
@@ -41,7 +43,9 @@ class Bootstrap(
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
-  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
+  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
+  val outcomeProcessor: OutcomeProcessor,
+  val scoreProcessor: ScoreProcessor) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -104,6 +108,10 @@ class Bootstrap(
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
+    override def outcomeProcessor: OutcomeProcessor = Bootstrap.this.outcomeProcessor
+
+    override def scoreProcessor: ScoreProcessor = Bootstrap.this.scoreProcessor
+
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
