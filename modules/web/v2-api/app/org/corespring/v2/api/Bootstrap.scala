@@ -41,7 +41,9 @@ class Bootstrap(
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
-  val v1ItemGet: (VersionedId[ObjectId], Option[String]) => Action[AnyContent],
+  val v1ItemApiMirror:V1ItemApiMirror,
+  val v1ItemSessionApiMirror:V1ItemSessionApiMirror,
+  val v1CollectionApiMirror:V1CollectionApiMirror,
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
 
   protected val orgService: OrgService = new OrgService {
@@ -79,8 +81,6 @@ class Bootstrap(
   private lazy val itemApi = new ItemApi {
 
     private lazy val itemTransformer = new ItemTransformerToSummaryData {}
-
-    override def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent] = v1ItemGet
 
     override def transform:(Item, Option[String]) => JsValue = itemTransformer.transform
 
@@ -131,5 +131,5 @@ class Bootstrap(
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi)
+  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiMirror, v1ItemSessionApiMirror, v1CollectionApiMirror)
 }
