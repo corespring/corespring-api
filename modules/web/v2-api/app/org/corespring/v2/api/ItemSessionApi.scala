@@ -6,6 +6,7 @@ import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ sessionDoesNotContainResponses, noJson, errorSaving, generalError }
@@ -26,9 +27,7 @@ trait ItemSessionApi extends V2Api {
 
   def sessionAuth: SessionAuth[OrgAndOpts]
 
-  def outcomeProcessor: OutcomeProcessor
-
-  def scoreProcessor: ScoreProcessor
+  def scoreService: ScoreService
 
   /**
    * A session has been created for an item with the given item id.
@@ -137,37 +136,11 @@ trait ItemSessionApi extends V2Api {
         session <- Success(sessionAndItem._1)
         item <- Success(sessionAndItem._2)
         sessionWithResponses <- withResponses(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-        playerDefinition <- item.playerDefinition.toSuccess(generalError("This item has no player definition"))
-      } yield {
-        val itemJson = Json.toJson(playerDefinition)
-        loadScore(itemJson, sessionWithResponses)
-      }
+        score <- scoreService.score(item, sessionWithResponses)
+      } yield score
+
       validationToResult[JsValue](j => Ok(j))(out)
     }
-  }
-
-  def checkScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-
-    logger.debug(s"function=checkScore sessionId=$sessionId")
-
-    Future {
-      val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgIdAndOptions(request)
-        answers <- request.body.asJson.toSuccess(noJson)
-        sessionAndItem <- sessionAuth.loadForWrite(sessionId)(identity)
-        item <- Success(sessionAndItem._2)
-        playerDefinition <- item.playerDefinition.toSuccess(generalError("This item has no player definition"))
-      } yield {
-        val itemJson = Json.toJson(playerDefinition)
-        loadScore(itemJson, answers)
-      }
-      validationToResult[JsValue](j => Ok(j))(out)
-    }
-  }
-
-  private def loadScore(item: JsValue, answer: JsValue): JsValue = {
-    val outcome = outcomeProcessor.createOutcome(item, answer, Json.obj())
-    scoreProcessor.score(item, item, outcome)
   }
 
 }

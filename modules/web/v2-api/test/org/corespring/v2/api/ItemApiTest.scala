@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings, OrgAndOpts }
 
 import scala.concurrent.ExecutionContext
@@ -11,7 +12,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError, unAuthorized }
+import org.corespring.v2.errors.Errors.{ noJson, errorSaving, generalError, unAuthorized }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -54,6 +55,11 @@ class ItemApiTest extends Specification with Mockito {
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
       override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+
+      override def scoreService: ScoreService = {
+        val m = mock[ScoreService]
+        m
+      }
     }
   }
 
@@ -108,5 +114,79 @@ class ItemApiTest extends Specification with Mockito {
 
     }
 
+    "when calling check-score.json" should {
+
+      case class checkScoreScope(
+        orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(
+          OrgAndOpts(
+            ObjectId.get,
+            PlayerAccessSettings.ANYTHING,
+            AuthMode.AccessToken)),
+        loadForReadResult: Validation[V2Error, Item] = Success(Item()),
+        scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
+
+        lazy val api = new ItemApi {
+          override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
+
+          override def itemService: ItemService = mock[ItemService]
+
+          override def scoreService: ScoreService = {
+            val m = mock[ScoreService]
+            m.score(any[Item], any[JsValue]) returns scoreResult
+            m
+          }
+
+          override def itemAuth: ItemAuth[OrgAndOpts] = {
+            val m = mock[ItemAuth[OrgAndOpts]]
+            m.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
+            m
+          }
+
+          override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+          override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+        }
+      }
+
+      "fail it the org and opts aren't found" in new checkScoreScope(
+        orgAndOpts = Failure(generalError("no org and opts"))) {
+        val result = api.checkScore("itemId")(FakeRequest("", ""))
+        val error = orgAndOpts.toEither.left.get
+        status(result) === error.statusCode
+        contentAsJson(result) === error.json
+      }
+
+      "fail it the json body is empty" in new checkScoreScope() {
+        val result = api.checkScore("itemId")(FakeRequest("", ""))
+        val error = noJson
+        status(result) === error.statusCode
+        contentAsJson(result) === error.json
+      }
+
+      "fail it the item isn't loaded" in new checkScoreScope(
+        loadForReadResult = Failure(generalError("No item"))) {
+        val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
+        val error = loadForReadResult.toEither.left.get
+        status(result) === error.statusCode
+        contentAsJson(result) === error.json
+      }
+
+      "fail it the score service fails" in new checkScoreScope(
+        scoreResult = Failure(generalError("couldn't get score"))) {
+        val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
+        val error = scoreResult.toEither.left.get
+        status(result) === error.statusCode
+        contentAsJson(result) === error.json
+      }
+
+      "work" in new checkScoreScope() {
+        val result = api.checkScore("itemId")(
+          FakeRequest("", "",
+            FakeHeaders(),
+            AnyContentAsJson(Json.obj())))
+        status(result) === OK
+        contentAsJson(result) === scoreResult.toEither.right.get
+      }
+    }
   }
 }

@@ -14,8 +14,7 @@ import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
+import org.corespring.v2.api.services._
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -25,10 +24,9 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
-import scalaz.Scalaz._
-
 import scala.concurrent.ExecutionContext
-import scalaz.{ Success, Failure, Validation }
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 /**
  * Wires up the dependencies for v2 api, so that the controllers will run in the application.
@@ -46,6 +44,8 @@ class Bootstrap(
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val outcomeProcessor: OutcomeProcessor,
   val scoreProcessor: ScoreProcessor) {
+
+  private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -80,6 +80,9 @@ class Bootstrap(
   }
 
   private lazy val itemApi = new ItemApi {
+
+    override def scoreService: ScoreService = Bootstrap.this.scoreService
+
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -108,9 +111,8 @@ class Bootstrap(
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
-    override def outcomeProcessor: OutcomeProcessor = Bootstrap.this.outcomeProcessor
 
-    override def scoreProcessor: ScoreProcessor = Bootstrap.this.scoreProcessor
+    override def scoreService: ScoreService = Bootstrap.this.scoreService
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 

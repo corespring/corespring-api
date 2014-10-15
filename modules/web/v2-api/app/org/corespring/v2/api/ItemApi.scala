@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.models.OrgAndOpts
 
 import scala.concurrent.Future
@@ -13,11 +14,13 @@ import org.corespring.v2.errors.Errors._
 import play.api.libs.json._
 import play.api.mvc.{ Action, AnyContent, Request, RequestHeader }
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 trait ItemApi extends V2Api {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
+  def scoreService: ScoreService
 
   /**
    * For a known organization (derived from the request) return Some(id)
@@ -61,6 +64,27 @@ trait ItemApi extends V2Api {
         item.copy(id = vid)
       }
       validationToResult[Item](i => Ok(Json.toJson(i)))(out)
+    }
+  }
+
+  /**
+   * Check a score against a given item
+   * @param itemId
+   * @return
+   */
+  def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    logger.debug(s"function=checkScore sessionId=$itemId")
+
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgIdAndOptions(request)
+        answers <- request.body.asJson.toSuccess(noJson)
+        item <- itemAuth.loadForRead(itemId)(identity)
+        score <- scoreService.score(item, answers)
+      } yield score
+
+      validationToResult[JsValue](j => Ok(j))(out)
     }
   }
 
