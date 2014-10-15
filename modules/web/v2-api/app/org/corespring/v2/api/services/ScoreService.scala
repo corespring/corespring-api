@@ -1,8 +1,10 @@
 package org.corespring.v2.api.services
 
+import org.bson.types.ObjectId
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ Json, JsValue }
@@ -39,12 +41,14 @@ trait ScoreService {
 import scalaz.Scalaz._
 
 class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor) extends ScoreService {
+
+  def noPlayerDefinition(id: VersionedId[ObjectId]): V2Error = generalError(s"This item ($id) has no player definition, unable to calculate a score")
+
   override def score(item: Item, answers: JsValue): Validation[V2Error, JsValue] =
     item.playerDefinition.map { pd =>
       val itemJson = Json.toJson(pd)
       val outcome = outcomeProcessor.createOutcome(itemJson, answers, Json.obj())
       scoreProcessor.score(itemJson, answers, outcome)
-    }.toSuccess(
-      generalError(s"This item (${item.id}) has no player definition"))
+    }.toSuccess(noPlayerDefinition(item.id))
 
 }

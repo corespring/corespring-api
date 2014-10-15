@@ -2,9 +2,10 @@ package org.corespring.test.helpers.models
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{TaskInfo, Item}
+import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.{ Json, JsValue }
 import scala.Some
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import com.mongodb.DBObject
@@ -17,6 +18,11 @@ object ItemHelper {
     val data: Resource = Resource(name = "data", files = Seq(qti))
     val item = Item(collectionId = Some(collectionId.toString), data = Some(data), taskInfo = Some(TaskInfo(title = Some("Title"))))
     create(collectionId, item)
+  }
+
+  def update(itemId: VersionedId[ObjectId], json: JsValue): Unit = {
+    val dbo: DBObject = com.mongodb.util.JSON.parse(Json.stringify(json)).asInstanceOf[DBObject]
+    ItemServiceWired.collection.update(MongoDBObject("_id._id" -> itemId.id), dbo, upsert = false, multi = false)
   }
 
   def get(id: VersionedId[ObjectId]): Option[Item] = {

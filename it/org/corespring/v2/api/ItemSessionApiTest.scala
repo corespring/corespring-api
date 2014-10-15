@@ -2,8 +2,10 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
@@ -65,10 +67,36 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
     }
 
-    "when calling check score" should {
-      s"return $OK" in new token_checkScore(AnyContentAsJson(Json.obj())) {
-        println(contentAsString(result))
+    "when calling load score" should {
+
+      s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+
+        val item = ItemServiceWired.findOneById(itemId).get
+        val update = item.copy(playerDefinition = Some(
+          PlayerDefinition(
+            Seq.empty,
+            "html",
+            Json.obj(
+              "1" -> Json.obj(
+                "componentType" -> "corespring-multiple-choice",
+                "correctResponse" -> Json.obj("value" -> Json.arr("carrot")),
+                "model" -> Json.obj(
+                  "config" -> Json.obj(
+                    "singleChoice" -> true),
+                  "prompt" -> "Carrot?",
+                  "choices" -> Json.arr(
+                    Json.obj("label" -> "carrot", "value" -> "carrot"),
+                    Json.obj("label" -> "banana", "value" -> "banana"))))),
+            "",
+            None)))
+
+        val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
+        val resultJson = Json.parse(resultString)
+        ItemServiceWired.save(update)
+        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+          "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
+        contentAsJson(result) === resultJson
       }
     }
   }
@@ -93,8 +121,8 @@ class ItemSessionApiTest extends IntegrationSpecification {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
   }
 
-  class token_checkScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
-    override def getCall(sessionId: ObjectId): Call = Routes.checkScore(sessionId.toString)
+  class token_loadScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
+    override def getCall(sessionId: ObjectId): Call = Routes.loadScore(sessionId.toString)
     override def requestBody = json
   }
 
