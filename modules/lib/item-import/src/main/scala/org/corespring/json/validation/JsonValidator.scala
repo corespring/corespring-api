@@ -19,12 +19,12 @@ class JsonValidator(schemaFilename: String) {
 
   private def json(json: JsValue) = jsonNodeReader.fromReader(new StringReader(json.toString))
 
-  def validate(jsValue: JsValue): Seq[String] = {
+  def validate(jsValue: JsValue): Either[Seq[String], JsValue] = {
     val processingReport = validator.validateUnchecked(schema(schemaFilename), json(jsValue))
     Json.parse(processingReport.asInstanceOf[AsJson].asJson.toString) match {
       case errorArray: JsArray if errorArray.value.length != 0 =>
-        errorArray.value.map(error => (error \ "message").as[String])
-      case _ => Seq.empty
+        Left(errorArray.value.map(error => (error \ "message").as[String]))
+      case _ => Right(jsValue)
     }
   }
 

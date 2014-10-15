@@ -8,11 +8,11 @@ class JsonValidatorTest extends Specification {
   "validateItem" should {
 
     "reject empty json object" in {
-      JsonValidator.validateItem(Json.obj()) must not beEmpty
+      JsonValidator.validateItem(Json.obj()) must beAnInstanceOf[Left[Seq[String], JsValue]]
     }
 
     "accept item with components and xhtml" in {
-      JsonValidator.validateItem(Json.obj("components" -> Json.obj(), "xhtml" -> "test")) must beEmpty
+      JsonValidator.validateItem(Json.obj("components" -> Json.obj(), "xhtml" -> "test")) must beAnInstanceOf[Right[Seq[String], JsValue]]
     }
 
   }
