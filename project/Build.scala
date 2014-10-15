@@ -159,6 +159,11 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
     .dependsOn(v2Errors, core, playerLib, testLib % "test->compile")
 
+  val itemImport = builders.lib("item-import")
+    .settings(
+      libraryDependencies ++= Seq(playJson, jsonValidator))
+    .dependsOn(core, testLib % "test->compile")
+
   val v2Api = builders.web("v2-api")
     .settings(
       libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
@@ -267,7 +272,8 @@ object Build extends sbt.Build {
       v2Api,
       apiTracking,
       clientLogging % "compile->compile;test->test",
-      qtiToV2)
+      qtiToV2,
+      itemImport)
     .aggregate(
       scormWeb,
       reports,
@@ -285,6 +291,7 @@ object Build extends sbt.Build {
       apiTracking,
       v2Auth,
       clientLogging,
-      qtiToV2)
+      qtiToV2,
+      itemImport)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
