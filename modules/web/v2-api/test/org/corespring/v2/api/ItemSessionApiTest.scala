@@ -1,16 +1,17 @@
 package org.corespring.v2.api
 
+import scala.concurrent.ExecutionContext
+
 import org.bson.types.ObjectId
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.errors.Errors.{ sessionDoesNotContainResponses, noJson, generalError }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.{ generalError, noJson, sessionDoesNotContainResponses }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -18,8 +19,6 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ AnyContentAsJson, RequestHeader }
 import play.api.test.{ FakeHeaders, FakeRequest }
 import play.api.test.Helpers._
-
-import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success, Validation }
 
 class ItemSessionApiTest extends Specification with Mockito {
@@ -134,7 +133,6 @@ class ItemSessionApiTest extends Specification with Mockito {
       "fail when the item has no player definition" in new apiScope(
         sessionAndItem = Success(Json.obj(), Item())) {
         val result = api.checkScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        println(contentAsString(result))
         val error = generalError("This item has no player definition")
         status(result) === error.statusCode
         contentAsJson(result) === error.json
@@ -149,7 +147,6 @@ class ItemSessionApiTest extends Specification with Mockito {
             summaryFeedback = "?",
             customScoring = None))))) {
         val result = api.checkScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        println(contentAsString(result))
         val error = generalError("This item has no player definition")
         status(result) === OK
         contentAsJson(result) === Json.obj("score" -> "?")
@@ -168,7 +165,6 @@ class ItemSessionApiTest extends Specification with Mockito {
       "fail when the session has no 'components'" in new apiScope(
         sessionAndItem = Success(Json.obj(), Item())) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        println(contentAsString(result))
         val error = sessionDoesNotContainResponses("sessionId")
         status(result) === error.statusCode
         contentAsJson(result) === error.json
@@ -177,7 +173,6 @@ class ItemSessionApiTest extends Specification with Mockito {
       "fail when the item has no player definition" in new apiScope(
         sessionAndItem = Success(Json.obj("components" -> Json.obj()), Item())) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        println(contentAsString(result))
         val error = generalError("This item has no player definition")
         status(result) === error.statusCode
         contentAsJson(result) === error.json
@@ -192,12 +187,10 @@ class ItemSessionApiTest extends Specification with Mockito {
             summaryFeedback = "?",
             customScoring = None))))) {
         val result = api.loadScore("sessionId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        println(contentAsString(result))
         val error = generalError("This item has no player definition")
         status(result) === OK
         contentAsJson(result) === Json.obj("score" -> "?")
       }
     }
   }
-
 }

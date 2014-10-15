@@ -9,7 +9,7 @@ import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
 import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.mvc.{ AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
@@ -64,6 +64,13 @@ class ItemSessionApiTest extends IntegrationSpecification {
       }
 
     }
+
+    "when calling check score" should {
+      s"return $OK" in new token_checkScore(AnyContentAsJson(Json.obj())) {
+        println(contentAsString(result))
+        status(result) === OK
+      }
+    }
   }
 
   class unknownUser_getSession extends sessionLoader with orgWithAccessTokenItemAndSession with PlainRequestBuilder {
@@ -84,6 +91,11 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
   class token_getSession extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
     override def getCall(sessionId: ObjectId): Call = Routes.get(sessionId.toString)
+  }
+
+  class token_checkScore(json: AnyContent) extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
+    override def getCall(sessionId: ObjectId): Call = Routes.checkScore(sessionId.toString)
+    override def requestBody = json
   }
 
   class clientIdAndPlayerToken_getSession(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with sessionLoader with HasSessionId {
