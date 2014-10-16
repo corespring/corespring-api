@@ -101,8 +101,12 @@ object ItemFileConverter {
 
   private def contributorDetails(implicit metadata: Option[JsValue]): Option[ContributorDetails] = {
     implicit val contributorDetailsReads = ContributorDetails.Reads
-    metadata.map(md => (md \ "contributorDetails").asOpt[JsObject]).flatten.map(Json.fromJson[ContributorDetails](_) match {
-      case JsSuccess(value, _) => value
+    implicit val Formats = Json.format[Copyright]
+    metadata.map(md => (md \ "contributorDetails").asOpt[JsObject]).flatten.map(js => Json.fromJson[ContributorDetails](js) match {
+      case JsSuccess(value, _) => value.copy(copyright = (js \ "copyright").asOpt[JsObject].map(Json.fromJson[Copyright](_) match {
+        case JsSuccess(copyValue, _) => Some(copyValue)
+        case _ => None
+      }).flatten)
       case _ => throw new ImportException(new Error(metadataParseError("contributorDetails")))
     })
   }

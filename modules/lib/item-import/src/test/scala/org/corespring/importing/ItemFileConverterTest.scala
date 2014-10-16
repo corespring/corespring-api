@@ -19,10 +19,30 @@ class ItemFileConverterTest extends Specification {
       val owner = "State of New Jersey Department of Education"
       val year = "2012"
     }
-    
+
     val credentials = "State Department of Education"
     val licenseType = "CC BY"
     val sourceUrl = "http://www.state.nj.us/education/modelcurriculum/ela/10u1.shtml"
+  }
+
+  object otherAlignments {
+    val bloomsTaxonomy = "Analyzing"
+    val depthOfKnowledge = "Strategic Thinking & Reasoning"
+    val keySkills = Seq("Define", "Discuss", "Distinguish", "Choose", "Analyze", "Examine")
+    val relatedCurriculum = "New Jersey Model Curriculum"
+  }
+
+  val lexile = "24"
+  val pValue = "0"
+  val priorUse = "Summative"
+  val priorGradeLevels = Seq("PG", "UG", "04")
+  val reviewsPassed = Seq("Bias")
+  val standards = Seq("RL.2.6")
+
+  object taskInfo {
+    val gradeLevel = Seq("03")
+    val title = "Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?"
+    val description = "Item about Soil"
   }
 
 
@@ -120,33 +140,18 @@ class ItemFileConverterTest extends Specification {
       "licenseType": "${contributorDetails.licenseType}",
       "sourceUrl" : "${contributorDetails.sourceUrl}"
     },
-    "lexile": "24",
+    "lexile": "$lexile",
     "otherAlignments": {
-      "bloomsTaxonomy" : "Analyzing",
-      "keySkills" : [
-        "Define",
-        "Discuss",
-        "Distinguish",
-        "Choose",
-        "Analyze",
-        "Examine"
-      ],
-      "relatedCurriculum" : "New Jersey Model Curriculum",
-      "depthOfKnowledge" : "Strategic Thinking & Reasoning"
+      "bloomsTaxonomy" : "${otherAlignments.bloomsTaxonomy}",
+      "keySkills" : [ "${otherAlignments.keySkills.mkString("\",\"")}" ],
+      "relatedCurriculum" : "${otherAlignments.relatedCurriculum}",
+      "depthOfKnowledge" : "${otherAlignments.depthOfKnowledge}"
     },
-    "pValue": "0",
-    "priorUse" : "Summative",
-    "priorGradeLevel": [
-      "PK",
-      "UG",
-      "04"
-    ],
-    "reviewsPassed": [
-      "Bias"
-    ],
-    "standards": [
-      "RL.2.6"
-    ],
+    "pValue": "$pValue",
+    "priorUse" : "$priorUse",
+    "priorGradeLevels": ["${priorGradeLevels.mkString("\",\"")}"],
+    "reviewsPassed": ["${reviewsPassed.mkString("\",\"")}"],
+    "standards": ["${standards.mkString("\",\"")}"],
     "supportingMaterials": [
       {
         "name": "Rubric",
@@ -158,11 +163,9 @@ class ItemFileConverterTest extends Specification {
       }
     ],
     "taskInfo": {
-      "gradeLevel" : [
-        "03"
-      ],
-      "title" : "Read the passage <i>What's the Scoop on Soil?</i>. Which aspects of soil does the passage not explain? What can you tell about soil by squeezing it?",
-      "description" : "Item about Soil"
+      "gradeLevel" : ["${taskInfo.gradeLevel.mkString("\",\"")}"],
+      "title" : "${taskInfo.title}",
+      "description" : "${taskInfo.description}"
     }
   }"""
 
@@ -191,6 +194,39 @@ class ItemFileConverterTest extends Specification {
 
         "have correct author" in { itemContributorDetails.author must be equalTo Some(contributorDetails.author) }
         "have correct contributor" in { itemContributorDetails.contributor must be equalTo Some(contributorDetails.contributor) }
+
+        "copyright" should {
+          val itemCopyright = itemContributorDetails.copyright.getOrElse(throw new Exception("contributorDetails.copyright missing"))
+          "have correct owner" in { itemCopyright.owner must be equalTo(Some(contributorDetails.copyright.owner)) }
+          "have correct year" in { itemCopyright.year must be equalTo(Some(contributorDetails.copyright.year)) }
+        }
+
+        "have correct credentials" in { itemContributorDetails.credentials must be equalTo(Some(contributorDetails.credentials)) }
+        "have correct licenseType" in { itemContributorDetails.licenseType must be equalTo(Some(contributorDetails.licenseType)) }
+        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must be equalTo(Some(contributorDetails.sourceUrl)) }
+
+      }
+
+      "otherAlignments" should {
+        val itemOtherAlignments = item.otherAlignments.getOrElse(throw new Exception("otherAlignments missing"))
+
+        "have correct bloomsTaxonomy" in { itemOtherAlignments.bloomsTaxonomy must be equalTo Some(otherAlignments.bloomsTaxonomy) }
+        "have correct keySkills" in { itemOtherAlignments.keySkills must be equalTo otherAlignments.keySkills }
+        "have correct relatedCurriculum" in { itemOtherAlignments.relatedCurriculum must be equalTo Some(otherAlignments.relatedCurriculum) }
+        "have correct depthOfKnowledge" in { itemOtherAlignments.depthOfKnowledge must be equalTo Some(otherAlignments.depthOfKnowledge) }
+      }
+
+      "have correct priorUse" in { item.priorUse must be equalTo(Some(priorUse)) }
+      "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo(priorGradeLevels) }
+      "have correct reviewsPassed" in { item.reviewsPassed must be equalTo(reviewsPassed) }
+      "have correct standards" in { item.standards must be equalTo(standards) }
+
+      "taskInfo" should {
+        val itemTaskInfo = item.taskInfo.getOrElse(throw new Exception("taskInfo missing"))
+
+        "have correct gradeLevel" in { itemTaskInfo.gradeLevel must be equalTo taskInfo.gradeLevel }
+        "have correct description" in { itemTaskInfo.description must be equalTo Some(taskInfo.description) }
+        "have correct title" in { itemTaskInfo.title must be equalTo Some(taskInfo.title) }
       }
 
     }
