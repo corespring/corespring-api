@@ -65,6 +65,19 @@ package object scopes {
       println("[orgWithAccessTokenAndItemAndSession] after")
       V2SessionHelper.delete(sessionId)
     }
+  }
+
+  /**
+   * Creates a v1 session
+   */
+  trait orgWithAccessTokenItemAndV1Session extends orgWithAccessTokenAndItem with HasSessionId {
+    val sessionId = V1SessionHelper.create(itemId)
+    println(s"orgWithAccessTokenItemAndSession created session $sessionId")
+
+    override def after: Any = {
+      println("[orgWithAccessTokenAndItemAndSession] after")
+      V1SessionHelper.delete(sessionId)
+    }
 
   }
 

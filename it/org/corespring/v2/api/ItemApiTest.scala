@@ -166,35 +166,6 @@ class ItemApiTest extends IntegrationSpecification {
       }
     }
 
-    "getItemWithV1" should {
-
-      def assertStatus[A](r: FakeRequest[A], expectedStatus: Int = OK)(implicit wr: Writeable[A]) = {
-        route(r).map { result =>
-
-          status(result) === expectedStatus
-
-        }.getOrElse(failure("no route found"))
-      }
-
-      def createRequest[B <: AnyContent](id: VersionedId[ObjectId], query: String = "", contentTypeHeader: Option[String] = None, json: Option[JsValue] = None): FakeRequest[B] = {
-        val getItemWithV1 = org.corespring.v2.api.routes.ItemApi.getItemWithV1(id, None)
-        val r: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(
-          getItemWithV1.method,
-          if (query.isEmpty) getItemWithV1.url else s"${getItemWithV1.url}?$query",
-          FakeHeaders(),
-          AnyContentAsEmpty)
-
-        val withHeader: FakeRequest[B] = contentTypeHeader.map(ct => r.withHeaders(CONTENT_TYPE -> ct)).getOrElse(r).asInstanceOf[FakeRequest[B]]
-        val out: FakeRequest[B] = json.map(j => withHeader.withJsonBody(j)).getOrElse(withHeader).asInstanceOf[FakeRequest[B]]
-        out
-      }
-
-      "work" in new itemApiTestOrgWithAccessTokenAndItem {
-        val r = createRequest[AnyContentAsEmpty.type](itemId, s"access_token=$accessToken", Some("application/json"), None)
-        assertStatus(r, OK)
-      }
-
-    }
   }
 
 }
