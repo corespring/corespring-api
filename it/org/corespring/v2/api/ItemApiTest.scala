@@ -105,7 +105,7 @@ class ItemApiTest extends IntegrationSpecification {
     "check score" should {
 
       s"$OK - with multiple choice that is correct" in new checkScore {
-        val answers = Json.obj("components" -> Json.obj("1" -> Json.obj("answers" -> Json.arr("carrot"))))
+        val answers = Json.obj("1" -> Json.obj("answers" -> Json.arr("carrot")))
         result.map { r =>
           val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
           val resultJson = Json.parse(resultString)
@@ -116,7 +116,7 @@ class ItemApiTest extends IntegrationSpecification {
 
       s"$OK - with multiple choice that is incorrect" in new checkScore {
 
-        val answers = Json.obj("components" -> Json.obj("1" -> Json.obj("answers" -> Json.arr("banana"))))
+        val answers = Json.obj("1" -> Json.obj("answers" -> Json.arr("banana")))
 
         result.map { r =>
           val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""

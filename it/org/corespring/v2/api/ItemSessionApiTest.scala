@@ -69,32 +69,44 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
     "when calling load score" should {
 
+      def playerDef = PlayerDefinition(
+        Seq.empty,
+        "html",
+        Json.obj(
+          "1" -> Json.obj(
+            "componentType" -> "corespring-multiple-choice",
+            "correctResponse" -> Json.obj("value" -> Json.arr("carrot")),
+            "model" -> Json.obj(
+              "config" -> Json.obj(
+                "singleChoice" -> true),
+              "prompt" -> "Carrot?",
+              "choices" -> Json.arr(
+                Json.obj("label" -> "carrot", "value" -> "carrot"),
+                Json.obj("label" -> "banana", "value" -> "banana"))))),
+        "",
+        None)
+
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(
-          PlayerDefinition(
-            Seq.empty,
-            "html",
-            Json.obj(
-              "1" -> Json.obj(
-                "componentType" -> "corespring-multiple-choice",
-                "correctResponse" -> Json.obj("value" -> Json.arr("carrot")),
-                "model" -> Json.obj(
-                  "config" -> Json.obj(
-                    "singleChoice" -> true),
-                  "prompt" -> "Carrot?",
-                  "choices" -> Json.arr(
-                    Json.obj("label" -> "carrot", "value" -> "carrot"),
-                    Json.obj("label" -> "banana", "value" -> "banana"))))),
-            "",
-            None)))
-
+        val update = item.copy(playerDefinition = Some(playerDef))
         val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
         val resultJson = Json.parse(resultString)
         ItemServiceWired.save(update)
         V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
+        status(result) === OK
+        contentAsJson(result) === resultJson
+      }
+
+      s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+        val item = ItemServiceWired.findOneById(itemId).get
+        val update = item.copy(playerDefinition = Some(playerDef))
+        val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""
+        val resultJson = Json.parse(resultString)
+        ItemServiceWired.save(update)
+        V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
+          "1" -> Json.obj("answers" -> Json.arr("banana")))))
         status(result) === OK
         contentAsJson(result) === resultJson
       }

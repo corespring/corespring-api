@@ -47,6 +47,9 @@ trait ItemApi extends V2Api {
   def create = Action.async { implicit request =>
     import scalaz.Scalaz._
     Future {
+
+      logger.debug(s"function=create")
+
       val out = for {
         identity <- getOrgIdAndOptions(request)
         dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.orgId))
@@ -74,7 +77,7 @@ trait ItemApi extends V2Api {
    */
   def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
 
-    logger.debug(s"function=checkScore sessionId=$itemId")
+    logger.debug(s"function=checkScore itemId=$itemId")
 
     Future {
       val out: Validation[V2Error, JsValue] = for {

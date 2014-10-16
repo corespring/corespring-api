@@ -125,8 +125,8 @@ trait ItemSessionApi extends V2Api {
 
     logger.debug(s"function=loadScore sessionId=$sessionId")
 
-    def withResponses(session: JsValue): Option[JsValue] = {
-      (session \ "components").asOpt[JsObject].map(_ => session)
+    def getComponents(session: JsValue): Option[JsValue] = {
+      (session \ "components").asOpt[JsObject]
     }
 
     Future {
@@ -135,8 +135,8 @@ trait ItemSessionApi extends V2Api {
         sessionAndItem <- sessionAuth.loadForWrite(sessionId)(identity)
         session <- Success(sessionAndItem._1)
         item <- Success(sessionAndItem._2)
-        sessionWithResponses <- withResponses(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-        score <- scoreService.score(item, sessionWithResponses)
+        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
+        score <- scoreService.score(item, components)
       } yield score
 
       validationToResult[JsValue](j => Ok(j))(out)
