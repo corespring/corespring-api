@@ -9,16 +9,30 @@ import org.corespring.platform.core.models.item.resource.BaseFile
 import play.api.libs.json.JsSuccess
 import scala.Some
 import play.api.libs.json.JsObject
+import org.corespring.amazon.s3.S3Service
+import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.bson.types.ObjectId
+import play.api.libs.json.JsSuccess
+import scala.Some
+import org.corespring.v2.auth.models.OrgAndOpts
+import play.api.libs.json.JsObject
 
-object ItemFileConverter {
+trait ItemFileConverter {
+
+  def s3: S3Service
+  def bucket: String
+  def auth: ItemAuth[OrgAndOpts]
 
   object errors {
+    val cannotCreateItem = "There was an error saving the item to the database"
     def fileMissing(filename: String) = s"Provided item source did not include $filename"
     def jsonParseError(filename: String) = s"$filename did not contain valid json"
     def metadataParseError(field: String) = s"There was an error parsing $field in $itemMetadataFilename"
   }
 
-  case class ImportException(error: Error) extends RuntimeException
+  case class ConversionException(error: Error) extends RuntimeException
 
   import errors._
 
@@ -27,34 +41,45 @@ object ItemFileConverter {
 
   val dummyReturn = Right(PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None))
 
-
-  def convert(collectionId: String)(implicit sources: Map[String, Source]): Either[Error, Item] = {
+  /**
+   * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
+   * object or an Error.
+   */
+  def convert(collectionId: String, identity: OrgAndOpts)(implicit sources: Map[String, Source]): Either[Error, Item] = {
     try {
       (itemJson, metadata) match {
         case (Left(error), _) => Left(error)
         case (_, Left(error)) => Left(error)
-        case (Right(item), Right(md)) => {
+        case (Right(itemJson), Right(md)) => {
           implicit val metadata = md
-          Right(Item(
-            collectionId = Some(collectionId),
-            contributorDetails = contributorDetails,
-            lexile = extractString("lexile"),
-            otherAlignments = otherAlignments,
-            pValue = extractString("pValue"),
-            playerDefinition =
-              Some(PlayerDefinition(files, (item \ "xhtml").as[String], (item \ "components"),
-                (item \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
-            priorGradeLevels = extractStringSeq("priorGradeLevels"),
-            priorUse = extractString("priorUse"),
-            taskInfo = taskInfo,
-            reviewsPassed = extractStringSeq("reviewsPassed"),
-            standards = extractStringSeq("standards"),
-            workflow = workflow
-          ))
+          create(collectionId, identity) match {
+            case Some(id) => {
+              val item = Item(
+                id = id,
+                collectionId = Some(collectionId),
+                contributorDetails = contributorDetails,
+                lexile = extractString("lexile"),
+                otherAlignments = otherAlignments,
+                pValue = extractString("pValue"),
+                playerDefinition =
+                  Some(PlayerDefinition(files(id), (itemJson \ "xhtml").as[String], (itemJson \ "components"),
+                    (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
+                priorGradeLevels = extractStringSeq("priorGradeLevels"),
+                priorUse = extractString("priorUse"),
+                taskInfo = taskInfo,
+                reviewsPassed = extractStringSeq("reviewsPassed"),
+                standards = extractStringSeq("standards"),
+                workflow = workflow
+              )
+              auth.save(item, createNewVersion = false)(identity)
+              Right(item)
+            }
+            case None => Left(new Error(cannotCreateItem))
+          }
         }
       }
     } catch {
-      case ie: ImportException => Left(ie.error)
+      case ie: ConversionException => Left(ie.error)
     }
   }
 
@@ -81,7 +106,19 @@ object ItemFileConverter {
     }
   }
 
-  private def files(implicit sources: Map[String, Source]): Seq[BaseFile] = {
+  private def create(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
+    val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
+    val item = Item(
+      collectionId = Some(collectionId),
+      playerDefinition = Some(definition))
+    auth.insert(item)(identity)
+  }
+
+  private def files(itemId: VersionedId[ObjectId])(implicit sources: Map[String, Source]): Seq[BaseFile] = {
+//    sources.toList.filterNot(f => Seq(itemJsonFilename, itemMetadataFilename).contains(f._1))
+//      .map{ case(filename, source) => {
+//        s3.upload(bucket, s"$itemId/data/$filename")
+//      }}
     Seq.empty
   }
 
@@ -95,7 +132,7 @@ object ItemFileConverter {
     implicit val alignmentsReads = Alignments.Reads
     metadata.map(md => (md \ "otherAlignments").asOpt[JsObject]).flatten.map(Json.fromJson[Alignments](_) match {
       case JsSuccess(value, _) => value
-      case _ => throw new ImportException(new Error(metadataParseError("otherAlignments")))
+      case _ => throw new ConversionException(new Error(metadataParseError("otherAlignments")))
     })
   }
 
@@ -107,7 +144,7 @@ object ItemFileConverter {
         case JsSuccess(copyValue, _) => Some(copyValue)
         case _ => None
       }).flatten)
-      case _ => throw new ImportException(new Error(metadataParseError("contributorDetails")))
+      case _ => throw new ConversionException(new Error(metadataParseError("contributorDetails")))
     })
   }
 
@@ -115,7 +152,7 @@ object ItemFileConverter {
     implicit val taskInfoReads = TaskInfo.taskInfoReads
     metadata.map(md => (md \ "taskInfo").asOpt[JsObject]).flatten.map(Json.fromJson[TaskInfo](_) match {
       case JsSuccess(value, _) => value
-      case _ => throw new ImportException(new Error(metadataParseError("taskInfo")))
+      case _ => throw new ConversionException(new Error(metadataParseError("taskInfo")))
     })
   }
 
