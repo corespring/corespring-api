@@ -50,22 +50,37 @@ trait ItemTransformer {
     }
   }
 
+  //TODO: PR - tidy this up..
+  def createPlayerDefinition(item: Item): PlayerDefinition = {
+    item.playerDefinition.getOrElse {
+
+      val newDef = createFromQti(item).asOpt[PlayerDefinition]
+
+      require(newDef.isDefined, "There must be a player definition created")
+
+      newDef.map { d =>
+        itemService.save(item.copy(playerDefinition = Some(d)))
+      }
+      newDef.get
+    }
+  }
+
   def updateV2Json(item: Item): Option[Item] = {
     item.createdByApiVersion match {
       case 1 => {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-          case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-            case true => Some(updatedItem)
-            case _ => {
-              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
-              itemService.save(updatedItem)
-              Some(updatedItem)
+            case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+              case true => Some(updatedItem)
+              case _ => {
+                logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+                itemService.save(updatedItem)
+                Some(updatedItem)
+              }
             }
+            case _ => None
           }
-          case _ => None
-        }
       }
       case _ => Some(item)
     }

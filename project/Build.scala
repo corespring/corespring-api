@@ -152,7 +152,7 @@ object Build extends sbt.Build {
    */
   val v2Auth = builders.lib("v2-auth").settings(
     libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, playerLib)
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(

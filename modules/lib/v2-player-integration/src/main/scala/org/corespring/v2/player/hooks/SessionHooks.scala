@@ -2,7 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
@@ -17,7 +17,7 @@ trait SessionHooks
   extends ContainerSessionHooks
   with LoadOrgAndOptions {
 
-  def auth: SessionAuth[OrgAndOpts]
+  def auth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   def itemService: ItemService
 
@@ -64,11 +64,11 @@ trait SessionHooks
       identity <- getOrgIdAndOptions(header)
       models <- auth.loadForRead(id)(identity)
     } yield {
-      val (session, item) = models
+      val (session, playerDefinition) = models
       logger.trace(s"[buildSession] org and opts: $identity")
-      val transformed = transformItem(item)
-      logger.trace(s"[buildSession] transformed: ${Json.stringify(transformed)}")
-      make(transformed, session, identity)
+      //val transformed = transformItem(item)
+      logger.trace(s"[buildSession] transformed: ${playerDefinition}")
+      make(Json.toJson(playerDefinition), session, identity)
     }
     out.leftMap { s => UNAUTHORIZED -> s.message }.toEither
   }
