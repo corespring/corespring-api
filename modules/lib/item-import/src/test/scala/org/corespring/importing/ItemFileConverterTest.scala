@@ -26,6 +26,7 @@ class ItemFileConverterTest extends Specification with Mockito {
   PlaySingleton.start()
 
   val collectionId = "543edd2fa399191672bedea9"
+  val orgId = new ObjectId()
 
   object contributorDetails {
     val author = "State of New Jersey Department of Education"
@@ -188,92 +189,82 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   "convert" should {
 
-    trait withResult extends orgWithAccessToken {
+    val sources = (Seq(
+      "dot array.png", "metadata.json", "files/rubric.pdf"
+    ).map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
+      Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
 
-      val sources = (Seq(
-        "dot array.png", "metadata.json", "files/rubric.pdf"
-      ).map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
-        Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
+    val identity = OrgAndOpts(orgId = orgId, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.AccessToken)
 
-      implicit val identity = OrgAndOpts(orgId = orgId, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.AccessToken)
-
-      val itemFileConverter = new ItemFileConverter {
-        def s3: S3Service = new S3Service {
-          def download(bucket: String, fullKey: String, headers: Option[Headers]): SimpleResult = ???
-          def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Int] = ???
-          def delete(bucket: String, keyName: String): DeleteResponse = ???
-        }
-        def bucket: String = "fake bucket"
-        def auth: ItemAuth[OrgAndOpts] = new ItemAuth[OrgAndOpts] {
-          def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = Success(true)
-          def loadForRead(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
-          def loadForWrite(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
-          def save(item: Item, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = {}
-          def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] = ???
-        }
-
+    val itemFileConverter = new ItemFileConverter {
+      def s3: S3Service = new S3Service {
+        def download(bucket: String, fullKey: String, headers: Option[Headers]): SimpleResult = ???
+        def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Int] = ???
+        def delete(bucket: String, keyName: String): DeleteResponse = ???
       }
-      val result = itemFileConverter.convert(collectionId, identity)(sources)
+      def bucket: String = "fake bucket"
+      def auth: ItemAuth[OrgAndOpts] = new ItemAuth[OrgAndOpts] {
+        def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = Success(true)
+        def loadForRead(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
+        def loadForWrite(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
+        def save(item: Item, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = {}
+        def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] =
+          Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0)))
+      }
+
     }
+    val result = itemFileConverter.convert(collectionId, identity)(sources)
 
-
-    "create Item from local files" in new withResult {
+    "create Item from local files" in {
       result must beAnInstanceOf[Right[Error, Item]]
     }
 
     "item" should {
 
-      trait withItem extends withResult {
-        val item: Item = result.asInstanceOf[Right[Error, Item]].b
-      }
-      "have correct collectionId" in new withItem { item.collectionId must be equalTo(Some(collectionId)) }
-      "have item as contentType" in new withItem { item.contentType must be equalTo(Item.contentType) }
+       val item: Item = result.asInstanceOf[Right[Error, Item]].b
+
+      "have correct collectionId" in { item.collectionId must be equalTo(Some(collectionId)) }
+      "have item as contentType" in { item.contentType must be equalTo(Item.contentType) }
 
       "contributorDetails" should {
-        trait withContributorDetails extends withItem {
-          val itemContributorDetails = item.contributorDetails.getOrElse(throw new Exception("contributorDetails missing"))
-        }
-        "have correct author" in new withContributorDetails { itemContributorDetails.author must be equalTo Some(contributorDetails.author) }
-        "have correct contributor" in new withContributorDetails { itemContributorDetails.contributor must be equalTo Some(contributorDetails.contributor) }
+        val itemContributorDetails = item.contributorDetails.getOrElse(throw new Exception("contributorDetails missing"))
+
+        "have correct author" in { itemContributorDetails.author must be equalTo Some(contributorDetails.author) }
+        "have correct contributor" in { itemContributorDetails.contributor must be equalTo Some(contributorDetails.contributor) }
 
         "copyright" should {
-          trait withCopyright extends withContributorDetails {
-            val itemCopyright = itemContributorDetails.copyright.getOrElse(throw new Exception("contributorDetails.copyright missing"))
-          }
-          "have correct owner" in new withCopyright { itemCopyright.owner must be equalTo(Some(contributorDetails.copyright.owner)) }
-          "have correct year" in new withCopyright { itemCopyright.year must be equalTo(Some(contributorDetails.copyright.year)) }
+          val itemCopyright = itemContributorDetails.copyright.getOrElse(throw new Exception("contributorDetails.copyright missing"))
+
+          "have correct owner" in { itemCopyright.owner must be equalTo(Some(contributorDetails.copyright.owner)) }
+          "have correct year" in { itemCopyright.year must be equalTo(Some(contributorDetails.copyright.year)) }
         }
 
-        "have correct credentials" in new withContributorDetails { itemContributorDetails.credentials must be equalTo(Some(contributorDetails.credentials)) }
-        "have correct licenseType" in new withContributorDetails { itemContributorDetails.licenseType must be equalTo(Some(contributorDetails.licenseType)) }
-        "have correct sourceUrl" in new withContributorDetails { itemContributorDetails.sourceUrl must be equalTo(Some(contributorDetails.sourceUrl)) }
+        "have correct credentials" in { itemContributorDetails.credentials must be equalTo(Some(contributorDetails.credentials)) }
+        "have correct licenseType" in { itemContributorDetails.licenseType must be equalTo(Some(contributorDetails.licenseType)) }
+        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must be equalTo(Some(contributorDetails.sourceUrl)) }
 
       }
 
       "otherAlignments" should {
-        trait withOtherAlignments extends withItem {
-          val itemOtherAlignments = item.otherAlignments.getOrElse(throw new Exception("otherAlignments missing"))
-        }
+        val itemOtherAlignments = item.otherAlignments.getOrElse(throw new Exception("otherAlignments missing"))
 
-        "have correct bloomsTaxonomy" in new withOtherAlignments { itemOtherAlignments.bloomsTaxonomy must be equalTo Some(otherAlignments.bloomsTaxonomy) }
-        "have correct keySkills" in new withOtherAlignments { itemOtherAlignments.keySkills must be equalTo otherAlignments.keySkills }
-        "have correct relatedCurriculum" in new withOtherAlignments { itemOtherAlignments.relatedCurriculum must be equalTo Some(otherAlignments.relatedCurriculum) }
-        "have correct depthOfKnowledge" in new withOtherAlignments { itemOtherAlignments.depthOfKnowledge must be equalTo Some(otherAlignments.depthOfKnowledge) }
+        "have correct bloomsTaxonomy" in { itemOtherAlignments.bloomsTaxonomy must be equalTo Some(otherAlignments.bloomsTaxonomy) }
+        "have correct keySkills" in { itemOtherAlignments.keySkills must be equalTo otherAlignments.keySkills }
+        "have correct relatedCurriculum" in { itemOtherAlignments.relatedCurriculum must be equalTo Some(otherAlignments.relatedCurriculum) }
+        "have correct depthOfKnowledge" in { itemOtherAlignments.depthOfKnowledge must be equalTo Some(otherAlignments.depthOfKnowledge) }
       }
 
-      "have correct priorUse" in new withItem { item.priorUse must be equalTo(Some(priorUse)) }
-      "have correct priorGradeLevels" in new withItem { item.priorGradeLevels must be equalTo(priorGradeLevels) }
-      "have correct reviewsPassed" in new withItem { item.reviewsPassed must be equalTo(reviewsPassed) }
-      "have correct standards" in new withItem { item.standards must be equalTo(standards) }
+      "have correct priorUse" in { item.priorUse must be equalTo(Some(priorUse)) }
+      "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo(priorGradeLevels) }
+      "have correct reviewsPassed" in { item.reviewsPassed must be equalTo(reviewsPassed) }
+      "have correct standards" in { item.standards must be equalTo(standards) }
 
       "taskInfo" should {
-        trait withTaskInfo extends withItem {
-          val itemTaskInfo = item.taskInfo.getOrElse(throw new Exception("taskInfo missing"))
-        }
+        val itemTaskInfo = item.taskInfo.getOrElse(throw new Exception("taskInfo missing"))
 
-        "have correct gradeLevel" in new withTaskInfo { itemTaskInfo.gradeLevel must be equalTo taskInfo.gradeLevel }
-        "have correct description" in new withTaskInfo { itemTaskInfo.description must be equalTo Some(taskInfo.description) }
-        "have correct title" in new withTaskInfo { itemTaskInfo.title must be equalTo Some(taskInfo.title) }
+        "have correct gradeLevel" in { itemTaskInfo.gradeLevel must be equalTo taskInfo.gradeLevel }
+        "have correct description" in { itemTaskInfo.description must be equalTo Some(taskInfo.description) }
+        "have correct title" in { itemTaskInfo.title must be equalTo Some(taskInfo.title) }
       }
 
     }
