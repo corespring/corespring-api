@@ -70,8 +70,6 @@ trait ItemApi extends V2Api {
 
   def transform:(Item,Option[String]) => JsValue
 
-  def getItemWithV1:(VersionedId[ObjectId], Option[String]) => Action[AnyContent]
-
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
 
