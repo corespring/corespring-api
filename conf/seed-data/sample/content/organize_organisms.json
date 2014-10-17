@@ -94,10 +94,10 @@
         "storageKey" : "541b1a8173adef248da4c787/0/data/Seed4.png"
       }
     ],
-    "xhtml" : "<itemBody>\n    <h1>Organisms II</h1>\n    <p>Look at the pictures below. Show the order of how a seed grows into a plant. Drag each picture into the space below in the correct order.</p><corespring-ordering id=\"alphabet\"></corespring-ordering>\n\n\n\n  </itemBody>",
+    "xhtml" : "<itemBody>\n    <h1>Organisms II</h1>\n    <p>Look at the pictures below. Show the order of how a seed grows into a plant. Drag each picture into the space below in the correct order.</p><corespring-placement-ordering id=\"alphabet\"></corespring-placement-ordering>\n\n\n\n  </itemBody>",
     "components" : {
       "alphabet" : {
-        "componentType" : "corespring-ordering",
+        "componentType" : "corespring-placement-ordering",
         "correctResponse" : [ 
           "b", 
           "a", 
