@@ -8,9 +8,9 @@ import org.specs2.specification.BeforeAfter
 import play.api.mvc.Call
 
 class V1CollectionApiProxyTest extends IntegrationSpecification {
-  val Routes = org.corespring.v2.api.routes.V1CollectionApiMirror
+  val Routes = org.corespring.v2.api.routes.V1CollectionApiProxy
 
-  "V2 - V1CollectionApiMirror" should {
+  "V2 - V1CollectionApiProxy" should {
 
     "getCollection" should {
 
