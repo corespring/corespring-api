@@ -1,7 +1,8 @@
 package org.corespring.importing
 
-import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, StoredFile}
 import org.specs2.mutable.Specification
+import play.api.libs.json.Json
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
@@ -22,6 +23,11 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   val collectionId = "543edd2fa399191672bedea9"
   val orgId = new ObjectId()
+  val itemId = new ObjectId()
+
+  val storageKey = "storageKey"
+
+  val files = Seq("dot array.png")
 
   object contributorDetails {
     val author = "State of New Jersey Department of Education"
@@ -50,6 +56,11 @@ class ItemFileConverterTest extends Specification with Mockito {
   val priorGradeLevels = Seq("PG", "UG", "04")
   val reviewsPassed = Seq("Bias")
   val standards = Seq("RL.2.6")
+
+  object supportingMaterial {
+    val name = "Rubric"
+    val files = Seq("files/rubric.pdf")
+  }
 
   object taskInfo {
     val gradeLevel = Seq("03")
@@ -130,9 +141,7 @@ class ItemFileConverterTest extends Specification with Mockito {
         }
       }
     },
-    "files": [
-      "dot array.png"
-    ],
+    "files": ["${files.mkString("\",\"")}"],
     "xhtml": "$xhtml"
   }"""
 
@@ -167,10 +176,10 @@ class ItemFileConverterTest extends Specification with Mockito {
     "standards": ["${standards.mkString("\",\"")}"],
     "supportingMaterials": [
       {
-        "name": "Rubric",
+        "name": "${supportingMaterial.name}",
         "files": [
           {
-            "name": "files/rubric.pdf"
+            "name": "${supportingMaterial.files.mkString("\",\"")}"
           }
         ]
       }
@@ -199,11 +208,11 @@ class ItemFileConverterTest extends Specification with Mockito {
         def loadForWrite(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
         def save(item: Item, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = {}
         def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] =
-          Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0)))
+          Some(new VersionedId[ObjectId](id = itemId, version = Some(0)))
       }
       def uploader = new Uploader {
         override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
-          StoredFile(name = "great", contentType = "application/json", storageKey = "great")
+          StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
         }
       }
     }
@@ -239,6 +248,12 @@ class ItemFileConverterTest extends Specification with Mockito {
 
       }
 
+      "data" should {
+        val itemData = item.data.getOrElse(throw new Exception("data missing"))
+
+        "have correct files" in { itemData.files.map(_.name) must be equalTo files }
+      }
+
       "otherAlignments" should {
         val itemOtherAlignments = item.otherAlignments.getOrElse(throw new Exception("otherAlignments missing"))
 
@@ -252,6 +267,20 @@ class ItemFileConverterTest extends Specification with Mockito {
       "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo(priorGradeLevels) }
       "have correct reviewsPassed" in { item.reviewsPassed must be equalTo(reviewsPassed) }
       "have correct standards" in { item.standards must be equalTo(standards) }
+
+      "supportingMaterials" should {
+        val itemSupportingMaterial = item.supportingMaterials.headOption.getOrElse(throw new Exception("supportingMaterial missing"))
+
+        "have correct name" in {
+          itemSupportingMaterial.name must be equalTo supportingMaterial.name
+        }
+        "have correct filename" in {
+          itemSupportingMaterial.files.map(_.name) must be equalTo supportingMaterial.files
+        }
+        "have correct storageKey" in {
+          itemSupportingMaterial.files.map(_.asInstanceOf[StoredFile].storageKey) must be equalTo Seq(storageKey)
+        }
+      }
 
       "taskInfo" should {
         val itemTaskInfo = item.taskInfo.getOrElse(throw new Exception("taskInfo missing"))

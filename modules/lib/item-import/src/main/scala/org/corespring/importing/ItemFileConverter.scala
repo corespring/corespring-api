@@ -9,7 +9,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{StoredFile, BaseFile}
+import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -55,27 +55,32 @@ trait ItemFileConverter {
           implicit val metadata = md
           create(collectionId, identity) match {
             case Some(id) => {
-              val files = upload(id, sources.filter(f => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(f))) match {
+              val itemFiles: Option[Resource] = files(id, itemJson) match {
                 case Right(files) => files
                 case Left(error) => throw new ConversionException(error)
               }
-//              val supportingMaterials = upload(id, sources.filter => (item \ "supportingMaterials"))
+              val supporting = supportingMaterials(id) match {
+                case Right(supportingMaterials) => supportingMaterials
+                case Left(error) => throw new ConversionException(error)
+              }
               val item = Item(
                 id = id,
                 collectionId = Some(collectionId),
                 contributorDetails = contributorDetails,
-//                data = files,
+                data = itemFiles,
                 lexile = extractString("lexile"),
                 otherAlignments = otherAlignments,
                 pValue = extractString("pValue"),
                 playerDefinition =
-                  Some(PlayerDefinition(files, (itemJson \ "xhtml").as[String], (itemJson \ "components"),
+                  Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
+                    (itemJson \ "xhtml").as[String], (itemJson \ "components"),
                     (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
                 priorGradeLevels = extractStringSeq("priorGradeLevels"),
                 priorUse = extractString("priorUse"),
                 taskInfo = taskInfo,
                 reviewsPassed = extractStringSeq("reviewsPassed"),
                 standards = extractStringSeq("standards"),
+                supportingMaterials = supporting,
                 workflow = workflow
               )
               auth.save(item, createNewVersion = false)(identity)
@@ -114,16 +119,23 @@ trait ItemFileConverter {
   }
 
   private def create(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
-    val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
     val item = Item(
       collectionId = Some(collectionId),
-      playerDefinition = Some(definition))
+      playerDefinition = Some(PlayerDefinition.empty))
     auth.insert(item)(identity)
+  }
+
+  private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Either[Error, Option[Resource]] = {
+    upload(itemId, sources.filter{case (filename, source) => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(filename) }) match {
+      case Right(files) if files.nonEmpty => Right(Some(Resource(name = "data", files = files)))
+      case Right(files) => Right(None)
+      case Left(error) => Left(error)
+    }
   }
 
   private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Either[Error, Seq[BaseFile]] = {
     val futureFiles =
-      Future.sequence(files.map{ case(filename, source) => uploader.upload(s"$itemId/data/$filename", filename, source) }.toSeq)
+      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
     try {
       Right(Await.result(futureFiles, Duration.Inf))
     } catch {
@@ -176,6 +188,23 @@ trait ItemFileConverter {
       ))
       case _ => None
     }).flatten
+  }
+
+  private def supportingMaterials(itemId: VersionedId[ObjectId])(implicit metadata: Option[JsValue], sources: Map[String, Source]): Either[Error, Seq[Resource]] = {
+    try {
+      Right(metadata.map(md => (md \ "supportingMaterials").asOpt[Seq[JsObject]]).flatten.getOrElse(Seq.empty)
+        .map(material => {
+        val name = (material \ "name").asOpt[String].getOrElse("")
+        val filenames = (material \ "files").asOpt[Seq[JsObject]].getOrElse(Seq.empty).map(f => (f \ "name").asOpt[String]).flatten
+        upload(itemId, files = sources.filter{ case(filename, source) => filenames.contains(filename) }) match {
+          case Right(files) => Resource(name = name, files = files)
+          case Left(error) => throw new ConversionException(error)
+        }
+      }))
+    } catch {
+      case e: ConversionException => Left(e.error)
+    }
+
   }
 }
 
