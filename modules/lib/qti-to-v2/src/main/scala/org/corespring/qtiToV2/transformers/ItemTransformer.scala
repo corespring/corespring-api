@@ -102,7 +102,9 @@ trait ItemTransformer {
     val profile = toProfile(item)
     val out = root ++ Json.obj(
       "profile" -> profile,
-      "supportingMaterials" -> Json.toJson(item.supportingMaterials))
+      "supportingMaterials" -> Json.toJson(item.supportingMaterials),
+      "collectionId" -> Json.toJson(item.collectionId.getOrElse(""))
+      )
 
     logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out
