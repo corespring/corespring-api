@@ -13,14 +13,14 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
+import org.corespring.v2.api.services.{ PlayerTokenService, ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsObject, JsValue }
 import play.api.mvc._
 
 import scalaz.Scalaz._
@@ -41,9 +41,9 @@ class Bootstrap(
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
-  val v1ItemApiProxy:V1ItemApiProxy,
-  val v1ItemSessionApiProxy:V1ItemSessionApiProxy,
-  val v1CollectionApiProxy:V1CollectionApiProxy,
+  val v1ItemApiProxy: V1ItemApiProxy,
+  val v1ItemSessionApiProxy: V1ItemSessionApiProxy,
+  val v1CollectionApiProxy: V1CollectionApiProxy,
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
 
   protected val orgService: OrgService = new OrgService {
@@ -82,7 +82,7 @@ class Bootstrap(
 
     private lazy val itemTransformer = new ItemTransformerToSummaryData {}
 
-    override def transform:(Item, Option[String]) => JsValue = itemTransformer.transform
+    override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
@@ -123,13 +123,44 @@ class Bootstrap(
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
   }
 
-  lazy val playerTokenApi = new PlayerTokenApi {
+  lazy val playerTokenService = new PlayerTokenService {
     override def encrypter: OrgEncrypter = new OrgEncrypter(AESCrypto)
+  }
+
+  lazy val playerTokenApi = new PlayerTokenApi {
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+    override def tokenService: PlayerTokenService = Bootstrap.this.playerTokenService
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1ItemSessionApiProxy, v1CollectionApiProxy)
+  lazy val v2SessionService = new V2SessionService {
+
+    override def createExternalModelSession(model: JsObject): Option[ObjectId] = {
+      sessionService.create(Json.obj(
+        "item" -> model))
+    }
+  }
+
+  lazy val externalModelLaunchApi = new ExternalModelLaunchApi {
+    override def sessionService: V2SessionService = Bootstrap.this.v2SessionService
+
+    override def tokenService: PlayerTokenService = Bootstrap.this.playerTokenService
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+  }
+
+  lazy val controllers: Seq[Controller] = Seq(
+    itemApi,
+    itemSessionApi,
+    playerTokenApi,
+    externalModelLaunchApi,
+    v1ItemApiProxy,
+    v1ItemSessionApiProxy,
+    v1CollectionApiProxy)
 }
