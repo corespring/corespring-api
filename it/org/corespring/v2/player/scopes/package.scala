@@ -67,20 +67,6 @@ package object scopes {
     }
   }
 
-  /**
-   * Creates a v1 session
-   */
-  trait orgWithAccessTokenItemAndV1Session extends orgWithAccessTokenAndItem with HasSessionId {
-    val sessionId = V1SessionHelper.create(itemId)
-    println(s"orgWithAccessTokenItemAndSession created session $sessionId")
-
-    override def after: Any = {
-      println("[orgWithAccessTokenAndItemAndSession] after")
-      V1SessionHelper.delete(sessionId)
-    }
-
-  }
-
   trait sessionData extends orgWithAccessToken {
     val collectionId = CollectionHelper.create(orgId)
     val itemId = ItemHelper.create(collectionId)
