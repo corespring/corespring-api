@@ -1,8 +1,6 @@
 
 GET         /sessions/:sessionId                             @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
-POST        /items/:itemId/sessions/:sessionId/reopen        @org.corespring.v2.api.V1ItemSessionApiProxy.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
-
 POST        /items/:itemId/sessions                          @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
 GET         /items/:itemId/full                              @org.corespring.v2.api.V1ItemApiProxy.get(itemId: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
