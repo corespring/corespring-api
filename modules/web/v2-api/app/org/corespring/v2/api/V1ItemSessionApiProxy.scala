@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.mvc.{ Action, AnyContent, Controller }
 
-trait V1ItemSessionApiMirror extends Controller {
+trait V1ItemSessionApiProxy extends Controller {
 
   def reopen: (VersionedId[ObjectId], ObjectId) => Action[AnyContent]
 }

@@ -7,7 +7,7 @@ import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
 import play.api.mvc.Call
 
-class V1ItemApiMirrorTest extends IntegrationSpecification {
+class V1ItemApiProxyTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.V1ItemApiMirror
 
   "V2 - V1ItemApiMirror" should {

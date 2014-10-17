@@ -15,7 +15,7 @@ import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson, Call }
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 
-class V1ItemSessionApiMirrorTest extends IntegrationSpecification {
+class V1ItemSessionApiProxyTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.V1ItemSessionApiMirror
 
   "V2 - V1ItemSessionApiMirror" should {

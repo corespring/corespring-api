@@ -9,7 +9,7 @@ import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.{ V1CollectionApiMirror, V1ItemSessionApiMirror, V1ItemApiMirror, Bootstrap }
+import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemSessionApiProxy, V1ItemApiProxy, Bootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.player.V2PlayerIntegration
@@ -27,7 +27,7 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
-  lazy val v1ItemApiMirror = new V1ItemApiMirror {
+  lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
     override def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent] = ItemApi.get
 
@@ -36,13 +36,13 @@ object AppWiring {
     override def listWithColl: (ObjectId, Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = ItemApi.listWithColl
   }
 
-  lazy val v1ItemSessionApiMirror = new V1ItemSessionApiMirror {
+  lazy val v1ItemSessionApiProxy = new V1ItemSessionApiProxy {
 
     override def reopen: (VersionedId[ObjectId], ObjectId) => Action[AnyContent] = ItemSessionApi.reopen
 
   }
 
-  lazy val v1CollectionApiMirror = new V1CollectionApiMirror {
+  lazy val v1CollectionApiProxy = new V1CollectionApiProxy {
 
     override def getCollection: (ObjectId) => Action[AnyContent] = CollectionApi.getCollection
 
@@ -59,9 +59,9 @@ object AppWiring {
     integration.itemAuth,
     integration.sessionAuth,
     v2ApiRequestIdentity,
-    v1ItemApiMirror,
-    v1ItemSessionApiMirror,
-    v1CollectionApiMirror,
+    v1ItemApiProxy,
+    v1ItemSessionApiProxy,
+    v1CollectionApiProxy,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
 
   lazy val componentLoader: ComponentLoader = {

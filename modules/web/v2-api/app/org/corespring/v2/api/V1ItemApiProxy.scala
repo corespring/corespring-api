@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.mvc.{ Action, AnyContent, Controller }
 
-trait V1ItemApiMirror extends Controller {
+trait V1ItemApiProxy extends Controller {
 
   def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent]
 
