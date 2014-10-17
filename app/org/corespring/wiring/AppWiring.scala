@@ -9,7 +9,7 @@ import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemSessionApiProxy, V1ItemApiProxy, Bootstrap }
+import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, Bootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.player.V2PlayerIntegration
