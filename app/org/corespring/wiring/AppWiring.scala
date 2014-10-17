@@ -36,12 +36,6 @@ object AppWiring {
     override def listWithColl: (ObjectId, Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = ItemApi.listWithColl
   }
 
-  lazy val v1ItemSessionApiProxy = new V1ItemSessionApiProxy {
-
-    override def reopen: (VersionedId[ObjectId], ObjectId) => Action[AnyContent] = ItemSessionApi.reopen
-
-  }
-
   lazy val v1CollectionApiProxy = new V1CollectionApiProxy {
 
     override def getCollection: (ObjectId) => Action[AnyContent] = CollectionApi.getCollection
@@ -60,7 +54,6 @@ object AppWiring {
     integration.sessionAuth,
     v2ApiRequestIdentity,
     v1ItemApiProxy,
-    v1ItemSessionApiProxy,
     v1CollectionApiProxy,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
 

@@ -42,7 +42,6 @@ class Bootstrap(
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
   val v1ItemApiProxy:V1ItemApiProxy,
-  val v1ItemSessionApiProxy:V1ItemSessionApiProxy,
   val v1CollectionApiProxy:V1CollectionApiProxy,
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
 
@@ -131,5 +130,5 @@ class Bootstrap(
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1ItemSessionApiProxy, v1CollectionApiProxy)
+  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1CollectionApiProxy)
 }
