@@ -1,21 +1,16 @@
 package org.corespring.importing
 
+import org.corespring.platform.core.models.item.resource.StoredFile
 import org.specs2.mutable.Specification
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 import org.corespring.test.PlaySingleton
 import org.corespring.platform.core.models.item.Item
-import org.corespring.orgWithAccessToken
-import org.corespring.amazon.s3.S3Service
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{PlayerAccessSettings, AuthMode, OrgAndOpts}
-import org.corespring.amazon.s3.models.DeleteResponse
-import play.api.mvc._
+import org.corespring.v2.auth.models._
 import org.specs2.mock.Mockito
 import scalaz.{Validation, Success}
-import org.mockito.Matchers._
-import scala.Some
-import play.api.mvc.SimpleResult
-import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.bson.types.ObjectId
@@ -197,11 +192,6 @@ class ItemFileConverterTest extends Specification with Mockito {
     val identity = OrgAndOpts(orgId = orgId, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.AccessToken)
 
     val itemFileConverter = new ItemFileConverter {
-      def s3: S3Service = new S3Service {
-        def download(bucket: String, fullKey: String, headers: Option[Headers]): SimpleResult = ???
-        def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Int] = ???
-        def delete(bucket: String, keyName: String): DeleteResponse = ???
-      }
       def bucket: String = "fake bucket"
       def auth: ItemAuth[OrgAndOpts] = new ItemAuth[OrgAndOpts] {
         def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = Success(true)
@@ -211,7 +201,11 @@ class ItemFileConverterTest extends Specification with Mockito {
         def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] =
           Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0)))
       }
-
+      def uploader = new Uploader {
+        override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
+          StoredFile(name = "great", contentType = "application/json", storageKey = "great")
+        }
+      }
     }
     val result = itemFileConverter.convert(collectionId, identity)(sources)
 

@@ -1,28 +1,29 @@
 package org.corespring.importing
 
-import scala.io.Source
-import play.api.libs.json._
+import java.io.ByteArrayInputStream
+
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.s3.model.ObjectMetadata
+import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
-import org.corespring.platform.core.models.item._
+import org.bson.types.ObjectId
 import org.corespring.json.validation.JsonValidator
-import org.corespring.platform.core.models.item.resource.BaseFile
-import play.api.libs.json.JsSuccess
-import scala.Some
-import play.api.libs.json.JsObject
-import org.corespring.amazon.s3.S3Service
+import org.corespring.platform.core.models.item._
+import org.corespring.platform.core.models.item.resource.{StoredFile, BaseFile}
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.bson.types.ObjectId
-import play.api.libs.json.JsSuccess
-import scala.Some
-import org.corespring.v2.auth.models.OrgAndOpts
-import play.api.libs.json.JsObject
+import play.api.libs.json._
+
+import scala.concurrent._
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.io.Source
 
 trait ItemFileConverter {
 
-  def s3: S3Service
   def bucket: String
+  def uploader: Uploader
   def auth: ItemAuth[OrgAndOpts]
 
   object errors {
@@ -54,15 +55,21 @@ trait ItemFileConverter {
           implicit val metadata = md
           create(collectionId, identity) match {
             case Some(id) => {
+              val files = upload(id, sources.filter(f => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(f))) match {
+                case Right(files) => files
+                case Left(error) => throw new ConversionException(error)
+              }
+//              val supportingMaterials = upload(id, sources.filter => (item \ "supportingMaterials"))
               val item = Item(
                 id = id,
                 collectionId = Some(collectionId),
                 contributorDetails = contributorDetails,
+//                data = files,
                 lexile = extractString("lexile"),
                 otherAlignments = otherAlignments,
                 pValue = extractString("pValue"),
                 playerDefinition =
-                  Some(PlayerDefinition(files(id), (itemJson \ "xhtml").as[String], (itemJson \ "components"),
+                  Some(PlayerDefinition(files, (itemJson \ "xhtml").as[String], (itemJson \ "components"),
                     (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
                 priorGradeLevels = extractStringSeq("priorGradeLevels"),
                 priorUse = extractString("priorUse"),
@@ -114,12 +121,14 @@ trait ItemFileConverter {
     auth.insert(item)(identity)
   }
 
-  private def files(itemId: VersionedId[ObjectId])(implicit sources: Map[String, Source]): Seq[BaseFile] = {
-//    sources.toList.filterNot(f => Seq(itemJsonFilename, itemMetadataFilename).contains(f._1))
-//      .map{ case(filename, source) => {
-//        s3.upload(bucket, s"$itemId/data/$filename")
-//      }}
-    Seq.empty
+  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Either[Error, Seq[BaseFile]] = {
+    val futureFiles =
+      Future.sequence(files.map{ case(filename, source) => uploader.upload(s"$itemId/data/$filename", filename, source) }.toSeq)
+    try {
+      Right(Await.result(futureFiles, Duration.Inf))
+    } catch {
+      case e: Exception => Left(new Error(e.getMessage))
+    }
   }
 
   private def extractString(field: String)(implicit metadata: Option[JsValue]): Option[String] =
@@ -157,7 +166,7 @@ trait ItemFileConverter {
   }
 
   private def workflow(implicit metadata: Option[JsValue]): Option[Workflow] = {
-    import Workflow._
+    import org.corespring.platform.core.models.item.Workflow._
     metadata.map(md => (md \ "workflow").asOpt[Seq[String]] match {
       case Some(workflowStrings) => Some(Workflow(
         setup = workflowStrings.contains(setup),
@@ -168,4 +177,22 @@ trait ItemFileConverter {
       case _ => None
     }).flatten
   }
+}
+
+trait Uploader {
+  def upload(filename: String, path: String, file: Source): Future[StoredFile]
+}
+
+class TransferManagerUploader(credentials: AWSCredentials, bucket: String) extends Uploader {
+
+  val transferManager = new TransferManager(credentials)
+
+  def upload(filename: String, path: String, file: Source) = future {
+    val byteArray = file.map(_.toByte).toArray
+    val metadata = new ObjectMetadata()
+    metadata.setContentLength(byteArray.length)
+    val result = transferManager.upload(bucket, path, new ByteArrayInputStream(byteArray), metadata).waitForUploadResult
+    StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = result.getKey)
+  }
+
 }
