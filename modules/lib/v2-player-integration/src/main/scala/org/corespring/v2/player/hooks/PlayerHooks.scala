@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
+import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -23,7 +24,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   def itemTransformer: ItemTransformer
 
-  def auth: SessionAuth[OrgAndOpts]
+  def auth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
 
@@ -37,8 +38,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     } yield models
 
     s.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
-      val (_, item) = models
-      val itemJson = itemTransformer.transformToV2Json(item)
+      val (_, playerDefinition) = models
+      val itemJson = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
       itemJson
     }.toEither
   }
@@ -94,8 +95,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     } yield models
 
     o.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
-      val (session, item) = models
-      val v2Json = itemTransformer.transformToV2Json(item)
+      val (session, playerDefinition) = models
+      val v2Json = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
 
       //Ensure that only the requested properties are returned
       val playerV2Json = Json.obj(

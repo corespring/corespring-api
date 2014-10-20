@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -19,7 +19,7 @@ trait ItemSessionApi extends V2Api {
 
   def sessionService: MongoService
 
-  def sessionAuth: SessionAuth[OrgAndOpts]
+  def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   /**
    * A session has been created for an item with the given item id.
@@ -98,7 +98,7 @@ trait ItemSessionApi extends V2Api {
    */
   def get(sessionId: String) = Action.async { implicit request =>
     Future {
-      validationToResult[(SessionAuth.Session, Item)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
+      validationToResult[(SessionAuth.Session, PlayerDefinition)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
         for {
           identity <- getOrgIdAndOptions(request)
           session <- sessionAuth.loadForRead(sessionId)(identity)

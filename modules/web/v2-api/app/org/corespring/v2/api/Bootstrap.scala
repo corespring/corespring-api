@@ -7,7 +7,7 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -39,7 +39,7 @@ class Bootstrap(
   val userService: UserService,
   val secureSocialService: SecureSocialService,
   val itemAuth: ItemAuth[OrgAndOpts],
-  val sessionAuth: SessionAuth[OrgAndOpts],
+  val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
   val v1ItemApiProxy: V1ItemApiProxy,
   val v1ItemSessionApiProxy: V1ItemSessionApiProxy,
@@ -116,7 +116,7 @@ class Bootstrap(
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-    override def sessionAuth: SessionAuth[OrgAndOpts] = Bootstrap.this.sessionAuth
+    override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = Bootstrap.this.sessionAuth
 
     override def sessionService = Bootstrap.this.sessionService
 
