@@ -171,10 +171,7 @@ trait ItemFileConverter {
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {
     implicit val taskInfoReads = TaskInfo.taskInfoReads
-    metadata.map(md => (md \ "taskInfo").asOpt[JsObject]).flatten.map(Json.fromJson[TaskInfo](_) match {
-      case JsSuccess(value, _) => value
-      case _ => throw new ConversionException(new Error(metadataParseError("taskInfo")))
-    })
+    metadata.map(md => (md \ "taskInfo").asOpt[TaskInfo]).flatten
   }
 
   private def workflow(implicit metadata: Option[JsValue]): Option[Workflow] = {
