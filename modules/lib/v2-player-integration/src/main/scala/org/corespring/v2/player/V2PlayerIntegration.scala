@@ -57,23 +57,9 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def components: Seq[Component] = comps
 
-  lazy val cdnDomain = {
-    val out = configuration.getString("cdn.domain")
+  lazy val cdnResolver = new CDNResolver(configuration, Defaults.commitHashShort)
 
-    if (out.isDefined && !out.get.startsWith("//")) {
-      logger.warn("cdn domain must start with // - ignoring")
-    }
-    val validDomain = out.filter(_.startsWith("//"))
-    logger.info(s"CDN for v2 production player: ${validDomain.getOrElse("none")}")
-    validDomain
-  }
-
-  override def resolveDomain(path: String): String = cdnDomain.map {
-    d =>
-      val separator = if (path.startsWith("/")) "" else "/"
-      val query = if (configuration.getBoolean("cdn.add-version-as-query-param").getOrElse(false)) s"?version=${Defaults.commitHashShort}" else ""
-      s"$d$separator$path$query"
-  }.getOrElse(path)
+  override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
 
   lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)

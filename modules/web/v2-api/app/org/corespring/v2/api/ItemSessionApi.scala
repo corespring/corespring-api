@@ -1,15 +1,19 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError }
+import org.corespring.v2.errors.Errors.{ sessionDoesNotContainResponses, noJson, errorSaving, generalError }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.Action
+import play.api.mvc.{ AnyContent, Action }
 
 import scala.concurrent._
 import scalaz.Scalaz._
@@ -17,9 +21,13 @@ import scalaz.{ Failure, Success, Validation }
 
 trait ItemSessionApi extends V2Api {
 
+  private lazy val logger = V2LoggerFactory.getLogger("ItemSessionApi")
+
   def sessionService: MongoService
 
   def sessionAuth: SessionAuth[OrgAndOpts]
+
+  def scoreService: ScoreService
 
   /**
    * A session has been created for an item with the given item id.
@@ -34,19 +42,19 @@ trait ItemSessionApi extends V2Api {
    *
    * @return json - either:
    *
-   * { "id" -> "$new_session_id" }
+   *         { "id" -> "$new_session_id" }
    *
-   * Or:
-   * a json representation of a V2Error
+   *         Or:
+   *         a json representation of a V2Error
    * @see V2Error
    *
-   * ## Authentication
+   *      ## Authentication
    *
-   * Requires that the request is authenticated. This can be done using the following means:
+   *      Requires that the request is authenticated. This can be done using the following means:
    *
-   * UserSession authentication (only possible when using the tagger app)
-   * adding an `access_token` query parameter to the call
-   * adding `apiClient` and `playerToken` query parameter to the call
+   *      UserSession authentication (only possible when using the tagger app)
+   *      adding an `access_token` query parameter to the call
+   *      adding `apiClient` and `playerToken` query parameter to the call
    *
    */
   def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
@@ -87,13 +95,13 @@ trait ItemSessionApi extends V2Api {
    *
    * @see V2Error
    *
-   * ## Authentication
+   *      ## Authentication
    *
-   * Requires that the request is authenticated. This can be done using the following means:
+   *      Requires that the request is authenticated. This can be done using the following means:
    *
-   * UserSession authentication (only possible when using the tagger app)
-   * adding an `access_token` query parameter to the call
-   * adding `apiClient` and `options` query parameter to the call
+   *      UserSession authentication (only possible when using the tagger app)
+   *      adding an `access_token` query parameter to the call
+   *      adding `apiClient` and `options` query parameter to the call
    *
    */
   def get(sessionId: String) = Action.async { implicit request =>
@@ -104,6 +112,34 @@ trait ItemSessionApi extends V2Api {
           session <- sessionAuth.loadForRead(sessionId)(identity)
         } yield session
       }
+    }
+  }
+
+  /**
+   * Returns the score for the given session.
+   * If the session doesn't contain a 'components' object, an error will be returned.
+   * @param sessionId
+   * @return
+   */
+  def loadScore(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    logger.debug(s"function=loadScore sessionId=$sessionId")
+
+    def getComponents(session: JsValue): Option[JsValue] = {
+      (session \ "components").asOpt[JsObject]
+    }
+
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgIdAndOptions(request)
+        sessionAndItem <- sessionAuth.loadForWrite(sessionId)(identity)
+        session <- Success(sessionAndItem._1)
+        item <- Success(sessionAndItem._2)
+        components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
+        score <- scoreService.score(item, components)
+      } yield score
+
+      validationToResult[JsValue](j => Ok(j))(out)
     }
   }
 

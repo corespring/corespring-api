@@ -73,23 +73,23 @@
           },
           "choices" : [ 
             {
-              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
               "value" : "a",
-              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>1</mn>\n  <mn>3</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">1 over 3</annotation>\n </semantics>\n</math>",
               "id" : "a",
               "moveOnDrag" : true
             }, 
             {
-              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
               "value" : "b",
-              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>5</mn>\n  <mn>6</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">5 over 6</annotation>\n </semantics>\n</math>",
               "id" : "b",
               "moveOnDrag" : true
             }, 
             {
-              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
+              "label" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
               "value" : "c",
-              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.imsglobal.org/xsd/imsqti_v2p1\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
+              "content" : "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">\n <semantics>\n  <mrow>\n   <mfrac>\n  <mn>2</mn>\n  <mn>8</mn>\n   </mfrac>\n  </mrow>\n  <annotation encoding=\"StarMath 5.0\">2 over 8</annotation>\n </semantics>\n</math>",
               "id" : "c",
               "moveOnDrag" : true
             }

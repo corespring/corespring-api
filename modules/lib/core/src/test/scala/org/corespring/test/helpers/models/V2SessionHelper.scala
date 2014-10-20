@@ -1,10 +1,11 @@
 package org.corespring.test.helpers.models
 
-import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
+import play.api.libs.json.{ Json, JsValue }
 import se.radley.plugin.salat.SalatPlugin
+import com.mongodb.casbah.Imports._
 
 object V2SessionHelper {
 
@@ -24,6 +25,11 @@ object V2SessionHelper {
       "_id" -> oid,
       "itemId" -> itemId.toString))
     oid
+  }
+
+  def update(sessionId: ObjectId, json: JsValue, name: String = v2ItemSessions): Unit = {
+    val dbo = com.mongodb.util.JSON.parse(Json.stringify(json)).asInstanceOf[DBObject]
+    db(name).update(MongoDBObject("_id" -> sessionId), dbo)
   }
 
   def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
