@@ -14,7 +14,7 @@ import scalaz.Scalaz._
 case class LaunchInfo(sessionId: String, playerToken: String, apiClient: String, playerJsUrl: String)
 
 trait V2SessionService {
-  def createExternalModelSession(model: JsObject): Option[ObjectId]
+  def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId]
 }
 
 trait ExternalModelLaunchApi extends V2Api {
@@ -32,7 +32,7 @@ trait ExternalModelLaunchApi extends V2Api {
         accessSettings <- (externalJson \ "accessSettings").asOpt[JsObject].toSuccess(missingRequiredField(Field("accessSettings", "object")))
         model <- (externalJson \ "model").asOpt[JsObject].toSuccess(missingRequiredField(Field("model", "object")))
         //TODO: image base href...?
-        sessionId <- sessionService.createExternalModelSession(model).toSuccess(generalError("Error creating session"))
+        sessionId <- sessionService.createExternalModelSession(orgAndOpts.orgId, model).toSuccess(generalError("Error creating session"))
         tokenResult <- tokenService.createToken(orgAndOpts.orgId, accessSettings)
       } yield {
         val url = s"/v2/player/player.js?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"

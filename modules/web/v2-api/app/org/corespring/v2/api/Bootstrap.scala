@@ -138,9 +138,11 @@ class Bootstrap(
 
   lazy val v2SessionService = new V2SessionService {
 
-    override def createExternalModelSession(model: JsObject): Option[ObjectId] = {
-      sessionService.create(Json.obj(
-        "item" -> model))
+    override def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId] = {
+      sessionService.create(
+        Json.obj(
+          "orgId" -> orgId.toString,
+          "item" -> model))
     }
   }
 
