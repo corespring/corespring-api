@@ -1,21 +1,18 @@
 package org.corespring.importing
 
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, StoredFile}
-import org.specs2.mutable.Specification
-import play.api.libs.json.Json
-import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.io.Source
-import org.corespring.test.PlaySingleton
-import org.corespring.platform.core.models.item.Item
-import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models._
-import org.specs2.mock.Mockito
-import scalaz.{Validation, Success}
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.bson.types.ObjectId
-import org.corespring.v2.errors.V2Error
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.platform.core.services.item.ItemService
+import org.corespring.test.PlaySingleton
+import org.corespring.v2.auth.models.{OrgAndOpts, _}
+import org.specs2.mock.Mockito
+import org.specs2.mutable.Specification
+import org.corespring.platform.data.mongo.models.VersionedId
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import scala.io.Source
+import scalaz.Success
 
 class ItemFileConverterTest extends Specification with Mockito {
 
@@ -193,6 +190,8 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   "convert" should {
 
+    import org.mockito.Matchers._
+
     val sources = (Seq(
       "dot array.png", "metadata.json", "files/rubric.pdf"
     ).map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
@@ -202,13 +201,10 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
-      def auth: ItemAuth[OrgAndOpts] = new ItemAuth[OrgAndOpts] {
-        def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = Success(true)
-        def loadForRead(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
-        def loadForWrite(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = ???
-        def save(item: Item, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = {}
-        def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] =
-          Some(new VersionedId[ObjectId](id = itemId, version = Some(0)))
+      def itemService: ItemService = {
+        val service = mock[ItemService]
+        service.insert(anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
+        service
       }
       def uploader = new Uploader {
         override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
@@ -216,7 +212,7 @@ class ItemFileConverterTest extends Specification with Mockito {
         }
       }
     }
-    val result = itemFileConverter.convert(collectionId, identity)(sources)
+    val result = itemFileConverter.convert(collectionId)(sources)
 
     "create Item from local files" in {
       result must beAnInstanceOf[Success[Error, Item]]

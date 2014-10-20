@@ -160,7 +160,7 @@ object Build extends sbt.Build {
     .dependsOn(v2Errors, core, playerLib, testLib % "test->compile")
 
   val itemImport = builders.web("item-import")
-    .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao))
+    .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
 
   val v2Api = builders.web("v2-api")

@@ -10,8 +10,8 @@ import org.bson.types.ObjectId
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
+import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
 
@@ -24,7 +24,7 @@ import scalaz.{Success, Failure, Validation}
 trait ItemFileConverter {
 
   def uploader: Uploader
-  def auth: ItemAuth[OrgAndOpts]
+  def itemService: ItemService
 
   val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
 
@@ -46,14 +46,14 @@ trait ItemFileConverter {
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
-  def convert(collectionId: String, identity: OrgAndOpts)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
+  def convert(collectionId: String)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
     try {
       (itemJson, metadata) match {
         case (Failure(error), _) => Failure(error)
         case (_, Failure(error)) => Failure(error)
         case (Success(itemJson), Success(md)) => {
           implicit val metadata = md
-          create(collectionId, identity) match {
+          create(collectionId) match {
             case Some(id) => {
               val itemFiles: Option[Resource] = files(id, itemJson) match {
                 case Success(files) => files
@@ -83,7 +83,7 @@ trait ItemFileConverter {
                 supportingMaterials = supporting,
                 workflow = workflow
               )
-              auth.save(item, createNewVersion = false)(identity)
+              itemService.save(item, createNewVersion = false)
               Success(item)
             }
             case None => Failure(new Error(cannotCreateItem))
@@ -118,11 +118,11 @@ trait ItemFileConverter {
     }
   }
 
-  private def create(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
+  private def create(collectionId: String): Option[VersionedId[ObjectId]] = {
     val item = Item(
       collectionId = Some(collectionId),
       playerDefinition = Some(PlayerDefinition.empty))
-    auth.insert(item)(identity)
+    itemService.insert(item)
   }
 
   private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Validation[Error, Option[Resource]] = {

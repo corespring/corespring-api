@@ -24,7 +24,7 @@ class ItemImportController(converter: ItemFileConverter) extends BaseApi {
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
           (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
         }).toMap
-        converter.convert(collection.id.toString, getOpts(request))(fileMap) match {
+        converter.convert(collection.id.toString)(fileMap) match {
           case Success(item) => Ok(item.id.toString)
           case Failure(error) => BadRequest(error.getMessage)
         }
@@ -33,8 +33,5 @@ class ItemImportController(converter: ItemFileConverter) extends BaseApi {
       case (_, Left) => BadRequest("Not logged in")
     }
   }
-
-  private def getOpts(request: ApiRequest[_]): OrgAndOpts =
-    OrgAndOpts(orgId = request.ctx.organization, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.UserSession)
 
 }
