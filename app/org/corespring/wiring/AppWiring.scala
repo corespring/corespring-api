@@ -65,6 +65,8 @@ object AppWiring {
 
   lazy val itemImportBootstrap = new ItemImportBootstrap(
     integration.itemAuth,
+    integration.requestIdentifiers.userSession,
+    integration.orgService,
     AppConfig
   )
 
