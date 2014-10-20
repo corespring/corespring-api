@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.{ContentCollection, Standard}
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
@@ -31,6 +31,8 @@ trait ItemTransformer {
     }
   }
 
+  def findCollection(id:ObjectId):Option[ContentCollection]
+
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
 
     logger.debug(s"itemId=${itemId} function=updateV2Json#VersionedId[ObjectId]")
@@ -57,15 +59,15 @@ trait ItemTransformer {
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
             case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-              case true => Some(updatedItem)
-              case _ => {
-                logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
-                itemService.save(updatedItem)
-                Some(updatedItem)
-              }
+            case true => Some(updatedItem)
+            case _ => {
+              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+              itemService.save(updatedItem)
+              Some(updatedItem)
             }
-            case _ => None
           }
+          case _ => None
+        }
       }
       case _ => Some(item)
     }
@@ -100,10 +102,18 @@ trait ItemTransformer {
       }
     })
     val profile = toProfile(item)
+
+    val collectionJs = (for {
+      collectionId <- item.collectionId
+      collection <- findCollection(new ObjectId(collectionId))
+    } yield Json.toJson(collection)).getOrElse(Json.obj())
+
+
     val out = root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials),
-      "collectionId" -> Json.toJson(item.collectionId.getOrElse("")))
+      "collection" -> collectionJs
+      )
 
     logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out

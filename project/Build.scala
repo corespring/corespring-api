@@ -133,7 +133,8 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils)
+    libraryDependencies ++= Seq(playJson, rhino % "test")
+  ).dependsOn(core, qti, apiUtils, testLib % "test->compile")
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -239,6 +240,7 @@ object Build extends sbt.Build {
     })
 
   val main = builders.web(appName, Some(file(".")))
+    .settings(sbt.Keys.fork in Test := false)
     .settings(
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
