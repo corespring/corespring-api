@@ -9,6 +9,7 @@ import org.corespring.v2.auth.models.{AuthMode, PlayerAccessSettings, OrgAndOpts
 import play.api.mvc._
 import scala.collection.JavaConversions._
 import scala.io.Source
+import scalaz._
 
 class ItemImportController(converter: ItemFileConverter) extends BaseApi {
 
@@ -24,8 +25,8 @@ class ItemImportController(converter: ItemFileConverter) extends BaseApi {
           (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
         }).toMap
         converter.convert(collection.id.toString, getOpts(request))(fileMap) match {
-          case Left(error) => BadRequest(error.getMessage)
-          case Right(item) => Ok(item.id.toString)
+          case Success(item) => Ok(item.id.toString)
+          case Failure(error) => BadRequest(error.getMessage)
         }
       }
       case (None, _) => BadRequest("You need a file")

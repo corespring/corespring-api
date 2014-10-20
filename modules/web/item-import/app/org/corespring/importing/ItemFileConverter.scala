@@ -2,12 +2,11 @@ package org.corespring.importing
 
 import java.io.ByteArrayInputStream
 
-import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials}
+import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
@@ -17,14 +16,17 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
 
 import scala.concurrent._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
+import scalaz.{Success, Failure, Validation}
 
 trait ItemFileConverter {
 
   def uploader: Uploader
   def auth: ItemAuth[OrgAndOpts]
+
+  val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
 
   object errors {
     val cannotCreateItem = "There was an error saving the item to the database"
@@ -44,22 +46,22 @@ trait ItemFileConverter {
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
-  def convert(collectionId: String, identity: OrgAndOpts)(implicit sources: Map[String, Source]): Either[Error, Item] = {
+  def convert(collectionId: String, identity: OrgAndOpts)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
     try {
       (itemJson, metadata) match {
-        case (Left(error), _) => Left(error)
-        case (_, Left(error)) => Left(error)
-        case (Right(itemJson), Right(md)) => {
+        case (Failure(error), _) => Failure(error)
+        case (_, Failure(error)) => Failure(error)
+        case (Success(itemJson), Success(md)) => {
           implicit val metadata = md
           create(collectionId, identity) match {
             case Some(id) => {
               val itemFiles: Option[Resource] = files(id, itemJson) match {
-                case Right(files) => files
-                case Left(error) => throw new ConversionException(error)
+                case Success(files) => files
+                case Failure(error) => throw new ConversionException(error)
               }
               val supporting = supportingMaterials(id) match {
-                case Right(supportingMaterials) => supportingMaterials
-                case Left(error) => throw new ConversionException(error)
+                case Success(supportingMaterials) => supportingMaterials
+                case Failure(error) => throw new ConversionException(error)
               }
               val item = Item(
                 id = id,
@@ -82,37 +84,37 @@ trait ItemFileConverter {
                 workflow = workflow
               )
               auth.save(item, createNewVersion = false)(identity)
-              Right(item)
+              Success(item)
             }
-            case None => Left(new Error(cannotCreateItem))
+            case None => Failure(new Error(cannotCreateItem))
           }
         }
       }
     } catch {
-      case ie: ConversionException => Left(ie.error)
+      case ie: ConversionException => Failure(ie.error)
     }
   }
 
-  private def itemJson(implicit sources: Map[String, Source]): Either[Error, JsValue] = {
+  private def itemJson(implicit sources: Map[String, Source]): Validation[Error, JsValue] = {
     val filename = itemJsonFilename
     try {
       val itemJson = sources.get(filename).map(item => Json.parse(item.mkString))
         .getOrElse(throw new Exception(errors.fileMissing(filename)))
       JsonValidator.validateItem(itemJson) match {
-        case Left(errorMessages) => Left(new Error(errorMessages.mkString("\n")))
-        case Right(itemJson) => Right(itemJson)
+        case Left(errorMessages) => Failure(new Error(errorMessages.mkString("\n")))
+        case Right(itemJson) => Success(itemJson)
       }
     } catch {
-      case json: JsonParseException => Left(new Error(jsonParseError(filename)))
-      case e: Exception => Left(new Error(e.getMessage))
+      case json: JsonParseException => Failure(new Error(jsonParseError(filename)))
+      case e: Exception => Failure(new Error(e.getMessage))
     }
   }
 
-  private def metadata(implicit sources: Map[String, Source]): Either[Error, Option[JsValue]] = {
+  private def metadata(implicit sources: Map[String, Source]): Validation[Error, Option[JsValue]] = {
     try {
-      sources.get(itemMetadataFilename).map(item => Right(Some(Json.parse(item.mkString)))).getOrElse(Right(None))
+      sources.get(itemMetadataFilename).map(item => Success(Some(Json.parse(item.mkString)))).getOrElse(Success(None))
     } catch {
-      case json: JsonParseException => Left(new Error(jsonParseError(itemMetadataFilename)))
+      case json: JsonParseException => Failure(new Error(jsonParseError(itemMetadataFilename)))
     }
   }
 
@@ -123,21 +125,21 @@ trait ItemFileConverter {
     auth.insert(item)(identity)
   }
 
-  private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Either[Error, Option[Resource]] = {
+  private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Validation[Error, Option[Resource]] = {
     upload(itemId, sources.filter{case (filename, source) => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(filename) }) match {
-      case Right(files) if files.nonEmpty => Right(Some(Resource(name = "data", files = files)))
-      case Right(files) => Right(None)
-      case Left(error) => Left(error)
+      case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
+      case Success(files) => Success(None)
+      case Failure(error) => Failure(error)
     }
   }
 
-  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Either[Error, Seq[BaseFile]] = {
+  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
     val futureFiles =
       Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
     try {
-      Right(Await.result(futureFiles, Duration.Inf))
+      Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
     } catch {
-      case e: Exception => Left(new Error(e.getMessage))
+      case e: Exception => Failure(new Error(e.getMessage))
     }
   }
 
@@ -188,19 +190,19 @@ trait ItemFileConverter {
     }).flatten
   }
 
-  private def supportingMaterials(itemId: VersionedId[ObjectId])(implicit metadata: Option[JsValue], sources: Map[String, Source]): Either[Error, Seq[Resource]] = {
+  private def supportingMaterials(itemId: VersionedId[ObjectId])(implicit metadata: Option[JsValue], sources: Map[String, Source]): Validation[Error, Seq[Resource]] = {
     try {
-      Right(metadata.map(md => (md \ "supportingMaterials").asOpt[Seq[JsObject]]).flatten.getOrElse(Seq.empty)
+      Success(metadata.map(md => (md \ "supportingMaterials").asOpt[Seq[JsObject]]).flatten.getOrElse(Seq.empty)
         .map(material => {
         val name = (material \ "name").asOpt[String].getOrElse("")
         val filenames = (material \ "files").asOpt[Seq[JsObject]].getOrElse(Seq.empty).map(f => (f \ "name").asOpt[String]).flatten
         upload(itemId, files = sources.filter{ case(filename, source) => filenames.contains(filename) }) match {
-          case Right(files) => Resource(name = name, files = files)
-          case Left(error) => throw new ConversionException(error)
+          case Success(files) => Resource(name = name, files = files)
+          case Failure(error) => throw new ConversionException(error)
         }
       }))
     } catch {
-      case e: ConversionException => Left(e.error)
+      case e: ConversionException => Failure(e.error)
     }
 
   }

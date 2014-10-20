@@ -1,6 +1,5 @@
 package org.corespring.json.validation
 
-import com.amazonaws.services.cloudfront.model.InvalidArgumentException
 import play.api.Play
 
 import scala.io.Source
@@ -18,7 +17,7 @@ class JsonValidator(schemaFilename: String) {
   private val jsonNodeReader = new JsonNodeReader()
 
   private def schema(filename: String) = {
-    val inputStream = Play.application.resourceAsStream(filename).getOrElse(throw new InvalidArgumentException(s"File $filename not found"))
+    val inputStream = Play.application.resourceAsStream(filename).getOrElse(throw new IllegalArgumentException(s"File $filename not found"))
     val schemaJson = Source.fromInputStream(inputStream).getLines.mkString
     jsonNodeReader.fromReader(new StringReader(schemaJson))
   }

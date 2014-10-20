@@ -219,12 +219,12 @@ class ItemFileConverterTest extends Specification with Mockito {
     val result = itemFileConverter.convert(collectionId, identity)(sources)
 
     "create Item from local files" in {
-      result must beAnInstanceOf[Right[Error, Item]]
+      result must beAnInstanceOf[Success[Error, Item]]
     }
 
     "modules/web/item-import/test/resources/item" should {
 
-       val item: Item = result.asInstanceOf[Right[Error, Item]].b
+       val item: Item = result.asInstanceOf[Success[Error, Item]].getOrElse(throw new Exception("no item"))
 
       "have correct collectionId" in { item.collectionId must be equalTo(Some(collectionId)) }
       "have item as contentType" in { item.contentType must be equalTo(Item.contentType) }
