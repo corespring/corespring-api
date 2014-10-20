@@ -2,6 +2,8 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.container.components.outcome.ScoreProcessor
+import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
@@ -12,8 +14,7 @@ import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ ItemPermissionService, PermissionService, SessionPermissionService }
+import org.corespring.v2.api.services._
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -23,10 +24,9 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
-import scalaz.Scalaz._
-
 import scala.concurrent.ExecutionContext
-import scalaz.{ Success, Failure, Validation }
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 /**
  * Wires up the dependencies for v2 api, so that the controllers will run in the application.
@@ -41,9 +41,13 @@ class Bootstrap(
   val itemAuth: ItemAuth[OrgAndOpts],
   val sessionAuth: SessionAuth[OrgAndOpts],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
-  val v1ItemApiProxy:V1ItemApiProxy,
-  val v1CollectionApiProxy:V1CollectionApiProxy,
-  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
+  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
+  val outcomeProcessor: OutcomeProcessor,
+  val scoreProcessor: ScoreProcessor,
+  val v1ItemApiProxy: V1ItemApiProxy,
+  val v1CollectionApiProxy: V1CollectionApiProxy) {
+
+  private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -79,9 +83,10 @@ class Bootstrap(
 
   private lazy val itemApi = new ItemApi {
 
+    override def scoreService: ScoreService = Bootstrap.this.scoreService
     private lazy val itemTransformer = new ItemTransformerToSummaryData {}
 
-    override def transform:(Item, Option[String]) => JsValue = itemTransformer.transform
+    override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
@@ -111,6 +116,9 @@ class Bootstrap(
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
+
+    override def scoreService: ScoreService = Bootstrap.this.scoreService
+
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global

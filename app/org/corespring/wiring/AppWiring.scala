@@ -53,9 +53,11 @@ object AppWiring {
     integration.itemAuth,
     integration.sessionAuth,
     v2ApiRequestIdentity,
+    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
+    integration.outcomeProcessor,
+    integration.scoreProcessor,
     v1ItemApiProxy,
-    v1CollectionApiProxy,
-    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
+    v1CollectionApiProxy)
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq

@@ -134,9 +134,7 @@ class ItemTransformerTest extends Specification with Mockito {
       (json \ "collectionId").as[String] === ""
     }
 
-
   }
-
 
 }
 

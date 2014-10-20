@@ -56,16 +56,16 @@ trait ItemTransformer {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-          case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-            case true => Some(updatedItem)
-            case _ => {
-              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
-              itemService.save(updatedItem)
-              Some(updatedItem)
+            case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+              case true => Some(updatedItem)
+              case _ => {
+                logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+                itemService.save(updatedItem)
+                Some(updatedItem)
+              }
             }
+            case _ => None
           }
-          case _ => None
-        }
       }
       case _ => Some(item)
     }
@@ -103,8 +103,7 @@ trait ItemTransformer {
     val out = root ++ Json.obj(
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials),
-      "collectionId" -> Json.toJson(item.collectionId.getOrElse(""))
-      )
+      "collectionId" -> Json.toJson(item.collectionId.getOrElse("")))
 
     logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out

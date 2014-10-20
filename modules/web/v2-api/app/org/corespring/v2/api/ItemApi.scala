@@ -1,5 +1,6 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -16,12 +17,13 @@ import play.api.libs.json._
 import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-
+import scalaz.Scalaz._
 
 trait ItemApi extends V2Api {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
+  def scoreService: ScoreService
 
   /**
    * For a known organization (derived from the request) return Some(id)
@@ -48,6 +50,9 @@ trait ItemApi extends V2Api {
   def create = Action.async { implicit request =>
     import scalaz.Scalaz._
     Future {
+
+      logger.debug(s"function=create")
+
       val out = for {
         identity <- getOrgIdAndOptions(request)
         dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.orgId))
@@ -68,7 +73,28 @@ trait ItemApi extends V2Api {
     }
   }
 
-  def transform:(Item,Option[String]) => JsValue
+  /**
+   * Check a score against a given item
+   * @param itemId
+   * @return
+   */
+  def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
+
+    logger.debug(s"function=checkScore itemId=$itemId")
+
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgIdAndOptions(request)
+        answers <- request.body.asJson.toSuccess(noJson)
+        item <- itemAuth.loadForRead(itemId)(identity)
+        score <- scoreService.score(item, answers)
+      } yield score
+
+      validationToResult[JsValue](j => Ok(j))(out)
+    }
+  }
+
+  def transform: (Item, Option[String]) => JsValue
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -78,12 +104,11 @@ trait ItemApi extends V2Api {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgIdAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
-      } yield transform(item,detail)
+      } yield transform(item, detail)
 
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
-
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 
