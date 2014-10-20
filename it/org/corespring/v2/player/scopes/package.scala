@@ -65,7 +65,6 @@ package object scopes {
       println("[orgWithAccessTokenAndItemAndSession] after")
       V2SessionHelper.delete(sessionId)
     }
-
   }
 
   trait sessionData extends orgWithAccessToken {

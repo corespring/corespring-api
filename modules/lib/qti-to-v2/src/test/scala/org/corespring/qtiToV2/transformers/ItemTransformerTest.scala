@@ -61,6 +61,7 @@ class ItemTransformerTest extends Specification with Mockito {
     "transform an item to poc json" in {
 
       val item = Item(
+        collectionId = Some("123"),
         lexile = Some("30"),
         reviewsPassed = Seq("RP1", "RP2"),
         reviewsPassedOther = Some("RPO"),
@@ -95,9 +96,10 @@ class ItemTransformerTest extends Specification with Mockito {
                 contentType = "image/jpeg",
                 content = "")))))
 
-      val json = itemTransformer.transformToV2Json(item)
+      var json = itemTransformer.transformToV2Json(item)
       val imageJson = (json \ "files").as[Seq[JsObject]].head
 
+      (json \ "collectionId").as[String] === "123"
       (json \ "metadata" \ "title").as[String] === "item one"
       (json \ "components" \ "Q_01").asOpt[JsObject] must beSome[JsObject]
       (json \ "files").as[Seq[JsObject]].map(f => (f \ "name").as[String]).contains("qti.xml") must beFalse
@@ -124,7 +126,14 @@ class ItemTransformerTest extends Specification with Mockito {
       (json \ "profile" \ "otherAlignments" \ "bloomsTaxonomy").asOpt[String] === Some("BT")
       (json \ "profile" \ "otherAlignments" \ "keySkills").as[Seq[String]] === Seq("KS1", "KS2")
       (json \ "profile" \ "otherAlignments" \ "depthOfKnowledge").asOpt[String] === Some("DOK")
+
+      item.collectionId = None
+
+      json = itemTransformer.transformToV2Json(item)
+
+      (json \ "collectionId").as[String] === ""
     }
+
   }
 
 }

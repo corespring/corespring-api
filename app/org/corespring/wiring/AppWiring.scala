@@ -1,17 +1,21 @@
 package org.corespring.wiring
 
 import common.seed.SeedDb
+import org.bson.types.ObjectId
+import org.corespring.api.v1.{ ItemSessionApi, CollectionApi, ItemApi }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.v2.api.Bootstrap
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, Bootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
+import play.api.mvc.{ AnyContent, Action }
 import play.api.{ Configuration, Logger, Mode, Play }
 
 /**
@@ -22,6 +26,22 @@ object AppWiring {
   import play.api.Play.current
 
   private val logger = Logger("org.corespring.AppWiring")
+
+  lazy val v1ItemApiProxy = new V1ItemApiProxy {
+
+    override def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent] = ItemApi.get
+
+    override def list: (Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = ItemApi.list
+
+    override def listWithColl: (ObjectId, Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = ItemApi.listWithColl
+  }
+
+  lazy val v1CollectionApiProxy = new V1CollectionApiProxy {
+
+    override def getCollection: (ObjectId) => Action[AnyContent] = CollectionApi.getCollection
+
+    override def list: (Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = CollectionApi.list
+  }
 
   lazy val v2ApiBootstrap = new Bootstrap(
     ItemServiceWired,
@@ -35,7 +55,9 @@ object AppWiring {
     v2ApiRequestIdentity,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
     integration.outcomeProcessor,
-    integration.scoreProcessor)
+    integration.scoreProcessor,
+    v1ItemApiProxy,
+    v1CollectionApiProxy)
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq

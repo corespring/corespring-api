@@ -43,7 +43,9 @@ class Bootstrap(
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val outcomeProcessor: OutcomeProcessor,
-  val scoreProcessor: ScoreProcessor) {
+  val scoreProcessor: ScoreProcessor,
+  val v1ItemApiProxy: V1ItemApiProxy,
+  val v1CollectionApiProxy: V1CollectionApiProxy) {
 
   private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
@@ -82,6 +84,9 @@ class Bootstrap(
   private lazy val itemApi = new ItemApi {
 
     override def scoreService: ScoreService = Bootstrap.this.scoreService
+    private lazy val itemTransformer = new ItemTransformerToSummaryData {}
+
+    override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
@@ -133,5 +138,5 @@ class Bootstrap(
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi)
+  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1CollectionApiProxy)
 }
