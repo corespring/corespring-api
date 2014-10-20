@@ -1,9 +1,12 @@
 package org.corespring.json.validation
 
+import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 class JsonValidatorTest extends Specification {
+
+  PlaySingleton.start()
 
   "validateItem" should {
 

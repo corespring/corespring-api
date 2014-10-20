@@ -1,1 +1,2 @@
-GET        /upload                  @org.corespring.importing.controllers.ItemImportController.upload()
+GET        /upload                  @org.corespring.importing.controllers.ItemImportController.uploadForm()
+POST       /upload                  @org.corespring.importing.controllers.ItemImportController.upload()

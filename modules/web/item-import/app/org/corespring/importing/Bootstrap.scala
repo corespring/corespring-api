@@ -3,10 +3,12 @@ package org.corespring.importing
 import org.corespring.common.config.AppConfig
 import org.corespring.importing.controllers.ItemImportController
 import org.corespring.v2.auth.ItemAuth
+import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.mvc.Controller
 
-class Bootstrap(itemAuth: ItemAuth[OrgAndOpts], appConfig: AppConfig) {
+class Bootstrap(itemAuth: ItemAuth[OrgAndOpts],
+                appConfig: AppConfig) {
 
   import appConfig._
 

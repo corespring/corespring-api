@@ -34,7 +34,7 @@ object AppWiring {
     integration.secureSocialService,
     integration.itemAuth,
     integration.sessionAuth,
-    v2ApiRequestIdentity,
+    headerToOrgAndOpts = v2ApiRequestIdentity,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
 
   lazy val itemImportBootstrap = new ItemImportBootstrap(

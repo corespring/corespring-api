@@ -1,5 +1,8 @@
 package org.corespring.json.validation
 
+import com.amazonaws.services.cloudfront.model.InvalidArgumentException
+import play.api.Play
+
 import scala.io.Source
 import com.github.fge.jackson.JsonNodeReader
 import java.io.StringReader
@@ -9,11 +12,14 @@ import com.github.fge.jsonschema.core.util.AsJson
 
 class JsonValidator(schemaFilename: String) {
 
+  import play.api.Play.current
+
   private val validator = JsonSchemaFactory.byDefault().getValidator()
   private val jsonNodeReader = new JsonNodeReader()
 
   private def schema(filename: String) = {
-    val schemaJson = Source.fromURL(getClass.getResource("/item-schema.json")).mkString
+    val inputStream = Play.application.resourceAsStream(filename).getOrElse(throw new InvalidArgumentException(s"File $filename not found"))
+    val schemaJson = Source.fromInputStream(inputStream).getLines.mkString
     jsonNodeReader.fromReader(new StringReader(schemaJson))
   }
 
@@ -42,7 +48,7 @@ object JsonValidator {
    */
   private def validate(schemaFilename: String, json: JsValue) = new JsonValidator(schemaFilename).validate(json)
 
-  def validateItem(json: JsValue) = validate(ITEM_SCHEMA, json)
-  def validateMetadata(json: JsValue) = validate(METADATA_SCHEMA, json)
+  def validateItem(json: JsValue) = validate(s"schema/$ITEM_SCHEMA", json)
+  def validateMetadata(json: JsValue) = validate(s"schema/$METADATA_SCHEMA", json)
 
 }
