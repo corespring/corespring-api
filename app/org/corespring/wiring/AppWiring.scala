@@ -1,18 +1,20 @@
 package org.corespring.wiring
 
 import common.seed.SeedDb
+import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.v2.api.Bootstrap
+import org.corespring.v2.api.{ Bootstrap => V2ApiBootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
 import play.api.{ Configuration, Logger, Mode, Play }
+import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
 
 /**
  * The wiring together of the app. One of the few places where using `object` is acceptable.
@@ -23,7 +25,7 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
-  lazy val v2ApiBootstrap = new Bootstrap(
+  lazy val v2ApiBootstrap = new V2ApiBootstrap(
     ItemServiceWired,
     Organization,
     AccessToken,
@@ -34,6 +36,11 @@ object AppWiring {
     integration.sessionAuth,
     v2ApiRequestIdentity,
     Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
+
+  lazy val itemImportBootstrap = new ItemImportBootstrap(
+    integration.itemAuth,
+    AppConfig
+  )
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq

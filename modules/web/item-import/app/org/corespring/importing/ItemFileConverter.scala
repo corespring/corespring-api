@@ -2,11 +2,12 @@ package org.corespring.importing
 
 import java.io.ByteArrayInputStream
 
-import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials}
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
@@ -22,7 +23,6 @@ import scala.io.Source
 
 trait ItemFileConverter {
 
-  def bucket: String
   def uploader: Uploader
   def auth: ItemAuth[OrgAndOpts]
 
@@ -212,9 +212,9 @@ trait Uploader {
   def upload(filename: String, path: String, file: Source): Future[StoredFile]
 }
 
-class TransferManagerUploader(credentials: AWSCredentials, bucket: String) extends Uploader {
+class TransferManagerUploader(awsKey: String, awsSecret: String, bucket: String) extends Uploader {
 
-  val transferManager = new TransferManager(credentials)
+  val transferManager = new TransferManager(new BasicAWSCredentials(awsKey, awsSecret))
 
   def upload(filename: String, path: String, file: Source) = future {
     val byteArray = file.map(_.toByte).toArray

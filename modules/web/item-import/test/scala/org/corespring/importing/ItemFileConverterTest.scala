@@ -222,7 +222,7 @@ class ItemFileConverterTest extends Specification with Mockito {
       result must beAnInstanceOf[Right[Error, Item]]
     }
 
-    "item" should {
+    "modules/web/item-import/test/resources/item" should {
 
        val item: Item = result.asInstanceOf[Right[Error, Item]].b
 

@@ -34,7 +34,7 @@ object Global
 
   import org.corespring.wiring.AppWiring._
 
-  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers
+  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers ++ itemImportBootstrap.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
