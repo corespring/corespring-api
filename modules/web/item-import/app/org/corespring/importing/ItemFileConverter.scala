@@ -40,8 +40,6 @@ trait ItemFileConverter {
   val itemJsonFilename = "item.json"
   val itemMetadataFilename = "metadata.json"
 
-  val dummyReturn = Right(PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None))
-
   /**
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
