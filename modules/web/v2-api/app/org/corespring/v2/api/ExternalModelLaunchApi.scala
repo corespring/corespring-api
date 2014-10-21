@@ -24,6 +24,7 @@ trait ExternalModelLaunchApi extends V2Api {
 
   def sessionService: V2SessionService
 
+  def badSessionIdError = generalError("If you specify 'sessionId' it can only be '*'.")
   def buildExternalLaunchSession = Action.async { implicit request =>
     Future {
 
@@ -32,7 +33,7 @@ trait ExternalModelLaunchApi extends V2Api {
           if (id == PlayerAccessSettings.STAR) {
             Success(settings)
           } else {
-            Failure(generalError("If you specify 'sessionId' it can only be '*'."))
+            Failure(badSessionIdError)
           }
         }.getOrElse {
           Success(settings.as[JsObject] ++ Json.obj("sessionId" -> sessionId.toString))
