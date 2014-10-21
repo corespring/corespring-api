@@ -80,7 +80,7 @@ class CustomScoringTest extends IntegrationSpecification {
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired
       override def configuration: Configuration = Configuration.empty
-      override def findCollection(id: ObjectId): Option[ContentCollection] = ???
+      override def findCollection(id: ObjectId): Option[ContentCollection] = None
     }
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
