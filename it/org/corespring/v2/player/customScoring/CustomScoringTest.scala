@@ -6,6 +6,7 @@ import common.seed.SeedDb
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.models.item.{ Item, TaskInfo }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
@@ -79,6 +80,7 @@ class CustomScoringTest extends IntegrationSpecification {
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired
       override def configuration: Configuration = Configuration.empty
+      override def findCollection(id: ObjectId): Option[ContentCollection] = ???
     }
 
     private def mkSession(itemId: VersionedId[ObjectId], path: String): JsObject = {
