@@ -1,6 +1,6 @@
 # Integration Tests
 
-If you want to write a test that contains collabarating units with IO,
+If you want to write a test that contains collaborating units with IO,
 then this is the place to add them.
 These tests are run sequentially and not forked.
 

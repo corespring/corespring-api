@@ -1,0 +1,76 @@
+{
+  "components" : {
+    "Q_01": {
+      "componentType": "corespring-multiple-choice",
+      "model": {
+        "config": {
+          "shuffle": "false",
+          "orientation": "vertical",
+          "choiceType": "checkbox",
+          "choiceLabels": "letters",
+          "singleChoice": false
+        },
+        "prompt": "Which of the following are equal to the number of dots in the picture? (Choose all that apply.)",
+        "choices": [
+          {
+            "label": "3 + 3 + 3",
+            "value": "ChoiceA"
+          },
+          {
+            "label": "3 + 4",
+            "value": "ChoiceB"
+          },
+          {
+            "label": "4 + 4 + 4",
+            "value": "ChoiceC"
+          },
+          {
+            "label": "4 + 4 + 4 + 4",
+            "value": "ChoiceD"
+          },
+          {
+            "label": "3 + 3 + 3 + 3",
+            "value": "ChoiceE"
+          }
+        ],
+        "feedback" : [ 
+          {
+            "value" : "ChoiceA",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceB",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceC",
+            "feedback" : "Correct Answer",
+            "notChosenFeedback" : "Correct Answer"
+          }, 
+          {
+            "value" : "ChoiceD",
+            "feedback" : "Your Answer",
+            "notChosenFeedback" : "Your Answer"
+          }, 
+          {
+            "value" : "ChoiceE",
+            "feedback" : "Correct Answer",
+            "notChosenFeedback" : "Correct Answer"
+          }
+        ],
+        "correctResponse" : {
+          "value" : [ 
+            "ChoiceC", 
+            "ChoiceE"
+          ]
+        }
+      }
+    }
+  },
+  "files" : [
+    "dot array.png"
+  ],
+  "xhtml" : "<itemBody>\n\n   \n<div class=\"imagewrapper\">\n    <img src=\"dot array.png\"/>\n  </div>\n  <p>Which of the following are equal to the number of dots in the picture? (Choose all that apply.)</p><corespring-multiple-choice id=\"Q_01\"></corespring-multiple-choice>\n\n\n  </itemBody>"
+}

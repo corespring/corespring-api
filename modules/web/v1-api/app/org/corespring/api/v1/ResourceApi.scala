@@ -5,6 +5,7 @@ import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
+import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
 import org.corespring.platform.core.models.item.{ Content, _ }
@@ -22,6 +23,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
   def itemTransformer = new ItemTransformer {
     def itemService = service
     override def configuration: Configuration = Play.current.configuration
+    override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
   }
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"

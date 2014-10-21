@@ -49,6 +49,8 @@ object PlayerDefinition {
     }
   }
 
+  def empty = PlayerDefinition(Seq(), "", Json.obj(), "", None)
+
 }
 
 class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val components: JsValue, val summaryFeedback: String, val customScoring: Option[String]) {

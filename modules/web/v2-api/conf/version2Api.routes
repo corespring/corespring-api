@@ -1,9 +1,37 @@
+GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
-GET  /sessions/:sessionId       @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+## Check a score
+## Load the score based on the saved response
+GET  /sessions/:sessionId/score.json       @org.corespring.v2.api.ItemSessionApi.loadScore(sessionId:String)
 
-POST /items/:itemId/sessions    @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+POST /items/:itemId/sessions               @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
-POST /items                     @org.corespring.v2.api.ItemApi.create()
+POST /items                                @org.corespring.v2.api.ItemApi.create()
 
-POST /player-token              @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+PUT  /items/:itemId/check-score.json       @org.corespring.v2.api.ItemApi.checkScore(itemId:String)
+
+POST /player-token                         @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+
+GET  /sessions/:sessionId                             @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+
+POST /items/:itemId/sessions                          @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
+
+GET  /items/:itemId/full                              @org.corespring.v2.api.V1ItemApiProxy.get(itemId: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
+
+GET  /items/:itemId                                   @org.corespring.v2.api.ItemApi.get(itemId:String, detail : Option[String] ?= Some("normal"))
+
+POST /items                                           @org.corespring.v2.api.ItemApi.create()
+
+GET  /items                                           @org.corespring.v2.api.V1ItemApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+
+POST /player-token                                    @org.corespring.v2.api.PlayerTokenApi.createPlayerToken
+
+GET  /collections/:collectionId/items                 @org.corespring.v2.api.V1ItemApiProxy.listWithColl(collectionId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+
+GET  /collections/:collectionId                       @org.corespring.v2.api.V1CollectionApiProxy.getCollection(collectionId: ObjectId)
+
+GET  /collections                                     @org.corespring.v2.api.V1CollectionApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+
+
+
 
