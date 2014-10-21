@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, EncryptionSuccess, OrgEncrypter }
+import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed, generalError, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
@@ -21,12 +22,13 @@ class PlayerTokenApiTest extends Specification
   val mockOrgId = ObjectId.get
 
   class playerScope(
-    val encryptionResult: Option[EncryptionResult] = None,
+    val createTokenResult: Validation[V2Error, CreateTokenResult] = Failure(generalError("Create token failure")),
     val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Failure(generalError("Test V2 Error"))) extends Scope {
     lazy val api = new PlayerTokenApi {
-      override def encrypter: OrgEncrypter = {
-        val m = mock[OrgEncrypter]
-        m.encrypt(any[ObjectId], anyString) returns encryptionResult
+
+      override def tokenService: PlayerTokenService = {
+        val m = mock[PlayerTokenService]
+        m.createToken(any[ObjectId], any[JsValue]) returns createTokenResult
         m
       }
 
@@ -36,14 +38,6 @@ class PlayerTokenApiTest extends Specification
         orgAndOptsResult
       }
     }
-  }
-
-  class withJsonPlayerScope(json: JsValue) extends playerScope(
-    orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
-    encryptionResult = Some(EncryptionSuccess("clientid", "encrypted", None))) {
-    lazy val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json)))
-    status(result) === OK
-    lazy val jsonResult = (contentAsJson(result))
   }
 
   "PlayerTokenApi" should {
@@ -62,31 +56,52 @@ class PlayerTokenApiTest extends Specification
         (contentAsJson(result) \ "message").as[String] ==== noJson.message
       }
 
+      /* Move to PlayerTokenServiceTest
       "fail to create if missing 'expires' in json request body" in new playerScope(
         orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
         val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         status(result) === BAD_REQUEST
         (contentAsJson(result) \ "message").as[String] ==== missingRequiredField(Field("expires", "number")).message
-      }
+      }*/
 
-      "fail to create if encrypter returns None" in new playerScope(
+      "fail to create if create token fails" in new playerScope(
         orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
         val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("expires" -> 0))))
-        val error = encryptionFailed(s"orgId: $mockOrgId - Unknown error trying to encrypt")
+        val error = createTokenResult.toEither.left.get
         status(result) === error.statusCode
         (contentAsJson(result) \ "message").as[String] === error.message
       }
 
+      /*
+       Move to PlayerTokenServiceTest
       "fail to create if encrypter returns failure" in new playerScope(
         orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
-        encryptionResult = Some(EncryptionFailure("A Failure", new RuntimeException("?")))) {
+        createTokenResult = Failure(generalError("?"))) {
         val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("expires" -> 0))))
         val error = encryptionFailed("A Failure")
         status(result) === error.statusCode
         (contentAsJson(result) \ "message").as[String] === error.message
+      }*/
+    }
+    "with a valid request" should {
+
+      class withJsonPlayerScope(json: JsValue) extends playerScope(
+        orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
+        createTokenResult = Success(CreateTokenResult("clientid", "encrypted", Json.obj("test-success" -> true)))) {
+        lazy val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json)))
+        status(result) === OK
+        lazy val jsonResult = (contentAsJson(result))
+      }
+
+      "work" in new withJsonPlayerScope(Json.obj("expires" -> 0)) {
+        println(jsonResult)
+        (jsonResult \ "playerToken").as[String] === "encrypted"
+        (jsonResult \ "apiClient").as[String] === "clientid"
+        (jsonResult \ "accessSettings").as[JsObject] === Json.obj("test-success" -> true)
       }
     }
-
+    /*
+       Move to PlayerTokenServiceTest
     "with a valid request" should {
       "ignore json properties that arent part of access settings and default to wildcards" in new withJsonPlayerScope(Json.obj("expires" -> 0)) {
         (jsonResult \ "playerToken").as[String] === "encrypted"
@@ -124,5 +139,6 @@ class PlayerTokenApiTest extends Specification
       }
 
     }
+     */
   }
 }

@@ -19,7 +19,7 @@ trait ItemTransformer {
 
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
-  //TODO: Remove service - transform should only transform.
+  //TODO: Remove service - transform should only transform. see: CA-2085
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
   //TODO: Remove service - transform should only transform.

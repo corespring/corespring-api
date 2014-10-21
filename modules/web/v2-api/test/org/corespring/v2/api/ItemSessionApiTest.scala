@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
@@ -26,11 +26,11 @@ class ItemSessionApiTest extends Specification with Mockito {
     val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
     val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
     val maybeSessionId: Option[ObjectId] = None,
-    val sessionAndItem: Validation[V2Error, (JsValue, Item)] = Failure(generalError("no"))) extends Scope {
+    val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no"))) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
-      override def sessionAuth: SessionAuth[OrgAndOpts] = {
-        val m = mock[SessionAuth[OrgAndOpts]]
+      override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
+        val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
         m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
         m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
         m
@@ -94,7 +94,7 @@ class ItemSessionApiTest extends Specification with Mockito {
       }
 
       "work" in new apiScope(
-        sessionAndItem = Success((Json.obj(), Item()))) {
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.get("sessionId")(FakeRequest("", ""))
         status(result) === OK
       }
