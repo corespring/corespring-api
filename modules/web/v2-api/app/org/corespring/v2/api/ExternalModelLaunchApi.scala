@@ -4,14 +4,14 @@ import org.bson.types.ObjectId
 import org.corespring.v2.api.services.PlayerTokenService
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
-import play.api.libs.json.{ Json, JsObject }
+import play.api.libs.json.{ JsValue, Json, JsObject }
 import play.api.mvc.Action
 
 import scala.concurrent.Future
 import scalaz.Validation
 import scalaz.Scalaz._
 
-case class LaunchInfo(sessionId: String, playerToken: String, apiClient: String, playerJsUrl: String)
+case class LaunchInfo(sessionId: String, playerToken: String, apiClient: String, playerJsUrl: String, settings: JsValue)
 
 trait V2SessionService {
   def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId]
@@ -36,7 +36,7 @@ trait ExternalModelLaunchApi extends V2Api {
         tokenResult <- tokenService.createToken(orgAndOpts.orgId, accessSettings)
       } yield {
         val url = s"/v2/player/player.js?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
-        LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url)
+        LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url, tokenResult.settings)
       }
 
       validationToResult[LaunchInfo](i =>
@@ -44,7 +44,8 @@ trait ExternalModelLaunchApi extends V2Api {
           Json.obj(
             "sessionId" -> i.sessionId,
             "playerToken" -> i.playerToken,
-            "playerJsUrl" -> i.playerJsUrl)))(out)
+            "playerJsUrl" -> i.playerJsUrl,
+            "settings" -> i.settings)))(out)
     }
   }
 }
