@@ -44,7 +44,8 @@ class Bootstrap(
   val v1ItemApiProxy: V1ItemApiProxy,
   val v1ItemSessionApiProxy: V1ItemSessionApiProxy,
   val v1CollectionApiProxy: V1CollectionApiProxy,
-  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit]) {
+  val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
+  val playerJsUrl: String) {
 
   protected val orgService: OrgService = new OrgService {
     override def defaultCollection(o: Organization): Option[ObjectId] = {
@@ -155,6 +156,7 @@ class Bootstrap(
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
+    override def playerJsUrl: String = Bootstrap.this.playerJsUrl
   }
 
   lazy val controllers: Seq[Controller] = Seq(

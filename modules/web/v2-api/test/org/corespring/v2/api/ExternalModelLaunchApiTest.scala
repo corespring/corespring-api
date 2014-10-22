@@ -43,6 +43,7 @@ class ExternalModelLaunchApiTest
 
       override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
+      override def playerJsUrl: String = "/v2/player/player.js"
     }
 
     lazy val json = createJson

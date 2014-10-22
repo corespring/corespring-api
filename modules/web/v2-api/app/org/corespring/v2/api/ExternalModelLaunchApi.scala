@@ -24,6 +24,8 @@ trait ExternalModelLaunchApi extends V2Api {
 
   def sessionService: V2SessionService
 
+  def playerJsUrl: String
+
   def badSessionIdError = generalError("If you specify 'sessionId' it can only be '*'.")
   def createSessionError = generalError("Error creating session")
 
@@ -51,7 +53,7 @@ trait ExternalModelLaunchApi extends V2Api {
         settingsWithDefaults <- addDefaults(accessSettings, sessionId)
         tokenResult <- tokenService.createToken(orgAndOpts.orgId, settingsWithDefaults)
       } yield {
-        val url = s"/v2/player/player.js?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
+        val url = s"$playerJsUrl??apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
         LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url, tokenResult.settings)
       }
 

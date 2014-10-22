@@ -62,7 +62,8 @@ object AppWiring {
     v1ItemApiProxy,
     v1ItemSessionApiProxy,
     v1CollectionApiProxy,
-    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)))
+    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
+    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
