@@ -8,8 +8,8 @@ import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ ContentTypeOf, Writeable }
-import play.api.mvc.{ AnyContent, Call, Cookie, Request }
-import play.api.test.FakeRequest
+import play.api.mvc._
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 package object scopes {
 
@@ -65,20 +65,6 @@ package object scopes {
       println("[orgWithAccessTokenAndItemAndSession] after")
       V2SessionHelper.delete(sessionId)
     }
-  }
-
-  /**
-   * Creates a v1 session
-   */
-  trait orgWithAccessTokenItemAndV1Session extends orgWithAccessTokenAndItem with HasSessionId {
-    val sessionId = V1SessionHelper.create(itemId)
-    println(s"orgWithAccessTokenItemAndSession created session $sessionId")
-
-    override def after: Any = {
-      println("[orgWithAccessTokenAndItemAndSession] after")
-      V1SessionHelper.delete(sessionId)
-    }
-
   }
 
   trait sessionData extends orgWithAccessToken {
@@ -188,8 +174,11 @@ package object scopes {
   }
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
+
+    def requestBody: AnyContent = AnyContentAsEmpty
+
     override def makeRequest(call: Call): Request[AnyContent] = {
-      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}")
+      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), requestBody)
     }
   }
 

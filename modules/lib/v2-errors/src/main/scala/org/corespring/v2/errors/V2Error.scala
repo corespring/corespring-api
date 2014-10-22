@@ -107,4 +107,5 @@ private[v2] object Errors {
 
   case class cantFindSession(id: String) extends V2Error(s"Can't find session with id: $id", NOT_FOUND)
 
+  case class sessionDoesNotContainResponses(sessionId: String) extends V2Error(s"session: $sessionId does not contain any responses")
 }

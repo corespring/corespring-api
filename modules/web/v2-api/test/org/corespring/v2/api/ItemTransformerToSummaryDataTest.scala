@@ -5,7 +5,7 @@ import org.corespring.platform.core.models.item._
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Scope, BeforeAfter}
+import org.specs2.specification.{ Scope, BeforeAfter }
 import play.api.libs.json.JsValue
 
 class ItemTransformerToSummaryDataTest extends Specification with Mockito {
@@ -32,7 +32,7 @@ class ItemTransformerToSummaryDataTest extends Specification with Mockito {
         subjects = Some(new Subjects(
           primary = Some(new ObjectId("4ffb535f6bb41e469c0bf2aa")), //AP Art History
           related = Some(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
-        )),
+          )),
         gradeLevel = Seq("GradeLevel1", "GradeLevel2"),
         itemType = Some("ItemType"))),
       standards = Seq("RL.1.5", "RI.5.8"),

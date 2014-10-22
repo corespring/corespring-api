@@ -133,7 +133,8 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils)
+    libraryDependencies ++= Seq(playJson, rhino % "test")
+  ).dependsOn(core, qti, apiUtils, testLib % "test->compile")
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -159,9 +160,17 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
     .dependsOn(v2Errors, core, playerLib, testLib % "test->compile")
 
+  val itemImport = builders.web("item-import")
+    .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
+    .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
+
   val v2Api = builders.web("v2-api")
     .settings(
-      libraryDependencies ++= Seq(scalaz, mongoJsonService, salatVersioningDao),
+      libraryDependencies ++= Seq(
+        scalaz,
+        mongoJsonService,
+        salatVersioningDao,
+        componentModel),
       routesImport ++= customImports)
     .dependsOn(v2Auth, qtiToV2, core % "test->test;compile->compile")
 
@@ -228,13 +237,14 @@ object Build extends sbt.Build {
     /**
      * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
      * This is a workaround that *always* calls an empty Integration test first.
-     * @see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
+     * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
      */
     testOnly in IntegrationTest := {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
   val main = builders.web(appName, Some(file(".")))
+    .settings(sbt.Keys.fork in Test := false)
     .settings(
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
@@ -267,7 +277,8 @@ object Build extends sbt.Build {
       v2Api,
       apiTracking,
       clientLogging % "compile->compile;test->test",
-      qtiToV2)
+      qtiToV2,
+      itemImport)
     .aggregate(
       scormWeb,
       reports,
@@ -285,6 +296,7 @@ object Build extends sbt.Build {
       apiTracking,
       v2Auth,
       clientLogging,
-      qtiToV2)
+      qtiToV2,
+      itemImport)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

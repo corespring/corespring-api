@@ -53,7 +53,7 @@ trait ExternalModelLaunchApi extends V2Api {
         settingsWithDefaults <- addDefaults(accessSettings, sessionId)
         tokenResult <- tokenService.createToken(orgAndOpts.orgId, settingsWithDefaults)
       } yield {
-        val url = s"$playerJsUrl??apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
+        val url = s"$playerJsUrl?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
         LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url, tokenResult.settings)
       }
 

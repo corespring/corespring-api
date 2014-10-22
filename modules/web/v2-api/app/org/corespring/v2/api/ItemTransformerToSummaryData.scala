@@ -25,19 +25,17 @@ trait ItemTransformerToSummaryData {
 
     val details = detail.getOrElse("normal") match {
       case "detailed" => Json.obj(
-          "copyrightOwner" -> item.contributorDetails.map(details => details.copyright.map(copyright => copyright.owner)),
-          "credentials" -> item.contributorDetails.map(details => details.credentials),
-          "keySkills" -> item.otherAlignments.map(alignments => alignments.keySkills),
-          "bloomsTaxonomy" -> item.otherAlignments.map(alignments => alignments.bloomsTaxonomy)
-        )
+        "copyrightOwner" -> item.contributorDetails.map(details => details.copyright.map(copyright => copyright.owner)),
+        "credentials" -> item.contributorDetails.map(details => details.credentials),
+        "keySkills" -> item.otherAlignments.map(alignments => alignments.keySkills),
+        "bloomsTaxonomy" -> item.otherAlignments.map(alignments => alignments.bloomsTaxonomy))
 
       /** Todo what does full really mean? **/
       case "full" => Json.obj(
-          "copyrightOwner" -> item.contributorDetails.map(details => details.copyright.map(copyright => copyright.owner)),
-          "credentials" -> item.contributorDetails.map(details => details.credentials),
-          "keySkills" -> item.otherAlignments.map(alignments => alignments.keySkills),
-          "bloomsTaxonomy" -> item.otherAlignments.map(alignments => alignments.bloomsTaxonomy)
-        )
+        "copyrightOwner" -> item.contributorDetails.map(details => details.copyright.map(copyright => copyright.owner)),
+        "credentials" -> item.contributorDetails.map(details => details.credentials),
+        "keySkills" -> item.otherAlignments.map(alignments => alignments.keySkills),
+        "bloomsTaxonomy" -> item.otherAlignments.map(alignments => alignments.bloomsTaxonomy))
       case _ => Json.obj()
     }
 

@@ -41,6 +41,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   val itemTransformer = new ItemTransformer {
     override def itemService: ItemService = service
     override def configuration: Configuration = Play.current.configuration
+    override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {

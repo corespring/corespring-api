@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.{ContentCollection, Standard}
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
@@ -30,6 +30,8 @@ trait ItemTransformer {
       case _ => None
     }
   }
+
+  def findCollection(id:ObjectId):Option[ContentCollection]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
 
@@ -115,9 +117,18 @@ trait ItemTransformer {
       }
     })
     val profile = toProfile(item)
+
+    val collectionJs = (for {
+      collectionId <- item.collectionId
+      collection <- findCollection(new ObjectId(collectionId))
+    } yield Json.toJson(collection)).getOrElse(Json.obj())
+
+
     val out = root ++ Json.obj(
       "profile" -> profile,
-      "supportingMaterials" -> Json.toJson(item.supportingMaterials))
+      "supportingMaterials" -> Json.toJson(item.supportingMaterials),
+      "collection" -> collectionJs
+      )
 
     logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out

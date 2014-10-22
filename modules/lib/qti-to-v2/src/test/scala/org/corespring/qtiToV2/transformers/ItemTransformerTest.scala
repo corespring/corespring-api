@@ -1,9 +1,13 @@
 package org.corespring.qtiToV2.transformers
 
+import com.mongodb.casbah.Imports._
+import com.novus.salat.dao.ModelCompanion
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.Configuration
@@ -11,12 +15,21 @@ import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
+
+  PlaySingleton.start()
+
   val itemServiceMock = mock[ItemService]
+
+  val mockCollectionId = ObjectId.get()
+
+  var mockCollection:Option[ContentCollection] = Some(new ContentCollection("Collection name",ownerOrgId = ObjectId.get(),id = mockCollectionId))
 
   val itemTransformer = new ItemTransformer {
     def itemService = itemServiceMock
 
     override def configuration: Configuration = Configuration.empty
+
+    override def findCollection(id:ObjectId):Option[ContentCollection] = mockCollection
   }
 
   val qti =
@@ -61,6 +74,7 @@ class ItemTransformerTest extends Specification with Mockito {
     "transform an item to poc json" in {
 
       val item = Item(
+        collectionId = Some(mockCollectionId.toString),
         lexile = Some("30"),
         reviewsPassed = Seq("RP1", "RP2"),
         reviewsPassedOther = Some("RPO"),
@@ -95,10 +109,13 @@ class ItemTransformerTest extends Specification with Mockito {
                 contentType = "image/jpeg",
                 content = "")))))
 
-      val json = itemTransformer.transformToV2Json(item)
+      var json = itemTransformer.transformToV2Json(item)
       val imageJson = (json \ "files").as[Seq[JsObject]].head
 
+      (json \ "collection" \ "id").as[String] must be equalTo mockCollectionId.toString
+      (json \ "collection" \ "name").as[String] must be equalTo "Collection name"
       (json \ "metadata" \ "title").as[String] === "item one"
+
       (json \ "components" \ "Q_01").asOpt[JsObject] must beSome[JsObject]
       (json \ "files").as[Seq[JsObject]].map(f => (f \ "name").as[String]).contains("qti.xml") must beFalse
       (imageJson \ "name").as[String] must be equalTo "kittens.jpeg"
@@ -124,7 +141,12 @@ class ItemTransformerTest extends Specification with Mockito {
       (json \ "profile" \ "otherAlignments" \ "bloomsTaxonomy").asOpt[String] === Some("BT")
       (json \ "profile" \ "otherAlignments" \ "keySkills").as[Seq[String]] === Seq("KS1", "KS2")
       (json \ "profile" \ "otherAlignments" \ "depthOfKnowledge").asOpt[String] === Some("DOK")
+
+      mockCollection = None
+      json = itemTransformer.transformToV2Json(item)
+      (json \ "collection").asOpt[JsObject] must beSome[JsObject]
     }
+
   }
 
 }
