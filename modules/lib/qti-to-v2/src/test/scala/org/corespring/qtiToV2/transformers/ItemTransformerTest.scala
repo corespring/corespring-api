@@ -7,6 +7,7 @@ import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -72,8 +73,10 @@ class ItemTransformerTest extends Specification with Mockito {
     }
 
     "transform an item to poc json" in {
+      val itemId = VersionedId(ObjectId.get())
 
       val item = Item(
+        id = itemId,
         collectionId = Some(mockCollectionId.toString),
         lexile = Some("30"),
         reviewsPassed = Seq("RP1", "RP2"),
@@ -112,6 +115,7 @@ class ItemTransformerTest extends Specification with Mockito {
       var json = itemTransformer.transformToV2Json(item)
       val imageJson = (json \ "files").as[Seq[JsObject]].head
 
+      (json \ "itemId").as[String] must be equalTo itemId.toString
       (json \ "collection" \ "id").as[String] must be equalTo mockCollectionId.toString
       (json \ "collection" \ "name").as[String] must be equalTo "Collection name"
       (json \ "metadata" \ "title").as[String] === "item one"

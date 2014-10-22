@@ -125,6 +125,7 @@ trait ItemTransformer {
 
 
     val out = root ++ Json.obj(
+      "itemId" -> Json.toJson(item.id.toString()),
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials),
       "collection" -> collectionJs
