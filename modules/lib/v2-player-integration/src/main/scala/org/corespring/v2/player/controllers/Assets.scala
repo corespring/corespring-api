@@ -4,7 +4,8 @@ import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
@@ -26,15 +27,17 @@ trait Assets extends ContainerAssets {
   import scalaz.Scalaz._
   import scalaz._
 
-  def loadAsset(itemId: String, file: String)(request: Request[AnyContent]): SimpleResult = {
+  def loadAsset(itemId: String, resourceName: String, file: String)(request: Request[AnyContent]): SimpleResult = {
 
     val decodedFilename = java.net.URI.create(file).getPath
-    val storedFile: Validation[V2Error, StoredFile] = for {
+    val storedFile : Validation[V2Error, StoredFile] = for {
       id <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
-      data <- item.data.toSuccess(generalError(s"item doesn't contain a 'data' property': $id"))
-      asset <- data.files.find(_.name == decodedFilename).toSuccess(generalError(s"can't find a file with name: $decodedFilename in ${data}"))
-    } yield asset.asInstanceOf[StoredFile]
+      dr <- getResource(item, resourceName).toSuccess(generalError("Can't find resource"))
+      (isItemDataResource, resource) = dr
+      file <- resource.files.find(_.name == decodedFilename).toSuccess(generalError(s"Can't find file with name $decodedFilename"))
+    } yield file.asInstanceOf[StoredFile]
+
 
     storedFile match {
       case Success(sf) => {
@@ -46,6 +49,12 @@ trait Assets extends ContainerAssets {
         NotFound(e.message)
       }
     }
+  }
+
+  private def getResource(item: Item, name: String): Option[(Boolean, Resource)] = if (name == Resource.DataPath) {
+    item.data.map((true, _))
+  } else {
+    item.supportingMaterials.find(_.name == name).map((false, _))
   }
 
   def getItemId(sessionId: String): Option[String] = sessionService.load(sessionId).map {
