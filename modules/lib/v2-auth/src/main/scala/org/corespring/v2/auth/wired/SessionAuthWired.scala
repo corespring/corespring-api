@@ -57,7 +57,12 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     val out = for {
       json <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
       playerDef <- loadPlayerDefinition(sessionId, json)
-    } yield (json, playerDef)
+    } yield {
+      /** if the session contains the data - we need to trim it so it doesn't reach the client */
+      val cleanedSession = json.as[JsObject] - "item"
+      (cleanedSession, playerDef)
+    }
+
     logger.trace(s"loadFor sessionId: $sessionId - result successful")
     out
   }
