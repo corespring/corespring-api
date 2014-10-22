@@ -19,7 +19,15 @@ trait PlayerTokenService {
 
   def encrypter: OrgEncrypter
 
-  def encryptionToValidation(er: EncryptionResult): Validation[V2Error, (String, String)] = {
+  def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
+    accessSettings <- toAccessSettings(json)
+    encryptionResult <- encrypter.encrypt(orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
+    clientIdAndToken <- encryptionToValidation(encryptionResult)
+  } yield {
+    CreateTokenResult(clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))
+  }
+
+  private def encryptionToValidation(er: EncryptionResult): Validation[V2Error, (String, String)] = {
     er match {
       case EncryptionSuccess(clientId, encrypted, requested) => {
         logger.trace(s"function=createPlayerToken clientId=$clientId request=$requested")
@@ -32,17 +40,9 @@ trait PlayerTokenService {
     }
   }
 
-  def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
+  private def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
     case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
     case JsSuccess(o, _) => Success(o)
-  }
-
-  def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
-    accessSettings <- toAccessSettings(json)
-    encryptionResult <- encrypter.encrypt(orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
-    clientIdAndToken <- encryptionToValidation(encryptionResult)
-  } yield {
-    CreateTokenResult(clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))
   }
 
 }
