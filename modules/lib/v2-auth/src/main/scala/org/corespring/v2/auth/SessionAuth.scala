@@ -11,10 +11,10 @@ object SessionAuth {
   type Session = JsValue
 }
 
-trait SessionAuth[A] {
-  def loadForRead(sessionId: String)(implicit identity: A): Validation[V2Error, (Session, Item)]
-  def loadForWrite(sessionId: String)(implicit identity: A): Validation[V2Error, (Session, Item)]
-  def canCreate(itemId: String)(implicit identity: A): Validation[V2Error, Boolean]
-  def saveSession(implicit identity: A): Validation[V2Error, (String, Session) => Option[Session]]
-  def create(session: Session)(implicit identity: A): Validation[V2Error, ObjectId]
+trait SessionAuth[IDENTITY, CONTENT] {
+  def loadForRead(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, (Session, CONTENT)]
+  def loadForWrite(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, (Session, CONTENT)]
+  def canCreate(itemId: String)(implicit identity: IDENTITY): Validation[V2Error, Boolean]
+  def saveSession(implicit identity: IDENTITY): Validation[V2Error, (String, Session) => Option[Session]]
+  def create(session: Session)(implicit identity: IDENTITY): Validation[V2Error, ObjectId]
 }

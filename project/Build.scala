@@ -153,7 +153,7 @@ object Build extends sbt.Build {
    */
   val v2Auth = builders.lib("v2-auth").settings(
     libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, playerLib)
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -237,7 +237,7 @@ object Build extends sbt.Build {
     /**
      * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
      * This is a workaround that *always* calls an empty Integration test first.
-     * @see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
+     * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
      */
     testOnly in IntegrationTest := {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated

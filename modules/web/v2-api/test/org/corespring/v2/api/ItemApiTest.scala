@@ -160,13 +160,15 @@ class ItemApiTest extends Specification with Mockito {
 
     "when calling check-score.json" should {
 
+      def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
+
       case class checkScoreScope(
         orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(
           OrgAndOpts(
             ObjectId.get,
             PlayerAccessSettings.ANYTHING,
             AuthMode.AccessToken)),
-        loadForReadResult: Validation[V2Error, Item] = Success(Item()),
+        loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
         scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
 
         lazy val api = new ItemApi {
@@ -177,7 +179,7 @@ class ItemApiTest extends Specification with Mockito {
 
           override def scoreService: ScoreService = {
             val m = mock[ScoreService]
-            m.score(any[Item], any[JsValue]) returns scoreResult
+            m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
             m
           }
 
@@ -218,10 +220,20 @@ class ItemApiTest extends Specification with Mockito {
         contentAsJson(result) === error.json
       }
 
-      "fail it the score service fails" in new checkScoreScope(
-        scoreResult = Failure(generalError("couldn't get score"))) {
+      "fail if there is no player definition" in new checkScoreScope(
+      loadForReadResult = Success(Item())
+      ) {
         val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
-        val error = scoreResult.toEither.left.get
+        val error = api.noPlayerDefinition(loadForReadResult.toEither.right.get.id)
+        status(result) === error.statusCode
+        contentAsJson(result) === error.json
+      }
+
+      "fail it the score service fails" in new checkScoreScope(
+        scoreResult = Failure(generalError("couldn't get score"))
+      ) {
+        val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
+        val error = scoreResult.toEither.left.get //api.noPlayerDefinition(loadForReadResult.toEither.right.get.id)
         status(result) === error.statusCode
         contentAsJson(result) === error.json
       }
@@ -231,6 +243,7 @@ class ItemApiTest extends Specification with Mockito {
           FakeRequest("", "",
             FakeHeaders(),
             AnyContentAsJson(Json.obj())))
+        println(contentAsString(result))
         status(result) === OK
         contentAsJson(result) === scoreResult.toEither.right.get
       }

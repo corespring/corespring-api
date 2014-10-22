@@ -1,23 +1,21 @@
 package org.corespring.v2.api
 
+import scala.concurrent._
+
 import org.bson.types.ObjectId
-import org.corespring.container.components.outcome.ScoreProcessor
-import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ sessionDoesNotContainResponses, noJson, errorSaving, generalError }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.errors.Errors.{errorSaving, generalError, sessionDoesNotContainResponses}
 import org.corespring.v2.log.V2LoggerFactory
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ AnyContent, Action }
-
-import scala.concurrent._
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.mvc.{Action, AnyContent}
+import scalaz.{Failure, Success, Validation}
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
 
 trait ItemSessionApi extends V2Api {
 
@@ -25,7 +23,7 @@ trait ItemSessionApi extends V2Api {
 
   def sessionService: MongoService
 
-  def sessionAuth: SessionAuth[OrgAndOpts]
+  def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   def scoreService: ScoreService
 
@@ -106,7 +104,7 @@ trait ItemSessionApi extends V2Api {
    */
   def get(sessionId: String) = Action.async { implicit request =>
     Future {
-      validationToResult[(SessionAuth.Session, Item)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
+      validationToResult[(SessionAuth.Session, PlayerDefinition)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
         for {
           identity <- getOrgIdAndOptions(request)
           session <- sessionAuth.loadForRead(sessionId)(identity)
@@ -132,11 +130,11 @@ trait ItemSessionApi extends V2Api {
     Future {
       val out: Validation[V2Error, JsValue] = for {
         identity <- getOrgIdAndOptions(request)
-        sessionAndItem <- sessionAuth.loadForWrite(sessionId)(identity)
-        session <- Success(sessionAndItem._1)
-        item <- Success(sessionAndItem._2)
+        sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(identity)
+        session <- Success(sessionAndPlayerDef._1)
+        playerDef <- Success(sessionAndPlayerDef._2)
         components <- getComponents(session).toSuccess(sessionDoesNotContainResponses(sessionId))
-        score <- scoreService.score(item, components)
+        score <- scoreService.score(playerDef, components)
       } yield score
 
       validationToResult[JsValue](j => Ok(j))(out)

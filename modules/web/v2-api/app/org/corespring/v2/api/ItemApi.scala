@@ -73,6 +73,9 @@ trait ItemApi extends V2Api {
     }
   }
 
+
+  def noPlayerDefinition(id: VersionedId[ObjectId]): V2Error = generalError(s"This item ($id) has no player definition, unable to calculate a score")
+
   /**
    * Check a score against a given item
    * @param itemId
@@ -87,7 +90,8 @@ trait ItemApi extends V2Api {
         identity <- getOrgIdAndOptions(request)
         answers <- request.body.asJson.toSuccess(noJson)
         item <- itemAuth.loadForRead(itemId)(identity)
-        score <- scoreService.score(item, answers)
+        playerDef <- item.playerDefinition.toSuccess(noPlayerDefinition(item.id))
+        score <- scoreService.score(playerDef, answers)
       } yield score
 
       validationToResult[JsValue](j => Ok(j))(out)

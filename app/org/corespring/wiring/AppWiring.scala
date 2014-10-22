@@ -2,25 +2,23 @@ package org.corespring.wiring
 
 import common.seed.SeedDb
 import org.bson.types.ObjectId
-import org.corespring.api.v1.{ ItemSessionApi, CollectionApi, ItemApi }
+import org.corespring.api.v1.{CollectionApi, ItemApi}
 import org.corespring.common.config.AppConfig
-import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
+import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
+import org.corespring.importing.{Bootstrap => ItemImportBootstrap}
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.AccessToken
 import org.corespring.platform.core.services.UserServiceWired
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy }
-import org.corespring.v2.api.{ Bootstrap => V2ApiBootstrap }
-import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
+import org.corespring.v2.api.{Bootstrap => V2ApiBootstrap, V1CollectionApiProxy, V1ItemApiProxy}
+import org.corespring.v2.auth.identifiers.{OrgRequestIdentity, WithRequestIdentitySequence}
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.player.V2PlayerIntegration
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
-import play.api.mvc.{ AnyContent, Action }
-import play.api.{ Configuration, Logger, Mode, Play }
-
+import play.api.{Configuration, Logger, Mode, Play}
+import play.api.mvc.{Action, AnyContent}
 
 /**
  * The wiring together of the app. One of the few places where using `object` is acceptable.
@@ -57,11 +55,13 @@ object AppWiring {
     integration.itemAuth,
     integration.sessionAuth,
     v2ApiRequestIdentity,
-    Some(itemId => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
+    v1ItemApiProxy,
+    v1CollectionApiProxy,
+    Some((itemId : VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
     integration.outcomeProcessor,
     integration.scoreProcessor,
-    v1ItemApiProxy,
-    v1CollectionApiProxy)
+    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
+
 
   lazy val itemImportBootstrap = new ItemImportBootstrap(
     integration.itemAuth,

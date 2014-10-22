@@ -18,7 +18,7 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
-import org.corespring.platform.core.models.item.{ FieldValue, Item }
+import org.corespring.platform.core.models.item.{ PlayerDefinition, FieldValue, Item }
 import org.corespring.platform.core.models.{ Organization, Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
@@ -172,7 +172,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   }
 
-  lazy val sessionAuth: SessionAuth[OrgAndOpts] = new SessionAuthWired {
+  lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = new SessionAuthWired {
     override def itemAuth: ItemAuth[OrgAndOpts] = V2PlayerIntegration.this.itemAuth
 
     override def mainSessionService: MongoService = V2PlayerIntegration.this.mainSessionService
@@ -188,6 +188,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
      * @return
      */
     override def previewSessionService: MongoService = V2PlayerIntegration.this.previewSessionService
+
+    override def itemTransformer: ItemTransformer = V2PlayerIntegration.this.itemTransformer
   }
 
   private lazy val key = AppConfig.amazonKey
@@ -292,7 +294,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   override def sessionHooks: SessionHooks = new apiHooks.SessionHooks {
 
-    override def auth: SessionAuth[OrgAndOpts] = V2PlayerIntegration.this.sessionAuth
+    override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerIntegration.this.sessionAuth
 
     override def itemService: ItemService = ItemServiceWired
 
@@ -341,7 +343,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def itemTransformer = V2PlayerIntegration.this.itemTransformer
 
-    override def auth: SessionAuth[OrgAndOpts] = V2PlayerIntegration.this.sessionAuth
+    override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerIntegration.this.sessionAuth
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }

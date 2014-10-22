@@ -9,11 +9,13 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncrypter
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.api.services.{ PlayerTokenService, ItemPermissionService, PermissionService, SessionPermissionService }
 import org.corespring.v2.api.services._
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
@@ -21,7 +23,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ Json, JsObject, JsValue }
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
@@ -39,13 +41,14 @@ class Bootstrap(
   val userService: UserService,
   val secureSocialService: SecureSocialService,
   val itemAuth: ItemAuth[OrgAndOpts],
-  val sessionAuth: SessionAuth[OrgAndOpts],
+  val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
+  val v1ItemApiProxy: V1ItemApiProxy,
+  val v1CollectionApiProxy: V1CollectionApiProxy,
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val outcomeProcessor: OutcomeProcessor,
   val scoreProcessor: ScoreProcessor,
-  val v1ItemApiProxy: V1ItemApiProxy,
-  val v1CollectionApiProxy: V1CollectionApiProxy) {
+  val playerJsUrl: String) {
 
   private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
@@ -123,20 +126,53 @@ class Bootstrap(
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-    override def sessionAuth: SessionAuth[OrgAndOpts] = Bootstrap.this.sessionAuth
+    override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = Bootstrap.this.sessionAuth
 
     override def sessionService = Bootstrap.this.sessionService
 
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
   }
 
-  lazy val playerTokenApi = new PlayerTokenApi {
+  lazy val playerTokenService = new PlayerTokenService {
     override def encrypter: OrgEncrypter = new OrgEncrypter(AESCrypto)
+  }
+
+  lazy val playerTokenApi = new PlayerTokenApi {
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+    override def tokenService: PlayerTokenService = Bootstrap.this.playerTokenService
   }
 
-  lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1CollectionApiProxy)
+  lazy val v2SessionService = new V2SessionService {
+
+    override def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId] = {
+      sessionService.create(
+        Json.obj(
+          "orgId" -> orgId.toString,
+          "item" -> model))
+    }
+  }
+
+  lazy val externalModelLaunchApi = new ExternalModelLaunchApi {
+    override def sessionService: V2SessionService = Bootstrap.this.v2SessionService
+
+    override def tokenService: PlayerTokenService = Bootstrap.this.playerTokenService
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+
+    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+    override def playerJsUrl: String = Bootstrap.this.playerJsUrl
+  }
+
+  lazy val controllers: Seq[Controller] = Seq(
+    itemApi,
+    itemSessionApi,
+    playerTokenApi,
+    externalModelLaunchApi,
+    v1ItemApiProxy,
+    v1CollectionApiProxy)
 }
