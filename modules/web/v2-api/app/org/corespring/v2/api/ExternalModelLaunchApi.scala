@@ -25,6 +25,8 @@ trait ExternalModelLaunchApi extends V2Api {
   def sessionService: V2SessionService
 
   def badSessionIdError = generalError("If you specify 'sessionId' it can only be '*'.")
+  def createSessionError = generalError("Error creating session")
+
   def buildExternalLaunchSession = Action.async { implicit request =>
     Future {
 
