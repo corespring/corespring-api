@@ -66,8 +66,7 @@ trait SessionHooks
     } yield {
       val (session, playerDefinition) = models
       logger.trace(s"[buildSession] org and opts: $identity")
-      //val transformed = transformItem(item)
-      logger.trace(s"[buildSession] transformed: ${playerDefinition}")
+      logger.trace(s"[buildSession] playerDefinition: ${playerDefinition}")
       make(Json.toJson(playerDefinition), session, identity)
     }
     out.leftMap { s => UNAUTHORIZED -> s.message }.toEither

@@ -44,5 +44,4 @@ trait PlayerTokenService {
     case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
     case JsSuccess(o, _) => Success(o)
   }
-
 }

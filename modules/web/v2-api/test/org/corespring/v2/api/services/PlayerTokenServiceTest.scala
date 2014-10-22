@@ -76,6 +76,5 @@ class PlayerTokenServiceTest extends Specification with Mockito {
       jsonBack must_==
         Json.obj("itemId" -> "itemId", "sessionId" -> "sessionId", "secure" -> true, "expires" -> "19", "mode" -> "*")
     }
-
   }
 }

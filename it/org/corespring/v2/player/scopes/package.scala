@@ -28,7 +28,7 @@ package object scopes {
     }
 
     def after: Any = {
-      println("[orgWithAccessToken] after")
+      println("----------> [orgWithAccessToken] after")
       logger.trace(s"[after] deleting db data: ${apiClient.orgId}, ${apiClient.clientId}, ${apiClient.clientSecret}")
       ApiClientHelper.delete(apiClient)
       OrganizationHelper.delete(orgId)
