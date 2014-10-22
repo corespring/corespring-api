@@ -1,18 +1,18 @@
 package org.corespring.v2.api
 
+import scala.concurrent.ExecutionContext
+
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, OrgAndOpts }
-import org.corespring.v2.errors.Errors.{ noJson, missingRequiredField, generalError }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.{ Field, V2Error }
+import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, JsObject, Json }
-import play.api.mvc.{ AnyContent, AnyContentAsJson, AnyContentAsEmpty, RequestHeader }
-import play.api.test.{ PlaySpecification, FakeHeaders, FakeRequest }
-
-import scala.concurrent.ExecutionContext
+import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.mvc.{ AnyContentAsJson, RequestHeader }
+import play.api.test.{ FakeHeaders, FakeRequest, PlaySpecification }
 import scalaz.{ Failure, Success, Validation }
 
 class ExternalModelLaunchApiTest
