@@ -31,6 +31,7 @@ class ItemImportController(converter: ItemFileConverter,
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
           (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
         }).toMap
+
         converter.convert(collectionId.toString)(fileMap) match {
           case Success(item) => Ok(item.id.toString)
           case Failure(error) => BadRequest(error.getMessage)

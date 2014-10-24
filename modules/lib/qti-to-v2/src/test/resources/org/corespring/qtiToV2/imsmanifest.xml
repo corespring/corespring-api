@@ -1,0 +1,1442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:imsmd="http://www.imsglobal.org/xsd/imsmd_v1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:imsqti="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="MANIFEST-10/8/2014" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd http://www.imsglobal.org/xsd/imsmd_v1p2 imsmd_v1p2p4.xsd http://www.imsglobal.org/xsd/imsqti_v2p1  http://www.imsglobal.org/xsd/imsqti_v2p1.xsd">
+	<metadata>
+		<schema>IMS Content</schema>
+		<schemaversion>1.1</schemaversion>
+		<imsmd:lom>
+			<imsmd:general>
+				<imsmd:title>Inspect ItemBank</imsmd:title>
+				<imsmd:language>en</imsmd:language>
+				<imsmd:description>10/8/2014</imsmd:description>
+				<consortium>SBAC</consortium>
+			</imsmd:general>
+			<imsmd:lifecycle>
+				<imsmd:version>2.1</imsmd:version>
+				<imsmd:status>
+					<imsmd:source>LOMv1.0</imsmd:source>
+					<imsmd:value>Final</imsmd:value>
+				</imsmd:status>
+			</imsmd:lifecycle>
+			<imsmd:metametadata>
+				<imsmd:metadatascheme>LOMv1.0</imsmd:metadatascheme>
+				<imsmd:metadatascheme>QTIv2.1</imsmd:metadatascheme>
+				<imsmd:language>en</imsmd:language>
+			</imsmd:metametadata>
+			<imsmd:technical>
+				<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+				<imsmd:format>image/gif</imsmd:format>
+				<imsmd:format>image/jpg</imsmd:format>
+			</imsmd:technical>	
+		</imsmd:lom>
+	</metadata>
+	<organizations/>
+	<resources>
+		<resource identifier="660264" type="imsqti_item_xmlv2p1" href="660264.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>hottextInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>660264</imsmd:identifier>
+						<imsmd:parentId>660264</imsmd:parentId>
+						<imsmd:classicId>660264</imsmd:classicId>
+						<imsmd:classicParentId>660264</imsmd:classicParentId>
+						<imsmd:passageId>651035</imsmd:passageId>
+						<imsmd:classicPassageId>260481</imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>4</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>7</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="80AF78F8-7440-11DF-93FA-01FD9CFF4B22" priority="1" difficulty="3" state="CC" />
+						<imsmd:standard guid="64766410-DA6F-11E2-85CC-52EDD51F4EFC" priority="1" difficulty="3" state="WA" />
+						<imsmd:standard guid="4B64443C-D90D-11E2-8CB5-43E6D51F4EFC" priority="1" difficulty="3" state="AR" />
+						<imsmd:standard guid="BE3819BE-B800-11E0-8FB8-5B1F9DFF4B22" priority="1" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1D269DEE-9892-11E0-8388-5F489DFF4B22" priority="1" difficulty="3" state="CA" />
+						<imsmd:standard guid="21A69D30-7C48-11E0-9647-CB109DFF4B22" priority="1" difficulty="3" state="CO" />
+						<imsmd:standard guid="4F1DDCAC-DA78-11E2-A988-824A9DFF4B22" priority="1" difficulty="3" state="DC" />
+						<imsmd:standard guid="6899F33C-5144-11E1-A2DA-BE5F9DFF4B22" priority="1" difficulty="3" state="GA" />
+						<imsmd:standard guid="EE25E618-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="3" state="IL" />
+						<imsmd:standard guid="E8377562-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="3" state="IN" />
+						<imsmd:standard guid="01C8BF74-DA7A-11E2-BE58-6FEDD51F4EFC" priority="1" difficulty="3" state="LA" />
+						<imsmd:standard guid="E4A3A086-B8C9-11E0-9889-17519DFF4B22" priority="1" difficulty="3" state="MN" />
+						<imsmd:standard guid="C4972078-D9D4-11E2-99C6-671D9DFF4B22" priority="1" difficulty="3" state="NJ" />
+						<imsmd:standard guid="CDE3340A-93DB-11E0-8527-63159DFF4B22" priority="1" difficulty="3" state="NY" />
+						<imsmd:standard guid="E9757ED0-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="3" state="OR" />
+						<imsmd:standard guid="DE978928-D9EC-11E2-A4CC-EF239DFF4B22" priority="1" difficulty="3" state="TN" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="ela" category="Informational" target="08" priority="1" />
+					</imsmd:claims>
+
+					
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="660264.xml"/>
+			<file href="passages/651035.xml"/>
+
+		</resource>
+		
+		<resource identifier="660797" type="imsqti_item_xmlv2p1" href="660797.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>selectPointInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>660797</imsmd:identifier>
+						<imsmd:parentId>660797</imsmd:parentId>
+						<imsmd:classicId>660797</imsmd:classicId>
+						<imsmd:classicParentId>660797</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>15</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>1</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="2031EE3E-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="D50365B6-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="63028554-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="A97426DE-F5A3-11E2-B8C3-31089DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="553D243C-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="802929D8-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F17B531E-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="B30C3904-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="DF03A816-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B3F82BAC-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="C5FE91F4-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4DE6D09E-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="65B35766-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C2EA3764-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E5F7FB62-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6E3F256-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10F71BF0-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="3C7B8DA0-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3C7C0E7E-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="664DFBF4-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3CFA03CE-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="699EB43C-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="334D6572-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="BCEADEB8-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F6311C44-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EBE9EFF2-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="M" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>1</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="660797.xml"/>
+
+		</resource>
+		
+		<resource identifier="661010" type="imsqti_item_xmlv2p1" href="661010.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>graphicGapMatchInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>661010</imsmd:identifier>
+						<imsmd:parentId>661010</imsmd:parentId>
+						<imsmd:classicId>661010</imsmd:classicId>
+						<imsmd:classicParentId>661010</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>10</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1E6E32BA-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="87FDE430-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="100CAC58-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="E1A7860C-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F0D8A7A4-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="C5541A80-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4E2C862A-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="F9988BB4-DA78-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C26CA3A8-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="108EEBA2-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="EA7DA94A-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="E24EC5C6-DA79-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="80A73B18-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F57C1A6A-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EB674160-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="E" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>1</imsmd:mathPractice>
+						<imsmd:mathPractice>6</imsmd:mathPractice>
+						<imsmd:mathPractice>7</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						<imsmd:format>image/gif</imsmd:format>
+
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="661010.xml"/>
+			<file href="images/661010_p01.gif"/>
+			<file href="images/661010_p01_gi01.gif"/>
+			<file href="images/661010_p01_gi02.gif"/>
+			<file href="images/661010_p01_gi03.gif"/>
+			<file href="images/661010_p01_gi04.gif"/>
+			<file href="images/661010_p01_gi05.gif"/>
+			<file href="images/661010_p01_gi06.gif"/>
+			<file href="images/661010_p01_gi07.gif"/>
+			<file href="images/661010_p01_gi08.gif"/>
+
+		</resource>
+		
+		<resource identifier="661470" type="imsqti_item_xmlv2p1" href="661470.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>choiceInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>661470</imsmd:identifier>
+						<imsmd:parentId>661470</imsmd:parentId>
+						<imsmd:classicId>661470</imsmd:classicId>
+						<imsmd:classicParentId>661470</imsmd:classicParentId>
+						<imsmd:passageId>661395</imsmd:passageId>
+						<imsmd:classicPassageId>661395</imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>11</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="7FA4EBDC-7440-11DF-93FA-01FD9CFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="7FBF7754-7440-11DF-93FA-01FD9CFF4B22" priority="2" difficulty="2" state="CC" />
+						<imsmd:standard guid="7FCDD664-7440-11DF-93FA-01FD9CFF4B22" priority="3" difficulty="2" state="CC" />
+						<imsmd:standard guid="7FCE4E8C-7440-11DF-93FA-01FD9CFF4B22" priority="4" difficulty="2" state="CC" />
+						<imsmd:standard guid="7FCEC86C-7440-11DF-93FA-01FD9CFF4B22" priority="5" difficulty="2" state="CC" />
+						<imsmd:standard guid="5409E58E-DA6F-11E2-85CC-52EDD51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="359AA7AE-D90D-11E2-8CB5-43E6D51F4EFC" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="BDAA7E9C-B800-11E0-8FB8-5B1F9DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1C8048F4-9892-11E0-8388-5F489DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="22EDFF1C-7C48-11E0-9647-CB109DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="3E373C44-DA78-11E2-A988-824A9DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="6834122E-5144-11E1-A2DA-BE5F9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="EDBB9CA4-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="E7C07D90-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="CE064E04-DA79-11E2-BE58-6FEDD51F4EFC" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="E43B8492-B8C9-11E0-9889-17519DFF4B22" priority="1" difficulty="2" state="MN" />
+						<imsmd:standard guid="B6BE345A-D9D4-11E2-99C6-671D9DFF4B22" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="CD7B8E90-93DB-11E0-8527-63159DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="E908AA58-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+						<imsmd:standard guid="D0D0A388-D9EC-11E2-A4CC-EF239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="542EDA56-DA6F-11E2-85CC-52EDD51F4EFC" priority="2" difficulty="2" state="WA" />
+						<imsmd:standard guid="35C006CA-D90D-11E2-8CB5-43E6D51F4EFC" priority="2" difficulty="2" state="AR" />
+						<imsmd:standard guid="BD8DCF90-B800-11E0-8FB8-5B1F9DFF4B22" priority="2" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1C886746-9892-11E0-8388-5F489DFF4B22" priority="2" difficulty="2" state="CA" />
+						<imsmd:standard guid="22F09AF6-7C48-11E0-9647-CB109DFF4B22" priority="2" difficulty="2" state="CO" />
+						<imsmd:standard guid="3E610B32-DA78-11E2-A988-824A9DFF4B22" priority="2" difficulty="2" state="DC" />
+						<imsmd:standard guid="6838E858-5144-11E1-A2DA-BE5F9DFF4B22" priority="2" difficulty="2" state="GA" />
+						<imsmd:standard guid="EDC0A94C-AF87-11E1-913D-05249DFF4B22" priority="2" difficulty="2" state="IL" />
+						<imsmd:standard guid="E7C702E6-B43E-11E1-ACEB-9F6A9DFF4B22" priority="2" difficulty="2" state="IN" />
+						<imsmd:standard guid="CE6DE5DC-DA79-11E2-BE58-6FEDD51F4EFC" priority="2" difficulty="2" state="LA" />
+						<imsmd:standard guid="B6D5A950-D9D4-11E2-99C6-671D9DFF4B22" priority="2" difficulty="2" state="NJ" />
+						<imsmd:standard guid="CD806C44-93DB-11E0-8527-63159DFF4B22" priority="2" difficulty="2" state="NY" />
+						<imsmd:standard guid="E90DCAF6-AF87-11E1-913D-05249DFF4B22" priority="2" difficulty="2" state="OR" />
+						<imsmd:standard guid="D0E7E89A-D9EC-11E2-A4CC-EF239DFF4B22" priority="2" difficulty="2" state="TN" />
+						<imsmd:standard guid="5598F750-DA6F-11E2-85CC-52EDD51F4EFC" priority="3" difficulty="2" state="WA" />
+						<imsmd:standard guid="370FDB68-D90D-11E2-8CB5-43E6D51F4EFC" priority="3" difficulty="2" state="AR" />
+						<imsmd:standard guid="BD84B982-B800-11E0-8FB8-5B1F9DFF4B22" priority="3" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1C9C1FDE-9892-11E0-8388-5F489DFF4B22" priority="3" difficulty="2" state="CA" />
+						<imsmd:standard guid="3F8E17E8-DA78-11E2-A988-824A9DFF4B22" priority="3" difficulty="2" state="DC" />
+						<imsmd:standard guid="68443528-5144-11E1-A2DA-BE5F9DFF4B22" priority="3" difficulty="2" state="GA" />
+						<imsmd:standard guid="E7D36C2A-B43E-11E1-ACEB-9F6A9DFF4B22" priority="3" difficulty="2" state="IN" />
+						<imsmd:standard guid="D63D93D4-DA79-11E2-BE58-6FEDD51F4EFC" priority="3" difficulty="2" state="LA" />
+						<imsmd:standard guid="B7792012-D9D4-11E2-99C6-671D9DFF4B22" priority="3" difficulty="2" state="NJ" />
+						<imsmd:standard guid="D1846260-D9EC-11E2-A4CC-EF239DFF4B22" priority="3" difficulty="2" state="TN" />
+						<imsmd:standard guid="559FAD70-DA6F-11E2-85CC-52EDD51F4EFC" priority="4" difficulty="2" state="WA" />
+						<imsmd:standard guid="371467BE-D90D-11E2-8CB5-43E6D51F4EFC" priority="4" difficulty="2" state="AR" />
+						<imsmd:standard guid="BD855356-B800-11E0-8FB8-5B1F9DFF4B22" priority="4" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1C9CD23A-9892-11E0-8388-5F489DFF4B22" priority="4" difficulty="2" state="CA" />
+						<imsmd:standard guid="3F95D8FC-DA78-11E2-A988-824A9DFF4B22" priority="4" difficulty="2" state="DC" />
+						<imsmd:standard guid="6844A6B6-5144-11E1-A2DA-BE5F9DFF4B22" priority="4" difficulty="2" state="GA" />
+						<imsmd:standard guid="E7D3E63C-B43E-11E1-ACEB-9F6A9DFF4B22" priority="4" difficulty="2" state="IN" />
+						<imsmd:standard guid="D649DA0E-DA79-11E2-BE58-6FEDD51F4EFC" priority="4" difficulty="2" state="LA" />
+						<imsmd:standard guid="B77C24E2-D9D4-11E2-99C6-671D9DFF4B22" priority="4" difficulty="2" state="NJ" />
+						<imsmd:standard guid="D1875D30-D9EC-11E2-A4CC-EF239DFF4B22" priority="4" difficulty="2" state="TN" />
+						<imsmd:standard guid="55A74AA8-DA6F-11E2-85CC-52EDD51F4EFC" priority="5" difficulty="2" state="WA" />
+						<imsmd:standard guid="3718BAF8-D90D-11E2-8CB5-43E6D51F4EFC" priority="5" difficulty="2" state="AR" />
+						<imsmd:standard guid="BD85E352-B800-11E0-8FB8-5B1F9DFF4B22" priority="5" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1C9DB40C-9892-11E0-8388-5F489DFF4B22" priority="5" difficulty="2" state="CA" />
+						<imsmd:standard guid="1FBC582A-7C48-11E0-9647-CB109DFF4B22" priority="5" difficulty="2" state="CO" />
+						<imsmd:standard guid="3F9E2FE8-DA78-11E2-A988-824A9DFF4B22" priority="5" difficulty="2" state="DC" />
+						<imsmd:standard guid="68451704-5144-11E1-A2DA-BE5F9DFF4B22" priority="5" difficulty="2" state="GA" />
+						<imsmd:standard guid="EDCD779E-AF87-11E1-913D-05249DFF4B22" priority="5" difficulty="2" state="IL" />
+						<imsmd:standard guid="E7D460BC-B43E-11E1-ACEB-9F6A9DFF4B22" priority="5" difficulty="2" state="IN" />
+						<imsmd:standard guid="D656F27A-DA79-11E2-BE58-6FEDD51F4EFC" priority="5" difficulty="2" state="LA" />
+						<imsmd:standard guid="E44DFB5E-B8C9-11E0-9889-17519DFF4B22" priority="5" difficulty="2" state="MN" />
+						<imsmd:standard guid="B77F25DE-D9D4-11E2-99C6-671D9DFF4B22" priority="5" difficulty="2" state="NJ" />
+						<imsmd:standard guid="CD8D44AA-93DB-11E0-8527-63159DFF4B22" priority="5" difficulty="2" state="NY" />
+						<imsmd:standard guid="E91A9FB0-AF87-11E1-913D-05249DFF4B22" priority="5" difficulty="2" state="OR" />
+						<imsmd:standard guid="D18A540E-D9EC-11E2-A4CC-EF239DFF4B22" priority="5" difficulty="2" state="TN" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="ela" category="Literary" target="02" priority="1" />
+					</imsmd:claims>
+
+					
+					
+					<imsmd:parts>
+						<imsmd:part itemTypeId="3" />
+						<imsmd:part itemTypeId="3" />
+					</imsmd:parts>
+
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="661470.xml"/>
+			<file href="passages/661395.xml"/>
+
+		</resource>
+		
+		<resource identifier="661877" type="imsqti_item_xmlv2p1" href="661877.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>graphicGapMatchInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>661877</imsmd:identifier>
+						<imsmd:parentId>661877</imsmd:parentId>
+						<imsmd:classicId>661877</imsmd:classicId>
+						<imsmd:classicParentId>661877</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>1</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>10</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1FC900FE-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="C7E6693C-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="52B53DD6-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="5500ED6E-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="55A8BD1E-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="A946AFA6-F5A3-11E2-B8C3-31089DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F1562BDE-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="B2E615EE-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B39BB4E4-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="C5DA989E-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B41CF59A-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="DF9CE346-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4DF0B686-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="3B517962-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C2CE3398-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E5E187CE-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E549139A-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6CA35B4-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10E0DC82-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="69AEF964-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3C5B247A-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="660FE418-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3C4E19EC-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="672B5418-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="69D7D4EC-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="209E1390-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="B094B404-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F60809A8-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EBCCB982-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="D" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>7</imsmd:mathPractice>
+						<imsmd:mathPractice>8</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						<imsmd:format>image/gif</imsmd:format>
+<imsmd:format>image/png</imsmd:format>
+
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="661877.xml"/>
+			<file href="images/661877_p01.gif"/>
+			<file href="images/661877_p01_gi01.png"/>
+			<file href="images/661877_p01_gi02.png"/>
+			<file href="images/661877_p01_gi03.png"/>
+			<file href="images/661877_p01_gi04.png"/>
+			<file href="images/661877_p01_gi05.png"/>
+
+		</resource>
+		
+		<resource identifier="662271" type="imsqti_item_xmlv2p1" href="662271.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>hottextInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662271</imsmd:identifier>
+						<imsmd:parentId>662271</imsmd:parentId>
+						<imsmd:classicId>662271</imsmd:classicId>
+						<imsmd:classicParentId>662271</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>1</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>7</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="802C37EA-7440-11DF-93FA-01FD9CFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="5D64AEDE-DA6F-11E2-85CC-52EDD51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="40F597EE-D90D-11E2-8CB5-43E6D51F4EFC" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="BDFB52EA-B800-11E0-8FB8-5B1F9DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="1CF44DA8-9892-11E0-8388-5F489DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="22572DB2-7C48-11E0-9647-CB109DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="47B50C42-DA78-11E2-A988-824A9DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="687AF446-5144-11E1-A2DA-BE5F9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="EE05914C-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="E814BA2C-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="E9FD73C6-DA79-11E2-BE58-6FEDD51F4EFC" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="BE1CA15A-D9D4-11E2-99C6-671D9DFF4B22" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="CDC2B414-93DB-11E0-8527-63159DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="E953E252-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+						<imsmd:standard guid="D8110728-D9EC-11E2-A4CC-EF239DFF4B22" priority="1" difficulty="2" state="TN" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="2" subject="ela" category="Purpose/Focus/Organization" target="08" priority="1" />
+					</imsmd:claims>
+
+					
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662271.xml"/>
+
+		</resource>
+		
+		<resource identifier="662381" type="imsqti_item_xmlv2p1" href="662381.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>selectPointInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662381</imsmd:identifier>
+						<imsmd:parentId>662381</imsmd:parentId>
+						<imsmd:classicId>662381</imsmd:classicId>
+						<imsmd:classicParentId>662381</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>1</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>16</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1F319AA2-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="A8026530-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="2CC29FBA-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="FDEF82E2-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F11E5B0A-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="C5972302-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="1C10FDD4-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C29FB8E2-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10BB5476-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="EAB727EC-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="01C5BACC-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="98EDB4B8-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F5C8B19A-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EB9E0448-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="C" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662381.xml"/>
+
+		</resource>
+		
+		<resource identifier="662401" type="imsqti_item_xmlv2p1" href="662401.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>numberLineInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662401</imsmd:identifier>
+						<imsmd:parentId>662401</imsmd:parentId>
+						<imsmd:classicId>662401</imsmd:classicId>
+						<imsmd:classicParentId>662401</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>13</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1CAEC8AE-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="63E8AA08-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="E9950890-DA6F-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="B4417AA6-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F05222A6-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="C4F3E9EE-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="A41488DC-DA78-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C20B2038-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="103B4C4A-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="EA109E18-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="9E08E342-DA79-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="5AB4CCEA-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F4F48E06-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="E81EFBBA-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="F" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662401.xml"/>
+
+		</resource>
+		
+		<resource identifier="662418" type="imsqti_item_xmlv2p1" href="662418.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>selectPointInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662418</imsmd:identifier>
+						<imsmd:parentId>662418</imsmd:parentId>
+						<imsmd:classicId>662418</imsmd:classicId>
+						<imsmd:classicParentId>662418</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>16</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="2031EE3E-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="D50365B6-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="63028554-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="A97426DE-F5A3-11E2-B8C3-31089DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="553D243C-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="802929D8-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F17B531E-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="B30C3904-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="DF03A816-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B3F82BAC-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="C5FE91F4-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4DE6D09E-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="65B35766-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C2EA3764-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E5F7FB62-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6E3F256-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10F71BF0-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="3C7B8DA0-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3C7C0E7E-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="664DFBF4-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3CFA03CE-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="699EB43C-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="334D6572-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="BCEADEB8-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F6311C44-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EBE9EFF2-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="M" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+						<imsmd:mathPractice>7</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662418.xml"/>
+
+		</resource>
+		
+		<resource identifier="662444" type="imsqti_item_xmlv2p1" href="662444.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>selectPointInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662444</imsmd:identifier>
+						<imsmd:parentId>662444</imsmd:parentId>
+						<imsmd:classicId>662444</imsmd:classicId>
+						<imsmd:classicParentId>662444</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>15</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="2029EA4A-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="1" state="CC" />
+						<imsmd:standard guid="D48C2AF0-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="1" state="TN" />
+						<imsmd:standard guid="61A750EA-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="1" state="WA" />
+						<imsmd:standard guid="5532C91A-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="7F68974A-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="A96EEEB2-F5A3-11E2-B8C3-31089DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="80254ED0-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="F177D75C-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="1" state="AZ" />
+						<imsmd:standard guid="B3098290-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="B3C45232-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="B3F55328-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="DEFF4C76-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="E023ED6E-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="C5FB1FCE-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="4DE54BD4-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="1" state="CO" />
+						<imsmd:standard guid="649C779A-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="1" state="DC" />
+						<imsmd:standard guid="C2E7966C-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="E624A024-539F-11E1-BE87-7D239DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="E55581D4-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="E5F532F6-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="E68885A6-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="E6E11AE0-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="10F4BE82-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="1" state="IL" />
+						<imsmd:standard guid="3C78B8BE-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="3C6BBB5A-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="66494D70-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="3CA0E758-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="675BBC20-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="3CF733EC-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="699BCD08-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="69F2946C-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="3278CE02-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="1" state="LA" />
+						<imsmd:standard guid="BC60AC52-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="1" state="NJ" />
+						<imsmd:standard guid="F62DE592-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="1" state="NY" />
+						<imsmd:standard guid="EBE72FBA-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="1" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="L" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+						<imsmd:mathPractice>7</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662444.xml"/>
+
+		</resource>
+		
+		<resource identifier="662513" type="imsqti_item_xmlv2p1" href="662513.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>matchInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>662513</imsmd:identifier>
+						<imsmd:parentId>662513</imsmd:parentId>
+						<imsmd:classicId>662513</imsmd:classicId>
+						<imsmd:classicParentId>662513</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>1</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>17</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1CB3397A-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="1" state="CC" />
+						<imsmd:standard guid="63ECD394-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="1" state="TN" />
+						<imsmd:standard guid="E99990AE-DA6F-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="1" state="WA" />
+						<imsmd:standard guid="B4469216-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="F05351A8-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="1" state="AZ" />
+						<imsmd:standard guid="A420C264-DA78-11E2-ACE3-64409DFF4B22" priority="1" difficulty="1" state="DC" />
+						<imsmd:standard guid="C20C58C2-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="103C3D3A-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="1" state="IL" />
+						<imsmd:standard guid="EA1191F6-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="9E1635BA-DA79-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="1" state="LA" />
+						<imsmd:standard guid="5AB8E78A-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="1" state="NJ" />
+						<imsmd:standard guid="F4F5B196-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="1" state="NY" />
+						<imsmd:standard guid="E81FE4B2-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="1" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="F" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						<imsmd:format>image/gif</imsmd:format>
+
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="662513.xml"/>
+			<file href="images/662513s.gif"/>
+
+		</resource>
+		
+		<resource identifier="663532" type="imsqti_item_xmlv2p1" href="663532.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>multipleInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>663532</imsmd:identifier>
+						<imsmd:parentId>663532</imsmd:parentId>
+						<imsmd:classicId>663532</imsmd:classicId>
+						<imsmd:classicParentId>663532</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>8</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>1</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring>1</imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1FF95682-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="C8222EB8-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="533FC6C2-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="5521DCCC-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="80103C7A-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F165FA82-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="B2EC63FE-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B3A6710E-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B3EA63FA-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="DFB02D16-DA22-11E2-95B3-3B359DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="C5E916EE-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4DF60B36-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="2" state="CO" />
+						<imsmd:standard guid="40CA7308-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C2DA0858-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6156BD6-539F-11E1-BE87-7D239DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E5ED6B34-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E67E5C70-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6D75258-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10E9D8F0-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="3C66FC64-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="662F636A-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3C9E8D8C-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="3D0E8420-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="69EDBB86-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="20D9716A-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="B0B8470C-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F61A60BC-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EBD90F2A-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>1</imsmd:mathPractice>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					<imsmd:parts>
+						<imsmd:part itemTypeId="4" />
+						<imsmd:part itemTypeId="12" />
+					</imsmd:parts>
+
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="663532.xml"/>
+
+		</resource>
+		
+		<resource identifier="663552" type="imsqti_item_xmlv2p1" href="663552.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>matchInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>663552</imsmd:identifier>
+						<imsmd:parentId>663552</imsmd:parentId>
+						<imsmd:classicId>663552</imsmd:classicId>
+						<imsmd:classicParentId>663552</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>17</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1EEB2176-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="9BD86908-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="1D9AF5D2-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="EFA1FEE0-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F103CA06-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="C57AA7AE-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="0D5516AE-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C28C8740-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10AB22EA-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="EAA0B99E-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="EFB7FACA-DA79-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="8D58BB34-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F5AC613E-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EB89DB62-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Supporting Cluster" target="E" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>1</imsmd:mathPractice>
+						<imsmd:mathPractice>6</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="663552.xml"/>
+
+		</resource>
+		
+		<resource identifier="663664" type="imsqti_item_xmlv2p1" href="663664.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>numberLineInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>663664</imsmd:identifier>
+						<imsmd:parentId>663664</imsmd:parentId>
+						<imsmd:classicId>663664</imsmd:classicId>
+						<imsmd:classicParentId>663664</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>2</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>13</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="1CAEC8AE-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="1" state="CC" />
+						<imsmd:standard guid="1CAD407E-7053-11DF-8EBF-BE719DFF4B22" priority="2" difficulty="1" state="CC" />
+						<imsmd:standard guid="63E8AA08-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="1" state="TN" />
+						<imsmd:standard guid="E9950890-DA6F-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="1" state="WA" />
+						<imsmd:standard guid="B4417AA6-D90D-11E2-8BD3-EF629DFF4B22" priority="1" difficulty="1" state="AR" />
+						<imsmd:standard guid="F05222A6-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="1" state="AZ" />
+						<imsmd:standard guid="C4F3E9EE-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="1" state="CA" />
+						<imsmd:standard guid="A41488DC-DA78-11E2-ACE3-64409DFF4B22" priority="1" difficulty="1" state="DC" />
+						<imsmd:standard guid="C20B2038-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="1" state="GA" />
+						<imsmd:standard guid="103B4C4A-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="1" state="IL" />
+						<imsmd:standard guid="EA109E18-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="1" state="IN" />
+						<imsmd:standard guid="9E08E342-DA79-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="1" state="LA" />
+						<imsmd:standard guid="5AB4CCEA-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="1" state="NJ" />
+						<imsmd:standard guid="F4F48E06-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="1" state="NY" />
+						<imsmd:standard guid="E81EFBBA-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="1" state="OR" />
+						<imsmd:standard guid="63E4A660-D9ED-11E2-B074-E9239DFF4B22" priority="2" difficulty="1" state="TN" />
+						<imsmd:standard guid="E990B934-DA6F-11E2-AC3E-4970D51F4EFC" priority="2" difficulty="1" state="WA" />
+						<imsmd:standard guid="B43C284E-D90D-11E2-8BD3-EF629DFF4B22" priority="2" difficulty="1" state="AR" />
+						<imsmd:standard guid="F051A024-9C7F-11E0-AB77-7E149DFF4B22" priority="2" difficulty="1" state="AZ" />
+						<imsmd:standard guid="C4F37F86-96FF-11E0-9509-C03D9DFF4B22" priority="2" difficulty="1" state="CA" />
+						<imsmd:standard guid="A409FE30-DA78-11E2-ACE3-64409DFF4B22" priority="2" difficulty="1" state="DC" />
+						<imsmd:standard guid="C20AA7D4-52D6-11E1-B9EB-B46D9DFF4B22" priority="2" difficulty="1" state="GA" />
+						<imsmd:standard guid="103AD396-B508-11E1-86C6-01289DFF4B22" priority="2" difficulty="1" state="IL" />
+						<imsmd:standard guid="EA10235C-B43E-11E1-ACEB-9F6A9DFF4B22" priority="2" difficulty="1" state="IN" />
+						<imsmd:standard guid="9DFB4340-DA79-11E2-9DB7-E63F9DFF4B22" priority="2" difficulty="1" state="LA" />
+						<imsmd:standard guid="5AB199EE-D9D5-11E2-9583-5AB1D51F4EFC" priority="2" difficulty="1" state="NJ" />
+						<imsmd:standard guid="F4F40170-9311-11E0-BB6E-D1569DFF4B22" priority="2" difficulty="1" state="NY" />
+						<imsmd:standard guid="E81E86C6-AF87-11E1-913D-05249DFF4B22" priority="2" difficulty="1" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="F" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>2</imsmd:mathPractice>
+						<imsmd:mathPractice>4</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="663664.xml"/>
+
+		</resource>
+		
+		<resource identifier="663762" type="imsqti_item_xmlv2p1" href="663762.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>multipleInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>663762</imsmd:identifier>
+						<imsmd:parentId>663762</imsmd:parentId>
+						<imsmd:classicId>663762</imsmd:classicId>
+						<imsmd:classicParentId>663762</imsmd:classicParentId>
+						<imsmd:passageId></imsmd:passageId>
+						<imsmd:classicPassageId></imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>2</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>8</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>1</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring>1</imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="200DF4F2-7053-11DF-8EBF-BE719DFF4B22" priority="1" difficulty="2" state="CC" />
+						<imsmd:standard guid="C8A29364-D9ED-11E2-B074-E9239DFF4B22" priority="1" difficulty="2" state="TN" />
+						<imsmd:standard guid="547A0070-DA70-11E2-AC3E-4970D51F4EFC" priority="1" difficulty="2" state="WA" />
+						<imsmd:standard guid="552B49C4-F411-11E2-AE3E-88169DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="7F34B84E-F4DA-11E2-8E92-EB549DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="A9683D10-F5A3-11E2-B8C3-31089DFF4B22" priority="1" difficulty="2" state="AR" />
+						<imsmd:standard guid="F16D064C-9C7F-11E0-AB77-7E149DFF4B22" priority="1" difficulty="2" state="AZ" />
+						<imsmd:standard guid="B2F247C4-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="B426DF10-D959-11E2-9C66-33FC9CFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="C5EF56DA-96FF-11E0-9509-C03D9DFF4B22" priority="1" difficulty="2" state="CA" />
+						<imsmd:standard guid="4CAA2772-DA79-11E2-ACE3-64409DFF4B22" priority="1" difficulty="2" state="DC" />
+						<imsmd:standard guid="C2DF3F9E-52D6-11E1-B9EB-B46D9DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E5533EEC-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="E6DD73AE-5856-11E1-BDE5-F6029DFF4B22" priority="1" difficulty="2" state="GA" />
+						<imsmd:standard guid="10EE1B4A-B508-11E1-86C6-01289DFF4B22" priority="1" difficulty="2" state="IL" />
+						<imsmd:standard guid="3C95B608-B5D1-11E1-A5C5-465B9DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="663C4F80-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="674A7974-D7C7-11E2-B00C-13159DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="69AB1A2E-B69A-11E1-9663-3D119DFF4B22" priority="1" difficulty="2" state="IN" />
+						<imsmd:standard guid="26807AA0-DA7A-11E2-9DB7-E63F9DFF4B22" priority="1" difficulty="2" state="LA" />
+						<imsmd:standard guid="B0FEF274-D9D5-11E2-9583-5AB1D51F4EFC" priority="1" difficulty="2" state="NJ" />
+						<imsmd:standard guid="F6220C54-9311-11E0-BB6E-D1569DFF4B22" priority="1" difficulty="2" state="NY" />
+						<imsmd:standard guid="EBDE85AE-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="2" state="OR" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="math" category="Priority Cluster" target="I" priority="1" />
+					</imsmd:claims>
+
+					<imsmd:mathPractices>
+						<imsmd:mathPractice>5</imsmd:mathPractice>
+						<imsmd:mathPractice>7</imsmd:mathPractice>
+					</imsmd:mathPractices>
+					
+					<imsmd:parts>
+						<imsmd:part itemTypeId="4" />
+						<imsmd:part itemTypeId="4" />
+					</imsmd:parts>
+
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="663762.xml"/>
+
+		</resource>
+		
+		<resource identifier="663828" type="imsqti_item_xmlv2p1" href="663828.xml">
+			<metadata>
+				<imsqti:qtiMetadata>
+					<imsqti:timeDependent>false</imsqti:timeDependent>
+					<imsqti:interactionType>choiceInteraction</imsqti:interactionType>
+					<imsqti:feedbackType>none</imsqti:feedbackType>
+					<imsqti:solutionAvailable>true</imsqti:solutionAvailable>
+				</imsqti:qtiMetadata>
+				<imsmd:lom>
+					<imsmd:general>
+						<imsmd:identifier>663828</imsmd:identifier>
+						<imsmd:parentId>663828</imsmd:parentId>
+						<imsmd:classicId>663828</imsmd:classicId>
+						<imsmd:classicParentId>663828</imsmd:classicParentId>
+						<imsmd:passageId>663829</imsmd:passageId>
+						<imsmd:classicPassageId>663829</imsmd:classicPassageId>
+						<imsmd:depthOfKnowledge>3</imsmd:depthOfKnowledge>
+						<imsmd:bloomsLevel>3</imsmd:bloomsLevel>
+						<imsmd:omit>false</imsmd:omit>
+						<imsmd:replaceWith></imsmd:replaceWith>
+						<imsmd:allowCalculator>0</imsmd:allowCalculator>
+						<imsmd:allowGrammarTools>0</imsmd:allowGrammarTools>
+						<imsmd:displayFormatId></imsmd:displayFormatId>
+						<imsmd:forceFullPage>0</imsmd:forceFullPage>
+						<imsmd:itemTypeId>11</imsmd:itemTypeId>
+						<imsmd:mediaTypeId>3</imsmd:mediaTypeId>
+						<imsmd:consortiumId></imsmd:consortiumId>
+						<imsmd:useTwoPointScoring></imsmd:useTwoPointScoring>
+						<imsmd:parccTwoPointScoring></imsmd:parccTwoPointScoring>
+					</imsmd:general>
+					<imsmd:standards>
+						<imsmd:standard guid="7E7FF13E-7440-11DF-93FA-01FD9CFF4B22" priority="1" difficulty="3" state="CC" />
+						<imsmd:standard guid="7E80697A-7440-11DF-93FA-01FD9CFF4B22" priority="2" difficulty="3" state="CC" />
+						<imsmd:standard guid="7E8AA390-7440-11DF-93FA-01FD9CFF4B22" priority="3" difficulty="3" state="CC" />
+						<imsmd:standard guid="7E8B1BEA-7440-11DF-93FA-01FD9CFF4B22" priority="4" difficulty="3" state="CC" />
+						<imsmd:standard guid="7E8B9E26-7440-11DF-93FA-01FD9CFF4B22" priority="5" difficulty="3" state="CC" />
+						<imsmd:standard guid="4308AF36-DA6F-11E2-85CC-52EDD51F4EFC" priority="1" difficulty="3" state="WA" />
+						<imsmd:standard guid="222EED7E-D90D-11E2-8CB5-43E6D51F4EFC" priority="1" difficulty="3" state="AR" />
+						<imsmd:standard guid="BCE16674-B800-11E0-8FB8-5B1F9DFF4B22" priority="1" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1BE0583A-9892-11E0-8388-5F489DFF4B22" priority="1" difficulty="3" state="CA" />
+						<imsmd:standard guid="4D0A3ECC-7D11-11E0-9276-F5539DFF4B22" priority="1" difficulty="3" state="CO" />
+						<imsmd:standard guid="2A79FC00-DA78-11E2-A988-824A9DFF4B22" priority="1" difficulty="3" state="DC" />
+						<imsmd:standard guid="67D1D122-5144-11E1-A2DA-BE5F9DFF4B22" priority="1" difficulty="3" state="GA" />
+						<imsmd:standard guid="ED51E340-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="3" state="IL" />
+						<imsmd:standard guid="E74D1922-B43E-11E1-ACEB-9F6A9DFF4B22" priority="1" difficulty="3" state="IN" />
+						<imsmd:standard guid="64EC51C0-DA79-11E2-BE58-6FEDD51F4EFC" priority="1" difficulty="3" state="LA" />
+						<imsmd:standard guid="E408DF92-B8C9-11E0-9889-17519DFF4B22" priority="1" difficulty="3" state="MN" />
+						<imsmd:standard guid="A8B77F4C-D9D4-11E2-99C6-671D9DFF4B22" priority="1" difficulty="3" state="NJ" />
+						<imsmd:standard guid="CD10F60C-93DB-11E0-8527-63159DFF4B22" priority="1" difficulty="3" state="NY" />
+						<imsmd:standard guid="E8992912-AF87-11E1-913D-05249DFF4B22" priority="1" difficulty="3" state="OR" />
+						<imsmd:standard guid="C1B47BB8-D9EC-11E2-A4CC-EF239DFF4B22" priority="1" difficulty="3" state="TN" />
+						<imsmd:standard guid="430DA798-DA6F-11E2-85CC-52EDD51F4EFC" priority="2" difficulty="3" state="WA" />
+						<imsmd:standard guid="223428CA-D90D-11E2-8CB5-43E6D51F4EFC" priority="2" difficulty="3" state="AR" />
+						<imsmd:standard guid="BCE295B2-B800-11E0-8FB8-5B1F9DFF4B22" priority="2" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1BE1C6CA-9892-11E0-8388-5F489DFF4B22" priority="2" difficulty="3" state="CA" />
+						<imsmd:standard guid="4D0AA024-7D11-11E0-9276-F5539DFF4B22" priority="2" difficulty="3" state="CO" />
+						<imsmd:standard guid="2A7F7446-DA78-11E2-A988-824A9DFF4B22" priority="2" difficulty="3" state="DC" />
+						<imsmd:standard guid="67D2B1AA-5144-11E1-A2DA-BE5F9DFF4B22" priority="2" difficulty="3" state="GA" />
+						<imsmd:standard guid="ED52D7F0-AF87-11E1-913D-05249DFF4B22" priority="2" difficulty="3" state="IL" />
+						<imsmd:standard guid="E74E0C2E-B43E-11E1-ACEB-9F6A9DFF4B22" priority="2" difficulty="3" state="IN" />
+						<imsmd:standard guid="64F7C320-DA79-11E2-BE58-6FEDD51F4EFC" priority="2" difficulty="3" state="LA" />
+						<imsmd:standard guid="A8BAE9A2-D9D4-11E2-99C6-671D9DFF4B22" priority="2" difficulty="3" state="NJ" />
+						<imsmd:standard guid="CD11D8BA-93DB-11E0-8527-63159DFF4B22" priority="2" difficulty="3" state="NY" />
+						<imsmd:standard guid="E89A141C-AF87-11E1-913D-05249DFF4B22" priority="2" difficulty="3" state="OR" />
+						<imsmd:standard guid="C1B8580A-D9EC-11E2-A4CC-EF239DFF4B22" priority="2" difficulty="3" state="TN" />
+						<imsmd:standard guid="446BA46E-DA6F-11E2-85CC-52EDD51F4EFC" priority="3" difficulty="3" state="WA" />
+						<imsmd:standard guid="23F2ADD0-D90D-11E2-8CB5-43E6D51F4EFC" priority="3" difficulty="3" state="AR" />
+						<imsmd:standard guid="BCF2AC04-B800-11E0-8FB8-5B1F9DFF4B22" priority="3" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1BF5623E-9892-11E0-8388-5F489DFF4B22" priority="3" difficulty="3" state="CA" />
+						<imsmd:standard guid="2BE2BF50-DA78-11E2-A988-824A9DFF4B22" priority="3" difficulty="3" state="DC" />
+						<imsmd:standard guid="67DD3576-5144-11E1-A2DA-BE5F9DFF4B22" priority="3" difficulty="3" state="GA" />
+						<imsmd:standard guid="ED601910-AF87-11E1-913D-05249DFF4B22" priority="3" difficulty="3" state="IL" />
+						<imsmd:standard guid="E75E7956-B43E-11E1-ACEB-9F6A9DFF4B22" priority="3" difficulty="3" state="IN" />
+						<imsmd:standard guid="7842B354-DA79-11E2-BE58-6FEDD51F4EFC" priority="3" difficulty="3" state="LA" />
+						<imsmd:standard guid="A982FE10-D9D4-11E2-99C6-671D9DFF4B22" priority="3" difficulty="3" state="NJ" />
+						<imsmd:standard guid="C2A55F2E-D9EC-11E2-A4CC-EF239DFF4B22" priority="3" difficulty="3" state="TN" />
+						<imsmd:standard guid="44712D80-DA6F-11E2-85CC-52EDD51F4EFC" priority="4" difficulty="3" state="WA" />
+						<imsmd:standard guid="23F9838A-D90D-11E2-8CB5-43E6D51F4EFC" priority="4" difficulty="3" state="AR" />
+						<imsmd:standard guid="BCF329C2-B800-11E0-8FB8-5B1F9DFF4B22" priority="4" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1BF5D408-9892-11E0-8388-5F489DFF4B22" priority="4" difficulty="3" state="CA" />
+						<imsmd:standard guid="2BE82B84-DA78-11E2-A988-824A9DFF4B22" priority="4" difficulty="3" state="DC" />
+						<imsmd:standard guid="67DDA59C-5144-11E1-A2DA-BE5F9DFF4B22" priority="4" difficulty="3" state="GA" />
+						<imsmd:standard guid="E75EF30E-B43E-11E1-ACEB-9F6A9DFF4B22" priority="4" difficulty="3" state="IN" />
+						<imsmd:standard guid="7854942A-DA79-11E2-BE58-6FEDD51F4EFC" priority="4" difficulty="3" state="LA" />
+						<imsmd:standard guid="A986072C-D9D4-11E2-99C6-671D9DFF4B22" priority="4" difficulty="3" state="NJ" />
+						<imsmd:standard guid="C2A93EFA-D9EC-11E2-A4CC-EF239DFF4B22" priority="4" difficulty="3" state="TN" />
+						<imsmd:standard guid="4476B5DE-DA6F-11E2-85CC-52EDD51F4EFC" priority="5" difficulty="3" state="WA" />
+						<imsmd:standard guid="240018EE-D90D-11E2-8CB5-43E6D51F4EFC" priority="5" difficulty="3" state="AR" />
+						<imsmd:standard guid="BCF39EAC-B800-11E0-8FB8-5B1F9DFF4B22" priority="5" difficulty="3" state="AZ" />
+						<imsmd:standard guid="1BF64B40-9892-11E0-8388-5F489DFF4B22" priority="5" difficulty="3" state="CA" />
+						<imsmd:standard guid="4D209500-7D11-11E0-9276-F5539DFF4B22" priority="5" difficulty="3" state="CO" />
+						<imsmd:standard guid="2BEE6DFA-DA78-11E2-A988-824A9DFF4B22" priority="5" difficulty="3" state="DC" />
+						<imsmd:standard guid="67DE13EC-5144-11E1-A2DA-BE5F9DFF4B22" priority="5" difficulty="3" state="GA" />
+						<imsmd:standard guid="ED610186-AF87-11E1-913D-05249DFF4B22" priority="5" difficulty="3" state="IL" />
+						<imsmd:standard guid="E75F6D2A-B43E-11E1-ACEB-9F6A9DFF4B22" priority="5" difficulty="3" state="IN" />
+						<imsmd:standard guid="7862A182-DA79-11E2-BE58-6FEDD51F4EFC" priority="5" difficulty="3" state="LA" />
+						<imsmd:standard guid="E4171896-B8C9-11E0-9889-17519DFF4B22" priority="5" difficulty="3" state="MN" />
+						<imsmd:standard guid="A9890B34-D9D4-11E2-99C6-671D9DFF4B22" priority="5" difficulty="3" state="NJ" />
+						<imsmd:standard guid="CD23DA10-93DB-11E0-8527-63159DFF4B22" priority="5" difficulty="3" state="NY" />
+						<imsmd:standard guid="E8A93BEA-AF87-11E1-913D-05249DFF4B22" priority="5" difficulty="3" state="OR" />
+						<imsmd:standard guid="C2ADB836-D9EC-11E2-A4CC-EF239DFF4B22" priority="5" difficulty="3" state="TN" />
+					</imsmd:standards>
+					<imsmd:claims>
+						<imsmd:claim claimNumber="1" subject="ela" category="Literary" target="04" priority="1" />
+					</imsmd:claims>
+
+					
+					
+					<imsmd:parts>
+						<imsmd:part itemTypeId="3" />
+						<imsmd:part itemTypeId="3" />
+					</imsmd:parts>
+
+					<imsmd:lifecycle>
+						<imsmd:version>2.1</imsmd:version>
+						<imsmd:status>
+							<imsmd:source>LOMv1.0</imsmd:source>
+							<imsmd:value>Final</imsmd:value>
+						</imsmd:status>
+					</imsmd:lifecycle>
+					<imsmd:technical>
+						<imsmd:format>text/x-imsqti-item-xml</imsmd:format>
+						
+					</imsmd:technical>
+				</imsmd:lom>
+			</metadata>
+			<file href="663828.xml"/>
+			<file href="passages/663829.xml"/>
+
+		</resource>
+		
+
+	</resources>
+</manifest>

@@ -7,11 +7,13 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
+import org.corespring.importing.extractors.{KdsQtiItemExtractor, errors, CorespringItemExtractor}
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.kds.ItemTransformer
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
 
@@ -28,13 +30,6 @@ trait ItemFileConverter {
 
   val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
 
-  object errors {
-    val cannotCreateItem = "There was an error saving the item to the database"
-    def fileMissing(filename: String) = s"Provided item source did not include $filename"
-    def jsonParseError(filename: String) = s"$filename did not contain valid json"
-    def metadataParseError(field: String) = s"There was an error parsing $field in $itemMetadataFilename"
-  }
-
   case class ConversionException(error: Error) extends RuntimeException
 
   import errors._
@@ -42,20 +37,45 @@ trait ItemFileConverter {
   val itemJsonFilename = "item.json"
   val itemMetadataFilename = "metadata.json"
 
+  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
+    val futureFiles =
+      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
+    try {
+      Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
+    } catch {
+      case e: Exception => Failure(new Error(e.getMessage))
+    }
+  }
+
+
   /**
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
   def convert(collectionId: String)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
     try {
-      (itemJson, metadata) match {
+
+      // TODO - Find a better spot for this
+      def isQti(sources: Map[String, Source]) = sources.keys.toSeq.contains("imsmanifest.xml")
+
+      val extractor = if (isQti(sources)) {
+        new KdsQtiItemExtractor(sources) {
+          def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) = upload(itemId, files)
+        }
+      } else {
+        new CorespringItemExtractor(sources) {
+          def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) = upload(itemId, files)
+        }
+      }
+
+      (extractor.itemJson, extractor.metadata) match {
         case (Failure(error), _) => Failure(error)
         case (_, Failure(error)) => Failure(error)
         case (Success(itemJson), Success(md)) => {
           implicit val metadata = md
           create(collectionId) match {
             case Some(id) => {
-              val itemFiles: Option[Resource] = files(id, itemJson) match {
+              val itemFiles: Option[Resource] = extractor.files(id, itemJson) match {
                 case Success(files) => files
                 case Failure(error) => throw new ConversionException(error)
               }
@@ -95,52 +115,11 @@ trait ItemFileConverter {
     }
   }
 
-  private def itemJson(implicit sources: Map[String, Source]): Validation[Error, JsValue] = {
-    val filename = itemJsonFilename
-    try {
-      val itemJson = sources.get(filename).map(item => Json.parse(item.mkString))
-        .getOrElse(throw new Exception(errors.fileMissing(filename)))
-      JsonValidator.validateItem(itemJson) match {
-        case Left(errorMessages) => Failure(new Error(errorMessages.mkString("\n")))
-        case Right(itemJson) => Success(itemJson)
-      }
-    } catch {
-      case json: JsonParseException => Failure(new Error(jsonParseError(filename)))
-      case e: Exception => Failure(new Error(e.getMessage))
-    }
-  }
-
-  private def metadata(implicit sources: Map[String, Source]): Validation[Error, Option[JsValue]] = {
-    try {
-      sources.get(itemMetadataFilename).map(item => Success(Some(Json.parse(item.mkString)))).getOrElse(Success(None))
-    } catch {
-      case json: JsonParseException => Failure(new Error(jsonParseError(itemMetadataFilename)))
-    }
-  }
-
   private def create(collectionId: String): Option[VersionedId[ObjectId]] = {
     val item = Item(
       collectionId = Some(collectionId),
       playerDefinition = Some(PlayerDefinition.empty))
     itemService.insert(item)
-  }
-
-  private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Validation[Error, Option[Resource]] = {
-    upload(itemId, sources.filter{case (filename, source) => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(filename) }) match {
-      case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
-      case Success(files) => Success(None)
-      case Failure(error) => Failure(error)
-    }
-  }
-
-  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
-    val futureFiles =
-      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
-    try {
-      Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
-    } catch {
-      case e: Exception => Failure(new Error(e.getMessage))
-    }
   }
 
   private def extractString(field: String)(implicit metadata: Option[JsValue]): Option[String] =
