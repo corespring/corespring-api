@@ -14,7 +14,7 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
     qti.matching(n => (n.label == "partBlock") && ((n \ "@label").text == "teacherInstructions"))
       .zipWithIndex.map{case (teacherInstructions, index) => {
       teacherInstructionsId(index) ->
-        Json.obj("value" -> convertNonXHTMLElements(teacherInstructions).map(_.child.mkString)
+        Json.obj("value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
           .getOrElse(throw new Exception("Teacher instructions could not be converted")))
     }}.toMap
 
@@ -23,18 +23,15 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
    */
   implicit class NodeWithFinder(node: Node) {
 
-    def matching(predicate: Node => Boolean) = {
-      recurse(node, predicate)
-    }
+    def matching(predicate: Node => Boolean) = recurse(node, predicate)
 
-    private def recurse(node: Node, predicate: Node => Boolean, matches: Seq[Node] = Seq.empty): Seq[Node] = {
+    private def recurse(node: Node, predicate: Node => Boolean, matches: Seq[Node] = Seq.empty): Seq[Node] =
       (predicate(node), node.child.nonEmpty) match {
         case (true, true) => matches ++ node ++ node.child.map(recurse(_, predicate)).flatten
         case (false, true) => matches ++ node.child.map(recurse(_, predicate)).flatten
         case (true, false) => Seq(node)
         case (false, false) => Seq.empty
       }
-    }
 
   }
 
