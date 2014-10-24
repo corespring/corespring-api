@@ -1,9 +1,6 @@
 package org.corespring.qtiToV2.kds.interactions
 
 import org.specs2.mutable.Specification
-import play.api.libs.json.Json
-
-import scala.xml.Node
 
 class TeacherInstructionsTransformerTest extends Specification {
 
