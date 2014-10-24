@@ -8,15 +8,17 @@ import scala.xml.Node
 
 object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCleaner {
 
-  override def interactionJs(qti: Node): Map[String, JsObject] = {
-    val original = CorespringChoiceInteractionTransformer.interactionJs(qti)
-    original.map{ case(id, json) => {
-      id -> json.deepMerge(Json.obj("model" -> Json.obj("choices" -> (json \ "model" \ "choices").asOpt[Seq[JsObject]].map(_.map(choice => {
+  override def transform(node: Node) = CorespringChoiceInteractionTransformer.transform(node)
+
+  override def interactionJs(qti: Node) = CorespringChoiceInteractionTransformer.interactionJs(qti).map {
+    case(id, json) => id -> json.deepMerge(Json.obj(
+      "model" -> Json.obj("choices" -> (json \ "model" \ "choices").asOpt[Seq[JsObject]].map(_.map(choice => {
         choice.deepMerge(
-          partialObj("rationale" -> (choice \ "value").asOpt[String].map(choiceId => rationale(qti, id, choiceId)).flatten))
+          partialObj("rationale" -> (choice \ "value").asOpt[String]
+            .map(choiceId => rationale(qti, id, choiceId)).flatten))
       })).getOrElse(throw new Exception(s"choiceInteraction $id was missing choices")))))
-    }}.toMap
-  }
+    }.toMap
+
 
   private def rationale(qti: Node, id: String, choiceId: String): Option[JsString] =
     (qti \\ "choiceRationales").find(c => (c \ "@responseIdentifier").text == id)

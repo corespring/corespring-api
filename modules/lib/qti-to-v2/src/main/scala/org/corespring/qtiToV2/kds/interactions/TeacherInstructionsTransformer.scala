@@ -8,15 +8,23 @@ import scala.xml.Node
 
 object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLCleaner {
 
-  def teacherInstructionsId(index: Int) = s"teacher-instructions-${index+1}"
+  val isInstructions: Node => Boolean = n => (n.label == "partBlock") && ((n \ "@label").text == "teacherInstructions")
+
+  def teacherInstructionsId(node: Node) = s"teacher-instructions-${node.hashCode()}"
+
+  override def transform(node: Node) = node match {
+    case node: Node if (isInstructions(node)) => <corespring-teacher-instructions id={teacherInstructionsId(node)} />
+    case _ => node
+  }
 
   override def interactionJs(qti: Node): Map[String, JsObject] =
-    qti.matching(n => (n.label == "partBlock") && ((n \ "@label").text == "teacherInstructions"))
+    qti.matching(isInstructions)
       .zipWithIndex.map{case (teacherInstructions, index) => {
-      teacherInstructionsId(index) ->
-        Json.obj("value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
-          .getOrElse(throw new Exception("Teacher instructions could not be converted")))
-    }}.toMap
+        teacherInstructionsId(teacherInstructions) ->
+          Json.obj("value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
+            .getOrElse(throw new Exception("Teacher instructions could not be converted")))
+      }
+    }.toMap
 
   /**
    * Decorator for Node which adds a method to return all nodes matching a predicate function.
