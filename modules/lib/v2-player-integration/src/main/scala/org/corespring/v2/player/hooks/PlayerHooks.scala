@@ -39,7 +39,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
     s.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
       val (_, playerDefinition) = models
-      val itemJson = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
+      val itemJson = Json.toJson(playerDefinition)
       itemJson
     }.toEither
   }
