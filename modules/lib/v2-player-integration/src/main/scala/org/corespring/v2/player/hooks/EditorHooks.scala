@@ -52,7 +52,7 @@ trait EditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
         } yield readableItem
 
         readableResult match {
-          case Success(item) => Left(SEE_OTHER -> org.corespring.container.client.controllers.apps.routes.Catalog.showCatalog(itemId).url)
+          case Success(item) => Left(SEE_OTHER -> org.corespring.container.client.controllers.apps.routes.Catalog.load(itemId).url)
           case Failure(e) => Left(UNAUTHORIZED -> e.message)
         }
       }
