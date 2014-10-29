@@ -69,23 +69,6 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       .toEither
   }
 
-  override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
-    logger.debug(s"sessionId=$sessionId function=loadPlayerForSession")
-
-    val out = for {
-      identity <- getOrgIdAndOptions(header)
-      id <- auth.loadForRead(sessionId)(identity)
-    } yield id
-
-    out match {
-      case Failure(e) => {
-        logger.debug(s"sessionId=$sessionId function=loadPlayerForSession error=$e")
-        Some(UNAUTHORIZED -> e.message)
-      }
-      case _ => None
-    }
-  }
-
   override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 

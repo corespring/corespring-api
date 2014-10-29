@@ -38,8 +38,8 @@ object ApiTrackingWiring {
   }
 
   def isLoggable(path: String): Boolean = {
-    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.ProdHtmlPlayer.config(".*").url.r
-    val v2EditorRegex = org.corespring.container.client.controllers.apps.routes.Editor.editItem(".*").url.r
+    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.Player.load(".*").url.r
+    val v2EditorRegex = org.corespring.container.client.controllers.apps.routes.Editor.load(".*").url.r
     val isV2Player = v2PlayerRegex.findFirstIn(path).isDefined
     val isV2Editor = v2EditorRegex.findFirstIn(path).isDefined
     logRequests && (path.contains("api") || isV2Player || isV2Editor)
