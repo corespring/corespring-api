@@ -13,7 +13,7 @@ trait ItemExtractor {
   def ids: Seq[String]
   def metadata: Map[String, Validation[Error, Option[JsValue]]]
   def itemJson: Map[String, Validation[Error, JsValue]]
-  def files(itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]]
+  def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]]
   def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]]
 
 }

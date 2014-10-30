@@ -2,6 +2,7 @@ package org.corespring.importing.controllers
 
 import java.util.zip.ZipFile
 
+import org.corespring.common.url.BaseUrl
 import org.corespring.importing.ItemFileConverter
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
@@ -9,6 +10,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.V2Error
 import play.api.mvc._
+import play.api.templates.Html
 
 import scala.collection.JavaConversions._
 import scala.io.Source
@@ -32,10 +34,10 @@ class ItemImportController(converter: ItemFileConverter,
         }).toMap
 
         val results = converter.convert(collectionId.toString)(fileMap)
-        Ok(results.map(_ match {
+        Ok(Html(results.map(_ match {
           case Failure(error) => error.getMessage
-          case Success(item) => item.id.toString
-        }).mkString("\n"))
+          case Success(item) => s"""<a href="http://localhost:9000/web#/edit/${item.id.toString}?panel=content" target="blank">${item.id.toString}</a>"""
+        }).mkString("\n")))
       }
       case (None, _) => BadRequest("You need a file")
       case (_, _) => BadRequest("Not logged in")

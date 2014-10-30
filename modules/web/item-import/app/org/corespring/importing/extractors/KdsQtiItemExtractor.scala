@@ -20,13 +20,14 @@ abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExt
   // TBD how to get metadata
   def metadata: Map[String, Validation[Error, Option[JsValue]]] = ids.map(_ -> Success(None)).toMap
 
-  def files(itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] =
-    upload(itemId, sources.filter{ case (filename, source) => (itemJson \ "files").asOpt[Seq[String]]
-      .getOrElse(Seq.empty).contains(filename) }) match {
-        case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
-        case Success(files) => Success(None)
-        case Failure(error) => Failure(error)
-      }
+  def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] = {
+    val filesFromManifest = manifest.map(m => m.items.find(_.id == id)).flatten.map(item => item.resources).getOrElse(Seq.empty)
+    upload(itemId, sources.filter{ case (filename, source) => filesFromManifest.contains(filename) }) match {
+      case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
+      case Success(files) => Success(None)
+      case Failure(error) => Failure(error)
+    }
+  }
 
   def itemJson: Map[String, Validation[Error, JsValue]] =
     manifest.map(_.items.map(f => sources.get(f.filename).map(s => {

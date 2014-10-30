@@ -30,7 +30,7 @@ abstract class CorespringItemExtractor(sources: Map[String, Source]) extends Ite
     })
   }
 
-  def files(itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] =
+  def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] =
     upload(itemId, sources.filter{ case (filename, source) => (itemJson \ "files").asOpt[Seq[String]]
       .getOrElse(Seq.empty).contains(filename) }) match {
       case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))

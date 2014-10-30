@@ -39,7 +39,7 @@ trait ItemFileConverter {
 
   private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
     val futureFiles =
-      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
+      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"${itemId.toString.replaceAll(":", "/")}/data/$filename", source) }.toSeq)
     try {
       Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
     } catch {
@@ -79,7 +79,7 @@ trait ItemFileConverter {
             implicit val metadata = md
             create(collectionId) match {
               case Some(itemId) => {
-                val itemFiles: Option[Resource] = extractor.files(itemId, itemJson) match {
+                val itemFiles: Option[Resource] = extractor.files(id, itemId, itemJson) match {
                   case Success(files) => files
                   case Failure(error) => throw new ConversionException(error)
                 }
