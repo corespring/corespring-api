@@ -4,11 +4,17 @@ import org.corespring.qtiToV2.interactions.{ChoiceInteractionTransformer => Core
 import org.corespring.qtiToV2.kds.XHTMLCleaner
 import play.api.libs.json._
 
-import scala.xml.Node
+import scala.xml.{Elem, NodeSeq, Node}
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCleaner {
 
-  override def transform(node: Node) = CorespringChoiceInteractionTransformer.transform(node)
+  override def transform(node: Node) = new RuleTransformer(new RewriteRule {
+    override def transform(n: Node): NodeSeq = n match {
+      case n: Node if (n.label == "choiceRationales") => Seq.empty
+      case n => n
+    }
+  }).transform(CorespringChoiceInteractionTransformer.transform(node))
 
   override def interactionJs(qti: Node) = CorespringChoiceInteractionTransformer.interactionJs(qti).map {
     case(id, json) => id -> json.deepMerge(Json.obj(

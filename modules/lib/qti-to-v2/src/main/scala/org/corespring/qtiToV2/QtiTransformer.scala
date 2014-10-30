@@ -28,6 +28,8 @@ trait QtiTransformer extends XMLNamespaceClearer {
     val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
       (html, transformer) => transformer.transform(html).head)
 
+    components.foreach{ case (id, json) => println(id); println(Json.prettyPrint(json)) }
+
     val typeMap = components.map { case (k, v) => (k -> (v \ "componentType").as[String]) }
 
     val customScoring = (qti \\ "responseProcessing").headOption.map { rp =>

@@ -21,8 +21,11 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
     qti.matching(isInstructions)
       .zipWithIndex.map{case (teacherInstructions, index) => {
         teacherInstructionsId(teacherInstructions) ->
-          Json.obj("value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
-            .getOrElse(throw new Exception("Teacher instructions could not be converted")))
+          Json.obj(
+            "componentType" -> "corespring-teacher-instructions",
+            "value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
+            .getOrElse(throw new Exception("Teacher instructions could not be converted"))
+          )
       }
     }.toMap
 

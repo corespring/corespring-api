@@ -52,67 +52,73 @@ trait ItemFileConverter {
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
-  def convert(collectionId: String)(implicit sources: Map[String, Source]): Validation[Error, Item] = {
-    try {
+  def convert(collectionId: String)(implicit sources: Map[String, Source]): Seq[Validation[Error, Item]] = {
+    // TODO - Find a better spot for this
+    def isQti(sources: Map[String, Source]) = sources.keys.toSeq.contains("imsmanifest.xml")
 
-      // TODO - Find a better spot for this
-      def isQti(sources: Map[String, Source]) = sources.keys.toSeq.contains("imsmanifest.xml")
-
-      val extractor = if (isQti(sources)) {
-        new KdsQtiItemExtractor(sources) {
-          def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) = upload(itemId, files)
-        }
-      } else {
-        new CorespringItemExtractor(sources) {
-          def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) = upload(itemId, files)
-        }
+    val extractor = if (isQti(sources)) {
+      new KdsQtiItemExtractor(sources) {
+        def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) =
+          ItemFileConverter.this.upload(itemId, files)
       }
+    } else {
+      new CorespringItemExtractor(sources) {
+        def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) =
+          ItemFileConverter.this.upload(itemId, files)
+      }
+    }
 
-      (extractor.itemJson, extractor.metadata) match {
-        case (Failure(error), _) => Failure(error)
-        case (_, Failure(error)) => Failure(error)
-        case (Success(itemJson), Success(md)) => {
-          implicit val metadata = md
-          create(collectionId) match {
-            case Some(id) => {
-              val itemFiles: Option[Resource] = extractor.files(id, itemJson) match {
-                case Success(files) => files
-                case Failure(error) => throw new ConversionException(error)
+    val itemJson = extractor.itemJson
+    val meta = extractor.metadata
+    val rv: Seq[Validation[Error, Item]] = extractor.ids.map(id => {
+      try {
+        (itemJson.get(id).getOrElse(Failure(new Error("Missing dat"))), meta.get(id).getOrElse(Failure(new Error("Missing dat")))) match {
+          case (Failure(error), _) => Failure(error)
+          case (_, Failure(error)) => Failure(error)
+          case (Success(itemJson), Success(md)) => {
+            implicit val metadata = md
+            create(collectionId) match {
+              case Some(itemId) => {
+                val itemFiles: Option[Resource] = extractor.files(itemId, itemJson) match {
+                  case Success(files) => files
+                  case Failure(error) => throw new ConversionException(error)
+                }
+                val supporting = supportingMaterials(itemId) match {
+                  case Success(supportingMaterials) => supportingMaterials
+                  case Failure(error) => throw new ConversionException(error)
+                }
+                val item = Item(
+                  id = itemId,
+                  collectionId = Some(collectionId),
+                  contributorDetails = contributorDetails,
+                  data = itemFiles,
+                  lexile = extractString("lexile"),
+                  otherAlignments = otherAlignments,
+                  pValue = extractString("pValue"),
+                  playerDefinition =
+                    Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
+                      (itemJson \ "xhtml").as[String], (itemJson \ "components"),
+                      (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
+                  priorGradeLevels = extractStringSeq("priorGradeLevels"),
+                  priorUse = extractString("priorUse"),
+                  taskInfo = taskInfo,
+                  reviewsPassed = extractStringSeq("reviewsPassed"),
+                  standards = extractStringSeq("standards"),
+                  supportingMaterials = supporting,
+                  workflow = workflow
+                )
+                itemService.save(item, createNewVersion = false)
+                Success(item)
               }
-              val supporting = supportingMaterials(id) match {
-                case Success(supportingMaterials) => supportingMaterials
-                case Failure(error) => throw new ConversionException(error)
-              }
-              val item = Item(
-                id = id,
-                collectionId = Some(collectionId),
-                contributorDetails = contributorDetails,
-                data = itemFiles,
-                lexile = extractString("lexile"),
-                otherAlignments = otherAlignments,
-                pValue = extractString("pValue"),
-                playerDefinition =
-                  Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
-                    (itemJson \ "xhtml").as[String], (itemJson \ "components"),
-                    (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
-                priorGradeLevels = extractStringSeq("priorGradeLevels"),
-                priorUse = extractString("priorUse"),
-                taskInfo = taskInfo,
-                reviewsPassed = extractStringSeq("reviewsPassed"),
-                standards = extractStringSeq("standards"),
-                supportingMaterials = supporting,
-                workflow = workflow
-              )
-              itemService.save(item, createNewVersion = false)
-              Success(item)
+              case None => Failure(new Error(cannotCreateItem))
             }
-            case None => Failure(new Error(cannotCreateItem))
           }
         }
+      } catch {
+        case ie: ConversionException => Failure(ie.error)
       }
-    } catch {
-      case ie: ConversionException => Failure(ie.error)
-    }
+    })
+    rv
   }
 
   private def create(collectionId: String): Option[VersionedId[ObjectId]] = {

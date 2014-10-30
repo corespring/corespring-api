@@ -23,19 +23,19 @@ class ItemImportController(converter: ItemFileConverter,
   }
 
   def upload() = Action(parse.multipartFormData) { request =>
-
     (request.body.file("file"), getOrgIdAndOptions(request).map(_.orgId).map(orgService.org(_)
-        .map(orgService.defaultCollection(_)))) match {
+        .map(orgService.defaultCollection(_)).flatten)) match {
       case (Some(upload), Success(Some(collectionId))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
           (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
         }).toMap
 
-        converter.convert(collectionId.toString)(fileMap) match {
-          case Success(item) => Ok(item.id.toString)
-          case Failure(error) => BadRequest(error.getMessage)
-        }
+        val results = converter.convert(collectionId.toString)(fileMap)
+        Ok(results.map(_ match {
+          case Failure(error) => error.getMessage
+          case Success(item) => item.id.toString
+        }).mkString("\n"))
       }
       case (None, _) => BadRequest("You need a file")
       case (_, _) => BadRequest("Not logged in")

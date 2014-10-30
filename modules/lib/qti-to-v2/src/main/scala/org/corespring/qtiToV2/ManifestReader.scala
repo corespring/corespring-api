@@ -14,7 +14,7 @@ object ManifestReader {
     QTIManifest(items =
       resources._1.map(n => {
         val filename = (n \ "@href").text.toString
-        ManifestItem(filename = filename, resources = (n \ "file").map(f => (f \ "@href").text.toString).filterNot(_ == filename))
+        ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = (n \ "file").map(f => (f \ "@href").text.toString).filterNot(_ == filename))
       }),
       otherFiles = resources._2.map(n => (n \ "@href").text.toString))
   }
@@ -25,4 +25,4 @@ case class QTIManifest(
   items: Seq[ManifestItem] = Seq.empty,
   otherFiles: Seq[String] = Seq.empty)
 
-case class ManifestItem(filename: String, resources: Seq[String] = Seq.empty)
+case class ManifestItem(id: String, filename: String, resources: Seq[String] = Seq.empty)
