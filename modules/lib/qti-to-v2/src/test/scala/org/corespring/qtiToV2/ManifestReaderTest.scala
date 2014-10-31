@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2
 
+import org.corespring.qtiToV2.kds.ManifestReader
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 

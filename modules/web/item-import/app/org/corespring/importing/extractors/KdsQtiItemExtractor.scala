@@ -1,19 +1,18 @@
 package org.corespring.importing.extractors
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
+import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.ManifestReader
-import org.corespring.qtiToV2.kds.{ItemTransformer => KdsQtiItemTransformer }
+import org.corespring.qtiToV2.kds.{ItemTransformer => KdsQtiItemTransformer, ManifestReader, PassageTransformer}
 import play.api.libs.json.{Json, JsValue}
 
 import scala.io.Source
 import scalaz._
 
-abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExtractor {
+abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExtractor with PassageTransformer {
 
   val manifest = sources.find{ case(filename, _) => filename == ManifestReader.filename }
-    .map { case(_, source) => ManifestReader.read(source) }
+    .map { case(_, source) => ManifestReader.read(source, sources) }
 
   def ids = manifest.map(_.items.map(_.id)).getOrElse(Seq.empty)
 
@@ -32,7 +31,7 @@ abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExt
   def itemJson: Map[String, Validation[Error, JsValue]] =
     manifest.map(_.items.map(f => sources.get(f.filename).map(s => {
       try {
-        f.id -> Success(KdsQtiItemTransformer.transform(s.getLines.mkString))
+        f.id -> Success(KdsQtiItemTransformer.transform(s.getLines.mkString, f, sources))
       } catch {
         case e: Exception => {
           e.printStackTrace()
@@ -40,4 +39,5 @@ abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExt
         }
       }
     })).flatten).getOrElse(Seq.empty).toMap
+
 }
