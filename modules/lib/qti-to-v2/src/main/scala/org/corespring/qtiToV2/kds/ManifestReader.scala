@@ -1,6 +1,7 @@
 package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
+import org.corespring.qtiToV2.SourceWrapper
 
 import scala.io.Source
 import scala.xml._
@@ -12,7 +13,7 @@ object ManifestReader {
   private def stripCDataTags(xmlString: String) =
     StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
 
-  def read(manifest: Source, sources: Map[String, Source]): QTIManifest = {
+  def read(manifest: SourceWrapper, sources: Map[String, SourceWrapper]): QTIManifest = {
     implicit val xml = XML.loadString(manifest.getLines.mkString).head
     val resources = (xml \ "resources" \\ "resource")
       .partition(r => (r \ "@type").text.toString == "imsqti_item_xmlv2p1")

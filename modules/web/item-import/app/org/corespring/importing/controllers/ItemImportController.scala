@@ -4,6 +4,7 @@ import java.util.zip.ZipFile
 
 import org.corespring.common.url.BaseUrl
 import org.corespring.importing.ItemFileConverter
+import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -30,7 +31,7 @@ class ItemImportController(converter: ItemFileConverter,
       case (Some(upload), Success(Some(collectionId))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
-          (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
+          (entry.getName -> SourceWrapper(Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1")))
         }).toMap
 
         val results = converter.convert(collectionId.toString)(fileMap)

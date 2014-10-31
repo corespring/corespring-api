@@ -3,6 +3,7 @@ package org.corespring.importing.extractors
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource._
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.SourceWrapper
 import play.api.libs.json.JsValue
 
 import scala.io.Source
@@ -14,7 +15,7 @@ trait ItemExtractor {
   def metadata: Map[String, Validation[Error, Option[JsValue]]]
   def itemJson: Map[String, Validation[Error, JsValue]]
   def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]]
-  def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]]
+  def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]): Validation[Error, Seq[BaseFile]]
 
 }
 

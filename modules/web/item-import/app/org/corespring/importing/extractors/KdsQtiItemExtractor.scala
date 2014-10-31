@@ -3,13 +3,14 @@ package org.corespring.importing.extractors
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.{ItemTransformer => KdsQtiItemTransformer, ManifestReader, PassageTransformer}
 import play.api.libs.json.{Json, JsValue}
 
 import scala.io.Source
 import scalaz._
 
-abstract class KdsQtiItemExtractor(sources: Map[String, Source]) extends ItemExtractor with PassageTransformer {
+abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper]) extends ItemExtractor with PassageTransformer {
 
   val manifest = sources.find{ case(filename, _) => filename == ManifestReader.filename }
     .map { case(_, source) => ManifestReader.read(source, sources) }

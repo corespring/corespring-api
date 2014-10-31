@@ -8,7 +8,9 @@ import scala.xml.Node
 
 object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLCleaner {
 
-  val isInstructions: Node => Boolean = n => (n.label == "partBlock") && ((n \ "@label").text == "teacherInstructions")
+  val isInstructions: Node => Boolean = n =>
+    ((n.label == "partBlock") && Seq("@label", "@identifier").find(a => (n \ a).text == "teacherInstructions").nonEmpty) ||
+    (n.label == "teacherInstructions")
 
   def teacherInstructionsId(node: Node) = s"teacher-instructions-${node.hashCode()}"
 

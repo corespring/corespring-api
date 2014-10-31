@@ -5,12 +5,13 @@ import org.bson.types.ObjectId
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item.resource._
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.SourceWrapper
 import play.api.libs.json._
 
 import scala.io.Source
 import scalaz.{Failure, Success, Validation}
 
-abstract class CorespringItemExtractor(sources: Map[String, Source]) extends ItemExtractor {
+abstract class CorespringItemExtractor(sources: Map[String, SourceWrapper]) extends ItemExtractor {
 
   import errors._
 

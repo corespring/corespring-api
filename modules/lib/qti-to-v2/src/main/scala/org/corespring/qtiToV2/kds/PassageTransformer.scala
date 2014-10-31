@@ -1,13 +1,13 @@
 package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
+import org.corespring.qtiToV2.SourceWrapper
 
-import scala.io.Source
 import scala.xml._
 
 trait PassageTransformer {
 
-  def transformPassage(resource: ManifestResource)(implicit sources: Map[String, Source]): Option[String] = {
+  def transformPassage(resource: ManifestResource)(implicit sources: Map[String, SourceWrapper]): Option[String] = {
     resource.resourceType == ManifestResourceType.Passage match {
       case true => {
         sources.find{ case (path, source) => resource.path == path }.map(_._2) match {

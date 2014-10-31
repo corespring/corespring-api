@@ -13,6 +13,7 @@ import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.ItemTransformer
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
@@ -37,9 +38,10 @@ trait ItemFileConverter {
   val itemJsonFilename = "item.json"
   val itemMetadataFilename = "metadata.json"
 
-  private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
+  private def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]): Validation[Error, Seq[BaseFile]] = {
     val futureFiles =
-      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"${itemId.toString.replaceAll(":", "/")}/data/$filename", source) }.toSeq)
+      Future.sequence(files.map{ case(filename, source) =>
+        uploader.upload(filename, s"${itemId.toString.replaceAll(":", "/")}/data/$filename", source) }.toSeq)
     try {
       Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
     } catch {
@@ -52,18 +54,18 @@ trait ItemFileConverter {
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
-  def convert(collectionId: String)(implicit sources: Map[String, Source]): Seq[Validation[Error, Item]] = {
+  def convert(collectionId: String)(implicit sources: Map[String, SourceWrapper]): Seq[Validation[Error, Item]] = {
     // TODO - Find a better spot for this
-    def isQti(sources: Map[String, Source]) = sources.keys.toSeq.contains("imsmanifest.xml")
+    def isQti(sources: Map[String, SourceWrapper]) = sources.keys.toSeq.contains("imsmanifest.xml")
 
     val extractor = if (isQti(sources)) {
       new KdsQtiItemExtractor(sources) {
-        def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) =
+        def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]) =
           ItemFileConverter.this.upload(itemId, files)
       }
     } else {
       new CorespringItemExtractor(sources) {
-        def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]) =
+        def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]) =
           ItemFileConverter.this.upload(itemId, files)
       }
     }
@@ -72,7 +74,8 @@ trait ItemFileConverter {
     val meta = extractor.metadata
     val rv: Seq[Validation[Error, Item]] = extractor.ids.map(id => {
       try {
-        (itemJson.get(id).getOrElse(Failure(new Error("Missing dat"))), meta.get(id).getOrElse(Failure(new Error("Missing dat")))) match {
+        (itemJson.get(id).getOrElse(Failure(new Error("Missing item JSON"))),
+            meta.get(id).getOrElse(Failure(new Error("Missing item metadata")))) match {
           case (Failure(error), _) => Failure(error)
           case (_, Failure(error)) => Failure(error)
           case (Success(itemJson), Success(md)) => {
@@ -172,7 +175,7 @@ trait ItemFileConverter {
     }).flatten
   }
 
-  private def supportingMaterials(itemId: VersionedId[ObjectId])(implicit metadata: Option[JsValue], sources: Map[String, Source]): Validation[Error, Seq[Resource]] = {
+  private def supportingMaterials(itemId: VersionedId[ObjectId])(implicit metadata: Option[JsValue], sources: Map[String, SourceWrapper]): Validation[Error, Seq[Resource]] = {
     try {
       Success(metadata.map(md => (md \ "supportingMaterials").asOpt[Seq[JsObject]]).flatten.getOrElse(Seq.empty)
         .map(material => {
@@ -191,14 +194,14 @@ trait ItemFileConverter {
 }
 
 trait Uploader {
-  def upload(filename: String, path: String, file: Source): Future[StoredFile]
+  def upload(filename: String, path: String, file: SourceWrapper): Future[StoredFile]
 }
 
 class TransferManagerUploader(awsKey: String, awsSecret: String, bucket: String) extends Uploader {
 
   val transferManager = new TransferManager(new BasicAWSCredentials(awsKey, awsSecret))
 
-  def upload(filename: String, path: String, file: Source) = future {
+  def upload(filename: String, path: String, file: SourceWrapper) = future {
     val byteArray = file.map(_.toByte).toArray
     val metadata = new ObjectMetadata()
     metadata.setContentLength(byteArray.length)
