@@ -56,7 +56,8 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type] {
-      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(generalError("Can't find org for token blah"))
+      val rh = FakeRequest("", "?access_token=blah")
+      transformer.apply(rh) must_== Failure(noOrgForToken(rh))
     }
 
     "not work with token" in new scope[AnyContentAsEmpty.type](Some(mockOrg)) {

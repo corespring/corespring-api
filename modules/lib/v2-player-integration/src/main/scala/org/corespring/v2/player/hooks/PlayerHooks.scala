@@ -33,7 +33,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     logger.debug(s"sessionId=$sessionId function=loadItem")
 
     val s = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
@@ -54,7 +54,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       "itemId" -> vid.toString)
 
     val result = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
@@ -73,7 +73,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 
     val o = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 

@@ -28,7 +28,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
     } yield transform(item)
@@ -57,7 +57,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     }
 
     val out: Validation[V2Error, JsValue] = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForWrite(itemId)(identity)
       collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
@@ -80,7 +80,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     }
 
     val accessResult: Validation[V2Error, VersionedId[ObjectId]] = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       json <- maybeJson.toSuccess(noJson)
       collectionId <- (json \ "collectionId").asOpt[String].toSuccess(propertyNotFoundInJson("collectionId"))
       canWrite <- auth.canCreateInCollection(collectionId)(identity)
