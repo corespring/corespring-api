@@ -31,7 +31,7 @@ object ManifestReader {
             val sourceFile = resources._1.find(r => (r \\ "file").map(f => (f \ "@href").text.toString).contains(p))
               .map(r => (r \ "@href").text.toString).getOrElse(throw new Exception("Could not find source file"))
             sourceFile -> (XML.loadString(stripCDataTags(s.getLines.mkString))).map(xml => xml \\ "video" \ "source" \\ "@src")
-              .map(_.text.toString).map(path => ManifestResource(path = path, resourceType = ManifestResourceType.Video))
+              .map(_.text.toString).map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = ManifestResourceType.Video))
           })
         )
     }.flatten).flatten.toMap
@@ -63,16 +63,25 @@ case class ManifestResource(path: String, resourceType: ManifestResourceType.Val
 
 object ManifestResourceType extends Enumeration {
   type ManifestResourceType = Value
-  val QTI, Passage, Video, Unknown = Value
+  val QTI, Passage, Video, Image, Unknown = Value
 
   private val typeMap = Map(
     "imsqti_item_xmlv2p1" -> QTI,
-    "passage" -> Passage,
-    "video/mp4" -> Video
+    "passage" -> Passage
   )
+
+  private val extensionMap = Map(
+    Seq("gif", "jpeg", "jpg", "png") -> Image
+  )
+
+  private def fromExtension(path: String) = {
+    def getExtension(path: String) = path.split("\\.").lastOption.getOrElse("")
+    extensionMap.find{ case(extensions, resourceType) => extensions.contains(getExtension(path)) }
+      .map(_._2).getOrElse(Unknown)
+  }
 
   def fromPath(path: String)(implicit xml: Node): ManifestResourceType.Value =
     (xml \ "resources" \\ "resource").find(resource => (resource \ "@href").text.toString == path)
-      .map(resource => (resource \ "@type").text.toString).map(typeMap.get(_)).flatten.getOrElse(Unknown)
+      .map(resource => (resource \ "@type").text.toString).map(typeMap.get(_)).flatten.getOrElse(fromExtension(path))
 
 }

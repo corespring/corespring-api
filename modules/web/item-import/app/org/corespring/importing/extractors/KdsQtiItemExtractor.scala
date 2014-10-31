@@ -21,8 +21,9 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper]) extends 
   def metadata: Map[String, Validation[Error, Option[JsValue]]] = ids.map(_ -> Success(None)).toMap
 
   def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] = {
-    val filesFromManifest = manifest.map(m => m.items.find(_.id == id)).flatten.map(item => item.resources).getOrElse(Seq.empty)
-    upload(itemId, sources.filter{ case (filename, source) => filesFromManifest.contains(filename) }) match {
+    val filesFromManifest = manifest.map(m => m.items.find(_.id == id)).flatten.map(item => item.resources)
+      .getOrElse(Seq.empty).map(_.path)
+    upload(itemId, sources.filter{ case (path, source) => filesFromManifest.contains(path) }) match {
       case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
       case Success(files) => Success(None)
       case Failure(error) => Failure(error)
