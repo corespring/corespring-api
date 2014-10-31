@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.errors.Errors.{ generalError, noItemIdInSession, cantLoadSession }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -19,13 +19,13 @@ import play.api.test.FakeRequest
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-class SessionAuthWiredTest extends Specification with Mockito {
+class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
 
   val defaultItemFailure = generalError("no item")
 
   "SessionAuth" should {
 
-    implicit val rh: OrgAndOpts = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
+    implicit val rh: OrgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
 
     case class authScope(
       session: Option[JsValue] = None,
@@ -94,7 +94,7 @@ class SessionAuthWiredTest extends Specification with Mockito {
       }
     }
 
-    def opts(m: AuthMode) = OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, m)
+    def opts(m: AuthMode) = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, m)
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")

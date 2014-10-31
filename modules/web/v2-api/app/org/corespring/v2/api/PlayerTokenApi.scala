@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, EncryptionSuccess, OrgEncrypter }
+import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed, generalError, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
@@ -17,6 +18,8 @@ trait PlayerTokenApi extends V2Api {
   private lazy val logger = V2LoggerFactory.getLogger("PlayerTokenApi")
 
   def encrypter: OrgEncrypter
+
+  def encryptionFailedError(org:Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
 
   /**
    * Creates a player token.
@@ -44,6 +47,7 @@ trait PlayerTokenApi extends V2Api {
       }
     }
 
+
     def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
       case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
       case JsSuccess(o, _) => Success(o)
@@ -51,10 +55,10 @@ trait PlayerTokenApi extends V2Api {
 
     Future {
       val out: Validation[V2Error, (String, String, JsValue)] = for {
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         json <- request.body.asJson.toSuccess(noJson)
         accessSettings <- toAccessSettings(json)
-        encryptionResult <- encrypter.encrypt(identity.orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: ${identity.orgId} - Unknown error trying to encrypt"))
+        encryptionResult <- encrypter.encrypt(identity.org.id, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailedError(identity.org))
         clientIdAndToken <- encryptionToValidation(encryptionResult)
       } yield {
         (clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))

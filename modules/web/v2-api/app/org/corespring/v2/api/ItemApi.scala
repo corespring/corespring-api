@@ -54,8 +54,8 @@ trait ItemApi extends V2Api {
       logger.debug(s"function=create")
 
       val out = for {
-        identity <- getOrgIdAndOptions(request)
-        dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.orgId))
+        identity <- getOrgAndOptions(request)
+        dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.org.id))
         json <- loadJson(dc)(request)
         validJson <- validatedJson(dc)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
@@ -84,7 +84,7 @@ trait ItemApi extends V2Api {
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         answers <- request.body.asJson.toSuccess(noJson)
         item <- itemAuth.loadForRead(itemId)(identity)
         score <- scoreService.score(item, answers)
@@ -102,7 +102,7 @@ trait ItemApi extends V2Api {
     Future {
       val out = for {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
       } yield transform(item, detail)
 

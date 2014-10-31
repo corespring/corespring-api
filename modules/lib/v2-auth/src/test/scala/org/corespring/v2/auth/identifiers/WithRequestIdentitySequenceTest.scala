@@ -25,7 +25,8 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
     }
   }
 
-  def successfulTransformer = new MockRequestIdentity(Some(mock[Organization]), Some(ObjectId.get), Success(ObjectId.get))
+  def successfulTransformer = new MockRequestIdentity(Some(ObjectId.get), Success(mock[Organization]))
+
   def failedTransformer = new MockRequestIdentity()
 
   "with org transformer sequence" should {

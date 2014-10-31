@@ -172,7 +172,7 @@ object Build extends sbt.Build {
         salatVersioningDao,
         componentModel),
       routesImport ++= customImports)
-    .dependsOn(v2Auth, qtiToV2, core % "test->test;compile->compile")
+    .dependsOn(v2Auth % "test->test;compile->compile", qtiToV2, core % "test->test;compile->compile")
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")

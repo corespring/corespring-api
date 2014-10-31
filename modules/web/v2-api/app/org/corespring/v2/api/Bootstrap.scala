@@ -88,7 +88,7 @@ class Bootstrap(
 
     override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -97,21 +97,8 @@ class Bootstrap(
     override def itemAuth: ItemAuth[OrgAndOpts] = Bootstrap.this.itemAuth
 
     override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = {
-
-      val out: Validation[V2Error, String] = for {
-        org <- orgService.org(identity.orgId).toSuccess(cantFindOrgWithId(identity.orgId))
-        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(noDefaultCollection(identity.orgId))
-      } yield {
-        dc
-      }
-
-      out match {
-        case Failure(msg) =>
-          logger.trace(s"Error getting default collection: $msg")
-          None
-        case Success(id) =>
-          Some(id)
-      }
+      val collection = orgService.defaultCollection(identity.org).map(_.toString()).toSuccess(noDefaultCollection(identity.org.id))
+      collection.toOption
     }
   }
 
@@ -119,7 +106,7 @@ class Bootstrap(
 
     override def scoreService: ScoreService = Bootstrap.this.scoreService
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -135,7 +122,7 @@ class Bootstrap(
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
   }
 
   lazy val controllers: Seq[Controller] = Seq(itemApi, itemSessionApi, playerTokenApi, v1ItemApiProxy, v1CollectionApiProxy)

@@ -28,6 +28,7 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.{ AuthMode, Mode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.services.caching.CachingTokenService
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors.{ permissionNotGranted, _ }
@@ -65,12 +66,21 @@ class V2PlayerIntegration(comps: => Seq[Component],
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
-  lazy val tokenService = new TokenService {
+  lazy val mainTokenService = new TokenService {
     override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
       accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
       unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
     } yield org
+  }
+
+  lazy val tokenService = if(configuration.getBoolean("cache.TokenService.enabled").getOrElse(false)){
+    new CachingTokenService{
+      override def underlying: TokenService = mainTokenService
+      override def timeToLiveInMinutes = configuration.getLong("cache.TokenService.ttl-in-minutes").getOrElse(1)
+    }
+  } else {
+    mainTokenService
   }
 
   /** A wrapper around organization */
@@ -95,7 +105,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def userService: UserService = UserServiceWired
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -103,7 +113,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
     lazy val token = new TokenOrgIdentity[OrgAndOpts] {
       override def tokenService: TokenService = V2PlayerIntegration.this.tokenService
 
-      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org.id, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
+      override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
@@ -111,10 +121,10 @@ class V2PlayerIntegration(comps: => Seq[Component],
     lazy val orgEncryptionService: OrgEncryptionService = {
       val basicEncrypter = new OrgEncrypter(AESCrypto)
 
-      if (configuration.getBoolean("cache-decrypted-options").getOrElse(false)) {
+      if (configuration.getBoolean("cache.OrgEncryptionService.enabled").getOrElse(false)) {
         logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")
         import scala.concurrent.duration._
-        val ttl = configuration.getInt("cache-decrypted-options-ttl-in-minutes").getOrElse(10)
+        val ttl = configuration.getInt("cache.OrgEncryptionService.ttl-in-minutes").getOrElse(10)
         new CachingOrgEncryptionService(basicEncrypter, ttl.minutes)
       } else {
         logger.debug(s"orgEncryptionService - using non caching OrgEncryptionService")
@@ -126,9 +136,13 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
 
-      override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = {
+      override def clientIdToOrg(apiClientId: String): Option[Organization] = {
         logger.trace(s"client to orgId -> $apiClientId")
-        ApiClient.findByKey(apiClientId).map(_.orgId)
+
+        for{
+          client <- ApiClient.findByKey(apiClientId)
+          org <- orgService.org(client.orgId)
+        } yield org
       }
 
       private def encryptionEnabled(r: RequestHeader): Boolean = {
@@ -250,7 +264,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def hooks: AssetHooks = new apiHooks.AssetHooks {
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
 
       override def itemService: ItemService = ItemServiceWired
 
@@ -300,7 +314,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }
 
   override def itemHooks: ItemHooks = new apiHooks.ItemHooks {
@@ -311,13 +325,13 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override implicit def ec: ExecutionContext = V2PlayerIntegration.this.ec
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }
 
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
     override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
 
-    override def getOrgIdAndOptions(header: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(header)
+    override def getOrgAndOptions(header: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(header)
 
     override def userService: UserService = UserServiceWired
 
@@ -343,7 +357,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def auth: SessionAuth[OrgAndOpts] = V2PlayerIntegration.this.sessionAuth
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
   }
 
   override def editorHooks: EditorHooks = new apiHooks.EditorHooks {
@@ -355,7 +369,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerIntegration.this.itemAuth
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerIntegration.this.getOrgIdAndOptions(request)
 
   }
 }
