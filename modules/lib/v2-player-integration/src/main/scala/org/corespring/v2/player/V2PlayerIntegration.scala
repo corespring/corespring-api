@@ -69,8 +69,11 @@ class V2PlayerIntegration(comps: => Seq[Component],
   lazy val mainTokenService = new TokenService {
     override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
       accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
+      _ = logger.debug(s"val=mainTokenService accessToken=$token")
       unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
+      _ = logger.debug(s"val=mainTokenService accessToken=$token - is an unexpired token")
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
+      _ = logger.debug(s"val=mainTokenService accessToken=$token org=$org")
     } yield org
   }
 
