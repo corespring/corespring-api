@@ -6,7 +6,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.mvc.RequestHeader
 import spray.caching.Cache
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Future, ExecutionContext, Await}
 import scala.concurrent.duration._
 import scalaz.Validation
 
@@ -23,6 +23,6 @@ trait CachingTokenService extends TokenService{
   private val cache: Cache[Validation[V2Error,Organization]] = spray.caching.LruCache(timeToLive = timeToLive)
 
   override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = {
-    Await.result(cache(token){ underlying.orgForToken(token) }, 5.seconds)
+    Await.result(cache(token,  () => Future{underlying.orgForToken(token)} ), 5.seconds)
   }
 }
