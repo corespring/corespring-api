@@ -77,8 +77,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
     } yield org
   }
 
-  lazy val tokenService = if(configuration.getBoolean("cache.TokenService.enabled").getOrElse(false)){
-    new CachingTokenService{
+  lazy val tokenService = if (configuration.getBoolean("cache.TokenService.enabled").getOrElse(false)) {
+    new CachingTokenService {
       override def underlying: TokenService = mainTokenService
       override def timeToLiveInMinutes = configuration.getLong("cache.TokenService.ttl-in-minutes").getOrElse(1)
     }
@@ -102,6 +102,20 @@ class V2PlayerIntegration(comps: => Seq[Component],
 
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
 
+  lazy val orgEncryptionService: OrgEncryptionService = {
+    val basicEncrypter = new OrgEncrypter(AESCrypto)
+
+    if (configuration.getBoolean("cache.OrgEncryptionService.enabled").getOrElse(false)) {
+      logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")
+      import scala.concurrent.duration._
+      val ttl = configuration.getInt("cache.OrgEncryptionService.ttl-in-minutes").getOrElse(10)
+      new CachingOrgEncryptionService(basicEncrypter, ttl.minutes)
+    } else {
+      logger.debug(s"orgEncryptionService - using non caching OrgEncryptionService")
+      basicEncrypter
+    }
+  }
+
   object requestIdentifiers {
     lazy val userSession = new UserSessionOrgIdentity[OrgAndOpts] {
       override def secureSocialService: SecureSocialService = V2PlayerIntegration.this.secureSocialService
@@ -121,20 +135,6 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
     }
 
-    lazy val orgEncryptionService: OrgEncryptionService = {
-      val basicEncrypter = new OrgEncrypter(AESCrypto)
-
-      if (configuration.getBoolean("cache.OrgEncryptionService.enabled").getOrElse(false)) {
-        logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")
-        import scala.concurrent.duration._
-        val ttl = configuration.getInt("cache.OrgEncryptionService.ttl-in-minutes").getOrElse(10)
-        new CachingOrgEncryptionService(basicEncrypter, ttl.minutes)
-      } else {
-        logger.debug(s"orgEncryptionService - using non caching OrgEncryptionService")
-        basicEncrypter
-      }
-    }
-
     lazy val clientIdAndPlayerTokenQueryString = new PlayerTokenInQueryStringIdentity {
 
       override def orgService: OrgService = V2PlayerIntegration.this.orgService
@@ -142,7 +142,7 @@ class V2PlayerIntegration(comps: => Seq[Component],
       override def clientIdToOrg(apiClientId: String): Option[Organization] = {
         logger.trace(s"client to orgId -> $apiClientId")
 
-        for{
+        for {
           client <- ApiClient.findByKey(apiClientId)
           org <- orgService.org(client.orgId)
         } yield org

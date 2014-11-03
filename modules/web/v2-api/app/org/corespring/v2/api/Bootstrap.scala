@@ -6,7 +6,7 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.encryption.{ OrgEncryptionService, OrgEncrypter }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
@@ -48,7 +48,9 @@ class Bootstrap(
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val outcomeProcessor: OutcomeProcessor,
   val scoreProcessor: ScoreProcessor,
-  val playerJsUrl: String) {
+  val playerJsUrl: String,
+  val tokenService: TokenService,
+  val orgEncryptionService: OrgEncryptionService) {
 
   private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
@@ -61,19 +63,6 @@ class Bootstrap(
     }
 
     override def org(id: ObjectId): Option[Organization] = v1OrgService.findOneById(id)
-  }
-
-  protected val tokenService = new TokenService {
-
-    implicit class RichBoolean(val b: Boolean) {
-      def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
-    }
-
-    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
-      accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-      unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
-      org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
-    } yield org
   }
 
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
@@ -155,11 +144,21 @@ class Bootstrap(
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
   }
 
+  lazy val utils = new Utils {
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def tokenService: TokenService = Bootstrap.this.tokenService
+
+    override def orgEncryptionService: OrgEncryptionService = Bootstrap.this.orgEncryptionService
+  }
+
   lazy val controllers: Seq[Controller] = Seq(
     itemApi,
     itemSessionApi,
     playerTokenApi,
     externalModelLaunchApi,
     v1ItemApiProxy,
-    v1CollectionApiProxy)
+    v1CollectionApiProxy,
+    utils)
+
 }
