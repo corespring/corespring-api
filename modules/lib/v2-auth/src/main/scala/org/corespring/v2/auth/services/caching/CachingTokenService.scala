@@ -11,20 +11,19 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalaz.Validation
 
-trait CachingTokenService extends TokenService{
-
+trait CachingTokenService extends TokenService {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private val logger = V2LoggerFactory.getLogger("CachingTokenService")
 
-  def underlying : TokenService
+  def underlying: TokenService
 
-  def timeToLiveInMinutes : Long
+  def timeToLiveInMinutes: Long
 
-  private def timeToLive : Duration = timeToLiveInMinutes.minutes
+  private def timeToLive: Duration = timeToLiveInMinutes.minutes
 
-  private val cache: Cache[Validation[V2Error,Organization]] = spray.caching.LruCache(timeToLive = timeToLive)
+  private val cache: Cache[Validation[V2Error, Organization]] = spray.caching.LruCache(timeToLive = timeToLive)
 
   override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = {
 
@@ -33,7 +32,8 @@ trait CachingTokenService extends TokenService{
       underlying.orgForToken(token)
     }
 
-    Await.result(cache(token){ callUnderlying }, 5.seconds)
+    Await.result(cache(token) { callUnderlying }, 5.seconds)
   }
 
+  def flush = cache.clear()
 }

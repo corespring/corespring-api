@@ -32,6 +32,4 @@ GET  /collections/:collectionId                       @org.corespring.v2.api.V1C
 
 GET  /collections                                     @org.corespring.v2.api.V1CollectionApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
-
-
-
+GET  /internal/flush-caches                           @org.corespring.v2.api.Utils.flushCaches

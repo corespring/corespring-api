@@ -21,7 +21,6 @@ import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
 import play.api.mvc.{ AnyContent, Action }
 import play.api.{ Configuration, Logger, Mode, Play }
 
-
 /**
  * The wiring together of the app. One of the few places where using `object` is acceptable.
  */
@@ -61,22 +60,23 @@ object AppWiring {
     integration.outcomeProcessor,
     integration.scoreProcessor,
     v1ItemApiProxy,
-    v1CollectionApiProxy)
+    v1CollectionApiProxy,
+    integration.tokenService,
+    integration.orgEncryptionService)
 
   lazy val itemImportBootstrap = new ItemImportBootstrap(
     integration.itemAuth,
     integration.requestIdentifiers.userSession,
     integration.orgService,
-    AppConfig
-  )
+    AppConfig)
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
     val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
       .getOrElse {
-      Play.current.mode == Mode.Prod
-    }
+        Play.current.mode == Mode.Prod
+      }
 
     val out = new FileComponentLoader(path, showReleasedOnlyComponents)
     out.reload
