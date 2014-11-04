@@ -48,7 +48,7 @@ private[v2] object Errors {
 
   case class expiredToken(rh: RequestHeader) extends identificationFailed(rh, "Expired access token")
 
-  case class noOrgForToken(rh: RequestHeader) extends identificationFailed(rh, "No organization for access token")
+  case class noOrgForToken(rh: RequestHeader) extends identificationFailed(rh, s"No organization for access token ${rh.getQueryString("access_token")}")
 
   case class noDefaultCollection(orgId: ObjectId) extends V2Error(s"No default collection defined for org ${orgId}")
 

@@ -65,7 +65,7 @@ trait ItemSessionApi extends V2Api {
       sessionCreatedForItem(itemId)
 
       val result: Validation[V2Error, JsValue] = for {
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         canCreate <- sessionAuth.canCreate(itemId.toString)(identity)
         json <- Success(createSessionJson(itemId))
         sessionId <- if (canCreate)
@@ -106,7 +106,7 @@ trait ItemSessionApi extends V2Api {
     Future {
       validationToResult[(SessionAuth.Session, PlayerDefinition)](tuple => Ok(mapSessionJson(tuple._1.as[JsObject]))) {
         for {
-          identity <- getOrgIdAndOptions(request)
+          identity <- getOrgAndOptions(request)
           session <- sessionAuth.loadForRead(sessionId)(identity)
         } yield session
       }
@@ -129,7 +129,7 @@ trait ItemSessionApi extends V2Api {
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         sessionAndPlayerDef <- sessionAuth.loadForWrite(sessionId)(identity)
         session <- Success(sessionAndPlayerDef._1)
         playerDef <- Success(sessionAndPlayerDef._2)

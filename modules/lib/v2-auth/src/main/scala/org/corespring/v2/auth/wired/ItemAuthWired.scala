@@ -27,7 +27,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
   override def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
 
-    def write(orgId: ObjectId, collectionId: ObjectId) = {
+    def canWrite(orgId: ObjectId, collectionId: ObjectId) = {
       if (orgService.canAccessCollection(orgId, collectionId, Permission.Write)) {
         Success(true)
       } else {
@@ -35,7 +35,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
       }
     }
 
-    write(identity.orgId, new ObjectId(collectionId))
+    canWrite(identity.org.id, new ObjectId(collectionId))
   }
 
   override def loadForRead(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = canWithPermission(itemId, Permission.Read)
@@ -45,16 +45,15 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
   private def canWithPermission(itemId: String, p: Permission)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = {
     logger.trace(s"can ${p.name} to $itemId")
 
-    def canAccess(collectionId: String) = orgService.canAccessCollection(identity.orgId, new ObjectId(collectionId), p)
+    def canAccess(collectionId: String) = orgService.canAccessCollection(identity.org.id, new ObjectId(collectionId), p)
 
     for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
-      org <- orgService.findOneById(identity.orgId).toSuccess(cantFindOrgWithId(identity.orgId))
       canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
         Success(true)
       else
-        Failure(orgCantAccessCollection(identity.orgId, item.collectionId.getOrElse("?"), p.name))
+        Failure(orgCantAccessCollection(identity.org.id, item.collectionId.getOrElse("?"), p.name))
       permissionAccess <- hasPermissions(itemId, identity.opts)
     } yield {
       logger.trace(s"orgCanAccessItem: $canAccess")

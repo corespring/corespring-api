@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
@@ -38,9 +39,10 @@ class LoadPlayerTest
         Right(sessionId)
       }
 
+      override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
+
       override def loadItem(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
 
-      override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]
@@ -50,6 +52,8 @@ class LoadPlayerTest
     override def itemPreProcessor: PlayerItemPreProcessor = ???
 
     override def mode: Mode = Mode.Test
+
+    override def playerConfig: V2PlayerConfig = ???
   }
 
   def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {

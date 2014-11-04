@@ -30,11 +30,11 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = {
     val (accessSettings, maybeWarning) = toAccessSettings(org.id, rh)
-    OrgAndOpts(org.id, accessSettings, AuthMode.ClientIdAndPlayerToken, Some(org), maybeWarning.toSeq)
+    OrgAndOpts(org, accessSettings, AuthMode.ClientIdAndPlayerToken, maybeWarning.toSeq)
   }
 
   /** for a given apiClient return the org Id */
-  def clientIdToOrgId(apiClientId: String): Option[ObjectId]
+  def clientIdToOrg(apiClientId: String): Option[Organization]
 
   /**
    * read the player token from the request header
@@ -56,7 +56,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     }
   }
 
-  override def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId] = {
+  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = {
     logger.trace(s"function=headerToOrgId path=${rh.path}")
 
     if (rh.getQueryString("apiClientId").isDefined) {
@@ -68,10 +68,10 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
       val out = for {
         apiClientId <- maybeClientId
-        orgId <- clientIdToOrgId(apiClientId)
+        org <- clientIdToOrg(apiClientId)
       } yield {
-        logger.trace(s"function=headerToOrgId orgId=$orgId ${Keys.apiClient}=$apiClientId")
-        orgId
+        logger.trace(s"function=headerToOrg org=${org.id} orgName=${org.name} ${Keys.apiClient}=$apiClientId")
+        org
       }
       out.map(Success(_)).getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
     }

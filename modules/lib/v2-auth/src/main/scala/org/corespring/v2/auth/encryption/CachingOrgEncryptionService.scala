@@ -36,5 +36,7 @@ class CachingOrgEncryptionService(underlying: OrgEncryptionService, timeToLive: 
     }
     Await.result(f, 3.seconds)
   }
+
+  def flush = decryptionCache.clear
 }
 

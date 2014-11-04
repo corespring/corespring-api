@@ -24,8 +24,9 @@ class ItemImportController(converter: ItemFileConverter,
 
   def upload() = Action(parse.multipartFormData) { request =>
 
-    (request.body.file("file"), getOrgIdAndOptions(request).map(_.orgId).map(orgService.org(_)
-        .map(orgService.defaultCollection(_)))) match {
+    def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
+
+    (request.body.file("file"), defaultCollection) match {
       case (Some(upload), Success(Some(collectionId))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
@@ -41,6 +42,6 @@ class ItemImportController(converter: ItemFileConverter,
     }
   }
 
-  override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
 
 }

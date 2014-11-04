@@ -7,5 +7,5 @@ import play.api.mvc.RequestHeader
 import scalaz.Validation
 
 trait LoadOrgAndOptions {
-  def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts]
+  def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts]
 }

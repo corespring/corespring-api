@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.corespring.v2.api.services.ScoreService
-import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings, OrgAndOpts }
+import org.corespring.v2.auth.models.{MockFactory, AuthMode, PlayerAccessSettings, OrgAndOpts}
 
 import scala.concurrent.ExecutionContext
 
@@ -23,7 +23,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 import play.api.test.Helpers._
 import scalaz.{ Failure, Success, Validation }
 
-class ItemApiTest extends Specification with Mockito {
+class ItemApiTest extends Specification with Mockito with MockFactory{
 
   /**
    * We should not need to run the app for a unit test.
@@ -62,7 +62,7 @@ class ItemApiTest extends Specification with Mockito {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
 
       override def scoreService: ScoreService = {
         val m = mock[ScoreService]
@@ -103,7 +103,7 @@ class ItemApiTest extends Specification with Mockito {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
     }
   }
 
@@ -165,7 +165,7 @@ class ItemApiTest extends Specification with Mockito {
       case class checkScoreScope(
         orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(
           OrgAndOpts(
-            ObjectId.get,
+            mockOrg,
             PlayerAccessSettings.ANYTHING,
             AuthMode.AccessToken)),
         loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
@@ -191,7 +191,7 @@ class ItemApiTest extends Specification with Mockito {
 
           override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-          override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+          override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
           override def transform: (Item, Option[String]) => JsValue = (i, s) => Json.obj()
         }

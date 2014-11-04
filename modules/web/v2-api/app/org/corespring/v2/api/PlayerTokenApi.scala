@@ -3,6 +3,11 @@ package org.corespring.v2.api
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.errors.Errors.noJson
 import org.corespring.v2.errors.V2Error
+import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, EncryptionSuccess, OrgEncrypter }
+import org.corespring.platform.core.models.Organization
+import org.corespring.v2.auth.models.PlayerAccessSettings
+import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed, generalError, noJson }
+import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json._
 import play.api.mvc.Action
@@ -16,6 +21,8 @@ trait PlayerTokenApi extends V2Api {
   private lazy val logger = V2LoggerFactory.getLogger("PlayerTokenApi")
 
   def tokenService: PlayerTokenService
+
+  def encryptionFailedError(org:Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
 
   /**
    * Creates a player token.
@@ -32,9 +39,9 @@ trait PlayerTokenApi extends V2Api {
 
     Future {
       val out: Validation[V2Error, CreateTokenResult] = for {
-        identity <- getOrgIdAndOptions(request)
+        identity <- getOrgAndOptions(request)
         json <- request.body.asJson.toSuccess(noJson)
-        result <- tokenService.createToken(identity.orgId, json)
+        result <- tokenService.createToken(identity.org.id, json)
       } yield result
 
       validationToResult[CreateTokenResult] {
