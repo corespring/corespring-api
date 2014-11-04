@@ -45,13 +45,13 @@ trait ExternalModelLaunchApi extends V2Api {
       }
 
       val out: Validation[V2Error, LaunchInfo] = for {
-        orgAndOpts <- getOrgIdAndOptions(request)
+        orgAndOpts <- getOrgAndOptions(request)
         externalJson <- request.body.asJson.toSuccess(noJson)
         model <- (externalJson \ "model").asOpt[JsObject].toSuccess(missingRequiredField(Field("model", "object")))
-        sessionId <- sessionService.createExternalModelSession(orgAndOpts.orgId, model).toSuccess(generalError("Error creating session"))
+        sessionId <- sessionService.createExternalModelSession(orgAndOpts.org.id, model).toSuccess(generalError("Error creating session"))
         accessSettings <- (externalJson \ "accessSettings").asOpt[JsObject].toSuccess(missingRequiredField(Field("accessSettings", "object")))
         settingsWithDefaults <- addDefaults(accessSettings, sessionId)
-        tokenResult <- tokenService.createToken(orgAndOpts.orgId, settingsWithDefaults)
+        tokenResult <- tokenService.createToken(orgAndOpts.org.id, settingsWithDefaults)
       } yield {
         val url = s"$playerJsUrl?apiClient=${tokenResult.apiClient}&playerToken=${tokenResult.token}"
         LaunchInfo(sessionId.toString, tokenResult.token, tokenResult.apiClient, url, tokenResult.settings)

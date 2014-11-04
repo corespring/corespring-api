@@ -6,29 +6,28 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.OrgEncrypter
+import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.platform.core.models.auth.AccessTokenService
+import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ PlayerTokenService, ItemPermissionService, PermissionService, SessionPermissionService }
-import org.corespring.v2.api.services._
+import org.corespring.v2.api.services.{ItemPermissionService, PermissionService, PlayerTokenService, SessionPermissionService, _}
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.services.{OrgService, TokenService}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ Json, JsObject, JsValue }
+import play.api.libs.concurrent.Akka
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Validation
 
 /**
  * Wires up the dependencies for v2 api, so that the controllers will run in the application.
@@ -48,7 +47,9 @@ class Bootstrap(
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val outcomeProcessor: OutcomeProcessor,
   val scoreProcessor: ScoreProcessor,
-  val playerJsUrl: String) {
+  val playerJsUrl: String,
+  val tokenService: TokenService,
+  val orgEncryptionService: OrgEncryptionService) {
 
   private val scoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)
 
@@ -63,24 +64,17 @@ class Bootstrap(
     override def org(id: ObjectId): Option[Organization] = v1OrgService.findOneById(id)
   }
 
-  protected val tokenService = new TokenService {
-
-    implicit class RichBoolean(val b: Boolean) {
-      def toOption[A](a: => A): Option[A] = if (b) Some(a) else None
-    }
-
-    override def orgForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, Organization] = for {
-      accessToken <- AccessToken.findByToken(token).toSuccess(invalidToken(rh))
-      unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(rh)) else Success(accessToken)
-      org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
-    } yield org
-  }
-
   protected val itemPermissionService: PermissionService[Organization, Item] = new ItemPermissionService {
     override def organizationService: OrganizationService = Bootstrap.this.v1OrgService
   }
 
   protected val sessionPermissionService: PermissionService[Organization, JsValue] = new SessionPermissionService {
+
+  }
+
+  private object ExecutionContexts {
+    import play.api.Play.current
+    val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
 
   }
 
@@ -91,7 +85,7 @@ class Bootstrap(
 
     override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -100,21 +94,8 @@ class Bootstrap(
     override def itemAuth: ItemAuth[OrgAndOpts] = Bootstrap.this.itemAuth
 
     override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = {
-
-      val out: Validation[V2Error, String] = for {
-        org <- orgService.org(identity.orgId).toSuccess(cantFindOrgWithId(identity.orgId))
-        dc <- orgService.defaultCollection(org).map(_.toString()).toSuccess(noDefaultCollection(identity.orgId))
-      } yield {
-        dc
-      }
-
-      out match {
-        case Failure(msg) =>
-          logger.trace(s"Error getting default collection: $msg")
-          None
-        case Success(id) =>
-          Some(id)
-      }
+      val collection = orgService.defaultCollection(identity.org).map(_.toString()).toSuccess(noDefaultCollection(identity.org.id))
+      collection.toOption
     }
   }
 
@@ -122,9 +103,9 @@ class Bootstrap(
 
     override def scoreService: ScoreService = Bootstrap.this.scoreService
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
-    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
 
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = Bootstrap.this.sessionAuth
 
@@ -141,7 +122,7 @@ class Bootstrap(
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override def tokenService: PlayerTokenService = Bootstrap.this.playerTokenService
   }
@@ -163,16 +144,26 @@ class Bootstrap(
 
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-    override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
     override def playerJsUrl: String = Bootstrap.this.playerJsUrl
+  }
+
+
+  lazy val utils = new Utils {
+    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+    override def tokenService: TokenService = Bootstrap.this.tokenService
+
+    override def orgEncryptionService: OrgEncryptionService = Bootstrap.this.orgEncryptionService
   }
 
   lazy val controllers: Seq[Controller] = Seq(
     itemApi,
     itemSessionApi,
     playerTokenApi,
-    externalModelLaunchApi,
     v1ItemApiProxy,
-    v1CollectionApiProxy)
+    v1CollectionApiProxy,
+    externalModelLaunchApi,
+    utils)
 }

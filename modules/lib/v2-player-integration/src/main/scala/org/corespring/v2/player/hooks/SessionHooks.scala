@@ -49,7 +49,7 @@ trait SessionHooks
     logger.trace(s"save $id")
 
     val out = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForWrite(id)(identity)
       saveFn <- auth.saveSession(identity)
     } yield {
@@ -61,7 +61,7 @@ trait SessionHooks
 
   private def buildSession[A](id: String, make: (JsValue, JsValue, OrgAndOpts) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
     val out = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForRead(id)(identity)
     } yield {
       val (session, playerDefinition) = models

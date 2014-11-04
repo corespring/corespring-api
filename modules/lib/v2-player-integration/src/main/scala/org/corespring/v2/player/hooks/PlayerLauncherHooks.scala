@@ -27,8 +27,8 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOp
   private def load(implicit header: RequestHeader): Future[PlayerJs] = Future {
 
     logger.trace(s"load js...")
-    getOrgIdAndOptions(header) match {
-      case Success(OrgAndOpts(orgId, opts, _, _, warnings)) => {
+    getOrgAndOptions(header) match {
+      case Success(OrgAndOpts(_, opts, _, warnings)) => {
         PlayerJs(
           opts.secure,
           header.session,

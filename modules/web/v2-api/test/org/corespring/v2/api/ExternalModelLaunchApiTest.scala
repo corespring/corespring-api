@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.specs2.mock.Mockito
@@ -18,10 +18,10 @@ import scalaz.{ Failure, Success, Validation }
 class ExternalModelLaunchApiTest
   extends Specification
   with PlaySpecification
-  with Mockito {
+  with Mockito with MockFactory {
 
   case class apiScope(
-    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
+    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
     expectedError: Option[V2Error] = None) extends Scope {
@@ -41,7 +41,7 @@ class ExternalModelLaunchApiTest
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
       override def playerJsUrl: String = "/v2/player/player.js"
     }

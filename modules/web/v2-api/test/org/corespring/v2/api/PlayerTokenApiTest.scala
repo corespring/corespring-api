@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.errors.Errors.{ generalError, noJson }
 import org.specs2.mock.Mockito
@@ -16,9 +16,8 @@ import play.api.test.{ FakeHeaders, FakeRequest, PlaySpecification }
 import scalaz.{ Failure, Success, Validation }
 
 class PlayerTokenApiTest extends Specification
-  with Mockito with PlaySpecification {
+  with Mockito with PlaySpecification with MockFactory {
 
-  val mockOrgId = ObjectId.get
 
   class playerScope(
     val createTokenResult: Validation[V2Error, CreateTokenResult] = Failure(generalError("Create token failure")),
@@ -33,7 +32,7 @@ class PlayerTokenApiTest extends Specification
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
         orgAndOptsResult
       }
     }
@@ -49,14 +48,14 @@ class PlayerTokenApiTest extends Specification
       }
 
       "fail to create if there is no json in the request body" in new playerScope(
-        orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
+        orgAndOptsResult = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
         val result = api.createPlayerToken()(FakeRequest("", ""))
         status(result) === BAD_REQUEST
         (contentAsJson(result) \ "message").as[String] ==== noJson.message
       }
 
       "fail to create if create token fails" in new playerScope(
-        orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
+        orgAndOptsResult = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken))) {
         val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj("expires" -> 0))))
         val error = createTokenResult.toEither.left.get
         status(result) === error.statusCode
@@ -67,7 +66,7 @@ class PlayerTokenApiTest extends Specification
     "with a valid request" should {
 
       class withJsonPlayerScope(json: JsValue) extends playerScope(
-        orgAndOptsResult = Success(OrgAndOpts(mockOrgId, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
+        orgAndOptsResult = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.ClientIdAndPlayerToken)),
         createTokenResult = Success(CreateTokenResult("clientid", "encrypted", Json.obj("test-success" -> true)))) {
         lazy val result = api.createPlayerToken()(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(json)))
         status(result) === OK

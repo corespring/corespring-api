@@ -16,18 +16,21 @@ import scalaz.{ Failure, Success }
 
 class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
 
-  val orgId = ObjectId.get
+  val org = {
+    val m = mock[Organization]
+    m.id returns ObjectId.get
+    m
+  }
+
   val identifier = new PlayerTokenInQueryStringIdentity {
-    override def clientIdToOrgId(apiClientId: String): Option[ObjectId] = Some(orgId)
+    override def clientIdToOrg(apiClientId: String): Option[Organization] = Some(org)
 
     override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = Some(encrypted)
 
     override def orgService: OrgService = {
       val m = mock[OrgService]
-      val mockOrg = mock[Organization]
-      mockOrg.id returns orgId
       m.defaultCollection(any[Organization]) returns Some(ObjectId.get)
-      m.org(any[ObjectId]) returns Some(mockOrg)
+      m.org(any[ObjectId]) returns Some(org)
       m
     }
   }
@@ -35,7 +38,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
   "building identity" should {
 
     s"return a bad param name error" in {
-      identifier.headerToOrgId(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
+      identifier.headerToOrg(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
     }
 
     "return no apiClientAndPlayerToken error" in {
@@ -43,13 +46,13 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     }
 
     "return a warning if 'options' is used as a queryString param" in {
-      import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
+      import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
       val jsonSettings = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
       val request = FakeRequest("GET", s"""?$apiClient=1&$options=${jsonSettings}""")
       val result = identifier.apply(request)
 
       result match {
-        case Success(OrgAndOpts(_, _, _, _, warnings)) => {
+        case Success(OrgAndOpts(_, _, _, warnings)) => {
           warnings(0) === deprecatedQueryStringParameter(options, playerToken)
         }
         case _ => failure("didn't find warning")
@@ -57,15 +60,15 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     }
 
     "return success with no warnings" in {
-      import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
+      import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
       val jsonSettings = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
       val request = FakeRequest("GET", s"""?$apiClient=1&$playerToken=${jsonSettings}""")
       val result = identifier.apply(request)
 
       result match {
-        case Success(OrgAndOpts(orgId, _, _, _, warnings)) => {
+        case Success(OrgAndOpts(org, _, _, warnings)) => {
           warnings.length === 0
-          orgId === this.orgId
+          org === this.org
         }
         case _ => failure("didn't find warning")
       }
