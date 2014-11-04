@@ -313,7 +313,7 @@ object Build extends sbt.Build {
         MongoDbSeederPlugin.logLevel := "INFO",
         testUri := "mongodb://localhost/api",
         testPaths := "conf/seed-data/test,conf/seed-data/static",
-        devUri := System.getenv("ENV_MONGO_URI"),
+        devUri := getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api"),
         devPaths := pathsForSeedingDev,
         prodUri := System.getenv("ENV_MONGO_URI"),
         prodPaths := pathsForSeedingProd,
