@@ -243,6 +243,44 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
+  val prodUri = SettingKey[String]("prod-uri")
+  val prodPaths = SettingKey[String]("prod-paths")
+
+  val devDataPaths = Seq(
+    "conf/seed-data/common",
+    "conf/seed-data/dev",
+    "conf/seed-data/exemplar-content")
+
+  val demoDataPaths = Seq(
+    "conf/seed-data/demo",
+    "conf/seed-data/sample")
+
+  val staticDataPaths = Seq(
+    "conf/seed-data/static" )
+
+  val debugDataPaths = Seq(
+    "conf/seed-data/debug" )
+
+  val initData = System.getenv("INIT_DATA") == null || System.getenv("INIT_DATA") == "true"
+
+  val pathsForSeedingDev = {
+    val paths = if(initData){
+      devDataPaths ++ debugDataPaths ++ demoDataPaths ++ staticDataPaths
+    } else {
+      staticDataPaths
+    }
+    paths.mkString(",")
+  }
+
+  val pathsForSeedingProd = {
+    val paths = if(initData){
+      devDataPaths ++ demoDataPaths ++ staticDataPaths
+    } else {
+      staticDataPaths
+    }
+    paths.mkString(",")
+  }
+
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
@@ -255,7 +293,16 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
+        MongoDbSeederPlugin.logLevel := "INFO",
+        testUri := "mongodb://localhost/api",
+        testPaths := "conf/seed-data/test,conf/seed-data/static",
+        devUri := "mongodb://localhost/api",
+        devPaths := pathsForSeedingDev,
+        prodUri := System.getenv("ENV_MONGO_URI"),
+        prodPaths := pathsForSeedingProd,
+        seedProdTask <<= (prodUri, prodPaths, name, MongoDbSeederPlugin.logLevel ) map(MongoDbSeederPlugin.seed),
+        unSeedProdTask <<= (prodUri, prodPaths, name, MongoDbSeederPlugin.logLevel) map(MongoDbSeederPlugin.unseed)): _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
