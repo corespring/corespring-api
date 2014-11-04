@@ -21,6 +21,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import play.api.libs.concurrent.Akka
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -70,6 +71,12 @@ class Bootstrap(
 
   }
 
+  private object ExecutionContexts {
+    import play.api.Play.current
+    val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
+
+  }
+
   private lazy val itemApi = new ItemApi {
 
     override def scoreService: ScoreService = Bootstrap.this.scoreService
@@ -97,7 +104,7 @@ class Bootstrap(
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
-    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
 
     override def sessionAuth: SessionAuth[OrgAndOpts] = Bootstrap.this.sessionAuth
 
