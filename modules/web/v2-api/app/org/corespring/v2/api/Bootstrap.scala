@@ -73,7 +73,7 @@ class Bootstrap(
 
   private object ExecutionContexts {
     import play.api.Play.current
-    val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.item-session-api.main")
+    val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
 
   }
 
