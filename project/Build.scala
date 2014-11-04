@@ -17,6 +17,11 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
+  def getEnv(prop:String):Option[String] = {
+    val env = System.getenv(prop)
+    if(env == null) None else Some(env)
+  }
+
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
     publishArtifact in (Compile, packageDoc) := false,
@@ -25,8 +30,8 @@ object Build extends sbt.Build {
     sources in doc in Compile := List())
 
   val cred = {
-    val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
-    val path = if (envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2" / ".credentials").mkString
+    val envCredentialsPath = getEnv("CREDENTIALS_PATH")
+    val path = envCredentialsPath.getOrElse(Seq(Path.userHome / ".ivy2" / ".credentials").mkString)
     val f: File = file(path)
     println("[credentials] check file: : " + f.getAbsolutePath)
     if (f.exists()) {
@@ -261,10 +266,21 @@ object Build extends sbt.Build {
   val debugDataPaths = Seq(
     "conf/seed-data/debug" )
 
-  val initData = System.getenv("INIT_DATA") == null || System.getenv("INIT_DATA") == "true"
+  val initData = getEnv("INIT_DATA").getOrElse("true") == "true"
+
+  // Safe Mongo URI for seeding
+  // For our CI Example app we seed a remote db - normally this isn't allowed (to prevent developers mistakenly seeding a valid db).
+  // However for this server we do want to seed
+  val isSafeForSeeding = {
+    val safeMongoUri = "mongodb://corespring:baker@ds049467.mongolab.com:49467/corespring-ci"
+
+    getEnv("ENV_MONGO_URI").map{
+      u => u.contains("localhost") || u.contains("127.0.0.1") || u == safeMongoUri
+    }.getOrElse(false)
+  }
 
   val pathsForSeedingDev = {
-    val paths = if(initData){
+    val paths = if(initData && isSafeForSeeding){
       devDataPaths ++ debugDataPaths ++ demoDataPaths ++ staticDataPaths
     } else {
       staticDataPaths
@@ -297,7 +313,7 @@ object Build extends sbt.Build {
         MongoDbSeederPlugin.logLevel := "INFO",
         testUri := "mongodb://localhost/api",
         testPaths := "conf/seed-data/test,conf/seed-data/static",
-        devUri := "mongodb://localhost/api",
+        devUri := System.getenv("ENV_MONGO_URI"),
         devPaths := pathsForSeedingDev,
         prodUri := System.getenv("ENV_MONGO_URI"),
         prodPaths := pathsForSeedingProd,
