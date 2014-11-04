@@ -6,29 +6,28 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.{ OrgEncryptionService, OrgEncrypter }
+import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ AccessToken, AccessTokenService }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.platform.core.models.auth.AccessTokenService
+import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.UserService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ PlayerTokenService, ItemPermissionService, PermissionService, SessionPermissionService }
-import org.corespring.v2.api.services._
+import org.corespring.v2.api.services.{ItemPermissionService, PermissionService, PlayerTokenService, SessionPermissionService, _}
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.services.{OrgService, TokenService}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ Json, JsObject, JsValue }
+import play.api.libs.concurrent.Akka
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Validation
 
 /**
  * Wires up the dependencies for v2 api, so that the controllers will run in the application.
@@ -73,6 +72,10 @@ class Bootstrap(
 
   }
 
+  private object Contexts {
+    val dbOperations: ExecutionContext = Akka.system.dispatchers.lookup("db-operations")
+  }
+
   private lazy val itemApi = new ItemApi {
 
     override def scoreService: ScoreService = Bootstrap.this.scoreService
@@ -100,7 +103,7 @@ class Bootstrap(
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
-    override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+    override implicit def ec: ExecutionContext = Contexts.dbOperations
 
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = Bootstrap.this.sessionAuth
 
