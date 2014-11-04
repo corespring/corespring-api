@@ -72,8 +72,10 @@ class Bootstrap(
 
   }
 
-  private object Contexts {
-    val dbOperations: ExecutionContext = Akka.system.dispatchers.lookup("db-operations")
+  private object ExecutionContexts {
+    import play.api.Play.current
+    val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.item-session-api.main")
+
   }
 
   private lazy val itemApi = new ItemApi {
@@ -103,7 +105,7 @@ class Bootstrap(
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
-    override implicit def ec: ExecutionContext = Contexts.dbOperations
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
 
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = Bootstrap.this.sessionAuth
 
