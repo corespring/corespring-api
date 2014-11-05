@@ -3,11 +3,11 @@ import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import filters.{AccessControlFilter, AjaxFilter, Headers, IEHeaders}
 import org.bson.types.ObjectId
-import org.corespring.api.tracking.LogRequest
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
+import org.corespring.wiring.AppWiring
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api._
 import play.api.http.ContentTypes
@@ -27,20 +27,15 @@ object Global
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  import org.corespring.wiring.AppWiring._
 
-  def controllers: Seq[Controller] = integration.controllers ++ v2ApiBootstrap.controllers ++ itemImportBootstrap.controllers
+  def controllers: Seq[Controller] = AppWiring.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        import org.corespring.wiring.apiTracking.ApiTrackingWiring._
-
-        if (logRequests && isLoggable(request.path)) {
-          apiTracker ! LogRequest(request)
-        }
+        AppWiring.apiTracking.handleRequest(request)
         super.onRouteRequest(request)
       }
     }
@@ -76,17 +71,17 @@ object Global
 
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
 
-      if (componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
+      if (AppWiring.componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
         logger.info("reload components!")
-        componentLoader.reload
+        AppWiring.componentLoader.reload
 
-        if (componentLoader.all.length == 0) {
+        if (AppWiring.componentLoader.all.length == 0) {
           throw new RuntimeException("No components loaded - check your component path configuration: 'components.path'")
         }
       }
     }
 
-    integration.validate match {
+    AppWiring.validate match {
       case Left(err) => throw new RuntimeException(err)
       case Right(_) => Unit
     }
