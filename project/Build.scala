@@ -144,7 +144,10 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(casbah),
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "DEBUG", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
+      MongoDbSeederPlugin.logLevel := "DEBUG",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -247,7 +250,7 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
-  def safeSeed(paths: String, name: String, logLevel: String, s:TaskStreams): Unit = {
+  def safeSeed(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
     s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed")
     val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
@@ -290,7 +293,7 @@ object Build extends sbt.Build {
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {
-    ( seedDevData.value,
+    (seedDevData.value,
       seedDemoData.value,
       seedDebugData.value,
       seedStaticData.value)
