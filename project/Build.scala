@@ -247,15 +247,16 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
-  def safeSeed(paths: String, name: String, logLevel: String): Unit = {
+  def safeSeed(paths: String, name: String, logLevel: String, s:TaskStreams): Unit = {
     val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
+    s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed")
     val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
     val host = new URI(uri).getHost.toLowerCase
     if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
       MongoDbSeederPlugin.seed(uri, paths, name, logLevel)
-      println("seeding successful")
+      s.log.info(s"[safeSeed] $paths - seeding successful")
     } else {
-      println("Error seeding remote db. Add -Dallow.remote.seeding=true if you really want to seed a remote db.")
+      s.log.error(s"[safeSeed] $paths  - Error seeding remote db. Add -Dallow.remote.seeding=true if you really want to seed a remote db.")
     }
   }
 
@@ -276,16 +277,16 @@ object Build extends sbt.Build {
     staticData := "conf/seed-data/static")
 
   val seedDevData = TaskKey[Unit]("seed-dev-data")
-  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed //{(a:String,b:String,c:String,s: TaskStreams) => s.log.info("!!!")}
 
   val seedDemoData = TaskKey[Unit]("seed-demo-data")
-  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map (safeSeed)
 
   val seedDebugData = TaskKey[Unit]("seed-debug-data")
-  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel, streams) map (safeSeed)
 
   val seedStaticData = TaskKey[Unit]("seed-static-data")
-  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel, streams) map (safeSeed)
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {
