@@ -248,7 +248,7 @@ object Build extends sbt.Build {
     })
 
   def safeSeed(paths: String, name: String, logLevel: String, s:TaskStreams): Unit = {
-    val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
+    lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
     s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed")
     val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
     val host = new URI(uri).getHost.toLowerCase
@@ -256,7 +256,7 @@ object Build extends sbt.Build {
       MongoDbSeederPlugin.seed(uri, paths, name, logLevel)
       s.log.info(s"[safeSeed] $paths - seeding successful")
     } else {
-      s.log.error(s"[safeSeed] $paths  - Error seeding remote db. Add -Dallow.remote.seeding=true if you really want to seed a remote db.")
+      s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
     }
   }
 
@@ -290,7 +290,7 @@ object Build extends sbt.Build {
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {
-    (seedDevData.value,
+    ( seedDevData.value,
       seedDemoData.value,
       seedDebugData.value,
       seedStaticData.value)
