@@ -1,26 +1,23 @@
-import java.lang.management.ManagementFactory
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
-
 import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import common.seed.SeedDb._
-import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
+import filters.{AccessControlFilter, AjaxFilter, Headers, IEHeaders}
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
-import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
 import org.corespring.wiring.AppWiring
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api._
 import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.Json
-import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.mvc._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
@@ -30,7 +27,6 @@ object Global
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val INIT_DATA: String = "INIT_DATA"
 
   def controllers: Seq[Controller] = AppWiring.controllers
 
@@ -73,9 +69,6 @@ object Global
 
   override def onStart(app: Application): Unit = {
 
-    logMemory()
-    logEnv()
-
     CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
 
       if (AppWiring.componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
@@ -97,71 +90,6 @@ object Global
 
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
-
-    val initData: Boolean = app.configuration.getBoolean(INIT_DATA).getOrElse(false)
-
-    logger.debug(s"Init Data: $initData :: ${app.configuration.getBoolean(INIT_DATA)}")
-
-    def onlyIfLocalDb(fns: (() => Unit)*) {
-      if (isSafeToSeedDb(app))
-        fns.foreach(fn => fn())
-      else
-        throw new RuntimeException("You're trying to seed against a remote db - bad idea")
-    }
-
-    logger.debug(s"App mode: ${app.mode}")
-
-    app.mode match {
-
-      case Mode.Test => {
-        seedStaticData()
-      }
-      case Mode.Dev => {
-        if (initData) {
-          onlyIfLocalDb(emptyData, seedDevData, seedDebugData, seedDemoData)
-        }
-        seedStaticData()
-      }
-      case Mode.Prod => {
-        if (initData) {
-          emptyData()
-          seedDevData()
-        }
-        seedStaticData()
-        seedDemoData()
-      }
-    }
-
-  }
-
-  private def logMemory() = {
-    val runtime = Runtime.getRuntime()
-    val megs = 1024 * 1024
-    var freeMemory = runtime.freeMemory() / megs
-    var totalMemory = runtime.totalMemory() / megs
-    var maxMemory = runtime.maxMemory() / megs
-    logger.info(s"memory max $maxMemory M total $totalMemory M free $freeMemory M")
-  }
-
-  private def logEnv() = {
-    val mxbean = ManagementFactory.getRuntimeMXBean()
-    val inputArguments = mxbean.getInputArguments
-    val systemProperties = mxbean.getSystemProperties
-    logger.info(s"inputArguments $inputArguments");
-    logger.info(s"systemProperties $systemProperties");
-  }
-
-  private def isSafeToSeedDb(implicit app: Application): Boolean = {
-    val uri = app.configuration.getString("mongodb.default.uri")
-
-    require(uri.isDefined, "the mongo uri isn't defined!")
-
-    def isSafeRemoteUri(uri: String): Boolean = {
-      val safeRemoteUri = app.configuration.getString("seed.db.safe.mongodb.uri")
-      safeRemoteUri.map(safeUri => uri == safeUri).getOrElse(false)
-    }
-
-    uri.map { u => u.contains("localhost") || u.contains("127.0.0.1") || isSafeRemoteUri(u) }.getOrElse(false)
   }
 
   private def timeLeftUntil2am = {
@@ -181,33 +109,5 @@ object Global
     Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
   }
 
-  /**
-   * Add demo data models to the the db to allow end users to be able to
-   * view the content as a demo.
-   * This involves:
-   * 1. adding a demo access token that is associated with a demo organization
-   * 2. adding a demo organiztion
-   *
-   * TODO: the demo orgs listed are hardcoded
-   */
-  private def seedDemoData() {
-    seedData("conf/seed-data/demo")
-    seedData("conf/seed-data/sample")
-  }
-
-  /* Data that needs to get seeded regardless of the INIT_DATA setting */
-  private def seedStaticData() {
-    emptyStaticData()
-    seedData("conf/seed-data/static")
-  }
-
-  private def seedDevData() {
-    seedData("conf/seed-data/common", "conf/seed-data/dev", "conf/seed-data/exemplar-content")
-  }
-
-  private def seedDebugData() {
-    //do not call emptyData() as it expects to be called after seedDevData
-    seedData("conf/seed-data/debug")
-  }
 
 }
