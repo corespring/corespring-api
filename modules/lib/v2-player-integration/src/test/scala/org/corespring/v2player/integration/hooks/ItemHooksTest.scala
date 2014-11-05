@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
@@ -64,7 +65,14 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
-      override def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+      lazy val org = {
+        val m = mock[Organization]
+        m.id returns ObjectId.get
+        m.name returns "mock org"
+        m
+      }
+
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
     }
   }
 

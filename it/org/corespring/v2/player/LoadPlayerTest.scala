@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
@@ -50,6 +51,8 @@ class LoadPlayerTest
     override def itemPreProcessor: PlayerItemPreProcessor = ???
 
     override def mode: Mode = Mode.Test
+
+    override def playerConfig: V2PlayerConfig = ???
   }
 
   def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {

@@ -34,7 +34,7 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
   override def delete(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
 
     val out = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       item <- auth.loadForWrite(itemId)(identity)
     } yield item
 
@@ -49,7 +49,7 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
 
   private def canUpload(itemId: String)(rh: RequestHeader): Option[SimpleResult] = {
     val result = for {
-      identity <- getOrgIdAndOptions(rh)
+      identity <- getOrgAndOptions(rh)
       item <- auth.loadForWrite(itemId)(identity)
     } yield item
 

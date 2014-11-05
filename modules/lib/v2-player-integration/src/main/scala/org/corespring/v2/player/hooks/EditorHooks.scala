@@ -37,7 +37,7 @@ trait EditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
     logger.trace(s"load item: $itemId")
 
     val result = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       item <- auth.loadForRead(itemId)(identity)
     } yield item
 
@@ -47,7 +47,7 @@ trait EditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
         logger.trace(s"can't load item: $itemId for writing - try to load for read and if successful return a SEE_OTHER")
 
         val readableResult = for {
-          identity <- getOrgIdAndOptions(header)
+          identity <- getOrgAndOptions(header)
           readableItem <- auth.loadForRead(itemId)(identity)
         } yield readableItem
 
