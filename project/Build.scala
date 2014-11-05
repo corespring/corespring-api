@@ -263,10 +263,8 @@ object Build extends sbt.Build {
   val demoData = SettingKey[String]("demo-data")
   val debugData = SettingKey[String]("debug-data")
   val staticData = SettingKey[String]("static-data")
-  val isRemoteSeedingAllowed = SettingKey[String]("is-remote-seeding-allowed")
 
   lazy val seederSettings = Seq(
-    isRemoteSeedingAllowed := System.getProperty("allow.remote.seeding", "false"),
     devData := Seq(
       "conf/seed-data/common",
       "conf/seed-data/dev",
