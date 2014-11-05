@@ -3,11 +3,9 @@ package developer.models
 import play.api.Play.current
 import org.bson.types.ObjectId
 import play.api.libs.json._
-import play.api.libs.json.JsString
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import org.joda.time.DateTime
-import org.corespring.platform.core.models.mongoContext.context
 
 case class RegistrationToken(var uuid: String = "",
   var email: String = "",
@@ -18,8 +16,9 @@ case class RegistrationToken(var uuid: String = "",
 
 object RegistrationToken extends ModelCompanion[RegistrationToken, ObjectId] {
 
-  val collection = mongoCollection("regtokens")
   import org.corespring.platform.core.models.mongoContext.context
+
+  val collection = mongoCollection("regtokens")
   val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
 
   val Id = "id"
