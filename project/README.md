@@ -32,14 +32,21 @@ The libraries and modules are located in the modules folder:
 
 * test-helpers - any shared helper libraries for any testing that needs to be done
 
-## Testing
+## Seeding
 
 Note: The seeding of the app is now part of the sbt build - It won't happen as part of the app start up. To seed before you test run:
-Note: Make sure that the app is using the same db as the MongoSeeder. At the moment MongoSeeder uses "api"   
 
     > seed-test
     > test
+    
+Other commands available are seed-dev and seed-prod. 
+Note: Make sure that the app is using the same db as the MongoSeeder. At the moment MongoSeeder uses "api"
 
+### Seeding a remote db
+By default you cannot seed a db other than localhost and 127.0.0.1. Add -Dallow.remote.seeding=true to override this. 
+      
+    > play -Dallow.remote.seeding=true seed-prod
+    
 
 ## Using the sbt command line
 * `project corespring-public` - set 'corespring-public' as the current build target this allows you to compile/test only this project
