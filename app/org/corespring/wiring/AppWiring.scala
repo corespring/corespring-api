@@ -2,24 +2,24 @@ package org.corespring.wiring
 
 import common.seed.SeedDb
 import org.bson.types.ObjectId
-import org.corespring.api.v1.{CollectionApi, ItemApi}
+import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
-import org.corespring.container.components.loader.{ComponentLoader, FileComponentLoader}
-import org.corespring.importing.{Bootstrap => ItemImportBootstrap}
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.AccessToken
-import org.corespring.platform.core.services.UserServiceWired
+import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.{Bootstrap => V2ApiBootstrap, V1CollectionApiProxy, V1ItemApiProxy}
-import org.corespring.v2.auth.identifiers.{OrgRequestIdentity, WithRequestIdentitySequence}
+import org.corespring.v2.api.services.BasicScoreService
+import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, V2ApiBootstrap }
+import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.player.V2PlayerIntegration
+import org.corespring.v2.player.{ CDNResolver, V2PlayerBootstrap }
+import org.corespring.v2.wiring.auth.RequestIdentifiers
+import org.corespring.v2.wiring.services.Services
+import org.corespring.web.common.views.helpers.Defaults
+import org.corespring.wiring.apiTracking.ApiTracking
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
-import play.api.{Configuration, Logger, Mode, Play}
-import play.api.mvc.{Action, AnyContent}
-import play.api.mvc.{ AnyContent, Action }
+import play.api.mvc.{ Controller, Action, AnyContent }
 import play.api.{ Configuration, Logger, Mode, Play }
 
 /**
@@ -31,7 +31,7 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
-  lazy val v1ItemApiProxy = new V1ItemApiProxy {
+  private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
     override def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent] = ItemApi.get
 
@@ -40,36 +40,44 @@ object AppWiring {
     override def listWithColl: (ObjectId, Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = ItemApi.listWithColl
   }
 
-  lazy val v1CollectionApiProxy = new V1CollectionApiProxy {
+  private lazy val v1CollectionApiProxy = new V1CollectionApiProxy {
 
     override def getCollection: (ObjectId) => Action[AnyContent] = CollectionApi.getCollection
 
     override def list: (Option[String], Option[String], String, Int, Int, Option[String]) => Action[AnyContent] = CollectionApi.list
   }
 
-  lazy val v2ApiBootstrap = new V2ApiBootstrap(
-    ItemServiceWired,
-    Organization,
-    AccessToken,
-    integration.mainSessionService,
-    UserServiceWired,
-    integration.secureSocialService,
-    integration.itemAuth,
-    integration.sessionAuth,
-    v2ApiRequestIdentity,
-    v1ItemApiProxy,
-    v1CollectionApiProxy,
-    Some((itemId : VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
-    integration.outcomeProcessor,
-    integration.scoreProcessor,
-    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url,
-    integration.tokenService,
-    integration.orgEncryptionService)
+  private val scoreService = new BasicScoreService(v2PlayerBootstrap.outcomeProcessor, v2PlayerBootstrap.scoreProcessor)
 
-  lazy val itemImportBootstrap = new ItemImportBootstrap(
-    integration.itemAuth,
-    integration.requestIdentifiers.userSession,
-    integration.orgService,
+  private lazy val services: Services = new Services(
+    Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
+    SeedDb.salatDb(),
+    ItemTransformWiring.itemTransformer)
+
+  private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
+    services.secureSocialService,
+    services.orgService,
+    services.tokenService,
+    services.orgEncryptionService,
+    Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
+
+  private lazy val v2ApiBootstrap = new V2ApiBootstrap(
+    services.orgService,
+    services.mainSessionService,
+    services.itemAuth,
+    ItemServiceWired,
+    services.sessionAuth,
+    v2ApiRequestIdentity,
+    Some((itemId: VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
+    scoreService,
+    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url,
+    services.tokenService,
+    services.orgEncryptionService)
+
+  private lazy val itemImportBootstrap = new ItemImportBootstrap(
+    services.itemAuth,
+    requestIdentifiers.userSession,
+    services.orgService,
     AppConfig)
 
   lazy val componentLoader: ComponentLoader = {
@@ -85,7 +93,7 @@ object AppWiring {
     out
   }
 
-  lazy val containerConfig = {
+  private lazy val containerConfig = {
     for {
       container <- current.configuration.getConfig("container")
       modeSpecific <- current.configuration.getConfig(s"container-${Play.current.mode.toString.toLowerCase}").orElse(Some(Configuration.empty))
@@ -96,20 +104,35 @@ object AppWiring {
     }
   }.getOrElse(Configuration.empty)
 
-  //TODO - there is some crossover between V2PlayerIntegration and V2ApiBootstrap - should they be merged
-  lazy val integration = new V2PlayerIntegration(
+  private lazy val v2PlayerBootstrap = new V2PlayerBootstrap(
     componentLoader.all,
     containerConfig,
-    SeedDb.salatDb(),
-    ItemTransformWiring.itemTransformer)
+    services.mainSessionService,
+    services.previewSessionService,
+    ItemTransformWiring.itemTransformer,
+    services.secureSocialService,
+    requestIdentifiers.allIdentifiers,
+    services.itemAuth,
+    services.sessionAuth,
+    new CDNResolver(containerConfig, Defaults.commitHashShort))
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.
    */
-  lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
+  private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
     override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
-      integration.requestIdentifiers.token,
-      integration.requestIdentifiers.clientIdAndPlayerTokenQueryString)
+      requestIdentifiers.token,
+      requestIdentifiers.clientIdAndPlayerTokenQueryString)
   }
 
+  def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++
+    v2ApiBootstrap.controllers ++
+    itemImportBootstrap.controllers ++
+    Seq(v1CollectionApiProxy, v1ItemApiProxy)
+
+  def validate: Either[String, Boolean] = v2PlayerBootstrap.validate
+
+  lazy val apiTracking: ApiTracking = new ApiTracking(
+    services.tokenService,
+    services.apiClientService)
 }
