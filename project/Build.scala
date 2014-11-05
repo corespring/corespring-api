@@ -17,6 +17,11 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
+  def getEnv(prop: String): Option[String] = {
+    val env = System.getenv(prop)
+    if (env == null) None else Some(env)
+  }
+
   val disableDocsSettings = Seq(
     // disable publishing the main API jar
     publishArtifact in (Compile, packageDoc) := false,
@@ -25,8 +30,8 @@ object Build extends sbt.Build {
     sources in doc in Compile := List())
 
   val cred = {
-    val envCredentialsPath = System.getenv("CREDENTIALS_PATH")
-    val path = if (envCredentialsPath != null) envCredentialsPath else Seq(Path.userHome / ".ivy2" / ".credentials").mkString
+    val envCredentialsPath = getEnv("CREDENTIALS_PATH")
+    val path = envCredentialsPath.getOrElse(Seq(Path.userHome / ".ivy2" / ".credentials").mkString)
     val f: File = file(path)
     println("[credentials] check file: : " + f.getAbsolutePath)
     if (f.exists()) {
@@ -133,8 +138,7 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")
-  ).dependsOn(core, qti, apiUtils, testLib % "test->compile")
+    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -243,6 +247,62 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
+  def safeSeed(paths: String, name: String, logLevel: String, s:TaskStreams): Unit = {
+    lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
+    s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed")
+    val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
+    val host = new URI(uri).getHost.toLowerCase
+    if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
+      MongoDbSeederPlugin.seed(uri, paths, name, logLevel)
+      s.log.info(s"[safeSeed] $paths - seeding complete")
+    } else {
+      s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
+    }
+  }
+
+  val devData = SettingKey[String]("dev-data")
+  val demoData = SettingKey[String]("demo-data")
+  val debugData = SettingKey[String]("debug-data")
+  val staticData = SettingKey[String]("static-data")
+
+  lazy val seederSettings = Seq(
+    devData := Seq(
+      "conf/seed-data/common",
+      "conf/seed-data/dev",
+      "conf/seed-data/exemplar-content").mkString(","),
+    demoData := Seq(
+      "conf/seed-data/demo",
+      "conf/seed-data/sample").mkString(","),
+    debugData := "conf/seed-data/debug",
+    staticData := "conf/seed-data/static")
+
+  val seedDevData = TaskKey[Unit]("seed-dev-data")
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+
+  val seedDemoData = TaskKey[Unit]("seed-demo-data")
+  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+
+  val seedDebugData = TaskKey[Unit]("seed-debug-data")
+  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+
+  val seedStaticData = TaskKey[Unit]("seed-static-data")
+  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+
+  val seedDev = TaskKey[Unit]("seed-dev")
+  val seedDevTask = seedDev := {
+    ( seedDevData.value,
+      seedDemoData.value,
+      seedDebugData.value,
+      seedStaticData.value)
+  }
+
+  val seedProd = TaskKey[Unit]("seed-prod")
+  val seedProdTask = seedProd := {
+    (seedDevData.value,
+      seedDemoData.value,
+      seedStaticData.value)
+  }
+
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
@@ -255,13 +315,22 @@ object Build extends sbt.Build {
       Keys.fork.in(Test) := forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(MongoDbSeederPlugin.logLevel := "INFO", testUri := "mongodb://localhost/api", testPaths := "conf/seed-data/test"): _*)
+    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
+      MongoDbSeederPlugin.logLevel := "INFO",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
+    .settings(seedDebugDataTask)
+    .settings(seedDemoDataTask)
+    .settings(seedDevDataTask)
+    .settings(seedStaticDataTask)
+    .settings(seedDevTask)
+    .settings(seedProdTask)
     .dependsOn(scormWeb,
       reports,
       public,
