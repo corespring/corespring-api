@@ -1,4 +1,7 @@
-import java.lang.management.{ ManagementFactory, RuntimeMXBean }
+import java.lang.management.ManagementFactory
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 import actors.reporting.ReportActor
 import akka.actor.Props
@@ -6,7 +9,6 @@ import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHe
 import common.seed.SeedDb._
 import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
-import org.corespring.api.tracking.LogRequest
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
@@ -17,11 +19,8 @@ import play.api._
 import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.Json
-import play.api.mvc.Results._
 import play.api.mvc._
-
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import play.api.mvc.Results._
 
 object Global
   extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
