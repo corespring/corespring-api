@@ -17,9 +17,9 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
-  def getEnv(prop:String):Option[String] = {
+  def getEnv(prop: String): Option[String] = {
     val env = System.getenv(prop)
-    if(env == null) None else Some(env)
+    if (env == null) None else Some(env)
   }
 
   val disableDocsSettings = Seq(
@@ -138,8 +138,7 @@ object Build extends sbt.Build {
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")
-  ).dependsOn(core, qti, apiUtils, testLib % "test->compile")
+    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
 
   val v1Api = builders.web("v1-api").settings(
     libraryDependencies ++= Seq(casbah),
@@ -248,53 +247,61 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
-  val prodUri = SettingKey[String]("prod-uri")
-  val prodPaths = SettingKey[String]("prod-paths")
-
-  val devDataPaths = Seq(
-    "conf/seed-data/common",
-    "conf/seed-data/dev",
-    "conf/seed-data/exemplar-content")
-
-  val demoDataPaths = Seq(
-    "conf/seed-data/demo",
-    "conf/seed-data/sample")
-
-  val staticDataPaths = Seq(
-    "conf/seed-data/static" )
-
-  val debugDataPaths = Seq(
-    "conf/seed-data/debug" )
-
-  val initData = getEnv("INIT_DATA").getOrElse("true") == "true"
-
-  // Safe Mongo URI for seeding
-  // For our CI Example app we seed a remote db - normally this isn't allowed (to prevent developers mistakenly seeding a valid db).
-  // However for this server we do want to seed
-  val isSafeForSeeding = {
-    val safeMongoUri = "mongodb://corespring:baker@ds049467.mongolab.com:49467/corespring-ci"
-
-    getEnv("ENV_MONGO_URI").map{
-      u => u.contains("localhost") || u.contains("127.0.0.1") || u == safeMongoUri
-    }.getOrElse(false)
+  def safeSeed(paths: String, name: String, logLevel: String): Unit = {
+    val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
+    val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
+    val host = new URI(uri).getHost.toLowerCase
+    if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
+      MongoDbSeederPlugin.seed(uri, paths, name, logLevel)
+      println("seeding successful")
+    } else {
+      println("Error seeding remote db. Add -Dallow.remote.seeding=true if you really want to seed a remote db.")
+    }
   }
 
-  val pathsForSeedingDev = {
-    val paths = if(initData && isSafeForSeeding){
-      devDataPaths ++ debugDataPaths ++ demoDataPaths ++ staticDataPaths
-    } else {
-      staticDataPaths
-    }
-    paths.mkString(",")
+  val devData = SettingKey[String]("dev-data")
+  val demoData = SettingKey[String]("demo-data")
+  val debugData = SettingKey[String]("debug-data")
+  val staticData = SettingKey[String]("static-data")
+  val isRemoteSeedingAllowed = SettingKey[String]("is-remote-seeding-allowed")
+
+  lazy val seederSettings = Seq(
+    isRemoteSeedingAllowed := System.getProperty("allow.remote.seeding", "false"),
+    devData := Seq(
+      "conf/seed-data/common",
+      "conf/seed-data/dev",
+      "conf/seed-data/exemplar-content").mkString(","),
+    demoData := Seq(
+      "conf/seed-data/demo",
+      "conf/seed-data/sample").mkString(","),
+    debugData := "conf/seed-data/debug",
+    staticData := "conf/seed-data/static")
+
+  val seedDevData = TaskKey[Unit]("seed-dev-data")
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+
+  val seedDemoData = TaskKey[Unit]("seed-demo-data")
+  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+
+  val seedDebugData = TaskKey[Unit]("seed-debug-data")
+  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+
+  val seedStaticData = TaskKey[Unit]("seed-static-data")
+  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel) map (safeSeed)
+
+  val seedDev = TaskKey[Unit]("seed-dev")
+  val seedDevTask = seedDev := {
+    (seedDevData.value,
+      seedDemoData.value,
+      seedDebugData.value,
+      seedStaticData.value)
   }
 
-  val pathsForSeedingProd = {
-    val paths = if(initData){
-      devDataPaths ++ demoDataPaths ++ staticDataPaths
-    } else {
-      staticDataPaths
-    }
-    paths.mkString(",")
+  val seedProd = TaskKey[Unit]("seed-prod")
+  val seedProdTask = seedProd := {
+    (seedDevData.value,
+      seedDemoData.value,
+      seedStaticData.value)
   }
 
   val main = builders.web(appName, Some(file(".")))
@@ -310,21 +317,21 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-        MongoDbSeederPlugin.logLevel := "INFO",
-        testUri := "mongodb://localhost/api",
-        testPaths := "conf/seed-data/test,conf/seed-data/static",
-        devUri := getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api"),
-        devPaths := pathsForSeedingDev,
-        prodUri := System.getenv("ENV_MONGO_URI"),
-        prodPaths := pathsForSeedingProd,
-        seedProdTask <<= (prodUri, prodPaths, name, MongoDbSeederPlugin.logLevel ) map(MongoDbSeederPlugin.seed),
-        unSeedProdTask <<= (prodUri, prodPaths, name, MongoDbSeederPlugin.logLevel) map(MongoDbSeederPlugin.unseed)): _*)
+      MongoDbSeederPlugin.logLevel := "INFO",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(integrationTestSettings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
+    .settings(seedDebugDataTask)
+    .settings(seedDemoDataTask)
+    .settings(seedDevDataTask)
+    .settings(seedStaticDataTask)
+    .settings(seedDevTask)
+    .settings(seedProdTask)
     .dependsOn(scormWeb,
       reports,
       public,
