@@ -1,18 +1,21 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ContentCollection, Organization}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import play.api.Configuration
 import play.api.mvc.RequestHeader
 
 import scalaz.{ Failure, Success, Validation }
@@ -31,11 +34,20 @@ class ItemAuthWiredTest extends Specification with Mockito {
     canAccess: Boolean = false) extends Scope {
 
     val itemAuth = new ItemAuthWired {
-      override def itemService: ItemService = {
+
+      val itemServiceMock: ItemService = {
         val m = mock[ItemService]
         m.findOneById(any[VersionedId[ObjectId]]) returns item
         m
       }
+
+      override def itemTransformer = new ItemTransformer {
+        override def configuration: Configuration = ???
+        override def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = itemServiceMock
+        override def findCollection(id: ObjectId): Option[ContentCollection] = ???
+      }
+
+      override def itemService = itemServiceMock
 
       override def orgService: OrganizationService = {
         val m = mock[OrganizationService]
