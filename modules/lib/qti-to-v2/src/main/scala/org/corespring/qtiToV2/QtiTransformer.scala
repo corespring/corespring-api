@@ -36,7 +36,7 @@ object QtiTransformer extends XMLNamespaceClearer {
       TextEntryInteractionTransformer)
 
     /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
-    val texProcessedQti = new RuleTransformer(FontTransformer).transform(new RuleTransformer(TexTransformer).transform(qti))
+    val texProcessedQti = new RuleTransformer(TexTransformer).transform(qti)
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
 
