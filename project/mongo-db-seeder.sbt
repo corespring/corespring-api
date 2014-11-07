@@ -2,4 +2,4 @@ resolvers ++= Seq( "cs snapshots" at "http://repository.corespring.org/artifacto
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
-addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.7-45bb3dc")
+addSbtPlugin("org.corespring" % "mongo-db-seeder-sbt" % "0.9-17eb3a8")
