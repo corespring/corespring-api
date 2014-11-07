@@ -43,9 +43,13 @@ Other commands available are seed-dev and seed-prod.
 Note: Make sure that the app is using the same db as the MongoSeeder. At the moment MongoSeeder uses "api"
 
 ### Seeding a remote db
-By default you cannot seed a db other than localhost and 127.0.0.1. Add -Dallow.remote.seeding=true to override this. 
+By default you cannot seed a db other than localhost and 127.0.0.1. Add the following to override this. 
       
-    > play -Dallow.remote.seeding=true seed-prod
+    > play -Dallow.remote.seeding=true seed-dev
+    
+Add the following option if you want to drop a collection before the seed. 
+   
+   > play -Dclear.before.seeding=true seed-dev
     
 
 ## Using the sbt command line

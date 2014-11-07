@@ -252,11 +252,12 @@ object Build extends sbt.Build {
 
   def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
+    lazy val overrideClear = System.getProperty("clear.before.seeding", "false") == "true"
     s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed - Clear collection before seed? $clear")
     val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
     val host = new URI(uri).getHost.toLowerCase
     if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
-      MongoDbSeederPlugin.seed(uri, paths, name, logLevel, clear)
+      MongoDbSeederPlugin.seed(uri, paths, name, logLevel, clear || overrideClear)
       s.log.info(s"[safeSeed] $paths - seeding complete")
     } else {
       s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
@@ -280,7 +281,7 @@ object Build extends sbt.Build {
     staticData := "conf/seed-data/static")
 
   val seedDevData = TaskKey[Unit]("seed-dev-data")
-  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(true)
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
 
   val seedDemoData = TaskKey[Unit]("seed-demo-data")
   val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
