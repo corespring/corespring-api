@@ -2,7 +2,7 @@ package org.corespring.v2.player.customScoring
 
 import java.io.File
 
-import common.seed.SeedDb
+import common.db.Db
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
@@ -74,7 +74,7 @@ class CustomScoringTest extends IntegrationSpecification {
 
     import org.corespring.mongo.json.services.MongoService
 
-    lazy val collection = SeedDb.salatDb()(app)("v2.itemSessions")
+    lazy val collection = Db.salatDb()(app)("v2.itemSessions")
     lazy val sessionService = new MongoService(collection)
 
     lazy val transformer = new ItemTransformer {

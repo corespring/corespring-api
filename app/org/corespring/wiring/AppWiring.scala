@@ -1,6 +1,6 @@
 package org.corespring.wiring
 
-import common.seed.SeedDb
+import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
@@ -51,7 +51,7 @@ object AppWiring {
 
   private lazy val services: Services = new Services(
     Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
-    SeedDb.salatDb(),
+    Db.salatDb(),
     ItemTransformWiring.itemTransformer)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
