@@ -250,13 +250,13 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
-  def safeSeed(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
+  def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
-    s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed")
+    s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed - Clear collection before seed? $clear")
     val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
     val host = new URI(uri).getHost.toLowerCase
     if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
-      MongoDbSeederPlugin.seed(uri, paths, name, logLevel)
+      MongoDbSeederPlugin.seed(uri, paths, name, logLevel, clear)
       s.log.info(s"[safeSeed] $paths - seeding complete")
     } else {
       s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
@@ -266,6 +266,7 @@ object Build extends sbt.Build {
   val devData = SettingKey[String]("dev-data")
   val demoData = SettingKey[String]("demo-data")
   val debugData = SettingKey[String]("debug-data")
+  val sampleData = SettingKey[String]("sample-data")
   val staticData = SettingKey[String]("static-data")
 
   lazy val seederSettings = Seq(
@@ -273,37 +274,39 @@ object Build extends sbt.Build {
       "conf/seed-data/common",
       "conf/seed-data/dev",
       "conf/seed-data/exemplar-content").mkString(","),
-    demoData := Seq(
-      "conf/seed-data/demo",
-      "conf/seed-data/sample").mkString(","),
+    demoData := "conf/seed-data/demo",
     debugData := "conf/seed-data/debug",
+    sampleData := "conf/seed-data/sample",
     staticData := "conf/seed-data/static")
 
   val seedDevData = TaskKey[Unit]("seed-dev-data")
-  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(true)
 
   val seedDemoData = TaskKey[Unit]("seed-demo-data")
-  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
 
   val seedDebugData = TaskKey[Unit]("seed-debug-data")
-  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
+
+  val seedSampleData = TaskKey[Unit]("seed-sample-data")
+  val seedSampleDataTask = seedSampleData <<= (sampleData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
 
   val seedStaticData = TaskKey[Unit]("seed-static-data")
-  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed
+  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(true)
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {
-    (seedDevData.value,
+    (seedStaticData.value,
+      seedDevData.value,
       seedDemoData.value,
       seedDebugData.value,
-      seedStaticData.value)
+      seedSampleData.value)
   }
 
   val seedProd = TaskKey[Unit]("seed-prod")
   val seedProdTask = seedProd := {
-    (seedDevData.value,
-      seedDemoData.value,
-      seedStaticData.value)
+    (seedStaticData.value,
+      seedSampleData.value)
   }
 
   val main = builders.web(appName, Some(file(".")))
@@ -331,6 +334,7 @@ object Build extends sbt.Build {
     .settings(seedDebugDataTask)
     .settings(seedDemoDataTask)
     .settings(seedDevDataTask)
+    .settings(seedSampleDataTask)
     .settings(seedStaticDataTask)
     .settings(seedDevTask)
     .settings(seedProdTask)
