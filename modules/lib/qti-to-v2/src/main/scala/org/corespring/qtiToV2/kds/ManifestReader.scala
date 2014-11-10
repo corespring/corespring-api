@@ -3,10 +3,9 @@ package org.corespring.qtiToV2.kds
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.qtiToV2.SourceWrapper
 
-import scala.io.Source
 import scala.xml._
 
-object ManifestReader {
+object ManifestReader extends ManifestFilter {
 
   val filename = "imsmanifest.xml"
 
@@ -14,7 +13,7 @@ object ManifestReader {
     StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
 
   def read(manifest: SourceWrapper, sources: Map[String, SourceWrapper]): QTIManifest = {
-    implicit val xml = XML.loadString(manifest.getLines.mkString).head
+    implicit val xml = filterManifest(manifest)
     val resources = (xml \ "resources" \\ "resource")
       .partition(r => (r \ "@type").text.toString == "imsqti_item_xmlv2p1")
 
@@ -49,6 +48,7 @@ object ManifestReader {
       }),
       otherFiles = resources._2.map(n => (n \ "@href").text.toString))
   }
+
 }
 
 case class QTIManifest(

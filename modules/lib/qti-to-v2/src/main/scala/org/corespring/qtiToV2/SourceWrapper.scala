@@ -24,6 +24,12 @@ class SourceWrapper(source: Source) {
 
   def map[B](f: Char => B): Iterator[B] = source.map[B](f)
 
+  /**
+   * Creates a Source object from the lines contained within the file. Provided for compatibility with APIs that require
+   * a Source object.
+   */
+  def toSource: Source = Source.fromString(getLines.mkString)
+
 }
 
 object SourceWrapper {
