@@ -35,9 +35,9 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
     val fbBlocks = feedbackBlocks(node, qti)
     val correctFeedbacks = fbBlocks.filter(_.attribute("incorrectResponse").isEmpty).map(fb => Json.obj(
       "answer" -> (fb \ "@identifier").text,
-      "feedback" -> fb.mkString.trim
+      "feedback" -> fb.child.mkString.trim
     ))
-    val incorrectFeedback = fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.text.trim)
+    val incorrectFeedback = fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.child.mkString.trim)
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
     val answerBlankSize: Int = (node \ "@expectedLength").text.toIntOption.getOrElse(DefaultAnswerBlankSize)
 

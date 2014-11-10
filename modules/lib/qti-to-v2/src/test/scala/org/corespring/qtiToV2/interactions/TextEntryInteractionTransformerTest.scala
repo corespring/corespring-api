@@ -138,13 +138,13 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
       (interactionResult \ "correctResponses" \ "feedback" \ "specific") must be equalTo Json.arr(
         Json.obj(
           "answer" -> "someCorrect",
-          "feedback" -> "correct"
+          "feedback" -> "<div>correct</div>"
         )
       )
     }
 
     "incorrect feedback is extracted from feedback blocks" in {
-      (interactionResult \ "incorrectResponses" \ "feedback" \ "value") must be equalTo JsString("incorrect")
+      (interactionResult \ "incorrectResponses" \ "feedback" \ "value") must be equalTo JsString("<div>incorrect</div>")
     }
 
     "converts baseType=line to <corespring-function-entry/>" in {
