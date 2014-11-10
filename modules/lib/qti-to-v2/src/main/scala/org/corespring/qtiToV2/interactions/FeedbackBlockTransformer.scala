@@ -33,9 +33,14 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
 
   def belongsToTextEntry(node: Node, qti: Node) = {
     val idRegexp = new Regex("""responses\.(.*?)\.value""", "id")
-    val idRegexp(id) = (node \ "@outcomeIdentifier").text
 
-    (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id)
+    (node \ "@outcomeIdentifier").text match {
+      case idRegexp(id) =>
+        (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id)
+      case _ =>
+        false
+    }
+
   }
 
 
