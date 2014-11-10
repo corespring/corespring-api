@@ -6,6 +6,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
@@ -22,6 +23,8 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
   def orgService: OrganizationService
 
   def itemService: ItemService
+
+  def itemTransformer: ItemTransformer
 
   def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
@@ -49,7 +52,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
     for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+      item <- itemTransformer.updateV2Json(vid).toSuccess(cantFindItemWithId(vid))
       canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
         Success(true)
       else

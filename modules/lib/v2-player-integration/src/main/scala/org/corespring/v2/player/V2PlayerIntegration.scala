@@ -187,6 +187,8 @@ class V2PlayerIntegration(comps: => Seq[Component],
       permissionGranter.allow(itemId, None, Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
+    override def itemTransformer = new AllItemVersionTransformer()
+
   }
 
   lazy val sessionAuth: SessionAuth[OrgAndOpts] = new SessionAuthWired {
