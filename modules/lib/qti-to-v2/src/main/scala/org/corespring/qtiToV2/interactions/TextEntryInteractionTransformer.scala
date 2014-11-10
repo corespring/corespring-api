@@ -2,6 +2,8 @@ package org.corespring.qtiToV2.interactions
 
 import org.corespring.qtiToV2.interactions.equation.DomainParser
 
+import org.corespring.qtiToV2.interactions.FeedbackBlockTransformer.belongsToTextEntry
+
 import scala.xml._
 import scala.xml.transform.RuleTransformer
 
@@ -19,8 +21,23 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
   val DefaultAnswerBlankSize: Int = 5
 
+  def feedbackBlocks(node: Node, qti: Node): Seq[Node] = {
+    (node \ "@responseIdentifier").text match {
+      case "" => throw new IllegalArgumentException("Node does not have a responseIdentifier")
+      case identifier: String => {
+        (qti \\ "feedbackBlock").filter(n => (n \ "@outcomeIdentifier").text == s"responses.${identifier}.value")
+      }
+    }
+  }
+
   override def interactionJs(qti: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
     val responseDeclarationNode = responseDeclaration(node, qti)
+    val fbBlocks = feedbackBlocks(node, qti)
+    val correctFeedbacks = fbBlocks.filter(_.attribute("incorrectResponse").isEmpty).map(fb => Json.obj(
+      "answer" -> (fb \ "@identifier").text,
+      "feedback" -> fb.text.trim
+    ))
+    val incorrectFeedback = fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.text.trim)
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
     val answerBlankSize: Int = (node \ "@expectedLength").text.toIntOption.getOrElse(DefaultAnswerBlankSize)
 
@@ -46,12 +63,18 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
           "ignoreWhitespace" -> true,
           "ignoreCase" -> true,
           "feedback" -> Json.obj(
-            "type" -> "default")))
+            "type" -> "default",
+            "specific" -> correctFeedbacks
+          )
+        ))
       },
       "incorrectResponses" -> Some(Json.obj(
         "award" -> 0,
         "feedback" -> Json.obj(
-          "type" -> "default"))))
+          "type" -> "default",
+          "value" -> incorrectFeedback
+        )
+      )))
   }).toMap
 
   override def transform(node: Node): Seq[Node] = node match {
@@ -59,6 +82,12 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
       case true => <corespring-function-entry id={ (node \ "@responseIdentifier").text }></corespring-function-entry>
       case false => <corespring-text-entry id={ (node \ "@responseIdentifier").text }></corespring-text-entry>
     }
+
+    case e: Elem if e.label == "feedbackBlock" => belongsToTextEntry(node, qti) match {
+      case true => NodeSeq.Empty
+      case false => e
+    }
+
     case _ => node
   }
 

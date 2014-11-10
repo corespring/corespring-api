@@ -31,7 +31,15 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
     }
   }
 
-  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
+  def belongsToTextEntry(node: Node, qti: Node) = {
+    val idRegexp = new scala.util.matching.Regex("""responses\.(.*?)\.value""", "id")
+    val idRegexp(id) = (node \ "@outcomeIdentifier").text
+
+    (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id)
+  }
+
+
+  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").filterNot(node => belongsToTextEntry(node, qti)).map(node => {
     def feedbackToJson(feedbackBlock:Node) = {
       val input = (feedbackBlock \ "@identifier").text
       def nonEmptyNode(c:Node) = !c.text.trim.isEmpty
