@@ -1,34 +1,43 @@
 package org.corespring.qtiToV2
 
+import java.io.{FileWriter, File}
+
 import scala.collection.Iterator
 import scala.io.Source
 
 /**
- * Caches the result of a Source's getLines, since the underlying InputStream of a Source can sometimes only be read
- * once. Use with caution, as this is infeasible for large Source objects. Current use case is for ~20kb XML files, so
- * it is currently suitable.
+ * Caches the result of a Source's getLines into a temporary file buffer. Then provides interfaces for obtaining Source
+ * objects from the cached file in future. File is removed when the JVM halts.
  */
 class SourceWrapper(source: Source) {
 
-  var lines: Option[Seq[String]] = None
+  def prefix = s"source-wrapper-${source.hashCode}"
+  val suffix = ".tmp"
 
-  def getLines = lines match {
-    case Some(lines) => lines.toIterator
-    case _ => {
-      lines = Some(source.getLines.toSeq)
-      lines.get.toIterator
-    }
-  }
-
-  def mkString = getLines.mkString
-
-  def map[B](f: Char => B): Iterator[B] = source.map[B](f)
+  var tempFile: Option[File] = None
 
   /**
    * Creates a Source object from the lines contained within the file. Provided for compatibility with APIs that require
    * a Source object.
    */
-  def toSource: Source = Source.fromString(getLines.mkString)
+  def toSource = tempFile match {
+    case Some(file) => Source.fromFile(file)
+    case _ => {
+      val file = File.createTempFile(prefix, suffix)
+      file.deleteOnExit()
+      val writer = new FileWriter(file)
+      source.getLines.foreach(line => writer.write(s"$line\n"))
+      writer.close()
+      tempFile = Some(file)
+      Source.fromFile(file)
+    }
+  }
+
+  def mkString = getLines.mkString
+
+  def map[B](f: Char => B): Iterator[B] = toSource.map[B](f)
+
+  def getLines = toSource.getLines
 
 }
 
