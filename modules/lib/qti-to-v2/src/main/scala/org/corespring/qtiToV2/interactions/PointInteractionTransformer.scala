@@ -27,10 +27,18 @@ object PointInteractionTransformer extends InteractionTransformer {
             case true => None
             case _ => Some(JsBoolean(true))
           }),
+          "showCoordinates" -> Some(JsBoolean(booleanFor("show-coordinates"))),
           "showFeedback" -> Some(JsBoolean(false)) // Don't show internal feedback in v1 originated items
         )))
   }).toMap
 
+  private def booleanFor(attribute: String, default: Boolean = true)(implicit node: Node) =
+    ((node \\ s"@$attribute").text) match {
+      case "true" => true
+      case "false" => false
+      case _ => default
+    }
+  
   override def transform(node: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "pointInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
