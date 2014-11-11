@@ -12,7 +12,7 @@ class ManifestReaderTest extends Specification {
   "read" should {
 
     "return filenames" in {
-      println(ManifestReader.read(Source.fromURL(getClass.getResource(ManifestReader.filename))))
+//      println(ManifestReader.read(Source.fromURL(getClass.getResource(ManifestReader.filename))))
       true === true
     }
 

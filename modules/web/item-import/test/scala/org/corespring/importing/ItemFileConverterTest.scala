@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{OrgAndOpts, _}
 import org.specs2.mock.Mockito
@@ -194,8 +195,8 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     val sources = (Seq(
       "dot array.png", "metadata.json", "files/rubric.pdf"
-    ).map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
-      Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
+    ).map(file => (file, new SourceWrapper(Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1")))) ++
+      Seq("item.json" -> new SourceWrapper(Source.fromString(itemJson)), "metadata.json" -> new SourceWrapper(Source.fromString(metadataJson)))).toMap
 
     val identity = OrgAndOpts(orgId = orgId, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.AccessToken)
 
@@ -207,7 +208,7 @@ class ItemFileConverterTest extends Specification with Mockito {
         service
       }
       def uploader = new Uploader {
-        override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
+        override def upload(filename: String, path: String, file: SourceWrapper): Future[StoredFile] = future {
           StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
         }
       }
