@@ -8,6 +8,13 @@ object MatchInteractionTransformer extends InteractionTransformer {
 
   val DefaultCornerText = ""
 
+  override def transform(node: Node) = node match {
+    case node: Node if (node.label == "matchInteraction") =>
+      <p class="prompt">{(node \ "prompt").map(_.child).flatten}</p> ++
+        <corespring-match id={(node \\ "@responseIdentifier").text}/>
+    case _ => node
+  }
+
   override def interactionJs(qti: Node): Map[String, JsObject] = (qti \\ "matchInteraction").map(implicit node => {
     (node \ "@responseIdentifier").text -> Json.obj(
       "componentType" -> "corespring-match",
