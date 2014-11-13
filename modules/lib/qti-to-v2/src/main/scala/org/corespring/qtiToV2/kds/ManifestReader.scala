@@ -35,16 +35,25 @@ object ManifestReader extends ManifestFilter {
         )
     }.flatten).flatten.toMap
 
+    val resourceLocators: Map[ManifestResourceType.Value, Node => Seq[String]] =
+      Map(ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)))
+
     QTIManifest(items =
       qtiResources.map(n => {
         val filename = (n \ "@href").text.toString
+        val files = sources.get(filename).map(file => XML.loadString(stripCDataTags(file.mkString))).map(node => {
+          resourceLocators.map{ case (resourceType, fn) => resourceType -> fn(node) }.toMap
+        }).getOrElse(Map.empty[ManifestResourceType.Value, Seq[String]]).map{ case(resourceType, filenames) => {
+          filenames.map(filename => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(filename, "$1"), resourceType = resourceType))
+        }}.flatten.toSeq
+
         ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = ((n \\ "file")
           .filterNot(f => (f \ "@href").text.toString == filename).map(f => {
           val path = (f \ "@href").text.toString
           ManifestResource(
             path = path,
             resourceType = ManifestResourceType.fromPath(path))
-        })) ++ videos.get(filename).getOrElse(Seq.empty))
+        })) ++ videos.get(filename).getOrElse(Seq.empty) ++ files)
       }),
       otherFiles = resources.map(n => (n \ "@href").text.toString))
   }
