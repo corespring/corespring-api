@@ -1,6 +1,7 @@
 package org.corespring.importing
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{BaseFile, StoredFile}
 import org.corespring.platform.core.services.item.ItemService
@@ -20,7 +21,7 @@ class ItemFileConverterTest extends Specification with Mockito {
   PlaySingleton.start()
 
   val collectionId = "543edd2fa399191672bedea9"
-  val orgId = new ObjectId()
+
   val itemId = new ObjectId()
 
   val storageKey = "storageKey"
@@ -191,20 +192,16 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   "convert" should {
 
-    import org.mockito.Matchers._
-
     val sources = (Seq(
       "dot array.png", "metadata.json", "files/rubric.pdf"
     ).map(file => (file, new SourceWrapper(Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1")))) ++
       Seq("item.json" -> new SourceWrapper(Source.fromString(itemJson)), "metadata.json" -> new SourceWrapper(Source.fromString(metadataJson)))).toMap
 
-    val identity = OrgAndOpts(orgId = orgId, opts = PlayerAccessSettings.ANYTHING, authMode = AuthMode.AccessToken)
-
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
       def itemService: ItemService = {
         val service = mock[ItemService]
-        service.insert(anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
+        service.insert(_root_.org.mockito.Matchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
         service
       }
       def uploader = new Uploader {

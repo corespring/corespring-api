@@ -13,6 +13,7 @@ object mongoContext {
       registerGlobalKeyOverride(remapThis = "id", toThisInstead = "_id")
       registerClassLoader(Play.classloader)
       registerCustomTransformer(new PlayerDefinitionTransformer(this))
+      com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers()
     }
   }
 

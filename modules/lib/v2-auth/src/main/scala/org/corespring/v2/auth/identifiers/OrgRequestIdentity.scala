@@ -22,7 +22,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def orgService: OrgService
 
   /** get either a V2Error or the org id from the request header */
-  def headerToOrgId(rh: RequestHeader): Validation[V2Error, ObjectId]
+  def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization]
 
   /** convert the header, org and defaultCollection into the expected output type B */
   def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
@@ -35,8 +35,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] {
     import scalaz.Scalaz._
 
     for {
-      orgId <- headerToOrgId(rh)
-      org <- orgService.org(orgId).toSuccess(cantFindOrgWithId(orgId))
+      org <- headerToOrg(rh)
       dc <- orgService.defaultCollection(org).toSuccess(noDefaultCollection(org.id))
     } yield {
       data(rh, org, dc)

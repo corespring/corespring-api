@@ -30,9 +30,7 @@ object ItemHelper {
   }
 
   def publish(id: VersionedId[ObjectId]) = {
-    ItemServiceWired.findOneById(id) match {
-      case Some(item) => ItemServiceWired.save(item.copy(published = true))
-    }
+    ItemServiceWired.findOneById(id).map { item => ItemServiceWired.save(item.copy(published = true)) }
   }
 
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {

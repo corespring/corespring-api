@@ -81,7 +81,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
       (out \\ "p").head.child.mkString === prompt
       (q1 \ "componentType").as[String] === "corespring-multiple-choice"
-      (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
+      (q1 \ "model" \ "config" \ "choiceType").as[String] === "radio"
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === a.toString
       (q1 \ "correctResponse" \ "value") === JsArray(Seq(JsString("A")))
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
@@ -96,7 +96,6 @@ class ChoiceInteractionTransformerTest extends Specification {
         .getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
-      (q1 \ "model" \ "config" \ "singleChoice").as[Boolean] === true
       ((q1 \ "model" \ "choices")(0) \ "label").as[String] === "<math>A</math>"
       (q1 \ "correctResponse") === JsString("A")
       (q1 \ "feedback").as[Seq[JsObject]].length === 2

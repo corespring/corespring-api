@@ -1,9 +1,11 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
+import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
@@ -11,25 +13,27 @@ import org.corespring.test.helpers.models.V2SessionHelper
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
+import play.api.Mode.Mode
+import play.api.Mode.Mode
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 import play.api.test.FakeRequest
-import play.api.{ GlobalSettings, Play }
+import play.api.{ Mode, GlobalSettings, Play }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class LoadPlayerTest
   extends IntegrationSpecification with Mockito {
 
-  import org.corespring.container.client.controllers.apps.BasePlayer
+  import org.corespring.container.client.controllers.apps.Player
 
-  class MockPlayer(sessionId: String) extends BasePlayer {
+  class MockPlayer(sessionId: String) extends Player {
 
     def showErrorInUi = false
+
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def hooks: PlayerHooks = new PlayerHooks {
-      override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = ???
 
       override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
         Right(sessionId)
@@ -43,6 +47,12 @@ class LoadPlayerTest
     override def urls: ComponentUrls = mock[ComponentUrls]
 
     override def components: Seq[Component] = Seq.empty
+
+    override def itemPreProcessor: PlayerItemPreProcessor = ???
+
+    override def mode: Mode = Mode.Test
+
+    override def playerConfig: V2PlayerConfig = ???
   }
 
   def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {
@@ -95,7 +105,7 @@ class LoadPlayerTest
     protected def global: GlobalSettings = Play.current.global
 
     lazy val createSessionResult: Future[SimpleResult] = {
-      val player = global.getControllerInstance(classOf[BasePlayer])
+      val player = global.getControllerInstance(classOf[Player])
       val createSession = player.createSessionForItem(itemId.toString)
       val request = makeRequest(Call("", ""))
       createSession(request)

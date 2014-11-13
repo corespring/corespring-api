@@ -27,7 +27,7 @@ class FeedbackBlockTransformerTest extends Specification {
         {
           Seq(identifier, anotherIdentifier).map(id => {
             Seq(
-              <textEntryInteraction responseIdentifier={ id } expectedLength="15"/>,
+              <focusTaskInteraction responseIdentifier={ id } expectedLength="15"/>,
               correctResponses.map(response =>
                 <feedbackBlock outcomeIdentifier={ s"responses.$id.value" } identifier={ response }>
                   <div class="feedback-block-correct">{ s"$correctFeedback $id" }</div>
@@ -80,13 +80,14 @@ class FeedbackBlockTransformerTest extends Specification {
     val outcomeSpecificOutput =
       new RuleTransformer(FeedbackBlockTransformer(outcomeSpecificInput)).transform(outcomeSpecificInput)
 
-    def feedbackResult(identifier: String, outcomeIdentifier: String = null): JsObject =
+    def feedbackResult(identifier: String, outcomeIdentifier: String = null): JsObject = {
       Option(outcomeIdentifier) match {
         case Some(outcomeIdentifier) => componentsJson.get(feedbackIdentifier(identifier, outcomeIdentifier))
           .getOrElse(throw new RuntimeException(s"No outcome feedback component for $outcomeIdentifier and $identifier"))
         case None => componentsJson.get(feedbackIdentifier(identifier))
           .getOrElse(throw new RuntimeException(s"No feedback component for $identifier"))
       }
+    }
 
     "return the correct feedback component type" in {
       (feedbackResult(identifier) \ "componentType").as[String] must be equalTo "corespring-feedback-block"
@@ -189,7 +190,7 @@ class FeedbackBlockTransformerTest extends Specification {
             </correctResponse>
           </responseDeclaration>
           <itemBody>
-            <textEntryInteraction responseIdentifier="Q_01" expectedLength="15"></textEntryInteraction>
+            <focusTaskInteraction responseIdentifier="Q_01" expectedLength="15"></focusTaskInteraction>
             <feedbackBlock outcomeIdentifier="responses.Q_01.value" identifier="$response">
               <div class="feedback-block-correct">$feedback</div>
             </feedbackBlock>
@@ -204,6 +205,7 @@ class FeedbackBlockTransformerTest extends Specification {
 
       getFeedback(json,"correct",response) === feedback
     }
+
 
   }
 

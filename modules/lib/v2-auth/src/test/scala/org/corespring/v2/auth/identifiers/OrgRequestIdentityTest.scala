@@ -19,9 +19,8 @@ class OrgRequestIdentityTest
   "With org transformer" should {
 
     class scope(
-      val org: Option[Organization] = None,
       val defaultCollection: Option[ObjectId] = None,
-      val orgId: Validation[V2Error, ObjectId] = Failure(generalError("?"))) extends Around {
+      val org: Validation[V2Error, Organization] = Failure(generalError("?"))) extends Around {
 
       override def around[T: AsResult](t: => T) = {
         running(fakeApp) {
@@ -29,27 +28,22 @@ class OrgRequestIdentityTest
         }
       }
 
-      val tf = new MockRequestIdentity(org, defaultCollection, orgId)
+      val tf = new MockRequestIdentity(defaultCollection, org)
     }
 
     /** Note: Using 'mustEqual' to prevent naming collision w/ scalaz.Validation.=== */
 
     "return failure - if there is no org id in header" in new scope() {
-      tf(FakeRequest("", "")) mustEqual orgId
+      tf(FakeRequest("", "")) mustEqual org
     }
 
-    "return failure - if there is no org or default collection" in new scope(orgId = Success(ObjectId.get)) {
-      tf(FakeRequest("", "")) mustEqual Failure(cantFindOrgWithId(orgId.toOption.get))
-    }
-
-    "return failure - if there is no default collection" in new scope(org = Some(mock[Organization]), orgId = Success(ObjectId.get)) {
-      tf(FakeRequest("", "")) mustEqual Failure(noDefaultCollection(org.get.id))
+    "return failure - if there is no default collection" in new scope(org = Success(mock[Organization])) {
+      tf(FakeRequest("", "")) mustEqual Failure(noDefaultCollection(org.toEither.right.get.id))
     }
 
     "return some string - if there is an org + default collection" in new scope(
-      Some(mock[Organization]),
       Some(ObjectId.get),
-      Success(ObjectId.get)) {
+      Success(mock[Organization])) {
       tf(FakeRequest("", "")) mustEqual Success("Worked")
     }
   }

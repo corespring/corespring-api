@@ -24,12 +24,18 @@ class ExternalModelLaunchApiTest extends IntegrationSpecification {
     lazy val sessionId = (launchJson \ "sessionId").as[String]
     lazy val playerToken = (launchJson \ "playerToken").as[String]
 
-    lazy val playerCall = org.corespring.container.client.controllers.apps.routes.ProdHtmlPlayer.config(sessionId)
+    lazy val playerCall = org.corespring.container.client.controllers.apps.routes.Player.load(sessionId)
+    lazy val loadItemAndSessionCall = org.corespring.container.client.controllers.resources.routes.Session.loadItemAndSession(sessionId)
 
     lazy val playerResult = route(
       FakeRequest(
         playerCall.method,
         s"${playerCall.url}?apiClient=${apiClient.clientId}&playerToken=$playerToken")).get
+
+    lazy val loadItemAndSessionResult = route(
+      FakeRequest(
+        loadItemAndSessionCall.method,
+        s"${loadItemAndSessionCall.url}?apiClient=${apiClient.clientId}&playerToken=$playerToken")).get
 
     override def after = {
       super.after
@@ -41,7 +47,8 @@ class ExternalModelLaunchApiTest extends IntegrationSpecification {
   "ExternalModelLaunchApi" should {
     "allow you to create an item and load it in the player" in new launchExternalAndLoadPlayer {
       status(playerResult) === OK
-      contentAsString(playerResult).contains("<h1>Hello World</h1>") === true
+      println(contentAsString(loadItemAndSessionResult))
+      (contentAsJson(loadItemAndSessionResult) \ "item" \ "xhtml").as[String] === "<h1>Hello World</h1>"
     }
   }
 }

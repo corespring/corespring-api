@@ -49,18 +49,18 @@ class LoadEditorTest
   }
 
   class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
   }
 
   class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelpers {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.editItem(itemId.toString)
+    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
   }
 }

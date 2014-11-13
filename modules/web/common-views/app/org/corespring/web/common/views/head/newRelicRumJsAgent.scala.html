@@ -1,0 +1,16 @@
+@(conf:org.corespring.web.common.views.helpers.NewRelicConf = org.corespring.web.common.views.helpers.Defaults.newRelicConf)
+
+@if( conf.enabled) {
+  <script type="text/javascript" src="/assets/js/vendor/newrelic/newrelic-rum-js-agent.min.js"></script>
+  <script type="text/javascript">
+    NREUM.info = {
+      sa : @conf.sa,
+      beacon : "@conf.beacon",
+      errorBeacon : "@conf.errorBeacon",
+      agent : "@conf.agent",
+      licenseKey : "@conf.licenseKey",
+      applicationID : "@conf.applicationID"
+    };
+  </script>
+}
+

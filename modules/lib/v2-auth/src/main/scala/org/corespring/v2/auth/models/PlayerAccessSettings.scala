@@ -33,7 +33,7 @@ object PlayerAccessSettings {
       case JsString(s) => try {
         Some(s.toLong)
       } catch {
-        case _ => None
+        case e:Throwable => None
       }
       case _ => None
     }

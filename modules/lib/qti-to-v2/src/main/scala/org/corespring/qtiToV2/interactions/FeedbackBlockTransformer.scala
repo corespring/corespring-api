@@ -1,7 +1,7 @@
 package org.corespring.qtiToV2.interactions
 
 import org.corespring.common.xml.XMLNamespaceClearer
-
+import  scala.util.matching.Regex
 import scala.Predef._
 import scala.xml._
 
@@ -31,7 +31,20 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
     }
   }
 
-  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").map(node => {
+  def belongsToTextEntry(node: Node, qti: Node) = {
+    val idRegexp = new Regex("""responses\.(.*?)\.value""", "id")
+
+    (node \ "@outcomeIdentifier").text match {
+      case idRegexp(id) =>
+        (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id)
+      case _ =>
+        false
+    }
+
+  }
+
+
+  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").filterNot(node => belongsToTextEntry(node, qti)).map(node => {
     def feedbackToJson(feedbackBlock:Node) = {
       val input = (feedbackBlock \ "@identifier").text
       def nonEmptyNode(c:Node) = !c.text.trim.isEmpty

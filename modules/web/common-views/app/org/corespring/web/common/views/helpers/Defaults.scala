@@ -48,4 +48,13 @@ object Defaults {
     case _: Throwable => None
   }
 
+  lazy val newRelicConf: NewRelicConf = getNewRelicConf()
+
+  def getNewRelicConf() = {
+    new NewRelicConf(
+      enabled = get("newrelic.enabled").getOrElse("false") == "true",
+      licenseKey = get("newrelic.license-key").getOrElse(""),
+      applicationID = get("newrelic.application-id").getOrElse(""))
+  }
+
 }

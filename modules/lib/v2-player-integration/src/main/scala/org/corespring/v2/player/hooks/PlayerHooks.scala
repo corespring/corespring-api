@@ -33,13 +33,13 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     logger.debug(s"sessionId=$sessionId function=loadItem")
 
     val s = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
     s.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
       val (_, playerDefinition) = models
-      val itemJson = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
+      val itemJson = Json.toJson(playerDefinition)
       itemJson
     }.toEither
   }
@@ -54,7 +54,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       "itemId" -> vid.toString)
 
     val result = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
@@ -69,28 +69,11 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       .toEither
   }
 
-  override def loadPlayerForSession(sessionId: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
-    logger.debug(s"sessionId=$sessionId function=loadPlayerForSession")
-
-    val out = for {
-      identity <- getOrgIdAndOptions(header)
-      id <- auth.loadForRead(sessionId)(identity)
-    } yield id
-
-    out match {
-      case Failure(e) => {
-        logger.debug(s"sessionId=$sessionId function=loadPlayerForSession error=$e")
-        Some(UNAUTHORIZED -> e.message)
-      }
-      case _ => None
-    }
-  }
-
   override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
     logger.debug(s"sessionId=$sessionId function=loadSessionAndItem")
 
     val o = for {
-      identity <- getOrgIdAndOptions(header)
+      identity <- getOrgAndOptions(header)
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 

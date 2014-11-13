@@ -38,7 +38,8 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
             "choiceType" -> JsString(if (correctResponses.length == 1) "radio" else "checkbox"),
             "choiceLabels" -> JsString("letters"),
             "choiceStyle" -> JsString((node \ "@choiceStyle").text),
-            "singleChoice" -> JsBoolean(((node \ "@maxChoices").text == "1"))),
+            "choiceType" -> JsString(if ((node \ "@maxChoices").text == "1") "radio" else "checkbox")
+          ),
           "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
           "choices" -> JsArray(((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n =>
             Json.obj(
