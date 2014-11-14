@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.kds
 
 import org.corespring.qtiToV2.QtiTransformer
 import org.corespring.qtiToV2.interactions._
-import org.corespring.qtiToV2.kds.interactions.{ChoiceInteractionTransformer => KDSChoiceInteractionTransformer, ImagePathTransformer, MatchInteractionTransformer, HottextInteractionTransformer, TeacherInstructionsTransformer}
+import org.corespring.qtiToV2.kds.interactions.{ChoiceInteractionTransformer => KDSChoiceInteractionTransformer, _}
 
 import scala.xml.Elem
 
@@ -14,6 +14,7 @@ object QtiTransformer extends QtiTransformer {
     HottextInteractionTransformer,
     ImagePathTransformer,
     MatchInteractionTransformer,
+    NumberLineInteractionTransformer,
     DragAndDropInteractionTransformer,
     FeedbackBlockTransformer(qti),
     NumberedLinesTransformer(qti),
