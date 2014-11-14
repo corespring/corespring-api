@@ -52,7 +52,7 @@ object MatchInteractionTransformer extends InteractionTransformer {
         case choices if comparator(choices, acc) => choices
         case _ => acc
       }
-    )).map(choice => (choice \ "@identifier").text -> choice.text).toMap
+    )).map(choice => (choice \ "@identifier").text -> choice.child.mkString).toMap
 
   private def regexMatch(regex: String, string: String) = {
     val regexX = regex.r
