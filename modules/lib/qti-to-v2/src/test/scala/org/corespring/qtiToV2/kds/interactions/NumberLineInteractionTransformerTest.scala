@@ -12,9 +12,11 @@ class NumberLineInteractionTransformerTest extends Specification {
     val upperBound = 2
     val step = 0.125
     val correctResponses = Seq(1.125, 1.25, 1.50)
+    val hatchMarks = Map[String, Double]("1" -> 1, "1.125" -> 1.125)
 
     def qti(identifier: String = identifier,
             lowerBound: Int = lowerBound, upperBound: Int = upperBound, step: Double = step,
+            hatchMarks: Map[String, Double] = hatchMarks,
             correctResponses: Seq[Double] = correctResponses) =
       <assessmentItem>
         <responseDeclaration identifier={identifier}>
@@ -25,6 +27,7 @@ class NumberLineInteractionTransformerTest extends Specification {
         <itemBody>
           <numberLineInteraction responseIdentifier={identifier} lowerBound={lowerBound.toString}
                                  upperBound={upperBound.toString} step={step.toString} titleAbove="false">
+            {hatchMarks.map{ case(label, value) => <hatchMark value={value.toString} label={label} /> } }
           </numberLineInteraction>
           </itemBody>
         </assessmentItem>
@@ -51,6 +54,11 @@ class NumberLineInteractionTransformerTest extends Specification {
 
     "transform tickFrequency" in {
       (result \ "model" \ "config" \ "tickFrequency").as[Double] must be equalTo((upperBound - lowerBound) / step)
+    }
+
+    "transform hatchMarks" in {
+      (result \ "model" \ "config" \ "ticks").as[Seq[JsObject]]
+        .map(tick => (tick \ "label").as[String] -> (tick \ "value").as[Double]).toMap must be equalTo hatchMarks
     }
 
   }
