@@ -27,7 +27,7 @@ object NumberLineInteractionTransformer extends InteractionTransformer {
           "config" -> Json.obj(
             "domain" -> Seq((node \ "@lowerBound").text.toDouble, (node \ "@upperBound").text.toDouble),
             "initialType" -> "PF",
-            "snapPerTick" -> 100,
+            "snapPerTick" -> 1,
             "showMinorTicks" -> true,
             "exhibitOnly" -> false,
             "maxNumberOfPoints" -> correctResponses(qti).length,
