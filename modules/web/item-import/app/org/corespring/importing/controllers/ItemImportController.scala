@@ -38,7 +38,7 @@ class ItemImportController(converter: ItemFileConverter,
         val results = converter.convert(collectionId.toString)(fileMap)
         Ok(Html(results.map(_ match {
           case Failure(error) => error.getMessage
-          case Success(item) => s"""<a href="http://localhost:9000/web#/edit/${item.id.toString}?panel=content" target="blank">${item.id.toString}</a>"""
+          case Success(item) => s"""<a href="/web#/edit/${item.id.toString}?panel=content" target="blank">${item.id.toString}</a>"""
         }).mkString("\n")))
       }
       case (None, _) => BadRequest("You need a file")
