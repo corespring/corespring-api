@@ -1,6 +1,13 @@
+@(collections: Seq[org.corespring.platform.core.models.ContentCollection])
 <html>
   <body>
+    <p>Upload a zip containing IMS QTI</p>
     <form method="POST" action="upload" enctype="multipart/form-data">
+      <select name="collectionId">
+        @for(collection <- collections) {
+          <option value="@collection.id">@collection.name</option>
+        }
+      </select>
       <input name="file" type="file"/>
       <input type="submit" value="Submit"/>
     </form>

@@ -1,7 +1,8 @@
-package org.corespring.reporting.utils
+package org.corespring.platform.core.utils
 
 import java.io.StringWriter
-import net.quux00.simplecsv.{ CsvWriter => JavaCsvWriter }
+
+import net.quux00.simplecsv.{CsvWriter => JavaCsvWriter}
 
 
 trait CsvWriter {

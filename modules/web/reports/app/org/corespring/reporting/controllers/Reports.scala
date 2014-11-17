@@ -7,9 +7,9 @@ import net.quux00.simplecsv.CsvReader
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.utils.CsvWriter
 import org.corespring.reporting.services.ReportGenerator.ReportKeys
 import org.corespring.reporting.services.{ ReportGenerator, ReportsService }
-import org.corespring.reporting.utils.CsvWriter
 import play.api.libs.json.Json
 import play.api.mvc.SimpleResult
 

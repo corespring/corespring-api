@@ -98,6 +98,7 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       sprayCaching,
+      simplecsv,
       playTest % "test",
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
@@ -219,8 +220,6 @@ object Build extends sbt.Build {
     .aggregate(commonViews).settings(disableDocsSettings: _*)
 
   val reports = builders.web("reports")
-    .settings(
-      libraryDependencies ++= Seq(simplecsv))
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
   val scormWeb = builders.web("scorm-web").settings(
