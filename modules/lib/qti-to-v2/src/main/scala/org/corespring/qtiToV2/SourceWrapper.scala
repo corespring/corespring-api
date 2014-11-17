@@ -1,6 +1,8 @@
 package org.corespring.qtiToV2
 
-import java.io.{FileWriter, File}
+import java.io._
+
+import org.apache.commons.io.FileUtils
 
 import scala.collection.Iterator
 import scala.io.Source
@@ -9,9 +11,9 @@ import scala.io.Source
  * Caches the result of a Source's getLines into a temporary file buffer. Then provides interfaces for obtaining Source
  * objects from the cached file in future. File is removed when the JVM halts.
  */
-class SourceWrapper(source: Source) {
+class SourceWrapper(inputStream: InputStream) {
 
-  def prefix = s"source-wrapper-${source.hashCode}"
+  def prefix = s"source-wrapper-${inputStream.hashCode}"
   val suffix = ".tmp"
 
   var tempFile: Option[File] = None
@@ -25,11 +27,9 @@ class SourceWrapper(source: Source) {
     case _ => {
       val file = File.createTempFile(prefix, suffix)
       file.deleteOnExit()
-      val writer = new FileWriter(file)
-      source.getLines.foreach(line => writer.write(s"$line\n"))
-      writer.close()
+      FileUtils.copyInputStreamToFile(inputStream, file)
       tempFile = Some(file)
-      Source.fromFile(file)
+      Source.fromFile(file)("ISO-8859-1")
     }
   }
 
@@ -42,5 +42,5 @@ class SourceWrapper(source: Source) {
 }
 
 object SourceWrapper {
-  def apply(source: Source) = new SourceWrapper(source)
+  def apply(inputStream: InputStream) = new SourceWrapper(inputStream)
 }

@@ -32,7 +32,7 @@ class ItemImportController(converter: ItemFileConverter,
       case (Some(upload), Success(Some(collectionId))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
-          (entry.getName -> SourceWrapper(Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1")))
+          (entry.getName -> SourceWrapper(zip.getInputStream(entry)))
         }).toMap
 
         val results = converter.convert(collectionId.toString)(fileMap)
