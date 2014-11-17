@@ -12,6 +12,7 @@ object QtiTransformer extends QtiTransformer {
     KDSChoiceInteractionTransformer,
     TeacherInstructionsTransformer,
     HottextInteractionTransformer,
+    FractionTransformer,
     ImagePathTransformer,
     MatchInteractionTransformer,
     NumberLineInteractionTransformer,
