@@ -1,5 +1,6 @@
 package org.corespring.importing
 
+import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
@@ -194,8 +195,8 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     val sources = (Seq(
       "dot array.png", "metadata.json", "files/rubric.pdf"
-    ).map(file => (file, new SourceWrapper(Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1")))) ++
-      Seq("item.json" -> new SourceWrapper(Source.fromString(itemJson)), "metadata.json" -> new SourceWrapper(Source.fromString(metadataJson)))).toMap
+    ).map(file => (file, new SourceWrapper(getClass.getResource(s"/item/$file").openStream)))) ++
+      Seq("item.json" -> new SourceWrapper(IOUtils.toInputStream(itemJson)), "metadata.json" -> new SourceWrapper(IOUtils.toInputStream(metadataJson))).toMap
 
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
@@ -210,7 +211,7 @@ class ItemFileConverterTest extends Specification with Mockito {
         }
       }
     }
-    val result = itemFileConverter.convert(collectionId)(sources)
+    val result = itemFileConverter.convert(collectionId)(sources.toMap)
 
     "create Item from local files" in {
       result must beAnInstanceOf[Success[Error, Item]]
