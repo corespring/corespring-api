@@ -41,7 +41,17 @@ object ManifestReader extends ManifestFilter {
     QTIManifest(items =
       qtiResources.map(n => {
         val filename = (n \ "@href").text.toString
-        val files = sources.get(filename).map(file => XML.loadString(stripCDataTags(file.mkString))).map(node => {
+
+        val files = sources.get(filename).map { file =>
+          try {
+            Some(XML.loadString(stripCDataTags(file.mkString)))
+          } catch {
+            case e: Exception => {
+              println(s"Error reading: $filename")
+              None
+            }
+          }
+        }.flatten.map(node => {
           resourceLocators.map{ case (resourceType, fn) => resourceType -> fn(node) }.toMap
         }).getOrElse(Map.empty[ManifestResourceType.Value, Seq[String]]).map{ case(resourceType, filenames) => {
           filenames.map(filename => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(filename, "$1"), resourceType = resourceType))
