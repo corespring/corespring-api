@@ -14,7 +14,6 @@ import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.V2Error
 import play.api.libs.Files
 import play.api.mvc._
-import play.api.templates.Html
 
 import scala.collection.JavaConversions._
 import scalaz._

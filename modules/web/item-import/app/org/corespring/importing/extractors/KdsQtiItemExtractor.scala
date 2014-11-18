@@ -17,8 +17,10 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper]) extends 
 
   def ids = manifest.map(_.items.map(_.id)).getOrElse(Seq.empty)
 
-  // TBD how to get metadata
-  def metadata: Map[String, Validation[Error, Option[JsValue]]] = ids.map(_ -> Success(None)).toMap
+  def metadata: Map[String, Validation[Error, Option[JsValue]]] =
+    manifest.map(_.items.map(f =>
+      f.id -> Success(Some(Json.obj("taskInfo" -> Json.obj("sourceId" -> "(.*).xml".r.replaceAllIn(f.filename, "$1")))))
+    )).getOrElse(Seq.empty).toMap
 
   def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]] = {
     val filesFromManifest = manifest.map(m => m.items.find(_.id == id)).flatten.map(item => item.resources)

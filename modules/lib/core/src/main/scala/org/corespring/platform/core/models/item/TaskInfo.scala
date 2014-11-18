@@ -4,7 +4,6 @@ import com.mongodb.casbah.Imports._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import scala.Some
 import scala.collection.mutable.Map
 
 case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
@@ -12,6 +11,7 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
   description: Option[String] = None,
+  sourceId: Option[String] = None,
   itemType: Option[String] = None) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
@@ -26,6 +26,7 @@ object TaskInfo extends ValueGetter {
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
     val subjects = "subjects"
+    val sourceId = "sourceId"
     val extended = "extended"
   }
 
@@ -46,6 +47,7 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
         if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
         info.title.map((title -> JsString(_))),
+        info.sourceId.map((sourceId -> JsString(_))),
         info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
@@ -109,6 +111,7 @@ object TaskInfo extends ValueGetter {
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
+    (__ \ Keys.sourceId).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String])(TaskInfo.apply _)
 }
 
