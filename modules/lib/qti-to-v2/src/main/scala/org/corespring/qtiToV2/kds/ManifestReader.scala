@@ -2,15 +2,16 @@ package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.kds.interactions.PassageScrubber
 
 import scala.xml._
 
-object ManifestReader extends ManifestFilter {
+object ManifestReader extends ManifestFilter with PassageScrubber {
 
   val filename = "imsmanifest.xml"
 
   private def stripCDataTags(xmlString: String) =
-    StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
+    StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")).replaceAll("&nbsp;", "")
 
   def read(manifest: SourceWrapper, sources: Map[String, SourceWrapper]): QTIManifest = {
     implicit val xml = filterManifest(manifest)
@@ -51,19 +52,20 @@ object ManifestReader extends ManifestFilter {
         })) ++ files
 
         val passageResources: Seq[ManifestResource] = resources.filter(_.is(ManifestResourceType.Passage)).map(p =>
-          sources.find { case (path, source) => path == p.path}.map(_._2).map(s => {
+          sources.find { case (path, _) => path == p.path}.map{case (filename, s) => {
             try {
-              Some((XML.loadString(stripCDataTags(s.getLines.mkString))).map(xml => resourceLocators.map {
+              Some((XML.loadString(scrub(stripCDataTags(s.getLines.mkString)))).map(xml => resourceLocators.map {
                 case(resourceType, fn) => (resourceType, fn(xml))}).flatten.map { case (resourceType, paths) =>
                 paths.map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = resourceType))
               }.flatten)
             } catch {
               case e: Exception => {
                 println(s"Error reading: $filename")
+                e.printStackTrace
                 None
               }
             }
-          }).flatten
+          }}.flatten
         ).flatten.flatten
         ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = resources ++ passageResources)
       }),

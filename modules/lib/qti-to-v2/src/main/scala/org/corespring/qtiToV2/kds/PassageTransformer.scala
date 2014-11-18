@@ -2,10 +2,11 @@ package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.kds.interactions.PassageScrubber
 
 import scala.xml._
 
-trait PassageTransformer {
+trait PassageTransformer extends PassageScrubber {
 
   def transformPassage(resource: ManifestResource)(implicit sources: Map[String, SourceWrapper]): Option[String] = {
     resource.resourceType == ManifestResourceType.Passage match {
@@ -24,7 +25,7 @@ trait PassageTransformer {
 
   private def transformPassage(xmlString: String): String = {
     <div class="passage">{
-      (XML.loadString(stripCDataTags(xmlString)) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
+      (XML.loadString(scrub(stripCDataTags(xmlString))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
     }</div>.toString
   }
 
