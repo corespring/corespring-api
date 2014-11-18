@@ -2,11 +2,13 @@ package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.interactions.PassageScrubber
+import org.slf4j.LoggerFactory
 
 import scala.xml._
 
 object ManifestReader extends ManifestFilter with PassageScrubber {
+
+  val logger = LoggerFactory.getLogger("org.corespring.qtiToV2.kds")
 
   val filename = "imsmanifest.xml"
 
@@ -67,6 +69,12 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
             }
           }}.flatten
         ).flatten.flatten
+
+        val missingPassageResources = passageResources.map(_.path).filter(path => sources.get(path).isEmpty)
+        if (missingPassageResources.nonEmpty) {
+          missingPassageResources.foreach(f => logger.error(s"Missing file $f in uploaded import"))
+        }
+
         ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = resources ++ passageResources)
       }),
       otherFiles = resources.map(n => (n \ "@href").text.toString))

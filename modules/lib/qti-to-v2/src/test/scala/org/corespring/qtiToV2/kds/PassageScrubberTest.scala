@@ -1,4 +1,4 @@
-package org.corespring.qtiToV2.kds.interactions
+package org.corespring.qtiToV2.kds
 
 import org.specs2.mutable.Specification
 

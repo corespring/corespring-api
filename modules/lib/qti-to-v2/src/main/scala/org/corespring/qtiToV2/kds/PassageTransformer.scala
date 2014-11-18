@@ -2,7 +2,6 @@ package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.interactions.PassageScrubber
 
 import scala.xml._
 
