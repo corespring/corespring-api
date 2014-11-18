@@ -17,31 +17,16 @@ object ManifestReader extends ManifestFilter {
     val (qtiResources, resources) = (xml \ "resources" \\ "resource")
       .partition(r => (r \ "@type").text.toString == "imsqti_item_xmlv2p1")
 
-    /**
-     * This is rather dense. Essentially, this looks at all of the passage resources and scans their XML for references
-     * to HTML video elements. A map is returned which maps the QTI resource filenames to video elements contained
-     * within their corresponding passage XML.
-     */
-    val videos: Map[String, Seq[ManifestResource]] = resources.map(n => {
-      (n \\ "file" \ "@href").map(_.text.toString)
-        .filter(ManifestResourceType.fromPath(_) == ManifestResourceType.Passage)
-        .map(p => sources.find{ case(path, source) => path == p }.map(_._2)
-        .map(s => {
-        val sourceFile = qtiResources.find(r => (r \\ "file").map(f => (f \ "@href").text.toString).contains(p))
-          .map(r => (r \ "@href").text.toString).getOrElse(throw new Exception("Could not find source file"))
-        sourceFile -> (XML.loadString(stripCDataTags(s.getLines.mkString))).map(xml => xml \\ "video" \ "source" \\ "@src")
-          .map(_.text.toString).map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = ManifestResourceType.Video))
-      })
-        )
-    }.flatten).flatten.toMap
 
     val resourceLocators: Map[ManifestResourceType.Value, Node => Seq[String]] =
-      Map(ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)))
+      Map(
+        ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)),
+        ManifestResourceType.Video -> (n => (n \\ "video" \ "source" \\ "@src").map(_.text.toString))
+      )
 
     QTIManifest(items =
       qtiResources.map(n => {
         val filename = (n \ "@href").text.toString
-
         val files = sources.get(filename).map { file =>
           try {
             Some(XML.loadString(stripCDataTags(file.mkString)))
@@ -57,13 +42,30 @@ object ManifestReader extends ManifestFilter {
           filenames.map(filename => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(filename, "$1"), resourceType = resourceType))
         }}.flatten.toSeq
 
-        ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = ((n \\ "file")
+        val resources = ((n \\ "file")
           .filterNot(f => (f \ "@href").text.toString == filename).map(f => {
           val path = (f \ "@href").text.toString
           ManifestResource(
             path = path,
             resourceType = ManifestResourceType.fromPath(path))
-        })) ++ videos.get(filename).getOrElse(Seq.empty) ++ files)
+        })) ++ files
+
+        val passageResources: Seq[ManifestResource] = resources.filter(_.is(ManifestResourceType.Passage)).map(p =>
+          sources.find { case (path, source) => path == p.path}.map(_._2).map(s => {
+            try {
+              Some((XML.loadString(stripCDataTags(s.getLines.mkString))).map(xml => resourceLocators.map {
+                case(resourceType, fn) => (resourceType, fn(xml))}).flatten.map { case (resourceType, paths) =>
+                paths.map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = resourceType))
+              }.flatten)
+            } catch {
+              case e: Exception => {
+                println(s"Error reading: $filename")
+                None
+              }
+            }
+          }).flatten
+        ).flatten.flatten
+        ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = resources ++ passageResources)
       }),
       otherFiles = resources.map(n => (n \ "@href").text.toString))
   }
@@ -103,7 +105,6 @@ object ManifestResourceType extends Enumeration {
       extensionMap.find{ case(extensions, resourceType) => extensions.contains(getExtension(path)) }
         .map(_._2).getOrElse(Unknown))
   }
-
 
   def fromPath(path: String)(implicit xml: Node): ManifestResourceType.Value =
     (xml \ "resources" \\ "resource").find(resource => (resource \ "@href").text.toString == path)
