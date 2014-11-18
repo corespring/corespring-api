@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.itemSession._
+import org.corespring.platform.core.services.item.ItemVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models._
 import org.specs2.mutable._
