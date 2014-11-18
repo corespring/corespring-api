@@ -11,7 +11,7 @@ object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCle
 
   override def transform(node: Node) = new RuleTransformer(new RewriteRule {
     override def transform(n: Node): NodeSeq = n match {
-      case n: Node if (n.label == "choiceRationales") => Seq.empty
+      case n: Node if (Seq("inlineChoiceRationales", "choiceRationales").contains(n.label)) => Seq.empty
       case n => n
     }
   }).transform(CorespringChoiceInteractionTransformer.transform(node))
@@ -27,7 +27,7 @@ object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCle
 
 
   private def rationale(qti: Node, id: String, choiceId: String): Option[JsString] =
-    (qti \\ "choiceRationales").find(c => (c \ "@responseIdentifier").text == id)
+    (qti \\ "choiceRationales" ++ qti \\ "inlineChoiceRationales").find(c => (c \ "@responseIdentifier").text == id)
       .map(c => (c \\ "rationale").find(r => (r \ "@identifier").text == choiceId)).flatten
       .map(n => JsString(n.child.mkString.cleanWhitespace))
 

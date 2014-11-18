@@ -14,10 +14,11 @@ class ChoiceInteractionTransformerTest extends Specification {
     val shuffle = false
     val maxChoices = "1"
 
-    def qti(responseIdentifier: String = responseIdentifier,
+    def multipleChoiceQti(responseIdentifier: String = responseIdentifier,
                               correctResponse: String = correctResponse,
                               choices: Map[String, String] = choices,
                               shuffle: Boolean = shuffle,
+                              rationales: Map[String, String] = rationales,
                               maxChoices: String = maxChoices) =
       <assessmentItem>
         <responseDeclaration identifier={responseIdentifier} cardinality="single">
@@ -36,10 +37,36 @@ class ChoiceInteractionTransformerTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-    val result = ChoiceInteractionTransformer.interactionJs(qti())
+    def inlineChoiceQti(responseIdentifier: String = responseIdentifier,
+                        correctResponse: String = correctResponse,
+                        choices: Map[String, String] = choices,
+                        shuffle: Boolean = shuffle,
+                        rationales: Map[String, String] = rationales) =
+      <assessmentItem>
+        <responseDeclaration identifier={responseIdentifier} cardinality="single">
+          <correctResponse><value>{correctResponse}</value></correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <inlineChoiceInteraction responseIdentifier={responseIdentifier} shuffle={shuffle.toString}>
+            {choices.map { case(id, text) => <inlineChoice identifier={id}>{text}</inlineChoice>}}
+          </inlineChoiceInteraction>
+          <inlineChoiceRationales responseIdentifier={responseIdentifier}>
+            {rationales.map { case (id, rationale) => <rationale identifier={id}>{rationale}</rationale>}}
+          </inlineChoiceRationales>
+        </itemBody>
+      </assessmentItem>
+
+    val multipleChoiceResult = ChoiceInteractionTransformer.interactionJs(multipleChoiceQti())
+    val inlineChoiceResult = ChoiceInteractionTransformer.interactionJs(inlineChoiceQti())
 
     "transform rationales" in {
-      val json = result.values.headOption.getOrElse(throw new Exception("There was no result"))
+      val json = multipleChoiceResult.values.headOption.getOrElse(throw new Exception("There was no result"))
+      val rationaleResult = (json \ "model" \ "choices").as[Seq[JsObject]].map(f => (f \ "value").as[String] -> (f \ "rationale").as[String]).toMap
+      rationaleResult must be equalTo(rationales)
+    }
+
+    "transform rationales" in {
+      val json = inlineChoiceResult.values.headOption.getOrElse(throw new Exception("There was no result"))
       val rationaleResult = (json \ "model" \ "choices").as[Seq[JsObject]].map(f => (f \ "value").as[String] -> (f \ "rationale").as[String]).toMap
       rationaleResult must be equalTo(rationales)
     }
