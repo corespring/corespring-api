@@ -9,7 +9,7 @@ import scala.xml.Elem
 object QtiTransformer extends QtiTransformer {
 
   def interactionTransformers(qti: Elem) = Seq(
-    FractionTransformer,
+//    FractionTransformer,
     KDSChoiceInteractionTransformer,
     TeacherInstructionsTransformer,
     HottextInteractionTransformer,
