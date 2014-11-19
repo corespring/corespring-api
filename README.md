@@ -159,4 +159,3 @@ https://devcenter.heroku.com/articles/newrelic#add-on-installation
 RUM (Real User Monitoring) features are not enabled as yet.
 
 https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timing-java#manual_instrumentation
-
