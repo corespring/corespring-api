@@ -12,7 +12,7 @@ trait PassageScrubber {
   private implicit class Scrubber(xml: String) {
 
     // Video tags contain controls attribute with no value, e.g., <video controls>
-    def cleanVideoTags = """(?s)<video(.*?)(controls)(.*?)>""".r.replaceAllIn(xml, "<video$1$3>")
+    def cleanVideoTags = """(?s)<video(.*?)(controls)(.*?)>""".r.replaceAllIn(xml, """<video$1$3 controls="">""")
 
     // Source tags are not self terminated, e.g., <source><otherMarkup/>
     def cleanSourceTags = """(?s)<source(.*?)>""".r.replaceAllIn(xml, "<source$1/>")

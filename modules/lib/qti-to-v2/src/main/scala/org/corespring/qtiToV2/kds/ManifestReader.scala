@@ -24,7 +24,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
     val resourceLocators: Map[ManifestResourceType.Value, Node => Seq[String]] =
       Map(
         ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)),
-        ManifestResourceType.Video -> (n => (n \\ "video" \ "source" \\ "@src").map(_.text.toString))
+        ManifestResourceType.Video -> (n => (n \\ "video").map(_ \ "source" \ "@src").map(_.text.toString))
       )
 
     QTIManifest(items =

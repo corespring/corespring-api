@@ -10,9 +10,9 @@ object FractionTransformer extends InteractionTransformer {
   override def interactionJs(qti: Node): Map[String, JsObject] = Map.empty
 
   override def transform(node: Node) = node match {
-    case node: Node if (node.label == "table" && (node \ "@class").text == "frac") =>
+    case node: Node if (node.label == "table" && (node \ "@class").text == "frac" && !containsInteraction(node)) =>
       (findTextByClass(node, "nu"), findTextByClass(node, "de")) match {
-        case (Some(numerator), Some(denominator)) =>
+        case (Some(numerator), Some(denominator)) if (numerator.trim.nonEmpty && denominator.trim.nonEmpty) =>
           <span mathjax="">{s"""\\(\\displaystyle\\frac{$numerator}{$denominator}\\)"""}</span>
         case _ => node
       }
@@ -28,5 +28,7 @@ object FractionTransformer extends InteractionTransformer {
       }
     }
   }
+
+  private def containsInteraction(table: Node) = (table \\ "textEntryInteraction").nonEmpty
 
 }

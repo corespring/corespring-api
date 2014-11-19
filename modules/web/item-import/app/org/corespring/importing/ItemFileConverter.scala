@@ -1,6 +1,6 @@
 package org.corespring.importing
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.s3.model.ObjectMetadata
@@ -202,7 +202,7 @@ class TransferManagerUploader(awsKey: String, awsSecret: String, bucket: String)
   val transferManager = new TransferManager(new BasicAWSCredentials(awsKey, awsSecret))
 
   def upload(filename: String, path: String, file: SourceWrapper) = future {
-    val byteArray = file.map(_.toByte).toArray
+    val byteArray = file.toByteArray
     val metadata = new ObjectMetadata()
     metadata.setContentLength(byteArray.length)
     val result = transferManager.upload(bucket, path, new ByteArrayInputStream(byteArray), metadata).waitForUploadResult
