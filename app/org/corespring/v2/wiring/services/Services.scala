@@ -113,6 +113,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       permissionGranter.allow(itemId, None, Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
     }
 
+    override def itemTransformer: ItemTransformer = Services.this.itemTransformer
   }
 
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = new SessionAuthWired {
