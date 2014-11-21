@@ -32,7 +32,7 @@ object Dependencies {
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
-  val mongoDbSeeder = "com.ee" %% "mongo-db-seeder-lib" % "0.5-3f2edcd"
+  val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playFramework = "com.typesafe.play" %% "play" % playVersion
   val playJson = "com.typesafe.play" %% "play-json" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
