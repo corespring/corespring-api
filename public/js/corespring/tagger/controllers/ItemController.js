@@ -91,7 +91,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.launchV2Preview = function() {
-    $scope.v2CatalogUrl = '/v2/player/item/' + $scope.itemData.id + '/preview'
+    $scope.v2CatalogUrl = '/v2/player/catalog/' + $scope.itemData.id + '/index.html'
     $scope.showV2Preview = true;
   };
 
