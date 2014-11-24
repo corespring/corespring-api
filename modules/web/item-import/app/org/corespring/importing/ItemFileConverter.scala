@@ -14,7 +14,7 @@ import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, 
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.ItemTransformer
+import org.corespring.qtiToV2.kds.{PathFlattener, ItemTransformer}
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
 
@@ -25,6 +25,8 @@ import scala.io.Source
 import scalaz.{Success, Failure, Validation}
 
 trait ItemFileConverter {
+
+  import PathFlattener._
 
   def uploader: Uploader
   def itemService: ItemService

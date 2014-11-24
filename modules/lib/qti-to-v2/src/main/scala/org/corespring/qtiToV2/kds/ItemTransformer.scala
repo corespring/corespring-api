@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.kds
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.interactions.FractionTransformer
+import org.corespring.qtiToV2.kds.interactions.{PathTransformer, FractionTransformer}
 import play.api.libs.json.{JsObject, JsValue}
 
 import scala.xml._
@@ -14,7 +14,7 @@ object ItemTransformer extends PassageTransformer {
   def transform(xmlString: String, manifestItem: ManifestItem, sources: Map[String, SourceWrapper]): JsValue = {
     val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
       .map(transformPassage(_)(sources).getOrElse("")).mkString
-    QtiTransformer.transform(xmlString.toXML(passageXml))
+    QtiTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
   }
 
   /**

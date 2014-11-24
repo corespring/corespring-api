@@ -3,10 +3,11 @@ package org.corespring.importing.controllers
 import java.util.zip.ZipFile
 
 import org.bson.types.ObjectId
-import org.corespring.importing.ItemFileConverter
+import org.corespring.importing.{ItemImporterExporter, ItemFileConverter}
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.utils.CsvWriter
 import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.kds.PathFlattener
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -18,9 +19,15 @@ import play.api.mvc._
 import scala.collection.JavaConversions._
 import scalaz._
 
-class ItemImportController(converter: ItemFileConverter,
+class ItemImportController(exporter: ItemImporterExporter,
+                           converter: ItemFileConverter,
                            userSession: UserSessionOrgIdentity[OrgAndOpts],
                            orgService: OrgService) extends LoadOrgAndOptions with Controller with CsvWriter {
+
+  import PathFlattener._
+
+  val CsvFilename = "imported-files.csv"
+  val ZipFilename = "corespring-json.zip"
 
   def uploadForm() = Action { request =>
     getOrgAndOptions(request).map(_.org.contentcolls.map(_.collectionId)).map(ContentCollection.get(_)) match {
@@ -30,20 +37,26 @@ class ItemImportController(converter: ItemFileConverter,
   }
 
   def upload() = Action(parse.multipartFormData) { request =>
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
+    println(request.body.asFormUrlEncoded)
     def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
 
-    (request.body.file("file"), getCollectionId(request)) match {
-      case (Some(upload), Success(collectionId)) => {
+    (request.body.file("file"), getCollection(request)) match {
+      case (Some(upload), Success(Some(collection))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
-          (entry.getName -> SourceWrapper(zip.getInputStream(entry)))
+          entry.getName.flattenPath -> SourceWrapper(zip.getInputStream(entry))
         }).toMap
-
-        val results = converter.convert(collectionId.toString)(fileMap)
-        Ok((List("Item ID", "URL") +: results.map(_ match {
-          case Failure(error) => List(error.getMessage)
-          case Success(item) => List(item.id.toString, s"https://${request.host}/web#/edit/${item.id.toString}?panel=content")
-        })).toList.toCsv).withHeaders(("Content-type", "text/csv"), ("Content-disposition", s"attachment; file=imported_files.csv"))
+        getAction(request) match {
+          case "export" => exportZip(collection, fileMap)
+          case _ =>  importToDb(collection.id, fileMap, request.host)
+        }
       }
       case (_, Failure(message)) => BadRequest(message)
       case (None, _) => BadRequest("You need a file")
@@ -51,11 +64,28 @@ class ItemImportController(converter: ItemFileConverter,
     }
   }
 
+  private def importToDb(collectionId: ObjectId, fileMap: Map[String, SourceWrapper], host: String) = {
+    val results = converter.convert(collectionId.toString)(fileMap)
+    Ok((List("Item ID", "URL") +: results.map(_ match {
+      case Failure(error) => List(error.getMessage)
+      case Success(item) => List(item.id.toString, s"http://$host/web#/edit/${item.id.toString}?panel=content")
+    })).toList.toCsv).withHeaders(("Content-Type", "text/csv"), ("Content-Disposition", s"attachment; file=$CsvFilename"))
+  }
+
+  private def exportZip(collection: ContentCollection, fileMap: Map[String, SourceWrapper]) =
+    Ok(exporter.export(collection, fileMap)).withHeaders(
+      "Content-Type" -> "application/zip",
+      "Content-Disposition" -> s"attachment; filename=$ZipFilename"
+    )
+
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
 
-  private def getCollectionId(request: Request[MultipartFormData[Files.TemporaryFile]]) =
+  private def getAction(request: Request[MultipartFormData[Files.TemporaryFile]]) =
+    request.body.asFormUrlEncoded.get("action").map(_.headOption).flatten.getOrElse("export")
+
+  private def getCollection(request: Request[MultipartFormData[Files.TemporaryFile]]) =
     request.body.asFormUrlEncoded.get("collectionId").map(_.headOption).flatten match {
-      case Some(collectionId) => Success(new ObjectId(collectionId))
+      case Some(collectionId) => Success(ContentCollection.get(Seq(new ObjectId(collectionId))).headOption)
       case _ => Failure("Could not find collectionId in request")
     }
 

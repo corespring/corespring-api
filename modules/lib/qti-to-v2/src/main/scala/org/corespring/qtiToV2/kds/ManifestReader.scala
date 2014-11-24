@@ -8,6 +8,8 @@ import scala.xml._
 
 object ManifestReader extends ManifestFilter with PassageScrubber {
 
+  import PathFlattener._
+
   val logger = LoggerFactory.getLogger("org.corespring.qtiToV2.kds")
 
   val filename = "imsmanifest.xml"
@@ -20,11 +22,10 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
     val (qtiResources, resources) = (xml \ "resources" \\ "resource")
       .partition(r => (r \ "@type").text.toString == "imsqti_item_xmlv2p1")
 
-
     val resourceLocators: Map[ManifestResourceType.Value, Node => Seq[String]] =
       Map(
         ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)),
-        ManifestResourceType.Video -> (n => (n \\ "video").map(_ \ "source" \ "@src").map(_.text.toString))
+        ManifestResourceType.Video -> (n => (n \\ "video").map(_ \ "source").map(_ \ "@src").map(_.toString))
       )
 
     QTIManifest(items =
@@ -54,7 +55,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
         })) ++ files
 
         val passageResources: Seq[ManifestResource] = resources.filter(_.is(ManifestResourceType.Passage)).map(p =>
-          sources.find { case (path, _) => path == p.path}.map{case (filename, s) => {
+          sources.find { case (path, _) => path == p.path.flattenPath}.map{case (filename, s) => {
             try {
               Some((XML.loadString(scrub(stripCDataTags(s.getLines.mkString)))).map(xml => resourceLocators.map {
                 case(resourceType, fn) => (resourceType, fn(xml))}).flatten.map { case (resourceType, paths) =>

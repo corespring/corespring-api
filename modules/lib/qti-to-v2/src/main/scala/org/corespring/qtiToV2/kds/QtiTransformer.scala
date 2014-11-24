@@ -1,19 +1,17 @@
 package org.corespring.qtiToV2.kds
 
-import org.corespring.qtiToV2.QtiTransformer
+import org.corespring.qtiToV2.{QtiTransformer => SuperQtiTransformer}
 import org.corespring.qtiToV2.interactions._
 import org.corespring.qtiToV2.kds.interactions.{ChoiceInteractionTransformer => KDSChoiceInteractionTransformer, _}
 
 import scala.xml.Elem
 
-object QtiTransformer extends QtiTransformer {
+object QtiTransformer extends SuperQtiTransformer {
 
   def interactionTransformers(qti: Elem) = Seq(
-//    FractionTransformer,
     KDSChoiceInteractionTransformer,
     TeacherInstructionsTransformer,
     HottextInteractionTransformer,
-    PathTransformer,
     MatchInteractionTransformer,
     NumberLineInteractionTransformer,
     DragAndDropInteractionTransformer,
