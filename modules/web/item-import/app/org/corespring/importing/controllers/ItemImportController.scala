@@ -37,14 +37,6 @@ class ItemImportController(exporter: ItemImporterExporter,
   }
 
   def upload() = Action(parse.multipartFormData) { request =>
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
-    println(request.body.asFormUrlEncoded)
     def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
 
     (request.body.file("file"), getCollection(request)) match {

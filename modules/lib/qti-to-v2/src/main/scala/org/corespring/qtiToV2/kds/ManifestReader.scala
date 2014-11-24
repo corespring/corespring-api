@@ -71,7 +71,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
           }}.flatten
         ).flatten.flatten
 
-        val missingPassageResources = passageResources.map(_.path).filter(path => sources.get(path).isEmpty)
+        val missingPassageResources = passageResources.map(_.path).filter(path => sources.get(path.flattenPath).isEmpty)
         if (missingPassageResources.nonEmpty) {
           missingPassageResources.foreach(f => logger.error(s"Missing file $f in uploaded import"))
         }
@@ -111,7 +111,7 @@ object ManifestResourceType extends Enumeration {
   )
 
   private def fromPathString(path: String): ManifestResourceType.Value = {
-    def getExtension(path: String) = path.split("\\.").lastOption.getOrElse("")
+    def getExtension(path: String) = path.split("\\.").lastOption.getOrElse("").toLowerCase
     pathFunctions.map(_(path)).find(_.nonEmpty).flatten.getOrElse(
       extensionMap.find{ case(extensions, resourceType) => extensions.contains(getExtension(path)) }
         .map(_._2).getOrElse(Unknown))
