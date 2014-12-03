@@ -4,7 +4,9 @@ import org.specs2.mutable.Specification
 
 import scala.xml.Node
 
-class ProcessingTransformerTest extends Specification {
+class ProcessingTransformerTest extends Specification with ProcessingTransformer {
+
+  implicit val emptyNode = <noOp/>
 
   "_match" should {
 
@@ -34,14 +36,56 @@ class ProcessingTransformerTest extends Specification {
     "translate equivalence of variable to single correct value" in {
       val node = qti()
       val matchNode = matcher(node)
-      ProcessingTransformer._match(matchNode)(node) must be equalTo(s"""$responseId == "${correctResponses.head}"""")
+      _match(matchNode)(node) must be equalTo(s"""$responseId == "${correctResponses.head}"""")
     }
 
     "translate equivalence of variable to multiple correct values" in {
       val correctResponses = Seq("a", "b")
       val node = qti(correctResponses = correctResponses)
       val matchNode = matcher(node)
-      ProcessingTransformer._match(matchNode)(node) must be equalTo(s"""["${correctResponses.mkString("\",\"")}"].indexOf($responseId) >= 0""")
+      _match(matchNode)(node) must be equalTo(s"""["${correctResponses.mkString("\",\"")}"].indexOf($responseId) >= 0""")
+    }
+
+  }
+
+  "and" should {
+
+    val oneExpression = Seq(<match>
+        <variable identifier="test"/>
+        <variable identifier="test"/>
+      </match>)
+
+    val twoExpressions = oneExpression :+
+      <match>
+        <variable identifier="one"/>
+        <variable identifier="two"/>
+      </match>
+
+    val threeExpressions = twoExpressions :+
+      <match>
+        <variable identifier="great"/>
+        <variable identifier="stuff"/>
+      </match>
+
+    def node(expressions: Seq[Node]) =
+      <and>
+        {expressions}
+      </and>
+
+    "error on empty node" in {
+      and(<and/>) must throwAn[Exception]
+    }
+
+    "error on one expression" in {
+      and(node(oneExpression)) must throwAn[Exception]
+    }
+
+    "combine two expressions" in {
+      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_, emptyNode)).mkString(" && ")}""")
+    }
+
+    "combine three expressions" in {
+      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_, emptyNode)).mkString(" && ")}""")
     }
 
   }

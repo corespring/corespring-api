@@ -2,14 +2,15 @@ package org.corespring.qtiToV2.kds
 
 import scala.xml.{Text, Node}
 
-object ProcessingTransformer {
+trait ProcessingTransformer {
 
-  def expression(_qti: Node, node: Node) = {
+  def expression(node: Node, _qti: Node): String = {
     implicit val qti = _qti
-    node.label match {
-      case "match" => _match(node)(_qti)
-      case _ => throw new Exception("This is not a supported match")
-    }
+    s"(${node.label match {
+      case "match" => _match(node)
+      case "and" => and(node)
+      case _ => throw new Exception(s"Not a supported expression: ${node.label}")
+    }})"
   }
 
   def _match(node: Node)(implicit qti: Node) = {
@@ -26,6 +27,11 @@ object ProcessingTransformer {
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
+  }
+
+  def and(node: Node)(implicit qti: Node) = node.withoutEmptyChildren match {
+    case child if (child.length < 2) => throw new Exception("And expression must combine two or more expressions")
+    case child => child.map(child => expression(child, qti)).mkString(" && ")
   }
 
   private def term(node: Node)(implicit qti: Node): Seq[String] = node.label match {
