@@ -48,29 +48,13 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   }
 
+
+  val oneExpression = Seq(<match><variable identifier="test"/><variable identifier="test"/></match>)
+  val twoExpressions = oneExpression :+ <match><variable identifier="one"/><variable identifier="two"/></match>
+  val threeExpressions = twoExpressions :+ <match><variable identifier="great"/><variable identifier="stuff"/></match>
+  def node(expressions: Seq[Node]) = <and>{expressions}</and>
+
   "and" should {
-
-    val oneExpression = Seq(<match>
-        <variable identifier="test"/>
-        <variable identifier="test"/>
-      </match>)
-
-    val twoExpressions = oneExpression :+
-      <match>
-        <variable identifier="one"/>
-        <variable identifier="two"/>
-      </match>
-
-    val threeExpressions = twoExpressions :+
-      <match>
-        <variable identifier="great"/>
-        <variable identifier="stuff"/>
-      </match>
-
-    def node(expressions: Seq[Node]) =
-      <and>
-        {expressions}
-      </and>
 
     "error on empty node" in {
       and(<and/>) must throwAn[Exception]
@@ -86,6 +70,28 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
     "combine three expressions" in {
       and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_, emptyNode)).mkString(" && ")}""")
+    }
+
+  }
+
+  "and" should {
+
+    def node(expressions: Seq[Node]) = <or>{expressions}</or>
+
+    "error on empty node" in {
+      or(<or/>) must throwAn[Exception]
+    }
+
+    "error on one expression" in {
+      or(node(oneExpression)) must throwAn[Exception]
+    }
+
+    "combine two expressions" in {
+      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_, emptyNode)).mkString(" || ")}""")
+    }
+
+    "combine three expressions" in {
+      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_, emptyNode)).mkString(" || ")}""")
     }
 
   }

@@ -29,9 +29,12 @@ trait ProcessingTransformer {
     }
   }
 
-  def and(node: Node)(implicit qti: Node) = node.withoutEmptyChildren match {
+  def and(node: Node)(implicit qti: Node) = binaryOp(node, "&&")
+  def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
+
+  private def binaryOp(node: Node, op: String)(implicit qti: Node) = node.withoutEmptyChildren match {
     case child if (child.length < 2) => throw new Exception("And expression must combine two or more expressions")
-    case child => child.map(child => expression(child, qti)).mkString(" && ")
+    case child => child.map(child => expression(child, qti)).mkString(s" $op ")
   }
 
   private def term(node: Node)(implicit qti: Node): Seq[String] = node.label match {
