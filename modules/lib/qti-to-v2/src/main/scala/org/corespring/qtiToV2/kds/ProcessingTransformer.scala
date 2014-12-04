@@ -4,12 +4,17 @@ import scala.xml._
 
 trait ProcessingTransformer extends JsBeautifier {
 
+  def toJs(node: Node)(implicit qti: Node) = node.label match {
+    case "responseProcessing" => node.withoutEmptyChildren.map(responseCondition).mkString("\n")
+    case _ => throw ProcessingTransformerException("Cannot process node $label as responseProcessing", node)
+  }
+
   protected def responseCondition(node: Node)(implicit qti: Node) =
     node.withoutEmptyChildren.map(child => child.label match {
       case "responseIf" => responseIf(child)
       case "responseElse" => responseElse(child)
       case "responseElseIf" => responseElseIf(child)
-      case _ => throw new Exception(s"Not a supported conditional statement: ${child.label}")
+      case _ => throw ProcessingTransformerException("Not a supported conditional statement: $label", child)
     }).mkString
 
   protected def responseIf(node: Node)(implicit qti: Node) =
@@ -36,26 +41,31 @@ trait ProcessingTransformer extends JsBeautifier {
   }
 
   protected def setOutcomeValue(node: Node)(implicit qti: Node) =
-    s"""${(node \ "@identifier").text} = "${term(node.withoutEmptyChildren.head).head}";"""
+    s"""${(node \ "@identifier").text} = ${expression(node.withoutEmptyChildren.head)};"""
 
-  protected def expression(node: Node)(implicit qti: Node) = s"(${node.label match {
-    case "match" => _match(node)
-    case "and" => and(node)
+  protected def expression(node: Node)(implicit qti: Node): String = node.label match {
+    case "match" => s"(${_match(node)})"
+    case "and" => s"(${and(node)})"
+    case "or" => s"(${or(node)})"
+    case "gt" => s"(${gt(node)})"
+    case "sum" => sum(node)
+    case "variable" => (node \ "@identifier").text
+    case "correct" => correct(node)
+    case "baseValue" => node.text
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
-  }})"
+  }
 
+  protected def gt(node: Node)(implicit qti: Node) = binaryOp(node: Node, ">")
+
+  protected def correct(node: Node)(implicit qti: Node) = ((qti \ "responseDeclaration")
+    .find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
+    .getOrElse(throw new Exception("Did not find for a thing")) \ "correctResponse" \ "value").map(_.text).head
+
+  protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression).mkString(" + ")
 
   protected def _match(node: Node)(implicit qti: Node) = {
     node.withoutEmptyChildren match {
-      case Seq(lhs, rhs) => {
-        val lh = term(lhs)
-        val rh = term(rhs)
-        (lh.length, rh.length) match {
-          case (1, 1) => s"""${lh.head} == "${rh.head}""""
-          case (1, _) => s"""["${rh.mkString("\",\"")}"].indexOf(${lh.head}) >= 0"""
-          case _ => throw new Exception("Too many parameters on left hand side")
-        }
-      }
+      case Seq(lhs, rhs) => s"""${expression(lhs)} == "${expression(rhs)}""""
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
@@ -69,20 +79,13 @@ trait ProcessingTransformer extends JsBeautifier {
     case child => child.map(expression(_)).mkString(s" $op ")
   }
 
-  private def term(node: Node)(implicit qti: Node): Seq[String] = node.label match {
-    case "variable" => Seq((node \ "@identifier").text)
-    case "correct" => {
-      ((qti \ "responseDeclaration")
-        .find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
-        .getOrElse(throw new Exception("Did not find for a thing")) \ "correctResponse" \ "value").map(_.text)
-    }
-    case "baseValue" => Seq(node.text)
-    case _ => throw new Exception(s"uhhh what? ${node}")
-  }
-
   private implicit class NodeHelper(node: Node) {
     import Utility._
     def withoutEmptyChildren = trim(node).child.filter{ child => !child.isInstanceOf[Text] || !child.text.trim.isEmpty }
+  }
+
+  private case class ProcessingTransformerException(message: String, node: Node) extends Exception {
+    override def getMessage = message.replace("$label", node.label).replace("$node", node.toString)
   }
 
 }

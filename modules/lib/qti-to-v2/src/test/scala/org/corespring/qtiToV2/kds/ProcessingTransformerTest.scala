@@ -48,7 +48,6 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   }
 
-
   val oneExpression = Seq(<match><variable identifier="test"/><variable identifier="test"/></match>)
   val twoExpressions = oneExpression :+ <match><variable identifier="one"/><variable identifier="two"/></match>
   val threeExpressions = twoExpressions :+ <match><variable identifier="great"/><variable identifier="stuff"/></match>
@@ -94,6 +93,24 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_)).mkString(" || ")}""")
     }
 
+  }
+
+  "sum" should {
+    val values = Seq("1", "2")
+    val node = <sum>{values.map(v => <baseValue>{v}</baseValue>)}</sum>
+
+    "return X + Y" in {
+      sum(node) must be equalTo values.mkString(" + ")
+    }
+  }
+
+  "gt" should {
+    val values = Seq("2", "1")
+    val node = <gt>{values.map(v => <baseValue>{v}</baseValue>)}</gt>
+
+    "return X > Y" in {
+      gt(node) must be equalTo values.mkString(" > ")
+    }
   }
 
   "setOutcomeValue" should {
@@ -204,6 +221,118 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
         responseCondition(responseConditionVal)(qti()) must be equalTo
           """if ((RESPONSE1 == "1") && (RESPONSE2 == "2")) { SCORE = "2"; } else if (RESPONSE1 == "1") { SCORE = "1"; }"""
       }
+  }
+
+  "toJs" should {
+
+    val responseProcessing =
+      <responseProcessing>
+        <responseCondition>
+          <responseIf>
+            <match>
+              <variable identifier="RESPONSE11"/>
+              <baseValue baseType="string">3.89</baseValue>
+            </match>
+            <setOutcomeValue identifier="NUMCORRECT">
+              <sum>
+                <variable identifier="NUMCORRECT"/>
+                <baseValue baseType="float">1</baseValue>
+              </sum>
+            </setOutcomeValue>
+          </responseIf>
+        </responseCondition>
+        <responseCondition>
+          <responseIf>
+            <or>
+              <match>
+                <variable identifier="RESPONSE21"/>
+                <baseValue baseType="string">104</baseValue>
+              </match>
+              <match>
+                <variable identifier="RESPONSE21"/>
+                <baseValue baseType="string">104.00</baseValue>
+              </match>
+            </or>
+            <setOutcomeValue identifier="NUMCORRECT">
+              <sum>
+                <variable identifier="NUMCORRECT"/>
+                <baseValue baseType="float">1</baseValue>
+              </sum>
+            </setOutcomeValue>
+          </responseIf>
+        </responseCondition>
+        <responseCondition>
+          <responseIf>
+            <gt>
+              <variable identifier="NUMCORRECT"/>
+              <baseValue baseType="float">0</baseValue>
+            </gt>
+            <setOutcomeValue identifier="SCORE">
+              <variable identifier="NUMCORRECT"/>
+            </setOutcomeValue>
+          </responseIf>
+          <responseElse>
+            <setOutcomeValue identifier="SCORE">
+              <baseValue baseType="float">0</baseValue>
+            </setOutcomeValue>
+          </responseElse>
+        </responseCondition>
+      </responseProcessing>
+
+    val qti =
+      <assessmentItem>
+        <responseDeclaration identifier="RESPONSE11" cardinality="single" baseType="string">
+          <correctResponse>
+            <value>3.89</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseDeclaration identifier="RESPONSE21" cardinality="single" baseType="string">
+          <correctResponse>
+            <value>104</value>
+            <value>104.00</value>
+          </correctResponse>
+        </responseDeclaration>
+        <outcomeDeclaration identifier="NUMCORRECT" cardinality="single" baseType="float">
+          <defaultValue>
+            <value>0</value>
+          </defaultValue>
+        </outcomeDeclaration>
+        <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
+          <defaultValue>
+            <value>0</value>
+          </defaultValue>
+        </outcomeDeclaration>
+        <itemBody>
+          <strong>
+            <p>Part A:</p>
+            <p>The total cost of an order of personalized invitations from a company includes the cost of each invitation, plus a one&#8211;time design fee. &nbsp;The cost of each invitation is the same regardless of how many invitations are ordered.</p>
+            <p>The invitation company provides the following examples to customers in order to estimate the total cost of an order:</p>
+          </strong>
+          <ul>
+            <li>
+              <strong>50 invitations $298.50</strong>
+            </li>
+            <li>
+              <strong>500 invitations $2049</strong>
+            </li>
+          </ul>
+          <strong>Based on the examples, what is the cost of each invitation, not including the one&#8211;time design fee?</strong>
+          <strong>$</strong>
+          <textEntryInteraction responseIdentifier="RESPONSE11" expectedLength="10"/>
+          <strong>
+            <p>Part B:</p>
+            <p>What is the cost of the one&#8211;time design fee?</p>
+          </strong>
+          <strong>$</strong>
+          <textEntryInteraction responseIdentifier="RESPONSE21" expectedLength="10"/>
+        </itemBody>
+        {responseProcessing}
+      </assessmentItem>
+
+    "convert response processing node to JS" in {
+      println(toJs(responseProcessing)(qti))
+      true === true
+    }
   }
 
 }
