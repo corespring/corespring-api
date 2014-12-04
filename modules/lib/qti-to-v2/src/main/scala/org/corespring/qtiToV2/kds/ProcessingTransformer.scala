@@ -1,11 +1,31 @@
 package org.corespring.qtiToV2.kds
 
-import scala.xml.{Text, Node}
+import scala.xml._
 
-trait ProcessingTransformer {
+trait ProcessingTransformer extends JsBeautifier {
 
-  def expression(node: Node, _qti: Node): String = {
-    implicit val qti = _qti
+  def responseIf(node: Node)(implicit qti: Node): String = {
+    node.withoutEmptyChildren.zipWithIndex.map{ case(node, i) => i match {
+      case 0 => (expression(node), i)
+      case _ => (responseRule(node), i)
+    }}.map{ case(string, i) => i match {
+      case 0 => s"if $string {"
+      case _ => s" $string "
+    }}.mkString + "}"
+  }
+
+  def responseRule(node: Node)(implicit qti: Node): String = {
+    node.label match {
+      case "setOutcomeValue" => setOutcomeValue(node)
+      case _ => throw new Exception(s"Unsupported response rule: ${node.label}")
+    }
+  }
+
+  def setOutcomeValue(node: Node)(implicit qti: Node) = {
+    s"""${(node \ "@identifier").text} = "${term(node.withoutEmptyChildren.head).head}";"""
+  }
+
+  def expression(node: Node)(implicit qti: Node): String = {
     s"(${node.label match {
       case "match" => _match(node)
       case "and" => and(node)
@@ -33,21 +53,24 @@ trait ProcessingTransformer {
   def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node) = node.withoutEmptyChildren match {
-    case child if (child.length < 2) => throw new Exception("And expression must combine two or more expressions")
-    case child => child.map(child => expression(child, qti)).mkString(s" $op ")
+    case child if (child.length < 2) => throw new Exception(s"$op expression must combine two or more expressions")
+    case child => child.map(expression(_)).mkString(s" $op ")
   }
 
   private def term(node: Node)(implicit qti: Node): Seq[String] = node.label match {
-    case "variable" => Seq((node \ "@identifier").text.toString)
+    case "variable" => Seq((node \ "@identifier").text)
     case "correct" => {
       ((qti \ "responseDeclaration")
         .find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
         .getOrElse(throw new Exception("Did not find for a thing")) \ "correctResponse" \ "value").map(_.text)
     }
+    case "baseValue" => Seq(node.text)
+    case _ => throw new Exception(s"uhhh what? ${node}")
   }
 
   private implicit class NodeHelper(node: Node) {
-    def withoutEmptyChildren = node.child.filter{ child => !child.isInstanceOf[Text] || !child.text.trim.isEmpty }
+    import Utility._
+    def withoutEmptyChildren = trim(node).child.filter{ child => !child.isInstanceOf[Text] || !child.text.trim.isEmpty }
   }
 
 }

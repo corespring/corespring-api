@@ -65,11 +65,11 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_, emptyNode)).mkString(" && ")}""")
+      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_)).mkString(" && ")}""")
     }
 
     "combine three expressions" in {
-      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_, emptyNode)).mkString(" && ")}""")
+      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_)).mkString(" && ")}""")
     }
 
   }
@@ -87,11 +87,67 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_, emptyNode)).mkString(" || ")}""")
+      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_)).mkString(" || ")}""")
     }
 
     "combine three expressions" in {
-      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_, emptyNode)).mkString(" || ")}""")
+      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_)).mkString(" || ")}""")
+    }
+
+  }
+
+  "setOutcomeValue" should {
+
+    val identifier = "RESPONSE1"
+    val value = "OMG"
+
+    val node =
+      <setOutcomeValue identifier={identifier}>
+        <baseValue>{value}</baseValue>
+      </setOutcomeValue>
+
+    "translate into assignment expression" in {
+      setOutcomeValue(node) must be equalTo(s"""$identifier = "$value";""")
+    }
+
+  }
+
+  "responseIf" should {
+
+    val identifier = "SCORE"
+    val value = "great"
+    val responseId = "RESPONSE1"
+    val correctResponses = Seq("2")
+
+    def qti(responseId: String = responseId,
+            correctResponses: Seq[String] = correctResponses,
+            responseIfNode: Node) =
+      <assessmentItem>
+        <responseDeclaration identifier={responseId} cardinality="single" baseType="identifier">
+          <correctResponse>
+            {correctResponses.map(r => <value>{r}</value>)}
+          </correctResponse>
+        </responseDeclaration>
+        <responseProcessing>
+          {responseIfNode}
+        </responseProcessing>
+      </assessmentItem>
+
+    def responseIfNode() =
+      <responseIf>
+        <match>
+          <variable identifier={responseId}/>
+          <correct identifier={responseId}/>
+        </match>
+        <setOutcomeValue identifier={identifier}>
+          <baseValue>{value}</baseValue>
+        </setOutcomeValue>
+      </responseIf>
+
+    "translate into if statement" in {
+      val responseIfNodeVal = responseIfNode()
+      val qtiNode = qti(responseIfNode = responseIfNodeVal)
+      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId == "${correctResponses.head}") { $identifier = "$value"; }"""
     }
 
   }
