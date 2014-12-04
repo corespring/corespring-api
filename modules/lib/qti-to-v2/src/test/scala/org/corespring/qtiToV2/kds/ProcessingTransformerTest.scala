@@ -129,7 +129,9 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
           </correctResponse>
         </responseDeclaration>
         <responseProcessing>
-          {responseIfNode}
+          <responseCondition>
+            {responseIfNode}
+          </responseCondition>
         </responseProcessing>
       </assessmentItem>
 
@@ -150,6 +152,58 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId == "${correctResponses.head}") { $identifier = "$value"; }"""
     }
 
+  }
+
+  "responseCondition" should {
+    val responseConditionVal =
+      <responseCondition>
+        <responseIf>
+          <and>
+            <match>
+              <variable identifier="RESPONSE1"/>
+              <correct identifier="RESPONSE1"/>
+            </match>
+            <match>
+              <variable identifier="RESPONSE2"/>
+              <correct identifier="RESPONSE2"/>
+            </match>
+          </and>
+          <setOutcomeValue identifier="SCORE">
+            <baseValue baseType="float">2</baseValue>
+          </setOutcomeValue>
+        </responseIf>
+        <responseElseIf>
+          <match>
+            <variable identifier="RESPONSE1"/>
+            <correct identifier="RESPONSE1"/>
+          </match>
+          <setOutcomeValue identifier="SCORE">
+            <baseValue baseType="float">1</baseValue>
+          </setOutcomeValue>
+        </responseElseIf>
+      </responseCondition>
+
+    def qti(responseConditionVal: Node = responseConditionVal) =
+      <assessmentItem>
+        <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>1</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseDeclaration identifier="RESPONSE2" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>2</value>
+          </correctResponse>
+        </responseDeclaration>
+        <responseProcessing>
+          {responseConditionVal}
+        </responseProcessing>
+      </assessmentItem>
+
+      "translate into conditional statement" in {
+        responseCondition(responseConditionVal)(qti()) must be equalTo
+          """if ((RESPONSE1 == "1") && (RESPONSE2 == "2")) { SCORE = "2"; } else if (RESPONSE1 == "1") { SCORE = "1"; }"""
+      }
   }
 
 }

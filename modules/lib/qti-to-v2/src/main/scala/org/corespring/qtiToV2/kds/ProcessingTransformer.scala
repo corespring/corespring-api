@@ -4,36 +4,48 @@ import scala.xml._
 
 trait ProcessingTransformer extends JsBeautifier {
 
-  def responseIf(node: Node)(implicit qti: Node): String = {
+  protected def responseCondition(node: Node)(implicit qti: Node) =
+    node.withoutEmptyChildren.map(child => child.label match {
+      case "responseIf" => responseIf(child)
+      case "responseElse" => responseElse(child)
+      case "responseElseIf" => responseElseIf(child)
+      case _ => throw new Exception(s"Not a supported conditional statement: ${child.label}")
+    }).mkString
+
+  protected def responseIf(node: Node)(implicit qti: Node) =
+    conditionalStatement(node, "if $string {", " $string ")
+
+  private def responseElseIf(node: Node)(implicit qti: Node) =
+    conditionalStatement(node, " else if $string {", " $string ")
+
+  private def responseElse(node: Node)(implicit qti: Node) =
+    s" else { ${node.withoutEmptyChildren.map(responseRule).mkString(" ")} }"
+
+  private def conditionalStatement(node: Node, expressionWrapper: String, responseWrapper: String)(implicit qti: Node) =
     node.withoutEmptyChildren.zipWithIndex.map{ case(node, i) => i match {
       case 0 => (expression(node), i)
       case _ => (responseRule(node), i)
     }}.map{ case(string, i) => i match {
-      case 0 => s"if $string {"
-      case _ => s" $string "
+      case 0 => expressionWrapper.replace("$string", string)
+      case _ => responseWrapper.replace("$string", string)
     }}.mkString + "}"
+
+  protected def responseRule(node: Node)(implicit qti: Node) = node.label match {
+    case "setOutcomeValue" => setOutcomeValue(node)
+    case _ => throw new Exception(s"Unsupported response rule: ${node.label}")
   }
 
-  def responseRule(node: Node)(implicit qti: Node): String = {
-    node.label match {
-      case "setOutcomeValue" => setOutcomeValue(node)
-      case _ => throw new Exception(s"Unsupported response rule: ${node.label}")
-    }
-  }
-
-  def setOutcomeValue(node: Node)(implicit qti: Node) = {
+  protected def setOutcomeValue(node: Node)(implicit qti: Node) =
     s"""${(node \ "@identifier").text} = "${term(node.withoutEmptyChildren.head).head}";"""
-  }
 
-  def expression(node: Node)(implicit qti: Node): String = {
-    s"(${node.label match {
-      case "match" => _match(node)
-      case "and" => and(node)
-      case _ => throw new Exception(s"Not a supported expression: ${node.label}")
-    }})"
-  }
+  protected def expression(node: Node)(implicit qti: Node) = s"(${node.label match {
+    case "match" => _match(node)
+    case "and" => and(node)
+    case _ => throw new Exception(s"Not a supported expression: ${node.label}")
+  }})"
 
-  def _match(node: Node)(implicit qti: Node) = {
+
+  protected def _match(node: Node)(implicit qti: Node) = {
     node.withoutEmptyChildren match {
       case Seq(lhs, rhs) => {
         val lh = term(lhs)
@@ -49,10 +61,10 @@ trait ProcessingTransformer extends JsBeautifier {
     }
   }
 
-  def and(node: Node)(implicit qti: Node) = binaryOp(node, "&&")
-  def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
+  protected def and(node: Node)(implicit qti: Node) = binaryOp(node, "&&")
+  protected def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
 
-  private def binaryOp(node: Node, op: String)(implicit qti: Node) = node.withoutEmptyChildren match {
+  private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
     case child if (child.length < 2) => throw new Exception(s"$op expression must combine two or more expressions")
     case child => child.map(expression(_)).mkString(s" $op ")
   }
