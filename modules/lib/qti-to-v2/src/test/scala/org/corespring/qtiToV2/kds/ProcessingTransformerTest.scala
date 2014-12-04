@@ -16,7 +16,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     def qti(responseId: String = responseId,
             correctResponses: Seq[String] = correctResponses) =
       <assessmentItem>
-        <responseDeclaration identifier={responseId} cardinality="single" baseType="identifier">
+        <responseDeclaration identifier={responseId} cardinality="single" baseType="string">
           <correctResponse>
             {correctResponses.map(r => <value>{r}</value>)}
           </correctResponse>
@@ -36,7 +36,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate equivalence of variable to single correct value" in {
       val node = qti()
       val matchNode = matcher(node)
-      _match(matchNode)(node) must be equalTo(s"""$responseId == "${correctResponses.head}"""")
+      _match(matchNode)(node) must be equalTo(s"""$responseId === "${correctResponses.head}"""")
     }
 
     "translate equivalence of variable to multiple correct values" in {
@@ -120,7 +120,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
     val node =
       <setOutcomeValue identifier={identifier}>
-        <baseValue>{value}</baseValue>
+        <baseValue baseType="string">{value}</baseValue>
       </setOutcomeValue>
 
     "translate into assignment expression" in {
@@ -134,7 +134,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     val identifier = "SCORE"
     val value = "great"
     val responseId = "RESPONSE1"
-    val correctResponses = Seq("2")
+    val correctResponses = Seq("RESPONSE2")
 
     def qti(responseId: String = responseId,
             correctResponses: Seq[String] = correctResponses,
@@ -159,14 +159,14 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
           <correct identifier={responseId}/>
         </match>
         <setOutcomeValue identifier={identifier}>
-          <baseValue>{value}</baseValue>
+          <baseValue baseType="string">{value}</baseValue>
         </setOutcomeValue>
       </responseIf>
 
     "translate into if statement" in {
       val responseIfNodeVal = responseIfNode()
       val qtiNode = qti(responseIfNode = responseIfNodeVal)
-      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId == "${correctResponses.head}") { $identifier = "$value"; }"""
+      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId === ${correctResponses.head}) { $identifier = "$value"; }"""
     }
 
   }
@@ -202,14 +202,14 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
     def qti(responseConditionVal: Node = responseConditionVal) =
       <assessmentItem>
-        <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="identifier">
+        <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="string">
           <correctResponse>
-            <value>1</value>
+            <value>ONE</value>
           </correctResponse>
         </responseDeclaration>
-        <responseDeclaration identifier="RESPONSE2" cardinality="single" baseType="identifier">
+        <responseDeclaration identifier="RESPONSE2" cardinality="single" baseType="string">
           <correctResponse>
-            <value>2</value>
+            <value>TWO</value>
           </correctResponse>
         </responseDeclaration>
         <responseProcessing>
@@ -219,7 +219,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
       "translate into conditional statement" in {
         responseCondition(responseConditionVal)(qti()) must be equalTo
-          """if ((RESPONSE1 == "1") && (RESPONSE2 == "2")) { SCORE = "2"; } else if (RESPONSE1 == "1") { SCORE = "1"; }"""
+          """if ((RESPONSE1 === "ONE") && (RESPONSE2 === "TWO")) { SCORE = 2; } else if (RESPONSE1 === "ONE") { SCORE = 1; }"""
       }
   }
 

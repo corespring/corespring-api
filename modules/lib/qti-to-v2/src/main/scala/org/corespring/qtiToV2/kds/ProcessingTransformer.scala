@@ -5,8 +5,34 @@ import scala.xml._
 trait ProcessingTransformer extends JsBeautifier {
 
   def toJs(node: Node)(implicit qti: Node) = node.label match {
-    case "responseProcessing" => node.withoutEmptyChildren.map(responseCondition).mkString("\n")
+    case "responseProcessing" =>
+      (outcomeDeclarations(qti) ++ node.withoutEmptyChildren.map(responseCondition)).mkString("\n")
     case _ => throw ProcessingTransformerException("Cannot process node $label as responseProcessing", node)
+  }
+
+  protected def outcomeDeclarations(qti: Node) = {
+    def default[T](node: Node, _def: Option[T], fn: (String => String) = t => t.toString): String = {
+      (node \ "value").length match {
+        case 0 => _def match {
+          case Some(default) => fn(default.toString)
+          case _ => throw ProcessingTransformerException(s"Cannot have unassigned default for: $node", node)
+        }
+        case 1 => fn((node \ "value").text)
+        case _ => throw ProcessingTransformerException(
+          "Cannot have multiple default values for outcomeDeclaration: $node", node)
+      }
+    }
+    (qti \\ "outcomeDeclaration").map { outcomeDeclaration =>
+      val defaultValue = (outcomeDeclaration \ "@baseType").text match {
+        case "string" => default[String](outcomeDeclaration, Some(""), t => s""""$t"""")
+        case "float" => default[Float](outcomeDeclaration, Some(0.0f))
+        case "integer" => default[Int](outcomeDeclaration, Some(0))
+        case "identifier" => default[String](outcomeDeclaration, None)
+        case other: String => throw ProcessingTransformerException(
+          "Cannot parse outcomeDeclaration of type " + other + ": $node", outcomeDeclaration)
+      }
+      s"var ${(outcomeDeclaration \ "@identifier")} = $defaultValue;"
+    }
   }
 
   protected def responseCondition(node: Node)(implicit qti: Node) =
@@ -51,21 +77,38 @@ trait ProcessingTransformer extends JsBeautifier {
     case "sum" => sum(node)
     case "variable" => (node \ "@identifier").text
     case "correct" => correct(node)
-    case "baseValue" => node.text
+    case "baseValue" => baseValue(node)
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
   }
 
-  protected def gt(node: Node)(implicit qti: Node) = binaryOp(node: Node, ">")
+  protected def gt(node: Node)(implicit qti: Node) = binaryOp(node, ">")
+  protected def gte(node: Node)(implicit qti: Node) = binaryOp(node, ">=")
+  protected def lt(node: Node)(implicit qti: Node) = binaryOp(node, "<")
+  protected def lte(node: Node)(implicit qti: Node) = binaryOp(node, "<=")
 
-  protected def correct(node: Node)(implicit qti: Node) = ((qti \ "responseDeclaration")
-    .find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
-    .getOrElse(throw new Exception("Did not find for a thing")) \ "correctResponse" \ "value").map(_.text).head
+  protected def correct(node: Node)(implicit qti: Node) = {
+    val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
+      .getOrElse(throw new Exception("Did not find for a thing"))
+    (rd \ "correctResponse" \ "value").map(_.text).map(v => {
+      (rd \ "@baseType").text match {
+        case "string" => s""""$v""""
+        case _ => v
+      }
+    }).head
+  }
+
+  protected def baseValue(node: Node) = {
+    (node \ "@baseType").text match {
+      case "string" => s""""${node.text}""""
+      case _ => node.text
+    }
+  }
 
   protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression).mkString(" + ")
 
   protected def _match(node: Node)(implicit qti: Node) = {
     node.withoutEmptyChildren match {
-      case Seq(lhs, rhs) => s"""${expression(lhs)} == "${expression(rhs)}""""
+      case Seq(lhs, rhs) => s"""${expression(lhs)} === ${expression(rhs)}"""
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
