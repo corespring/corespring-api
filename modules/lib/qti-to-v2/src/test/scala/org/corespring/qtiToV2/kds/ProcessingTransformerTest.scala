@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 
 import scala.xml.Node
 
-class ProcessingTransformerTest extends Specification with ProcessingTransformer {
+class ProcessingTransformerTest extends Specification with ProcessingTransformer with V2JavascriptWrapper {
 
   implicit val emptyNode = <noOp/>
 
@@ -225,60 +225,6 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   "toJs" should {
 
-    val responseProcessing =
-      <responseProcessing>
-        <responseCondition>
-          <responseIf>
-            <match>
-              <variable identifier="RESPONSE11"/>
-              <baseValue baseType="string">3.89</baseValue>
-            </match>
-            <setOutcomeValue identifier="NUMCORRECT">
-              <sum>
-                <variable identifier="NUMCORRECT"/>
-                <baseValue baseType="float">1</baseValue>
-              </sum>
-            </setOutcomeValue>
-          </responseIf>
-        </responseCondition>
-        <responseCondition>
-          <responseIf>
-            <or>
-              <match>
-                <variable identifier="RESPONSE21"/>
-                <baseValue baseType="string">104</baseValue>
-              </match>
-              <match>
-                <variable identifier="RESPONSE21"/>
-                <baseValue baseType="string">104.00</baseValue>
-              </match>
-            </or>
-            <setOutcomeValue identifier="NUMCORRECT">
-              <sum>
-                <variable identifier="NUMCORRECT"/>
-                <baseValue baseType="float">1</baseValue>
-              </sum>
-            </setOutcomeValue>
-          </responseIf>
-        </responseCondition>
-        <responseCondition>
-          <responseIf>
-            <gt>
-              <variable identifier="NUMCORRECT"/>
-              <baseValue baseType="float">0</baseValue>
-            </gt>
-            <setOutcomeValue identifier="SCORE">
-              <variable identifier="NUMCORRECT"/>
-            </setOutcomeValue>
-          </responseIf>
-          <responseElse>
-            <setOutcomeValue identifier="SCORE">
-              <baseValue baseType="float">0</baseValue>
-            </setOutcomeValue>
-          </responseElse>
-        </responseCondition>
-      </responseProcessing>
-
     val qti =
       <assessmentItem>
         <responseDeclaration identifier="RESPONSE11" cardinality="single" baseType="string">
@@ -326,11 +272,62 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
           <strong>$</strong>
           <textEntryInteraction responseIdentifier="RESPONSE21" expectedLength="10"/>
         </itemBody>
-        {responseProcessing}
+        <responseProcessing>
+          <responseCondition>
+            <responseIf>
+              <match>
+                <variable identifier="RESPONSE11"/>
+                <baseValue baseType="string">3.89</baseValue>
+              </match>
+              <setOutcomeValue identifier="NUMCORRECT">
+                <sum>
+                  <variable identifier="NUMCORRECT"/>
+                  <baseValue baseType="float">1</baseValue>
+                </sum>
+              </setOutcomeValue>
+            </responseIf>
+          </responseCondition>
+          <responseCondition>
+            <responseIf>
+              <or>
+                <match>
+                  <variable identifier="RESPONSE21"/>
+                  <baseValue baseType="string">104</baseValue>
+                </match>
+                <match>
+                  <variable identifier="RESPONSE21"/>
+                  <baseValue baseType="string">104.00</baseValue>
+                </match>
+              </or>
+              <setOutcomeValue identifier="NUMCORRECT">
+                <sum>
+                  <variable identifier="NUMCORRECT"/>
+                  <baseValue baseType="float">1</baseValue>
+                </sum>
+              </setOutcomeValue>
+            </responseIf>
+          </responseCondition>
+          <responseCondition>
+            <responseIf>
+              <gt>
+                <variable identifier="NUMCORRECT"/>
+                <baseValue baseType="float">0</baseValue>
+              </gt>
+              <setOutcomeValue identifier="SCORE">
+                <variable identifier="NUMCORRECT"/>
+              </setOutcomeValue>
+            </responseIf>
+            <responseElse>
+              <setOutcomeValue identifier="SCORE">
+                <baseValue baseType="float">0</baseValue>
+              </setOutcomeValue>
+            </responseElse>
+          </responseCondition>
+        </responseProcessing>
       </assessmentItem>
 
     "convert response processing node to JS" in {
-      println(toJs(responseProcessing)(qti))
+      println(wrap(toJs(qti)))
       true === true
     }
   }

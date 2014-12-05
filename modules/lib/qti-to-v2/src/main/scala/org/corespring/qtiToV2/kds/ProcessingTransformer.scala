@@ -4,13 +4,22 @@ import scala.xml._
 
 trait ProcessingTransformer extends JsBeautifier {
 
-  def toJs(node: Node)(implicit qti: Node) = node.label match {
-    case "responseProcessing" =>
-      (outcomeDeclarations(qti) ++ node.withoutEmptyChildren.map(responseCondition)).mkString("\n")
-    case _ => throw ProcessingTransformerException("Cannot process node $label as responseProcessing", node)
+  /**
+   * Takes a QTI document, and returns a Javascript representation of its <responseProcessing/> node.
+   */
+  def toJs(qti: Node): JsResponseProcessing = (qti \ "responseProcessing").headOption match {
+    case Some(node) =>
+      JsResponseProcessing(
+        vars = outcomeDeclarations(qti),
+        responseVars = responseDeclarations(qti),
+        lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
+      )
+    case _ => throw ProcessingTransformerException("Cannot find response processing node in document", qti)
   }
 
-  protected def outcomeDeclarations(qti: Node) = {
+  protected def responseDeclarations(qti: Node): Seq[String] = (qti \ "responseDeclaration").map(_ \ "@identifier").map(_.text)
+
+  protected def outcomeDeclarations(qti: Node): Map[String, String] = {
     def default[T](node: Node, _def: Option[T], fn: (String => String) = t => t.toString): String = {
       (node \ "value").length match {
         case 0 => _def match {
@@ -31,8 +40,8 @@ trait ProcessingTransformer extends JsBeautifier {
         case other: String => throw ProcessingTransformerException(
           "Cannot parse outcomeDeclaration of type " + other + ": $node", outcomeDeclaration)
       }
-      s"var ${(outcomeDeclaration \ "@identifier")} = $defaultValue;"
-    }
+      (outcomeDeclaration \ "@identifier").text -> defaultValue
+    }.toMap
   }
 
   protected def responseCondition(node: Node)(implicit qti: Node) =
@@ -131,4 +140,11 @@ trait ProcessingTransformer extends JsBeautifier {
     override def getMessage = message.replace("$label", node.label).replace("$node", node.toString)
   }
 
+}
+
+/**
+ * Contains the output of converting <responseProcessing/> to Javascript
+ */
+case class JsResponseProcessing(vars: Map[String, String], lines: Seq[String], responseVars: Seq[String] = Seq.empty) {
+  override def toString = (vars.map{ case(name, value) => s"var $name = $value;" } ++ lines).mkString("\n")
 }
