@@ -327,7 +327,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       </assessmentItem>
 
     "convert response processing node to JS" in {
-      println(wrap(toJs(qti)))
+      println(toJs(qti).map(wrap).getOrElse("Oops!"))
       true === true
     }
   }

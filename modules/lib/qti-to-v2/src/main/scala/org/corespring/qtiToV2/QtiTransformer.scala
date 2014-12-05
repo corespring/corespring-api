@@ -5,7 +5,7 @@ import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
 import play.api.libs.json._
 
-import scala.xml.Elem
+import scala.xml.{Node, Elem}
 import scala.xml.transform.RuleTransformer
 
 trait QtiTransformer extends XMLNamespaceClearer {
@@ -14,6 +14,16 @@ trait QtiTransformer extends XMLNamespaceClearer {
 
   def interactionTransformers(qti: Elem): Seq[InteractionTransformer]
   def statefulTransformers: Seq[Transformer]
+
+  def customScoring(qti: Node, components: Map[String, JsObject]): JsObject = {
+    val typeMap = components.map { case (k, v) => (k -> (v \ "componentType").as[String]) }
+    (qti \\ "responseProcessing").headOption.map { rp =>
+      scoringTransformer.generate(rp.text, components, typeMap) match {
+        case Left(e) => throw e
+        case Right(js) => Json.obj("customScoring" -> js)
+      }
+    }.getOrElse(Json.obj())
+  }
 
   def transform(qti: Elem): JsValue = {
 
@@ -31,18 +41,9 @@ trait QtiTransformer extends XMLNamespaceClearer {
 
     components.foreach{ case (id, json) => println(id); println(Json.prettyPrint(json)) }
 
-    val typeMap = components.map { case (k, v) => (k -> (v \ "componentType").as[String]) }
-
-    val customScoring = (qti \\ "responseProcessing").headOption.map { rp =>
-      scoringTransformer.generate(rp.text, components, typeMap) match {
-        case Left(e) => throw e
-        case Right(js) => Json.obj("customScoring" -> js)
-      }
-    }.getOrElse(Json.obj())
-
     Json.obj(
       "xhtml" -> html.toString,
-      "components" -> components) ++ customScoring
+      "components" -> components) ++ customScoring(qti, components)
   }
 
 }

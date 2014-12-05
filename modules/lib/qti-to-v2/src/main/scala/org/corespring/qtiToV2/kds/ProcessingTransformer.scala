@@ -2,19 +2,18 @@ package org.corespring.qtiToV2.kds
 
 import scala.xml._
 
-trait ProcessingTransformer extends JsBeautifier {
+trait ProcessingTransformer extends V2JavascriptWrapper {
 
   /**
    * Takes a QTI document, and returns a Javascript representation of its <responseProcessing/> node.
    */
-  def toJs(qti: Node): JsResponseProcessing = (qti \ "responseProcessing").headOption match {
-    case Some(node) =>
-      JsResponseProcessing(
-        vars = outcomeDeclarations(qti),
-        responseVars = responseDeclarations(qti),
-        lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
-      )
-    case _ => throw ProcessingTransformerException("Cannot find response processing node in document", qti)
+  def toJs(qti: Node): Option[JsResponseProcessing] = (qti \ "responseProcessing").headOption match {
+    case Some(node) => Some(JsResponseProcessing(
+      vars = outcomeDeclarations(qti),
+      responseVars = responseDeclarations(qti),
+      lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
+    ))
+    case _ => None
   }
 
   protected def responseDeclarations(qti: Node): Seq[String] = (qti \ "responseDeclaration").map(_ \ "@identifier").map(_.text)

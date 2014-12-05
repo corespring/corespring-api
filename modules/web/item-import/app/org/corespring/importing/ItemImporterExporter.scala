@@ -50,7 +50,8 @@ class ItemImporterExporter {
               PlayerDefinition(Seq.empty,
                 (itemJson \ "xhtml").as[String],
                 (itemJson \ "components"),
-                (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None),
+                (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""),
+                (itemJson \ "customScoring").asOpt[String]),
               taskInfo
             )
           )
