@@ -28,13 +28,13 @@ object ItemTransformer extends PassageTransformer {
       def stripCDataTags(xmlString: String) =
         StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
       val xml = XML.loadString(stripCDataTags(string))
-      transformFractions(clearNamespace(removeResponseProcessing(new RuleTransformer(new RewriteRule {
+      transformFractions(clearNamespace(new RuleTransformer(new RewriteRule {
         override def transform(n: Node): NodeSeq = n match {
           case n: Elem if (n.label == "itemBody" && passageXml.nonEmpty) =>
             n.copy(child = XML.loadString(passageXml) ++ n.child)
           case _ => n
         }
-      }).transform(xml).headOption.getOrElse(throw new Exception("headless!"))))).asInstanceOf[Elem]
+      }).transform(xml).headOption.getOrElse(throw new Exception("There was no head element!")))).asInstanceOf[Elem]
     }
 
     def removeResponseProcessing(node: Node): Node = {
