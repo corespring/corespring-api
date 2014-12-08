@@ -12,6 +12,7 @@ import org.corespring.v2.auth.models.{OrgAndOpts, _}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.io.Source
@@ -211,7 +212,7 @@ class ItemFileConverterTest extends Specification with Mockito {
         }
       }
     }
-    val result = itemFileConverter.convert(collectionId)(sources.toMap)
+    val result = itemFileConverter.convert(collectionId, Json.obj())(sources.toMap)
 
     "create Item from local files" in {
       result must beAnInstanceOf[Success[Error, Item]]

@@ -4,7 +4,7 @@ import java.util.zip.ZipFile
 
 import org.bson.types.ObjectId
 import org.corespring.importing.{ItemImporterExporter, ItemFileConverter}
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.platform.core.models.{JsonUtil, ContentCollection}
 import org.corespring.platform.core.utils.CsvWriter
 import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.PathFlattener
@@ -14,6 +14,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.V2Error
 import play.api.libs.Files
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.collection.JavaConversions._
@@ -22,7 +23,8 @@ import scalaz._
 class ItemImportController(exporter: ItemImporterExporter,
                            converter: ItemFileConverter,
                            userSession: UserSessionOrgIdentity[OrgAndOpts],
-                           orgService: OrgService) extends LoadOrgAndOptions with Controller with CsvWriter {
+                           orgService: OrgService) extends LoadOrgAndOptions with Controller with CsvWriter
+with JsonUtil {
 
   import PathFlattener._
 
@@ -37,8 +39,7 @@ class ItemImportController(exporter: ItemImporterExporter,
   }
 
   def upload() = Action(parse.multipartFormData) { request =>
-    def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
-
+    val metadata = getMetadata(request)
     (request.body.file("file"), getCollection(request)) match {
       case (Some(upload), Success(Some(collection))) => {
         val zip = new ZipFile(upload.ref.file)
@@ -46,8 +47,8 @@ class ItemImportController(exporter: ItemImporterExporter,
           entry.getName.flattenPath -> SourceWrapper(zip.getInputStream(entry))
         }).toMap
         getAction(request) match {
-          case "export" => exportZip(collection, fileMap)
-          case _ =>  importToDb(collection.id, fileMap, request.host)
+          case "export" => exportZip(collection, metadata, fileMap)
+          case _ =>  importToDb(collection.id, metadata, fileMap, request.host)
         }
       }
       case (_, Failure(message)) => BadRequest(message)
@@ -56,24 +57,32 @@ class ItemImportController(exporter: ItemImporterExporter,
     }
   }
 
-  private def importToDb(collectionId: ObjectId, fileMap: Map[String, SourceWrapper], host: String) = {
-    val results = converter.convert(collectionId.toString)(fileMap)
+  private def importToDb(collectionId: ObjectId, metadata: JsObject, fileMap: Map[String, SourceWrapper], host: String) = {
+    val results = converter.convert(collectionId.toString, metadata)(fileMap)
     Ok((List("Item ID", "URL") +: results.map(_ match {
       case Failure(error) => List(error.getMessage)
       case Success(item) => List(item.id.toString, s"http://$host/web#/edit/${item.id.toString}?panel=content")
     })).toList.toCsv).withHeaders(("Content-Type", "text/csv"), ("Content-Disposition", s"attachment; file=$CsvFilename"))
   }
 
-  private def exportZip(collection: ContentCollection, fileMap: Map[String, SourceWrapper]) =
-    Ok(exporter.export(collection, fileMap)).withHeaders(
+  private def exportZip(collection: ContentCollection, metadata: JsObject, fileMap: Map[String, SourceWrapper]) =
+    Ok(exporter.export(collection, metadata, fileMap)).withHeaders(
       "Content-Type" -> "application/zip",
       "Content-Disposition" -> s"attachment; filename=$ZipFilename"
     )
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = userSession(request)
 
+  private def getMetadata(request: Request[MultipartFormData[Files.TemporaryFile]]) = partialObj(
+    "scoringType" -> getParamOpt("scoring-type", request).map(JsString(_))
+  )
+
   private def getAction(request: Request[MultipartFormData[Files.TemporaryFile]]) =
     request.body.asFormUrlEncoded.get("action").map(_.headOption).flatten.getOrElse("export")
+
+  private def getParamOpt(key: String, request: Request[MultipartFormData[Files.TemporaryFile]]): Option[String] = {
+    request.body.asFormUrlEncoded.get(key).map(_.headOption).flatten
+  }
 
   private def getCollection(request: Request[MultipartFormData[Files.TemporaryFile]]) =
     request.body.asFormUrlEncoded.get("collectionId").map(_.headOption).flatten match {

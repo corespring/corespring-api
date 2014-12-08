@@ -11,7 +11,7 @@ import org.corespring.platform.core.models.item.resource.BaseFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.PathFlattener
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.io.Source
 import scalaz.{Failure, Success}
@@ -24,13 +24,13 @@ class ItemImporterExporter {
 
   import PathFlattener._
 
-  def export(collection: ContentCollection, sources: Map[String, SourceWrapper]): Array[Byte] =
-    createZip(toEntries(collection, sources))
+  def export(collection: ContentCollection, metadata: JsObject, sources: Map[String, SourceWrapper]): Array[Byte] =
+    createZip(toEntries(collection, sources, metadata))
 
-  private def toEntries(collection: ContentCollection, sources: Map[String, SourceWrapper]): Map[String, Source] = {
+  private def toEntries(collection: ContentCollection, sources: Map[String, SourceWrapper], metadata: JsObject): Map[String, Source] = {
     implicit val PlayerDefinitionFormat = PlayerDefinition.Format
 
-    val extractor = new KdsQtiItemExtractor(sources) {
+    val extractor = new KdsQtiItemExtractor(sources, metadata) {
       def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]) = Success(Seq.empty[BaseFile])
     }
 

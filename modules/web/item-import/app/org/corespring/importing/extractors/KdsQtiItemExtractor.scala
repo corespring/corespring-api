@@ -5,12 +5,13 @@ import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.{ItemTransformer => KdsQtiItemTransformer, PathFlattener, ManifestReader, PassageTransformer}
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsObject, Json, JsValue}
 
 import scala.io.Source
 import scalaz._
 
-abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper]) extends ItemExtractor with PassageTransformer {
+abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper], commonMetadata: JsObject)
+  extends ItemExtractor with PassageTransformer {
 
   import PathFlattener._
 
@@ -21,7 +22,9 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper]) extends 
 
   def metadata: Map[String, Validation[Error, Option[JsValue]]] =
     manifest.map(_.items.map(f =>
-      f.id -> Success(Some(Json.obj("taskInfo" -> Json.obj("sourceId" -> "(.*).xml".r.replaceAllIn(f.filename, "$1")))))
+      f.id -> Success(Some(Json.obj(
+        "taskInfo" -> Json.obj("extended" -> Json.obj("kds" -> (Json.obj(
+          "sourceId" -> "(.*).xml".r.replaceAllIn(f.filename, "$1")) ++ commonMetadata))))))
     )).getOrElse(Seq.empty).toMap
 
   def filesFromManifest(id: String) = manifest.map(m => m.items.find(_.id == id)).flatten.map(item => item.resources)

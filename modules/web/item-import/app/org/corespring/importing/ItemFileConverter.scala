@@ -56,12 +56,12 @@ trait ItemFileConverter {
    * Takes a map of Sources, mapping their filename to the source data, and returns an Either of a CoreSpring Item
    * object or an Error.
    */
-  def convert(collectionId: String)(implicit sources: Map[String, SourceWrapper]): Seq[Validation[Error, Item]] = {
+  def convert(collectionId: String, metadata: JsObject)(implicit sources: Map[String, SourceWrapper]): Seq[Validation[Error, Item]] = {
     // TODO - Find a better spot for this
     def isQti(sources: Map[String, SourceWrapper]) = sources.keys.toSeq.contains("imsmanifest.xml")
 
     val extractor = if (isQti(sources)) {
-      new KdsQtiItemExtractor(sources) {
+      new KdsQtiItemExtractor(sources, metadata) {
         def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]) =
           ItemFileConverter.this.upload(itemId, files)
       }
