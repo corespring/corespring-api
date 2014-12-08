@@ -6,7 +6,7 @@ trait V2JavascriptWrapper {
     s"""exports.process = function(item, session) {
       |  var answers = session.components;
       |  
-      |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'];").mkString("\n|  ")}
+      |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'].answers;").mkString("\n|  ")}
       |
       |  ${js.vars.map{ case (name, value) => s"var $name = $value;"}.mkString("\n|  ")}
       |
