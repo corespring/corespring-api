@@ -103,7 +103,8 @@ trait ItemFileConverter {
                   playerDefinition =
                     Some(PlayerDefinition(itemFiles.map(_.files).getOrElse(Seq.empty),
                       (itemJson \ "xhtml").as[String], (itemJson \ "components"),
-                      (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""), None)),
+                      (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""),
+                      (itemJson \ "customScoring").asOpt[String])),
                   priorGradeLevels = extractStringSeq("priorGradeLevels"),
                   priorUse = extractString("priorUse"),
                   taskInfo = taskInfo,
