@@ -84,7 +84,10 @@ object TaskInfo extends ValueGetter {
           val (metadataKey, jsprops) = jsmetadata
           val optprops: Either[JsError, Map[String, String]] = (jsprops match {
             case JsObject(fields) => Right(fields.foldRight[Map[String, String]](Map())((field, acc) => {
-              acc + (field._1 -> field._2.toString())
+              acc + (field._1 -> (field._2 match {
+                case jsString: JsString => jsString.value
+                case _ => field._2.toString
+              }))
             }))
             case JsUndefined() => Right(Map[String, String]())
             case _ => Left(JsError(__ \ metadataKey, ValidationError("incorrect format", "props must be a JSON object")))
