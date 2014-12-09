@@ -21,6 +21,8 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
   val DefaultAnswerBlankSize: Int = 5
 
+  val DefaultIncorrectFeedback = "Good try, but the correct answer is <random selection from correct answers>."
+
   def feedbackBlocks(node: Node, qti: Node): Seq[Node] = {
     (node \ "@responseIdentifier").text match {
       case "" => throw new IllegalArgumentException("Node does not have a responseIdentifier")
@@ -37,7 +39,10 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
       "answer" -> (fb \ "@identifier").text,
       "feedback" -> fb.child.mkString.trim
     ))
-    val incorrectFeedback = fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.child.mkString.trim)
+    val incorrectFeedback = fbBlocks.find(_.attribute("incorrectResponse").nonEmpty) match {
+      case Some(feedback) if (feedback.child.mkString.trim.nonEmpty) => feedback.child.mkString.trim
+      case _ => DefaultIncorrectFeedback
+    }
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
     val answerBlankSize: Int = (node \ "@expectedLength").text.toIntOption.getOrElse(DefaultAnswerBlankSize)
 
