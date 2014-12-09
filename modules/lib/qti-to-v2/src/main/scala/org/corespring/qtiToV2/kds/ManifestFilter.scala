@@ -20,7 +20,7 @@ trait ManifestFilter {
     17 -> "Matching Tables"
   )
 
-  val ImportableItemTypeIds = Seq(17)
+  val ImportableItemTypeIds = Seq(8,11,13,17)
 
   /**
    * KDS manifest files are ~200mb, and we're only interested in a few hundred results. This method uses Scala's XML
@@ -46,7 +46,10 @@ trait ManifestFilter {
                 buf += s"<resource${attrs.toString}>"
               }
             }
-            case EvElemStart(_, "itemTypeId", _, _) => insideItemTypeId = true
+            case EvElemStart(_, "itemTypeId", _, _) => {
+              buf += "<itemTypeId>"
+              insideItemTypeId = true
+            }
             case EvElemEnd(_, "resource") => {
               val tag = "</resource>"
               buf += tag
@@ -56,7 +59,10 @@ trait ManifestFilter {
               insideResource = false
               buf.clear
             }
-            case EvElemEnd(_, "itemTypeId") => insideItemTypeId = false
+            case EvElemEnd(_, "itemTypeId") => {
+              buf += "</itemTypeId>"
+              insideItemTypeId = false
+            }
             case e @ EvElemStart(_, tag, attrs, _) => {
               if (insideResource) {
                 buf += (attrs.isEmpty match {
