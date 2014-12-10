@@ -77,14 +77,15 @@ trait ManifestFilter {
               }
             }
             case EvText(text) => {
-              if (insideResource) {
-                buf += (text)
-              }
               if (insideItemTypeId) {
-                if (!ImportableItemTypeIds.map(_.toString).toSeq.contains(text)) {
+                if (ImportableItemTypeIds.map(_.toString).toSeq.contains(text)) {
+                  buf += text
+                } else {
                   insideResource = false
                   buf.clear
                 }
+              } else if (insideResource) {
+                buf += text
               }
             }
           }
