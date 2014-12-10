@@ -74,7 +74,7 @@ trait ItemFileConverter {
 
     val itemJson = extractor.itemJson
     val meta = extractor.metadata
-    val rv: Seq[Validation[Error, Item]] = extractor.ids.map(id => {
+    extractor.ids.map(id => {
       try {
         (itemJson.get(id).getOrElse(Failure(new Error("Missing item JSON"))),
             meta.get(id).getOrElse(Failure(new Error("Missing item metadata")))) match {
@@ -124,7 +124,6 @@ trait ItemFileConverter {
         case ie: ConversionException => Failure(ie.error)
       }
     })
-    rv
   }
 
   private def create(collectionId: String): Option[VersionedId[ObjectId]] = {
