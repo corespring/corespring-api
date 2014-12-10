@@ -8,6 +8,7 @@ import org.corespring.importing.extractors.{KdsQtiItemExtractor, CorespringItemE
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition}
 import org.corespring.platform.core.models.item.resource.BaseFile
+import org.corespring.platform.core.utils.UnWordify
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.qtiToV2.kds.PathFlattener
@@ -23,6 +24,7 @@ import scalaz.{Failure, Success}
 class ItemImporterExporter {
 
   import PathFlattener._
+  import UnWordify._
 
   def export(collection: ContentCollection, metadata: JsObject, sources: Map[String, SourceWrapper]): Array[Byte] =
     createZip(toEntries(collection, sources, metadata))
@@ -60,7 +62,7 @@ class ItemImporterExporter {
       result match {
         case Success((definition, taskInfo)) => {
           val basePath = s"$collectionName/$id"
-          Seq(s"$basePath/player-definition.json" -> Source.fromString(Json.prettyPrint(Json.toJson(definition))),
+          Seq(s"$basePath/player-definition.json" -> Source.fromString(Json.prettyPrint(Json.toJson(definition)).convertWordChars),
           s"$basePath/profile.json" -> Source.fromString(Json.prettyPrint(Json.obj("taskInfo" -> Json.toJson(taskInfo))))) ++
             extractor.filesFromManifest(id).map(filename => s"$basePath/data/${filename.flattenPath}" -> sources.get(filename))
               .filter { case (filename, maybeSource) => maybeSource.nonEmpty}
@@ -86,5 +88,6 @@ class ItemImporterExporter {
     zipFile.close
     bos.toByteArray
   }
+
 
 }
