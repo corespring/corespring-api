@@ -5,14 +5,14 @@ import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import scala.Some
-import scala.collection.mutable.Map
 
 case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   subjects: Option[Subjects] = None,
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
   description: Option[String] = None,
-  itemType: Option[String] = None) {
+  itemType: Option[String] = None,
+  itemTypes: Map[String, Int] = Map.empty) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
     copy(title = title.map(t => if (t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
@@ -25,6 +25,7 @@ object TaskInfo extends ValueGetter {
     val description = "description"
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
+    val itemTypes = "itemTypes"
     val subjects = "subjects"
     val extended = "extended"
   }
@@ -109,6 +110,7 @@ object TaskInfo extends ValueGetter {
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
-    (__ \ Keys.itemType).readNullable[String])(TaskInfo.apply _)
+    (__ \ Keys.itemType).readNullable[String] and
+    (__ \ Keys.itemTypes).read[Map[String, Int]])(TaskInfo.apply _)
 }
 

@@ -12,7 +12,7 @@ object PlayerJsonToItem {
       case undefined: JsUndefined => item
       case _ => {
         val playerDef = playerJson.as[PlayerDefinition]
-        item.copy(playerDefinition = Some(playerDef))
+        item.withPlayerDefinition(playerDef)
       }
     }
   }

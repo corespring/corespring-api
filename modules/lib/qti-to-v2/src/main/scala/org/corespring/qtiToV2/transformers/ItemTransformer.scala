@@ -60,9 +60,7 @@ trait ItemTransformer {
 
       require(newDef.isDefined, "There must be a player definition created")
 
-      newDef.map { d =>
-        itemService.save(item.copy(playerDefinition = Some(d)))
-      }
+      newDef.map { d => itemService.save(item.withPlayerDefinition(d)) }
       newDef.get
     }
   }
@@ -72,7 +70,7 @@ trait ItemTransformer {
       case 1 => {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
-          .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
+          .map(playerDefinition => item.withPlayerDefinition(playerDefinition)) match {
             case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
               case true => Some(updatedItem)
               case _ => {

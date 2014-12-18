@@ -31,7 +31,7 @@ trait MetadataServiceImpl extends MetadataService { self: ItemServiceClient =>
     maybeSeq.getOrElse(Seq())
   }
 
-  def toMetadataMap(m: scala.collection.mutable.Map[String, BasicDBObject]): Option[Seq[Metadata]] = {
+  def toMetadataMap(m: Map[String, BasicDBObject]): Option[Seq[Metadata]] = {
 
     def dboToMap(dbo: BasicDBObject): scala.collection.immutable.Map[String, String] = {
       import scala.collection.JavaConversions._
