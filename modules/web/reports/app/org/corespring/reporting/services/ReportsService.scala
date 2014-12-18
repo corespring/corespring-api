@@ -11,7 +11,8 @@ import org.corespring.platform.core.models.{ Subject, Standard, ContentCollectio
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.reporting.models.ReportLineResult
 import org.corespring.reporting.models.ReportLineResult.{ KeyCount, LineResult }
-import org.corespring.reporting.utils.CsvWriter
+import org.corespring.reporting.utils.{ComponentMap, CsvWriter}
+import play.api.libs.json.JsObject
 import scala.Some
 
 object ReportsService extends ReportsService(ItemServiceWired.collection, Subject.collection, ContentCollection.collection, Standard.collection)
@@ -19,7 +20,7 @@ object ReportsService extends ReportsService(ItemServiceWired.collection, Subjec
 class ReportsService(ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
   CollectionsCollection: MongoCollection,
-  StandardCollection: MongoCollection) extends CsvWriter {
+  StandardCollection: MongoCollection) extends CsvWriter with ComponentMap {
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
