@@ -14,7 +14,7 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
   val equationIdentifier = "Q_02"
   val lineIdentifier = "Q_03"
 
-  def qti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String): Node =
+  def qti(correctResponses: Seq[String], correctFeedback: String, incorrectFeedback: String, popupFeedback: Boolean): Node =
   XML.loadString(s"""
     <assessmentItem>
       <responseDeclaration identifier="${ identifier }" cardinality="single" baseType="string">
@@ -24,7 +24,7 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier="${ identifier }" expectedLength="15"/>
+        <textEntryInteraction responseIdentifier="${ identifier }" expectedLength="15" popupFeedback="${popupFeedback}" />
         <feedbackBlock outcomeIdentifier="responses.${ identifier }.value" identifier="someCorrect"><div>correct</div></feedbackBlock>
         <feedbackBlock outcomeIdentifier="responses.${ identifier }.value" incorrectResponse="true" ><div>incorrect</div></feedbackBlock>
         <feedbackBlock outcomeIdentifier="responses.someOther.value" incorrectResponse="true" ><div>incorrect</div></feedbackBlock>
@@ -32,7 +32,7 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     </assessmentItem>
     """)
 
-  def equationQti(equation: String, vars: String, domain: String, sigfigs: Int): Node = {
+  def equationQti(equation: String, vars: String, domain: String, sigfigs: Int, popupFeedback: Boolean): Node = {
     val baseType = s"eqn: vars:$vars domain:$domain sigfigs:$sigfigs"
     <assessmentItem>
       <responseDeclaration identifier={ equationIdentifier } cardinality="single" baseType={ baseType }>
@@ -42,7 +42,7 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
       </responseDeclaration>
       <itemBody>
         <p>This is some info that's in the prompt</p>
-        <textEntryInteraction responseIdentifier={ equationIdentifier } expectedLength="15"/>
+        <textEntryInteraction responseIdentifier={equationIdentifier} expectedLength="15" popupFeedback={popupFeedback.toString}/>
       </itemBody>
     </assessmentItem>
   }
@@ -70,20 +70,27 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
     val input = qti(
       correctResponses = correctResponses,
       correctFeedback = correctFeedback,
-      incorrectFeedback = incorrectFeedback)
+      incorrectFeedback = incorrectFeedback,
+      popupFeedback = true)
+
+    val inputNoPopup = qti(
+      correctResponses = correctResponses,
+      correctFeedback = correctFeedback,
+      incorrectFeedback = incorrectFeedback,
+      popupFeedback = false)
 
     val interactionResult = TextEntryInteractionTransformer(input).interactionJs(input).get(identifier)
       .getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
     val output = new RuleTransformer(TextEntryInteractionTransformer(input)).transform(input)
-
+    val outputNoPopup = new RuleTransformer(TextEntryInteractionTransformer(inputNoPopup)).transform(inputNoPopup)
 
     val equation = "y=2x+7"
     val vars = "x,y"
     val domain = "-10->10,0"
     val sigfigs = 3
 
-    val equationInput = equationQti(equation, vars, domain, sigfigs)
+    val equationInput = equationQti(equation, vars, domain, sigfigs, true)
     val lineInput = lineQti(equation)
 
     val lineOutput = new RuleTransformer(new TextEntryInteractionTransformer(lineInput)).transform(lineInput)
@@ -128,10 +135,15 @@ class TextEntryInteractionTransformerTest extends Specification with DomainParse
       (equationInteractionResult \ "feedback" \ "incorrectFeedbackType").as[String] must be equalTo "default"
     }
 
-    "text entry feedback blocks are removed from the xml" in {
+    "text entry feedback blocks are removed from the xml (popup)" in {
       // only feedback blocks that do not belong to text entry interactions are left in the xml
       (output \\ "feedbackBlock").size == 1
       !(output \\ "feedbackBlock").find(n=>(n \ "@outcomeIdentifier").text == "responses.someOther.value").isEmpty
+    }
+
+    "text entry feedback blocks are not removed from the xml (no popup)" in {
+      // only feedback blocks that do not belong to text entry interactions are left in the xml
+      (outputNoPopup \\ "feedbackBlock").size == 3
     }
 
     "correct feedback is extracted from feedback blocks" in {
