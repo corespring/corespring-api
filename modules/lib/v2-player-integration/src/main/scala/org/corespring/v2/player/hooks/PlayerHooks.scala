@@ -37,7 +37,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
-    s.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
+    s.leftMap(s => s.statusCode -> s.message).rightMap { (models) =>
       val (_, playerDefinition) = models
       val itemJson = Json.toJson(playerDefinition)
       itemJson
@@ -77,7 +77,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       models <- auth.loadForRead(sessionId)(identity)
     } yield models
 
-    o.leftMap(s => UNAUTHORIZED -> s.message).rightMap { (models) =>
+    o.leftMap(s => s.statusCode -> s.message).rightMap { (models) =>
       val (session, playerDefinition) = models
       val v2Json = Json.toJson(playerDefinition) //itemTransformer.transformToV2Json(item)
 
