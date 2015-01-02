@@ -36,7 +36,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     item.leftMap(e => e.statusCode -> e.message).toEither
   }
 
-  override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
+  /*override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
 
     logger.debug(s"save - itemId: $itemId")
     logger.trace(s"save - json: ${Json.stringify(json)}")
@@ -67,7 +67,7 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     }
 
     out.leftMap(e => e.statusCode -> e.message).toEither
-  }
+  }*/
 
   override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
@@ -95,4 +95,14 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
 
   }
+
+  override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+
+  override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+
+  override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+
+  override def saveXhtml(itemId: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+
+  override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
 }
