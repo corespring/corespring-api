@@ -36,38 +36,28 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     item.leftMap(e => e.statusCode -> e.message).toEither
   }
 
-  /*override def save(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
+  override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    logger.debug(s"saveProfile itemId=$itemId")
+    def withKey(j: JsValue) = Json.obj("profile" -> j)
+    update(itemId, json, PlayerJsonToItem.profile).map { e => e.rightMap(withKey) }
+  }
 
-    logger.debug(s"save - itemId: $itemId")
-    logger.trace(s"save - json: ${Json.stringify(json)}")
+  override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    logger.debug(s"saveSupportingMaterials itemId=$itemId")
+    update(itemId, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
+  }
 
-    /** an implementation for the container to save its definition */
-    def convertAndSave(itemId: String, item: ModelItem, identity: OrgAndOpts): Option[JsValue] = {
-      val updates = Seq(
-        (item: ModelItem, json: JsValue) => PlayerJsonToItem.supportingMaterials(item, json),
-        (item: ModelItem, json: JsValue) => (json \ "profile").asOpt[JsObject].map { obj => PlayerJsonToItem.profile(item, obj) }.getOrElse(item),
-        (item: ModelItem, json: JsValue) => PlayerJsonToItem.playerDef(item, json))
+  override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(itemId, Json.obj("components" -> json))
+  }
 
-      val updatedItem: ModelItem = updates.foldRight(item) { (fn, i) =>
-        logger.trace(s"update item - fold")
-        fn(i, json)
-      }
-      auth.save(updatedItem, createNewVersion = false)(identity)
-      Some(transform(updatedItem))
-    }
+  override def saveXhtml(itemId: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(itemId, Json.obj("xhtml" -> xhtml))
+  }
 
-    val out: Validation[V2Error, JsValue] = for {
-      identity <- getOrgAndOptions(header)
-      vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- auth.loadForWrite(itemId)(identity)
-      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
-      result <- convertAndSave(itemId, item, identity).toSuccess(errorSaving())
-    } yield {
-      result
-    }
-
-    out.leftMap(e => e.statusCode -> e.message).toEither
-  }*/
+  override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
+  }
 
   override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
@@ -93,16 +83,47 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     } yield id
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
-
   }
 
-  override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+  private def loadItemAndIdentity(itemId: String)(implicit rh: RequestHeader): Validation[V2Error, (ModelItem, OrgAndOpts)] = for {
+    identity <- getOrgAndOptions(rh)
+    vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+    item <- auth.loadForWrite(itemId)(identity)
+    collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
+  } yield {
+    (item, identity)
+  }
 
-  override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+  private def update(itemId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+    logger.debug(s"saveProfile itemId=$itemId")
 
-  override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+    val out: Validation[V2Error, JsValue] = for {
+      itemAndIdentity <- loadItemAndIdentity(itemId)
+      item <- Success(itemAndIdentity._1)
+      identity <- Success(itemAndIdentity._2)
+      updatedItem <- Success(updateFn(item, json))
+    } yield {
+      auth.save(updatedItem, createNewVersion = false)(identity)
+      json
+    }
 
-  override def saveXhtml(itemId: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+    out.leftMap(e => e.statusCode -> e.message).toEither
+  }
 
-  override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+  private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(new PlayerDefinition(Seq.empty, "", Json.obj(), "", None))).as[JsObject]
+
+  private def savePartOfPlayerDef(itemId: String, json: JsObject)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+    val out: Validation[V2Error, JsValue] = for {
+      itemAndIdentity <- loadItemAndIdentity(itemId)
+      item <- Success(itemAndIdentity._1)
+      identity <- Success(itemAndIdentity._2)
+      updatedItem <- Success(PlayerJsonToItem.playerDef(item, baseDefinition(item.playerDefinition) ++ json))
+    } yield {
+      auth.save(updatedItem, false)(identity)
+      json
+    }
+
+    out.leftMap(e => e.statusCode -> e.message).toEither
+  }
+
 }
