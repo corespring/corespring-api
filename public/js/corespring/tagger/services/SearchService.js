@@ -132,6 +132,7 @@ angular.module('tagger.services').factory('SearchService',
       resultFields: [
         'id',
         'title',
+        'description',
         'primarySubject',
         'gradeLevel',
         'itemType',
