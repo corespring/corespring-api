@@ -51,7 +51,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
     def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
       "_id" -> Json.obj(
         "$oid" -> ObjectId.get.toString),
-      "itemId" -> vid.toString)
+      "itemId" -> vid.toString,
+      "attempts" -> 0)
 
     val result = for {
       identity <- getOrgAndOptions(header)
