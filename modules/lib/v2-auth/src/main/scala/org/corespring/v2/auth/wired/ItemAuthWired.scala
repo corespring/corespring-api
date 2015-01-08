@@ -53,7 +53,6 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
     for {
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemTransformer.updateV2Json(vid).toSuccess(cantFindItemWithId(vid))
-      org <- orgService.findOneById(identity.org.id).toSuccess(cantFindOrgWithId(identity.org.id))
       canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
         Success(true)
       else
