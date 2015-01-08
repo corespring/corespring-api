@@ -28,24 +28,41 @@ trait SessionHooks
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] =
-    Future(Left(NOT_FOUND -> "Not implemented"))
+    Future(loadSync(id: String))
+
+  override def loadSync(id: String)(implicit header: RequestHeader): Either[StatusMessage, JsValue] =Left(NOT_FOUND -> "Not implemented")
+
 
   override def loadItemAndSession(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, FullSession]] = Future {
-    buildSession(id, (item, session, orgAndOpts) =>
-      FullSession(Json.obj("item" -> item, "session" -> session), orgAndOpts.opts.secure))
+    loadItemAndSessionSync(id)
   }
+
+  override def loadItemAndSessionSync(id: String)(implicit header: RequestHeader): Either[StatusMessage, FullSession] =
+    buildSession(id, (item, session, orgAndOpts) => FullSession(Json.obj("item" -> item, "session" -> session),
+      orgAndOpts.opts.secure))
 
   override def getScore(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
+    getScoreSync(id)
+  }
+
+  override def getScoreSync(id: String)(implicit header: RequestHeader): Either[StatusMessage, SessionOutcome] =
     buildSession(id, (item, session, orgAndOpts) =>
       SessionOutcome(item, session, orgAndOpts.opts.secure, isComplete(session)))
-  }
 
   override def loadOutcome(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SessionOutcome]] = Future {
-    buildSession(id, (item, session, orgAndOpts) =>
-      SessionOutcome(item, session, orgAndOpts.opts.secure, isComplete(session)))
+    loadOutcomeSync(id)
   }
 
+  override def loadOutcomeSync(id: String)(implicit header: RequestHeader): Either[StatusMessage, SessionOutcome] =
+    buildSession(id, (item, session, orgAndOpts) =>
+      SessionOutcome(item, session, orgAndOpts.opts.secure, isComplete(session)))
+
+
   override def save(id: String)(implicit header: RequestHeader): Future[Either[StatusMessage, SaveSession]] = Future {
+    saveSync(id)
+  }
+
+  override def saveSync(id: String)(implicit header: RequestHeader): Either[StatusMessage, SaveSession] = {
     logger.trace(s"save $id")
 
     val out = for {

@@ -25,9 +25,11 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
 import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
+import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.{ Configuration, Play, Mode => PlayMode }
+import play.api.Play.current
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -49,7 +51,7 @@ class V2PlayerBootstrap(comps: => Seq[Component],
 
   override def versionInfo: JsObject = VersionInfo(configuration)
 
-  def ec: ExecutionContext = ExecutionContext.Implicits.global
+  def ec: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
 
   override def components: Seq[Component] = comps
 
