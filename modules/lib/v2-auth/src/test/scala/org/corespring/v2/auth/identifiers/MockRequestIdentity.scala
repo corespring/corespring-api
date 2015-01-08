@@ -15,7 +15,7 @@ class MockRequestIdentity(
   val org: Validation[V2Error, Organization] = Failure(generalError("?"))
                            ) extends OrgRequestIdentity[String] with Mockito {
 
-  override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): String = "Worked"
+  override def data(rh: RequestHeader, org: Organization): String = "Worked"
 
   override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = org
 

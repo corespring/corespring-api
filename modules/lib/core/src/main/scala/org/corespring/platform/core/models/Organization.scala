@@ -17,10 +17,11 @@ import se.radley.plugin.salat._
 import search.Searchable
 
 case class Organization(var name: String = "",
-  var path: Seq[ObjectId] = Seq(),
-  var contentcolls: Seq[ContentCollRef] = Seq(),
-  var metadataSets: Seq[MetadataSetRef] = Seq(),
-  var id: ObjectId = new ObjectId()) {
+                        var path: Seq[ObjectId] = Seq(),
+                        var contentcolls: Seq[ContentCollRef] = Seq(),
+                        var metadataSets: Seq[MetadataSetRef] = Seq(),
+                        var id: ObjectId = new ObjectId()) {
+
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
 }
 

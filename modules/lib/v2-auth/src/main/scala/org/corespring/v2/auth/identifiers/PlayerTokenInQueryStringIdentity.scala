@@ -28,7 +28,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "PlayerTokenInQueryStringIdentity")
 
-  override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = {
+  override def data(rh: RequestHeader, org: Organization) = {
     val (accessSettings, maybeWarning) = toAccessSettings(org.id, rh)
     OrgAndOpts(org, accessSettings, AuthMode.ClientIdAndPlayerToken, maybeWarning.toSeq)
   }
