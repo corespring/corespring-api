@@ -91,6 +91,7 @@ PUT     /items/:itemId/sessions/:sessionId              org.corespring.api.v1.It
 PUT     /items/:itemId/sessions/:sessionId/reopen       org.corespring.api.v1.ItemSessionApi.reopen(itemId:VersionedId[ObjectId], sessionId: ObjectId)
 
 PUT     /items/:itemId/force-transform                  org.corespring.api.v1.ItemApi.forceTransform(itemId:VersionedId[ObjectId])
+PUT     /force-transform                                org.corespring.api.v1.ItemApi.forceTransformAll()
 
 GET     /assessments/author/:authorId                   org.corespring.api.v1.AssessmentApi.getByAuthor(authorId: String)
 PUT     /assessments/:quizId/:externalUid/add-answer    org.corespring.api.v1.AssessmentApi.addAnswerForParticipant(quizId:ObjectId,externalUid:String)
