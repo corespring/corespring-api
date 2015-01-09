@@ -132,10 +132,9 @@ class ItemServiceWired(
     sessionCompanion.count(query) + v2SessionCount(item.id)
   }
 
-  def moveItemToArchive(id: VersionedId[ObjectId]): Option[Boolean] = {
+  def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject( Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
     saveUsingDbo(id, update, false)
-    Some(true)
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))

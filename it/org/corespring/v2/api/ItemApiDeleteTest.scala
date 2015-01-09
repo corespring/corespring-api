@@ -37,12 +37,10 @@ class ItemApiDeleteTest extends IntegrationSpecification {
           AnyContentAsEmpty)
       }
 
-      /*
-      s"return $BAD_REQUEST - for bad itemId" in {
-        val r: FakeRequest[AnyContentAsEmpty.type] = createRequest("who's bad?")
+      s"return $BAD_REQUEST - for bad itemId" in new orgWithAccessTokenAndItem(){
+        val r: FakeRequest[AnyContentAsEmpty.type] = createRequest("who's bad?", s"?access_token=$accessToken")
         assertStatus(r, BAD_REQUEST)
       }
-      */
 
       s"work" in new orgWithAccessTokenAndItem(){
         val r: FakeRequest[AnyContentAsEmpty.type] = createRequest(itemId.toString, s"?access_token=$accessToken")

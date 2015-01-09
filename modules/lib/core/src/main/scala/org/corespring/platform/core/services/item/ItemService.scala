@@ -21,7 +21,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject]
 
-  def moveItemToArchive(id: VersionedId[ObjectId]): Option[Boolean]
+  def moveItemToArchive(id: VersionedId[ObjectId])
 
   def collection: MongoCollection
 

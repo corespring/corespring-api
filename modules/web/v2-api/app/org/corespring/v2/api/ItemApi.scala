@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.item.Item.Keys._
+import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -77,6 +78,19 @@ trait ItemApi extends V2Api {
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._
+
+    def moveItemToArchive(id:VersionedId[ObjectId]): Validation[V2Error, Boolean] = {
+      try {
+        itemService.moveItemToArchive(id)
+        Success(true)
+      } catch {
+        case e: RuntimeException => {
+          logger.error("Unexpected exception in moveItemToArchive", e)
+          Failure(generalError(s"Error deleting item $id"))
+        }
+      }
+    }
+
     Future {
       logger.debug(s"function=delete")
 
@@ -85,7 +99,7 @@ trait ItemApi extends V2Api {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
         canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
-        result <- itemService.moveItemToArchive(vid).toSuccess(generalError(s"Error deleting item $itemId"))
+        result <- moveItemToArchive(vid)
       } yield {
         result
       }

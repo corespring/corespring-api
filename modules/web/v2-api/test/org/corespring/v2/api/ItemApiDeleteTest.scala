@@ -38,7 +38,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
   case class deleteApiScope( isLoggedIn: Boolean = true,
                              findFieldsById: Option[DBObject] = None,
                              canDelete: Boolean = false,
-                             moveItemToArchive: Option[Boolean] = None) extends Scope {
+                             throwErrorInMoveItemToArchive: Boolean = false) extends Scope {
 
     val dummyOrgId = ObjectId.get
     val dummyCollectionId = ObjectId.get.toString
@@ -62,7 +62,8 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
       override def itemService: ItemService = {
         val m = mock[ItemService]
         m.findFieldsById(any, any) returns findFieldsById
-        m.moveItemToArchive(any) returns moveItemToArchive
+        if(throwErrorInMoveItemToArchive)
+          org.mockito.Mockito.doThrow(new RuntimeException("Mock Error")).when(m).moveItemToArchive(any)
         m
       }
 
@@ -129,7 +130,8 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       s"returns general error - if error in delete" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
-        canDelete = true)
+        canDelete = true,
+        throwErrorInMoveItemToArchive = true)
       {
         val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
@@ -140,8 +142,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       s"work" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
-        canDelete = true,
-        moveItemToArchive = Some(true))
+        canDelete = true)
       {
         val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
