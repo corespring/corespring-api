@@ -1,5 +1,7 @@
 package org.corespring.v2.api
 
+import com.mongodb.casbah.Imports._
+import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -70,6 +72,24 @@ trait ItemApi extends V2Api {
         item.copy(id = vid)
       }
       validationToResult[Item](i => Ok(Json.toJson(i)))(out)
+    }
+  }
+
+  def delete(itemId: String) = Action.async { implicit request =>
+    import scalaz.Scalaz._
+    Future {
+      logger.debug(s"function=delete")
+
+      val out = for {
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        identity <- getOrgAndOptions(request)
+        dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
+        canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
+        result <- itemService.moveItemToArchive(vid).toSuccess(generalError(s"Error deleting item $itemId"))
+      } yield {
+        result
+      }
+      validationToResult[Boolean](i => Ok(""))(out)
     }
   }
 
