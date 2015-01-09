@@ -20,6 +20,8 @@ GET  /items/:itemId/full                   @org.corespring.v2.api.V1ItemApiProxy
 
 GET  /items/:itemId                        @org.corespring.v2.api.ItemApi.get(itemId:String, detail : Option[String] ?= Some("normal"))
 
+DELETE /items/:itemId                      @org.corespring.v2.api.ItemApi.delete(itemId:String)
+
 POST /items                                @org.corespring.v2.api.ItemApi.create()
 
 GET  /items                                @org.corespring.v2.api.V1ItemApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
