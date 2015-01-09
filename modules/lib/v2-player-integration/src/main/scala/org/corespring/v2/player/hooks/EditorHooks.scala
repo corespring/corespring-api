@@ -58,7 +58,4 @@ trait EditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
       }
     }
   }
-
-  override def createItem(implicit header: RequestHeader): Future[Either[(Int, String), PlayerData]] = Future(Left(BAD_REQUEST -> "Not Supported"))
-
 }

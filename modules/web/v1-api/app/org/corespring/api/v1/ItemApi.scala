@@ -33,7 +33,7 @@ import scalaz.{ Failure, Success, _ }
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging {
+  extends ContentApi[Item](service)(ItemView.Writes) with PackageLogging with JsonUtil {
 
   import org.corespring.platform.core.models.item.Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
@@ -386,6 +386,30 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       case Some(item) => Ok("Item transformed")
       case None => InternalServerError("There was a problem transforming the item")
     }
+  }
+
+  def forceTransformAll() = Action {
+    val (success, failure) =
+      service.find(MongoDBObject("playerDefinition" -> MongoDBObject("$exists" -> false)),
+        MongoDBObject("_id" -> 1)).map(_.id).toList.toParArray.partition(id => {
+          try {
+            val version = latestVersion(id)
+            itemTransformer.updateV2Json(VersionedId[ObjectId](id = id.id, version = Some(version.toLong))).nonEmpty
+          } catch {
+            case _: Throwable => false
+          }
+      })
+
+    Ok(Json.prettyPrint(partialObj(
+      "success" -> (success.nonEmpty match {
+        case true => Some(JsArray(success.map(id => JsString(id.toString)).toIterator.toSeq))
+        case false => None
+      }),
+      "failure" -> (failure.nonEmpty match {
+        case true => Some(JsArray(failure.map(id => JsString(id.toString)).toIterator.toSeq))
+        case false => None
+      })
+    )))
   }
 
 }

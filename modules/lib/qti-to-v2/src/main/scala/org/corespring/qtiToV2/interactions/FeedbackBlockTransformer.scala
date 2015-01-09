@@ -36,7 +36,7 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
 
     (node \ "@outcomeIdentifier").text match {
       case idRegexp(id) =>
-        (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id)
+        (qti \\ "textEntryInteraction").exists(textNode => (textNode \ "@responseIdentifier").text.trim == id && (textNode \ "@popupFeedback").text == "true")
       case _ =>
         false
     }
