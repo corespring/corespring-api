@@ -81,8 +81,8 @@ trait ItemApi extends V2Api {
       logger.debug(s"function=delete")
 
       val out = for {
-        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgAndOptions(request)
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
         canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
         result <- itemService.moveItemToArchive(vid).toSuccess(generalError(s"Error deleting item $itemId"))
