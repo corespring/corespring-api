@@ -9,7 +9,11 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node match {
-      case elem: Elem if elem.label == "choiceInteraction" => <corespring-multiple-choice id={ identifier }></corespring-multiple-choice>.withPrompt(node)
+      case elem: Elem if elem.label == "choiceInteraction" =>
+        elem.child.filter(_.label != "simpleChoice").map(n => n.label match {
+          case "prompt" => <p class="prompt">{n.child}</p>
+          case _ => n
+        }) ++ <corespring-multiple-choice id={ identifier }></corespring-multiple-choice>
       case elem: Elem if elem.label == "inlineChoiceInteraction" => <corespring-inline-choice id={ identifier }></corespring-inline-choice>.withPrompt(node)
       case _ => node
     }
@@ -38,9 +42,9 @@ object ChoiceInteractionTransformer extends InteractionTransformer {
             "choiceType" -> JsString(if (correctResponses.length == 1) "radio" else "checkbox"),
             "choiceLabels" -> JsString("letters"),
             "choiceStyle" -> JsString((node \ "@choiceStyle").text),
-            "choiceType" -> JsString(if ((node \ "@maxChoices").text == "1") "radio" else "checkbox")
+            "choiceType" -> JsString(if ((node \ "@maxChoices").text == "1") "radio" else "checkbox"),
+            "showCorrectAnswer" -> JsString(if (correctResponses.length == 1) "inline" else "separately")
           ),
-          "prompt" -> (node \ "prompt").map(clearNamespace).text.trim,
           "choices" -> JsArray(((node \\ "simpleChoice").toSeq ++ (node \\ "inlineChoice")).map { n =>
             Json.obj(
               "label" -> n.child.filterNot(e => e.label == "feedbackInline").mkString.trim,

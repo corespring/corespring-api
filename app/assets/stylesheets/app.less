@@ -250,6 +250,10 @@
     .preview{
         position: absolute;
 
+        .v2 #iframe-player {
+            margin-top: 40px;
+        }
+
         background-image: url('/assets/images/corrugated-bg.png');
         .mixin-inner-shadow(3px, fade(#000000, 20%));
         top: 0px;
@@ -266,7 +270,6 @@
 
 
         .preview-btn {
-            position: absolute;
             top: 32px;
             left: 32px;
             background: #f0ad4e;
@@ -275,11 +278,24 @@
             border: 1px solid #eea236;
             color: white;
             padding: 6px 12px;
+            margin-bottom: 10px;
 
             &:hover {
               background: #ec971f;
               border: 1px soild #ec971f;
             }
+        }
+
+        .dev-btn {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+        }
+
+        &.preview-closed {
+          .dev-btn {
+            display: none;
+          }
         }
 
         .preview-container{

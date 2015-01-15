@@ -1,4 +1,4 @@
-@(useV2: Boolean)
+@(useV2: Boolean, isRoot: Boolean)
 
 <div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px" xmlns="http://www.w3.org/1999/html">
     <h2>Delete Item</h2>
@@ -218,9 +218,11 @@
 
     <div class="preview" ng-class="previewClassName" data-version="2">
         <div class="inner">
-            <div class="well" >
+            <div class="well">
                 <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank" ng-show="isV2()">Preview</a>
-
+                @if(isRoot) {
+                    <a href="#" target="_blank" ng-href="{{devUrl()}}" class="btn dev-btn">Dev Edit</a>
+                }
                 <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
                    <div class="catalog-preview-content">
                      <button ng-click="showV2Preview=false" class="button btn-sm btn btn-success close-btn">Close</button>
@@ -234,7 +236,7 @@
                     <a href="{{fullPreviewUrl}}" target="_blank" >Preview in new window</a>
                 </div>
 
-                <div class="preview-container" id="item-preview-target"></div>
+                <div class="preview-container" ng-class="{'v2': isV2()}" id="item-preview-target"></div>
             </div>
         </div>
         <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
