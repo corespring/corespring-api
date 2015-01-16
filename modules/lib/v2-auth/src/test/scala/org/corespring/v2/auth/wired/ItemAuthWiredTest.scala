@@ -54,6 +54,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory{
         val m = mock[OrganizationService]
         m.findOneById(any[ObjectId]) returns org
         m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
+        m.canAccessCollection(any[Organization], any[ObjectId], any[Permission]) returns canAccess
         m
       }
 

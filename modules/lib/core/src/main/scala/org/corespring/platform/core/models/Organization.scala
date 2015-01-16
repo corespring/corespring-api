@@ -147,6 +147,17 @@ trait OrganizationImpl
     access
   }
 
+  override def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean = {
+
+    val contentColls = Option(org.contentcolls).getOrElse(Seq[ContentCollRef]())
+    val access = contentColls.find(collRef => collRef.collectionId.toString() == collectionId && collRef.pval > permission.value)
+      .map(_ => true)
+      .getOrElse(ContentCollection.isPublic(collectionId) && permission == Permission.Read)
+
+    logger.trace(s"[canAccessCollection] orgId: ${org.id} -> $collectionId ? $access")
+    access
+  }
+
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
     findOne(MongoDBObject("_id" -> orgId,
       contentcolls -> MongoDBObject("$elemMatch" ->
