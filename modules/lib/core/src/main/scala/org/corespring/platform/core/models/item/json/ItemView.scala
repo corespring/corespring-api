@@ -84,10 +84,6 @@ object ItemView {
         (domains, item.domains.map(JsString(_)).toSeq),
         (standards, validStandards.map(Json.toJson(_)))).map(makeJsArray)
 
-      println("**************************** arrays *****************************************")
-      println(arrays)
-      println("*****************************************************************************")
-
       val joined = (basics ++ strings ++ arrays).flatten
       JsObject(joined)
     }
