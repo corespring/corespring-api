@@ -60,6 +60,12 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   val guid = "guid"
   val grades = "grades"
 
+  object Subjects {
+    val ELA = "ELA"
+    val ELALiteracy = "ELA-Literacy"
+    val Math = "Math"
+  }
+
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
 
@@ -149,6 +155,17 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
+
+  def domains(dotNotations: Iterable[String]): Set[String] =
+    find(MongoDBObject(DotNotation -> MongoDBObject("$in" -> dotNotations))).map(standard => {
+      standard.subject match {
+        case Some(Subjects.ELALiteracy) => standard.subCategory
+        case Some(Subjects.ELA) => standard.subCategory
+        case Some(Subjects.Math) => standard.category
+        case _ => None
+      }
+    }).flatten.toSet
+
 
   /**
    * validate that the dotNotation exists

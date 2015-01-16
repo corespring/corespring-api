@@ -1,5 +1,6 @@
 package org.corespring.platform.core.models
 
+import org.corespring.platform.core.models.Standard.Subjects
 import org.specs2.mutable.Specification
 import org.corespring.test.PlaySingleton
 import scala.util.Sorting
@@ -9,7 +10,6 @@ class StandardOrderingTest extends Specification {
   PlaySingleton.start()
 
   val mathSubject = Some("Math")
-  val elaSubject = Some("ELA-Literacy")
   val firstGrade = Seq("01")
   val underGrad = Seq("UG")
   val firstCategory = Some("AAA - This should be first")
@@ -20,8 +20,8 @@ class StandardOrderingTest extends Specification {
   "compare" should {
 
     "order by subject" in {
-      val math = Standard(subject = mathSubject)
-      val ela = Standard(subject = elaSubject)
+      val math = Standard(subject = Some(Subjects.Math))
+      val ela = Standard(subject = Some(Subjects.ELALiteracy))
       val standards = Array(math, ela)
       Sorting.quickSort(standards)(StandardOrdering)
       standards.head must be equalTo ela

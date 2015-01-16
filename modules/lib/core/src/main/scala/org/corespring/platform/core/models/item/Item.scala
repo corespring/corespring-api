@@ -2,6 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.Standard
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
@@ -52,6 +53,7 @@ case class Item(
       case _ => 2
     }
 
+  def domains = Standard.domains(standards.toSeq)
 
 }
 
@@ -100,6 +102,7 @@ object Item {
     val dateModified = "dateModified"
     val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
+    val domains = "domains"
     val extended = "extended"
     val files = "files"
     val gradeLevel = "gradeLevel"
@@ -139,6 +142,7 @@ object Item {
     implicit val ItemViewWrites = ItemView.Writes
 
     def writes(item: Item) = Json.toJson(ContentView[Item](item, None))
+      .asInstanceOf[JsObject].deepMerge(Json.obj(domains -> item.domains))
 
     def reads(json: JsValue) = {
       val item = Item()
