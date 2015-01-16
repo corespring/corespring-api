@@ -82,6 +82,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     case "and" => s"(${and(node)})"
     case "or" => s"(${or(node)})"
     case "gt" => s"(${gt(node)})"
+    case "equal" => s"(${equal(node)}})"
     case "sum" => sum(node)
     case "variable" => (node \ "@identifier").text
     case "correct" => correct(node)
@@ -90,6 +91,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   }
 
   protected def gt(node: Node)(implicit qti: Node) = binaryOp(node, ">")
+  protected def equal(node: Node)(implicit qti: Node) = binaryOp(node, "===")
   protected def gte(node: Node)(implicit qti: Node) = binaryOp(node, ">=")
   protected def lt(node: Node)(implicit qti: Node) = binaryOp(node, "<")
   protected def lte(node: Node)(implicit qti: Node) = binaryOp(node, "<=")
