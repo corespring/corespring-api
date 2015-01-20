@@ -33,7 +33,7 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
   private def getSimpleSubjectQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
     searchTerm <- (json \ "searchTerm").asOpt[String]
-  } yield MongoDBObject("subject" -> MongoDBObject("$regex" -> s"$searchTerm", "$options" -> "i"))
+  } yield MongoDBObject("subject" -> MongoDBObject("$regex" -> searchTerm, "$options" -> "i"))
 
   private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]

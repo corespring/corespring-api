@@ -52,7 +52,7 @@ object StandardQueryService extends QueryService[Standard] with PackageLogging {
     query
   }
 
-  private def toRegex( searchTerm: String ) =  MongoDBObject("$regex" -> s"$searchTerm", "$options" -> "i")
+  private def toRegex( searchTerm: String ) =  MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
 
 
