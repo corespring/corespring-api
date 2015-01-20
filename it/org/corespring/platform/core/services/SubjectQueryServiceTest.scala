@@ -11,12 +11,12 @@ class SubjectQueryServiceTest extends IntegrationSpecification {
 
     def makeQuery(s:String) = Json.obj("searchTerm" -> s).toString()
 
-    "handle" in new SubjectData("some test subject") {
+    "be able to find single items" in new SubjectData("some test subject") {
       val result = SubjectQueryService.query(makeQuery("some test"))
       result.length === 1
     }
 
-    "handle multiple" in new SubjectData("!! 1", "!! 2") {
+    "be able to find multiple items" in new SubjectData("!! 1", "!! 2") {
       SubjectQueryService.query(makeQuery("!!")).length === 2
       SubjectQueryService.query(makeQuery("!!!")).length === 0
     }

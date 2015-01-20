@@ -12,12 +12,12 @@ class StandardQueryServiceTest extends IntegrationSpecification {
 
     def makeQuery(s:String) = Json.obj("searchTerm" -> s).toString()
 
-    "handle" in new StandardData("some test standard") {
+    "be able to find single items" in new StandardData("some test standard") {
       val result = StandardQueryService.query(makeQuery("some test"))
       result.length === 1
     }
 
-    "handle multiple" in new StandardData("!! 1", "!! 2") {
+    "be able to find multiple items" in new StandardData("!! 1", "!! 2") {
       StandardQueryService.query(makeQuery("!!")).length === 2
       StandardQueryService.query(makeQuery("!!!")).length === 0
     }
