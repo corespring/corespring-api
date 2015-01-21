@@ -1,6 +1,6 @@
 package org.corespring.platform.core.services
 
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
@@ -13,7 +13,11 @@ class SubjectQueryServiceTest extends Specification with Mockito {
 
     "return a search query if searchTerm is defined" in {
       val query = sut.getQuery(Json.obj("searchTerm" -> "test").toString())
-      query === Some(MongoDBObject("subject" -> MongoDBObject("$regex" -> "test","$options" -> "i")))
+      query === Some(
+        MongoDBObject("$or" -> MongoDBList(
+          MongoDBObject("subject" -> MongoDBObject("$regex" -> "test", "$options" -> "i")),
+          MongoDBObject("category" -> MongoDBObject("$regex" -> "test", "$options" -> "i"))
+        )))
     }
 
     "return a filter query if category and subject are defined" in {
