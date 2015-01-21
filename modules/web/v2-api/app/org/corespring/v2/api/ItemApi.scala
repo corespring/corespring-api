@@ -54,7 +54,7 @@ trait ItemApi extends V2Api {
     import scalaz.Scalaz._
     Future {
 
-      logger.debug(s"function=create")
+      logger.trace(s"function=create jsonBody=${request.body.asJson}")
 
       val out = for {
         identity <- getOrgAndOptions(request)
@@ -64,10 +64,10 @@ trait ItemApi extends V2Api {
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
         canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
-        vid <- if (canCreate)
+        vid <- if (canCreate) {
+          logger.trace(s"function=create, inserting item, json=${validJson}")
           itemService.insert(item).toSuccess(errorSaving("Insert failed"))
-        else
-          Failure(errorSaving("creation denied"))
+        } else Failure(errorSaving("creation denied"))
       } yield {
         logger.trace(s"new item id: $vid")
         item.copy(id = vid)
@@ -79,7 +79,7 @@ trait ItemApi extends V2Api {
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._
 
-    def moveItemToArchive(id:VersionedId[ObjectId]): Validation[V2Error, Boolean] = {
+    def moveItemToArchive(id: VersionedId[ObjectId]): Validation[V2Error, Boolean] = {
       try {
         itemService.moveItemToArchive(id)
         Success(true)
@@ -92,7 +92,6 @@ trait ItemApi extends V2Api {
     }
 
     Future {
-      logger.debug(s"function=delete")
 
       val out = for {
         identity <- getOrgAndOptions(request)
@@ -107,7 +106,6 @@ trait ItemApi extends V2Api {
     }
   }
 
-
   def noPlayerDefinition(id: VersionedId[ObjectId]): V2Error = generalError(s"This item ($id) has no player definition, unable to calculate a score")
 
   /**
@@ -117,7 +115,7 @@ trait ItemApi extends V2Api {
    */
   def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
 
-    logger.debug(s"function=checkScore itemId=$itemId")
+    logger.trace(s"function=checkScore itemId=$itemId jsonBody=${request.body.asJson}")
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
