@@ -66,7 +66,6 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
         val result: Validation[String, Result] = for {
           vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
           item <- itemService.findOneById(vid).toSuccess(s"can't find item with id: $vid")
-          //data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
         } yield {
 
           val filename = grizzled.file.util.basename(file)
