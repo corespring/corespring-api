@@ -1,28 +1,28 @@
 package org.corespring.platform.core.services
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.Standard
-import org.corespring.test.helpers.models.StandardHelper
+import org.corespring.platform.core.models.{ Standard}
+import org.corespring.test.helpers.models.{ StandardHelper}
 import org.specs2.mutable.BeforeAfter
 import play.api.libs.json.Json
 
-class StandardQueryServiceTest extends IntegrationSpecification {
+class StandardQueryServiceIntegrationTest extends IntegrationSpecification {
 
   "Standard Query Service" should {
 
     def makeQuery(s:String) = Json.obj("searchTerm" -> s).toString()
 
-    "be able to find single items" in new SimpleStandardData("some test standard") {
+    "be able to find single items" in new StandardData("some test standard") {
       val result = StandardQueryService.query(makeQuery("some test"))
       result.length === 1
     }
 
-    "be able to find multiple items" in new SimpleStandardData("!! 1", "!! 2") {
+    "be able to find multiple items" in new StandardData("!! 1", "!! 2") {
       StandardQueryService.query(makeQuery("!!")).length === 2
       StandardQueryService.query(makeQuery("!!!")).length === 0
     }
 
-    "ignores case" in new SimpleStandardData("1.X.Y.Z", "1.x.y.z") {
+    "ignores case" in new StandardData("1.X.Y.Z", "1.x.y.z") {
       StandardQueryService.query(makeQuery("1.x.y.z")).length === 2
       StandardQueryService.query(makeQuery("1.X.Y.Z")).length === 2
     }
@@ -72,28 +72,19 @@ class StandardQueryServiceTest extends IntegrationSpecification {
 
   }
 
-  class SimpleStandardData(val standards: String*) extends BeforeAfter {
+  class StandardData(val standard: Any*) extends BeforeAfter {
 
-    lazy val standardIds = StandardHelper.create(standards.map(s => Standard(
-      dotNotation = Some(s),
-      subject = Some(s),
-      category = Some(s),
-      subCategory = Some(s),
-      standard = Some(s))):_*)
+    def toStandard(values:Any*) = values.map((v:Any) => v match {
+      case s:String => Standard(
+        dotNotation = Some(s),
+        subject = Some(s),
+        category = Some(s),
+        subCategory = Some(s),
+        standard = Some(s))
+      case o:Standard => o
+    })
 
-    override def before: Any = {
-      println(s"[before] mock standard id: $standardIds")
-    }
-
-    override def after: Any = {
-      println(s"[after] delete $standardIds")
-      StandardHelper.delete(standardIds)
-    }
-  }
-
-  class StandardData(val standard: Standard*) extends BeforeAfter {
-
-    lazy val standardIds = StandardHelper.create(standard:_*)
+    lazy val standardIds = StandardHelper.create(toStandard(standard:_*):_*)
 
     override def before: Any = {
       println(s"[before] mock standard id: $standardIds")

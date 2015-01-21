@@ -1,7 +1,7 @@
 package org.corespring.platform.core.services
 
 import com.mongodb.DBObject
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.{ Standard, Subject }
@@ -33,7 +33,9 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
   private def getSimpleSubjectQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
     searchTerm <- (json \ "searchTerm").asOpt[String]
-  } yield MongoDBObject("subject" -> MongoDBObject("$regex" -> searchTerm, "$options" -> "i"))
+  } yield MongoDBObject("$or" -> MongoDBList(
+      MongoDBObject("subject" -> toRegex(searchTerm)),
+      MongoDBObject("category" -> toRegex(searchTerm))))
 
   private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
@@ -45,5 +47,7 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
     json.map(s => query.put("subject", s))
     query
   }
+
+  private def toRegex( searchTerm: String ) =  MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 }
 

@@ -5,14 +5,11 @@ import org.bson.types.ObjectId
 
 object SubjectHelper {
 
-  def create(subjects: String*): Seq[ObjectId] = {
+  def create(subjects: Subject*): Seq[ObjectId] = {
 
-    def saveSubjects(s: String) = {
-      val obj = Subject(
-        subject = Some(s),
-        id = ObjectId.get)
-      Subject.save(obj)
-      obj.id
+    def saveSubjects(s: Subject) = {
+      Subject.save(s)
+      s.id
     }
     subjects.map(saveSubjects)
   }
