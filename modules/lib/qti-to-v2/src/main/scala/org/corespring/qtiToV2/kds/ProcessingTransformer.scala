@@ -62,7 +62,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private def conditionalStatement(node: Node, expressionWrapper: String, responseWrapper: String)(implicit qti: Node) =
     node.withoutEmptyChildren.zipWithIndex.map{ case(node, i) => i match {
-      case 0 => (expression(node), i)
+      case 0 => (expression(node).mkString, i)
       case _ => (responseRule(node), i)
     }}.map{ case(string, i) => i match {
       case 0 => expressionWrapper.replace("$string", string)
@@ -75,16 +75,16 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   }
 
   protected def setOutcomeValue(node: Node)(implicit qti: Node) =
-    s"""${(node \ "@identifier").text} = ${expression(node.withoutEmptyChildren.head)};"""
+    s"""${(node \ "@identifier").text} = ${expression(node.withoutEmptyChildren.head).mkString};"""
 
-  protected def expression(node: Node)(implicit qti: Node): String = node.label match {
-    case "match" => s"(${_match(node)})"
-    case "and" => s"(${and(node)})"
-    case "or" => s"(${or(node)})"
-    case "gt" => s"(${gt(node)})"
-    case "equal" => s"(${equal(node)}})"
+  protected def expression(node: Node)(implicit qti: Node): Seq[String] = node.label match {
+    case "match" => Seq(s"(${_match(node)})")
+    case "and" => Seq(s"(${and(node)})")
+    case "or" => Seq(s"(${or(node)})")
+    case "gt" => Seq(s"(${gt(node)})")
+    case "equal" => Seq(s"(${equal(node)}})")
     case "sum" => sum(node)
-    case "variable" => (node \ "@identifier").text
+    case "variable" => Seq((node \ "@identifier").text)
     case "correct" => correct(node)
     case "baseValue" => baseValue(node)
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
@@ -98,27 +98,34 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   protected def correct(node: Node)(implicit qti: Node) = {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
-      .getOrElse(throw new Exception("Did not find for a thing"))
+      .getOrElse(throw ProcessingTransformerException("Did not response declaration matching identifier", node))
+
     (rd \ "correctResponse" \ "value").map(_.text).map(v => {
       (rd \ "@baseType").text match {
         case "string" => s""""$v""""
+        case "identifier" => s""""$v""""
         case _ => v
       }
-    }).head
+    })
   }
 
   protected def baseValue(node: Node) = {
-    (node \ "@baseType").text match {
+    Seq((node \ "@baseType").text match {
       case "string" => s""""${node.text}""""
       case _ => node.text
-    }
+    })
   }
 
-  protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression).mkString(" + ")
+  protected def sum(node: Node)(implicit qti: Node) = Seq(node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + "))
 
   protected def _match(node: Node)(implicit qti: Node) = {
-    node.withoutEmptyChildren match {
-      case Seq(lhs, rhs) => s"""${expression(lhs)} === ${expression(rhs)}"""
+    node.withoutEmptyChildren.map(expression) match {
+      case Seq(lhs, rhs) => (lhs.length, rhs.length) match {
+        case (1, 1) => s"""${lhs.mkString} === ${rhs.mkString}"""
+        case (1, _) => s"_.isEmpty(_.xor(${lhs.mkString}, [${rhs.mkString(", ")}]))"
+        case (_, 1) => s"_.isEmpty(_.xor([${lhs.mkString(", ")}], ${lhs.mkString}))"
+        case _ => ProcessingTransformerException(s"Cannot match $lhs and $rhs", node)
+      }
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
@@ -129,7 +136,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
     case child if (child.length < 2) => throw new Exception(s"$op expression must combine two or more expressions")
-    case child => child.map(expression(_)).mkString(s" $op ")
+    case child => child.map(expression(_).mkString).mkString(s" $op ")
   }
 
   private implicit class NodeHelper(node: Node) {

@@ -43,7 +43,8 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       val correctResponses = Seq("a", "b")
       val node = qti(correctResponses = correctResponses)
       val matchNode = matcher(node)
-      _match(matchNode)(node) must be equalTo(s"""["${correctResponses.mkString("\",\"")}"].indexOf($responseId) >= 0""")
+
+      _match(matchNode)(node) must be equalTo(s"""_.isEmpty(_.xor($responseId, ["${correctResponses.mkString("\", \"")}"]))""")
     }
 
   }
@@ -64,11 +65,11 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_)).mkString(" && ")}""")
+      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_).mkString).mkString(" && ")}""")
     }
 
     "combine three expressions" in {
-      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_)).mkString(" && ")}""")
+      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_).mkString).mkString(" && ")}""")
     }
 
   }
@@ -86,11 +87,11 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_)).mkString(" || ")}""")
+      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_).mkString).mkString(" || ")}""")
     }
 
     "combine three expressions" in {
-      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_)).mkString(" || ")}""")
+      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_).mkString).mkString(" || ")}""")
     }
 
   }
@@ -100,7 +101,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     val node = <sum>{values.map(v => <baseValue>{v}</baseValue>)}</sum>
 
     "return X + Y" in {
-      sum(node) must be equalTo values.mkString(" + ")
+      sum(node).mkString must be equalTo values.mkString(" + ")
     }
   }
 
@@ -166,7 +167,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate into if statement" in {
       val responseIfNodeVal = responseIfNode()
       val qtiNode = qti(responseIfNode = responseIfNodeVal)
-      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId === ${correctResponses.head}) { $identifier = "$value"; }"""
+      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId === "${correctResponses.head}") { $identifier = "$value"; }"""
     }
 
   }
@@ -227,107 +228,62 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
     val qti =
       <assessmentItem>
-        <responseDeclaration identifier="RESPONSE11" cardinality="single" baseType="string">
+        <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="identifier">
           <correctResponse>
-            <value>3.89</value>
+            <value>4</value>
           </correctResponse>
         </responseDeclaration>
-        <responseDeclaration identifier="RESPONSE21" cardinality="single" baseType="string">
+        <responseDeclaration identifier="RESPONSE2" cardinality="multiple" baseType="identifier">
           <correctResponse>
-            <value>104</value>
-            <value>104.00</value>
+            <value>2</value>
+            <value>5</value>
           </correctResponse>
         </responseDeclaration>
-        <outcomeDeclaration identifier="NUMCORRECT" cardinality="single" baseType="float">
-          <defaultValue>
-            <value>0</value>
-          </defaultValue>
-        </outcomeDeclaration>
         <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
           <defaultValue>
             <value>0</value>
           </defaultValue>
         </outcomeDeclaration>
         <itemBody>
-          <strong>
-            <p>Part A:</p>
-            <p>The total cost of an order of personalized invitations from a company includes the cost of each invitation, plus a one&#8211;time design fee. &nbsp;The cost of each invitation is the same regardless of how many invitations are ordered.</p>
-            <p>The invitation company provides the following examples to customers in order to estimate the total cost of an order:</p>
-          </strong>
-          <ul>
-            <li>
-              <strong>50 invitations $298.50</strong>
-            </li>
-            <li>
-              <strong>500 invitations $2049</strong>
-            </li>
-          </ul>
-          <strong>Based on the examples, what is the cost of each invitation, not including the one&#8211;time design fee?</strong>
-          <strong>$</strong>
-          <textEntryInteraction responseIdentifier="RESPONSE11" expectedLength="10"/>
-          <strong>
-            <p>Part B:</p>
-            <p>What is the cost of the one&#8211;time design fee?</p>
-          </strong>
-          <strong>$</strong>
-          <textEntryInteraction responseIdentifier="RESPONSE21" expectedLength="10"/>
+          <choiceInteraction responseIdentifier="RESPONSE1" shuffle="true" maxChoices="1">
+            <simpleChoice identifier="1">one</simpleChoice>
+            <simpleChoice identifier="2">two</simpleChoice>
+            <simpleChoice identifier="3">three</simpleChoice>
+            <simpleChoice identifier="4">four</simpleChoice>
+          </choiceInteraction>
+          <choiceInteraction responseIdentifier="RESPONSE2" shuffle="true" maxChoices="5">
+            <simpleChoice identifier="1">one</simpleChoice>
+            <simpleChoice identifier="2">two</simpleChoice>
+            <simpleChoice identifier="3">three</simpleChoice>
+            <simpleChoice identifier="4">four</simpleChoice>
+            <simpleChoice identifier="5">
+              <![CDATA[heavy pads melt ice, which allow polar bears to walk across the ice without slipping]]>
+            </simpleChoice>
+          </choiceInteraction>
         </itemBody>
         <responseProcessing>
           <responseCondition>
             <responseIf>
-              <match>
-                <variable identifier="RESPONSE11"/>
-                <baseValue baseType="string">3.89</baseValue>
-              </match>
-              <setOutcomeValue identifier="NUMCORRECT">
-                <sum>
-                  <variable identifier="NUMCORRECT"/>
-                  <baseValue baseType="float">1</baseValue>
-                </sum>
-              </setOutcomeValue>
-            </responseIf>
-          </responseCondition>
-          <responseCondition>
-            <responseIf>
-              <or>
+              <and>
                 <match>
-                  <variable identifier="RESPONSE21"/>
-                  <baseValue baseType="string">104</baseValue>
+                  <variable identifier="RESPONSE1"/>
+                  <correct identifier="RESPONSE1"/>
                 </match>
                 <match>
-                  <variable identifier="RESPONSE21"/>
-                  <baseValue baseType="string">104.00</baseValue>
+                  <variable identifier="RESPONSE2"/>
+                  <correct identifier="RESPONSE2"/>
                 </match>
-              </or>
-              <setOutcomeValue identifier="NUMCORRECT">
-                <sum>
-                  <variable identifier="NUMCORRECT"/>
-                  <baseValue baseType="float">1</baseValue>
-                </sum>
+              </and>
+              <setOutcomeValue identifier="SCORE">
+                <baseValue baseType="float">1</baseValue>
               </setOutcomeValue>
             </responseIf>
-          </responseCondition>
-          <responseCondition>
-            <responseIf>
-              <gt>
-                <variable identifier="NUMCORRECT"/>
-                <baseValue baseType="float">0</baseValue>
-              </gt>
-              <setOutcomeValue identifier="SCORE">
-                <variable identifier="NUMCORRECT"/>
-              </setOutcomeValue>
-            </responseIf>
-            <responseElse>
-              <setOutcomeValue identifier="SCORE">
-                <baseValue baseType="float">0</baseValue>
-              </setOutcomeValue>
-            </responseElse>
           </responseCondition>
         </responseProcessing>
       </assessmentItem>
 
     "convert response processing node to JS" in {
-      println(toJs(qti).map(wrap).getOrElse("Oops!"))
+//      println(toJs(qti).map(wrap).getOrElse("Oops!"))
       true === true
     }
   }
