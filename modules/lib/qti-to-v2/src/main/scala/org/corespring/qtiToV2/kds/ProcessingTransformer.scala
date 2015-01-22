@@ -119,8 +119,11 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   protected def sum(node: Node)(implicit qti: Node) = Seq(node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + "))
 
   protected def _match(node: Node)(implicit qti: Node) = {
+    def isArray(string: String) = string.startsWith("[") && string.endsWith("]")
     node.withoutEmptyChildren.map(expression) match {
-      case Seq(lhs, rhs) => s"_.isEmpty(_.xor(${lhs.mkString}, ${rhs.mkString}))"
+      case Seq(lhs, rhs) if ((isArray(lhs.mkString) || isArray(rhs.mkString))) =>
+        s"_.isEmpty(_.xor(${lhs.mkString}, ${rhs.mkString}))"
+      case Seq(lhs, rhs) => s"${lhs.mkString} === ${rhs.mkString}"
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
