@@ -36,7 +36,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate equivalence of variable to single correct value" in {
       val node = qti()
       val matchNode = matcher(node)
-      _match(matchNode)(node) must be equalTo(s"""$responseId === "${correctResponses.head}"""")
+      _match(matchNode)(node) must be equalTo(s"""_.isEmpty(_.xor($responseId, ["${correctResponses.head}"]))""")
     }
 
     "translate equivalence of variable to multiple correct values" in {
@@ -167,7 +167,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate into if statement" in {
       val responseIfNodeVal = responseIfNode()
       val qtiNode = qti(responseIfNode = responseIfNodeVal)
-      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if ($responseId === "${correctResponses.head}") { $identifier = "$value"; }"""
+      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if (_.isEmpty(_.xor($responseId, ["${correctResponses.head}"]))) { $identifier = "$value"; }"""
     }
 
   }
@@ -220,7 +220,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
       "translate into conditional statement" in {
         responseCondition(responseConditionVal)(qti()) must be equalTo
-          """if ((RESPONSE1 === "ONE") && (RESPONSE2 === "TWO")) { SCORE = 2; } else if (RESPONSE1 === "ONE") { SCORE = 1; }"""
+          """if ((_.isEmpty(_.xor(RESPONSE1, ["ONE"]))) && (_.isEmpty(_.xor(RESPONSE2, ["TWO"])))) { SCORE = 2; } else if (_.isEmpty(_.xor(RESPONSE1, ["ONE"]))) { SCORE = 1; }"""
       }
   }
 

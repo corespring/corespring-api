@@ -100,13 +100,13 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
       .getOrElse(throw ProcessingTransformerException("Did not response declaration matching identifier", node))
 
-    (rd \ "correctResponse" \ "value").map(_.text).map(v => {
+    Seq(s"[${(rd \ "correctResponse" \ "value").map(_.text).map(v => {
       (rd \ "@baseType").text match {
         case "string" => s""""$v""""
         case "identifier" => s""""$v""""
         case _ => v
       }
-    })
+    }).mkString(", ")}]")
   }
 
   protected def baseValue(node: Node) = {
@@ -120,12 +120,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   protected def _match(node: Node)(implicit qti: Node) = {
     node.withoutEmptyChildren.map(expression) match {
-      case Seq(lhs, rhs) => (lhs.length, rhs.length) match {
-        case (1, 1) => s"""${lhs.mkString} === ${rhs.mkString}"""
-        case (1, _) => s"_.isEmpty(_.xor(${lhs.mkString}, [${rhs.mkString(", ")}]))"
-        case (_, 1) => s"_.isEmpty(_.xor([${lhs.mkString(", ")}], ${lhs.mkString}))"
-        case _ => ProcessingTransformerException(s"Cannot match $lhs and $rhs", node)
-      }
+      case Seq(lhs, rhs) => s"_.isEmpty(_.xor(${lhs.mkString}, ${rhs.mkString}))"
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
