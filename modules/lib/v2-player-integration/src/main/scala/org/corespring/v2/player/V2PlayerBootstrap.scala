@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.CompressedAndMinifiedComponentSets
+import org.corespring.container.client.{ VersionInfo, CompressedAndMinifiedComponentSets }
 import org.corespring.container.client.controllers.{ Assets, ComponentSets }
 import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks }
 import org.corespring.container.components.model.Component
@@ -46,6 +46,8 @@ class V2PlayerBootstrap(comps: => Seq[Component],
   extends org.corespring.container.client.integration.DefaultIntegration {
 
   lazy val logger = V2LoggerFactory.getLogger("V2PlayerBootstrap")
+
+  override def versionInfo: JsObject = VersionInfo(configuration)
 
   def ec: ExecutionContext = ExecutionContext.Implicits.global
 
