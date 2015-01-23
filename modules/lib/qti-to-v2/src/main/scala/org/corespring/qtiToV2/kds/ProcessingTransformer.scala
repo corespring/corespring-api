@@ -67,7 +67,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     }}.map{ case(string, i) => i match {
       case 0 => expressionWrapper.replace("$string", string)
       case _ => responseWrapper.replace("$string", string)
-    }}.mkString + "}"
+    }}.mkString
 
   protected def responseRule(node: Node)(implicit qti: Node) = node.label match {
     case "setOutcomeValue" => setOutcomeValue(node)
