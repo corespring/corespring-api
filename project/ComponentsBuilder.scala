@@ -21,7 +21,7 @@ object ComponentsBuilder {
         (npmCmd, "install grunt-cli"),
         (npmCmd, "install"),
         (bowerCmd, "install"),
-        (gruntCmd, "buildcomponents"))
+        (gruntCmd, "build"))
 
       commands.foreach {
         c => {
