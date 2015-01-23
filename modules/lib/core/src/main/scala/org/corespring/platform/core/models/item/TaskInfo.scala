@@ -1,6 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
+import org.corespring.platform.core.models.Standard
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -12,7 +13,8 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
   description: Option[String] = None,
-  itemType: Option[String] = None) {
+  itemType: Option[String] = None,
+  domains: Set[String] = Set()) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
     copy(title = title.map(t => if (t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
@@ -27,6 +29,7 @@ object TaskInfo extends ValueGetter {
     val itemType = "itemType"
     val subjects = "subjects"
     val extended = "extended"
+    val domains = "domains"
   }
 
   val gradeLevelSorter: (String, String) => Boolean = (a, b) => {
@@ -48,6 +51,7 @@ object TaskInfo extends ValueGetter {
         info.title.map((title -> JsString(_))),
         info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
+        if (info.domains.isEmpty) None else Some(domains -> JsArray(info.domains.map(JsString(_)).toSeq)),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
       val subjectsJson: Option[JsValue] = info.subjects.map(subjects => Json.toJson(subjects))
@@ -73,6 +77,13 @@ object TaskInfo extends ValueGetter {
       case Some(grades) => if (grades.forall(isValid(_))) JsSuccess(grades)
       else JsError(__ \ Keys.gradeLevel, ValidationError("missing", Keys.gradeLevel))
       case None => JsSuccess(Seq())
+    }
+  })
+  private val getDomains = Reads[Set[String]]((json: JsValue) => {
+    (json \ Keys.domains).asOpt[Set[String]] match {
+      case Some(domains) => JsSuccess(domains)
+
+      case None => JsSuccess(Set())
     }
   })
   private val getExtended = Reads[Map[String, BasicDBObject]]((json: JsValue) => {
@@ -109,6 +120,7 @@ object TaskInfo extends ValueGetter {
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
-    (__ \ Keys.itemType).readNullable[String])(TaskInfo.apply _)
+    (__ \ Keys.itemType).readNullable[String] and
+    getDomains)(TaskInfo.apply _)
 }
 

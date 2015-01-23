@@ -287,7 +287,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem = function() {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $rootScope.itemData = itemData;
-
       ItemSessionCountService.get({id:$routeParams.itemId}, function onItemLoaded(countObject) {
         $rootScope.itemData.sessionCount = countObject.sessionCount;
         $scope.$broadcast("dataLoaded");

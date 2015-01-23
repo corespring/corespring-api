@@ -67,6 +67,7 @@ angular.module('tagger.services')
                 standardsTree:'/assets/web/standards_tree.json',
                 standards:'/api/v1/field_values/cc-standard',
                 subject:'/api/v1/field_values/subject',
+                domain:'/api/v1/field_values/domain',
                 organizations:'/api/v1/organizations',
                 collection: checkInjectedRoutes('PlayerCollectionRoutes', 'list', [],'/api/v1/collections'),
                 itemMetadata : '/api/v1/metadata/item',

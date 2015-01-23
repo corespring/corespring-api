@@ -31,14 +31,15 @@ function up() {
   var domainHelper = new DomainHelper();
 
   db.content.find({'contentType': 'item'}).forEach(function(item) {
-    item.domains = domainHelper.domainsFor(item);
+    item.taskInfo = item.taskInfo || {};
+    item.taskInfo.domains = domainHelper.domainsFor(item);
     db.content.save(item);
   });
 
 }
 
 function down() {
-  db.content.update({}, {$unset: {'domains' : ''}}, {'multi': true});
+  db.content.update({}, {$unset: {'taskInfo.domains' : ''}}, {'multi': true});
 }
 
 up();

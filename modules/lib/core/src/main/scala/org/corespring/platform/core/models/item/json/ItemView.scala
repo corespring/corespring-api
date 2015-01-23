@@ -81,7 +81,6 @@ object ItemView {
         (priorGradeLevel, item.priorGradeLevels.map(JsString(_))),
         (reviewsPassed, item.reviewsPassed.map(JsString(_))),
         (supportingMaterials, item.supportingMaterials.map(Json.toJson(_))),
-        (domains, item.domains.map(JsString(_)).toSeq),
         (standards, validStandards.map(Json.toJson(_)))).map(makeJsArray)
 
       val joined = (basics ++ strings ++ arrays).flatten

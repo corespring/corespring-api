@@ -53,8 +53,6 @@ case class Item(
       case _ => 2
     }
 
-  def domains = Standard.domains(standards.toSeq)
-
 }
 
 object Item {
@@ -102,7 +100,6 @@ object Item {
     val dateModified = "dateModified"
     val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
-    val domains = "domains"
     val extended = "extended"
     val files = "files"
     val gradeLevel = "gradeLevel"
@@ -126,6 +123,7 @@ object Item {
     val sharedInCollections = "sharedInCollections"
     val sourceUrl = "sourceUrl"
     val standards = "standards"
+    val domains = "domains"
     val subjects = "subjects"
     val supportingMaterials = "supportingMaterials"
     val taskInfo = "taskInfo"
@@ -142,7 +140,6 @@ object Item {
     implicit val ItemViewWrites = ItemView.Writes
 
     def writes(item: Item) = Json.toJson(ContentView[Item](item, None))
-      .asInstanceOf[JsObject].deepMerge(Json.obj(domains -> item.domains))
 
     def reads(json: JsValue) = {
       val item = Item()
