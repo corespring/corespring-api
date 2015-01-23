@@ -10,6 +10,8 @@ import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.collection.immutable.{ListMap, SortedMap}
+import scala.concurrent._
+import scala.concurrent.duration.Duration
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -156,16 +158,51 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 
-  def domains(dotNotations: Iterable[String]): Set[String] =
-    find(MongoDBObject(DotNotation -> MongoDBObject("$in" -> dotNotations))).map(standard => {
-      standard.subject match {
-        case Some(Subjects.ELALiteracy) => standard.subCategory
-        case Some(Subjects.ELA) => standard.subCategory
-        case Some(Subjects.Math) => standard.category
-        case _ => None
-      }
-    }).flatten.toSet
+  object Domain {
+    import ExecutionContext.Implicits.global
+    val timeout = Duration(20, duration.SECONDS)
 
+    lazy val domains = unique(Seq(
+      future {
+        find(MongoDBObject(
+          Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
+        )).map(_.subCategory).flatten
+      },
+      future {
+        find(MongoDBObject(
+          Subject -> Subjects.Math
+        )).map(_.category).flatten
+      }
+    ))
+
+    def domainsMatching(query: String): Seq[String] = unique(Seq(
+      future {
+        find(MongoDBObject(
+          Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy)),
+          SubCategory -> MongoDBObject("$regex" -> s".*$query.*")
+        )).map(_.subCategory).flatten
+      },
+      future {
+        find(MongoDBObject(
+          Subject -> Subjects.Math,
+          Category -> MongoDBObject("$regex" -> s".*$query.*")
+        )).map(_.category).flatten
+      }
+    ))
+
+    def domains(dotNotations: Iterable[String]): Set[String] =
+      find(MongoDBObject(DotNotation -> MongoDBObject("$in" -> dotNotations))).map(standard => {
+        standard.subject match {
+          case Some(Subjects.ELALiteracy) => standard.subCategory
+          case Some(Subjects.ELA) => standard.subCategory
+          case Some(Subjects.Math) => standard.category
+          case _ => None
+        }
+      }).flatten.toSet
+
+    private def unique(results: Seq[Future[Iterator[String]]]) =
+      Await.result(Future.sequence(results), timeout).flatten.toSet.toSeq
+  }
 
   /**
    * validate that the dotNotation exists

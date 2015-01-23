@@ -132,6 +132,13 @@ object FieldValuesApi extends BaseApi {
           }
         }
       }
+      case "domain" => {
+        def domainsMatching(query: String) = JsArray(Seq())
+        q match {
+          case Some(query) => JsArray(Standard.Domain.domainsMatching(query).map(JsString))
+          case None => JsArray(Standard.Domain.domains.map(JsString))
+        }
+      }
       case _ => {
         Cache.getAs[FieldValue](FieldValueCacheKey) match {
           case None => {
