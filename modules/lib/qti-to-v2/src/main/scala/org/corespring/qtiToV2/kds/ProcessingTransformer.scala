@@ -62,12 +62,12 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private def conditionalStatement(node: Node, expressionWrapper: String, responseWrapper: String)(implicit qti: Node) =
     node.withoutEmptyChildren.zipWithIndex.map{ case(node, i) => i match {
-      case 0 => (expression(node).mkString, i)
+      case 0 => (expression(node), i)
       case _ => (responseRule(node), i)
     }}.map{ case(string, i) => i match {
       case 0 => expressionWrapper.replace("$string", string)
       case _ => responseWrapper.replace("$string", string)
-    }}.mkString
+    }}.mkString + "}"
 
   protected def responseRule(node: Node)(implicit qti: Node) = node.label match {
     case "setOutcomeValue" => setOutcomeValue(node)
@@ -75,16 +75,16 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   }
 
   protected def setOutcomeValue(node: Node)(implicit qti: Node) =
-    s"""${(node \ "@identifier").text} = ${expression(node.withoutEmptyChildren.head).mkString};"""
+    s"""${(node \ "@identifier").text} = ${expression(node.withoutEmptyChildren.head)};"""
 
-  protected def expression(node: Node)(implicit qti: Node): Seq[String] = node.label match {
-    case "match" => Seq(s"(${_match(node)})")
-    case "and" => Seq(s"(${and(node)})")
-    case "or" => Seq(s"(${or(node)})")
-    case "gt" => Seq(s"(${gt(node)})")
-    case "equal" => Seq(s"(${equal(node)}})")
+  protected def expression(node: Node)(implicit qti: Node): String = node.label match {
+    case "match" => s"(${_match(node)})"
+    case "and" => s"(${and(node)})"
+    case "or" => s"(${or(node)})"
+    case "gt" => s"(${gt(node)})"
+    case "equal" => s"(${equal(node)})"
     case "sum" => sum(node)
-    case "variable" => Seq((node \ "@identifier").text)
+    case "variable" => (node \ "@identifier").text
     case "correct" => correct(node)
     case "baseValue" => baseValue(node)
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
@@ -100,30 +100,30 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
       .getOrElse(throw ProcessingTransformerException("Did not response declaration matching identifier", node))
 
-    Seq(s"[${(rd \ "correctResponse" \ "value").map(_.text).map(v => {
+    s"[${(rd \ "correctResponse" \ "value").map(_.text).map(v => {
       (rd \ "@baseType").text match {
         case "string" => s""""$v""""
         case "identifier" => s""""$v""""
         case _ => v
       }
-    }).mkString(", ")}]")
+    }).mkString(", ")}]"
   }
 
   protected def baseValue(node: Node) = {
-    Seq((node \ "@baseType").text match {
+    (node \ "@baseType").text match {
       case "string" => s""""${node.text}""""
       case _ => node.text
-    })
+    }
   }
 
-  protected def sum(node: Node)(implicit qti: Node) = Seq(node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + "))
+  protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + ")
 
   protected def _match(node: Node)(implicit qti: Node) = {
     def isArray(string: String) = string.startsWith("[") && string.endsWith("]")
     node.withoutEmptyChildren.map(expression) match {
-      case Seq(lhs, rhs) if ((isArray(lhs.mkString) || isArray(rhs.mkString))) =>
-        s"_.isEmpty(_.xor(${lhs.mkString}, ${rhs.mkString}))"
-      case Seq(lhs, rhs) => s"${lhs.mkString} === ${rhs.mkString}"
+      case Seq(lhs, rhs) if ((isArray(lhs) || isArray(rhs))) =>
+        s"_.isEmpty(_.xor($lhs, $rhs))"
+      case Seq(lhs, rhs) => s"$lhs === $rhs"
       case e: Seq[String] =>
         throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
     }
@@ -134,7 +134,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
     case child if (child.length < 2) => throw new Exception(s"$op expression must combine two or more expressions")
-    case child => child.map(expression(_).mkString).mkString(s" $op ")
+    case child => child.map(expression).mkString(s" $op ")
   }
 
   private implicit class NodeHelper(node: Node) {
