@@ -40,6 +40,7 @@ case class ContentCollection(
 object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
   val name = "name"
   val isPublic = "isPublic"
+  val isPrivate = "isPrivate"
   val ownerOrgId = "ownerOrgId"
   val DEFAULT = "default" //used as the value for name when the content collection is a default collection
 
@@ -143,7 +144,9 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     seqcollid
   }
 
-  def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
+  def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(
+    MongoDBObject("$or" -> Seq(MongoDBObject(isPublic -> true), MongoDBObject(isPrivate -> false)))).toSeq
+
   def isPublic(collectionId: ObjectId): Boolean = getPublicCollections.map(_.id).contains(collectionId)
 
   /**
