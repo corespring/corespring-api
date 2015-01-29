@@ -150,7 +150,7 @@ trait OrganizationImpl
   override def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean = {
 
     val contentColls = Option(org.contentcolls).getOrElse(Seq[ContentCollRef]())
-    val access = contentColls.find(collRef => collRef.collectionId.toString() == collectionId && collRef.pval > permission.value)
+    val access = contentColls.find(collRef => collRef.collectionId == collectionId && collRef.pval > permission.value)
       .map(_ => true)
       .getOrElse(ContentCollection.isPublic(collectionId) && permission == Permission.Read)
 
