@@ -7,7 +7,7 @@ trait V2JavascriptWrapper {
       |  var answers = session.components;
       |
       |  function isCorrect(key) {
-      |    return outcomes[key].correctness === 'correct';
+      |    return (outcomes && outcomes[key]) ? (outcomes[key].correctness === 'correct' || outcomes[key].correctness === 'all_correct') : false;
       |  }
       |  
       |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'].answers;").mkString("\n|  ")}
