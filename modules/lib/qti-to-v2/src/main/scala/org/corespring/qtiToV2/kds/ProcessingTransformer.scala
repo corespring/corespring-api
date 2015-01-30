@@ -14,17 +14,21 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   /**
    * Takes a QTI document, and returns a Javascript representation of its <responseProcessing/> node.
    */
-  def toJs(qti: Node): Option[JsResponseProcessing] = {
-    val rnode = getResponseNode(qti)
-    println(rnode)
-    rnode match {
-      case Some(node) => Some(JsResponseProcessing(
+  def toJs(qti: Node): Option[JsResponseProcessing] =
+    getResponseNode(qti) match {
+    case Some(node) => try {
+      Some(JsResponseProcessing(
         vars = outcomeDeclarations(qti),
         responseVars = responseDeclarations(qti),
         lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
       ))
-      case _ => None
+    } catch {
+      case e: Exception => {
+        e.printStackTrace
+        None
+      }
     }
+    case _ => None
   }
 
   private def getResponseNode(qti: Node): Option[Node] = {
