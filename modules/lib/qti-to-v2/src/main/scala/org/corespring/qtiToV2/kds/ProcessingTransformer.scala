@@ -1,19 +1,47 @@
 package org.corespring.qtiToV2.kds
 
+import play.api.libs.json.Json
+
 import scala.xml._
 
 trait ProcessingTransformer extends V2JavascriptWrapper {
 
+  private val AssumedResponseTemplateVariable = "RESPONSE"
+
+  val templateConverter = new ResponseProcessingTemplateConverter()
+  import templateConverter._
+
   /**
    * Takes a QTI document, and returns a Javascript representation of its <responseProcessing/> node.
    */
-  def toJs(qti: Node): Option[JsResponseProcessing] = (qti \ "responseProcessing").headOption match {
-    case Some(node) => Some(JsResponseProcessing(
-      vars = outcomeDeclarations(qti),
-      responseVars = responseDeclarations(qti),
-      lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
-    ))
-    case _ => None
+  def toJs(qti: Node): Option[JsResponseProcessing] = {
+    val rnode = getResponseNode(qti)
+    println(rnode)
+    rnode match {
+      case Some(node) => Some(JsResponseProcessing(
+        vars = outcomeDeclarations(qti),
+        responseVars = responseDeclarations(qti),
+        lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
+      ))
+      case _ => None
+    }
+  }
+
+  private def getResponseNode(qti: Node): Option[Node] = {
+    (qti \ "responseProcessing").headOption match {
+      case Some(responseProcessing) => responseProcessing.hasTemplate match {
+        case true => (qti \ "responseDeclaration").length match {
+          case 1 => Some(responseProcessing.withTemplate
+            .substituting(AssumedResponseTemplateVariable -> (qti \ "responseDeclaration" \ "@identifier").head.text))
+          case 0 =>
+            throw ProcessingTransformerException("Cannot utilize template without response declarations", qti)
+          case _ =>
+            throw ProcessingTransformerException("Cannot utilize template with multiple response declarations", qti)
+        }
+        case false => Some(responseProcessing)
+      }
+      case _ => None
+    }
   }
 
   protected def responseDeclarations(qti: Node): Seq[String] = (qti \ "responseDeclaration").map(_ \ "@identifier").map(_.text)
@@ -82,6 +110,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     case "and" => s"(${and(node)})"
     case "or" => s"(${or(node)})"
     case "gt" => s"(${gt(node)})"
+    case "isNull" => s"(${isNull(node)})"
     case "equal" => s"(${equal(node)})"
     case "sum" => sum(node)
     case "variable" => (node \ "@identifier").text
@@ -95,18 +124,24 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   protected def gte(node: Node)(implicit qti: Node) = binaryOp(node, ">=")
   protected def lt(node: Node)(implicit qti: Node) = binaryOp(node, "<")
   protected def lte(node: Node)(implicit qti: Node) = binaryOp(node, "<=")
+  protected def isNull(node: Node)(implicit qti: Node) = postFixOp(node, " == undefined")
 
   protected def correct(node: Node)(implicit qti: Node) = {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
-      .getOrElse(throw ProcessingTransformerException("Did not response declaration matching identifier", node))
+      .getOrElse(throw ProcessingTransformerException("Did not contain response declaration matching identifier", node))
 
     s"[${(rd \ "correctResponse" \ "value").map(_.text).map(v => {
       (rd \ "@baseType").text match {
         case "string" => s""""$v""""
         case "identifier" => s""""$v""""
+        case "directedPair" => directedPair(v)
         case _ => v
       }
     }).mkString(", ")}]"
+  }
+
+  private def directedPair(value: String)(implicit qti: Node) = {
+    Json.obj("id" -> value, "matchSet" -> Seq(1,2,3))
   }
 
   protected def baseValue(node: Node) = {
@@ -131,6 +166,10 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   protected def and(node: Node)(implicit qti: Node) = binaryOp(node, "&&")
   protected def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
+
+  private def postFixOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
+    case child if (child.length == 1) => s"expression(child.head) $op"
+  }
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
     case child if (child.length < 2) => throw new Exception(s"$op expression must combine two or more expressions")
