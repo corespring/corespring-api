@@ -29,8 +29,12 @@ class ResponseProcessingTemplateConverter(get: (String => Node) = ResponseProces
     }
   }
 
-  implicit class AddWithTemplate(node: Node) {
+  implicit class AddTemplateConverterTools(node: Node) {
+
+    def hasTemplate = node.attribute("template").nonEmpty
+
     def withTemplate = ResponseProcessingTemplateConverter.this.withTemplate(node)
+
     def substituting(substitution: (String, String)) = {
       new RuleTransformer(new RewriteRule {
         override def transform(n: Node): NodeSeq = n match {

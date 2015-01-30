@@ -14,6 +14,28 @@ class ResponseProcessingTemplateConverterTest extends Specification {
   val converter = new ResponseProcessingTemplateConverter(mockWS)
   import converter._
 
+  "hasTemplate" should {
+
+    "when node has no template" should {
+      val node = <responseProcessing></responseProcessing>
+
+      "return false" in {
+        node.hasTemplate must beFalse
+      }
+
+    }
+
+    "when node has template" should {
+      val node = <responseProcessing template="hey I'm a template!"></responseProcessing>
+
+      "return true" in {
+        node.hasTemplate must beTrue
+      }
+    }
+
+  }
+
+
   "withTemplate" should {
 
     "when node has no template" should {
