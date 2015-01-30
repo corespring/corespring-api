@@ -124,7 +124,28 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   }
 
   protected def gt(node: Node)(implicit qti: Node) = binaryOp(node, ">")
-  protected def equal(node: Node)(implicit qti: Node) = binaryOp(node, "===")
+
+  protected def equal(node: Node)(implicit qti: Node) = {
+    def isArray(string: String) = string.startsWith("[") && string.endsWith("]")
+    node.withoutEmptyChildren match {
+      case child if (child.length != 2) => throw new Exception(s"equal expression must combine two expressions")
+      case child => {
+        (child.find(_.label == "variable").map(v => (v \ "@identifier").text),
+         child.find(_.label == "correct").map(c => (c \ "@identifier").text)) match {
+          case (Some(variable), Some(correct)) if (variable == correct) => s"isCorrect('$variable')"
+          case _ => {
+            node.withoutEmptyChildren.map(expression) match {
+              case Seq(lhs, rhs) if ((isArray(lhs) || isArray(rhs))) =>
+                s"_.isEmpty(_.xor($lhs, $rhs))"
+              case Seq(lhs, rhs) => s"$lhs === $rhs"
+              case e: Seq[String] =>
+                throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
+            }
+          }
+        }
+      }
+    }
+  }
   protected def gte(node: Node)(implicit qti: Node) = binaryOp(node, ">=")
   protected def lt(node: Node)(implicit qti: Node) = binaryOp(node, "<")
   protected def lte(node: Node)(implicit qti: Node) = binaryOp(node, "<=")
@@ -157,16 +178,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + ")
 
-  protected def _match(node: Node)(implicit qti: Node) = {
-    def isArray(string: String) = string.startsWith("[") && string.endsWith("]")
-    node.withoutEmptyChildren.map(expression) match {
-      case Seq(lhs, rhs) if ((isArray(lhs) || isArray(rhs))) =>
-        s"_.isEmpty(_.xor($lhs, $rhs))"
-      case Seq(lhs, rhs) => s"$lhs === $rhs"
-      case e: Seq[String] =>
-        throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
-    }
-  }
+  protected def _match(node: Node)(implicit qti: Node) = equal(node)
 
   protected def and(node: Node)(implicit qti: Node) = binaryOp(node, "&&")
   protected def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")

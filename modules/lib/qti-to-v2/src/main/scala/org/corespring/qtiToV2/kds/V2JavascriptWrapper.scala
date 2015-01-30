@@ -3,8 +3,12 @@ package org.corespring.qtiToV2.kds
 trait V2JavascriptWrapper {
 
   def wrap(js: JsResponseProcessing): String = {
-    s"""exports.process = function(item, session) {
+    s"""exports.process = function(item, session, outcomes) {
       |  var answers = session.components;
+      |
+      |  function isCorrect(key) {
+      |    return outcomes[key].correctness === 'correct';
+      |  }
       |  
       |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'].answers;").mkString("\n|  ")}
       |
