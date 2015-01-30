@@ -63,7 +63,7 @@ class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: Scor
     val blankSettings = Json.obj()
     val componentAnswers = Json.obj("components" -> answers)
     val outcome = outcomeProcessor.createOutcome(itemJson, componentAnswers, blankSettings)
-    Success(scoreProcessor.score(itemJson, answers, outcome))
+    Success(scoreProcessor.score(itemJson, componentAnswers, outcome))
   }
 
 }

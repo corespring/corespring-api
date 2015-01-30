@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 import scala.xml.transform.RuleTransformer
-import scala.xml.{XML, Elem, Node}
+import scala.xml.{NodeSeq, XML, Elem, Node}
 
 class ChoiceInteractionTransformerTest extends Specification {
 
@@ -40,6 +40,13 @@ class ChoiceInteractionTransformerTest extends Specification {
       </simpleChoice>
     </choiceInteraction>
   """)
+
+  def choiceInterationWithHTML(html: NodeSeq) =
+    <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+      {html}
+      <simpleChoice identifier="A">Something</simpleChoice>
+      <simpleChoice identifier="B">Something else</simpleChoice>
+    </choiceInteraction>
 
   def inlineInteraction =
     <inlineChoiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
@@ -101,7 +108,12 @@ class ChoiceInteractionTransformerTest extends Specification {
       (q1 \ "feedback").as[Seq[JsObject]].length === 2
       ((q1 \ "feedback")(0) \ "value").as[String] === "A"
       ((q1 \ "feedback")(0) \ "feedback").as[String] === "Default Correct"
+    }
 
+    "preserve and move choiceInteraction HTML nodes outside interaction" in {
+      val html = <div>This is some text</div><img src="and/an/image.png"/>;
+      val out = new RuleTransformer(ChoiceInteractionTransformer).transform(choiceInterationWithHTML(html))
+      out.containsSlice(html) must beTrue
     }
   }
 }

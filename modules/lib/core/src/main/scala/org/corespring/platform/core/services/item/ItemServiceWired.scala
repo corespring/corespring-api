@@ -12,6 +12,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.files.CloneFileResult
 import org.corespring.platform.core.files.ItemFiles
+import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
@@ -129,6 +130,11 @@ class ItemServiceWired(
     val dbo = grater[VersionedId[ObjectId]].asDBObject(item.id)
     val query = MongoDBObject("itemId" -> dbo)
     sessionCompanion.count(query) + v2SessionCount(item.id)
+  }
+
+  def moveItemToArchive(id: VersionedId[ObjectId]) = {
+    val update = MongoDBObject("$set" -> MongoDBObject( Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
+    saveUsingDbo(id, update, false)
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))

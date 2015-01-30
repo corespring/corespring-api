@@ -8,6 +8,7 @@ import scala.xml._
 import scala.xml.transform.RuleTransformer
 
 import play.api.libs.json._
+
 object TextEntryInteractionTransformer extends Transformer {
 
   def transform(qti: Node): Node =
@@ -21,8 +22,6 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
   val DefaultAnswerBlankSize: Int = 5
 
-  val DefaultIncorrectFeedback = "Good try, but the correct answer is <random selection from correct answers>."
-
   def feedbackBlocks(node: Node, qti: Node): Seq[Node] = {
     (node \ "@responseIdentifier").text match {
       case "" => throw new IllegalArgumentException("Node does not have a responseIdentifier")
@@ -35,14 +34,20 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
   override def interactionJs(qti: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
     val responseDeclarationNode = responseDeclaration(node, qti)
     val fbBlocks = feedbackBlocks(node, qti)
-    val correctFeedbacks = fbBlocks.filter(_.attribute("incorrectResponse").isEmpty).map(fb => Json.obj(
-      "answer" -> (fb \ "@identifier").text,
-      "feedback" -> fb.child.mkString.trim
-    ))
-    val incorrectFeedback = fbBlocks.find(_.attribute("incorrectResponse").nonEmpty) match {
-      case Some(feedback) if (feedback.child.mkString.trim.nonEmpty) => feedback.child.mkString.trim
-      case _ => DefaultIncorrectFeedback
+    val popupFeedback = (node \ "@popupFeedback").text == "true"
+    val correctFeedbacks = popupFeedback match {
+      case true => fbBlocks.filter(_.attribute("incorrectResponse").isEmpty).map(fb => Json.obj(
+        "answer" -> (fb \ "@identifier").text,
+        "feedback" -> fb.child.mkString.trim
+      ))
+      case false => Seq[JsObject]()
     }
+
+    val incorrectFeedback = popupFeedback match {
+      case true =>  fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.child.mkString.trim)
+      case false => Some("")
+    }
+
     val correctResponses = (responseDeclarationNode \ "correctResponse" \\ "value").map(_.text).toSet
     val answerBlankSize: Int = (node \ "@expectedLength").text.toIntOption.getOrElse(DefaultAnswerBlankSize)
 
@@ -56,8 +61,8 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
         "answerBlankSize" -> answerBlankSize,
         "answerAlignment" -> "left")),
       "feedback" -> Some(Json.obj(
-        "correctFeedbackType" -> JsString("default"),
-        "incorrectFeedbackType" -> JsString("default"))),
+        "correctFeedbackType" -> JsString(if (popupFeedback) "default" else "none"),
+        "incorrectFeedbackType" -> JsString(if (popupFeedback) "default" else "none"))),
       isEquation(node, qti) match {
         case true => "correctResponse" -> Some(Json.obj(
           "equation" -> JsString(correctResponses.head)
@@ -68,7 +73,7 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
           "ignoreWhitespace" -> true,
           "ignoreCase" -> true,
           "feedback" -> Json.obj(
-            "type" -> "default",
+            "type" -> (if (popupFeedback) "default" else "none"),
             "specific" -> correctFeedbacks
           )
         ))
@@ -76,7 +81,7 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
       "incorrectResponses" -> Some(Json.obj(
         "award" -> 0,
         "feedback" -> Json.obj(
-          "type" -> "default",
+          "type" -> (if (popupFeedback) "default" else "none"),
           "value" -> incorrectFeedback
         )
       )))
@@ -84,8 +89,8 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
 
   override def transform(node: Node): Seq[Node] = node match {
     case e: Elem if e.label == "textEntryInteraction" => isEquation(node, qti) match {
-      case true => <corespring-function-entry id={ (node \ "@responseIdentifier").text }></corespring-function-entry>
-      case false => <corespring-text-entry id={ (node \ "@responseIdentifier").text }></corespring-text-entry>
+      case true => <corespring-function-entry id={(node \ "@responseIdentifier").text} class={if ((node \ "@popupFeedback").text == "true") "popupFeedback" else ""}></corespring-function-entry>
+      case false => <corespring-text-entry id={(node \ "@responseIdentifier").text} class={if ((node \ "@popupFeedback").text == "true") "popupFeedback" else ""}></corespring-text-entry>
     }
 
     case e: Elem if e.label == "feedbackBlock" => belongsToTextEntry(node, qti) match {

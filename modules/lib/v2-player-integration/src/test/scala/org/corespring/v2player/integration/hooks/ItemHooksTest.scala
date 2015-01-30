@@ -84,13 +84,6 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     val f: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)(FakeRequest("", ""))
   }
 
-  class saveContext(itemId: String = ObjectId.get.toString,
-    authResult: Validation[V2Error, Item] = Failure(defaultFailure),
-    val json: JsValue = Json.obj()) extends baseContext[StatusMessage, JsValue](itemId, authResult) {
-
-    lazy val f = hooks.save(itemId, json)(header)
-  }
-
   def returnError[D](e: V2Error) = returnStatusMessage[D](e.statusCode, e.message)
 
   case class returnStatusMessage[D](expectedStatus: Int, body: String) extends Matcher[Either[(Int, String), D]] {
@@ -131,28 +124,6 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
     "return an item" in new loadContext(
       authResult = Success(Item(collectionId = Some(ObjectId.get.toString)))) {
       result must_== Right(Json.parse("""{"profile":{},"components":{},"xhtml":"<div/>","summaryFeedback":""}"""))
-    }
-  }
-
-  "save" should {
-
-    "return not found" in new saveContext() {
-      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
-    }
-
-    "return cantParse error for a bad item id" in new saveContext("bad id", authResult = Success(Item())) {
-      result must returnError(cantParseItemId("bad id"))
-    }
-
-    "return no collection id error" in new saveContext(
-      authResult = Success(Item())) {
-      result must returnError(noCollectionIdForItem(vid))
-    }
-
-    "save update" in new saveContext(
-      authResult = Success(Item(collectionId = Some(ObjectId.get.toString))),
-      json = emptyItemJson) {
-      result === Right(emptyItemJson)
     }
   }
 

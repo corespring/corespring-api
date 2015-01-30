@@ -40,7 +40,7 @@ object Resource extends PackageLogging with JsonUtil {
         case obj: JsObject => {
           logger.debug(s"ResourceReads ${Json.prettyPrint(json)}")
           val resourceName = (json \ "name").as[String]
-          val resourceId = (json \ id).asOpt[String].map(new ObjectId(_))
+          val resourceId = (json \ id).asOpt[String].map(new ObjectId(_)).orElse(Some(ObjectId.get))
           val resourceMaterialType = (json \ materialType).asOpt[String]
           val files = (json \ "files").asOpt[Seq[BaseFile]]
           JsSuccess(Resource(resourceId, resourceName, resourceMaterialType, files.getOrElse(Seq())))

@@ -260,11 +260,12 @@
     </div>
 
 <div class="row" style="padding-top: 90px">
-    <div class="container" style="margin-left: 74px; width: 960px;" when-scrolled="loadMore()" watch="itemDataCollection">
+    <div class="container" style="margin-left: 74px;" when-scrolled="loadMore()" watch="itemDataCollection">
         <table class="table content-sort">
             <thead>
             <tr>
                 <th sort-column-header field="title" >Title</th>
+                <th sort-column-header field="description">Description</th>
                 <th>Primary Subject</th>
                 <th sort-column-header field="gradeLevel">Grade</th>
                 <th sort-column-header field="itemType">Item Type</th>
@@ -276,6 +277,7 @@
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
+                <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.description"></td>
                 <td class="new-window" ng-click="itemClick()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
                 <td class="new-window" ng-click="itemClick()">
                     {{showGradeLevel()}}
