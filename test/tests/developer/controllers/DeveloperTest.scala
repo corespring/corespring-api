@@ -45,22 +45,25 @@ class DeveloperTest extends BaseTest
       val json = Json.parse(orgName)
       val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
       status(Developer.createOrganization()(request)) === OK
-      val org = Organization.findOne(MongoDBObject("name" -> testOrgName)).get
+      Organization.findOne(MongoDBObject("name" -> testOrgName))
+        .map(
+          org => {
+            val publicCollectionsRefs =  ContentCollection.getPublicCollections.map (col => col.id)
 
-      val publicCollectionsRefs =  ContentCollection.getPublicCollections.map (col => col.id)
+            // Check that newly created organization contains reference to a default collection
+            // When created any organization is automatically added all public collections so we will filter them out
+            org.contentcolls.filterNot(collRef => publicCollectionsRefs.contains(collRef.collectionId)).length must equalTo(1)
 
-      // Check that newly created organization contains reference to a default collection
-      // When created any organization is automatically added all public collections so we will filter them out
-      org.contentcolls.filterNot(collRef => publicCollectionsRefs.contains(collRef.collectionId)).length must equalTo(1)
+            val defaultCollectionsIds = ContentCollection
+              .find(MongoDBObject("name" -> ContentCollection.DEFAULT, "ownerOrgId" -> org.id))
+              .toSeq
+              .map(coll => coll.id)
 
-      val defaultCollectionsIds = ContentCollection
-        .find(MongoDBObject("name" -> ContentCollection.DEFAULT, "ownerOrgId" -> org.id))
-        .toSeq
-        .map(coll => coll.id)
-
-      org.contentcolls
-        .map(collRef => collRef.collectionId)
-        .intersect(defaultCollectionsIds).length must equalTo(1)
+            org.contentcolls
+              .map(collRef => collRef.collectionId)
+              .intersect(defaultCollectionsIds).length must equalTo(1)
+          })
+        .getOrElse(failure(s"Could not fetch organisation: $testOrgName"))
     }
 
     "create only one org" in new MockUser {
