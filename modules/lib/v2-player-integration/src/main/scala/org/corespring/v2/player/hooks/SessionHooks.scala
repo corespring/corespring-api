@@ -53,7 +53,7 @@ trait SessionHooks
       val (session, _) = models
       SaveSession(session, identity.opts.secure, isComplete(session), saveFn)
     }
-    out.leftMap(s => (BAD_REQUEST -> s.message)).toEither
+    out.leftMap(s => (s.statusCode -> s.message)).toEither
   }
 
   private def buildSession[A](id: String, make: (JsValue, JsValue, OrgAndOpts) => A)(implicit header: RequestHeader): Either[StatusMessage, A] = {
@@ -66,7 +66,7 @@ trait SessionHooks
       logger.trace(s"[buildSession] playerDefinition: ${playerDefinition}")
       make(Json.toJson(playerDefinition), session, identity)
     }
-    out.leftMap { s => UNAUTHORIZED -> s.message }.toEither
+    out.leftMap { s => s.statusCode -> s.message }.toEither
   }
 }
 
