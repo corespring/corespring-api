@@ -199,8 +199,9 @@ class SessionHooksTest extends Specification with Mockito with RequestMatchers {
               def apply[S <: Either[(Int, String), SaveSession]](s: Expectable[S]) = {
 
                 s.value match {
-                  case Right(SaveSession(item, session, secure, isComplete)) => result(true," blah "," blah ",s)
-                  case Left(_) => result(false," blah "," blah ",s)
+                  case Right(SaveSession(item, session, secure, isComplete)) =>
+                    result(true,"result matches the SaveSession","result doesnt match SaveSession",s)
+                  case Left(_) => result(false," "," result dosent match SaveSession ",s)
                 }
               }
             }.await
