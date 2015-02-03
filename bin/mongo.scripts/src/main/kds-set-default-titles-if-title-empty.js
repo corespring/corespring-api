@@ -4,13 +4,19 @@
 
 //the script does not care about the actual db
 //the db, the credentials and the script are set in the parameters to mongo like so
-//$ mongo ds063347-a1.mongolab.com:63347/corespring-staging -u corespring -p xxxxxxxx kds-set-default-titles-if-title-empty.js
+//$ mongo ds035160-a0.mongolab.com:35160/corespring-staging -u corespring -p xxxxxxxx kds-set-default-titles-if-title-empty.js
+
+/* global db */
 
 function KdsSetDefaultTitlesIfTitleEmpty(db) {
 
+  function emptyIfAutoValue(value) {
+    return (value && value.indexOf('#auto#') === -1) ? value : '';
+  }
+
   function getSourceId(item) {
     try {
-      return item.taskInfo.extended.kds.sourceId;
+      return emptyIfAutoValue(item.taskInfo.extended.kds.sourceId);
     } catch (e) {
       //ignore
     }
@@ -19,7 +25,7 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
 
   function getScoringType(item) {
     try {
-      return item.taskInfo.extended.kds.scoringType;
+      return emptyIfAutoValue(item.taskInfo.extended.kds.scoringType);
     } catch (e) {
       //ignore
     }
@@ -28,7 +34,7 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
 
   function getTitle(item) {
     try {
-      return item.taskInfo.title;
+      return emptyIfAutoValue(item.taskInfo.title);
     } catch (e) {
       //ignore
     }
@@ -37,7 +43,7 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
 
   function getDescription(item) {
     try {
-      return item.taskInfo.description;
+      return emptyIfAutoValue(item.taskInfo.description);
     } catch (e) {
       //ignore
     }
@@ -56,91 +62,83 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
     return '';
   }
 
-  function titleIsSourceId(item) {
-    try {
-      var re = /^\s*(\d+)\s*$/;
-      var matches = re.exec(getTitle(item));
-      return matches != null;
-    } catch (e) {
-      //ignore
-    }
-    return false;
-  }
-
-  function findCollectionByName(name){
-    return db.contentcolls.findOne({name: name});
-  }
-
-
-  function getKDSItems(kdsCol) {
-    db.content.find({"collectionId": kdsCol._id.str});
-  }
-
-  function findUpdates(items) {
-    return items.map(processItem);
-  }
-
-  function processItem(item) {
+  function checkIfUpdateIsNeeded(item, auto) {
     var updates = {};
-    var needsUpdate = false;
-    var result = {itemId: item._id};
+    var result = {itemId: item._id, type: "NO CHANGE", updates: updates, item: item};
+
+    auto = auto || '';
 
     try {
       var sourceId = getSourceId(item);
-      if(!sourceId){
+      if (!sourceId) {
         sourceId = getSourceIdFromTitle(item);
-        if(sourceId){
-          updates["taskInfo.extended.kds.sourceId"] = sourceId;
-          needsUpdate = true;
+        if (sourceId) {
+          updates["taskInfo.extended.kds.sourceId"] = sourceId + auto;
+          result.type = "UPDATE";
         }
       }
       var scoringType = getScoringType(item);
 
       if (!getTitle(item)) {
-        updates["taskInfo.title"] = sourceId + " - " + scoringType;
-        needsUpdate = true;
+        updates["taskInfo.title"] = sourceId + " - " + scoringType + auto;
+        result.type = "UPDATE";
       }
 
       if (!getDescription(item)) {
-        updates["taskInfo.description"] = sourceId;
-        needsUpdate = true;
+        updates["taskInfo.description"] = sourceId + " - " + scoringType + auto;
+        result.type = "UPDATE";
       }
 
-      if (needsUpdate) {
-        result.needsUpdate = true;
-        result.updates = updates;
-      }
     } catch (e) {
+      result.type = "ERROR";
       result.error = "Error updating " + e;
     }
     return result;
   }
 
-  function writeUpdates(updates) {
-    return updates.map(function (update) {
-      try {
-        db.content.update({_id: update.itemId}, {$set: update.updates});
-      } catch(e){
-        update.error = "Error " + e;
-      }
-      return update;
-    });
+  var _log = [];
+
+  function log(message, type) {
+    _log.push({type: type ? type : "LOG", message: message});
   }
 
-  function processCollection(name){
-    var kdsCol = getCollectionByName(name);
-    var items = getKDSItems(kdsCol);
-    var updates = findUpdates(items);
-    return writeUpdates(updates);
+  function processCollection(name) {
+    log("processCollection:" + name);
+    var result = [];
+    var kdsCol = db.contentcolls.findOne({name: name});
+    if (kdsCol) {
+      log("processCollection: collection found:" + kdsCol._id.str);
+      var items = db.content.find({"collectionId": kdsCol._id.str});
+      log("processCollection: #items found:" + items.count());
+      var updates = 0;
+      result = items.map(function (item) {
+        var maybeUpdate = checkIfUpdateIsNeeded(item, ' #auto#');
+        if (maybeUpdate.type === "UPDATE") {
+          updates++;
+          db.content.update({_id: maybeUpdate.itemId}, {$set: maybeUpdate.updates});
+        }
+        return maybeUpdate;
+      });
+      log("processCollection: items processed, #updates:" + updates);
+    } else {
+      log("processCollection: collection not found" + name, "ERROR");
+    }
+    return result;
   }
 
-  function main(){
+  function main() {
+    log("main");
     var resKDS = processCollection("KDS");
-    var resKDSUpdate = processCollection("KDSUpdates");
-    return resKDS.concat(resKDSUpdate);
+    var resKDSUpdate = processCollection("KDSUpdate");
+    var logs = [{logs: _log}];
+    return logs.concat(resKDS || []).concat(resKDSUpdate || []);
   }
 
+
+  this.checkIfUpdateIsNeeded = checkIfUpdateIsNeeded;
   this.main = main;
-  this.findUpdates = findUpdates;
-  this.processItem = processItem;
 }
+
+//var processor = new KdsSetDefaultTitlesIfTitleEmpty(db);
+//processor.main();
+
