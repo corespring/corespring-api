@@ -8,10 +8,12 @@
 
 /* global db */
 
-function KdsSetDefaultTitlesIfTitleEmpty(db) {
+function KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate, appendAuto) {
+
+  var auto = '#auto#';
 
   function emptyIfAutoValue(value) {
-    return (value && value.indexOf('#auto#') === -1) ? value : '';
+    return (value && value.indexOf(auto) === -1) ? value : '';
   }
 
   function getSourceId(item) {
@@ -62,30 +64,28 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
     return '';
   }
 
-  function checkIfUpdateIsNeeded(item, auto) {
+  function checkIfUpdateIsNeeded(item) {
     var updates = {};
     var result = {itemId: item._id, type: "NO CHANGE", updates: updates, item: item};
-
-    auto = auto || '';
 
     try {
       var sourceId = getSourceId(item);
       if (!sourceId) {
         sourceId = getSourceIdFromTitle(item);
         if (sourceId) {
-          updates["taskInfo.extended.kds.sourceId"] = sourceId + auto;
+          updates["taskInfo.extended.kds.sourceId"] = sourceId + (appendAuto ? auto : '');
           result.type = "UPDATE";
         }
       }
       var scoringType = getScoringType(item);
 
       if (!getTitle(item)) {
-        updates["taskInfo.title"] = sourceId + " - " + scoringType + auto;
+        updates["taskInfo.title"] = sourceId + " - " + scoringType + (appendAuto ? auto : '');
         result.type = "UPDATE";
       }
 
       if (!getDescription(item)) {
-        updates["taskInfo.description"] = sourceId + " - " + scoringType + auto;
+        updates["taskInfo.description"] = sourceId + " - " + scoringType + (appendAuto ? auto : '');
         result.type = "UPDATE";
       }
 
@@ -115,7 +115,9 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
         var maybeUpdate = checkIfUpdateIsNeeded(item, ' #auto#');
         if (maybeUpdate.type === "UPDATE") {
           updates++;
-          db.content.update({_id: maybeUpdate.itemId}, {$set: maybeUpdate.updates});
+          if(doUpdate) {
+            db.content.update({_id: maybeUpdate.itemId}, {$set: maybeUpdate.updates});
+          }
         }
         return maybeUpdate;
       });
@@ -139,6 +141,11 @@ function KdsSetDefaultTitlesIfTitleEmpty(db) {
   this.main = main;
 }
 
-//var processor = new KdsSetDefaultTitlesIfTitleEmpty(db);
-//processor.main();
+//uncomment in mongo shell to run the script
+/*
+var doUpdate;   //set to true, if you want to write updates to the db
+var appendAuto; //set to true, to mark updated values with #auto#. Auto-updated values can be updated multiple times.
+var processor = new KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate=false, appendAuto=true);
+processor.main();
+*/
 
