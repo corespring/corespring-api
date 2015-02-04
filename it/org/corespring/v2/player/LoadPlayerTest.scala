@@ -15,7 +15,7 @@ import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.Mode.Mode
 import play.api.Mode.Mode
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.{ Mode, GlobalSettings, Play }
@@ -54,7 +54,7 @@ class LoadPlayerTest
 
     override def playerConfig: V2PlayerConfig = ???
 
-    override def versionInfo: JsObject = ???
+    override def versionInfo: JsObject = Json.obj()
   }
 
   def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {
