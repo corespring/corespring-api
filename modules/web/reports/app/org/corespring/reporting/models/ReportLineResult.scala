@@ -1,9 +1,9 @@
 package org.corespring.reporting.models
 
 import org.corespring.platform.core.models.item.TaskInfo
-import org.corespring.reporting.utils.CsvWriter
+import org.corespring.reporting.utils.{ComponentMap, CsvWriter}
 
-object ReportLineResult extends CsvWriter {
+object ReportLineResult extends CsvWriter with ComponentMap {
 
   var ItemTypes: List[String] = List.empty[String]
   var GradeLevel: List[String] = List.empty[String]
@@ -20,7 +20,13 @@ object ReportLineResult extends CsvWriter {
 
   def buildCsv(title: String, list: List[LineResult],
                sorter: (String, String) => Boolean = (a, b) => a <= b): String = {
-    val header = List(List(title), List("Total # of Items"), ItemTypes, GradeLevel.sortWith(TaskInfo.gradeLevelSorter),
+    val header = List(
+      List(title),
+      List("Total # of Items"),
+      ItemTypes.map(t => componentMap.get(t)
+        .getOrElse(throw new IllegalArgumentException(s"Cannot find $t in corespring-components"))
+      ),
+      GradeLevel.sortWith(TaskInfo.gradeLevelSorter),
       PriorUse, Credentials, LicenseType, List("Unpublished", "Published")).flatten
     val lines: List[List[String]] = list.map(buildLine).sortWith((a,b) => sorter(a.head, b.head))
     (List(header) ::: lines).toCsv
