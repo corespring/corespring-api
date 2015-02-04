@@ -76,7 +76,11 @@ class ItemServiceWired(
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   def save(item: Item, createNewVersion: Boolean = false) = {
 
-    dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    dao.save(item.copy(dateModified = Some(new DateTime()), taskInfo = (item.playerDefinition, item.taskInfo) match {
+      case (Some(playerDef), Some(taskInfo)) => Some(taskInfo.copy(itemTypes = playerDef.itemTypes))
+      case (None, Some(taskInfo)) => Some(taskInfo)
+      case (_, None) => None
+    }), createNewVersion)
 
     if (createNewVersion) {
 
