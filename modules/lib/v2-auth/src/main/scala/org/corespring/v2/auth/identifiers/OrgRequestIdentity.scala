@@ -25,7 +25,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization]
 
   /** convert the header, org and defaultCollection into the expected output type B */
-  def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): B
+  def data(rh: RequestHeader, org: Organization): B
 
   lazy val logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")
 
@@ -36,9 +36,8 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] {
 
     for {
       org <- headerToOrg(rh)
-      dc <- orgService.defaultCollection(org).toSuccess(noDefaultCollection(org.id))
     } yield {
-      data(rh, org, dc)
+      data(rh, org)
     }
   }
 }
