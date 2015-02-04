@@ -144,7 +144,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
   }
 
   def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
-  def isPublic(collectionId: ObjectId): Boolean = getPublicCollections.map(_.id).contains(collectionId)
+
+  def isPublic(collectionId: ObjectId): Boolean = findOneById(collectionId).exists(_.isPublic)
 
   /**
    *

@@ -3,7 +3,7 @@ package org.corespring.v2.player.hooks
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.hooks.{ AssetHooks => ContainerAssetHooks }
-import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.{ LoadOrgAndOptions, ItemAuth }
@@ -66,18 +66,30 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
         val result: Validation[String, Result] = for {
           vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
           item <- itemService.findOneById(vid).toSuccess(s"can't find item with id: $vid")
-          data <- item.data.toSuccess(s"item doesn't contain a 'data' property': $vid")
         } yield {
 
           val filename = grizzled.file.util.basename(file)
           val newFile = StoredFile(file, BaseFile.getContentType(filename), false, s"$itemId/data/$file")
           import org.corespring.platform.core.models.mongoContext.context
-          val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
 
-          itemService.collection.update(
-            MongoDBObject("_id._id" -> vid.id),
-            MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)),
-            false)
+          item.data.map { d =>
+
+            val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
+            itemService.collection.update(
+              MongoDBObject("_id._id" -> vid.id),
+              MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)),
+              false)
+
+          }.getOrElse {
+
+            val resource = Resource(None, "data", files = Seq(newFile))
+            val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
+
+            itemService.collection.update(
+              MongoDBObject("_id._id" -> vid.id),
+              MongoDBObject("$set" -> MongoDBObject("data" -> resourceDbo)),
+              false)
+          }
           block(request)
         }
 

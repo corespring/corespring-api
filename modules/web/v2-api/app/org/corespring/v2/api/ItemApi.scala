@@ -1,5 +1,8 @@
 package org.corespring.v2.api
 
+import com.mongodb.casbah.Imports._
+import org.corespring.platform.core.models.item.Item.Keys._
+import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -51,7 +54,7 @@ trait ItemApi extends V2Api {
     import scalaz.Scalaz._
     Future {
 
-      logger.debug(s"function=create")
+      logger.trace(s"function=create jsonBody=${request.body.asJson}")
 
       val out = for {
         identity <- getOrgAndOptions(request)
@@ -61,10 +64,10 @@ trait ItemApi extends V2Api {
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
         canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
-        vid <- if (canCreate)
+        vid <- if (canCreate) {
+          logger.trace(s"function=create, inserting item, json=${validJson}")
           itemService.insert(item).toSuccess(errorSaving("Insert failed"))
-        else
-          Failure(errorSaving("creation denied"))
+        } else Failure(errorSaving("creation denied"))
       } yield {
         logger.trace(s"new item id: $vid")
         item.copy(id = vid)
@@ -73,6 +76,35 @@ trait ItemApi extends V2Api {
     }
   }
 
+  def delete(itemId: String) = Action.async { implicit request =>
+    import scalaz.Scalaz._
+
+    def moveItemToArchive(id: VersionedId[ObjectId]): Validation[V2Error, Boolean] = {
+      try {
+        itemService.moveItemToArchive(id)
+        Success(true)
+      } catch {
+        case e: RuntimeException => {
+          logger.error("Unexpected exception in moveItemToArchive", e)
+          Failure(generalError(s"Error deleting item $id"))
+        }
+      }
+    }
+
+    Future {
+
+      val out = for {
+        identity <- getOrgAndOptions(request)
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
+        canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
+        result <- moveItemToArchive(vid)
+      } yield {
+        result
+      }
+      validationToResult[Boolean](i => Ok(""))(out)
+    }
+  }
 
   def noPlayerDefinition(id: VersionedId[ObjectId]): V2Error = generalError(s"This item ($id) has no player definition, unable to calculate a score")
 
@@ -83,7 +115,7 @@ trait ItemApi extends V2Api {
    */
   def checkScore(itemId: String): Action[AnyContent] = Action.async { implicit request =>
 
-    logger.debug(s"function=checkScore itemId=$itemId")
+    logger.trace(s"function=checkScore itemId=$itemId jsonBody=${request.body.asJson}")
 
     Future {
       val out: Validation[V2Error, JsValue] = for {

@@ -16,11 +16,11 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.RequestHeader
-import play.api.test.FakeRequest
+import play.api.test.{WithApplication, FakeRequest}
 
 import scalaz.{Failure, Success, Validation}
 
-class PlayerHooksTest extends Specification with Mockito {
+class PlayerHooksTest extends Specification with Mockito   {
 
   def mockOrg = {
     val m = mock[Organization]
@@ -31,8 +31,11 @@ class PlayerHooksTest extends Specification with Mockito {
 
   lazy val orgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
 
-  case class hooksScope(orgAndOptsResult:Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
-                         loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None))) extends Scope{
+  case class hooksScope(orgAndOptsResult:Validation[V2Error,
+                        OrgAndOpts] = Success(orgAndOpts),
+                        loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))
+    extends WithApplication with Scope {
+
     val hooks = new PlayerHooks{
 
       override def itemService: ItemService = {

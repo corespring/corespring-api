@@ -1,10 +1,11 @@
 package org.corespring.platform.core.services
 
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.{ Standard, Subject }
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsObject, JsSuccess, JsValue, Json }
 
 object SubjectQueryService extends QueryService[Subject] with PackageLogging {
 
@@ -18,54 +19,35 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
     Subject.findAll().toSeq
   }
 
-  override def query(term: String): Seq[Subject] = {
-
-    val query = MongoDBObject(
-      "subject" ->
-        MongoDBObject(
-          "$regex" -> s"$term"))
-    logger.trace(s"mongo query: ${query}")
-    Subject.find(query).toSeq
+  override def query(raw: String): Seq[Subject] = {
+    getQuery(raw).map(query => {
+      logger.trace(s"mongo query: ${query}")
+      Subject.find(query).toSeq
+    }).getOrElse(Seq.empty[Subject])
   }
+
+  def getQuery(raw: String) = {
+    getSimpleSubjectQuery(raw).orElse(getSubjectByCategoryAndSubjectQuery(raw))
+  }
+
+  private def getSimpleSubjectQuery(raw: String): Option[DBObject] = for {
+    json <- Json.parse(raw).asOpt[JsValue]
+    searchTerm <- (json \ "searchTerm").asOpt[String]
+  } yield MongoDBObject("$or" -> MongoDBList(
+      MongoDBObject("subject" -> toRegex(searchTerm)),
+      MongoDBObject("category" -> toRegex(searchTerm))))
+
+  private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
+    json <- Json.parse(raw).asOpt[JsValue]
+    filters <- (json \ "filters").asOpt[JsValue]
+    category <- (filters \ "category").asOpt[String]
+  } yield addOptional(MongoDBObject("category" -> category), (filters \ "subject").asOpt[String])
+
+  def addOptional(query: DBObject, json: Option[String]): DBObject = {
+    json.map(s => query.put("subject", s))
+    query
+  }
+
+  private def toRegex( searchTerm: String ) =  MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 }
 
-object StandardQueryService extends QueryService[Standard] with PackageLogging {
-
-  override def findOne(id: String): Option[Standard] = if (ObjectId.isValid(id)) {
-    logger.trace(s"findOne: $id")
-    Standard.findOneById(new ObjectId(id))
-  } else None
-
-  override def list(): Seq[Standard] = {
-    logger.trace(s"list")
-    Standard.findAll().toSeq
-  }
-
-  private def searchTerm(raw: String): String = {
-    try {
-      /**
-       * Note: this is a temporary workaround to extract the search term from a json string.
-       * see: https://thesib.atlassian.net/browse/CA-1558
-       */
-      val json = Json.parse(raw)
-      (json \ "searchTerm").as[String]
-    } catch {
-      case _: Throwable => raw
-    }
-  }
-
-  override def query(raw: String): Seq[Standard] = {
-    val term = searchTerm(raw)
-    /**
-     * Note: This query will need to be expanded to search for the term in the following fields:
-     * [subject,dotNotation,category,subCategory,standard]
-     * see: https://thesib.atlassian.net/browse/CA-1558
-     */
-    val query = MongoDBObject(
-      "standard" ->
-        MongoDBObject(
-          "$regex" -> s"$term"))
-    logger.trace(s"mongo query: ${query}")
-    Standard.find(query).toSeq
-  }
-}
