@@ -381,6 +381,6 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   private def baseQuery = new BasicDBObject("collectionId",
-    new BasicDBObject("$ne", ContentCollection.archiveCollId.toString))
+    new BasicDBObject("$in", ContentCollection.reportable))
 
 }

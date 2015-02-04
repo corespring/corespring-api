@@ -94,6 +94,8 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     id
   }
 
+  def reportable: Seq[ObjectId] = ContentCollection.find(MongoDBObject("reportable" -> true)).map(_.id).toSeq
+
   def delete(collId: ObjectId): Validation[CorespringInternalError, Unit] = {
     //todo: roll backs after detecting error in organization update
     try {
