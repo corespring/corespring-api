@@ -2,6 +2,7 @@ package org.corespring.reporting.services
 
 import com.mongodb.casbah.Implicits._
 import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
@@ -189,12 +190,14 @@ class ReportsService(ItemCollection: MongoCollection,
 
     populateHeaders
 
-    val lineResults: List[LineResult] = CollectionsCollection.map((dbo: DBObject) => {
-      val name = dbo.get("name").asInstanceOf[String]
-      val query = baseQuery
-      query.put("collectionId", dbo.get("_id").toString)
-      buildLineResult(query, name)
-    }).toList
+    val lineResults: List[LineResult] = CollectionsCollection
+      .find(MongoDBObject("_id" -> MongoDBObject("$in" -> ContentCollection.reportable)))
+      .map((dbo: DBObject) => {
+        val name = dbo.get("name").asInstanceOf[String]
+        val query = baseQuery
+        query.put("collectionId", dbo.get("_id").toString)
+        buildLineResult(query, name)
+      }).toList
     ReportLineResult.buildCsv("Collection", lineResults)
   }
 
@@ -207,7 +210,9 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   def buildStandardsByCollectionReport() = {
-    val collections = CollectionsCollection.find().toIterator.toSeq
+    val collections = CollectionsCollection
+      .find(MongoDBObject("_id" -> MongoDBObject("$in" -> ContentCollection.reportable)))
+      .toIterator.toSeq
     val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
     val lines = mapToDistinctList("standards", Standard.sorter)
@@ -237,7 +242,7 @@ class ReportsService(ItemCollection: MongoCollection,
       runMapReduceForProperty[String](depthOfKnowledgeKeyCount, query, JSFunctions.SimplePropertyMapFnTemplate("otherAlignments.depthOfKnowledge"))
 
       val itemCount = ReportLineResult.zeroedKeyCountList[String](itemTypes)
-      runMapReduceForProperty[String](itemCount, query, JSFunctions.SimplePropertyMapFnTemplate("taskInfo.itemType"))
+      runMapReduceForProperty[String](itemCount, query, JSFunctions.CountObjectMapTemplateFn("taskInfo.itemTypes"))
 
       (Seq(group, ItemCollection.count(query).toString) ++
         Seq(bloomsKeyCount, depthOfKnowledgeKeyCount, itemCount).map(ReportLineResult.createValueList(_)).flatten)
@@ -380,7 +385,6 @@ class ReportsService(ItemCollection: MongoCollection,
     string.interpolate(text, (k) => vars.getOrElse(k, ""), """\$\{([^}]+)\}""".r)
   }
 
-  private def baseQuery = new BasicDBObject("collectionId",
-    new BasicDBObject("$in", ContentCollection.reportable))
+  private def baseQuery = new BasicDBObject("collectionId", new BasicDBObject("$in", ContentCollection.reportable))
 
 }
