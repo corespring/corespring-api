@@ -5,7 +5,7 @@ import com.novus.salat.dao.ModelCompanion
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.platform.core.models.item.resource.{BaseFile, Resource, VirtualFile}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
@@ -149,6 +149,27 @@ class ItemTransformerTest extends Specification with Mockito {
       mockCollection = None
       json = itemTransformer.transformToV2Json(item)
       (json \ "collection").asOpt[JsObject] must beSome[JsObject]
+    }
+
+  }
+
+  "createPlayerDefinition" should {
+
+    val itemTypes = Map("corespring-multiple-choice" -> 1)
+
+    val qtiFile = new VirtualFile(name = "qti.xml", contentType = "application/xml", isMain = true, qti.toString)
+
+    val item = Item(data = Some(Resource(name = "qti.xml", files = Seq(qtiFile))))
+
+    "save item with playerDefinition" in {
+      val captor = capture[Item]
+      itemTransformer.createPlayerDefinition(item)
+      there were two(itemServiceMock).save(captor, any[Boolean])
+      captor.value.taskInfo.map(_.itemTypes) must beEqualTo(Some(itemTypes))
+    }
+
+    "return item with playerDefinition" in {
+      itemTransformer.createPlayerDefinition(item).itemTypes must beEqualTo(itemTypes)
     }
 
   }
