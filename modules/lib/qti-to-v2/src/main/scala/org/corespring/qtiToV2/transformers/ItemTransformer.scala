@@ -57,7 +57,6 @@ trait ItemTransformer {
     item.playerDefinition.getOrElse {
 
       val newDef = createFromQti(item).asOpt[PlayerDefinition]
-      println(newDef)
 
       require(newDef.isDefined, "There must be a player definition created")
 
