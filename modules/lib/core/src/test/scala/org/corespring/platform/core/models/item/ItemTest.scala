@@ -234,7 +234,7 @@ class ItemTest extends BaseTest {
     }
 
     "update taskInfo item types" in {
-      item.withPlayerDefinition(playerDefinition).taskInfo.map(_.itemTypes) must beEqualTo(Some(itemTypes))
+      item.withPlayerDefinition(playerDefinition).taskInfo.map(_.itemTypes) must beEqualTo(Some(playerDefinition.itemTypes))
     }
 
   }
