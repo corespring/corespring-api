@@ -191,7 +191,7 @@ class ReportsService(ItemCollection: MongoCollection,
     populateHeaders
 
     val lineResults: List[LineResult] = CollectionsCollection
-      .find(MongoDBObject("_id" -> MongoDBObject("$in" -> ContentCollection.reportable)))
+      .find(MongoDBObject("_id" -> MongoDBObject("$in" -> ContentCollection.reportable.map(new ObjectId(_)))))
       .map((dbo: DBObject) => {
         val name = dbo.get("name").asInstanceOf[String]
         val query = baseQuery
