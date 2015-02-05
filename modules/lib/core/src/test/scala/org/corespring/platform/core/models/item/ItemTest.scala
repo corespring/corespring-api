@@ -182,7 +182,7 @@ class ItemTest extends BaseTest {
   }
   "clone" should {
 
-    "work" in {
+    "create a cloned item" in {
 
       val item = Item(collectionId = Some("1234567"))
       val clonedItem = itemService.clone(item)
@@ -215,7 +215,28 @@ class ItemTest extends BaseTest {
       clonedItem.get.taskInfo.get.title.get === "[copy]"
     }
 
-    /**/
+  }
+
+  "withPlayerDefinition" should {
+
+    val item = Item()
+    val itemTypes = Map("corespring-multiple-choice" -> 1, "corespring-text-entry" -> 2)
+
+    val components = itemTypes.map{ case(itemType, count) => List.fill(count)(Json.obj("componentType" -> itemType)) }
+      .flatten.zipWithIndex.map{ case (obj, index) => Json.obj(index.toString -> obj) }
+      .foldLeft(Json.obj()){ (obj, acc) => acc ++ obj }
+
+    val playerDefinition = new PlayerDefinition(files = Seq.empty, xhtml = "",
+      components = components, summaryFeedback = "", customScoring = None)
+
+    "return a copy of the item with playerDefinition defined" in {
+      item.withPlayerDefinition(playerDefinition).playerDefinition must beEqualTo(Some(playerDefinition))
+    }
+
+    "update taskInfo item types" in {
+      item.withPlayerDefinition(playerDefinition).taskInfo.map(_.itemTypes) must beEqualTo(Some(itemTypes))
+    }
+
   }
 
 }

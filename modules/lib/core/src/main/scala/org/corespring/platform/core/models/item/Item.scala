@@ -43,7 +43,7 @@ case class Item(
   def withPlayerDefinition(playerDefinition: PlayerDefinition) = {
     copy(
       playerDefinition = Some(playerDefinition),
-      taskInfo = taskInfo.map(t => t.copy(itemTypes = playerDefinition.itemTypes))
+      taskInfo = Some(taskInfo.getOrElse(new TaskInfo()).copy(itemTypes = playerDefinition.itemTypes))
     )
   }
 

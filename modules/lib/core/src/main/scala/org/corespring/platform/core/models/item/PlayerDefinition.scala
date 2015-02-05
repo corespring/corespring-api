@@ -72,8 +72,11 @@ class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val componen
   }
 
   def itemTypes: Map[String, Int] = components match {
-    case jsObject: JsObject => jsObject.values.toSeq.map(f => (f \ "componentType").asOpt[String]).flatten
-      .foldLeft(Map[String,Int]() withDefaultValue 0){ (m,x) => m + (x -> (1 + m(x))) }
+    case jsObject: JsObject => jsObject.keys.toSeq.map(components \ _).map(f => (f \ "componentType").asOpt[String])
+      .flatten
+      .foldLeft(Map[String,Int]() withDefaultValue 0) {
+        (acc, componentType) => acc + (componentType -> (1 + acc(componentType)))
+      }
     case _ => Map.empty[String, Int]
   }
 
