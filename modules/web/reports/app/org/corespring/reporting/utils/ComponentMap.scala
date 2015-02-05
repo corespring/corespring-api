@@ -7,7 +7,7 @@ import play.api.{Configuration, Mode, Play}
 
 trait ComponentMap {
 
-  private val componentLoader: ComponentLoader = {
+  def componentLoader: ComponentLoader = {
     val containerConfig = {
       for {
         container <- current.configuration.getConfig("container")
