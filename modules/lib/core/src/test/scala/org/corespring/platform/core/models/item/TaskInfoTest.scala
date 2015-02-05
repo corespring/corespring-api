@@ -7,6 +7,7 @@ import org.corespring.test.BaseTest
 class TaskInfoTest extends BaseTest {
 
   "TaskInfo" should {
+
     "parses gradeLevel" in {
       val taskInfo = TaskInfo(gradeLevel = Seq("03", "04"))
       val json = Json.toJson(taskInfo)
@@ -21,13 +22,26 @@ class TaskInfoTest extends BaseTest {
     }
 
     "parse itemType" in {
-
       val taskInfo = TaskInfo(itemType = Some("itemType"))
       val json = Json.toJson(taskInfo)
       val parsed = json.as[TaskInfo]
       parsed.itemType must equalTo(taskInfo.itemType)
     }
 
+  }
+
+  "taskInfoReads" should {
+
+    import TaskInfo._
+
+    val itemTypes = Map("corespring-text-entry" -> 5, "corespring-multiple-choice" -> 4)
+    val json = Json.obj("itemTypes" -> itemTypes)
+
+    "deserialize itemTypes" in {
+      Json.fromJson[TaskInfo](json)
+        .getOrElse(throw new Exception(s"Could not read ${Json.prettyPrint(json)} as TaskInfo"))
+        .itemTypes must beEqualTo(itemTypes)
+    }
   }
 
 }

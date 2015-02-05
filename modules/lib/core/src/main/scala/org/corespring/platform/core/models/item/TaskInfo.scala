@@ -76,6 +76,12 @@ object TaskInfo extends ValueGetter {
       case None => JsSuccess(Seq())
     }
   })
+  private val getItemTypes = Reads[Map[String, Int]]((json: JsValue) => {
+    (json \ Keys.itemTypes).asOpt[Map[String, Int]] match {
+      case Some(itemTypes) => JsSuccess(itemTypes)
+      case None => JsSuccess(Map())
+    }
+  })
   private val getExtended = Reads[Map[String, BasicDBObject]]((json: JsValue) => {
     (json \ Keys.extended) match {
       case JsObject(metadatas) => {
@@ -111,6 +117,6 @@ object TaskInfo extends ValueGetter {
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String] and
-    (__ \ Keys.itemTypes).read[Map[String, Int]])(TaskInfo.apply _)
+    getItemTypes)(TaskInfo.apply _)
 }
 
