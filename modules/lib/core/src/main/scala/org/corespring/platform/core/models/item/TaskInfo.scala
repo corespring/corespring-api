@@ -11,7 +11,6 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   gradeLevel: Seq[String] = Seq(),
   title: Option[String] = None,
   description: Option[String] = None,
-  itemType: Option[String] = None,
   itemTypes: Map[String, Int] = Map.empty) {
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
