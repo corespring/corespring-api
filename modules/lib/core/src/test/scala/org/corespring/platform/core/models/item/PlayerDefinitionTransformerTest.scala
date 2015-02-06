@@ -96,6 +96,32 @@ class PlayerDefinitionTransformerTest extends Specification {
       deserialized === pd
     }
 
+    "with an empty dbo" should {
+      val dbo = MongoDBObject()
+      val pd = new PlayerDefinitionTransformer(mongoContext.context).deserialize(dbo)
+
+      "set summaryFeedback to an empty string" in {
+        pd.summaryFeedback === ""
+      }
+
+      "set customScoring to None" in {
+        pd.customScoring === None
+      }
+
+      "set files to empty list" in {
+        pd.files === Seq.empty
+      }
+
+      "set xhtml to an empty string" in {
+        pd.xhtml === ""
+      }
+
+      "set json to an empty object" in {
+        pd.components === Json.obj()
+      }
+
+    }
+
   }
 
   class serialize(val pd: PlayerDefinition, val dbo: DBObject) extends Scope {
