@@ -24,5 +24,9 @@ trait OrganizationService {
 
   def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean
 
+  def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean
+
   def getDefaultCollection(orgId: ObjectId): Either[CorespringInternalError, ContentCollection]
+
+
 }

@@ -15,7 +15,7 @@ import scala.Some
 import securesocial.controllers.Registration._
 import play.api.libs.json.{ JsString, JsObject }
 import org.corespring.platform.core.models
-import org.corespring.platform.core.models.User
+import org.corespring.platform.core.models.{ContentCollection, User}
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.auth.Permission
 
@@ -36,11 +36,11 @@ object MyRegistration extends Controller {
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
       Organization -> optional(nonEmptyText),
-      (Password ->
+      Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
             p => use[PasswordValidator].isValid(p)),
-          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2))) // binding
+          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)) // binding
           ((userName, firstName, lastName, organization, password) => MyRegistrationInfo(Some(userName), firstName, lastName, organization, password._1)) // unbinding
           (info => Some(info.userName.getOrElse(""), info.firstName, info.lastName, info.organization, ("", ""))))
 
@@ -49,11 +49,11 @@ object MyRegistration extends Controller {
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
       Organization -> optional(nonEmptyText),
-      (Password ->
+      Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
             p => use[PasswordValidator].isValid(p)),
-          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2))) // binding
+          Password2 -> nonEmptyText).verifying(Messages(PasswordsDoNotMatch), passwords => passwords._1 == passwords._2)) // binding
           ((firstName, lastName, organization, password) => MyRegistrationInfo(None, firstName, lastName, organization, password._1)) // unbinding
           (info => Some(info.firstName, info.lastName, info.organization, ("", ""))))
 
@@ -89,7 +89,10 @@ object MyRegistration extends Controller {
               val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
               (info.organization match {
                 case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
-                  case Right(org) => User.insertUser(user, org.id, Permission.Write, false)
+                  case Right(org) => {
+                    ContentCollection.insertCollection(org.id, ContentCollection(ContentCollection.DEFAULT, org.id), Permission.Write);
+                    User.insertUser(user, org.id, Permission.Write, false)
+                  }
                   case Left(error) => Left(error)
                 }
                 case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
