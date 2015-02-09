@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.auth.{ApiClient, Permission}
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.ItemService
@@ -86,6 +86,9 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
         val m = mock[ScoreService]
         m
       }
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] =
+        Success(ApiClient(mockOrg.id, new ObjectId(), "secret"))
     }
   }
 

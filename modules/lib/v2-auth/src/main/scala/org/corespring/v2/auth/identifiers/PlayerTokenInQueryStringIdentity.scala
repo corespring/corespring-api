@@ -2,6 +2,7 @@ package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
@@ -21,6 +22,32 @@ object PlayerTokenInQueryStringIdentity {
     val options = "options"
     val playerToken = "playerToken"
     val skipDecryption = "skipDecryption"
+  }
+}
+
+trait ApiClientPlayerTokenInQueryStringIdentity extends ApiClientRequestIdentity[ApiClient] {
+
+  def clientIdToApiClient(apiClientId: String): Option[ApiClient]
+
+  override def headerToApiClient(rh: RequestHeader): Validation[V2Error, ApiClient] = {
+    logger.trace(s"function=headerToOrgId path=${rh.path}")
+
+    if (rh.getQueryString("apiClientId").isDefined) {
+      Failure(invalidQueryStringParameter("apiClientId", Keys.apiClient))
+    } else {
+
+      val maybeClientId = rh.getQueryString(Keys.apiClient)
+      logger.trace(s"function=headerToOrgId ${Keys.apiClient}=${maybeClientId.toString}")
+
+      val out = for {
+        apiClientId <- maybeClientId
+        apiClient <- clientIdToApiClient(apiClientId)
+      } yield {
+        logger.trace(s"function=headerToApiClient apiClient=${apiClientId} ${Keys.apiClient}=$apiClientId")
+        apiClient
+      }
+      out.map(Success(_)).getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
+    }
   }
 }
 

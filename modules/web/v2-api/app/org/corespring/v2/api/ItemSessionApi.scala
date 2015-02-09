@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
@@ -10,8 +11,9 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{errorSaving, generalError, sessionDoesNotContainResponses}
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{RequestHeader, Action, AnyContent}
 
 import scala.concurrent._
 import scalaz.Scalaz._
@@ -56,23 +58,36 @@ trait ItemSessionApi extends V2Api {
    *
    */
   def create(itemId: VersionedId[ObjectId]) = Action(parse.empty) { implicit request => {
-      def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
-        "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
-        "itemId" -> JsString(vid.toString))
 
-      sessionCreatedForItem(itemId)
+      val clientIdResult: Validation[V2Error, String] = for {
+        apiClient <- getApiClient(request)
+        id <- Success(apiClient.clientId.toString)
+      } yield id
 
-      val result: Validation[V2Error, JsValue] = for {
-        identity <- getOrgAndOptions(request)
-        canCreate <- sessionAuth.canCreate(itemId.toString)(identity)
-        json <- Success(createSessionJson(itemId))
-        sessionId <- if (canCreate)
-          sessionService.create(json).toSuccess(errorSaving(s"Error creating session with json: ${json}"))
-        else
-          Failure(generalError("creation failed"))
-      } yield Json.obj("id" -> sessionId.toString)
+      clientIdResult match {
+        case Success(apiClientId) => {
+          def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj(
+            "_id" -> Json.obj("$oid" -> JsString(ObjectId.get.toString)),
+            "itemId" -> vid.toString,
+            "dateCreated" -> new DateTime(),
+            "clientId" -> apiClientId)
 
-      validationToResult[JsValue](Ok(_))(result)
+          sessionCreatedForItem(itemId)
+
+          val result: Validation[V2Error, JsValue] = for {
+            identity <- getOrgAndOptions(request)
+            canCreate <- sessionAuth.canCreate(itemId.toString)(identity)
+            json <- Success(createSessionJson(itemId))
+            sessionId <- if (canCreate)
+              sessionService.create(json).toSuccess(errorSaving(s"Error creating session with json: ${json}"))
+            else
+              Failure(generalError("creation failed"))
+          } yield Json.obj("id" -> sessionId.toString)
+
+          validationToResult[JsValue](Ok(_))(result)
+        }
+        case Failure(e) => Status(e.statusCode)(e.json)
+      }
     }
   }
 

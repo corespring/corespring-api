@@ -50,6 +50,8 @@ private[v2] object Errors {
 
   case class noOrgForToken(rh: RequestHeader) extends identificationFailed(rh, s"No organization for access token ${rh.getQueryString("access_token")}")
 
+  case class noApiClientForToken(rh: RequestHeader) extends identificationFailed(rh, s"No api client for access token ${rh.getQueryString("access_token")}")
+
   case class noDefaultCollection(orgId: ObjectId) extends V2Error(s"No default collection defined for org ${orgId}")
 
   case class generalError(msg: String, override val statusCode: Int = BAD_REQUEST) extends V2Error(msg, statusCode)
@@ -85,6 +87,8 @@ private[v2] object Errors {
   case class cantFindItemWithId(vid: VersionedId[ObjectId]) extends cantFindById("item", vid.toString())
 
   case class cantFindOrgWithId(orgId: ObjectId) extends cantFindById("org", orgId.toString)
+
+  case class cantFindApiClientWithId(orgId: ObjectId) extends cantFindById("apiClient", orgId.toString)
 
   abstract class cantFindById(name: String, id: String) extends V2Error(s"Can't find $name with id $id", NOT_FOUND)
 

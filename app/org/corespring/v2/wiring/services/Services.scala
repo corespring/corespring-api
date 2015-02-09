@@ -19,7 +19,7 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ SessionAuthWired, ItemAuthWired }
-import org.corespring.v2.errors.Errors.{ permissionNotGranted, noOrgForToken, expiredToken, invalidToken }
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
@@ -77,6 +77,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
         out.foreach(localCache.set(key, _))
         out
       }
+
+      override def findOneByOrgId(orgId: ObjectId): Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
     }
   } else {
     ApiClient
@@ -92,6 +94,11 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       org <- orgService.org(unexpiredToken.organization).toSuccess(noOrgForToken(rh))
       _ = logger.debug(s"val=mainTokenService accessToken=$token org=$org")
     } yield org
+
+    override def apiClientForToken(token: String)(implicit rh: RequestHeader): Validation[V2Error, ApiClient] = for {
+      org <- orgForToken(token)
+      apiClient <- apiClientService.findOneByOrgId(org.id).toSuccess(noApiClientForToken(rh))
+    } yield apiClient
   }
 
   lazy val tokenService = if (cacheConfig.getBoolean("TokenService.enabled").getOrElse(false)) {

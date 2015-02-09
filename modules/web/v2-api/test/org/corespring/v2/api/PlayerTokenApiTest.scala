@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2.api.services.{CreateTokenResult, PlayerTokenService}
 import org.corespring.v2.auth.models.{AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.errors.Errors.{generalError, noJson}
@@ -22,7 +23,8 @@ class PlayerTokenApiTest extends Specification
 
   class playerScope(
     val createTokenResult: Validation[V2Error, CreateTokenResult] = Failure(generalError("Create token failure")),
-    val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Failure(generalError("Test V2 Error"))) extends Scope {
+    val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Failure(generalError("Test V2 Error")),
+    val apiClientResult: Validation[V2Error, ApiClient] = Failure(generalError("Test V2 Error"))) extends Scope {
     lazy val api = new PlayerTokenApi {
 
       override def tokenService: PlayerTokenService = {
@@ -36,6 +38,8 @@ class PlayerTokenApiTest extends Specification
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
         orgAndOptsResult
       }
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = apiClientResult
     }
   }
 

@@ -14,10 +14,9 @@ trait UserSessionOrgIdentity[B]
   extends OrgRequestIdentity[B]
   with UserSession {
 
-
   override lazy val logger = V2LoggerFactory.getLogger("auth", "UserSessionIdentity")
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] =  for {
+  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = for {
     u <- userFromSession(rh).toSuccess(noUserSession(rh))
     org <- orgService.org(u.org.orgId).toSuccess(cantFindOrgWithId(u.org.orgId))
   } yield org

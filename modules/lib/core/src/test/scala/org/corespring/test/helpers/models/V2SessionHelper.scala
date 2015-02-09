@@ -2,6 +2,7 @@ package org.corespring.test.helpers.models
 
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
 import play.api.Play
 import play.api.libs.json.{ Json, JsValue }
 import se.radley.plugin.salat.SalatPlugin
@@ -23,7 +24,8 @@ object V2SessionHelper {
     val oid = ObjectId.get
     db(name).insert(MongoDBObject(
       "_id" -> oid,
-      "itemId" -> itemId.toString))
+      "itemId" -> itemId.toString,
+      "dateCreated" -> new DateTime()))
     oid
   }
 

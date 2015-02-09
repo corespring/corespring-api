@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.auth.{ApiClient, Permission}
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -67,6 +67,8 @@ class ItemApiGetTest extends Specification with Mockito with MockFactory {
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = Success(new ApiClient(mockOrg.id, new ObjectId(), "secret"))
     }
   }
 

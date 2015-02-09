@@ -6,6 +6,7 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -34,6 +35,7 @@ class V2ApiBootstrap(
   val itemService: ItemService,
   val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
+  val headerToApiClient: RequestIdentity[ApiClient],
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val scoreService: ScoreService,
   val playerJsUrl: String,
@@ -55,6 +57,8 @@ class V2ApiBootstrap(
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
+    override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = headerToApiClient(request)
+
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     override def itemAuth: ItemAuth[OrgAndOpts] = V2ApiBootstrap.this.itemAuth
@@ -65,6 +69,7 @@ class V2ApiBootstrap(
     }
 
     override def itemService: ItemService = V2ApiBootstrap.this.itemService
+
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
@@ -72,6 +77,8 @@ class V2ApiBootstrap(
     override def scoreService: ScoreService = V2ApiBootstrap.this.scoreService
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+    override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = headerToApiClient(request)
 
     override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
 
@@ -91,6 +98,8 @@ class V2ApiBootstrap(
     override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+
+    override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = headerToApiClient(request)
 
     override def tokenService: PlayerTokenService = V2ApiBootstrap.this.playerTokenService
   }
@@ -114,6 +123,7 @@ class V2ApiBootstrap(
 
     override def playerJsUrl: String = V2ApiBootstrap.this.playerJsUrl
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
+    override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = headerToApiClient(request)
   }
 
   lazy val utils = new Utils {

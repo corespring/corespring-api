@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.platform.core.models.auth.{ApiClient, Permission}
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -42,7 +42,8 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
                                   PlayerAccessSettings.ANYTHING,
                                   AuthMode.AccessToken)),
                               loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
-                              scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
+                              scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100)),
+                              apiClient: Validation[V2Error, ApiClient] = Success(ApiClient(mockOrg.id, new ObjectId(), "secret"))) extends Scope {
 
     lazy val api = new ItemApi {
 
@@ -67,6 +68,8 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
       override def transform: (Item, Option[String]) => JsValue = (i, s) => Json.obj()
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = apiClient
     }
   }
 
