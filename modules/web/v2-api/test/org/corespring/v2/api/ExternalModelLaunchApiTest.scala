@@ -1,5 +1,7 @@
 package org.corespring.v2.api
 
+import org.corespring.platform.core.models.auth.ApiClient
+
 import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
@@ -25,7 +27,8 @@ class ExternalModelLaunchApiTest
     orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
-    expectedError: Option[V2Error] = None) extends Scope {
+    expectedError: Option[V2Error] = None,
+    apiClient: Validation[V2Error, ApiClient] = Success(ApiClient(mockOrg.id, new ObjectId(), "secret"))) extends Scope {
 
     lazy val api = new ExternalModelLaunchApi {
       override def sessionService: V2SessionService = {
@@ -45,6 +48,8 @@ class ExternalModelLaunchApiTest
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
       override def playerJsUrl: String = "/v2/player/player.js"
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = apiClient
     }
 
     lazy val json = createJson

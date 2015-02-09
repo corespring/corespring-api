@@ -36,6 +36,7 @@ case class ApiClient(orgId: ObjectId, clientId: ObjectId, clientSecret: String) 
 trait ApiClientService {
 
   def findByKey(key: String): Option[ApiClient]
+  def findOneByOrgId(orgId: ObjectId): Option[ApiClient]
 }
 
 object ApiClient extends ApiClientService with ModelCompanion[ApiClient, ObjectId] {

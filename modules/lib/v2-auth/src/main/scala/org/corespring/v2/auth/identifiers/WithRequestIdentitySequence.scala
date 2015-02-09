@@ -17,7 +17,7 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
   lazy val logger = V2LoggerFactory.getLogger("auth.WithRequestIdentitySequence")
 
-  def identifiers: Seq[OrgRequestIdentity[B]]
+  def identifiers: Seq[RequestIdentity[B]]
 
   override def apply(rh: RequestHeader): Validation[V2Error, B] = {
 

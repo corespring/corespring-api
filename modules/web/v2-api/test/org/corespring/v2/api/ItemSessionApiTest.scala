@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
@@ -27,7 +28,8 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
-    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score"))) extends Scope {
+    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
+    val apiClient: Validation[V2Error, ApiClient] = Success(ApiClient(mockOrg.id, new ObjectId(), "secret"))) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
       override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
@@ -47,6 +49,9 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+
+      override def getApiClient(request: RequestHeader): Validation[V2Error, ApiClient] = apiClient
+
 
       /**
        * A session has been created for an item with the given item id.

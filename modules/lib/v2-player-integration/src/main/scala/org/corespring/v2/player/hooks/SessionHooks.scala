@@ -5,7 +5,7 @@ import org.corespring.container.client.hooks.{ FullSession, SaveSession, Session
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
+import org.corespring.v2.auth.{LoadApiClient, LoadOrgAndOptions, SessionAuth}
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
