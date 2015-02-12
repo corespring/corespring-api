@@ -135,7 +135,7 @@ class LineInteractionTransformerTest extends Specification {
     }
 
     "exhibitOnly is always false" in {
-      (config \ "exhibitOnly").as[JsBoolean].value must beFalse
+      (noConfig \ "exhibitOnly").as[JsBoolean].value must beFalse
       (config \ "exhibitOnly").as[JsBoolean].value must beFalse
     }
 
