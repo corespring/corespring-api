@@ -44,6 +44,7 @@ object LineInteractionTransformer extends InteractionTransformer {
           }),
           "exhibitOnly" -> Some(JsBoolean(exhibit)),
           "showInputs" -> Some(JsBoolean(booleanFor("show-inputs") && !exhibit)),
+          "showFeedback" -> Some(JsBoolean(false)), // Don't show internal feedback in v1 originated items
           "showLabels" -> Some(JsBoolean(booleanFor("show-labels") && !exhibit)))))
 
     (node \\ "@responseIdentifier").text -> (main ++ correctResponse)

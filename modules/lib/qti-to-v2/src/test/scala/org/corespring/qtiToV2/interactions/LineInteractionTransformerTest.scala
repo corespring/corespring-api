@@ -139,6 +139,10 @@ class LineInteractionTransformerTest extends Specification {
       (config \ "exhibitOnly").as[JsBoolean].value must beFalse
     }
 
+    "showFeedback is false" in {
+      (config \ "showFeedback").as[JsBoolean].value must beFalse
+    }
+
   }
 
 }
