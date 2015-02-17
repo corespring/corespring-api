@@ -5,12 +5,12 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import play.api.libs.json.{ JsObject, JsValue }
+import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
 import scalaz.{ Success, Validation }
@@ -90,12 +90,23 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
         }
       }
   }
+
   override def canCreate(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
     itemAuth.loadForRead(itemId).map { i => true }
   }
 
-  override def saveSession(implicit identity: OrgAndOpts): Validation[V2Error, (String, Session) => Option[Session]] = Success(sessionService.save)
+  override def saveSessionFunction(implicit identity: OrgAndOpts): Validation[V2Error, (String, Session) => Option[Session]] = Success((id, session) => {
+    val withIdentityData = addIdentityToSession(session, identity)
+    sessionService.save(id, withIdentityData)
+  })
 
-  override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = sessionService.create(session).toSuccess(errorSaving)
+  override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
+    val withIdentityData = addIdentityToSession(session, identity)
+    sessionService.create(withIdentityData).toSuccess(errorSaving)
+  }
+
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): Session = {
+    session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
+  }
 
 }

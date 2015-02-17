@@ -9,19 +9,19 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory {
 
@@ -36,13 +36,9 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
   def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
 
   case class checkScoreScope(
-                              orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(
-                                OrgAndOpts(
-                                  mockOrg,
-                                  PlayerAccessSettings.ANYTHING,
-                                  AuthMode.AccessToken)),
-                              loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
-                              scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
+    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
+    scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
 
     lazy val api = new ItemApi {
 
@@ -69,7 +65,6 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       override def transform: (Item, Option[String]) => JsValue = (i, s) => Json.obj()
     }
   }
-
 
   "V2 - ItemApi" should {
 
@@ -99,8 +94,7 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       }
 
       "fail if there is no player definition" in new checkScoreScope(
-        loadForReadResult = Success(Item())
-      ) {
+        loadForReadResult = Success(Item())) {
         val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = api.noPlayerDefinition(loadForReadResult.toEither.right.get.id)
         status(result) === error.statusCode
@@ -108,8 +102,7 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       }
 
       "fail it the score service fails" in new checkScoreScope(
-        scoreResult = Failure(generalError("couldn't get score"))
-      ) {
+        scoreResult = Failure(generalError("couldn't get score"))) {
         val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = scoreResult.toEither.left.get //api.noPlayerDefinition(loadForReadResult.toEither.right.get.id)
         status(result) === error.statusCode

@@ -157,7 +157,9 @@ package object scopes {
 
     lazy val req = {
       val call = getCall(sessionId)
-      makeRequest(call)
+      val out = makeRequest(call)
+      println(s"request: $out")
+      out
     }
 
     lazy val result = {
@@ -178,6 +180,7 @@ package object scopes {
     def requestBody: AnyContent = AnyContentAsEmpty
 
     override def makeRequest(call: Call): Request[AnyContent] = {
+      println(s"[makeRequest] request body: $requestBody")
       FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), requestBody)
     }
   }
@@ -199,12 +202,14 @@ package object scopes {
 
     import PlayerTokenInQueryStringIdentity.Keys
 
+    def requestBody: AnyContent = AnyContentAsEmpty
+
     def skipDecryption: Boolean
 
     override def makeRequest(call: Call): Request[AnyContent] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
-      FakeRequest(call.method, finalUrl)
+      FakeRequest(call.method, finalUrl, FakeHeaders(), requestBody)
     }
   }
 

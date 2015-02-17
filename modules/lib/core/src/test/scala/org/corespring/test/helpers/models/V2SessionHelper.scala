@@ -38,6 +38,12 @@ object V2SessionHelper {
       .getOrElse(throw new RuntimeException(s"Can't find sesssion for item id: $vid"))
   }
 
+  def findSession(id: String, name: String = v2ItemSessions): DBObject = {
+    db(name).findOne(MongoDBObject("_id" -> new ObjectId(id))).getOrElse {
+      throw new RuntimeException(s"Can't find session with id: $id")
+    }
+  }
+
   def delete(sessionId: ObjectId, name: String = v2ItemSessions): Unit = {
     db(name).remove(MongoDBObject("_id" -> sessionId))
   }

@@ -3,12 +3,12 @@ package org.corespring.v2.auth.identifiers
 import org.corespring.platform.core.controllers.auth.TokenReader
 import org.corespring.platform.core.models.Organization
 import org.corespring.v2.auth.services.TokenService
-import org.corespring.v2.errors.Errors.{invalidToken, noOrgForToken, noToken}
+import org.corespring.v2.errors.Errors.{ invalidToken, noOrgForToken, noToken }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.mvc.RequestHeader
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 trait TokenOrgIdentity[B]
   extends OrgRequestIdentity[B]
@@ -28,4 +28,6 @@ trait TokenOrgIdentity[B]
     getToken[String](rh, "Invalid token", "No token").fold(onError, onToken)
   }
 
+  /** get the apiClient if available */
+  override def headerToApiClientId(rh: RequestHeader): Option[String] = None
 }
