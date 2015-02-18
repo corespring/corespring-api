@@ -16,23 +16,23 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
    */
   def toJs(qti: Node): Option[JsResponseProcessing] =
     getResponseNode(qti) match {
-    case Some(node) => try {
-      Some(JsResponseProcessing(
-        vars = outcomeDeclarations(qti),
-        responseVars = responseDeclarations(qti),
-        lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
-      ))
-    } catch {
-      case e: Exception => {
-        e.printStackTrace
-        None
+      case Some(node) => try {
+        Some(JsResponseProcessing(
+          vars = outcomeDeclarations(qti),
+          responseVars = responseDeclarations(qti),
+          lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
+        ))
+      } catch {
+        case e: Exception => {
+          e.printStackTrace
+          None
+        }
       }
-    }
     case _ => None
   }
 
   private def getResponseNode(qti: Node): Option[Node] = {
-    (qti \ "responseProcessing").headOption match {
+    (qti \ "responseProcessing").headOption.map(FieldValueProcessingTransformer.transform(_)) match {
       case Some(responseProcessing) => responseProcessing.hasTemplate match {
         case true => (qti \ "responseDeclaration").length match {
           case 1 => Some(responseProcessing.withTemplate

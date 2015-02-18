@@ -53,6 +53,25 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
   }
 
+  private def model(implicit node: Node) = Json.obj(
+    "config" -> partialObj(
+      "domainLabel" -> property("xAxisTitle").map(JsString(_)),
+      "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
+      "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
+      "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
+      "domain" -> property("xAxisMaxValue").map(f => JsNumber(f.toInt)),
+      "range" -> property("yAxisMaxValue").map(f => JsNumber(f.toInt)),
+      "maxPoints" -> ((node \ "@maxChoices") match {
+        case n: NodeSeq if n.nonEmpty => Some(JsNumber(n.text.toInt))
+        case _ => None
+      })
+    )
+  )
+
+  private def property(name: String)(implicit node: Node): Option[String] =
+    (node \ "object" \ "param").toSeq.find(p => (p \ "@name").text == name).map(p => (p \ "@value").text)
+
+
   override def transform(node: Node) = node.label match {
     case "selectPointInteraction" => getType(node) match {
       case Points => PointsInteractionTransformer.transform(node)
@@ -67,13 +86,28 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
   private object LineInteractionTransformer extends InteractionTransformer {
 
-    override def transform(node: Node) = ???
+    override def transform(node: Node) = {
+      val identifier = (node \ "@responseIdentifier").text
+      node match {
+        case elem: Elem if (node.label == "selectPointInteraction") =>
+          elem.child.filter(_.label != "object").map(n => n.label match {
+            case "prompt" => <p class="prompt">{n.child}</p>
+            case _ => n
+          }) ++ <corespring-line id={identifier}></corespring-line>
+        case _ => node
+      }
+    }
+
 
     override def interactionJs(qti: Node) = (qti \\ "selectPointInteraction").map(implicit node => {
       getType(node) match {
         case Line => {
-          // TODO
-          None
+          Some((node \ "@responseIdentifier").text -> Json.obj(
+            "componentType" -> "corespring-line",
+            "correctResponse" -> (responseDeclaration(node, qti) \ "correctResponse" \ "value")
+              .map(n => s"y=${(n \ "@slope").text}x+${(n \ "@yIntercept").text}").head,
+            "model" -> model(node)
+          ))
         }
         case _ => None
       }
@@ -101,17 +135,7 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
           Some((node \ "@responseIdentifier").text -> Json.obj(
             "componentType" -> "corespring-point-intercept",
             "correctResponse" -> answers(qti)(node),
-            "model" -> Json.obj(
-              "config" -> partialObj(
-                "domainLabel" -> property("xAxisTitle").map(JsString(_)),
-                "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
-                "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
-                "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
-                "domain" -> property("xAxisMaxValue").map(f => JsNumber(f.toInt)),
-                "range" -> property("yAxisMaxValue").map(f => JsNumber(f.toInt)),
-                "maxPoints" -> Some(JsNumber((node \ "@maxChoices").text.toInt))
-              )
-            )
+            "model" -> model(node)
           ))
         }
         case _ => None
@@ -122,10 +146,6 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
       (responseDeclaration(node, qti) \ "correctResponse" \ "value").toSeq
         .map(v =>  s"${(v \ "@xcoordinate").text},${(v \ "@ycoordinate").text}")
 
-    private def property(name: String)(implicit node: Node): Option[String] =
-      (node \ "object" \ "param").toSeq.find(p => (p \ "@name").text == name).map(p => (p \ "@value").text)
-
   }
-
 
 }
