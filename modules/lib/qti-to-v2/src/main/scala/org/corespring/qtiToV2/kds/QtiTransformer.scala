@@ -17,6 +17,7 @@ object QtiTransformer extends SuperQtiTransformer with ProcessingTransformer {
   }
 
   def interactionTransformers(qti: Elem) = Seq(
+    SelectPointInteractionTransformer,
     KDSChoiceInteractionTransformer,
     TeacherInstructionsTransformer,
     HottextInteractionTransformer,
