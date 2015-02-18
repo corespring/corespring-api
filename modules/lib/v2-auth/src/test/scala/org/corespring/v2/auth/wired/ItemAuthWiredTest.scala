@@ -82,7 +82,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+        val identity = mockOrgAndOpts()
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
       }
 
@@ -90,7 +90,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+        val identity = mockOrgAndOpts()
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
       }
 
@@ -99,7 +99,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         org = Some(mock[Organization]),
         canAccess = true) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+        val identity = mockOrgAndOpts()
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(defaultPermFailure)
       }
 
@@ -109,7 +109,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         perms = Success(true),
         canAccess = true) {
         val vid = VersionedId(ObjectId.get, None)
-        val identity = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+        val identity = mockOrgAndOpts(AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Success(item.get)
       }
     }

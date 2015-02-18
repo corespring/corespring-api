@@ -23,7 +23,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
   "SessionAuth" should {
 
-    implicit val rh: OrgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+    implicit val identity: OrgAndOpts = mockOrgAndOpts()
 
     case class authScope(
       session: Option[JsValue] = None,
@@ -33,21 +33,18 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       hasPerms: Validation[V2Error, Boolean] = Success(true)) extends Scope {
       val auth = new SessionAuthWired {
 
-        val previewSessionService: MongoService = {
+        private def serviceMock(key:String) = {
           val m = mock[MongoService]
-          m.load(anyString) returns session.map(s => Json.obj("service" -> "preview") ++ s.as[JsObject])
+          m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
+          m.create(any[JsValue]) returns Some(ObjectId.get)
           m.save(anyString, any[JsValue]) returns {
             Some(Json.obj())
           }
           m
         }
 
-        val mainSessionService: MongoService = {
-          val m = mock[MongoService]
-          m.load(anyString) returns session.map(s => Json.obj("service" -> "main") ++ s.as[JsObject])
-          m.create(any[JsValue]) returns Some(ObjectId.get)
-          m
-        }
+        val previewSessionService: MongoService = serviceMock("preview")
+        val mainSessionService: MongoService = serviceMock("main")
 
         override def itemAuth: ItemAuth[OrgAndOpts] = {
           val m = mock[ItemAuth[OrgAndOpts]]
