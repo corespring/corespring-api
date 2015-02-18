@@ -158,7 +158,6 @@ package object scopes {
     lazy val req = {
       val call = getCall(sessionId)
       val out = makeRequest(call)
-      println(s"request: $out")
       out
     }
 
