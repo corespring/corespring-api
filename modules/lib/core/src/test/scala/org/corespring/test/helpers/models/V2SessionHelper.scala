@@ -12,7 +12,9 @@ object V2SessionHelper {
   val v2ItemSessions = "v2.itemSessions"
   val v2ItemSessionsPreview = "v2.itemSessions_preview"
 
-  private implicit def strToObjectId(id:String) = new ObjectId(id)
+  import scala.language.implicitConversions
+
+  private implicit def strToObjectId(id: String) = new ObjectId(id)
 
   lazy val db = {
     Play.current.plugin[SalatPlugin].map {
@@ -48,5 +50,5 @@ object V2SessionHelper {
     db(name).remove(MongoDBObject("_id" -> sessionId))
   }
 
-  private def idQuery(id:ObjectId) = MongoDBObject("_id" -> id)
+  private def idQuery(id: ObjectId) = MongoDBObject("_id" -> id)
 }

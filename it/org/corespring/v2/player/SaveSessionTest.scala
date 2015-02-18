@@ -31,7 +31,7 @@ class SaveSessionTest extends IntegrationSpecification {
       val sessionDbo = V2SessionHelper.findSession(sessionId.toString)
       val identity = sessionDbo.get("identity").asInstanceOf[DBObject]
       identity.get("orgId") === orgId.toString
-      identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.toString
+      identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.id
       identity.get("apiClient") === apiClient.clientId.toString
     }
 

@@ -16,7 +16,7 @@ class IdentityJsonTest extends Specification with MockFactory{
       json === Json.parse(
         s"""{
            |  "orgId" : "${o.id}",
-           |  "authMode" : "${AuthMode.AccessToken.toString}",
+           |  "authMode" : ${AuthMode.AccessToken.id},
            |  "apiClient" : "1"
            |}""".stripMargin)
     }
@@ -29,7 +29,7 @@ class IdentityJsonTest extends Specification with MockFactory{
       json === Json.parse(
         s"""{
            |  "orgId" : "${o.id}",
-           |  "authMode" : "${AuthMode.AccessToken.toString}",
+           |  "authMode" : ${AuthMode.AccessToken.id},
            |  "apiClient" : "unknown"
            |}""".stripMargin)
     }

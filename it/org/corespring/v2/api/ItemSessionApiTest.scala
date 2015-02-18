@@ -74,9 +74,9 @@ class ItemSessionApiTest extends IntegrationSpecification {
         val sessionId = ((contentAsJson(result) \ "id")).as[String]
         val dbo = models.V2SessionHelper.findSession(sessionId)
         val identity = dbo.get("identity").asInstanceOf[DBObject]
-        identity.get("orgId").asInstanceOf[String] === orgId.toString
-        identity.get("authMode").asInstanceOf[String] === AuthMode.ClientIdAndPlayerToken.toString
-        identity.get("apiClient").asInstanceOf[String] === apiClient.clientId.toString
+        identity.get("orgId") === orgId.toString
+        identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.id
+        identity.get("apiClient") === apiClient.clientId.toString
       }
     }
 
