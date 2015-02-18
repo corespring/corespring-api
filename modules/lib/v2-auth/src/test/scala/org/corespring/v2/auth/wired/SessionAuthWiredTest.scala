@@ -158,6 +158,15 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         saveFn.toOption.map(fn => fn("1", Json.obj()))
         there was one(auth.mainSessionService).save("1", Json.obj("identity" -> IdentityJson(optsIn)))
       }
+
+      "add the identity but not the apiClient id" in new authScope(){
+        val optsIn = opts(AuthMode.AccessToken)
+        val saveFn = auth.saveSessionFunction(optsIn)
+        saveFn.toOption.map(fn => fn("1", Json.obj()))
+        val identityJson = IdentityJson(optsIn)
+        (identityJson \ "apiClientId").asOpt[String] === None
+        there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
+      }
     }
 
     "when creating" should {
