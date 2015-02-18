@@ -59,7 +59,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield {
       /** if the session contains the data - we need to trim it so it doesn't reach the client */
-      val cleanedSession = json.as[JsObject] - "item"
+      val cleanedSession = json.as[JsObject] - "item" - "identity"
       (cleanedSession, playerDef)
     }
 
@@ -97,7 +97,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   override def saveSessionFunction(implicit identity: OrgAndOpts): Validation[V2Error, (String, Session) => Option[Session]] = Success((id, session) => {
     val withIdentityData = addIdentityToSession(session, identity)
-    sessionService.save(id, withIdentityData)
+    sessionService.save(id, withIdentityData).map(result => rmIdentityFromSession(result))
   })
 
   override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
@@ -109,4 +109,5 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
   }
 
+  private def rmIdentityFromSession(s:Session) = s.asInstanceOf[JsObject] - "identity"
 }
