@@ -179,7 +179,6 @@ package object scopes {
     def requestBody: AnyContent = AnyContentAsEmpty
 
     override def makeRequest(call: Call): Request[AnyContent] = {
-      println(s"[makeRequest] request body: $requestBody")
       FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), requestBody)
     }
   }

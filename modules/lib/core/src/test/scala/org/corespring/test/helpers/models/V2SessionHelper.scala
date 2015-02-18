@@ -12,6 +12,8 @@ object V2SessionHelper {
   val v2ItemSessions = "v2.itemSessions"
   val v2ItemSessionsPreview = "v2.itemSessions_preview"
 
+  private implicit def strToObjectId(id:String) = new ObjectId(id)
+
   lazy val db = {
     Play.current.plugin[SalatPlugin].map {
       p =>
@@ -21,15 +23,13 @@ object V2SessionHelper {
 
   def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
     val oid = ObjectId.get
-    db(name).insert(MongoDBObject(
-      "_id" -> oid,
-      "itemId" -> itemId.toString))
+    db(name).insert(idQuery(oid) ++ MongoDBObject("itemId" -> itemId.toString))
     oid
   }
 
   def update(sessionId: ObjectId, json: JsValue, name: String = v2ItemSessions): Unit = {
     val dbo = com.mongodb.util.JSON.parse(Json.stringify(json)).asInstanceOf[DBObject]
-    db(name).update(MongoDBObject("_id" -> sessionId), dbo)
+    db(name).update(idQuery(sessionId), dbo)
   }
 
   def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
@@ -39,7 +39,7 @@ object V2SessionHelper {
   }
 
   def findSession(id: String, name: String = v2ItemSessions): DBObject = {
-    db(name).findOne(MongoDBObject("_id" -> new ObjectId(id))).getOrElse {
+    db(name).findOne(idQuery(id)).getOrElse {
       throw new RuntimeException(s"Can't find session with id: $id")
     }
   }
@@ -48,4 +48,5 @@ object V2SessionHelper {
     db(name).remove(MongoDBObject("_id" -> sessionId))
   }
 
+  private def idQuery(id:ObjectId) = MongoDBObject("_id" -> id)
 }
