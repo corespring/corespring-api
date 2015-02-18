@@ -12,7 +12,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -77,8 +77,6 @@ class V2ApiBootstrap(
 
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2ApiBootstrap.this.sessionAuth
 
-    override def sessionService = V2ApiBootstrap.this.sessionService
-
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
   }
 
@@ -97,10 +95,10 @@ class V2ApiBootstrap(
 
   lazy val v2SessionService = new V2SessionService {
 
-    override def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId] = {
+    override def createExternalModelSession(orgAndOpts: OrgAndOpts, model: JsObject): Option[ObjectId] = {
       sessionService.create(
         Json.obj(
-          "orgId" -> orgId.toString,
+          "identity" -> IdentityJson(orgAndOpts),
           "item" -> model))
     }
   }

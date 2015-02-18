@@ -30,7 +30,7 @@ class RequestIdentifiers(
 
     override def userService: UserService = UserServiceWired
 
-    override def data(rh: RequestHeader, org: Organization) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, apiClientId)
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }
@@ -38,7 +38,7 @@ class RequestIdentifiers(
   lazy val token = new TokenOrgIdentity[OrgAndOpts] {
     override def tokenService: TokenService = RequestIdentifiers.this.tokenService
 
-    override def data(rh: RequestHeader, org: Organization) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, apiClientId)
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }
