@@ -14,7 +14,7 @@ object IdentityJson {
   def apply(orgAndOpts: OrgAndOpts): JsValue = {
     Json.obj(
       "orgId" -> orgAndOpts.org.id.toString,
-      "authMode" -> orgAndOpts.authMode.toString,
+      "authMode" -> orgAndOpts.authMode.id,
       "apiClient" -> JsString(orgAndOpts.apiClientId.getOrElse("unknown")))
   }
 }
