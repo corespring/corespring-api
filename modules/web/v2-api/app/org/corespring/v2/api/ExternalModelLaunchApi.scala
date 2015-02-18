@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.PlayerTokenService
-import org.corespring.v2.auth.models.PlayerAccessSettings
+import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.corespring.v2.errors.{ Field, V2Error }
 import play.api.libs.json.{ JsValue, Json, JsObject }
@@ -15,7 +15,7 @@ import scalaz.Scalaz._
 case class LaunchInfo(sessionId: String, playerToken: String, apiClient: String, playerJsUrl: String, settings: JsValue)
 
 trait V2SessionService {
-  def createExternalModelSession(orgId: ObjectId, model: JsObject): Option[ObjectId]
+  def createExternalModelSession(identity: OrgAndOpts, model: JsObject): Option[ObjectId]
 }
 
 trait ExternalModelLaunchApi extends V2Api {
@@ -48,7 +48,7 @@ trait ExternalModelLaunchApi extends V2Api {
         orgAndOpts <- getOrgAndOptions(request)
         externalJson <- request.body.asJson.toSuccess(noJson)
         model <- (externalJson \ "model").asOpt[JsObject].toSuccess(missingRequiredField(Field("model", "object")))
-        sessionId <- sessionService.createExternalModelSession(orgAndOpts.org.id, model).toSuccess(generalError("Error creating session"))
+        sessionId <- sessionService.createExternalModelSession(orgAndOpts, model).toSuccess(generalError("Error creating session"))
         accessSettings <- (externalJson \ "accessSettings").asOpt[JsObject].toSuccess(missingRequiredField(Field("accessSettings", "object")))
         settingsWithDefaults <- addDefaults(accessSettings, sessionId)
         tokenResult <- tokenService.createToken(orgAndOpts.org.id, settingsWithDefaults)

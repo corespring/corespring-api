@@ -8,14 +8,17 @@ import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import play.api.mvc.RequestHeader
 
-import scalaz.{Failure, Validation}
+import scalaz.{ Failure, Validation }
 
 class MockRequestIdentity(
   val defaultCollection: Option[ObjectId] = None,
-  val org: Validation[V2Error, Organization] = Failure(generalError("?"))
-                           ) extends OrgRequestIdentity[String] with Mockito {
+  val org: Validation[V2Error, Organization] = Failure(generalError("?")),
+  val apiClientId: Option[String] = None) extends OrgRequestIdentity[String] with Mockito {
 
-  override def data(rh: RequestHeader, org: Organization): String = "Worked"
+  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]): String = "Worked"
+
+  /** get the apiClient if available */
+  override def headerToApiClientId(rh: RequestHeader): Option[String] = apiClientId
 
   override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = org
 

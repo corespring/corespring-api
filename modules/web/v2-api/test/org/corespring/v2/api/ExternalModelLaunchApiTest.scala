@@ -4,7 +4,7 @@ import scala.concurrent.ExecutionContext
 
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.specs2.mock.Mockito
@@ -19,10 +19,10 @@ class ExternalModelLaunchApiTest
   extends Specification
   with PlaySpecification
   with Mockito
-  with MockFactory{
+  with MockFactory {
 
   case class apiScope(
-    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)),
+    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
     expectedError: Option[V2Error] = None) extends Scope {
@@ -30,7 +30,7 @@ class ExternalModelLaunchApiTest
     lazy val api = new ExternalModelLaunchApi {
       override def sessionService: V2SessionService = {
         val m = mock[V2SessionService]
-        m.createExternalModelSession(any[ObjectId], any[JsObject]) returns createSession
+        m.createExternalModelSession(any[OrgAndOpts], any[JsObject]) returns createSession
         m
       }
 

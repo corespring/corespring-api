@@ -1,16 +1,18 @@
 package org.corespring.v2.api
 
+import com.mongodb.DBObject
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.helpers.models
 import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
-import org.corespring.v2.auth.models.PlayerAccessSettings
+import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc.{ AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiTest extends IntegrationSpecification {
@@ -65,6 +67,17 @@ class ItemSessionApiTest extends IntegrationSpecification {
         status(result) === OK
       }
 
+      s"adds identity data to the session" in new clientIdAndPlayerToken_createSession(
+        Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
+        val e = noOrgIdAndOptions(req)
+        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
+        val sessionId = ((contentAsJson(result) \ "id")).as[String]
+        val dbo = models.V2SessionHelper.findSession(sessionId)
+        val identity = dbo.get("identity").asInstanceOf[DBObject]
+        identity.get("orgId") === orgId.toString
+        identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.id
+        identity.get("apiClient") === apiClient.clientId.toString
+      }
     }
 
     def playerDef(customScoring: Option[String] = None) = PlayerDefinition(
