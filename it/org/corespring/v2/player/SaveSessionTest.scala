@@ -3,19 +3,17 @@ package org.corespring.v2.player
 import com.mongodb.DBObject
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
-import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{AuthMode, PlayerAccessSettings}
 import org.corespring.v2.player.scopes._
-import play.api.libs.json.{ JsObject, Json }
-import play.api.mvc.{ AnyContentAsJson, Request }
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{AnyContentAsJson, Request}
 
 class SaveSessionTest extends IntegrationSpecification {
 
   "saving a session" should {
 
     "work for token" in new token_saveSession() {
-      println("--> " + contentAsString(result))
       status(result) ==== OK
     }
 
@@ -50,17 +48,23 @@ class SaveSessionTest extends IntegrationSpecification {
     }
   }
 
-  class unknownIdentity_saveSession extends saveSession with userWithItemAndSession with PlainRequestBuilder {}
-
   class token_saveSession extends saveSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {
     override def requestBody = AnyContentAsJson(Json.obj())
+
+    override def after : Any = {
+      super.after
+      println("[token_saveSession] - after")
+      V2SessionHelper.delete(sessionId)
+    }
   }
 
   class clientId_saveSession(val playerToken: String, val skipDecryption: Boolean = true) extends saveSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId {
     override def requestBody = AnyContentAsJson(Json.obj())
     override lazy val sessionId: ObjectId = V2SessionHelper.create(itemId)
 
-    override def after = {
+    override def after : Any = {
+      super.after
+      println("[clientId_saveSession] - after")
       V2SessionHelper.delete(sessionId)
     }
   }
