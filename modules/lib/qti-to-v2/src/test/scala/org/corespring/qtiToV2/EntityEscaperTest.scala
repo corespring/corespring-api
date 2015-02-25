@@ -1,6 +1,5 @@
 package org.corespring.qtiToV2
 
-import org.apache.commons.lang3.StringEscapeUtils
 import org.specs2.mutable.Specification
 
 import scala.xml.XML
@@ -50,5 +49,5 @@ class EntityEscaperTest extends Specification with EntityEscaper {
     }
 
   }
-  
+
 }
