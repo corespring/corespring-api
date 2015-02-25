@@ -9,19 +9,19 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ItemApiCreateTest extends Specification with Mockito with MockFactory {
 
@@ -34,9 +34,9 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   case class createApiScope(
-                             defaultCollectionId: ObjectId = ObjectId.get,
-                             insertFails: Boolean = false,
-                             canCreate: Validation[V2Error, Boolean] = Success(true)) extends Scope {
+    defaultCollectionId: ObjectId = ObjectId.get,
+    insertFails: Boolean = false,
+    canCreate: Validation[V2Error, Boolean] = Success(true)) extends Scope {
     lazy val api = new ItemApi {
 
       override def transform: (Item, Option[String]) => JsValue = transformItemToJson
@@ -62,7 +62,7 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = canCreate.map(_ => mockOrgAndOpts())
 
       override def scoreService: ScoreService = {
         val m = mock[ScoreService]
@@ -70,7 +70,6 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
       }
     }
   }
-
 
   "V2 - ItemApi" should {
 

@@ -10,19 +10,19 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.concurrent.ExecutionContext
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
@@ -34,15 +34,14 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
-
-  case class deleteApiScope( isLoggedIn: Boolean = true,
-                             findFieldsById: Option[DBObject] = None,
-                             canDelete: Boolean = false,
-                             throwErrorInMoveItemToArchive: Boolean = false) extends Scope {
+  case class deleteApiScope(isLoggedIn: Boolean = true,
+    findFieldsById: Option[DBObject] = None,
+    canDelete: Boolean = false,
+    throwErrorInMoveItemToArchive: Boolean = false) extends Scope {
 
     val dummyOrgId = ObjectId.get
     val dummyCollectionId = ObjectId.get.toString
-    
+
     lazy val api = new ItemApi {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
@@ -53,8 +52,8 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
         Json.toJson(item)
       }
 
-      private def canDeleteResult():Validation[V2Error, Boolean] =
-        if(canDelete)
+      private def canDeleteResult(): Validation[V2Error, Boolean] =
+        if (canDelete)
           Success(true)
         else
           Failure(orgCantAccessCollection(dummyOrgId, dummyCollectionId, Permission.Write.name))
@@ -62,7 +61,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
       override def itemService: ItemService = {
         val m = mock[ItemService]
         m.findFieldsById(any, any) returns findFieldsById
-        if(throwErrorInMoveItemToArchive)
+        if (throwErrorInMoveItemToArchive)
           org.mockito.Mockito.doThrow(new RuntimeException("Mock Error")).when(m).moveItemToArchive(any)
         m
       }
@@ -76,11 +75,10 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] =
-        if( isLoggedIn )
-          Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken))
+        if (isLoggedIn)
+          Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
         else
           Failure(unAuthorized(""))
-
 
       override def scoreService: ScoreService = {
         val m = mock[ScoreService]
@@ -93,7 +91,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
     "when calling delete" should {
 
-      s"returns cantParseItemId - if itemId is invalid" in new deleteApiScope(){
+      s"returns cantParseItemId - if itemId is invalid" in new deleteApiScope() {
         val result = api.delete("123")(FakeJsonRequest(Json.obj()))
         val e = cantParseItemId("123")
         status(result) === e.statusCode
@@ -119,8 +117,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       s"returns orgCantAccessCollection - if not allowed to delete" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
-        canDelete = false)
-      {
+        canDelete = false) {
         val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = orgCantAccessCollection(dummyOrgId, dummyCollectionId, Permission.Write.name)
@@ -131,8 +128,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
       s"returns general error - if error in delete" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
         canDelete = true,
-        throwErrorInMoveItemToArchive = true)
-      {
+        throwErrorInMoveItemToArchive = true) {
         val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = generalError(s"Error deleting item ${itemId.toString}")
@@ -142,13 +138,11 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       s"work" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
-        canDelete = true)
-      {
+        canDelete = true) {
         val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         status(result) === OK
       }
-
 
     }
 
