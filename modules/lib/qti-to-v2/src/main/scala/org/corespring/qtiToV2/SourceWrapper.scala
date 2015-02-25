@@ -12,7 +12,7 @@ import scala.io.{Codec, Source}
  * Caches the result of a Source's getLines into a temporary file buffer. Then provides interfaces for obtaining Source
  * objects from the cached file in future. File is removed when the JVM halts.
  */
-class SourceWrapper(inputStream: InputStream) {
+case class SourceWrapper(name: String, inputStream: InputStream) {
 
   def prefix = s"source-wrapper-${inputStream.hashCode}"
   val suffix = ".tmp"
@@ -30,12 +30,15 @@ class SourceWrapper(inputStream: InputStream) {
     }
   }
 
+  val utf8 = List("txt", "xml", "json")
+
+  private def inferCodec: Codec = Codec(if (utf8.contains(name.split("\\.").last)) "UTF-8" else "ISO-8859-1")
+
   /**
    * Creates a Source object from the lines contained within the file. Provided for compatibility with APIs that require
    * a Source object.
    */
-  def toSource = {
-    val codec = Codec("ISO-8859-1")
+  def toSource(codec: Codec = inferCodec) = {
     codec.onMalformedInput(CodingErrorAction.IGNORE)
     codec.onUnmappableCharacter(CodingErrorAction.IGNORE)
       Source.fromFile(getFile)(codec)
@@ -57,10 +60,6 @@ class SourceWrapper(inputStream: InputStream) {
     output.toByteArray()
   }
 
-  def getLines = toSource.getLines
+  def getLines = toSource("UTF-8").getLines
 
-}
-
-object SourceWrapper {
-  def apply(inputStream: InputStream) = new SourceWrapper(inputStream)
 }

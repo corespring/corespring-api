@@ -21,6 +21,7 @@ object QtiTransformer extends SuperQtiTransformer with ProcessingTransformer {
     KDSChoiceInteractionTransformer,
     TeacherInstructionsTransformer,
     HottextInteractionTransformer,
+    ElementTransformer,
     MatchInteractionTransformer,
     NumberLineInteractionTransformer,
     DragAndDropInteractionTransformer,

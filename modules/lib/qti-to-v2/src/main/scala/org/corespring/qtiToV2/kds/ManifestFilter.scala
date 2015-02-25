@@ -73,7 +73,7 @@ trait ManifestFilter {
             }
             case e @ EvElemEnd(_, tag) => {
               if (insideResource) {
-                buf += ("</" + tag + ">")
+                buf += s"</$tag>"
               }
             }
             case EvText(text) => {
@@ -98,9 +98,9 @@ trait ManifestFilter {
 
     val ofType: (MetaData, String) => Boolean = { case(attr, tipe) => attr.get("type").getOrElse("").toString == tipe }
 
-    val resources = getResources(file.toSource, attrs => ofType(attrs, "imsqti_item_xmlv2p1"))
+    val resources = getResources(file.toSource(), attrs => ofType(attrs, "imsqti_item_xmlv2p1"))
     val files = resources.map(_ \\ "file" \ "@href").map(_.toString).filter(_.nonEmpty)
-    val passages = getResources(file.toSource, attrs => ofType(attrs, "passage") && files.contains(attrs.get("href").getOrElse("").toString))
+    val passages = getResources(file.toSource(), attrs => ofType(attrs, "passage") && files.contains(attrs.get("href").getOrElse("").toString))
 
     <manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:imsmd="http://www.imsglobal.org/xsd/imsmd_v1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:imsqti="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="MANIFEST-10/3/2014" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 imscp_v1p1.xsd http://www.imsglobal.org/xsd/imsmd_v1p2 imsmd_v1p2p4.xsd http://www.imsglobal.org/xsd/imsqti_v2p1  http://www.imsglobal.org/xsd/imsqti_v2p1.xsd">
       <resources>

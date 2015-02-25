@@ -1,12 +1,11 @@
 package org.corespring.qtiToV2.kds
 
-import org.apache.commons.lang3.StringEscapeUtils
-import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.{EntityEscaper, SourceWrapper}
 import org.slf4j.LoggerFactory
 
 import scala.xml._
 
-object ManifestReader extends ManifestFilter with PassageScrubber {
+object ManifestReader extends ManifestFilter with PassageScrubber with EntityEscaper {
 
   import PathFlattener._
 
@@ -15,7 +14,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
   val filename = "imsmanifest.xml"
 
   private def stripCDataTags(xmlString: String) =
-    StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")).replaceAll("&nbsp;", "")
+    """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
 
   def read(manifest: SourceWrapper, sources: Map[String, SourceWrapper]): QTIManifest = {
     implicit val xml = filterManifest(manifest)
@@ -33,7 +32,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
         val filename = (n \ "@href").text.toString
         val files = sources.get(filename).map { file =>
           try {
-            Some(XML.loadString(stripCDataTags(file.mkString)))
+            Some(XML.loadString(escapeEntities(stripCDataTags(file.mkString))))
           } catch {
             case e: Exception => {
               println(s"Error reading: $filename")
@@ -57,7 +56,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber {
         val passageResources: Seq[ManifestResource] = resources.filter(_.is(ManifestResourceType.Passage)).map(p =>
           sources.find { case (path, _) => path == p.path.flattenPath}.map{case (filename, s) => {
             try {
-              Some((XML.loadString(scrub(stripCDataTags(s.getLines.mkString)))).map(xml => resourceLocators.map {
+              Some((XML.loadString(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))).map(xml => resourceLocators.map {
                 case(resourceType, fn) => (resourceType, fn(xml))}).flatten.map { case (resourceType, paths) =>
                 paths.map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = resourceType))
               }.flatten)

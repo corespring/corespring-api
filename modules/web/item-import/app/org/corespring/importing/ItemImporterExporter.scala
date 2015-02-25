@@ -10,7 +10,7 @@ import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition}
 import org.corespring.platform.core.models.item.resource.BaseFile
 import org.corespring.platform.core.utils.UnWordify
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.{EntityEscaper, SourceWrapper}
 import org.corespring.qtiToV2.kds.PathFlattener
 import play.api.libs.json._
 
@@ -21,7 +21,7 @@ import scalaz.{Failure, Success}
  * Mouthful of a class name. This class exports a provided QTI ZIP file to a ZIP file whose contents can be read by the
  * corespring-batch-importer (https://github.com/corespring/corespring-batch-importer)
  */
-class ItemImporterExporter extends JsonUtil {
+class ItemImporterExporter extends JsonUtil with EntityEscaper {
 
   import PathFlattener._
   import UnWordify._
@@ -30,6 +30,7 @@ class ItemImporterExporter extends JsonUtil {
     createZip(toEntries(collection, sources, metadata))
 
   private def toEntries(collection: ContentCollection, sources: Map[String, SourceWrapper], metadata: JsObject): Map[String, Source] = {
+
     implicit val PlayerDefinitionFormat = PlayerDefinition.Format
 
     val extractor = new KdsQtiItemExtractor(sources, metadata) {
@@ -50,9 +51,9 @@ class ItemImporterExporter extends JsonUtil {
           Success(
             (
               PlayerDefinition(Seq.empty,
-                (itemJson \ "xhtml").as[String],
-                (itemJson \ "components"),
-                (itemJson \ "summaryFeedback").asOpt[String].getOrElse(""),
+                unescapeEntities((itemJson \ "xhtml").as[String]),
+                unescapeEntities((itemJson \ "components")),
+                unescapeEntities((itemJson \ "summaryFeedback").asOpt[String].getOrElse("")),
                 (itemJson \ "customScoring").asOpt[String]),
               taskInfo
             )
@@ -67,7 +68,7 @@ class ItemImporterExporter extends JsonUtil {
             partialObj("taskInfo" -> Some(Json.toJson(taskInfo)), "sourceId" -> Some(JsString(id)))))) ++
               extractor.filesFromManifest(id).map(filename => s"$basePath/data/${filename.flattenPath}" -> sources.get(filename))
                 .filter { case (filename, maybeSource) => maybeSource.nonEmpty}
-                .map { case (filename, someSource) => (filename, someSource.get.toSource) }
+                .map { case (filename, someSource) => (filename, someSource.get.toSource()) }
         }
         case _ => Seq.empty[(String, Source)]
       }

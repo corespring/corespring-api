@@ -3,15 +3,16 @@ package org.corespring.importing.extractors
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.{EntityEscaper, SourceWrapper}
 import org.corespring.qtiToV2.kds.{ItemTransformer => KdsQtiItemTransformer, PathFlattener, ManifestReader, PassageTransformer}
 import play.api.libs.json.{JsObject, Json, JsValue}
 
 import scala.io.Source
+import scala.xml.XML
 import scalaz._
 
 abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper], commonMetadata: JsObject)
-  extends ItemExtractor with PassageTransformer {
+  extends ItemExtractor with PassageTransformer with EntityEscaper {
 
   import PathFlattener._
 
@@ -41,7 +42,7 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper], commonMe
   def itemJson: Map[String, Validation[Error, JsValue]] =
     manifest.map(_.items.map(f => sources.get(f.filename.flattenPath).map(s => {
       try {
-        f.id -> Success(KdsQtiItemTransformer.transform(s.getLines.mkString, f, sources))
+        f.id -> Success(KdsQtiItemTransformer.transform(escapeEntities(s.getLines.mkString), f, sources))
       } catch {
         case e: Exception => {
           e.printStackTrace()

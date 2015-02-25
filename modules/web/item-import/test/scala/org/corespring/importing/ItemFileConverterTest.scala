@@ -196,8 +196,9 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     val sources = (Seq(
       "dot array.png", "metadata.json", "files/rubric.pdf"
-    ).map(file => (file, new SourceWrapper(getClass.getResource(s"/item/$file").openStream)))) ++
-      Seq("item.json" -> new SourceWrapper(IOUtils.toInputStream(itemJson)), "metadata.json" -> new SourceWrapper(IOUtils.toInputStream(metadataJson))).toMap
+    ).map(file => (file, new SourceWrapper(file, getClass.getResource(s"/item/$file").openStream)))) ++
+      Seq("item.json" -> new SourceWrapper("item.json", IOUtils.toInputStream(itemJson)), "metadata.json" ->
+        new SourceWrapper("metadata.json", IOUtils.toInputStream(metadataJson))).toMap
 
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"

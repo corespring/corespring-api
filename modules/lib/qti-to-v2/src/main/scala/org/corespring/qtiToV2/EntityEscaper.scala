@@ -1,8 +1,13 @@
 package org.corespring.qtiToV2
 
+import play.api.libs.json._
+
+import scala.xml.{Text, Unparsed, Node, XML}
+import scala.xml.transform.{RuleTransformer, RewriteRule}
+
 /**
  * Scala's XML parser wants convert entities to values. We want to preserve them, so we introduce a step that encodes
- * them as regular nodes, so they won't be converted. When our XML is ready to be written back to a string, we change
+ * them as regular nodes so they won't be converted. When our XML is ready to be written back to a string, we change
  * those nodes back to their initial entity declarations.
  */
 trait EntityEscaper {
@@ -13,13 +18,28 @@ trait EntityEscaper {
    * Replace all entity characters (e.g., "&radic;" or "&#945;") with nodes matching their unicode values, (e.g.,
    * <entity value='8730'/> or <entity value='945'/>).
    */
-  def escape(xml: String): String = entities.foldLeft(xml){ case(acc, entity) =>
-    acc
-      .replaceAll(s"&${entity.name};", s"""<entity value="${entity.unicode.toString}"/>""")
-      .replaceAll(s"&#${entity.unicode.toString};", s"""<entity value="${entity.unicode.toString}"/>""")
+  def escapeEntities(xml: String): String =
+    entities.foldLeft("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1")){ case(acc, entity) =>
+      acc
+        .replaceAllLiterally(s"&#${entity.unicode.toString};", s"""<entity value="${entity.unicode.toString}"/>""")
+        .replaceAllLiterally(s"&${entity.name};", s"""<entity value="${entity.unicode.toString}"/>""")
+    }
+
+  def unescapeEntities(xml: String) = (new RuleTransformer(new RewriteRule {
+    override def transform(node: Node) = node.label match {
+      case "entity" => Unparsed(s"&#${(node \ "@value").text};")
+      case _ => node
+    }
+  }).transform(XML.loadString(s"<entity-escaper>$xml</entity-escaper>")).head.child).mkString
+
+  def unescapeEntities(jsValue: JsValue): JsValue = jsValue match {
+    case jsObject: JsObject => JsObject(jsObject.fields.map{ case (key, value) => (key, unescapeEntities(value)) })
+    case jsArray: JsArray => JsArray(jsArray.value.map{ value => unescapeEntities(value) })
+    case jsString: JsString => JsString(unescapeEntities(jsString.value))
+    case _ => jsValue
   }
 
-  def unescape(xml: String) = ??? // finish tomorrow
+  def escaped(block: String => String): String => String = { s => unescapeEntities(block(escapeEntities(s))) }
 
 }
 
@@ -69,6 +89,6 @@ object EntityEscaper {
     "supe" -> 8839, "oplus" -> 8853, "otimes" -> 8855, "perp" -> 8869, "sdot" -> 8901, "lceil" -> 8968,
     "rceil" -> 8969, "lfloor" -> 8970, "rfloor" -> 8971, "lang" -> 9001, "rang" -> 9002, "loz" -> 9674,
     "spades" -> 9824, "clubs" -> 9827, "hearts" -> 9829, "diams" -> 9830)
-    .map{ case (name, unicode) => Entity(name, unicode) }
-    .toSeq
+  .map{ case (name, unicode) => Entity(name, unicode) }
+  .toSeq
 }

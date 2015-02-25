@@ -25,8 +25,7 @@ object ItemTransformer extends PassageTransformer {
     private val labelMap = Map("partBlock" -> "div", "partBody" -> "div", "selectedResponseParts" -> "div")
 
     def toXML(passageXml: String): Elem = {
-      def stripCDataTags(xmlString: String) =
-        StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
+      def stripCDataTags(xmlString: String) = """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
       val xml = XML.loadString(stripCDataTags(string))
       transformFractions(clearNamespace(new RuleTransformer(new RewriteRule {
         override def transform(n: Node): NodeSeq = n match {

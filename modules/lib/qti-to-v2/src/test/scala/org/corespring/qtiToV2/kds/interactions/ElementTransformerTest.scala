@@ -2,13 +2,20 @@ package org.corespring.qtiToV2.kds.interactions
 
 import org.specs2.mutable.Specification
 
-class ElementTransformerTest extends Specification with ElementTransformer {
+import scala.xml.Node
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
-  "transformElements" should {
+class ElementTransformerTest extends Specification {
+
+  def transform(node: Node) = new RuleTransformer(new RewriteRule {
+    override def transform(node: Node) = ElementTransformer.transform(node)
+  }).transform(node).head
+
+  "transform" should {
 
     "transform <span class='under'/> to <u/>" in {
       val content = "Hey, I should be underlined!"
-      transformElements(<span class="under">{content}</span>).head must be equalTo(<u>{content}</u>)
+      transform(<span class="under">{content}</span>).head must be equalTo(<u>{content}</u>)
     }
 
   }

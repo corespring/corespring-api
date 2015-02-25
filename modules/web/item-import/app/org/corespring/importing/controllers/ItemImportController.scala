@@ -44,7 +44,7 @@ with JsonUtil {
       case (Some(upload), Success(Some(collection))) => {
         val zip = new ZipFile(upload.ref.file)
         val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
-          entry.getName.flattenPath -> SourceWrapper(zip.getInputStream(entry))
+          entry.getName.flattenPath -> SourceWrapper(entry.getName, zip.getInputStream(entry))
         }).toMap
         getAction(request) match {
           case "export" => exportZip(collection, metadata, fileMap)

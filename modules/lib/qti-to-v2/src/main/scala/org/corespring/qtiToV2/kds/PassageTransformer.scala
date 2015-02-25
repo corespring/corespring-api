@@ -21,8 +21,8 @@ trait PassageTransformer extends PassageScrubber {
     }
   }
 
-  private def stripCDataTags(xmlString: String) =
-    StringEscapeUtils.unescapeHtml4("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1"))
+  private def stripCDataTags(xmlString: String): String =
+    """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
 
   private def transformPassage(xmlString: String): String = {
     <div class="passage">{
