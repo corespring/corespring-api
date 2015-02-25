@@ -1,11 +1,11 @@
 package org.corespring.qtiToV2.kds
 
 import org.apache.commons.lang3.StringEscapeUtils
-import org.corespring.qtiToV2.SourceWrapper
+import org.corespring.qtiToV2.{HtmlProcessor, EntityEscaper, SourceWrapper}
 
 import scala.xml._
 
-trait PassageTransformer extends PassageScrubber {
+trait PassageTransformer extends PassageScrubber with HtmlProcessor {
 
   import PathFlattener._
 
@@ -24,10 +24,9 @@ trait PassageTransformer extends PassageScrubber {
   private def stripCDataTags(xmlString: String): String =
     """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
 
-  private def transformPassage(xmlString: String): String = {
-    <div class="passage">{
-      (XML.loadString(scrub(stripCDataTags(xmlString))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
-    }</div>.toString
-  }
+  private def transformPassage(xmlString: String): String =
+    postprocessHtml(<div class="passage">{
+      (XML.loadString(preprocessHtml(scrub(stripCDataTags(xmlString)))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
+    }</div>.toString)
 
 }

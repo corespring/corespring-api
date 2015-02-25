@@ -32,15 +32,6 @@ trait EntityEscaper {
     }
   }).transform(XML.loadString(s"<entity-escaper>$xml</entity-escaper>")).head.child).mkString
 
-  def unescapeEntities(jsValue: JsValue): JsValue = jsValue match {
-    case jsObject: JsObject => JsObject(jsObject.fields.map{ case (key, value) => (key, unescapeEntities(value)) })
-    case jsArray: JsArray => JsArray(jsArray.value.map{ value => unescapeEntities(value) })
-    case jsString: JsString => JsString(unescapeEntities(jsString.value))
-    case _ => jsValue
-  }
-
-  def escaped(block: String => String): String => String = { s => unescapeEntities(block(escapeEntities(s))) }
-
 }
 
 object EntityEscaper {

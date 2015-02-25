@@ -10,7 +10,7 @@ import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition}
 import org.corespring.platform.core.models.item.resource.BaseFile
 import org.corespring.platform.core.utils.UnWordify
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.{EntityEscaper, SourceWrapper}
+import org.corespring.qtiToV2.{HtmlProcessor, EntityEscaper, SourceWrapper}
 import org.corespring.qtiToV2.kds.PathFlattener
 import play.api.libs.json._
 
@@ -21,7 +21,7 @@ import scalaz.{Failure, Success}
  * Mouthful of a class name. This class exports a provided QTI ZIP file to a ZIP file whose contents can be read by the
  * corespring-batch-importer (https://github.com/corespring/corespring-batch-importer)
  */
-class ItemImporterExporter extends JsonUtil with EntityEscaper {
+class ItemImporterExporter extends JsonUtil with HtmlProcessor {
 
   import PathFlattener._
   import UnWordify._
@@ -51,9 +51,9 @@ class ItemImporterExporter extends JsonUtil with EntityEscaper {
           Success(
             (
               PlayerDefinition(Seq.empty,
-                unescapeEntities((itemJson \ "xhtml").as[String]),
-                unescapeEntities((itemJson \ "components")),
-                unescapeEntities((itemJson \ "summaryFeedback").asOpt[String].getOrElse("")),
+                postprocessHtml((itemJson \ "xhtml").as[String]),
+                postprocessHtml((itemJson \ "components")),
+                postprocessHtml((itemJson \ "summaryFeedback").asOpt[String].getOrElse("")),
                 (itemJson \ "customScoring").asOpt[String]),
               taskInfo
             )
