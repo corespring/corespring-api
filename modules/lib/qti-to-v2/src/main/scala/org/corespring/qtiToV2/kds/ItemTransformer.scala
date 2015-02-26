@@ -12,9 +12,17 @@ import scala.xml.transform.{RuleTransformer, RewriteRule}
 object ItemTransformer extends PassageTransformer {
 
   def transform(xmlString: String, manifestItem: ManifestItem, sources: Map[String, SourceWrapper]): JsValue = {
-    val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
-      .map(transformPassage(_)(sources).getOrElse("")).mkString
-    QtiTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
+    try {
+      val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
+        .map(transformPassage(_)(sources).getOrElse("")).mkString
+      QtiTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
+    } catch {
+      case e: Exception => {
+        println(manifestItem.filename)
+        throw e
+      }
+    }
+
   }
 
   /**

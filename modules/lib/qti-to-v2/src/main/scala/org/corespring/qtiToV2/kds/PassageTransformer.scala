@@ -21,12 +21,9 @@ trait PassageTransformer extends PassageScrubber with HtmlProcessor {
     }
   }
 
-  private def stripCDataTags(xmlString: String): String =
-    """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
-
   private def transformPassage(xmlString: String): String =
-    postprocessHtml(<div class="passage">{
-      (XML.loadString(preprocessHtml(scrub(stripCDataTags(xmlString)))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
+    unescapeEntities(<div class="passage">{
+      (XML.loadString(scrub(escapeEntities(xmlString))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
     }</div>.toString)
 
 }
