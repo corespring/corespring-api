@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.kds
 
+import org.corespring.qtiToV2.kds.responseProcessing.{ResponseProcessingTransformer, FieldValueProcessingTransformer}
 import play.api.libs.json.Json
 
 import scala.xml._
@@ -32,7 +33,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   }
 
   private def getResponseNode(qti: Node): Option[Node] = {
-    (qti \ "responseProcessing").headOption.map(FieldValueProcessingTransformer.transform(_)) match {
+    (qti \ "responseProcessing").headOption.map(ResponseProcessingTransformer.transformAll(_)) match {
       case Some(responseProcessing) => responseProcessing.hasTemplate match {
         case true => (qti \ "responseDeclaration").length match {
           case 1 => Some(responseProcessing.withTemplate
@@ -93,17 +94,18 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     s" else { ${node.withoutEmptyChildren.map(responseRule).mkString(" ")} }"
 
   private def conditionalStatement(node: Node, expressionWrapper: String, responseWrapper: String)(implicit qti: Node) =
-    node.withoutEmptyChildren.zipWithIndex.map{ case(node, i) => i match {
-      case 0 => (expression(node), i)
-      case _ => (responseRule(node), i)
-    }}.map{ case(string, i) => i match {
-      case 0 => expressionWrapper.replace("$string", string)
-      case _ => responseWrapper.replace("$string", string)
-    }}.mkString + "}"
+    node.withoutEmptyChildren.partition(_.label != "setOutcomeValue") match {
+      case (expressionNodes, responseRuleNodes) => {
+        expressionWrapper.replace("$string", expression(expressionNodes.head)) +
+          responseWrapper.replace("$string", responseRule(responseRuleNodes.head)) + "}"
+      }
+      case _ => throw new Exception("Error")
+    }
+
 
   protected def responseRule(node: Node)(implicit qti: Node) = node.label match {
     case "setOutcomeValue" => setOutcomeValue(node)
-    case _ => throw new Exception(s"Unsupported response rule: ${node.label}")
+    case _ => throw new Exception(s"Unsupported response rule: ${node.label}\n${qti}")
   }
 
   protected def setOutcomeValue(node: Node)(implicit qti: Node) =

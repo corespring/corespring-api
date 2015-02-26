@@ -45,6 +45,7 @@ object CorrectResponse {
       case "multiple" => CorrectResponseMultiple(node)
       case "ordered" => CorrectResponseOrdered(node)
       case "targeted" => CorrectResponseTargeted(node, Set[String]())
+      case "record" => CorrectResponseRecord(node)
       case _ => throw new RuntimeException(
         s"""unknown cardinality: ${cardinality}. cannot generate CorrectResponse""")
     }

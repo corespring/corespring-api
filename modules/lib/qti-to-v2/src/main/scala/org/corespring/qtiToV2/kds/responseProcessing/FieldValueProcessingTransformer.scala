@@ -3,11 +3,11 @@ package org.corespring.qtiToV2.kds.responseProcessing
 import scala.xml.Node
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
-object FieldValueProcessingTransformer {
+object FieldValueProcessingTransformer extends ResponseProcessingTransformer {
 
   import scala.xml.Utility.trim
 
-  def transform(node: Node) = {
+  override def transform(node: Node) = {
     new RuleTransformer(new RewriteRule {
       override def transform(node: Node) = (node \ "fieldValue").nonEmpty match {
         case true => {

@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.kds
 
+import org.corespring.qtiToV2.kds.responseProcessing.FieldValueProcessingTransformer
 import org.specs2.mutable.Specification
 
 class FieldValueProcessingTransformerTest extends Specification {
