@@ -39,7 +39,9 @@ class ItemImporterExporter extends JsonUtil with HtmlProcessor {
 
     def collectionName = s"${collection.name.toLowerCase.replaceAll(" ", "-")}_${collection.id.toString}"
 
-    extractor.ids.map(id => {
+    val itemCount = extractor.ids.length
+    extractor.ids.zipWithIndex.map{ case(id, index) => {
+      println(s"Processing ${id} (${index+1}/$itemCount)")
       val itemJson = extractor.itemJson
       val meta = extractor.metadata
       val result = (itemJson.get(id).getOrElse(Failure(new Error("Missing item JSON"))),
@@ -72,7 +74,7 @@ class ItemImporterExporter extends JsonUtil with HtmlProcessor {
         }
         case _ => Seq.empty[(String, Source)]
       }
-    }).flatten.toMap
+    }}.flatten.toMap
   }
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {

@@ -19,9 +19,9 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper], commonMe
   val manifest = sources.find{ case(filename, _) => filename == ManifestReader.filename }
     .map { case(_, manifest) => ManifestReader.read(manifest, sources) }
 
-  def ids = manifest.map(_.items.map(_.id)).getOrElse(Seq.empty)
+  lazy val ids = manifest.map(_.items.map(_.id)).getOrElse(Seq.empty)
 
-  def metadata: Map[String, Validation[Error, Option[JsValue]]] =
+  lazy val metadata: Map[String, Validation[Error, Option[JsValue]]] =
     manifest.map(_.items.map(f =>
       f.id -> Success(Some(Json.obj(
         "taskInfo" -> Json.obj("extended" -> Json.obj("kds" -> (Json.obj(
@@ -39,7 +39,7 @@ abstract class KdsQtiItemExtractor(sources: Map[String, SourceWrapper], commonMe
     }
   }
 
-  def itemJson: Map[String, Validation[Error, JsValue]] =
+  lazy val itemJson: Map[String, Validation[Error, JsValue]] =
     manifest.map(_.items.map(f => sources.get(f.filename.flattenPath).map(s => {
       try {
         f.id -> Success(KdsQtiItemTransformer.transform(preprocessHtml(s.getLines.mkString), f, sources))

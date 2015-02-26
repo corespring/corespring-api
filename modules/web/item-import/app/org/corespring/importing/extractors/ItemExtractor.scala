@@ -11,9 +11,9 @@ import scalaz.Validation
 
 trait ItemExtractor {
 
-  def ids: Seq[String]
-  def metadata: Map[String, Validation[Error, Option[JsValue]]]
-  def itemJson: Map[String, Validation[Error, JsValue]]
+  val ids: Seq[String]
+  val metadata: Map[String, Validation[Error, Option[JsValue]]]
+  val itemJson: Map[String, Validation[Error, JsValue]]
   def files(id: String, itemId: VersionedId[ObjectId], itemJson: JsValue): Validation[Error, Option[Resource]]
   def upload(itemId: VersionedId[ObjectId], files: Map[String, SourceWrapper]): Validation[Error, Seq[BaseFile]]
 

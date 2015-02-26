@@ -19,9 +19,9 @@ abstract class CorespringItemExtractor(sources: Map[String, SourceWrapper]) exte
   val itemJsonFilename = "item.json"
   val itemMetadataFilename = "metadata.json"
 
-  def ids = Seq(id)
+  val ids = Seq(id)
 
-  def metadata: Map[String, Validation[Error, Option[JsValue]]] = {
+  lazy val metadata: Map[String, Validation[Error, Option[JsValue]]] = {
     Map(id -> {
       try {
         sources.get(itemMetadataFilename).map(item => Success(Some(Json.parse(item.mkString)))).getOrElse(Success(None))
@@ -39,7 +39,7 @@ abstract class CorespringItemExtractor(sources: Map[String, SourceWrapper]) exte
       case Failure(error) => Failure(error)
     }
 
-  def itemJson: Map[String, Validation[Error, JsValue]] =
+  lazy val itemJson: Map[String, Validation[Error, JsValue]] =
     Map(id -> {
       try {
         val itemJson = sources.get(itemJsonFilename).map(item => Json.parse(item.mkString))
