@@ -64,7 +64,7 @@ object PlayerJsonToItem {
       info.copy(
         description = (infoJson \ "description").asOpt[String],
         gradeLevel = (infoJson \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
-        itemType = (infoJson \ "itemType").asOpt[String],
+        itemTypes = (infoJson \ "itemTypes").asOpt[Map[String, Int]].getOrElse(Map.empty),
         subjects = subjects(infoJson).orElse(info.subjects),
         title = (infoJson \ "title").asOpt[String].orElse(info.title))
     }

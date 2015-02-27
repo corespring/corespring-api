@@ -19,7 +19,7 @@ trait ItemTransformerToSummaryData {
       "author" -> item.contributorDetails.map(details => details.author),
       "title" -> item.taskInfo.map(info => info.title),
       "gradeLevel" -> item.taskInfo.map(info => info.gradeLevel),
-      "itemType" -> item.taskInfo.map(info => info.itemType),
+      "itemTypes" -> item.taskInfo.map(info => info.itemTypes),
       "standards" -> standard(item.standards),
       "priorUse" -> priorUse(item)) ++ subjects(item)
 

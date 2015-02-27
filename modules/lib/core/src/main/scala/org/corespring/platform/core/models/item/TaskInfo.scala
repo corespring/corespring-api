@@ -47,7 +47,7 @@ object TaskInfo extends ValueGetter {
         if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
         info.title.map((title -> JsString(_))),
         info.description.map((description -> JsString(_))),
-        info.itemType.map((itemType -> JsString(_))),
+        Some(itemTypes -> JsObject(info.itemTypes.map{ case(key, count) => key -> JsNumber(count) }.toSeq)),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
       val subjectsJson: Option[JsValue] = info.subjects.map(subjects => Json.toJson(subjects))
@@ -115,7 +115,6 @@ object TaskInfo extends ValueGetter {
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
-    (__ \ Keys.itemType).readNullable[String] and
     getItemTypes)(TaskInfo.apply _)
 }
 
