@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2
 
+import org.corespring.qtiToV2.kds.TagCleaner
 import play.api.libs.json._
 
 import scala.xml.{Text, Unparsed, Node, XML}
@@ -30,7 +31,7 @@ trait EntityEscaper {
       case "entity" => Unparsed(s"&#${(node \ "@value").text};")
       case _ => node
     }
-  }).transform(XML.loadString(s"<entity-escaper>$xml</entity-escaper>")).head.child).mkString
+  }).transform(XML.loadString(s"<entity-escaper>$xml</entity-escaper>")).head.child.map(TagCleaner.clean)).mkString
 
   def encodeSafeEntities(xml: String): String =
     safe.foldLeft(xml){ case (acc, entity) => {

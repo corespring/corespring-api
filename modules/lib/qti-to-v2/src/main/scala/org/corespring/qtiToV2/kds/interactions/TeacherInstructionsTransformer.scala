@@ -15,7 +15,8 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
   def teacherInstructionsId(node: Node) = s"teacher-instructions-${node.hashCode()}"
 
   override def transform(node: Node) = node match {
-    case node: Node if (isInstructions(node)) => <corespring-teacher-instructions id={teacherInstructionsId(node)}></corespring-teacher-instructions>
+    case node: Node if (isInstructions(node)) =>
+      <corespring-teacher-instructions id={teacherInstructionsId(node)}></corespring-teacher-instructions>
     case _ => node
   }
 
