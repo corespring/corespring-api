@@ -22,6 +22,7 @@ trait EntityEscaper {
   def escapeEntities(xml: String): String =
     entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
       acc
+        .replaceAllLiterally(entity.char.toString, s"""<entity value="${entity.unicode.toString}/>""")
         .replaceAllLiterally(s"&#${entity.unicode.toString};", s"""<entity value="${entity.unicode.toString}"/>""")
         .replaceAllLiterally(s"&${entity.name};", s"""<entity value="${entity.unicode.toString}"/>""")
     }
