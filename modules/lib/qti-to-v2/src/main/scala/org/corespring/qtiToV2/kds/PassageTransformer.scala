@@ -13,7 +13,7 @@ trait PassageTransformer extends PassageScrubber with HtmlProcessor {
     resource.resourceType == ManifestResourceType.Passage match {
       case true => {
         sources.find{ case (path, source) => resource.path.flattenPath == path.flattenPath }.map(_._2) match {
-          case Some(source) => Some(transformPassage(source.getLines.mkString("\n")))
+          case Some(source) => Some(transformPassage(source.getLines.mkString))
           case _ => throw new Exception(s"Missing passage ${resource.path}")
         }
       }
@@ -22,8 +22,8 @@ trait PassageTransformer extends PassageScrubber with HtmlProcessor {
   }
 
   private def transformPassage(xmlString: String): String =
-    unescapeEntities(<div class="passage">{
+    <div class="passage">{
       (XML.loadString(scrub(escapeEntities(xmlString))) \ "passageBody" \\ "passageParts" \\ "partBlock").map(pb => <div/>.copy(child = pb))
-    }</div>.toString)
+    }</div>.toString
 
 }

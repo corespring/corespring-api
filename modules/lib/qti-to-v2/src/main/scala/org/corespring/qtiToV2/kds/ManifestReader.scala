@@ -63,6 +63,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber with EntityEsc
             } catch {
               case e: Exception => {
                 println(s"Error reading: $filename")
+                println(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))
                 e.printStackTrace
                 None
               }

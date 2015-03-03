@@ -21,10 +21,12 @@ trait EntityEscaper {
    */
   def escapeEntities(xml: String): String =
     entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
-      acc
-        .replaceAllLiterally(entity.char.toString, s"""<entity value="${entity.unicode.toString}"/>""")
-        .replaceAllLiterally(s"&#${entity.unicode.toString};", s"""<entity value="${entity.unicode.toString}"/>""")
-        .replaceAllLiterally(s"&${entity.name};", s"""<entity value="${entity.unicode.toString}"/>""")
+      ((string: String) => dontEncode.contains(entity.char) match {
+        case true => string
+        case _ => string.replaceAllLiterally(entity.char.toString, entity.toXmlString)
+      }).apply(acc
+        .replaceAllLiterally(s"&#${entity.unicode.toString};", entity.toXmlString)
+        .replaceAllLiterally(s"&${entity.name};", entity.toXmlString))
     }
 
   def unescapeEntities(xml: String) = (new RuleTransformer(new RewriteRule {
@@ -46,7 +48,11 @@ trait EntityEscaper {
 
 object EntityEscaper {
 
-  case class Entity(name: String, char: Char, unicode: Int)
+  val dontEncode = Seq('"', '&', '\'', '<', '>', '-') ++ 65.to(90).map(_.toChar)
+
+  case class Entity(name: String, char: Char, unicode: Int) {
+    def toXmlString = s"""<entity value="${this.unicode.toString}"/>"""
+  }
 
   /**
    * A mapping of all HTML entity names to their corresponding unicode decimal values (see
