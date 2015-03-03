@@ -25,7 +25,6 @@ case class PlayerAccessSettings(itemId: String,
 object PlayerAccessSettings {
   val STAR = "*"
   val ANYTHING = PlayerAccessSettings(STAR, Some(STAR), false, expires = Some(0))
-  //val NOTHING = PlayerAccessSettings("____", Some("____"), false)
 
   def readExpires(expires: JsValue): Option[Long] =
     expires match {
