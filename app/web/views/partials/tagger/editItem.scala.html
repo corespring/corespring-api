@@ -1,0 +1,245 @@
+@(useV2: Boolean, isRoot: Boolean)
+
+<div ui-modal ng-model="showConfirmDestroyModal" id="myModal" style="padding: 20px" xmlns="http://www.w3.org/1999/html">
+    <h2>Delete Item</h2>
+    <br/>
+
+    <p>Are you sure? This can't be undone.</p>
+
+    <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
+    <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
+</div>
+
+<div ui-modal ng-model="showProgressModal" id="myProgressModal" style="padding: 20px">
+    <h2>Please wait</h2>
+    <br/>
+
+    <p>Operation in progress</p>
+</div>
+
+<!--Warning when trying to make changes to an item that has session data-->
+<div ui-modal ng-model="showSaveWarning" id="saveWarningModal" style="padding: 20px">
+
+    <h4>Create new Version?</h4>
+    <br/>
+    <p>You are trying to modify an item that has data from student responses associated with it and this means
+    that to continue, the system will create a new version.</p><br/>
+
+    <p>If you choose to proceed with the modification, be aware that the responses collected from the original
+        version will not be associated with this new version. The previous version will be saved and the data
+        associated with it will be available for analysis if the original item is still “live” as part of assignments.
+    </p>
+    <button class="btn btn-primary" ng-click="save(true)">Continue</button>
+    <button class="btn btn-warning cancel" ng-click="showSaveWarning=false">Cancel</button>
+</div>
+
+<div class="sub-nav sub-nav-lower">
+    <div class="container" style="width: 940px;">
+        <a ng-click="backToCollections()" class="back-to-collections" >
+          <i class="icon-white icon-backward"></i>
+        </a>
+        <div class="row">
+            <ul class="span6 nav nav-pills">
+                <li ng-class="{true:'active', false:''}[currentPanel=='content']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('content')">Interaction</a>
+                </li>
+                <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('metadata')">Profile</a></li>
+
+                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
+                    <a href="javascript:void(1)"
+                       ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+                </li>
+
+                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
+                    <a href="javascript:void(1)"
+                       ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
+                </li>
+            </ul>
+
+            <div class="pull-right">
+                <label style="padding-top:5px; padding-right:5px;">Status: {{itemStatus}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="!isPublished"><a href="" style="color: white;" ng-click="publish()">Publish...</a></label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">{{sessionCount}}</label>
+                <button class="btn btn-primary"
+                        ng-model="isSaving"
+                        loading-button
+                        data-loading-text="Saving..."
+                        ng-click="save()">Save
+                </button>
+                <button class="btn btn-success"
+                    ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+                <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
+                               style="cursor: pointer"
+                               ng-click="togglePreview()"
+                               title="toggle preview"
+                               ng-show="mode == 'edit'"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="item-content-container" ng-class="{true:'editor-active', false:''}[showResourceEditor==true]" >
+    <div class="edit" style="overflow: auto" ng-class="previewClassName">
+
+        @_edit.metadata()
+
+        @_edit.supportingMaterials()
+
+        @_edit.orgMetadata()
+
+        <!--_edit.content()
+        ng-show="currentPanel == 'content'"
+        -->
+
+        <div class="resource-editor editor-panel" ng-show="showResourceEditor" ng-controller="ResourceEditor">
+
+            <div ui-modal ng-model="showRenameFileModal" style="padding: 10px">
+                <h3>Rename {{fileToRename.name}}</h3>
+
+                <div class="control-group">
+                    <label class="control-label">Name</label>
+                    <input type="text" ng-model="newFilename" placeholder="enter name.."
+                           ng-change="nameAlreadyTaken = false"/>
+                    <br/>
+                    <span style="font-weight: 8px; color: red;" ng-show="nameAlreadyTaken">Name already taken</span>
+                </div>
+                <button ng-click="confirmRenameFile()"
+                        ng-disabled="!canRenameFile()"
+                        class="btn btn-success">Go
+                </button>
+                <button class="btn btn-info"
+                        ng-click="cancelRenameFile()">Cancel
+                </button>
+            </div>
+
+            <div ui-modal ng-model="showRemoveFileModal" style="padding: 10px">
+                <h3>Delete {{fileToRemove.name}}</h3>
+
+                <button ng-click="confirmRemoveFile()"
+                        class="btn btn-success">Ok
+                </button>
+                <button class="btn btn-info"
+                        ng-click="cancelRemoveFile()">Cancel
+                </button>
+            </div>
+
+            <div class="resource-editor-header">
+                <div>
+
+                    <div class="pull-left" style="padding-left: 10px">
+                        <a ng-click="leaveEditor()" ng-show="showBackNav" class="leave-link">
+                            <i class="icon-backward"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-list">
+                <h2>Files</h2>
+
+                <span class="info" ng-show="resource.files.length == 0">No files yet!</span>
+
+                <ul>
+                    <li ng-class="{true:'active', false:''}[f == selectedFile]" ng-repeat="f in resource.files">
+                        <i class="icon-home" ng-show="f.default"></i>
+                        <a ng-click="showFile(f)">{{f.name}}</a>
+
+                            <span class="dropdown" ng-show="canShowFileDropdown(f)">
+                                <a class="dropdown-toggle" id="drop5" role="button" data-toggle="dropdown" href="#"><b
+                                        class="caret"></b></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li ng-show="canRemove(f)"><a tabindex="-1" ng-click="removeFile(f)">Remove</a></li>
+                                    <li ng-show="canRename(f)"><a tabindex="-1" ng-click="renameFile(f)">Rename</a></li>
+                                    <li ng-show="canMakeDefault(f)"><a tabindex="-1" ng-click="makeDefault(f)">Make
+                                        Default</a></li>
+                                </ul>
+                            </span>
+                    </li>
+                </ul>
+
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button
+                                file-uploader
+                                fu-upload-completed="onFileUploadCompleted"
+                                fu-file-size-greater-than-max="onFileSizeGreaterThanMax"
+                                class="btn btn-mini btn-success"
+                                fu-url="calculateUploadUrl()"
+                                fu-max-size="10240"
+                                fu-mode="raw">Upload File
+                        </button>
+                        <button
+                                class="btn btn-mini btn-success dropdown-toggle"
+                                data-toggle="dropdown">New...<span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                            <li><a ng-click="createNewVirtualFile('*.html')">html</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.css')">css</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.xml')">xml</a></li>
+                            <li><a ng-click="createNewVirtualFile('*.js')">js</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div style="overflow:hidden;">
+
+                <img ng-show="!selectedFile.content" ng:src="{{selectedFileImageUrl}}"/>
+
+                <div class="alert alert-warning not-latest" role="start">
+                    <strong>This is not the current version of this item</strong>. You cannot edit content for previously
+                    published item versions. Please visit the current version of this item <a ng-href="{{latestItemUrl}}">here</a>.
+                </div>
+
+                <div class="code-editor"
+                     ace-editor
+                     ng-show="showEditor"
+                     ace-model="selectedFile.content"
+                     ace-theme="eclipse"
+                     ace-mode="getAceMode(selectedFile.contentType)"
+                     ng-class="fileListClassName"
+                     ace-resize-events="tabSelected,panelOpen,dataLoaded"
+                        ></div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <div class="preview" ng-class="previewClassName" data-version="2">
+        <div class="inner">
+            <div class="well">
+                <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank" ng-show="isV2()">Preview</a>
+                @if(isRoot) {
+                    <a href="#" target="_blank" ng-href="{{devUrl()}}" class="btn dev-btn">Dev Edit</a>
+                }
+                <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
+                   <div class="catalog-preview-content">
+                     <button ng-click="showV2Preview=false" class="button btn-sm btn btn-success close-btn">Close</button>
+                     <iframe src="{{v2CatalogUrl}}" frameborder="0"></iframe>
+                   </div>
+                </div>
+
+                <div ng-show="isV1()">
+                    <a ng-click="launchV1Player()">Refresh &nbsp;&nbsp;</a>
+
+                    <a href="{{fullPreviewUrl}}" target="_blank" >Preview in new window</a>
+                </div>
+
+                <div class="preview-container" ng-class="{'v2': isV2()}" id="item-preview-target"></div>
+            </div>
+        </div>
+        <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
+    </div>
+
+</div>
