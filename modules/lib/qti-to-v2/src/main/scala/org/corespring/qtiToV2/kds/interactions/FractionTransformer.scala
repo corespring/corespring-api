@@ -7,6 +7,7 @@ trait FractionTransformer {
 
   def transformFractions(node: Node) = new RuleTransformer(new RewriteRule {
     override def transform(node: Node) = node match {
+      case node: Node if (node.label == "div" && (node \ "@class").text == "whole") => node.child
       case node: Node if (node.label == "table" && (node \ "@class").text == "frac" && !containsInteraction(node)) =>
         (findTextByClass(node, "nu"), findTextByClass(node, "de")) match {
           case (Some(numerator), Some(denominator)) if (numerator.trim.nonEmpty && denominator.trim.nonEmpty) =>
