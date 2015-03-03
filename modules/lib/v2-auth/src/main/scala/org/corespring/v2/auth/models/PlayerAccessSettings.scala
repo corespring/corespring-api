@@ -1,5 +1,6 @@
 package org.corespring.v2.auth.models
 
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.Mode.Mode
 import play.api.libs.json._
 
@@ -14,7 +15,22 @@ case class PlayerAccessSettings(itemId: String,
       s == PlayerAccessSettings.STAR || s == sessionId
   }.getOrElse(sessionId == PlayerAccessSettings.STAR)
 
-  def allowItemId(itemId: String): Boolean = this.itemId == PlayerAccessSettings.STAR || this.itemId == itemId
+  def allowItemId(itemId: String): Boolean = {
+
+    lazy val allowId = {
+      for {
+        thisId <- VersionedId(this.itemId)
+        thatId <- VersionedId(itemId)
+      } yield {
+        if (thisId.version.isEmpty) {
+          thisId.id == thatId.id
+        } else {
+          thisId.equals(thatId)
+        }
+      }
+    }
+    this.itemId == PlayerAccessSettings.STAR || allowId.getOrElse(false)
+  }
 
   def allowMode(mode: Mode) = this.mode.map {
     m =>
@@ -33,7 +49,7 @@ object PlayerAccessSettings {
       case JsString(s) => try {
         Some(s.toLong)
       } catch {
-        case e:Throwable => None
+        case e: Throwable => None
       }
       case _ => None
     }
