@@ -90,9 +90,15 @@ class LoadPlayerTest
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
-    "fail - create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession("Let me in") {
-      status(createSessionResult) === UNAUTHORIZED
-    }
+    "fail - create session for client id + options query string" in
+      new clientIdAndToken_queryString_CreateSession("Let me in") {
+        status(createSessionResult) === UNAUTHORIZED
+      }
+
+    "fail - create session for client id + options query string" in
+      new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.obj("itemId" -> "*"))) {
+        status(createSessionResult) === UNAUTHORIZED
+      }
 
     "create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(createSessionResult) === SEE_OTHER
