@@ -25,7 +25,7 @@ object MatchInteractionTransformer extends InteractionTransformer {
           case nonEmpty: String => nonEmpty
         })) +: columns.values.map(text => Json.obj("labelHtml" -> text)).toSeq),
         "rows" -> rows.map { case(id, text) => Json.obj("id" -> id, "labelHtml" -> text) }.toSeq,
-        "answerType" -> "YES_NO"
+        "answerType" -> (if (columns.values.find(_.toLowerCase.contains("true")).nonEmpty) "TRUE_FALSE" else "YES_NO")
       )
     )
   }).toMap
