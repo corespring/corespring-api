@@ -95,7 +95,7 @@ class LoadPlayerTest
         status(createSessionResult) === UNAUTHORIZED
       }
 
-    "fail - create session for client id + options query string" in
+    "fail - create session for client id + options query string, if token is missing 'expires'" in
       new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.obj("itemId" -> "*"))) {
         status(createSessionResult) === UNAUTHORIZED
       }

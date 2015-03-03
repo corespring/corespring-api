@@ -30,7 +30,7 @@ class LoadSessionTest extends IntegrationSpecification {
       status(result) ==== UNAUTHORIZED
     }
 
-    "fail - create session for client id + options query string" in
+    "fail - create session for client id + options query string, if token is missing 'expires'" in
       new clientId_loadSession(Json.stringify(Json.obj("itemId" -> "*"))) {
         status(result) === UNAUTHORIZED
       }
