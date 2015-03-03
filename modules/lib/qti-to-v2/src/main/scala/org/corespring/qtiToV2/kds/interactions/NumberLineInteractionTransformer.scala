@@ -34,7 +34,10 @@ object NumberLineInteractionTransformer extends InteractionTransformer {
           "availableTypes" -> Json.obj("PF" -> true),
           "initialElements" -> Json.arr(),
           "ticks" -> (node \ "hatchMark")
-            .map(hatch => Json.obj("label" -> (hatch \ "@label").text, "value" -> BigDecimal((hatch \ "@value").text)))
+            .map(hatch => Json.obj(
+              "label" -> (if ((hatch \ "@isVisibleLabel").text == "1") (hatch \ "@label").text else ""),
+              "value" -> BigDecimal((hatch \ "@value").text))
+            )
         )
       )
     )
