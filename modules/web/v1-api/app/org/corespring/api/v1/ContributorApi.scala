@@ -13,7 +13,7 @@ object ContributorApi extends BaseApi {
   def getContributorsList = ApiAction {
     request =>
       val collection = se.radley.plugin.salat.mongoCollection("content")
-      val contributors = collection.distinct("contributorDetails.contributor")
+      val contributors = collection.distinct("contributorDetails.contributor", withoutArchive)
       val contributorsFiltered = contributors.filter((c: Any) => c != null)
       Ok(toJson(contributorsFiltered.map((p: Any) => JsObject(Seq("name" -> JsString(p.toString))))))
   }
