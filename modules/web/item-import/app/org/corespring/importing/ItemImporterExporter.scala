@@ -65,7 +65,7 @@ class ItemImporterExporter extends JsonUtil with HtmlProcessor {
       result match {
         case Success((definition, taskInfo)) => {
           val basePath = s"$collectionName/$id"
-          Seq(s"$basePath/player-definition.json" -> Source.fromString(Json.prettyPrint(Json.toJson(definition)).convertWordChars),
+          Seq(s"$basePath/player-definition.json" -> Source.fromString(Json.prettyPrint(Json.toJson(definition))),
           s"$basePath/profile.json" -> Source.fromString(Json.prettyPrint(
             partialObj("taskInfo" -> Some(Json.toJson(taskInfo)), "originId" -> Some(JsString(id)))))) ++
               extractor.filesFromManifest(id).map(filename => s"$basePath/data/${filename.flattenPath}" -> sources.get(filename))
