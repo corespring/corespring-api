@@ -1,14 +1,15 @@
 package org.corespring.v2.api
 
+import com.mongodb.casbah.MongoCollection
 import org.bson.types.ObjectId
+import org.corespring.api.v1
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.container.components.outcome.ScoreProcessor
-import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
@@ -38,20 +39,19 @@ class V2ApiBootstrap(
   val scoreService: ScoreService,
   val playerJsUrl: String,
   val tokenService: TokenService,
-  val orgEncryptionService: OrgEncryptionService) {
+  val orgEncryptionService: OrgEncryptionService,
+  val itemTransformer : ItemTransformer) {
 
   private object ExecutionContexts {
     import play.api.Play.current
     val itemSessionApi: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
-
   }
 
   private lazy val itemApi = new ItemApi {
 
     override def scoreService: ScoreService = V2ApiBootstrap.this.scoreService
-    private lazy val itemTransformer = new ItemTransformerToSummaryData {}
 
-    override def transform: (Item, Option[String]) => JsValue = itemTransformer.transform
+    override def getSummaryData: (Item, Option[String]) => JsValue = new ItemToSummaryData{}.toSummaryData
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
@@ -122,11 +122,20 @@ class V2ApiBootstrap(
     override def orgEncryptionService: OrgEncryptionService = V2ApiBootstrap.this.orgEncryptionService
   }
 
+  lazy val cms = new Cms{
+    override def itemTransformer: ItemTransformer = V2ApiBootstrap.this.itemTransformer
+
+    override def itemCollection: MongoCollection = V2ApiBootstrap.this.itemService.collection
+
+    override def v1ApiCreate = (request) => {org.corespring.api.v1.ItemApi.create()(request)}
+  }
+
   lazy val controllers: Seq[Controller] = Seq(
     itemApi,
     itemSessionApi,
     playerTokenApi,
     externalModelLaunchApi,
-    utils)
+    utils,
+    cms)
 
 }

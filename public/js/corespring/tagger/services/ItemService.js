@@ -78,7 +78,14 @@ angular.module('tagger.services')
             $http.post('/api/v2/items', data)
               .success(onSuccess)
               .error(onError);
-        }
+        };
+
+        this.createFromV1Data = function(data, onSuccess, onError){
+            $http.post('/api/v2/cms/create-from-v1-data', data)
+              .success(onSuccess)
+              .error(onError);
+
+        };
     }
 
     return V2ItemService;

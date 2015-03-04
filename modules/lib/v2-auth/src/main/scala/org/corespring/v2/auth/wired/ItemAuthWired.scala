@@ -50,10 +50,17 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
     
     def canAccess(collectionId: String) = orgService.canAccessCollection(identity.org,new ObjectId(collectionId),p)
 
+    def loadItem = for {
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        item <- itemService.findOneById(vid).toSuccess(cantFindItemWithId(vid))
+        //ensure the item has v2 data
+        updatedItem <- Success(itemTransformer.updateV2Json(item))
+      } yield updatedItem
+
     for {
-      vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- itemTransformer.updateV2Json(vid).toSuccess(cantFindItemWithId(vid))
-      canAccess <- if (canAccess(item.collectionId.getOrElse("?")))
+      item <- loadItem
+      collectionId <- item.collectionId.toSuccess(generalError(s"The item ${itemId} has no collectionId"))
+      canAccess <- if (canAccess(collectionId))
         Success(true)
       else
         Failure(orgCantAccessCollection(identity.org.id, item.collectionId.getOrElse("?"), p.name))

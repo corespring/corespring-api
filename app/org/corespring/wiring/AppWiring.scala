@@ -72,7 +72,8 @@ object AppWiring {
     scoreService,
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url,
     services.tokenService,
-    services.orgEncryptionService)
+    services.orgEncryptionService,
+    ItemTransformWiring.itemTransformer)
 
   private lazy val itemImportBootstrap = new ItemImportBootstrap(
     services.itemAuth,

@@ -78,7 +78,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
         dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
         savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
-        withV2DataItem <- itemTransformer.updateV2Json(savedResult).toSuccess("Error generating item v2 JSON")
+        withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
       }

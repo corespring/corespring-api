@@ -34,7 +34,6 @@
         mk('/new/:type', '/web/views/partials/tagger/createItem', tagger.CreateCtrl);
         mk('/edit/:itemId', '/web/views/partials/tagger/editItem', tagger.ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);
-
         /* jshint ignore:start */
         mk('/old/home', '/web/partials/home', HomeController);
         mk('/old/new/:type', '/web/partials/createItem', CreateCtrl);

@@ -25,7 +25,7 @@ trait ItemTransformer {
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
-      case Some(item) if (item.createdByApiVersion == 1) => updateV2Json(item)
+      case Some(item) if (item.createdByApiVersion == 1) => Some(updateV2Json(item))
       case Some(item) => Some(item)
       case _ => None
     }
@@ -39,7 +39,7 @@ trait ItemTransformer {
     itemService.findOneById(itemId) match {
       case Some(item) => item.playerDefinition match {
         case None => try {
-          updateV2Json(item)
+          Some(updateV2Json(item))
         } catch {
           case e: Exception => {
             e.printStackTrace
@@ -67,24 +67,24 @@ trait ItemTransformer {
     }
   }
 
-  def updateV2Json(item: Item): Option[Item] = {
+  def updateV2Json(item: Item): Item = {
     item.createdByApiVersion match {
       case 1 => {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
             case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-              case true => Some(updatedItem)
+              case true => updatedItem
               case _ => {
                 logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
                 itemService.save(updatedItem)
-                Some(updatedItem)
+                updatedItem
               }
             }
-            case _ => None
+            case _ => item
           }
       }
-      case _ => Some(item)
+      case _ => item
     }
   }
 

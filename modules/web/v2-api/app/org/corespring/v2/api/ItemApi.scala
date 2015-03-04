@@ -3,12 +3,14 @@ package org.corespring.v2.api
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
+import play.api.libs.iteratee.Iteratee
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -76,6 +78,9 @@ trait ItemApi extends V2Api {
     }
   }
 
+
+
+
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._
 
@@ -130,7 +135,7 @@ trait ItemApi extends V2Api {
     }
   }
 
-  def transform: (Item, Option[String]) => JsValue
+  def getSummaryData: (Item, Option[String]) => JsValue
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -140,7 +145,7 @@ trait ItemApi extends V2Api {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
-      } yield transform(item, detail)
+      } yield getSummaryData(item, detail)
 
       validationToResult[JsValue](i => Ok(i))(out)
     }
