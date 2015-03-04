@@ -9,20 +9,20 @@ import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.{ ExecutionContext, Await, Future }
 
 /**
  * Some request handlers specific to the CMS.
  */
-trait Cms extends Controller{
+trait Cms extends Controller {
 
   import ExecutionContext.Implicits.global
 
   def itemTransformer: ItemTransformer
 
-  def itemCollection : MongoCollection
+  def itemCollection: MongoCollection
 
-  def v1ApiCreate : (Request[AnyContent] => Future[SimpleResult])
+  def v1ApiCreate: (Request[AnyContent] => Future[SimpleResult])
 
   /**
    * AC-65.
@@ -33,30 +33,30 @@ trait Cms extends Controller{
    * @return
    */
 
-  private def addV2ModelAndTrashV1(r:SimpleResult, keepV1Data:Boolean) = {
+  private def addV2ModelAndTrashV1(r: SimpleResult, keepV1Data: Boolean) = {
     import scala.concurrent.duration._
-    val bytes : Array[Byte] = Await.result(r.body |>>> Iteratee.consume[Array[Byte]](), 1.second)
+    val bytes: Array[Byte] = Await.result(r.body |>>> Iteratee.consume[Array[Byte]](), 1.second)
     val s = new String(bytes, "utf-8")
     val json = Json.parse(s)
     val id = (json \ "id").as[String]
     itemTransformer.updateV2Json(VersionedId(new ObjectId(id)))
 
-    if(!keepV1Data){
-      def withVersionedId(id:String) = MongoDBObject("_id._id" -> new ObjectId(id))
+    if (!keepV1Data) {
+      def withVersionedId(id: String) = MongoDBObject("_id._id" -> new ObjectId(id))
       val removeData = MongoDBObject("$unset" -> MongoDBObject("data" -> ""))
       itemCollection.update(withVersionedId(id), removeData, false, false)
     }
   }
 
-  def createItemFromV1Data = Action.async{ implicit request =>
+  def createItemFromV1Data = Action.async { implicit request =>
 
-    val result : Future[SimpleResult] = v1ApiCreate(request)
+    val result: Future[SimpleResult] = v1ApiCreate(request)
 
-    result.map{ r =>
-      if(r.header.status == OK ){
+    result.map { r =>
+      if (r.header.status == OK) {
 
         val keepV1Data = request.getQueryString("keep-v1-data").exists(_ == "true")
-        addV2ModelAndTrashV1(r,keepV1Data)
+        addV2ModelAndTrashV1(r, keepV1Data)
       }
       r
     }
