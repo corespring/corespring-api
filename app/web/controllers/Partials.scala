@@ -1,7 +1,7 @@
 package web.controllers
 
 import org.corespring.platform.core.models.{ User, Organization }
-import play.api.templates.Template0
+import play.api.templates.{Html, Template0}
 import play.api.{ Play, Mode }
 import play.api.mvc.Action
 import org.corespring.common.config.AppConfig
@@ -21,7 +21,7 @@ object Partials extends BaseApi {
   def viewItem = Action { Ok(web.views.html.partials.viewItem()) }
   def redirect(url: String) = Action {
     if(Play.current.mode == Mode.Dev){
-      Ok("""In prod mod this will redirect to the public site. <a href="/web">To Web</a>""")
+      Ok(Html("""Your seeing this because you are running in dev mode. In prod mod this will redirect to the public site. <a href="/web">To Web</a>"""))
     } else {
       MovedPermanently(url)
     }
