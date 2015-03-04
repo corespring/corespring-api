@@ -20,7 +20,8 @@ object ExtendedTextInteractionTransformer extends InteractionTransformer {
 
   override def transform(node: Node) = node match {
     case e: Elem if (e.label == "extendedTextInteraction") =>
-      <corespring-extended-text-entry id={ (e \ "@responseIdentifier").text }></corespring-extended-text-entry>
+      <p class="prompt">{(node \ "prompt").map(_.child).flatten}</p> ++
+        <corespring-extended-text-entry id={ (e \ "@responseIdentifier").text }></corespring-extended-text-entry>
     case _ => node
   }
 

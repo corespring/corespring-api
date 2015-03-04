@@ -12,15 +12,15 @@ class ExtendedTextInteractionTransformerTest extends Specification {
   val maxStrings = 20
   val minStrings = 10
 
-  def qti =
-    <assessmentItem>
-      <responseDeclaration identifier={ identifier } cardinality="single" baseType="string"/>
-      <itemBody>
-        <extendedTextInteraction responseIdentifier={ identifier } expectedLength={ expectedLength.toString } expectedLines={ expectedLines.toString } maxStrings={ maxStrings.toString } minStrings={ minStrings.toString }></extendedTextInteraction>
-      </itemBody>
-    </assessmentItem>
-
   "ExtendedTextInteractionTransformer" should {
+
+    def qti =
+      <assessmentItem>
+        <responseDeclaration identifier={ identifier } cardinality="single" baseType="string"/>
+        <itemBody>
+          <extendedTextInteraction responseIdentifier={ identifier } expectedLength={ expectedLength.toString } expectedLines={ expectedLines.toString } maxStrings={ maxStrings.toString } minStrings={ minStrings.toString }></extendedTextInteraction>
+        </itemBody>
+      </assessmentItem>
 
     val componentsJson = ExtendedTextInteractionTransformer.interactionJs(qti)
 
@@ -53,6 +53,30 @@ class ExtendedTextInteractionTransformerTest extends Specification {
 
     "return the correct minStrings" in {
       (config \ "minStrings").as[Int] must be equalTo minStrings
+    }
+
+  }
+
+  "transform" should {
+
+    val prompt = "Hello, I'm a prompt!"
+
+    def qti(prompt: String = prompt) =
+      <assessmentItem>
+        <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="string"/>
+        <itemBody>
+          <extendedTextInteraction responseIdentifier="RESPONSE1" expectedLength="5000">
+            <prompt visible="true">{prompt}</prompt>
+          </extendedTextInteraction>
+        </itemBody>
+      </assessmentItem>
+
+    val output = new RuleTransformer(ExtendedTextInteractionTransformer).transform(qti())
+
+    "add a <div class='prompt'/> when it contains a prompt" in {
+      val promptNode = (output \\ "p").find(p => (p \ "@class").text.contains("prompt"))
+        .getOrElse(failure("Prompt not found"))
+      promptNode.text must be equalTo(prompt)
     }
 
   }

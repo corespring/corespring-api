@@ -22,7 +22,6 @@ object ItemTransformer extends PassageTransformer {
         throw e
       }
     }
-
   }
 
   /**
