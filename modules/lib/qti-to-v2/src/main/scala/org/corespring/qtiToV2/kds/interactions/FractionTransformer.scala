@@ -3,9 +3,12 @@ package org.corespring.qtiToV2.kds.interactions
 import scala.xml.Node
 import scala.xml.transform._
 
-trait FractionTransformer {
+/**
+ * Transform KDS fraction tabkes into MathJax
+ */
+object FractionTransformer extends MathNotationTransformer {
 
-  def transformFractions(node: Node) = new RuleTransformer(new RewriteRule {
+  def transform(node: Node) = new RuleTransformer(new RewriteRule {
     override def transform(node: Node) = node match {
       case node: Node if (node.label == "div" && (node \ "@class").text == "whole") => node.child
       case node: Node if (node.label == "table" && (node \ "@class").text == "frac" && !containsInteraction(node)) =>
