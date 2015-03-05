@@ -9,30 +9,31 @@ import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.test.BaseTest
 import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
 import scala.Some
-import org.corespring.platform.core.models.item.resource.{BaseFile, VirtualFile, Resource}
+import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, Resource }
 
 class ItemTest extends BaseTest {
 
   "createdByApiVersion" should {
 
-    val v1Item = Item(
-      data = Some(Resource(
-        name = "qti.xml",
-        files = Seq(VirtualFile(
-          name = "qti.xml", contentType = BaseFile.ContentTypes.XML, isMain = true, content = "<root/>")))))
+    val data = Some(Resource(
+      name = "qti.xml",
+      files = Seq(VirtualFile(
+        name = "qti.xml", contentType = BaseFile.ContentTypes.XML, isMain = true, content = "<root/>"))))
 
-    val v2Item = Item(
-      data = Some(Resource(
-        name = "item.json",
-        files = Seq(VirtualFile(
-          name = "item.json", contentType = BaseFile.ContentTypes.JSON, isMain = true, content = "{lol: 'wat'}")))))
+    val playerDefinition = Some(PlayerDefinition(Seq.empty, "", Json.obj(), "", None))
 
     "identify v1 items" in {
-      v1Item.createdByApiVersion === 1
+      Item(data = data).createdByApiVersion === 1
     }
 
     "identify v2 items" in {
+      val v2Item = Item(playerDefinition = playerDefinition)
       v2Item.createdByApiVersion === 2
+    }
+
+    "if has qti and player def identifies the item as 1" in {
+      val hasQtiAndPlayerDef = Item(data = data, playerDefinition = playerDefinition)
+      hasQtiAndPlayerDef.createdByApiVersion === 1
     }
   }
 
@@ -146,7 +147,7 @@ class ItemTest extends BaseTest {
     }
 
     "parse contributor details" in {
-      val additionalCopyright = AdditionalCopyright(Some("author"),Some("owner"),Some("year"),Some("license"),Some("mediaType"),Some("sourceUrl"))
+      val additionalCopyright = AdditionalCopyright(Some("author"), Some("owner"), Some("year"), Some("license"), Some("mediaType"), Some("sourceUrl"))
       val copyright = Copyright(Some("Ed"), Some("2001"), Some("3000"), Some("imageName.png"))
       val contributorDetails = ContributorDetails(
         additionalCopyrights = List(additionalCopyright),

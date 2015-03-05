@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.{ JSONParseException, JSON }
 import java.util.regex.Pattern
 import org.corespring.platform.core.models.error.CorespringInternalError
+import play.api.libs.json.{ Json, JsValue, JsObject }
 import scala.Left
 import scala.Right
 import scala.Some
@@ -208,6 +209,27 @@ case class SearchCancelled(error: Option[CorespringInternalError])
 case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[String] = Seq(), method: Int) {
   val inclusion = method == 1
   val exclusion = method == 0
+
+  def processJson(json: JsObject): JsObject = {
+
+    def addToJson(key: String, acc: JsObject): JsObject = if (jsfields.contains(key)) {
+      acc ++ Json.obj(key -> (json \ key))
+    } else {
+      acc
+    }
+
+    def removeFromJson(key: String, acc: JsObject): JsObject = if (jsfields.contains(key)) {
+      acc - key
+    } else {
+      acc
+    }
+
+    if (inclusion) {
+      json.keys.foldRight(Json.obj())(addToJson)
+    } else {
+      json.keys.foldRight(json)(removeFromJson)
+    }
+  }
 
   def addDbFieldsToJsFields = {
     dbfields.foreach(field => if (!jsfields.contains(field._1)) jsfields = jsfields :+ field._1)
