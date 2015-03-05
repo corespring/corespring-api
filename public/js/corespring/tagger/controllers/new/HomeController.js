@@ -1,6 +1,17 @@
 (function(root) {
 
-  function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils, Logger) {
+  function HomeController($scope,
+    $timeout,
+    $rootScope,
+    $http,
+    $location,
+    ItemService,
+    SearchService,
+    CollectionManager,
+    Contributor,
+    ItemFormattingUtils,
+    Logger,
+    CmsService) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -55,7 +66,7 @@
       }, {
         label: "Draft",
         key: "draft"
-      }]
+      }];
     };
 
     $scope.sortBy = function(field) {
@@ -67,46 +78,46 @@
       }
       $scope.$broadcast("sortingOnField", field, $rootScope.searchParams.sort[field] == 1);
       $scope.search();
-    }
+    };
 
     $scope.getContributorTitle = function(c) {
       return c.name;
     };
 
     $scope.getContributorSelectedTitle = function(items) {
-      if (!items || items.length == 0) {
+      if (!items || items.length === 0) {
         return "None Selected";
       }
       return items.length + " Selected";
-    }
+    };
 
     $scope.getCollectionTitle = function(c) {
       return c.name.replace("CoreSpring", "");
     };
 
     $scope.getTitle = function(o) {
-      return o.key.replace(/^0/, "")
+      return o.key.replace(/^0/, "");
     };
     $scope.getLabel = function(o) {
-      return o.label
+      return o.label;
     };
 
     $scope.getCollectionSelectedTitle = function(items) {
-      if (!items || items.length == 0) {
+      if (!items || items.length === 0) {
         return "None Selected";
       }
       return items.length + " selected";
     };
 
     $scope.getSelectedTitle = function(items) {
-      if (!items || items.length == 0) {
+      if (!items || items.length === 0) {
         return "None Selected";
       }
       var out = _.pluck(items, "key").map(function(key) {
-        var numericKey = parseInt(key)
-        return isNaN(numericKey) ? key : numericKey
+        var numericKey = parseInt(key);
+        return isNaN(numericKey) ? key : numericKey;
       });
-      return out.join(", ")
+      return out.join(", ");
     };
 
     function applyPermissions(items) {
@@ -133,7 +144,7 @@
 
     $scope.search = function() {
       var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
-        return e.label == "Other"
+        return e.label == "Other";
       });
 
       if (isOtherSelected) {
@@ -222,25 +233,27 @@
     };
 
     $scope.itemClick = function() {
-        if (this.item.readOnly) {
-          $scope.openItem(this.item.id)
-        } else {
+      var itemId = this.item.id;
+
+      if (this.item.readOnly) {
+        $scope.openItem(itemId);
+      } else {
+        CmsService.itemFormat(itemId, function(format) {
+          Logger.debug('itemFormat:', format);
           SearchService.currentItem = this.item;
-          $location.url('/edit/' + this.item.id + "?panel=metadata");
-        }
+          if (format.apiVersion === 2) {
+            $location.url('/edit/' + itemId);
+          } else {
+            $location.url('/old/edit/' + itemId + "?panel=metadata");
+          }
+        }.bind(this));
       }
-      /*
-       * called from the repeater. scope (this) is the current item
-       */
-    $scope.openEditView = function() {
-      SearchService.currentItem = this.item;
-      $location.url('/edit/' + this.item.id + "?panel=metadata");
     };
 
     $scope.publishStatus = function(isPublished) {
-      if (isPublished) return "Published"
-      else return "Draft"
-    }
+      if (isPublished) return "Published";
+      else return "Draft";
+    };
 
     //from items-app.js
     $scope.hidePopup = function() {
@@ -252,7 +265,7 @@
     $scope.openItem = function(id) {
       $timeout(function() {
         $scope.showPopup = true;
-        $scope.popupBg = "extra-large-window"
+        $scope.popupBg = "extra-large-window";
         $scope.previewingId = id;
         //$scope.$broadcast("requestLoadItem", id);
         $('#preloader').show();
@@ -302,7 +315,8 @@
     'CollectionManager',
     'Contributor',
     'ItemFormattingUtils',
-    'Logger'
+    'Logger',
+    'CmsService'
   ];
 
   root.tagger = root.tagger || {};

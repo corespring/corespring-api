@@ -70,6 +70,30 @@ angular.module('tagger.services')
 
 
 angular.module('tagger.services')
+    .service('CmsService', [ '$http',
+    function($http){
+
+    function CmsService(){
+        this.createFromV1Data = function(data, onSuccess, onError){
+            $http.post('/api/v2/cms/create-from-v1-data', data)
+              .success(onSuccess)
+              .error(onError);
+
+        };
+
+        this.itemFormat = function(id, onSuccess, onError){
+            $http.get('/api/v2/cms/item-format/' + id)
+                .success(onSuccess)
+                .error(onError);
+        };
+    }
+
+    return new CmsService();
+
+
+    }]);
+
+angular.module('tagger.services')
     .factory('V2ItemService', [ '$http',
     function($http){
 

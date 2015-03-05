@@ -40,7 +40,7 @@ class V2ApiBootstrap(
   val playerJsUrl: String,
   val tokenService: TokenService,
   val orgEncryptionService: OrgEncryptionService,
-  val itemTransformer : ItemTransformer) {
+  val itemTransformer: ItemTransformer) {
 
   private object ExecutionContexts {
     import play.api.Play.current
@@ -51,7 +51,7 @@ class V2ApiBootstrap(
 
     override def scoreService: ScoreService = V2ApiBootstrap.this.scoreService
 
-    override def getSummaryData: (Item, Option[String]) => JsValue = new ItemToSummaryData{}.toSummaryData
+    override def getSummaryData: (Item, Option[String]) => JsValue = new ItemToSummaryData {}.toSummaryData
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = headerToOrgAndOpts(request)
 
@@ -122,12 +122,12 @@ class V2ApiBootstrap(
     override def orgEncryptionService: OrgEncryptionService = V2ApiBootstrap.this.orgEncryptionService
   }
 
-  lazy val cms = new Cms{
+  lazy val cms = new Cms {
     override def itemTransformer: ItemTransformer = V2ApiBootstrap.this.itemTransformer
 
-    override def itemCollection: MongoCollection = V2ApiBootstrap.this.itemService.collection
+    override def itemService: ItemService = V2ApiBootstrap.this.itemService
 
-    override def v1ApiCreate = (request) => {org.corespring.api.v1.ItemApi.create()(request)}
+    override def v1ApiCreate = (request) => { org.corespring.api.v1.ItemApi.create()(request) }
   }
 
   lazy val controllers: Seq[Controller] = Seq(

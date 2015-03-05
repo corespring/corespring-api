@@ -1,26 +1,27 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 /**
  * Some request handlers specific to the CMS.
  */
 trait Cms extends Controller {
 
-  import ExecutionContext.Implicits.global
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def itemTransformer: ItemTransformer
 
-  def itemCollection: MongoCollection
+  def itemService: ItemService
 
   def v1ApiCreate: (Request[AnyContent] => Future[SimpleResult])
 
@@ -44,7 +45,7 @@ trait Cms extends Controller {
     if (!keepV1Data) {
       def withVersionedId(id: String) = MongoDBObject("_id._id" -> new ObjectId(id))
       val removeData = MongoDBObject("$unset" -> MongoDBObject("data" -> ""))
-      itemCollection.update(withVersionedId(id), removeData, false, false)
+      itemService.collection.update(withVersionedId(id), removeData, false, false)
     }
   }
 
@@ -59,6 +60,27 @@ trait Cms extends Controller {
         addV2ModelAndTrashV1(r, keepV1Data)
       }
       r
+    }
+  }
+
+  def getItemFormat(id: String) = Action.async { implicit request =>
+
+    def contentFormat(i: Item) = {
+      Json.obj(
+        "hasQti" -> i.hasQti,
+        "hasPlayerDefinition" -> i.hasPlayerDefinition,
+        "apiVersion" -> i.createdByApiVersion)
+    }
+
+    Future {
+      {
+        for {
+          vid <- VersionedId(id)
+          item <- itemService.findOneById(vid)
+        } yield {
+          Ok(contentFormat(item))
+        }
+      }.getOrElse(NotFound(""))
     }
   }
 }
