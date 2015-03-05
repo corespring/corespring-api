@@ -42,6 +42,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     standards,
     author,
     TaskInfo.Keys.title,
+    "contentFormat",
     published)
 
   /**
