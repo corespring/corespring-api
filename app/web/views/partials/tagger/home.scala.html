@@ -278,23 +278,22 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td class="new-window item-title" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
-                <td class="new-window" ng-bind-html-unsafe="item.description"></td>
-                <td class="new-window" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td class="new-window" 
-                    {{showGradeLevel()}}
-                </td>
-                <td class="new-window" {{showItemType(item)}}</td>
-                <td class="new-window" 
+                <td class="item-title" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
+                <td ng-bind-html-unsafe="item.description"></td>
+                <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                <td>{{showGradeLevel()}} </td>
+                <td>{{showItemType(item)}}</td>
+                <td>
                     <a ui-jq="tooltip"
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
-                <td class="new-window" {{getAuthorAbbreviation(item.contributor)}}</td>
-                <td class="new-window" {{publishStatus(item.published)}}</td>
-                <td class="new-window">
+                <td>{{getAuthorAbbreviation(item.contributor)}}</td>
+                <!-- {{publishStatus(item.published)}} -->
+                <td><item-status ng-model="item"></item-status></td>
+                <td>
                   <item-edit-buttons ng-model="item">Buttons here...</item-edit-buttons>
                 </td>
-                <td class="new-window"><button>Delete</button></td>
+                <td><button class="btn btn-danger">Delete</button></td>
             </tr>
             </tbody>
         </table>
