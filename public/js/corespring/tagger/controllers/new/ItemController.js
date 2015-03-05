@@ -27,6 +27,10 @@ function ItemController($scope, $location, $routeParams, V2ItemService, $rootSco
     $location.path("/home").search('');
   };
 
+  $scope.itemId = $routeParams.itemId;
+
+  $scope.version = ($scope.itemId.indexOf(':') !== -1) ? $scope.itemId.split(':')[1] : '0';
+
   $scope.clone = function () {
     $scope.showProgressModal = true;
     itemService.clone({id: $routeParams.itemId}, function onCloneSuccess(data) {
