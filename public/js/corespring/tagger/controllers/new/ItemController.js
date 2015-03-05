@@ -17,7 +17,9 @@ if (Array.prototype.removeItem === null) Array.prototype.removeItem = function (
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
+function ItemController($scope, $location, $routeParams, V2ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
+
+  var itemService = new V2ItemService();
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
 
@@ -27,7 +29,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.clone = function () {
     $scope.showProgressModal = true;
-    $scope.itemData.clone({id: $scope.itemData.id}, function onCloneSuccess(data) {
+    itemService.clone({id: $routeParams.itemId}, function onCloneSuccess(data) {
       $scope.showProgressModal = false;
       $location.path('/edit/' + data.id);
     }, function onError(error) {
@@ -41,7 +43,7 @@ ItemController.$inject = [
   '$scope',
   '$location',
   '$routeParams',
-  'ItemService',
+  'V2ItemService',
   '$rootScope',
   'Collection',
   'ServiceLookup',
