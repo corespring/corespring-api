@@ -30,7 +30,7 @@ function CreateCtrl($routeParams, ItemService, NewItemTemplates) {
 
   item.$save({},
     function onItemSaved(itemData) {
-      window.location.href = '/web#/edit/' + itemData.id;
+      window.location.href = '/web#/old/edit/' + itemData.id;
     },
     function onError(e) {
       alert("Error Saving Item: " + e.data.message);

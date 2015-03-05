@@ -37,7 +37,6 @@
         /* jshint ignore:start */
         mk('/old/home', '/web/partials/home', HomeController);
         mk('/old/new/:type', '/web/partials/createItem', CreateCtrl);
-        mk('/old/new-v2/:type', '/web/partials/createItem', CreateV2Ctrl);
         mk('/old/edit/:itemId', '/web/partials/editItem', ItemController, false);
         mk('/old/view/:itemId', '/web/partials/viewItem', ViewItemController, false);
         /* jshint ignore:end */

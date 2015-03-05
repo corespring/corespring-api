@@ -29,6 +29,8 @@ DELETE /items/:itemId                      @org.corespring.v2.api.ItemApi.delete
 
 POST /items                                @org.corespring.v2.api.ItemApi.create()
 
+POST /items/:itemId/clone                  @org.corespring.v2.api.ItemApi.cloneItem(itemId)
+
 GET  /items                                @org.corespring.v2.api.V1ItemApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
 POST /launch-item                          @org.corespring.v2.api.ExternalModelLaunchApi.buildExternalLaunchSession()

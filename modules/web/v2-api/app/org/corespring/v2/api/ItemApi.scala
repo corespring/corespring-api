@@ -151,6 +151,19 @@ trait ItemApi extends V2Api {
     }
   }
 
+
+  def cloneItem(id: String) = Action.async { implicit request =>
+    Future{
+      val out = for {
+        identity <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        item <- itemAuth.loadForRead(id)(identity)
+        cloned <- itemService.clone(item).toSuccess(generalError(s"Error cloning item with id: $id"))
+      } yield Json.obj("id" -> cloned.id.toString)
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 
   lazy val defaultPlayerDefinition = Json.obj(

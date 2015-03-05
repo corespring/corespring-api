@@ -110,6 +110,15 @@ angular.module('tagger.services')
               .error(onError);
 
         };
+
+        this.clone = function( params, onSuccess, onError) {
+            var url = "/api/v2/items/:id/clone".replace(":id", params.id);
+            
+            $http.post(url, {})
+                .success(onSuccess)
+                .error(onError);
+       };
+
     }
 
     return V2ItemService;
