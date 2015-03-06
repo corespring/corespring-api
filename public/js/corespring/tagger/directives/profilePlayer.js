@@ -1,5 +1,5 @@
 angular.module('tagger')
-  .directive('profilePlayer', ['CmsService',function (CmsService) {
+  .directive('profilePlayer', ['$timeout','CmsService',function ($timeout, CmsService) {
 
   var definition = {
     replace: false,
@@ -44,6 +44,12 @@ angular.module('tagger')
               function(error){
                 console.error("error creating catalog " + error);
               });
+
+            //0.24 of the container catalog doesn't have an onLoad callback,
+            //timeout for now.
+            $timeout(function(){
+              scope.onItemLoad();
+            }, 1000);
           }
         });
 
