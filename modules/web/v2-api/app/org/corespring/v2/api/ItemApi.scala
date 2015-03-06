@@ -10,7 +10,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.iteratee.Iteratee
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -77,9 +77,6 @@ trait ItemApi extends V2Api {
       validationToResult[Item](i => Ok(Json.toJson(i)))(out)
     }
   }
-
-
-
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -151,9 +148,8 @@ trait ItemApi extends V2Api {
     }
   }
 
-
   def cloneItem(id: String) = Action.async { implicit request =>
-    Future{
+    Future {
       val out = for {
         identity <- getOrgAndOptions(request)
         vid <- VersionedId(id).toSuccess(cantParseItemId(id))
@@ -164,22 +160,21 @@ trait ItemApi extends V2Api {
     }
   }
 
-  def publish(id:String) = Action.async{ implicit request =>
-    Future{
-      val out = for{
+  def publish(id: String) = Action.async { implicit request =>
+    Future {
+      val out = for {
         _ <- getOrgAndOptions(request)
         vid <- VersionedId(id).toSuccess(cantParseItemId(id))
         published <- Success(itemService.publish(vid))
       } yield Json.obj("id" -> id, "published" -> published)
 
-
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
 
-  def saveNewVersion(id:String) = Action.async{ implicit request =>
-    Future{
-      val out = for{
+  def saveNewVersion(id: String) = Action.async { implicit request =>
+    Future {
+      val out = for {
         _ <- getOrgAndOptions(request)
         vid <- VersionedId(id).toSuccess(cantParseItemId(id))
         newId <- itemService.saveNewUnpublishedVersion(vid).toSuccess(generalError(s"Error saving new version of $id"))

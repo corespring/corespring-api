@@ -58,14 +58,14 @@ class ItemServiceWired(
     }
   }
 
-  def vidToDbo(vid:VersionedId[ObjectId]) : DBObject = {
+  def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
     val base = MongoDBObject("_id._id" -> vid.id)
-    vid.version.map{ v =>
+    vid.version.map { v =>
       base ++ MongoDBObject("_id.version" -> v)
     }.getOrElse(base)
   }
 
-  override def publish(id: VersionedId[ObjectId]) : Boolean = {
+  override def publish(id: VersionedId[ObjectId]): Boolean = {
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
     val result = collection.update(vidToDbo(id), update, false)
     result.getLastError.ok
@@ -158,7 +158,7 @@ class ItemServiceWired(
   }
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
-    val update = MongoDBObject("$set" -> MongoDBObject( Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
+    val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
     saveUsingDbo(id, update, false)
   }
 
