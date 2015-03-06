@@ -17,9 +17,13 @@ if (Array.prototype.removeItem === null) Array.prototype.removeItem = function (
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, V2ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
-
-  var itemService = new V2ItemService();
+function ItemController(
+  $scope, 
+  $location, 
+  $routeParams, 
+  ItemService,  
+  Logger, 
+  ItemSessionCountService) {
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
 
@@ -33,7 +37,7 @@ function ItemController($scope, $location, $routeParams, V2ItemService, $rootSco
 
   $scope.clone = function () {
     $scope.showProgressModal = true;
-    itemService.clone({id: $routeParams.itemId}, function onCloneSuccess(data) {
+    $scope.item.clone(function onCloneSuccess(data) {
       $scope.showProgressModal = false;
       $location.path('/edit/' + data.id);
     }, function onError(error) {
@@ -41,18 +45,29 @@ function ItemController($scope, $location, $routeParams, V2ItemService, $rootSco
       alert("Error cloning item: " + JSON.stringify(error));
     });
   };
+
+  $scope.goLive = function(){
+    $scope.$emit('goLiveRequested', $scope.item);
+  };
+
+  $scope.loadItem = function() {
+    ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
+      $scope.item = itemData;
+      ItemSessionCountService.get({id:$routeParams.itemId}, function onCountLoaded(countObject) {
+        $scope.item.sessionCount = countObject.sessionCount;
+        $scope.$broadcast("dataLoaded");
+      });
+    });
+  };
+
+  $scope.loadItem();
 }
 
 ItemController.$inject = [
   '$scope',
   '$location',
   '$routeParams',
-  'V2ItemService',
-  '$rootScope',
-  'Collection',
-  'ServiceLookup',
-  '$http',
-  'ItemMetadata',
+  'ItemService',
   'Logger',
   'ItemSessionCountService'
 ];

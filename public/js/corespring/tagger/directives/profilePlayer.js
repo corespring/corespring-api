@@ -1,4 +1,5 @@
-angular.module('tagger').directive('profilePlayer', function () {
+angular.module('tagger')
+  .directive('profilePlayer', ['CmsService',function (CmsService) {
 
   var definition = {
     replace: false,
@@ -8,10 +9,13 @@ angular.module('tagger').directive('profilePlayer', function () {
     link: function (scope, element, attrs) {
       scope.hidePopup = function() {
         scope.$parent.hidePopup();
-      }
+      };
 
       scope.$watch("itemId", function (val) {
         if (!val) return;
+
+
+
         var options = {
           itemId: attrs.itemId,
           mode: "preview",
@@ -28,11 +32,24 @@ angular.module('tagger').directive('profilePlayer', function () {
           scope.onItemLoad();
         };
 
-        new com.corespring.players.ItemProfile(angular.element(element).find('#content')[0], options, onError, onLoad);
+        CmsService.itemFormat(attrs.itemId, function(format){
+
+          if(format.apiVersion === 1){
+            new com.corespring.players.ItemProfile(
+              angular.element(element).find('#content')[0], options, onError, onLoad);
+          } else {
+            new org.corespring.players.ItemCatalog(
+              angular.element(element).find('#content')[0],
+              options, 
+              function(error){
+                console.error("error creating catalog " + error);
+              });
+          }
+        });
 
       });
     }
   };
   return definition;
 
-});
+}]);

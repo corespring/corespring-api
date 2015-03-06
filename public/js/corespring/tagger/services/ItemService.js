@@ -127,8 +127,10 @@ angular.module('tagger.services')
     }]);
 
 angular.module('tagger.services')
-    .factory('ItemService', [ '$resource', 'ServiceLookup', '$http',
-        function ($resource, ServiceLookup, $http) {
+    .factory('ItemService', [ '$resource', 'ServiceLookup', '$http', 'V2ItemService',
+        function ($resource, ServiceLookup, $http, V2ItemService) {
+
+    var v2Service = new V2ItemService();
 
     var ItemService = $resource(
         ServiceLookup.getUrlFor('items'),
@@ -140,15 +142,34 @@ angular.module('tagger.services')
         }
     );
 
-    ItemService.prototype.clone = function( params, onSuccess, onError) {
-        var url = "/api/v1/items/:id".replace(":id", params.id);
+    ItemService.prototype.saveNewVersion = function(onSuccess, onError){
+      var url = "/api/v2/items/:id/save-new-version".replace(":id", this.id);
+      var successCallback = function(data){
+          onSuccess(data);
+      };
+
+      $http.put(url, {})
+          .success(successCallback)
+          .error(onError);
+
+    };
+
+    ItemService.prototype.publish = function(onSuccess, onError, id){
+
+        id = id || this.id;
+        var url = "/api/v2/items/:id/publish".replace(":id", id);
         var successCallback = function(data){
             onSuccess(data);
         };
 
-        $http.post(url, {})
+        $http.put(url, {})
             .success(successCallback)
             .error(onError);
+
+    };
+
+    ItemService.prototype.clone = function( onSuccess, onError) {
+      v2Service.clone(this, onSuccess, onError);
     };
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {

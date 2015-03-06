@@ -1,4 +1,4 @@
-function RootController($scope) {
+function RootController($scope, ItemService) {
   "use strict";
   $scope.uiState = {
     showCollectionsPane: false
@@ -18,6 +18,38 @@ function RootController($scope) {
     $scope.errorDetails = null;
     $scope.errorUid = null;
   };
+
+  $scope.$on('goLiveRequested', function($event, item){
+    $scope.goLive(item);
+  });
+
+  $scope.goLive = function(item){
+    $scope.itemToPublish = item;
+    $scope.showConfirmPublishModal = true;
+  };
+  
+  $scope.goLiveConfirmed = function(){
+    $scope.showConfirmPublishModal = false;
+
+    $scope.itemToPublish.publish(function(published){
+      if(!published){
+        alert('Error publishing');
+      }
+      $scope.itemToPublish.published = published;
+      $scope.itemToPublish = null;
+    }, 
+    function(err){
+      alert(err);
+    });
+  };
+
+  $scope.goLiveCancelled = function(){
+    $scope.itemToPublish = null;
+    $scope.showConfirmPublishModal = false;
+  };
+
+
+
 }
 
-RootController.$inject = ['$scope'];
+RootController.$inject = ['$scope', 'ItemService'];

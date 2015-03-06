@@ -11,6 +11,7 @@
                 <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
                 <button class="btn btn-success"
                     ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+                <button class="btn btn-primary" ng-show="!item.published" ng-click="goLive()">Go Live</button>
             </div>
         </div>
     </div>

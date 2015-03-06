@@ -164,6 +164,31 @@ trait ItemApi extends V2Api {
     }
   }
 
+  def publish(id:String) = Action.async{ implicit request =>
+    Future{
+      val out = for{
+        _ <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        published <- Success(itemService.publish(vid))
+      } yield Json.obj("id" -> id, "published" -> published)
+
+
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
+  def saveNewVersion(id:String) = Action.async{ implicit request =>
+    Future{
+      val out = for{
+        _ <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        newId <- itemService.saveNewUnpublishedVersion(vid).toSuccess(generalError(s"Error saving new version of $id"))
+      } yield Json.obj("id" -> newId.toString)
+
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 
   lazy val defaultPlayerDefinition = Json.obj(

@@ -58,6 +58,31 @@ class ItemServiceWired(
     }
   }
 
+  def vidToDbo(vid:VersionedId[ObjectId]) : DBObject = {
+    val base = MongoDBObject("_id._id" -> vid.id)
+    vid.version.map{ v =>
+      base ++ MongoDBObject("_id.version" -> v)
+    }.getOrElse(base)
+  }
+
+  override def publish(id: VersionedId[ObjectId]) : Boolean = {
+    val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
+    val result = collection.update(vidToDbo(id), update, false)
+    result.getLastError.ok
+  }
+
+  /**
+   * save a new version of the item and set published to false
+   * @param id
+   * @return the VersionedId[ObjectId] of the new item
+   */
+  override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
+    dao.get(id).flatMap { item =>
+      dao.save(item.copy(published = false), true)
+      dao.get(id.copy(version = None)).map(_.id)
+    }
+  }
+
   def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)

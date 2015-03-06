@@ -69,6 +69,73 @@
       }];
     };
 
+    $scope.editItem=function(item){
+      console.log('editItem', item);
+      if(!item.readOnly){
+        $scope.itemClick.bind({item: item})();
+      }
+    };
+
+    $scope.viewItem = function(item){
+      if(item.readOnly){
+        $scope.itemClick.bind(item)();
+      }
+    };
+
+    $scope.goLive = function(item){
+      $scope.$emit('goLiveRequested',item);
+    };
+
+    $scope.deleteItem = function(item) {
+      $scope.itemToDelete = item;
+      $scope.showConfirmDestroyModal = true;
+    };
+
+    $scope.deleteConfirmed = function() {
+      var deletingId = $scope.itemToDelete.id;
+      ItemService.remove({
+          id: $scope.itemToDelete.id
+        },
+        function(result) {
+          $scope.itemToDelete = null;
+          $scope.search();
+        }
+      );
+      $scope.itemToDelete = null;
+      $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.deleteCancelled = function() {
+      $scope.itemToDelete = null;
+      $scope.showConfirmDestroyModal = false;
+    };
+
+    $scope.makeADraft = function(item){
+      item.saveNewVersion( 
+        function success(newId){
+          console.log('new version id: ', newId);
+          //item.id = newId;
+          //item.published = false;
+          $scope.search();
+        }, 
+        function error(err){
+          alert('error making a draft' + JSON.stringify(err));
+        });
+    };
+
+    $scope.cloneItem = function(item){
+      item.clone(function success(data){
+        goToEditView(data);
+      }, function error(err){
+        alert('cloneItem:', JSON.stringify(err));
+      });
+    };
+
+    $scope.getNumberOfSessions = function(id){
+      console.log('[getNumberOfSessions]', id);
+      return 10;
+    };
+
     $scope.sortBy = function(field) {
       if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
         $rootScope.searchParams.sort[field] *= -1;
@@ -208,28 +275,36 @@
     };
 
 
-    $scope.deleteItem = function(item) {
-      $scope.itemToDelete = item;
-      $scope.showConfirmDestroyModal = true;
-    };
+  
 
-    $scope.deleteConfirmed = function() {
-      var deletingId = $scope.itemToDelete.id;
-      ItemService.remove({
-          id: $scope.itemToDelete.id
-        },
-        function(result) {
-          $scope.itemToDelete = null;
-          $scope.search();
+    function goToEditView(item){
+      CmsService.itemFormat(item.id, function(format) {
+        Logger.debug('itemFormat:', format);
+        SearchService.currentItem = item;
+        if (format.apiVersion === 2) {
+          $location.url('/edit/' + item.id);
+        } else {
+          $location.url('/old/edit/' + item.id + "?panel=metadata");
         }
-      );
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
+      });
+    }
+
+    $scope.launchCatalogView = function(){
+      $scope.openItem(this.item.id);
     };
 
-    $scope.deleteCancelled = function() {
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
+    $scope.openItem = function(id) {
+
+      $timeout(function() {
+        $scope.showPopup = true;
+        $scope.popupBg = "extra-large-window";
+        $scope.previewingId = id;
+        $('#preloader').show();
+        $('#player').hide();
+      }, 50);
+      $timeout(function() {
+        $('.window-overlay').scrollTop(0);
+      }, 100);
     };
 
     $scope.itemClick = function() {
@@ -238,15 +313,7 @@
       if (this.item.readOnly) {
         $scope.openItem(itemId);
       } else {
-        CmsService.itemFormat(itemId, function(format) {
-          Logger.debug('itemFormat:', format);
-          SearchService.currentItem = this.item;
-          if (format.apiVersion === 2) {
-            $location.url('/edit/' + itemId);
-          } else {
-            $location.url('/old/edit/' + itemId + "?panel=metadata");
-          }
-        }.bind(this));
+        goToEditView(this.item);
       }
     };
 
@@ -262,20 +329,6 @@
       $scope.popupBg = "";
     };
 
-    $scope.openItem = function(id) {
-      $timeout(function() {
-        $scope.showPopup = true;
-        $scope.popupBg = "extra-large-window";
-        $scope.previewingId = id;
-        //$scope.$broadcast("requestLoadItem", id);
-        $('#preloader').show();
-        $('#player').hide();
-      }, 50);
-      $timeout(function() {
-        $('.window-overlay').scrollTop(0);
-      }, 100);
-
-    };
 
     $scope.onItemLoad = function() {
       $('#preloader').hide();

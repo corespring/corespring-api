@@ -4,9 +4,12 @@
 
     <p>Are you sure? This can't be undone.</p>
 
-    <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
-    <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
+    <button class="btn" ng-click="deleteCancelled()">Cancel</button>
+    <button ng-click="deleteConfirmed()" class="btn btn-danger">Delete</button>
 </div>
+
+
+
 <div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
         <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
@@ -278,7 +281,7 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td class="item-title" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
+                <td class="item-title" ng-click="launchCatalogView()" ng-bind-html-unsafe="item.title"></td>
                 <td ng-bind-html-unsafe="item.description"></td>
                 <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
                 <td>{{showGradeLevel()}} </td>
@@ -289,11 +292,19 @@
                 </td>
                 <td>{{getAuthorAbbreviation(item.contributor)}}</td>
                 <!-- {{publishStatus(item.published)}} -->
-                <td><item-status ng-model="item"></item-status></td>
                 <td>
-                  <item-edit-buttons ng-model="item">Buttons here...</item-edit-buttons>
+                  <item-status item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
                 </td>
-                <td><button class="btn btn-danger">Delete</button></td>
+                <td>
+                  <item-edit-buttons
+                    item="item"
+                    view-item="viewItem(item)"
+                    edit-item="editItem(item)"
+                    go-live="goLive(item)"
+                    clone-item="cloneItem(item)"
+                    make-a-draft="makeADraft(item)"></item-edit-buttons>
+                </td>
+                <td><button ng-click="deleteItem(item)" class="btn btn-danger" ng-disabled="item.readOnly">Delete</button></td>
             </tr>
             </tbody>
         </table>
