@@ -43,6 +43,7 @@ object LineInteractionTransformer extends InteractionTransformer {
             case _ => None
           }),
           "exhibitOnly" -> Some(JsBoolean(exhibit)),
+          "showCoordinates" -> Some(JsBoolean(false)),
           "showInputs" -> Some(JsBoolean(booleanFor("show-inputs") && !exhibit)),
           "showLabels" -> Some(JsBoolean(booleanFor("show-labels") && !exhibit)))))
 
