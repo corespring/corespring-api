@@ -136,6 +136,9 @@ object Build extends sbt.Build {
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
+  val drafts = builders.lib("drafts").settings(
+    libraryDependencies ++= Seq(specs2 % "test"))
+
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
     libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
