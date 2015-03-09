@@ -4,6 +4,7 @@ import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
 import org.corespring.qtiToV2.kds.CssSandboxer
+import org.corespring.qtiToV2.kds.interactions.TableTransformer
 import play.api.libs.json._
 
 import scala.xml._

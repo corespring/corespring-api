@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.kds
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.interactions.{MathNotationTransformer, PathTransformer}
+import org.corespring.qtiToV2.kds.interactions.{TableTransformer, MathNotationTransformer, PathTransformer}
 import play.api.libs.json.{JsObject, JsValue}
 
 import scala.xml._
@@ -15,7 +15,7 @@ object ItemTransformer extends PassageTransformer {
     try {
       val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
         .map(transformPassage(_)(sources).getOrElse("")).mkString
-      val xml = PathTransformer.transform(xmlString.toXML(passageXml))
+      val xml = TableTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
       QtiTransformer.transform(xml, sources)
     } catch {
       case e: Exception => {
