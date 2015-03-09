@@ -16,6 +16,8 @@ class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) exten
 
   require(!prefix.startsWith("/"), "the prefix cannot start with a leading /")
 
+  require(!bucket.contains("/"), s"'/' is not allowed as part of a S3 bucket name: $bucket")
+
   createCleanBucket
 
   private val deployed: mutable.Map[String, String] = mutable.Map()
