@@ -25,7 +25,18 @@ function ItemController(
   Logger, 
   ItemSessionCountService) {
 
-  $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
+  $scope.devEditorVisible = false;
+  
+  var normalEditor = ['/v2/player/editor/',
+                      $routeParams.itemId, 
+                      '/index.html',
+                      '?bypass-iframe-launch-mechanism=true',
+                      '&mode=dev']
+   .join('');
+
+  var devEditor = '/v2/player/dev-editor/' + $routeParams.itemId + '/index.html?mode=dev';
+  
+  $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
 
   $scope.backToCollections = function(){
     $location.path("/home").search('');
@@ -58,6 +69,16 @@ function ItemController(
         $scope.$broadcast("dataLoaded");
       });
     });
+  };
+
+  $scope.showDevEditor = function(){
+    $scope.devEditorVisible = true;
+    $scope.v2Editor = devEditor;
+  };
+
+  $scope.showEditor = function(){
+    $scope.devEditorVisible = false;
+    $scope.v2Editor = normalEditor;
   };
 
   $scope.loadItem();
