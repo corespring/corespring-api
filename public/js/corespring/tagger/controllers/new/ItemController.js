@@ -30,11 +30,10 @@ function ItemController(
   var normalEditor = ['/v2/player/editor/',
                       $routeParams.itemId, 
                       '/index.html',
-                      '?bypass-iframe-launch-mechanism=true',
-                      '&mode=dev']
+                      '?bypass-iframe-launch-mechanism=true']
    .join('');
 
-  var devEditor = '/v2/player/dev-editor/' + $routeParams.itemId + '/index.html?mode=dev';
+  var devEditor = '/v2/player/dev-editor/' + $routeParams.itemId + '/index.html';
   
   $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
 
