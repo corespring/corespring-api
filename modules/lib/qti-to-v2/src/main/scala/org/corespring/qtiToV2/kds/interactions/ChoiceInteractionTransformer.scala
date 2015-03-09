@@ -18,11 +18,12 @@ object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCle
 
   override def interactionJs(qti: Node) = CorespringChoiceInteractionTransformer.interactionJs(qti).map {
     case(id, json) => id -> json.deepMerge(Json.obj(
-      "model" -> Json.obj("choices" -> (json \ "model" \ "choices").asOpt[Seq[JsObject]].map(_.map(choice => {
-        choice.deepMerge(
-          partialObj("rationale" -> (choice \ "value").asOpt[String]
-            .map(choiceId => rationale(qti, id, choiceId)).flatten))
-      })).getOrElse(throw new Exception(s"choiceInteraction $id was missing choices")))))
+      "model" -> Json.obj("shuffle" -> false,
+        "choices" -> (json \ "model" \ "choices").asOpt[Seq[JsObject]].map(_.map(choice => {
+          choice.deepMerge(
+            partialObj("rationale" -> (choice \ "value").asOpt[String]
+              .map(choiceId => rationale(qti, id, choiceId)).flatten))
+        })).getOrElse(throw new Exception(s"choiceInteraction $id was missing choices")))))
     }.toMap
 
 
