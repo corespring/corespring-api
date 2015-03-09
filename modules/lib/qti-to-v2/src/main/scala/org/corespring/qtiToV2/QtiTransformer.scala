@@ -3,12 +3,20 @@ package org.corespring.qtiToV2
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
+import org.corespring.qtiToV2.kds.CssSandboxer
 import play.api.libs.json._
 
-import scala.xml.{Node, Elem}
-import scala.xml.transform.RuleTransformer
+import scala.xml._
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 trait QtiTransformer extends XMLNamespaceClearer {
+
+  implicit class NodeWithClass(node: Node) {
+    def withClass(classString: String) = node match {
+      case node: Elem => node.copy(child = node.child, label = "div") % Attribute(None, "class", Text(classString), Null)
+      case _ => throw new Exception("Cannot add class to non-Elem node.")
+    }
+  }
 
   val scoringTransformer = new CustomScoringTransformer
 
@@ -25,7 +33,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
     }.getOrElse(Json.obj())
   }
 
-  def transform(qti: Elem): JsValue = {
+  def transform(qti: Elem, sources: Map[String, SourceWrapper] = Map.empty[String, SourceWrapper]): JsValue = {
 
     val transformers = interactionTransformers(qti)
 
@@ -35,12 +43,24 @@ trait QtiTransformer extends XMLNamespaceClearer {
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
 
-    val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
-    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
+    val transformedHtml = new RuleTransformer (transformers: _*).transform(texProcessedQti)
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head.withClass("itemBody qti")))(
       (html, transformer) => transformer.transform(html).head)
 
+    val finalHtml = new RuleTransformer(new RewriteRule {
+      override def transform(node: Node) = node match {
+        case node: Node if node.label == "stylesheet" =>
+          (sources.find{ case(file, source) => file == (node \ "@href").text.split("/").last }.map(_._2)) match {
+            case Some(cssSource) =>
+              <style type="text/css">{CssSandboxer.sandbox(cssSource.getLines.mkString, ".qti")}</style>
+            case _ => node
+          }
+        case _ => node
+      }
+    }).transform(html).head.toString
+
     Json.obj(
-      "xhtml" -> html.toString,
+      "xhtml" -> finalHtml,
       "components" -> components) ++ customScoring(qti, components)
   }
 

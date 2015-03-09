@@ -15,7 +15,8 @@ object ItemTransformer extends PassageTransformer {
     try {
       val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
         .map(transformPassage(_)(sources).getOrElse("")).mkString
-      QtiTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
+      val xml = PathTransformer.transform(xmlString.toXML(passageXml))
+      QtiTransformer.transform(xml, sources)
     } catch {
       case e: Exception => {
         println(manifestItem.filename)
@@ -34,13 +35,16 @@ object ItemTransformer extends PassageTransformer {
     def toXML(passageXml: String): Elem = {
       def stripCDataTags(xmlString: String) = """(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xmlString, "$1")
       val xml = XML.loadString(stripCDataTags(string))
-      MathNotationTransformer.transform(clearNamespace(new RuleTransformer(new RewriteRule {
+      val stylesheets = (xml \ "stylesheet")
+      clearNamespace(new RuleTransformer(new RewriteRule {
         override def transform(n: Node): NodeSeq = n match {
-          case n: Elem if (n.label == "itemBody" && passageXml.nonEmpty) =>
-            n.copy(child = XML.loadString(passageXml) ++ n.child)
+          case n: Elem if (n.label == "itemBody") => passageXml.nonEmpty match {
+            case true => n.copy (child = stylesheets ++ XML.loadString (passageXml) ++ n.child)
+            case _ => n.copy (child = stylesheets ++ n.child)
+          }
           case _ => n
         }
-      }).transform(xml).headOption.getOrElse(throw new Exception("There was no head element!"))).head).asInstanceOf[Elem]
+      }).transform(xml).headOption.getOrElse(throw new Exception("There was no head element!"))).head.asInstanceOf[Elem]
     }
 
     def removeResponseProcessing(node: Node): Node = {

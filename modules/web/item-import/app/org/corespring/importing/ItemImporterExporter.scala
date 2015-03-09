@@ -15,6 +15,7 @@ import org.corespring.qtiToV2.kds.PathFlattener
 import play.api.libs.json._
 
 import scala.io.Source
+import scala.util.parsing.combinator.RegexParsers
 import scalaz.{Failure, Success}
 
 /**
@@ -53,7 +54,7 @@ class ItemImporterExporter extends JsonUtil with HtmlProcessor {
           Success(
             (
               PlayerDefinition(Seq.empty,
-                postprocessHtml((itemJson \ "xhtml").as[String]),
+                unescapeCss(postprocessHtml((itemJson \ "xhtml").as[String])),
                 postprocessHtml((itemJson \ "components")),
                 postprocessHtml((itemJson \ "summaryFeedback").asOpt[String].getOrElse("")),
                 (itemJson \ "customScoring").asOpt[String]),
@@ -76,6 +77,14 @@ class ItemImporterExporter extends JsonUtil with HtmlProcessor {
       }
     }}.flatten.toMap
   }
+
+  /**
+   * Scala's XML parser won't even preserve these characters in CDATA tags.
+   */
+  private def unescapeCss(string: String): String = new Rewriter("""<style type="text/css">(.*?)</style>""") {
+    def replacement() = s"""<style type="text/css">${group(1).replaceAll("&gt;", ">")}</style>"""
+  }.rewrite(string)
+
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {
     implicit val taskInfoReads = TaskInfo.taskInfoReads

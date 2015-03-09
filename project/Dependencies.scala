@@ -53,6 +53,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
+  val cssParser = "com.phloc" % "phloc-css" % "3.7.6"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
 
@@ -92,7 +93,8 @@ object Dependencies {
     componentModel,
     newRelic,
     slf4j,
-    jsonValidator)
+    jsonValidator,
+    cssParser)
 
   object Resolvers {
 

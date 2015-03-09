@@ -11,6 +11,12 @@ object SquareRootTransformer extends MathNotationTransformer {
   val displayInlineNoBorder = Attribute(None, "style", Text("display: inline; border: none;"), Null)
   val displayInline = Attribute(None, "style", Text("display: inline; border: none;"), Null)
 
+  implicit class UnencodeNode(node: Node) {
+    def unencoded = {
+      node.child.map(_.toString).mkString
+    }
+  }
+
   override def transform(node: Node) = new RuleTransformer(new RewriteRule {
     override def transform(node: Node) = node match {
       case node: Elem if node.label == "table" && (node \ "@class").text.contains("verdana2t") => {
@@ -20,7 +26,7 @@ object SquareRootTransformer extends MathNotationTransformer {
               pair =>
                 if ((pair.head \ "entity" \ "@value").text == "8730" && (pair.last \ "@class").text == "vinculum")
                   <td style="display: inline; border: none; padding: 0;">
-                    <span mathjax="">{s"""\\(\\displaystyle\\sqrt{${pair.last.text}}\\)"""}</span>
+                    <span mathjax="">{s"""\\(\\displaystyle\\sqrt{${pair.last.unencoded}}\\)"""}</span>
                   </td>
                 else
                   pair.head match {
