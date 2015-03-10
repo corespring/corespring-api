@@ -2,6 +2,7 @@ package org.corespring.drafts
 
 import com.mongodb.casbah.MongoCollection
 import common.db.Db
+import org.bson.types.ObjectId
 import org.corespring.drafts.item._
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.PlayerDefinition
@@ -24,6 +25,31 @@ class SimpleDraftTest extends IntegrationSpecification {
     override def collection: MongoCollection = Db.salatDb()(Play.current)("drafts.item")
   }
 
+  "Single Draft Api" should {
+
+    trait SimpleApi {
+      def createDraft(id: ObjectId, user: SimpleUser): ItemUserDraft
+    }
+
+    val api = new SimpleApi {
+      override def createDraft(id: ObjectId, user: SimpleUser): ItemUserDraft = ???
+    }
+
+    "be simple" in new userAndItem {
+      //creates the draft and saves it
+      val draft = api.createDraft(itemId.id, SimpleUser(user))
+
+      // returns a draft
+      // api.loadDraft(draft.id)
+      // returns all drafts for user and itemId
+      // api.loadDraftsByUserAndItem(itemId.id, SimpleUser(user)) : Seq[ItemUserDraft]
+      // returns all drafts for the item
+      // api.loadDraftsByItemId(itemId.id) : Seq[ItemUserDraft]
+      // commit a draft
+      // api.commitDraft(draft, force:Boolean) : Either[E,CommitInfo]
+    }
+
+  }
   "SimpleDraftTest" should {
 
     "create a draft of an item" in new userAndItem {
