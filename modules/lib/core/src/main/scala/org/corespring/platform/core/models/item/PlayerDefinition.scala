@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory
  */
 
 object PlayerDefinition {
+
+  def apply(xhtml: String) = new PlayerDefinition(Seq.empty, xhtml, Json.obj(), "", None)
+
   def apply(
     files: Seq[BaseFile],
     xhtml: String,

@@ -139,6 +139,12 @@ object Build extends sbt.Build {
   val drafts = builders.lib("drafts").settings(
     libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert))
 
+  val itemDrafts = builders.lib("item-drafts")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test"))
+    .dependsOn(core, drafts)
+    .aggregate(core, drafts)
+
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
     libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
@@ -358,7 +364,8 @@ object Build extends sbt.Build {
       apiTracking,
       clientLogging % "compile->compile;test->test",
       qtiToV2,
-      itemImport)
+      itemImport,
+      itemDrafts)
     .aggregate(
       scormWeb,
       reports,
@@ -377,6 +384,7 @@ object Build extends sbt.Build {
       v2Auth,
       clientLogging,
       qtiToV2,
-      itemImport)
+      itemImport,
+      itemDrafts)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

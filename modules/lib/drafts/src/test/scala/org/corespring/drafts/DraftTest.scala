@@ -1,5 +1,7 @@
 package org.corespring.drafts
 
+import org.corespring.drafts.errors.{ DataWithSameSrc, SaveDataFailed, DraftError }
+import org.corespring.drafts.models.{ CommittedDraft, DraftSrc }
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 
