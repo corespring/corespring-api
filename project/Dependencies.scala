@@ -31,6 +31,8 @@ object Dependencies {
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
+  val jodaTime = "joda-time" % "joda-time" % "2.2"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playFramework = "com.typesafe.play" %% "play" % playVersion

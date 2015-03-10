@@ -137,7 +137,7 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
   val drafts = builders.lib("drafts").settings(
-    libraryDependencies ++= Seq(specs2 % "test"))
+    libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert))
 
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(

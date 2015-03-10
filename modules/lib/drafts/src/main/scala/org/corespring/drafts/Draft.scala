@@ -1,47 +1,35 @@
 package org.corespring.drafts
 
-trait DraftStore[ID, VERSION, DATA] {
+import org.joda.time.DateTime
+
+trait DraftStore[USER, ID, VERSION, DATA] {
   type DraftAndSrc = Draft[DraftSrc[ID, VERSION], DATA]
 
   def loadDataAndVersion(id: ID): (DATA, VERSION)
 
-  def saveData(id: ID, data: DATA, src: DraftSrc[ID, VERSION]): Either[DraftError, VERSION]
+  def saveData(id: ID, user: USER, data: DATA, src: DraftSrc[ID, VERSION]): Either[DraftError, CommittedDraft[USER, ID, VERSION]]
 
-  def mkInitialDraft: InitialDraft[ID, VERSION, DATA]
+  def loadCommittedDrafts(id: ID): Seq[CommittedDraft[USER, ID, VERSION]]
 
-  def loadEarlierDrafts(id: ID): Seq[DraftAndSrc]
-
-  def createDraft(id: ID): DraftAndSrc = {
+  def createDraft(id: ID, user: USER): UserDraft[DATA, USER, ID, VERSION] = {
     val (data, version) = loadDataAndVersion(id)
-    UserDraft[ID, VERSION, DATA](data, Some(DraftSrc[ID, VERSION](id, version)))
+    UserDraft[DATA, USER, ID, VERSION](data, user, DraftSrc[ID, VERSION](id, version))
   }
 
-  def commitDraft(id: ID, data: DATA, src: DraftSrc[ID, VERSION], ignoreEarlierDraftsWithSameSrc: Boolean = false): Either[DraftError, VERSION] = {
+  def commitDraft(id: ID,
+    userDraft: UserDraft[DATA, USER, ID, VERSION],
+    ignoreExistingDataWithSameSrc: Boolean = false): Either[DraftError, CommittedDraft[USER, ID, VERSION]] = {
 
-    def getEarlierDraftsWithSameSrc(versions: Seq[DraftAndSrc]) = {
-      versions.filter(pd => pd.src.isDefined && pd.src.get == src)
-    }
+    val commits = loadCommittedDrafts(id)
+    val withSameSrc = commits.filter(_.src == userDraft.draftSrc)
 
-    val earlierDrafts = loadEarlierDrafts(id)
-    val earlierDraftsWithSameSrc = getEarlierDraftsWithSameSrc(earlierDrafts)
-    println(s"earlier: $earlierDrafts")
-    println(s"earlier with same src: $earlierDraftsWithSameSrc")
-
-    if (earlierDraftsWithSameSrc.length > 0 && !ignoreEarlierDraftsWithSameSrc) {
-      Left(EarlierDraftsWithSameSrc(earlierDraftsWithSameSrc))
+    if (withSameSrc.length > 0 && !ignoreExistingDataWithSameSrc) {
+      Left(DataWithSameSrc(withSameSrc))
     } else {
-      saveData(id, data, src)
+      saveData(id, userDraft.user, userDraft.data, userDraft.draftSrc)
     }
   }
 }
-
-sealed abstract class DraftError(msg: String)
-
-case class SaveDataFailed(msg: String) extends DraftError(msg)
-case class EarlierDraftsWithSameSrc[ID, VERSION, DATA](drafts: Seq[Draft[DraftSrc[ID, VERSION], DATA]])
-  extends DraftError("There are earlier drafts with the same src")
-
-case class DraftSrc[ID, VERSION](id: ID, version: VERSION)
 
 trait Draft[SRC, DATA] {
   def data: DATA
@@ -49,14 +37,27 @@ trait Draft[SRC, DATA] {
   def update(d: DATA): Draft[SRC, DATA]
 }
 
-case class UserDraft[ID, VERSION, DATA](data: DATA, src: Option[DraftSrc[ID, VERSION]])
+case class CommittedDraft[USER, ID, VERSION](dataId: ID, user: USER, src: DraftSrc[ID, VERSION], created: DateTime)
+
+case class DraftSrc[ID, VERSION](id: ID, version: VERSION)
+
+case class UserDraft[DATA, USER, ID, VERSION](data: DATA, user: USER, draftSrc: DraftSrc[ID, VERSION])
   extends Draft[DraftSrc[ID, VERSION], DATA] {
-  override def update(d: DATA): Draft[DraftSrc[ID, VERSION], DATA] = this.copy(data = d)
+  override def update(d: DATA): UserDraft[DATA, USER, ID, VERSION] = this.copy(data = d)
+
+  override def src: Option[DraftSrc[ID, VERSION]] = Some(draftSrc)
 }
 
 case class InitialDraft[ID, VERSION, DATA](data: DATA)
   extends Draft[DraftSrc[ID, VERSION], DATA] {
   override def src: Option[DraftSrc[ID, VERSION]] = None
 
-  override def update(d: DATA): Draft[DraftSrc[ID, VERSION], DATA] = this.copy(data = d)
+  override def update(d: DATA): InitialDraft[ID, VERSION, DATA] = this.copy(data = d)
 }
+
+sealed abstract class DraftError(msg: String)
+
+case class SaveDataFailed(msg: String) extends DraftError(msg)
+
+case class DataWithSameSrc[DATA, USER, ID, VERSION](provenances: Seq[CommittedDraft[USER, ID, VERSION]])
+  extends DraftError("There are existing data items that come from the same src")

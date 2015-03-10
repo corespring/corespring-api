@@ -1,95 +1,112 @@
 package org.corespring.drafts
 
+import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 
 class DraftTest extends Specification {
 
   type StringIntSrc = DraftSrc[String, Int]
 
-  class SimpleStringStore extends DraftStore[String, Int, String] {
+  type User = String
+
+  case class DataAndCommit[D, C](data: D, commit: Option[C])
+
+  class SimpleStringStore extends DraftStore[User, String, Int, String] {
 
     import scala.collection.mutable
 
-    private val map: mutable.Map[String, Seq[Draft[StringIntSrc, String]]] = mutable.Map()
+    private val map: mutable.Map[String, Seq[DataAndCommit[String, CommittedDraft[User, String, Int]]]] = mutable.Map()
 
     override def loadDataAndVersion(id: String): (String, Int) = {
       if (!map.contains(id)) {
-        map.put(id, Seq(InitialDraft("")))
+        map.put(id, Seq(DataAndCommit("", None)))
       }
       map.get(id).map { v => (v.last.data -> v.length) }.getOrElse {
         throw new IllegalStateException("There should be data now")
       }
     }
 
-    override def mkInitialDraft: InitialDraft[String, Int, String] = InitialDraft("")
-
-    override def loadEarlierDrafts(id: String): Seq[Draft[StringIntSrc, String]] = {
+    override def loadCommittedDrafts(id: String): Seq[CommittedDraft[User, String, Int]] = {
       if (!map.contains(id)) {
-        map.put(id, Seq(InitialDraft("")))
+        map.put(id, Seq(DataAndCommit("", None)))
       }
-
-      map.get(id).getOrElse {
+      map.get(id).map { v => v.map(_.commit).flatten }.getOrElse {
         throw new IllegalStateException("There should be data now")
       }
     }
 
-    override def saveData(id: String, data: String, src: StringIntSrc): Either[DraftError, Int] = {
+    override def saveData(id: String, user: User, data: String, src: DraftSrc[String, Int]): Either[DraftError, CommittedDraft[User, String, Int]] = {
       if (!map.contains(id)) {
-        map.put(id, Seq(InitialDraft("")))
+        map.put(id, Seq(DataAndCommit("", None)))
       }
 
       map.get(id).map { versions =>
-        val updated = versions :+ UserDraft[String, Int, String](data, Some(src))
+        val dataAndCommit = DataAndCommit(data, Some(CommittedDraft(id, user, src, new DateTime())))
+        val updated = versions :+ dataAndCommit
         map.put(id, updated)
-        Right(updated.length)
+        Right(dataAndCommit.commit.get)
       }.getOrElse(Left(SaveDataFailed(s"can't find item with id: $id")))
     }
   }
 
   "Draft" should {
 
-    "can create a draft from a store" in {
+    "can create a draft from a store for a user" in {
       val store = new SimpleStringStore()
-      val draft = store.createDraft("1")
+      val draft = store.createDraft("1", "Ed")
       draft.src.map(_.version) === Some(1)
       draft.src.map(_.id) === Some("1")
+      draft.user === "Ed"
       draft.data === ""
     }
 
-    "can commit a draft to a store" in {
+    "can commit a draft to a store for a user" in {
       val store = new SimpleStringStore()
-      val draft = store.createDraft("1")
-      val update: Draft[StringIntSrc, String] = draft.update("update:1")
-      store.commitDraft("1", update.data, update.src.get)
-      val newDraft = store.createDraft("1")
+      val draft = store.createDraft("1", "Ed")
+      val update = draft.update("update:1")
+      store.commitDraft("1", update)
+      val newDraft = store.createDraft("1", "Ed")
       newDraft.src === Some(DraftSrc("1", 2))
+      newDraft.user === "Ed"
       newDraft.data === "update:1"
     }
 
-    "if there is an earlier commit with the same src, return a DraftError" in {
-      val store = new SimpleStringStore()
-      val draftOne = store.createDraft("1")
-      val updateOne: Draft[StringIntSrc, String] = draftOne.update("draft-one:update:1")
-      val updateTwo: Draft[StringIntSrc, String] = draftOne.update("draft-one:update:2")
-      store.commitDraft("1", updateOne.data, updateOne.src.get)
+    "if there is an earlier commit with the same src" should {
 
-      store.commitDraft("1", updateTwo.data, updateTwo.src.get) match {
-        case Left(err) => {
-          err match {
-            case EarlierDraftsWithSameSrc(drafts) => {
-              drafts.length === 1
-              drafts(0).data === "draft-one:update:1"
+      val store = new SimpleStringStore()
+      val edsDraft = store.createDraft("1", "Ed")
+      val gwensDrafts = store.createDraft("1", "Gwen")
+      val edsUpdate = edsDraft.update("draft-one:update:1")
+      val gwensUpdate = gwensDrafts.update("draft-two:update:1")
+      store.commitDraft("1", edsUpdate)
+
+      "return a DraftError" in {
+        store.commitDraft("1", gwensUpdate) match {
+          case Left(err) => {
+            err match {
+              case DataWithSameSrc(commits) => {
+                commits.length === 1
+                commits(0).user === "Ed"
+              }
+              case _ => failure("wrong error")
             }
-            case _ => failure("wrong error")
+          }
+          case Right(_) => failure("should fail")
+        }
+      }
+
+      "commit if ignoreExistingDataWithSameSrc is true" in {
+        store.commitDraft("1", gwensUpdate, ignoreExistingDataWithSameSrc = true) match {
+          case Left(err) => failure("should have been successful")
+          case Right(commit) => {
+            commit.src.version === 1
+            commit.user === "Gwen"
+            store.loadDataAndVersion("1")._2 === 3
           }
         }
-        case Right(_) => failure("should fail")
+
       }
     }
-
-    "ignore earlier drafts with same src error" in { true === false }.pendingUntilFixed
-
-    "associate a draft with a user" in { true === false }.pendingUntilFixed
 
   }
 }
