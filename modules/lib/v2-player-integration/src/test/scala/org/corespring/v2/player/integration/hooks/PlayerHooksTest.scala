@@ -8,17 +8,17 @@ import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
-import play.api.test.FakeRequest
+import play.api.test.{ WithApplication, FakeRequest }
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 class PlayerHooksTest extends Specification with Mockito {
 
@@ -29,11 +29,13 @@ class PlayerHooksTest extends Specification with Mockito {
     m
   }
 
-  lazy val orgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
+  lazy val orgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
 
-  case class hooksScope(orgAndOptsResult:Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
-                         loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None))) extends Scope{
-    val hooks = new PlayerHooks{
+  case class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
+    loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))
+    extends WithApplication with Scope {
+
+    val hooks = new PlayerHooks {
 
       override def itemService: ItemService = {
         val m = mock[ItemService]
@@ -46,7 +48,7 @@ class PlayerHooksTest extends Specification with Mockito {
       }
 
       override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
-        val m = mock[SessionAuth[OrgAndOpts,PlayerDefinition]]
+        val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
         m.loadForRead(any[String])(any[OrgAndOpts]) returns loadForReadResult
         m
       }
@@ -62,7 +64,7 @@ class PlayerHooksTest extends Specification with Mockito {
 
     val cantLoadSessionError = cantLoadSession("bad session")
     "loadItem" should {
-      "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)){
+      "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
         val future = hooks.loadItem("sessionId")(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         either === Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)
@@ -70,7 +72,7 @@ class PlayerHooksTest extends Specification with Mockito {
     }
 
     "loadSessionAndItem" should {
-      "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)){
+      "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
         val future = hooks.loadSessionAndItem("sessionId")(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         either === Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)

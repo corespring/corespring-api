@@ -47,7 +47,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
           m
         }
 
-        override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId): String = "Worked"
+        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]): String = "Worked"
       }
     }
 
@@ -58,10 +58,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     "not work with token" in new scope[AnyContentAsEmpty.type] {
       val rh = FakeRequest("", "?access_token=blah")
       transformer.apply(rh) must_== Failure(noOrgForToken(rh))
-    }
-
-    "not work with token" in new scope[AnyContentAsEmpty.type](Some(mockOrg)) {
-      transformer.apply(FakeRequest("", "?access_token=blah")) must_== Failure(noDefaultCollection(org.get.id))
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](

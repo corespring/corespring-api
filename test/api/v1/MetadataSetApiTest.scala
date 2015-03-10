@@ -42,7 +42,7 @@ class MetadataSetApiTest extends Specification with Mockito {
 
   def req(content: AnyContent = AnyContentAsEmpty, token: String = "test_token") = FakeRequest("", s"?access_token=$token", FakeHeaders(), content)
 
-  "api" should {
+  /*"api" should {
 
     "list" in {
       val service = mockServiceImpl
@@ -90,5 +90,5 @@ class MetadataSetApiTest extends Specification with Mockito {
       status(result) === NOT_FOUND
     }
 
-  }
+  }*/
 }

@@ -1,16 +1,11 @@
 package org.corespring.v2.api
 
-import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{Resource, VirtualFile}
 import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.{CollectionHelper, ItemHelper}
-import org.corespring.v2.player.scopes.{orgWithAccessToken, orgWithAccessTokenAndItem}
-import play.api.http.Writeable
+import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
+import play.api.mvc.AnyContentAsJson
 import play.api.test.{FakeHeaders, FakeRequest}
 
 class ItemApiCheckScoreTest extends IntegrationSpecification {

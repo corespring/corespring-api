@@ -3,20 +3,19 @@ package developer.controllers
 import controllers.Assets
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
+import org.corespring.api.v1.errors.ApiError
+import org.corespring.common.config.AppConfig
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.controllers.auth.{OAuthProvider, BaseApi}
+import org.corespring.platform.core.models.{ContentCollection, User, Organization}
+import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.platform.core.models.auth.Permission
 import play.api.libs.json._
 import play.api.mvc._
-import scala.Left
-import scala.Right
 import scala._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 import securesocial.core.{SecuredRequest, IdentityId, SecureSocial}
-import org.corespring.platform.core.models.{ User, Organization }
-import org.corespring.platform.core.models.auth.{ Permission, ApiClient }
-import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.controllers.auth.{OAuthProvider, BaseApi}
-import org.corespring.api.v1.errors.ApiError
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -129,6 +128,10 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
         }
       }
 
+      def createDefaultCollection(orgId : ObjectId) =
+        ContentCollection.insertCollection(orgId,
+          ContentCollection(ContentCollection.DEFAULT, orgId), Permission.Write)
+
       val validation: Validation[String, (Organization, ApiClient)] = for {
         user <- User.getUser(request.user.identityId).toSuccess("Unknown user")
         okUser <- if (user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
@@ -136,6 +139,8 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
         org <- Organization.insert(orgToCreate,None).right.toOption.toSuccess("Couldn't create org")
         updatedIdentityId <- setOrg(okUser.id, org.id).toSuccess("Couldn't set org")
+        // Ensure default collection is created for this organisation
+        defaultCollection <- createDefaultCollection(org.id).right.toOption.toSuccess("Couldn't create default collection")
         apiClient <- makeApiClient(org.id).toSuccess("Couldn't create api client")
       } yield (org, apiClient)
 
@@ -168,11 +173,11 @@ object Developer extends Controller with BaseApi with SecureSocial with PackageL
   def handleStartSignUp = Action.async {
     implicit request =>
       val action = securesocial.controllers.Registration.handleStartSignUp(request)
-        action.transform({ r => r match {
-          case BadRequest => action
-          case _ => Ok(developer.views.html.registerDone())
-        }}, e => e)
-       action
+      action.transform({ r => r match {
+        case BadRequest => action
+        case _ => Ok(developer.views.html.registerDone())
+      }}, e => e)
+      action
   }
 
   def handleSignUp(token: String) = Action.async { request => MyRegistration.handleSignUp(token)(request) }
