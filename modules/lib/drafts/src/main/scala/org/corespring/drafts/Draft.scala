@@ -1,50 +1,45 @@
 package org.corespring.drafts
 
 trait DraftStore[ID, VERSION, DATA] {
-  def createDraft(id: ID): Draft[DraftSrc[ID, VERSION], DATA]
-
-  def commitDraft(id: ID, draft: Draft[DraftSrc[ID, VERSION], DATA]): Either[String, String]
-}
-
-trait SimpleStore[ID, VERSION, DATA] extends DraftStore[ID, VERSION, DATA] {
-
   type DraftAndSrc = Draft[DraftSrc[ID, VERSION], DATA]
 
   def loadDataAndVersion(id: ID): (DATA, VERSION)
 
-  def saveData(id: ID, data: DATA, src: (ID, VERSION)): Either[String, VERSION]
+  def saveData(id: ID, data: DATA, src: DraftSrc[ID, VERSION]): Either[DraftError, VERSION]
 
   def mkInitialDraft: InitialDraft[ID, VERSION, DATA]
 
-  def loadEarlierDrafts(id: ID): Seq[Draft[DraftSrc[ID, VERSION], DATA]]
+  def loadEarlierDrafts(id: ID): Seq[DraftAndSrc]
 
-  override def createDraft(id: ID): DraftAndSrc = {
+  def createDraft(id: ID): DraftAndSrc = {
     val (data, version) = loadDataAndVersion(id)
     UserDraft[ID, VERSION, DATA](data, Some(DraftSrc[ID, VERSION](id, version)))
   }
 
-  override def commitDraft(id: ID, draft: DraftAndSrc): Either[String, VERSION] = {
+  def commitDraft(id: ID, data: DATA, src: DraftSrc[ID, VERSION], ignoreEarlierDraftsWithSameSrc: Boolean = false): Either[DraftError, VERSION] = {
 
     def getEarlierDraftsWithSameSrc(versions: Seq[DraftAndSrc]) = {
-
-      def previousDraftWithSameSrc(pd: DraftAndSrc): Boolean = {
-        pd.src.isDefined && pd.src == draft.src
-      }
-      versions.filter(previousDraftWithSameSrc)
+      versions.filter(pd => pd.src.isDefined && pd.src.get == src)
     }
 
-    val versions = loadEarlierDrafts(id)
-    val earlierDrafts = getEarlierDraftsWithSameSrc(versions)
+    val earlierDrafts = loadEarlierDrafts(id)
+    val earlierDraftsWithSameSrc = getEarlierDraftsWithSameSrc(earlierDrafts)
     println(s"earlier: $earlierDrafts")
+    println(s"earlier with same src: $earlierDraftsWithSameSrc")
 
-    if (earlierDrafts.length > 0) {
-      Left("Not Ok")
+    if (earlierDraftsWithSameSrc.length > 0 && !ignoreEarlierDraftsWithSameSrc) {
+      Left(EarlierDraftsWithSameSrc(earlierDraftsWithSameSrc))
     } else {
-      saveData(id, draft.data)
+      saveData(id, data, src)
     }
   }
-
 }
+
+sealed abstract class DraftError(msg: String)
+
+case class SaveDataFailed(msg: String) extends DraftError(msg)
+case class EarlierDraftsWithSameSrc[ID, VERSION, DATA](drafts: Seq[Draft[DraftSrc[ID, VERSION], DATA]])
+  extends DraftError("There are earlier drafts with the same src")
 
 case class DraftSrc[ID, VERSION](id: ID, version: VERSION)
 
