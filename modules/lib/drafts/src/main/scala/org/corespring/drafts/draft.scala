@@ -1,4 +1,4 @@
-package org.corespring.drafts.models
+/*package org.corespring.drafts.models
 
 import org.joda.time.DateTime
 
@@ -20,4 +20,4 @@ trait UserDraft[DATA, USER, ID, VERSION] extends Draft[DraftSrc[ID, VERSION], DA
 
   override final def src: Option[DraftSrc[ID, VERSION]] = Some(draftSrc)
 }
-
+*/
