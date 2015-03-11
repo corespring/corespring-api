@@ -9,7 +9,7 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ userAndItem, userWithItemAndSession }
+import org.corespring.v2.player.scopes.{ userAndItem }
 import org.specs2.specification.BeforeExample
 import play.api.Play
 
@@ -70,7 +70,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       val update = draft.update(newItem)
       drafts.commit(update)
       val latestItem = ItemHelper.get(item.id.copy(version = None))
-      alatestItem.get.taskInfo.get.title === Some("commit a draft")
+      latestItem.get.taskInfo.get.title === Some("commit a draft")
       latestItem.get.id.version === Some(1)
     }
 
@@ -87,21 +87,5 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       commit.user.userName === user.userName
     }
 
-    /*"create a draft, save it, and reload it" in new userAndItem {
-      val draft = draftStore.createDraft(itemId.id, SimpleUser(user))
-
-      val newPlayerDef = Some(PlayerDefinition(xhtml = "update!"))
-      val update = draft.update(draft.data.copy(playerDefinition = newPlayerDef))
-      draftService.save(update)
-
-      draftService.load(update.id).map { d =>
-        d.data.playerDefinition.map(_.xhtml) === Some("update!")
-      }.getOrElse(failure("didn't find updated draft"))
-
-      draftStore.commitDraft(itemId.id, update) match {
-        case Left(errs) => failure("there should be no failures as this is the first committed draft")
-        case Right(_) => success
-      }
-    }*/
   }
 }
