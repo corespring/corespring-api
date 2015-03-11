@@ -3,15 +3,12 @@ package org.corespring.drafts
 import org.corespring.drafts.errors.{ CommitsWithSameSrc, DraftError }
 import org.joda.time.DateTime
 
-/**
- * A draft has the target data and the user
- */
-
 trait IdAndVersion[ID, VERSION] {
   def id: ID
   def version: VERSION
 }
 
+/** The data src for the draft and it's id/version */
 trait Src[DATA, ID, VERSION] {
   def data: DATA
   def id: IdAndVersion[ID, VERSION]
@@ -20,9 +17,11 @@ trait Src[DATA, ID, VERSION] {
 trait Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA] {
   def id: ID
   def src: Src[SRC_DATA, SRC_ID, SRC_VERSION]
+  /** update the data in the draft */
   def update(data: SRC_DATA): Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA]
 }
 
+/** a draft created by a user */
 trait UserDraft[ID, SRC_ID, SRC_VERSION, SRC_DATA, USER]
   extends Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA] {
   def user: USER
@@ -40,17 +39,29 @@ trait Commit[ID, VERSION, USER] {
   def user: USER
 }
 
+/**
+ * Operations you can perform on drafts
+ */
 trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER]] {
 
   /**
    * Creates a draft for the target data.
    */
   def create(id: SRC_ID, user: USER): Option[UD]
+
+  /**
+   * Commit a draft back to the data store
+   */
   def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
+  /** load a draft by its id */
   def load(id: ID): Option[UD]
+  /** save a draft */
   def save(d: UD): Either[DraftError, ID]
 }
 
+/**
+ * Checks if there have been any commits with the same src id/version and fails if there have been.
+ */
 trait DraftsWithCommitCheck[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER]]
   extends Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD] {
 

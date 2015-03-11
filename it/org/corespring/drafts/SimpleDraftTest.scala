@@ -70,7 +70,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       val update = draft.update(newItem)
       drafts.commit(update)
       val latestItem = ItemHelper.get(item.id.copy(version = None))
-      latestItem.get.taskInfo.get.title === Some("commit a draft")
+      alatestItem.get.taskInfo.get.title === Some("commit a draft")
       latestItem.get.id.version === Some(1)
     }
 
