@@ -61,6 +61,7 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
       "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
       "domain" -> property("xAxisMaxValue").map(f => JsNumber(f.toInt)),
       "range" -> property("yAxisMaxValue").map(f => JsNumber(f.toInt)),
+      "showCoordinates" -> Some(JsBoolean(false)),
       "maxPoints" -> ((node \ "@maxChoices") match {
         case n: NodeSeq if n.nonEmpty => Some(JsNumber(n.text.toInt))
         case _ => None

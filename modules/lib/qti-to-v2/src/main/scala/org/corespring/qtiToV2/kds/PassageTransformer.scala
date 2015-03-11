@@ -14,7 +14,10 @@ trait PassageTransformer extends PassageScrubber with HtmlProcessor {
       case true => {
         sources.find{ case (path, source) => resource.path.flattenPath == path.flattenPath }.map(_._2) match {
           case Some(source) => Some(transformPassage(source.getLines.mkString))
-          case _ => throw new Exception(s"Missing passage ${resource.path}")
+          case _ => {
+            println(s"Missing passage ${resource.path}")
+            None
+          }
         }
       }
       case _ => None
