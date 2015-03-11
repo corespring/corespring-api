@@ -4,6 +4,8 @@ import com.mongodb.casbah.MongoCollection
 import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.item._
+import org.corespring.drafts.item.models.SimpleUser
+import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }

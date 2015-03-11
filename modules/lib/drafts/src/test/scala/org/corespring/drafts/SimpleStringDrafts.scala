@@ -84,7 +84,7 @@ class SimpleStringDrafts extends DraftsWithCommitCheck[String, String, Int, Stri
   /**
    * Creates a draft for the target data.
    */
-  override def create(srcId: String, user: String): SimpleDraft = {
+  override def create(srcId: String, user: String): Option[SimpleDraft] = {
     val versions = data.get(srcId).getOrElse {
       data.put(srcId, Seq(""))
       data.get(srcId).get
@@ -97,7 +97,7 @@ class SimpleStringDrafts extends DraftsWithCommitCheck[String, String, Int, Stri
       user)
 
     drafts.append(draft)
-    draft
+    Some(draft)
   }
 }
 

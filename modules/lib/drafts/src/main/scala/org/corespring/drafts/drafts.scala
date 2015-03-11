@@ -45,7 +45,7 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
   /**
    * Creates a draft for the target data.
    */
-  def create(src: SRC_ID, user: USER): UD
+  def create(id: SRC_ID, user: USER): Option[UD]
   def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
   def load(id: ID): Option[UD]
   def save(d: UD): Either[DraftError, ID]
@@ -68,7 +68,7 @@ trait DraftsWithCommitCheck[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[
    */
   def commitData(d: UD): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
 
-  override def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
+  override final def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
     val commits = loadCommits(d.src.id)
 
     if (commits.length > 0 && !force) {
