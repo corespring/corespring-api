@@ -2,64 +2,92 @@ package org.corespring.drafts
 
 import com.mongodb.casbah.MongoCollection
 import common.db.Db
-import org.bson.types.ObjectId
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.SimpleUser
+import org.corespring.drafts.item.models.{ ObjectIdAndVersion, SimpleUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ userAndItem, userWithItemAndSession }
+import org.specs2.specification.BeforeExample
 import play.api.Play
 
-class SimpleDraftTest extends IntegrationSpecification {
+class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
 
-  lazy val draftStore = new ItemDraftStore {
-    override def itemService: ItemService = ItemServiceWired
+  lazy val db = Db.salatDb()(Play.current)
 
-    override def commitService: CommitService = new ItemCommitService {
-      override def collection: MongoCollection = Db.salatDb()(Play.current)("drafts.item.commits")
-
-    }
+  override protected def before: Any = {
+    db("it.drafts.item").drop()
+    db("it.drafts.item_commits").drop()
   }
 
   lazy val draftService = new ItemDraftService {
-    override def collection: MongoCollection = Db.salatDb()(Play.current)("drafts.item")
+    override def collection: MongoCollection = db("it.drafts.item")
   }
 
-  "Single Draft Api" should {
-
-    trait SimpleApi {
-      def createDraft(id: ObjectId, user: SimpleUser): ItemUserDraft
-    }
-
-    val api = new SimpleApi {
-      override def createDraft(id: ObjectId, user: SimpleUser): ItemUserDraft = ???
-    }
-
-    "be simple" in new userAndItem {
-      //creates the draft and saves it
-      val draft = api.createDraft(itemId.id, SimpleUser(user))
-
-      // returns a draft
-      // api.loadDraft(draft.id)
-      // returns all drafts for user and itemId
-      // api.loadDraftsByUserAndItem(itemId.id, SimpleUser(user)) : Seq[ItemUserDraft]
-      // returns all drafts for the item
-      // api.loadDraftsByItemId(itemId.id) : Seq[ItemUserDraft]
-      // commit a draft
-      // api.commitDraft(draft, force:Boolean) : Either[E,CommitInfo]
-    }
-
+  lazy val commitService = new CommitService {
+    override def collection: MongoCollection = db("it.drafts.item_commits")
   }
+
+  lazy val drafts = new ItemDrafts {
+    override def itemService: ItemService = ItemServiceWired
+
+    override def draftService: ItemDraftService = SimpleDraftTest.this.draftService
+
+    override def commitService: CommitService = SimpleDraftTest.this.commitService
+  }
+
+  def updateTitle(item: Item, title: String): Item = {
+    item.copy(taskInfo = item.taskInfo.map(_.copy(title = Some(title))))
+  }
+
   "SimpleDraftTest" should {
 
     "create a draft of an item" in new userAndItem {
-      val draft = draftStore.createDraft(itemId.id, SimpleUser(user))
-      draft.user.id === user.id
+      val draft = drafts.create(itemId.id, SimpleUser(user))
+      draft.map(_.user.id) === Some(user.id)
     }
 
-    "create a draft, save it, and reload it" in new userAndItem {
+    "load a created draft by its id" in new userAndItem {
+      val draft = drafts.create(itemId.id, SimpleUser(user))
+      drafts.load(draft.get.id) === draft
+    }
+
+    "save a draft" in new userAndItem {
+      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+      val item = draft.src.data
+      val newItem = updateTitle(item, "updated title")
+      val update = draft.update(newItem)
+      drafts.save(update)
+      drafts.load(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
+    }
+
+    "commit a draft" in new userAndItem {
+      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+      val item = draft.src.data
+      val newItem = updateTitle(item, "commit a draft")
+      val update = draft.update(newItem)
+      drafts.commit(update)
+      val latestItem = ItemHelper.get(item.id.copy(version = None))
+      latestItem.get.taskInfo.get.title === Some("commit a draft")
+      latestItem.get.id.version === Some(1)
+    }
+
+    "committing a draft, removes the draft and creates a commit" in new userAndItem {
+      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+      val item = draft.src.data
+      val newItem = updateTitle(item, "update for committing - 2")
+      val update = draft.update(newItem)
+      drafts.commit(update)
+      drafts.load(update.id) === None
+      val commits = drafts.loadCommits(ObjectIdAndVersion(itemId.id, itemId.version.get))
+      commits.length === 1
+      val commit = commits(0)
+      commit.user.userName === user.userName
+    }
+
+    /*"create a draft, save it, and reload it" in new userAndItem {
       val draft = draftStore.createDraft(itemId.id, SimpleUser(user))
 
       val newPlayerDef = Some(PlayerDefinition(xhtml = "update!"))
@@ -74,6 +102,6 @@ class SimpleDraftTest extends IntegrationSpecification {
         case Left(errs) => failure("there should be no failures as this is the first committed draft")
         case Right(_) => success
       }
-    }
+    }*/
   }
 }
