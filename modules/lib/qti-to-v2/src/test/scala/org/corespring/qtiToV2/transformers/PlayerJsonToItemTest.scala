@@ -1,11 +1,12 @@
 package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{AdditionalCopyright, Copyright, Item}
+import org.corespring.platform.core.models.item.{PlayerDefinition, AdditionalCopyright, Copyright, Item}
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
-class PlayerJsonToItemTest extends Specification {
+class PlayerJsonToItemTest extends Specification with Mockito {
 
   "PlayerJson => Item" should {
 
@@ -127,6 +128,21 @@ class PlayerJsonToItemTest extends Specification {
       update.playerDefinition.get.summaryFeedback === "some feedback"
 
     }
+  }
+
+  "playerDef" should {
+    import PlayerJsonToItem._
+
+    val item = mock[Item]
+    val json = Json.obj("xhtml" -> "yay")
+
+    "add playerDefinition to item" in {
+      val captor = capture[PlayerDefinition]
+      playerDef(item, json)
+      there was one(item).withPlayerDefinition(captor)
+      captor.value must beEqualTo(json.as[PlayerDefinition])
+    }
+
   }
 
 }

@@ -70,6 +70,16 @@ class PlayerDefinition(val files: Seq[BaseFile], val xhtml: String, val componen
     case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) && p.summaryFeedback == summaryFeedback && p.customScoring == customScoring
     case _ => false
   }
+
+  def itemTypes: Map[String, Int] = components match {
+    case jsObject: JsObject => jsObject.keys.toSeq.map(components \ _).map(f => (f \ "componentType").asOpt[String])
+      .flatten
+      .foldLeft(Map[String,Int]() withDefaultValue 0) {
+        (acc, componentType) => acc + (componentType -> (1 + acc(componentType)))
+      }
+    case _ => Map.empty[String, Int]
+  }
+
 }
 
 case class PlayerDefinitionTransformerException(e: Throwable) extends RuntimeException(e)

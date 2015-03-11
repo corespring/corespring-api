@@ -220,7 +220,7 @@ object Build extends sbt.Build {
 
   val reports = builders.web("reports")
     .settings(
-      libraryDependencies ++= Seq(simplecsv))
+      libraryDependencies ++= Seq(simplecsv, componentLoader))
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
   val scormWeb = builders.web("scorm-web").settings(

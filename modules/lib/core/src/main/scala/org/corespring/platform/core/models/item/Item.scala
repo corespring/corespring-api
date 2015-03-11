@@ -40,6 +40,13 @@ case class Item(
     copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
   }
 
+  def withPlayerDefinition(playerDefinition: PlayerDefinition) = {
+    copy(
+      playerDefinition = Some(playerDefinition),
+      taskInfo = Some(taskInfo.getOrElse(new TaskInfo()).copy(itemTypes = playerDefinition.itemTypes))
+    )
+  }
+
   /** We're going to update this with a flag **/
   def createdByApiVersion: Int =
     data match {

@@ -5,59 +5,108 @@ import com.novus.salat.dao.ModelCompanion
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.platform.core.models.item.resource.{BaseFile, Resource, VirtualFile}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 import play.api.Configuration
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
-
   PlaySingleton.start()
 
-  val itemServiceMock = mock[ItemService]
+  trait scope extends Scope {
 
-  val mockCollectionId = ObjectId.get()
+    val itemServiceMock = mock[ItemService]
 
-  var mockCollection:Option[ContentCollection] = Some(new ContentCollection("Collection name",ownerOrgId = ObjectId.get(),id = mockCollectionId))
+    val mockCollectionId = ObjectId.get()
 
-  val itemTransformer = new ItemTransformer {
-    def itemService = itemServiceMock
+    var mockCollection:Option[ContentCollection] = Some(new ContentCollection("Collection name",ownerOrgId = ObjectId.get(),id = mockCollectionId))
 
-    override def configuration: Configuration = Configuration.empty
+    val itemTransformer = new ItemTransformer {
+      def itemService = itemServiceMock
 
-    override def findCollection(id:ObjectId):Option[ContentCollection] = mockCollection
+      override def configuration: Configuration = Configuration.empty
+
+      override def findCollection(id:ObjectId):Option[ContentCollection] = mockCollection
+    }
+
+    val qti =
+      <assessmentItem>
+        <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
+          <correctResponse>
+            <value>ChoiceA</value>
+          </correctResponse>
+        </responseDeclaration>
+        <itemBody>
+          <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
+            <prompt>ITEM PROMPT?</prompt>
+            <simpleChoice identifier="ChoiceA">
+              ChoiceA text (Correct Choice)
+              <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
+            </simpleChoice>
+            <simpleChoice identifier="ChoiceD">
+              ChoiceD text
+              <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
+            </simpleChoice>
+          </choiceInteraction>
+        </itemBody>
+      </assessmentItem>
+
+    val itemId = VersionedId(ObjectId.get())
+
+    val item = Item(
+      id = itemId,
+      collectionId = Some(mockCollectionId.toString),
+      lexile = Some("30"),
+      reviewsPassed = Seq("RP1", "RP2"),
+      reviewsPassedOther = Some("RPO"),
+      priorGradeLevels = Seq("PGL1", "PGL2"),
+      priorUse = Some("PU"),
+      priorUseOther = Some("PUO"),
+      taskInfo = Some(
+        TaskInfo(
+          title = Some("item one"))),
+      contributorDetails = Some(ContributorDetails(
+        credentials = Some("CR"),
+        credentialsOther = Some("CRO"),
+        copyright = Some(Copyright(
+          owner = Some("owner"),
+          year = Some("1234"),
+          expirationDate = Some("2345"))))),
+      otherAlignments = Some(Alignments(
+        bloomsTaxonomy = Some("BT"),
+        keySkills = Seq("KS1", "KS2"),
+        depthOfKnowledge = Some("DOK"))),
+      data = Some(
+        Resource(
+          name = "data",
+          files = Seq(
+            VirtualFile(
+              name = "qti.xml",
+              contentType = "text/xml",
+              content = qti.toString,
+              isMain = true),
+            VirtualFile(
+              name = "kittens.jpeg",
+              contentType = "image/jpeg",
+              content = "")))))
+
+    val itemTypes = Map("corespring-multiple-choice" -> 1)
+
+    val qtiFile = new VirtualFile(name = "qti.xml", contentType = "application/xml", isMain = true, qti.toString)
+
+    val itemWithoutPlayerDefinition = Item(data = Some(Resource(name = "qti.xml", files = Seq(qtiFile))))
+
   }
-
-  val qti =
-    <assessmentItem>
-      <responseDeclaration identifier="Q_01" cardinality="single" baseType="identifier">
-        <correctResponse>
-          <value>ChoiceA</value>
-        </correctResponse>
-      </responseDeclaration>
-      <itemBody>
-        <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
-          <prompt>ITEM PROMPT?</prompt>
-          <simpleChoice identifier="ChoiceA">
-            ChoiceA text (Correct Choice)
-            <feedbackInline identifier="ChoiceA" defaultFeedback="true"/>
-          </simpleChoice>
-          <simpleChoice identifier="ChoiceD">
-            ChoiceD text
-            <feedbackInline identifier="ChoiceD" defaultFeedback="true"/>
-          </simpleChoice>
-        </choiceInteraction>
-      </itemBody>
-    </assessmentItem>
 
   "Item transformer" should {
 
-    "map task info" in {
+    "map task info" in new scope {
 
       val oid = ObjectId.get.toString
       val apiJson = Json.obj(
@@ -72,46 +121,7 @@ class ItemTransformerTest extends Specification with Mockito {
       itemTransformer.mapTaskInfo(apiJson) === v2Json
     }
 
-    "transform an item to poc json" in {
-      val itemId = VersionedId(ObjectId.get())
-
-      val item = Item(
-        id = itemId,
-        collectionId = Some(mockCollectionId.toString),
-        lexile = Some("30"),
-        reviewsPassed = Seq("RP1", "RP2"),
-        reviewsPassedOther = Some("RPO"),
-        priorGradeLevels = Seq("PGL1", "PGL2"),
-        priorUse = Some("PU"),
-        priorUseOther = Some("PUO"),
-        taskInfo = Some(
-          TaskInfo(
-            title = Some("item one"))),
-        contributorDetails = Some(ContributorDetails(
-          credentials = Some("CR"),
-          credentialsOther = Some("CRO"),
-          copyright = Some(Copyright(
-            owner = Some("owner"),
-            year = Some("1234"),
-            expirationDate = Some("2345"))))),
-        otherAlignments = Some(Alignments(
-          bloomsTaxonomy = Some("BT"),
-          keySkills = Seq("KS1", "KS2"),
-          depthOfKnowledge = Some("DOK"))),
-        data = Some(
-          Resource(
-            name = "data",
-            files = Seq(
-              VirtualFile(
-                name = "qti.xml",
-                contentType = "text/xml",
-                content = qti.toString,
-                isMain = true),
-              VirtualFile(
-                name = "kittens.jpeg",
-                contentType = "image/jpeg",
-                content = "")))))
-
+    "transform an item to poc json" in new scope {
       var json = itemTransformer.transformToV2Json(item)
       val imageJson = (json \ "files").as[Seq[JsObject]].head
 
@@ -149,6 +159,34 @@ class ItemTransformerTest extends Specification with Mockito {
       mockCollection = None
       json = itemTransformer.transformToV2Json(item)
       (json \ "collection").asOpt[JsObject] must beSome[JsObject]
+    }
+
+  }
+
+  "createPlayerDefinition" should {
+
+    "save item with playerDefinition" in new scope {
+      val captor = capture[Item]
+      itemTransformer.createPlayerDefinition(itemWithoutPlayerDefinition)
+
+      there was one(itemServiceMock).save(captor, any[Boolean])
+      captor.value.taskInfo.map(_.itemTypes) must beEqualTo(Some(itemTypes))
+    }
+
+    "return item with playerDefinition" in new scope {
+      itemTransformer.createPlayerDefinition(itemWithoutPlayerDefinition).itemTypes must beEqualTo(itemTypes)
+    }
+
+  }
+
+  "updateV2Json" should {
+
+    "save item with playerDefinition" in new scope {
+      val captor = capture[Item]
+      itemTransformer.updateV2Json(itemWithoutPlayerDefinition)
+
+      there was one(itemServiceMock).save(captor, any[Boolean])
+      captor.value.taskInfo.map(_.itemTypes) must beEqualTo(Some(itemTypes))
     }
 
   }
