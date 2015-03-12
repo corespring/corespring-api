@@ -24,9 +24,10 @@ trait EntityEscaper {
       ((string: String) => dontEncode.contains(entity.char) match {
         case true => string
         case _ => string.replaceAllLiterally(entity.char.toString, entity.toXmlString)
-      }).apply(acc
-        .replaceAllLiterally(s"&#${entity.unicode.toString};", entity.toXmlString)
-        .replaceAllLiterally(s"&${entity.name};", entity.toXmlString))
+      }).apply(((string: String) => entity.name match {
+        case Some(name) => string.replaceAllLiterally(s"&${name};", entity.toXmlString)
+        case _ => string
+      }).apply(acc.replaceAllLiterally(s"&#${entity.unicode.toString};", entity.toXmlString)))
     }
 
   def unescapeEntities(xml: String) = (new RuleTransformer(new RewriteRule {
@@ -50,7 +51,7 @@ object EntityEscaper {
 
   val dontEncode = Seq('"', '&', '\'', '<', '>', '-') ++ 65.to(90).map(_.toChar)
 
-  case class Entity(name: String, char: Char, unicode: Int) {
+  case class Entity(name: Option[String], char: Char, unicode: Int) {
     def toXmlString = s"""<entity value="${this.unicode.toString}"/>"""
   }
 
@@ -58,57 +59,70 @@ object EntityEscaper {
    * A mapping of all HTML entity names to their corresponding unicode decimal values (see
    * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references as reference).
    */
-  val entities: Seq[Entity] = Seq(("quot", '"', 34), ("amp", '&', 38), ("apos", '\'', 39), ("lt", '<', 60),
-    ("gt", '>', 62), ("nbsp", ' ', 160), ("iexcl", '¡', 161), ("cent", '¢', 162), ("pound", '£', 163),
-    ("curren", '¤', 164), ("yen", '¥', 165), ("brvbar", '¦', 166), ("sect", '§', 167), ("uml", '¨', 168),
-    ("copy", '©', 169), ("ordf", 'ª', 170), ("laquo", '«', 171), ("not", '¬', 172), ("shy", ' ', 173),
-    ("reg", '®', 174), ("macr", '¯', 175), ("deg", '°', 176), ("plusmn", '±', 177), ("sup2", '²', 178),
-    ("sup3", '³', 179), ("acute", '´', 180), ("micro", 'µ', 181), ("para", '¶', 182), ("middot", '·', 183),
-    ("cedil", '¸', 184), ("sup1", '¹', 185), ("ordm", 'º', 186), ("raquo", '»', 187), ("frac14", '¼', 188),
-    ("frac12", '½', 189), ("frac34", '¾', 190), ("iquest", '¿', 191), ("Agrave", 'À', 192), ("Aacute", 'Á', 193),
-    ("Acirc", 'Â', 194), ("Atilde", 'Ã', 195), ("Auml", 'Ä', 196), ("Aring", 'Å', 197), ("AElig", 'Æ', 198),
-    ("Ccedil", 'Ç', 199), ("Egrave", 'È', 200), ("Eacute", 'É', 201), ("Ecirc", 'Ê', 202), ("Euml", 'Ë', 203),
-    ("Igrave", 'Ì', 204), ("Iacute", 'Í', 205), ("Icirc", 'Î', 206), ("Iuml", 'Ï', 207), ("ETH", 'Ð', 208),
-    ("Ntilde", 'Ñ', 209), ("Ograve", 'Ò', 210), ("Oacute", 'Ó', 211), ("Ocirc", 'Ô', 212), ("Otilde", 'Õ', 213),
-    ("Ouml", 'Ö', 214), ("times", '×', 215), ("Oslash", 'Ø', 216), ("Ugrave", 'Ù', 217), ("Uacute", 'Ú', 218),
-    ("Ucirc", 'Û', 219), ("Uuml", 'Ü', 220), ("Yacute", 'Ý', 221), ("THORN", 'Þ', 222), ("szlig", 'ß', 223),
-    ("agrave", 'à', 224), ("aacute", 'á', 225), ("acirc", 'â', 226), ("atilde", 'ã', 227), ("auml", 'ä', 228),
-    ("aring", 'å', 229), ("aelig", 'æ', 230), ("ccedil", 'ç', 231), ("egrave", 'è', 232), ("eacute", 'é', 233),
-    ("ecirc", 'ê', 234), ("euml", 'ë', 235), ("igrave", 'ì', 236), ("iacute", 'í', 237), ("icirc", 'î', 238),
-    ("iuml", 'ï', 239), ("eth", 'ð', 240), ("ntilde", 'ñ', 241), ("ograve", 'ò', 242), ("oacute", 'ó', 243),
-    ("ocirc", 'ô', 244), ("otilde", 'õ', 245), ("ouml", 'ö', 246), ("divide", '÷', 247), ("oslash", 'ø', 248),
-    ("ugrave", 'ù', 249), ("uacute", 'ú', 250), ("ucirc", 'û', 251), ("uuml", 'ü', 252), ("yacute", 'ý', 253),
-    ("thorn", 'þ', 254), ("yuml", 'ÿ', 255), ("OElig", 'Œ', 338), ("oelig", 'œ', 339), ("Scaron", 'Š', 352),
-    ("scaron", 'š', 353), ("Yuml", 'Ÿ', 376), ("fnof", 'ƒ', 402), ("circ", 'ˆ', 710), ("tilde", '˜', 732),
-    ("Alpha", 'Α', 913), ("Beta", 'Β', 914), ("Gamma", 'Γ', 915), ("Delta", 'Δ', 916), ("Epsilon", 'Ε', 917),
-    ("Zeta", 'Ζ', 918), ("Eta", 'Η', 919), ("Theta", 'Θ', 920), ("Iota", 'Ι', 921), ("Kappa", 'Κ', 922),
-    ("Lambda", 'Λ', 923), ("Mu", 'Μ', 924), ("Nu", 'Ν', 925), ("Xi", 'Ξ', 926), ("Omicron", 'Ο', 927),
-    ("Pi", 'Π', 928), ("Rho", 'Ρ', 929), ("Sigma", 'Σ', 931), ("Tau", 'Τ', 932), ("Upsilon", 'Υ', 933),
-    ("Phi", 'Φ', 934), ("Chi", 'Χ', 935), ("Psi", 'Ψ', 936), ("Omega", 'Ω', 937), ("alpha", 'α', 945),
-    ("beta", 'β', 946), ("gamma", 'γ', 947), ("delta", 'δ', 948), ("epsilon", 'ε', 949), ("zeta", 'ζ', 950),
-    ("eta", 'η', 951), ("theta", 'θ', 952), ("iota", 'ι', 953), ("kappa", 'κ', 954), ("lambda", 'λ', 955),
-    ("mu", 'μ', 956), ("nu", 'ν', 957), ("xi", 'ξ', 958), ("omicron", 'ο', 959), ("pi", 'π', 960), ("rho", 'ρ', 961),
-    ("sigmaf", 'ς', 962), ("sigma", 'σ', 963), ("tau", 'τ', 964), ("upsilon", 'υ', 965), ("phi", 'φ', 966),
-    ("chi", 'χ', 967), ("psi", 'ψ', 968), ("omega", 'ω', 969), ("thetasym", 'ϑ', 977), ("upsih", 'ϒ', 978),
-    ("piv", 'ϖ', 982), ("ensp", ' ', 8194), ("emsp", ' ', 8195), ("thinsp", ' ', 8201), ("zwnj", ' ', 8204),
-    ("zwj", ' ', 8205), ("lrm", ' ', 8206), ("rlm", ' ', 8207), ("ndash", '–', 8211), ("mdash", '—', 8212),
-    ("lsquo", '‘', 8216), ("rsquo", '’', 8217), ("sbquo", '‚', 8218), ("ldquo", '“', 8220), ("rdquo", '”', 8221),
-    ("bdquo", '„', 8222), ("dagger", '†', 8224), ("Dagger", '‡', 8225), ("bull", '•', 8226), ("hellip", '…', 8230),
-    ("permil", '‰', 8240), ("prime", '′', 8242), ("Prime", '″', 8243), ("lsaquo", '‹', 8249), ("rsaquo", '›', 8250),
-    ("oline", '‾', 8254), ("frasl", '⁄', 8260), ("euro", '€', 8364), ("image", 'ℑ', 8465), ("weierp", '℘', 8472),
-    ("real", 'ℜ', 8476), ("trade", '™', 8482), ("alefsym", 'ℵ', 8501), ("larr", '←', 8592), ("uarr", '↑', 8593),
-    ("rarr", '→', 8594), ("darr", '↓', 8595), ("harr", '↔', 8596), ("crarr", '↵', 8629), ("lArr", '⇐', 8656),
-    ("uArr", '⇑', 8657), ("rArr", '⇒', 8658), ("dArr", '⇓', 8659), ("hArr", '⇔', 8660), ("forall", '∀', 8704),
-    ("part", '∂', 8706), ("exist", '∃', 8707), ("empty", '∅', 8709), ("nabla", '∇', 8711), ("isin", '∈', 8712),
-    ("notin", '∉', 8713), ("ni", '∋', 8715), ("prod", '∏', 8719), ("sum", '∑', 8721), ("minus", '−', 8722),
-    ("lowast", '∗', 8727), ("radic", '√', 8730), ("prop", '∝', 8733), ("infin", '∞', 8734), ("ang", '∠', 8736),
-    ("and", '∧', 8743), ("or", '∨', 8744), ("cap", '∩', 8745), ("cup", '∪', 8746), ("int", '∫', 8747),
-    ("there4", '∴', 8756), ("sim", '∼', 8764), ("cong", '≅', 8773), ("asymp", '≈', 8776), ("ne", '≠', 8800),
-    ("equiv", '≡', 8801), ("le", '≤', 8804), ("ge", '≥', 8805), ("sub", '⊂', 8834), ("sup", '⊃', 8835),
-    ("nsub", '⊄', 8836), ("sube", '⊆', 8838), ("supe", '⊇', 8839), ("oplus", '⊕', 8853), ("otimes", '⊗', 8855),
-    ("perp", '⊥', 8869), ("sdot", '⋅', 8901), ("lceil", '⌈', 8968), ("rceil", '⌉', 8969), ("lfloor", '⌊', 8970),
-    ("rfloor", '⌋', 8971), ("lang", '〈', 9001), ("rang", '〉', 9002), ("loz", '◊', 9674), ("spades", '♠', 9824),
-    ("clubs", '♣', 9827), ("hearts", '♥', 9829), ("diams", '♦', 9830))
+  val entities: Seq[Entity] = Seq((Some("quot"), '"', 34), (Some("amp"), '&', 38), (Some("apos"), '\'', 39),
+    (Some("lt"), '<', 60), (Some("gt"), '>', 62), (Some("nbsp"), ' ', 160), (Some("iexcl"), '¡', 161),
+    (Some("cent"), '¢', 162), (Some("pound"), '£', 163), (Some("curren"), '¤', 164), (Some("yen"), '¥', 165),
+    (Some("brvbar"), '¦', 166), (Some("sect"), '§', 167), (Some("uml"), '¨', 168), (Some("copy"), '©', 169),
+    (Some("ordf"), 'ª', 170), (Some("laquo"), '«', 171), (Some("not"), '¬', 172), (Some("shy"), ' ', 173),
+    (Some("reg"), '®', 174), (Some("macr"), '¯', 175), (Some("deg"), '°', 176), (Some("plusmn"), '±', 177),
+    (Some("sup2"), '²', 178), (Some("sup3"), '³', 179), (Some("acute"), '´', 180), (Some("micro"), 'µ', 181),
+    (Some("para"), '¶', 182), (Some("middot"), '·', 183), (Some("cedil"), '¸', 184), (Some("sup1"), '¹', 185),
+    (Some("ordm"), 'º', 186), (Some("raquo"), '»', 187), (Some("frac14"), '¼', 188), (Some("frac12"), '½', 189),
+    (Some("frac34"), '¾', 190), (Some("iquest"), '¿', 191), (Some("Agrave"), 'À', 192), (Some("Aacute"), 'Á', 193),
+    (Some("Acirc"), 'Â', 194), (Some("Atilde"), 'Ã', 195), (Some("Auml"), 'Ä', 196), (Some("Aring"), 'Å', 197),
+    (Some("AElig"), 'Æ', 198), (Some("Ccedil"), 'Ç', 199), (Some("Egrave"), 'È', 200), (Some("Eacute"), 'É', 201),
+    (Some("Ecirc"), 'Ê', 202), (Some("Euml"), 'Ë', 203), (Some("Igrave"), 'Ì', 204), (Some("Iacute"), 'Í', 205),
+    (Some("Icirc"), 'Î', 206), (Some("Iuml"), 'Ï', 207), (Some("ETH"), 'Ð', 208), (Some("Ntilde"), 'Ñ', 209),
+    (Some("Ograve"), 'Ò', 210), (Some("Oacute"), 'Ó', 211), (Some("Ocirc"), 'Ô', 212), (Some("Otilde"), 'Õ', 213),
+    (Some("Ouml"), 'Ö', 214), (Some("times"), '×', 215), (Some("Oslash"), 'Ø', 216), (Some("Ugrave"), 'Ù', 217),
+    (Some("Uacute"), 'Ú', 218), (Some("Ucirc"), 'Û', 219), (Some("Uuml"), 'Ü', 220), (Some("Yacute"), 'Ý', 221),
+    (Some("THORN"), 'Þ', 222), (Some("szlig"), 'ß', 223), (Some("agrave"), 'à', 224), (Some("aacute"), 'á', 225),
+    (Some("acirc"), 'â', 226), (Some("atilde"), 'ã', 227), (Some("auml"), 'ä', 228), (Some("aring"), 'å', 229),
+    (Some("aelig"), 'æ', 230), (Some("ccedil"), 'ç', 231), (Some("egrave"), 'è', 232), (Some("eacute"), 'é', 233),
+    (Some("ecirc"), 'ê', 234), (Some("euml"), 'ë', 235), (Some("igrave"), 'ì', 236), (Some("iacute"), 'í', 237),
+    (Some("icirc"), 'î', 238), (Some("iuml"), 'ï', 239), (Some("eth"), 'ð', 240), (Some("ntilde"), 'ñ', 241),
+    (Some("ograve"), 'ò', 242), (Some("oacute"), 'ó', 243), (Some("ocirc"), 'ô', 244), (Some("otilde"), 'õ', 245),
+    (Some("ouml"), 'ö', 246), (Some("divide"), '÷', 247), (Some("oslash"), 'ø', 248), (Some("ugrave"), 'ù', 249),
+    (Some("uacute"), 'ú', 250), (Some("ucirc"), 'û', 251), (Some("uuml"), 'ü', 252), (Some("yacute"), 'ý', 253),
+    (Some("thorn"), 'þ', 254), (Some("yuml"), 'ÿ', 255), (Some("OElig"), 'Œ', 338), (Some("oelig"), 'œ', 339),
+    (Some("Scaron"), 'Š', 352), (Some("scaron"), 'š', 353), (Some("Yuml"), 'Ÿ', 376), (Some("fnof"), 'ƒ', 402),
+    (Some("circ"), 'ˆ', 710), (Some("tilde"), '˜', 732), (Some("Alpha"), 'Α', 913), (Some("Beta"), 'Β', 914),
+    (Some("Gamma"), 'Γ', 915), (Some("Delta"), 'Δ', 916), (Some("Epsilon"), 'Ε', 917), (Some("Zeta"), 'Ζ', 918),
+    (Some("Eta"), 'Η', 919), (Some("Theta"), 'Θ', 920), (Some("Iota"), 'Ι', 921), (Some("Kappa"), 'Κ', 922),
+    (Some("Lambda"), 'Λ', 923), (Some("Mu"), 'Μ', 924), (Some("Nu"), 'Ν', 925), (Some("Xi"), 'Ξ', 926),
+    (Some("Omicron"), 'Ο', 927), (Some("Pi"), 'Π', 928), (Some("Rho"), 'Ρ', 929), (Some("Sigma"), 'Σ', 931),
+    (Some("Tau"), 'Τ', 932), (Some("Upsilon"), 'Υ', 933), (Some("Phi"), 'Φ', 934), (Some("Chi"), 'Χ', 935),
+    (Some("Psi"), 'Ψ', 936), (Some("Omega"), 'Ω', 937), (Some("alpha"), 'α', 945), (Some("beta"), 'β', 946),
+    (Some("gamma"), 'γ', 947), (Some("delta"), 'δ', 948), (Some("epsilon"), 'ε', 949), (Some("zeta"), 'ζ', 950),
+    (Some("eta"), 'η', 951), (Some("theta"), 'θ', 952), (Some("iota"), 'ι', 953), (Some("kappa"), 'κ', 954),
+    (Some("lambda"), 'λ', 955), (Some("mu"), 'μ', 956), (Some("nu"), 'ν', 957), (Some("xi"), 'ξ', 958),
+    (Some("omicron"), 'ο', 959), (Some("pi"), 'π', 960), (Some("rho"), 'ρ', 961), (Some("sigmaf"), 'ς', 962),
+    (Some("sigma"), 'σ', 963), (Some("tau"), 'τ', 964), (Some("upsilon"), 'υ', 965), (Some("phi"), 'φ', 966),
+    (Some("chi"), 'χ', 967), (Some("psi"), 'ψ', 968), (Some("omega"), 'ω', 969), (Some("thetasym"), 'ϑ', 977),
+    (Some("upsih"), 'ϒ', 978), (Some("piv"), 'ϖ', 982), (Some("ensp"), ' ', 8194), (Some("emsp"), ' ', 8195),
+    (Some("thinsp"), ' ', 8201), (Some("zwnj"), ' ', 8204), (Some("zwj"), ' ', 8205), (Some("lrm"), ' ', 8206),
+    (Some("rlm"), ' ', 8207), (Some("ndash"), '–', 8211), (Some("mdash"), '—', 8212), (Some("lsquo"), '‘', 8216),
+    (Some("rsquo"), '’', 8217), (Some("sbquo"), '‚', 8218), (Some("ldquo"), '“', 8220), (Some("rdquo"), '”', 8221),
+    (Some("bdquo"), '„', 8222), (Some("dagger"), '†', 8224), (Some("Dagger"), '‡', 8225), (Some("bull"), '•', 8226),
+    (Some("hellip"), '…', 8230), (Some("permil"), '‰', 8240), (Some("prime"), '′', 8242), (Some("Prime"), '″', 8243),
+    (Some("lsaquo"), '‹', 8249), (Some("rsaquo"), '›', 8250), (Some("oline"), '‾', 8254), (Some("frasl"), '⁄', 8260),
+    (Some("euro"), '€', 8364), (Some("image"), 'ℑ', 8465), (Some("weierp"), '℘', 8472), (Some("real"), 'ℜ', 8476),
+    (Some("trade"), '™', 8482), (Some("alefsym"), 'ℵ', 8501), (Some("larr"), '←', 8592), (Some("uarr"), '↑', 8593),
+    (Some("rarr"), '→', 8594), (Some("darr"), '↓', 8595), (Some("harr"), '↔', 8596), (Some("crarr"), '↵', 8629),
+    (Some("lArr"), '⇐', 8656), (Some("uArr"), '⇑', 8657), (Some("rArr"), '⇒', 8658), (Some("dArr"), '⇓', 8659),
+    (Some("hArr"), '⇔', 8660), (Some("forall"), '∀', 8704), (Some("part"), '∂', 8706), (Some("exist"), '∃', 8707),
+    (Some("empty"), '∅', 8709), (Some("nabla"), '∇', 8711), (Some("isin"), '∈', 8712), (Some("notin"), '∉', 8713),
+    (Some("ni"), '∋', 8715), (Some("prod"), '∏', 8719), (Some("sum"), '∑', 8721), (Some("minus"), '−', 8722),
+    (Some("lowast"), '∗', 8727), (Some("radic"), '√', 8730), (Some("prop"), '∝', 8733), (Some("infin"), '∞', 8734),
+    (Some("ang"), '∠', 8736), (Some("and"), '∧', 8743), (Some("or"), '∨', 8744), (Some("cap"), '∩', 8745),
+    (Some("cup"), '∪', 8746), (Some("int"), '∫', 8747), (Some("there4"), '∴', 8756), (Some("sim"), '∼', 8764),
+    (Some("cong"), '≅', 8773), (Some("asymp"), '≈', 8776), (Some("ne"), '≠', 8800), (Some("equiv"), '≡', 8801),
+    (Some("le"), '≤', 8804), (Some("ge"), '≥', 8805), (Some("sub"), '⊂', 8834), (Some("sup"), '⊃', 8835),
+    (Some("nsub"), '⊄', 8836), (Some("sube"), '⊆', 8838), (Some("supe"), '⊇', 8839), (Some("oplus"), '⊕', 8853),
+    (Some("otimes"), '⊗', 8855), (Some("perp"), '⊥', 8869), (Some("sdot"), '⋅', 8901), (Some("lceil"), '⌈', 8968),
+    (Some("rceil"), '⌉', 8969), (Some("lfloor"), '⌊', 8970), (Some("rfloor"), '⌋', 8971), (Some("lang"), '〈', 9001),
+    (Some("rang"), '〉', 9002), (Some("loz"), '◊', 9674), (Some("spades"), '♠', 9824), (Some("clubs"), '♣', 9827),
+    (Some("hearts"), '♥', 9829), (Some("diams"), '♦', 9830), (None, '∘', 8728))
   .map{ case (name, char, unicode) => Entity(name, char, unicode) }
   .toSeq
 
