@@ -3,6 +3,8 @@ package org.corespring.drafts
 import org.corespring.drafts.errors.{ CommitError, CommitsWithSameSrc, DraftError }
 import org.joda.time.DateTime
 
+import scalaz.{ Success, Failure }
+
 trait IdAndVersion[ID, VERSION] {
   def id: ID
   def version: VERSION
@@ -44,6 +46,7 @@ trait Commit[ID, VERSION, USER] {
  */
 trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER]] {
 
+  import scalaz.Validation
   /**
    * Creates a draft for the target data.
    */
@@ -52,11 +55,11 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
   /**
    * Commit a draft back to the data store
    */
-  def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
+  def commit(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
   /** load a draft by its id */
   def load(id: ID): Option[UD]
   /** save a draft */
-  def save(d: UD): Either[DraftError, ID]
+  def save(d: UD): Validation[DraftError, ID]
 }
 
 /**
@@ -65,30 +68,28 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
 trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER], CMT <: Commit[SRC_ID, SRC_VERSION, USER]]
   extends Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD] {
 
-  override final def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
+  import scalaz.Validation
+
+  override final def commit(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
     val commits = loadCommits(d.src.id)
 
     if (commits.length > 0 && !force) {
-      Left(CommitsWithSameSrc(commits))
+      Failure(CommitsWithSameSrc(commits))
     } else {
       commitData(d)
     }
   }
 
   /**
-   * commit the draft, create a commit and store it
-   * for future checks.
-   * @param d
-   * @return
+   * Commit the draft, create a commit and store it for future checks.
    */
-  private def commitData(d: UD): Either[DraftError, CMT] = {
+  private def commitData(d: UD): Validation[DraftError, CMT] = {
     saveDraftSrcAsNewVersion(d) match {
-      case Left(err) => Left(err)
-      case Right(commit) => {
-        saveCommit(commit)
-        deleteDraft(d)
-        Right(commit)
-      }
+      case Failure(err) => Failure(err)
+      case Success(commit) => for {
+        _ <- saveCommit(commit)
+        _ <- deleteDraft(d)
+      } yield commit
     }
   }
 
@@ -99,8 +100,8 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
     findLatestSrc(id).flatMap { src =>
       val draft = mkDraft(id, src, user)
       save(draft) match {
-        case Left(_) => None
-        case Right(id) => Some(draft)
+        case Failure(_) => None
+        case Success(id) => Some(draft)
       }
     }
   }
@@ -111,11 +112,11 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    */
   protected def loadCommits(idAndVersion: IdAndVersion[SRC_ID, SRC_VERSION]): Seq[Commit[SRC_ID, SRC_VERSION, USER]]
 
-  protected def saveCommit(c: CMT): Either[CommitError, Unit]
+  protected def saveCommit(c: CMT): Validation[CommitError, Unit]
 
-  protected def deleteDraft(d: UD): Either[DraftError, Unit]
+  protected def deleteDraft(d: UD): Validation[DraftError, Unit]
 
-  protected def saveDraftSrcAsNewVersion(d: UD): Either[DraftError, CMT]
+  protected def saveDraftSrcAsNewVersion(d: UD): Validation[DraftError, CMT]
 
   protected def findLatestSrc(id: SRC_ID): Option[SRC]
 

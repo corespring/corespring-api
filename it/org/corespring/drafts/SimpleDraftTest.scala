@@ -14,6 +14,8 @@ import org.corespring.v2.player.scopes.{ userAndItem }
 import org.specs2.specification.BeforeExample
 import play.api.Play
 
+import scalaz.Failure
+
 class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
 
   lazy val db = Db.salatDb()(Play.current)
@@ -96,7 +98,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       val update = eds.update(newItem)
       drafts.commit(update)
       drafts.commit(edsSecondDraft) match {
-        case Left(CommitsWithSameSrc(commits)) => {
+        case Failure(CommitsWithSameSrc(commits)) => {
           val commit = commits(0)
           commit.user === SimpleUser(user)
         }
@@ -112,7 +114,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       val update = eds.update(newItem)
       drafts.commit(update)
       drafts.commit(edsSecondDraft, force = true) match {
-        case Left(CommitsWithSameSrc(commits)) => failure("should have succeeded")
+        case Failure(CommitsWithSameSrc(commits)) => failure("should have succeeded")
         case _ => success
       }
     }

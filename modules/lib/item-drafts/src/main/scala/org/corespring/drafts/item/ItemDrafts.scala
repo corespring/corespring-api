@@ -9,6 +9,8 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 
+import scalaz.{ Failure, Success, Validation }
+
 /**
  * Commit clean up ...
  *
@@ -36,12 +38,12 @@ trait ItemDrafts
 
   override def load(id: ObjectId): Option[ItemDraft] = draftService.load(id)
 
-  override def save(d: ItemDraft): Either[DraftError, ObjectId] = {
+  override def save(d: ItemDraft): Validation[DraftError, ObjectId] = {
     val result = draftService.save(d)
     if (result.getLastError.ok) {
-      Right(d.id)
+      Success(d.id)
     } else {
-      Left(SaveDataFailed(result.getLastError.getErrorMessage))
+      Failure(SaveDataFailed(result.getLastError.getErrorMessage))
     }
   }
 
@@ -49,19 +51,19 @@ trait ItemDrafts
     commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version)
   }
 
-  override protected def saveCommit(c: ItemCommit): Either[CommitError, Unit] = {
+  override protected def saveCommit(c: ItemCommit): Validation[CommitError, Unit] = {
     val result = commitService.save(c)
     if (result.getLastError.ok) {
-      Right()
+      Success()
     } else {
-      Left(SaveCommitFailed)
+      Failure(SaveCommitFailed)
     }
   }
 
-  override protected def saveDraftSrcAsNewVersion(d: ItemDraft): Either[DraftError, ItemCommit] = {
+  override protected def saveDraftSrcAsNewVersion(d: ItemDraft): Validation[DraftError, ItemCommit] = {
     itemService.save(d.src.data.copy(id = d.src.data.id.copy(version = None)), true) match {
-      case Left(err) => Left(SaveDataFailed(err))
-      case Right(vid) => Right(ItemCommit(d.src.data.id, vid, d.user))
+      case Left(err) => Failure(SaveDataFailed(err))
+      case Right(vid) => Success(ItemCommit(d.src.data.id, vid, d.user))
     }
   }
 
@@ -69,8 +71,8 @@ trait ItemDrafts
 
   override protected def mkDraft(srcId: ObjectId, src: Item, user: SimpleUser): ItemDraft = ItemDraft(ObjectId.get, ItemSrc(src, src.id), user)
 
-  override protected def deleteDraft(d: ItemDraft): Either[DraftError, Unit] = {
+  override protected def deleteDraft(d: ItemDraft): Validation[DraftError, Unit] = {
     val result = draftService.remove(d)
-    if (result) Right() else Left(DeleteDraftFailed(d.id))
+    if (result) Success() else Failure(DeleteDraftFailed(d.id))
   }
 }

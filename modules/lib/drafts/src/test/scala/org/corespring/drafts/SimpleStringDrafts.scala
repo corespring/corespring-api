@@ -3,6 +3,8 @@ package org.corespring.drafts
 import org.corespring.drafts.errors.{ DeleteDraftFailed, CommitError, DraftError }
 import org.joda.time.DateTime
 
+import scalaz.{ Validation, Success, Failure }
+
 case class IdVersion(id: String, version: Int)
   extends IdAndVersion[String, Int]
 
@@ -42,12 +44,12 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     commits.filter(_.srcId == idAndVersion)
   }
 
-  override protected def saveCommit(c: SimpleCommit): Either[CommitError, Unit] = {
+  override protected def saveCommit(c: SimpleCommit): Validation[CommitError, Unit] = {
     commits.append(c)
-    Right()
+    Success()
   }
 
-  override protected def saveDraftSrcAsNewVersion(d: SimpleDraft): Either[DraftError, SimpleCommit] = {
+  override protected def saveDraftSrcAsNewVersion(d: SimpleDraft): Validation[DraftError, SimpleCommit] = {
     val versions = data.get(d.id).getOrElse {
       data.put(d.id, Seq.empty)
       data.get(d.id).get
@@ -61,7 +63,7 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
       srcIdVersion,
       srcIdVersion.copy(version = newVersion),
       d.user)
-    Right(commit)
+    Success(commit)
   }
 
   override protected def mkDraft(srcId: String, src: String, user: String): SimpleDraft = {
@@ -82,13 +84,13 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     versions.headOption
   }
 
-  override protected def deleteDraft(d: SimpleDraft): Either[DraftError, Unit] = {
+  override protected def deleteDraft(d: SimpleDraft): Validation[DraftError, Unit] = {
     val index = drafts.indexWhere(_.id == d.id)
     if (index == -1) {
-      Left(DeleteDraftFailed(d.id))
+      Failure(DeleteDraftFailed(d.id))
     } else {
       drafts.remove(index)
-      Right()
+      Success()
     }
   }
 
@@ -96,12 +98,12 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     drafts.find(_.id == id)
   }
 
-  override def save(d: SimpleDraft): Either[DraftError, String] = {
+  override def save(d: SimpleDraft): Validation[DraftError, String] = {
     drafts.indexWhere(_.id == d.id) match {
       case -1 => drafts.append(d)
       case index: Int => drafts.update(index, d)
     }
-    Right(d.id)
+    Success(d.id)
   }
 }
 
