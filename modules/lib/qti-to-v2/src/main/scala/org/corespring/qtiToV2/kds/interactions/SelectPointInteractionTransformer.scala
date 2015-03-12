@@ -9,7 +9,7 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
   private object InteractionType extends Enumeration {
     type InteractionType = Value
-    val Points, Line, Unknown = Value
+    val Points, Line, MultiLine, Unknown = Value
   }
 
   import InteractionType._
@@ -32,22 +32,22 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
     /**
      * Return true if the provided nodes represents a single <value/> with the required attributes defined.
      */
-    def valuesAreLine(values: Seq[Node]) = {
+    def lineCount(values: Seq[Node]): Int = {
       val requiredAttributes = Seq("startPointXCoordinate", "startPointYCoordinate", "startPointConsider",
         "startPointTolerance", "endPointXCoordinate", "endPointYCoordinate", "endPointConsider", "endPointTolerance",
         "xIntercept", "xInterceptConsider", "xInterceptTolerance", "yIntercept", "yInterceptConsider",
         "yInterceptTolerance", "slope", "slopeConsider", "slopeTolerance")
-      values.length match {
-        case 1 => requiredAttributes.find(attribute => values.head.attribute(attribute).isEmpty).isEmpty
-        case _ => false
-      }
+      def hasRequiredAttributes(node: Node) =
+        requiredAttributes.find(attribute => node.attribute(attribute).isEmpty).isEmpty
+      values.filter(hasRequiredAttributes(_)).length
     }
 
     val values = (responseDeclaration(node, qti) \ "correctResponse" \ "value").toSeq
 
     values match {
       case _ if (valuesArePoints(values)) => Points
-      case _ if (valuesAreLine(values)) => Line
+      case _ if (lineCount(values) == 1) => Line
+      case _ if (lineCount(values) > 1) => MultiLine
       case _ => Unknown
     }
 
@@ -77,6 +77,10 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
     case "selectPointInteraction" => getType(node) match {
       case Points => PointsInteractionTransformer.transform(node)
       case Line => LineInteractionTransformer.transform(node)
+      case MultiLine => {
+        println(s"${qti \ "@identifier"} - No support for multi-line interactions")
+        node
+      }
       case _ => throw new IllegalArgumentException(s"$node does not represent any known KDS format")
     }
     case _ => node
