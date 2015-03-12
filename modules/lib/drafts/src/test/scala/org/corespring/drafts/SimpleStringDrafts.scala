@@ -1,6 +1,6 @@
 package org.corespring.drafts
 
-import org.corespring.drafts.errors.DraftError
+import org.corespring.drafts.errors.{ DeleteDraftFailed, CommitError, DraftError }
 import org.joda.time.DateTime
 
 case class IdVersion(id: String, version: Int)
@@ -26,29 +26,28 @@ case class SimpleDraft(id: String, src: SimpleSrc, user: String)
  * A simple implementation of Drafts using mutable maps/buffers,
  * so that we can exercise the api.
  */
-class SimpleStringDrafts extends DraftsWithCommitCheck[String, String, Int, String, String, SimpleDraft] {
+class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, String, String, SimpleDraft, SimpleCommit] {
 
   import scala.collection.mutable
 
   private val commits: mutable.Buffer[Commit[String, Int, String]] = mutable.Buffer.empty
   private val data: mutable.Map[String, Seq[String]] = mutable.Map.empty
   private val drafts: mutable.Buffer[SimpleDraft] = mutable.Buffer.empty
-  /**
-   * Load commits that have used the same srcId
-   * @return
-   */
+
+  def addData(id: String, value: String) = {
+    data.put(id, Seq(value))
+  }
+
   override def loadCommits(idAndVersion: IdAndVersion[String, Int]): Seq[Commit[String, Int, String]] = {
     commits.filter(_.srcId == idAndVersion)
   }
 
-  /**
-   * commit the draft, create a commit and store it
-   * for future checks.
-   * @param d
-   * @return
-   */
-  override def commitData(d: SimpleDraft): Either[DraftError, Commit[String, Int, String]] = {
+  override protected def saveCommit(c: SimpleCommit): Either[CommitError, Unit] = {
+    commits.append(c)
+    Right()
+  }
 
+  override protected def saveDraftSrcAsNewVersion(d: SimpleDraft): Either[DraftError, SimpleCommit] = {
     val versions = data.get(d.id).getOrElse {
       data.put(d.id, Seq.empty)
       data.get(d.id).get
@@ -56,17 +55,41 @@ class SimpleStringDrafts extends DraftsWithCommitCheck[String, String, Int, Stri
 
     val update = versions :+ d.src.data
     data.put(d.id, update)
-
     val newVersion = update.length
     val srcIdVersion = IdVersion(d.src.id.id, d.src.id.version)
     val commit = SimpleCommit(
       srcIdVersion,
       srcIdVersion.copy(version = newVersion),
       d.user)
-
-    commits.append(commit)
     Right(commit)
+  }
 
+  override protected def mkDraft(srcId: String, src: String, user: String): SimpleDraft = {
+    val versions = data.get(srcId).getOrElse {
+      data.put(srcId, Seq(src))
+      data.get(srcId).get
+    }
+
+    val draftId = drafts.length.toString
+    SimpleDraft(draftId, SimpleSrc(versions.last, IdVersion(srcId, versions.length - 1)), user)
+  }
+
+  override protected def findLatestSrc(id: String): Option[String] = {
+    val versions = data.get(id).getOrElse {
+      data.put(id, Seq.empty)
+      data.get(id).get
+    }
+    versions.headOption
+  }
+
+  override protected def deleteDraft(d: SimpleDraft): Either[DraftError, Unit] = {
+    val index = drafts.indexWhere(_.id == d.id)
+    if (index == -1) {
+      Left(DeleteDraftFailed(d.id))
+    } else {
+      drafts.remove(index)
+      Right()
+    }
   }
 
   override def load(id: String): Option[SimpleDraft] = {
@@ -79,25 +102,6 @@ class SimpleStringDrafts extends DraftsWithCommitCheck[String, String, Int, Stri
       case index: Int => drafts.update(index, d)
     }
     Right(d.id)
-  }
-
-  /**
-   * Creates a draft for the target data.
-   */
-  override def create(srcId: String, user: String): Option[SimpleDraft] = {
-    val versions = data.get(srcId).getOrElse {
-      data.put(srcId, Seq(""))
-      data.get(srcId).get
-    }
-
-    val draft = SimpleDraft(
-      drafts.length.toString,
-      SimpleSrc(versions.last,
-        IdVersion(srcId, versions.length - 1)),
-      user)
-
-    drafts.append(draft)
-    Some(draft)
   }
 }
 

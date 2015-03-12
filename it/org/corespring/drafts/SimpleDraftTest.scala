@@ -2,6 +2,7 @@ package org.corespring.drafts
 
 import com.mongodb.casbah.MongoCollection
 import common.db.Db
+import org.corespring.drafts.errors.CommitsWithSameSrc
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models.{ ObjectIdAndVersion, SimpleUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
@@ -85,6 +86,35 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
       commits.length === 1
       val commit = commits(0)
       commit.user.userName === user.userName
+    }
+
+    "committing a 2nd draft with the same src id/version fails" in new userAndItem {
+      val eds = drafts.create(itemId.id, SimpleUser(user)).get
+      val edsSecondDraft = drafts.create(itemId.id, SimpleUser(user)).get
+      val item = eds.src.data
+      val newItem = updateTitle(item, "update for committing - 2")
+      val update = eds.update(newItem)
+      drafts.commit(update)
+      drafts.commit(edsSecondDraft) match {
+        case Left(CommitsWithSameSrc(commits)) => {
+          val commit = commits(0)
+          commit.user === SimpleUser(user)
+        }
+        case _ => failure("should have returnd commits with same src")
+      }
+    }
+
+    "committing a 2nd draft with the same src id/version and force=true succeeds" in new userAndItem {
+      val eds = drafts.create(itemId.id, SimpleUser(user)).get
+      val edsSecondDraft = drafts.create(itemId.id, SimpleUser(user)).get
+      val item = eds.src.data
+      val newItem = updateTitle(item, "update for committing - 2")
+      val update = eds.update(newItem)
+      drafts.commit(update)
+      drafts.commit(edsSecondDraft, force = true) match {
+        case Left(CommitsWithSameSrc(commits)) => failure("should have succeeded")
+        case _ => success
+      }
     }
 
   }

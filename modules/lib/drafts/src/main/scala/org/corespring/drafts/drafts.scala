@@ -1,6 +1,6 @@
 package org.corespring.drafts
 
-import org.corespring.drafts.errors.{ CommitsWithSameSrc, DraftError }
+import org.corespring.drafts.errors.{ CommitError, CommitsWithSameSrc, DraftError }
 import org.joda.time.DateTime
 
 trait IdAndVersion[ID, VERSION] {
@@ -62,22 +62,8 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
 /**
  * Checks if there have been any commits with the same src id/version and fails if there have been.
  */
-trait DraftsWithCommitCheck[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER]]
+trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER], CMT <: Commit[SRC_ID, SRC_VERSION, USER]]
   extends Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD] {
-
-  /**
-   * Load commits that have used the same srcId
-   * @return
-   */
-  def loadCommits(idAndVersion: IdAndVersion[SRC_ID, SRC_VERSION]): Seq[Commit[SRC_ID, SRC_VERSION, USER]]
-
-  /**
-   * commit the draft, create a commit and store it
-   * for future checks.
-   * @param d
-   * @return
-   */
-  def commitData(d: UD): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
 
   override final def commit(d: UD, force: Boolean = false): Either[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
     val commits = loadCommits(d.src.id)
@@ -88,4 +74,51 @@ trait DraftsWithCommitCheck[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[
       commitData(d)
     }
   }
+
+  /**
+   * commit the draft, create a commit and store it
+   * for future checks.
+   * @param d
+   * @return
+   */
+  private def commitData(d: UD): Either[DraftError, CMT] = {
+    saveDraftSrcAsNewVersion(d) match {
+      case Left(err) => Left(err)
+      case Right(commit) => {
+        saveCommit(commit)
+        deleteDraft(d)
+        Right(commit)
+      }
+    }
+  }
+
+  /**
+   * Creates a draft for the target data.
+   */
+  override final def create(id: SRC_ID, user: USER): Option[UD] = {
+    findLatestSrc(id).flatMap { src =>
+      val draft = mkDraft(id, src, user)
+      save(draft) match {
+        case Left(_) => None
+        case Right(id) => Some(draft)
+      }
+    }
+  }
+
+  /**
+   * Load commits that have used the same srcId
+   * @return
+   */
+  protected def loadCommits(idAndVersion: IdAndVersion[SRC_ID, SRC_VERSION]): Seq[Commit[SRC_ID, SRC_VERSION, USER]]
+
+  protected def saveCommit(c: CMT): Either[CommitError, Unit]
+
+  protected def deleteDraft(d: UD): Either[DraftError, Unit]
+
+  protected def saveDraftSrcAsNewVersion(d: UD): Either[DraftError, CMT]
+
+  protected def findLatestSrc(id: SRC_ID): Option[SRC]
+
+  protected def mkDraft(srcId: SRC_ID, src: SRC, user: USER): UD
 }
+

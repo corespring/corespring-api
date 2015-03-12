@@ -3,14 +3,28 @@ package org.corespring.drafts.item
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.{ SimpleUser, ItemCommit, ItemSrc, ItemDraft }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.drafts.{ Commit, IdAndVersion, DraftsWithCommitCheck }
-import org.corespring.drafts.errors.{ SaveDataFailed, DraftError }
+import org.corespring.drafts.{ Commit, IdAndVersion, DraftsWithCommitAndCreate }
+import org.corespring.drafts.errors._
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 
+/**
+ * Commit clean up ...
+ *
+ * edDraft of 1:10
+ * gwenDraft of 1:10
+ *
+ * commit edDraft --> src: 1:10, committed: 1:11
+ *
+ * find all drafts that target id: 1, list their versions: 8, 9, 10
+ * remove all commits with id: 1 and version not in 8,9,10
+ *
+ * commit gwenDraft - check commits for 1:10 if count > 0 fail
+ *
+ */
 trait ItemDrafts
-  extends DraftsWithCommitCheck[ObjectId, ObjectId, Long, Item, SimpleUser, ItemDraft] {
+  extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, SimpleUser, ItemDraft, ItemCommit] {
 
   def itemService: ItemService
 
@@ -19,21 +33,6 @@ trait ItemDrafts
   def commitService: CommitService
 
   import Helpers._
-
-  /**
-   * Creates a draft for the target data.
-   */
-  override def create(id: ObjectId, user: SimpleUser): Option[ItemDraft] = {
-    itemService.findOneById(VersionedId(id, None)).flatMap { i =>
-      val draft = ItemDraft(ObjectId.get, ItemSrc(i, i.id), user)
-      val saveResult = draftService.save(draft)
-      if (saveResult.getLastError.ok) {
-        Some(draft)
-      } else {
-        None
-      }
-    }
-  }
 
   override def load(id: ObjectId): Option[ItemDraft] = draftService.load(id)
 
@@ -46,29 +45,32 @@ trait ItemDrafts
     }
   }
 
-  /**
-   * Load commits that have used the same srcId
-   * @return
-   */
   override def loadCommits(idAndVersion: IdAndVersion[ObjectId, Long]): Seq[Commit[ObjectId, Long, SimpleUser]] = {
     commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version)
   }
 
-  /**
-   * commit the draft, create a commit and store it
-   * for future checks.
-   * @param d
-   * @return
-   */
-  override def commitData(d: ItemDraft): Either[DraftError, Commit[ObjectId, Long, SimpleUser]] = {
-    itemService.save(d.src.data, true) match {
-      case Left(err) => Left(SaveDataFailed(err))
-      case Right(vid) => {
-        val commit = ItemCommit(d.src.data.id, vid, d.user)
-        commitService.save(commit)
-        draftService.remove(d)
-        Right(commit)
-      }
+  override protected def saveCommit(c: ItemCommit): Either[CommitError, Unit] = {
+    val result = commitService.save(c)
+    if (result.getLastError.ok) {
+      Right()
+    } else {
+      Left(SaveCommitFailed)
     }
+  }
+
+  override protected def saveDraftSrcAsNewVersion(d: ItemDraft): Either[DraftError, ItemCommit] = {
+    itemService.save(d.src.data.copy(id = d.src.data.id.copy(version = None)), true) match {
+      case Left(err) => Left(SaveDataFailed(err))
+      case Right(vid) => Right(ItemCommit(d.src.data.id, vid, d.user))
+    }
+  }
+
+  override protected def findLatestSrc(id: ObjectId): Option[Item] = itemService.findOneById(VersionedId(id, None))
+
+  override protected def mkDraft(srcId: ObjectId, src: Item, user: SimpleUser): ItemDraft = ItemDraft(ObjectId.get, ItemSrc(src, src.id), user)
+
+  override protected def deleteDraft(d: ItemDraft): Either[DraftError, Unit] = {
+    val result = draftService.remove(d)
+    if (result) Right() else Left(DeleteDraftFailed(d.id))
   }
 }

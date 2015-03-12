@@ -11,15 +11,17 @@ class DraftTest extends Specification {
 
     "when creating a draft" should {
       val drafts = new SimpleStringDrafts()
+      drafts.addData("1", "initial data")
       val draft = drafts.create("1", "Ed")
-      "set the data" in draft.get.src.data === ""
+      "set the data" in draft.get.src.data === "initial data"
       "set the user" in draft.get.user === "Ed"
       "set the id" in draft.get.id === "0"
-      "allows you to load by id" in drafts.load("0") === Some(draft)
+      "allows you to load by id" in drafts.load("0") === draft
     }
 
     "when committing a draft" should {
       val drafts = new SimpleStringDrafts()
+      drafts.addData("1", "initial data")
       val draft = drafts.create("1", "Ed").get
       val update = draft.update("update:1")
       val result = drafts.commit(update)
@@ -35,6 +37,8 @@ class DraftTest extends Specification {
 
     "when ed and gwen both commit from the same src" should {
       val drafts = new SimpleStringDrafts()
+      drafts.addData("1", "initial data")
+
       val eds = drafts.create("1", "Ed").get
       val gwens = drafts.create("1", "Gwen").get
       val edsUpdate = eds.update("ed's update")
