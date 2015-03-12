@@ -180,6 +180,8 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
 
+  val draftsApi = builders.web("v2-api-drafts").dependsOn(itemDrafts)
+
   val v2Api = builders.web("v2-api")
     .settings(
       libraryDependencies ++= Seq(
@@ -188,7 +190,11 @@ object Build extends sbt.Build {
         salatVersioningDao,
         componentModel),
       routesImport ++= customImports)
-    .dependsOn(v2Auth % "test->test;compile->compile", qtiToV2, core % "test->test;compile->compile")
+    .dependsOn(
+      v2Auth % "test->test;compile->compile",
+      qtiToV2,
+      core % "test->test;compile->compile",
+      draftsApi)
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")

@@ -21,6 +21,8 @@ trait Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA] {
   def src: Src[SRC_DATA, SRC_ID, SRC_VERSION]
   /** update the data in the draft */
   def update(data: SRC_DATA): Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA]
+  def created: DateTime //= DateTime.now
+  def expires: DateTime
 }
 
 /** a draft created by a user */
@@ -50,7 +52,7 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
   /**
    * Creates a draft for the target data.
    */
-  def create(id: SRC_ID, user: USER): Option[UD]
+  def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD]
 
   /**
    * Commit a draft back to the data store
@@ -70,7 +72,7 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   import scalaz.Validation
 
-  override final def commit(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]] = {
+  override final def commit(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
     val commits = loadCommits(d.src.id)
 
     if (commits.length > 0 && !force) {
@@ -95,8 +97,9 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   /**
    * Creates a draft for the target data.
+   * //TODO: add expires
    */
-  override final def create(id: SRC_ID, user: USER): Option[UD] = {
+  override final def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
     findLatestSrc(id).flatMap { src =>
       val draft = mkDraft(id, src, user)
       save(draft) match {
