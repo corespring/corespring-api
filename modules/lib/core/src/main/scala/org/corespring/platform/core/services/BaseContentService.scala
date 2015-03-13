@@ -11,7 +11,7 @@ import com.novus.salat.dao.SalatMongoCursor
 
 trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
 
-  def save(i: ContentType, createNewVersion: Boolean = false)
+  def save(i: ContentType, createNewVersion: Boolean = false): Either[String, ID]
 
   def findOneById(id: ID): Option[ContentType]
 }

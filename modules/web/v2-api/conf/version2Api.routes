@@ -45,4 +45,9 @@ GET  /collections/:collectionId            @org.corespring.v2.api.V1CollectionAp
 
 GET  /collections                          @org.corespring.v2.api.V1CollectionApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
-GET  /internal/flush-caches                           @org.corespring.v2.api.Utils.flushCaches
+GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
+
+POST /items/:itemId/draft                  @org.corespring.v2.api.drafts.item.ItemDrafts.create(itemId:String)
+PUT  /items/drafts/:draftId/commit         @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:ObjectId)
+GET  /items/drafts/:draftId                @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:ObjectId)
+PUT  /items/drafts/:draftId                @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:ObjectId)

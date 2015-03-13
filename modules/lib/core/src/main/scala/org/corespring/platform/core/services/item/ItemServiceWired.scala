@@ -99,9 +99,9 @@ class ItemServiceWired(
 
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
-  def save(item: Item, createNewVersion: Boolean = false) = {
+  override def save(item: Item, createNewVersion: Boolean = false): Either[String, VersionedId[ObjectId]] = {
 
-    dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
 
     if (createNewVersion) {
 
@@ -114,8 +114,11 @@ class ItemServiceWired(
         case Failure(files) => {
           dao.revertToVersion(item.id)
           files.foreach(r => if (r.successful) { s3service.delete(bucket, r.file.storageKey) })
+          Left("Cloning of files failed")
         }
       }
+    } else {
+      savedVid
     }
   }
 

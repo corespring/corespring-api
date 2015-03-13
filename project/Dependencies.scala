@@ -31,6 +31,8 @@ object Dependencies {
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
+  val jodaTime = "joda-time" % "joda-time" % "2.2"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playFramework = "com.typesafe.play" %% "play" % playVersion
@@ -44,7 +46,7 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.15.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.17.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
@@ -108,6 +110,7 @@ object Dependencies {
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
+    val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
@@ -120,7 +123,8 @@ object Dependencies {
       sbtPluginReleases,
       edeustaceReleases,
       edeustaceSnapshots,
-      justWrote)
+      justWrote,
+      ivyLocal)
   }
 
 }
