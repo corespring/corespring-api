@@ -42,7 +42,7 @@ trait ItemDrafts extends Controller {
         user <- authenticateUser(request).toSuccess(AuthenticationFailed)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         //TODO: check user.org access to item _ <- itemAuth.canWrite(user, vid.id)
-        draft <- drafts.create(vid.id, SimpleUser(user), expires).toSuccess(draftCreationFailed(itemId))
+        draft <- drafts.create(vid.id, SimpleUser.fromUser(user), expires).toSuccess(draftCreationFailed(itemId))
       } yield ItemDraftJson.simple(draft)
     }
   }
