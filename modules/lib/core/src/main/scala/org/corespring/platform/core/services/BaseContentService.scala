@@ -20,8 +20,6 @@ trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSave
 
   def clone(content: ContentType): Option[ContentType]
 
-  def currentVersion(id: ID): Option[Int] = throw new RuntimeException("to be implemented?")
-
   def count(query: DBObject, fields: Option[String] = None): Int
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[ContentType]

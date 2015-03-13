@@ -29,6 +29,22 @@ trait ItemDrafts extends Controller {
     }
   }
 
+  private def validateUser(request:RequestHeader)  = authenticateUser(request).toSuccess(AuthenticationFailed)
+
+
+  def list(itemId:String) = Action.async{ implicit request =>
+    Future{
+      for{
+        user <- validateUser(request)
+        vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+        drafts <- Success(drafts.list(vid))
+      } yield {
+        val seq = drafts.map(ItemDraftJson.simple)
+        Json.toJson(seq)
+      }
+    }
+  }
+
   def create(itemId: String) = Action.async { implicit request =>
 
     def expires: Option[DateTime] = {
@@ -39,7 +55,7 @@ trait ItemDrafts extends Controller {
 
     Future {
       for {
-        user <- authenticateUser(request).toSuccess(AuthenticationFailed)
+        user <- validateUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         //TODO: check user.org access to item _ <- itemAuth.canWrite(user, vid.id)
         draft <- drafts.create(vid.id, SimpleUser.fromUser(user), expires).toSuccess(draftCreationFailed(itemId))
@@ -50,7 +66,7 @@ trait ItemDrafts extends Controller {
   def commit(draftId: ObjectId) = Action.async { implicit request =>
     Future {
       for {
-        user <- authenticateUser(request).toSuccess(AuthenticationFailed)
+        user <- validateUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
         _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
         commit <- drafts.commit(d).leftMap { e => UnknownDraftApiError }
@@ -63,7 +79,7 @@ trait ItemDrafts extends Controller {
   def get(draftId: ObjectId) = Action.async { implicit request =>
     Future {
       for {
-        user <- authenticateUser(request).toSuccess(AuthenticationFailed)
+        user <- validateUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
         _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
       } yield {

@@ -2,10 +2,12 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import play.api.Logger
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -17,11 +19,14 @@ import scala.concurrent.{ Await, ExecutionContext, Future }
  */
 trait Cms extends Controller {
 
+  private lazy val logger = Logger("org.corespring.v2.api.Cms")
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def itemTransformer: ItemTransformer
 
   def itemService: ItemService
+  def draftService: ItemDraftService
 
   def v1ApiCreate: (Request[AnyContent] => Future[SimpleResult])
 
@@ -63,15 +68,36 @@ trait Cms extends Controller {
     }
   }
 
-  def getItemFormat(id: String) = Action.async { implicit request =>
+  def contentFormat(i: Item) = {
+    Json.obj(
+      "hasQti" -> i.hasQti,
+      "hasPlayerDefinition" -> i.hasPlayerDefinition,
+      "apiVersion" -> i.createdByApiVersion)
+  }
 
-    def contentFormat(i: Item) = {
-      Json.obj(
-        "hasQti" -> i.hasQti,
-        "hasPlayerDefinition" -> i.hasPlayerDefinition,
-        "apiVersion" -> i.createdByApiVersion)
+  def getDraftFormat(id: String) = Action.async { implicit request =>
+
+    def objectId = try{
+      Some( new ObjectId(id))
+    } catch {
+      case _:Throwable => {
+        logger.warn(s"Invalid object id: $id")
+        None
+      }
     }
+    Future {
+      {
+        for {
+          draftId <- objectId
+          draft <- draftService.load(draftId)
+        } yield {
+          Ok(contentFormat(draft.src.data))
+        }
+      }.getOrElse(NotFound(""))
+    }
+  }
 
+  def getItemFormat(id: String) = Action.async { implicit request =>
     Future {
       {
         for {

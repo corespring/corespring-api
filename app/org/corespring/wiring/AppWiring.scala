@@ -61,18 +61,23 @@ object AppWiring {
     services.orgEncryptionService,
     Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
 
+  /**
+   * For v2 api - we move token to the top of the list as that is the most common form of authentication.
+   */
+  private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
+    override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
+      requestIdentifiers.token,
+      requestIdentifiers.clientIdAndPlayerTokenQueryString,
+      //Add user session in as the last resort
+      requestIdentifiers.userSession)
+  }
+
   private lazy val v2ApiBootstrap = new V2ApiBootstrap(
-    services.orgService,
-    services.mainSessionService,
-    services.itemAuth,
-    ItemServiceWired,
-    services.sessionAuth,
+    services,
     v2ApiRequestIdentity,
     Some((itemId: VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
     scoreService,
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url,
-    services.tokenService,
-    services.orgEncryptionService,
     ItemTransformWiring.itemTransformer)
 
   private lazy val itemImportBootstrap = new ItemImportBootstrap(
@@ -115,18 +120,9 @@ object AppWiring {
     requestIdentifiers.allIdentifiers,
     services.itemAuth,
     services.sessionAuth,
-    new CDNResolver(containerConfig, Defaults.commitHashShort))
+    new CDNResolver(containerConfig, Defaults.commitHashShort),
+    services.draftService)
 
-  /**
-   * For v2 api - we move token to the top of the list as that is the most common form of authentication.
-   */
-  private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
-    override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
-      requestIdentifiers.token,
-      requestIdentifiers.clientIdAndPlayerTokenQueryString,
-      //Add user session in as the last resort
-      requestIdentifiers.userSession)
-  }
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++
     v2ApiBootstrap.controllers ++

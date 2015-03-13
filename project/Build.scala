@@ -220,7 +220,13 @@ object Build extends sbt.Build {
       componentModel,
       scalaz,
       mongoJsonService,
-      playS3)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
+      playS3)).dependsOn(
+      qtiToV2,
+      v2Auth,
+      core % "test->test;compile->compile",
+      playerLib,
+      devTools,
+      itemDrafts)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,

@@ -1,23 +1,42 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.v2.auth.models.OrgAndOpts
-
-import scala.concurrent.Future
-
-import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, PlayerData }
+import org.bson.types.ObjectId
+import org.corespring.container.client.hooks.{EditorHooks => ContainerEditorHooks}
+import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.v2.auth.{ LoadOrgAndOptions, ItemAuth }
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.JsValue
 import play.api.mvc._
-import scalaz.{ Failure, Success }
+
+import scala.concurrent.Future
+import scalaz.{Failure, Success}
+
+trait DraftEditorHooks extends ContainerEditorHooks {
+
+  def draftService : ItemDraftService
+
+  def transform: Item => JsValue
+
+  override def loadItem(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future{
+    val result = for{
+      d <- draftService.load(new ObjectId(id))
+      item <- Some(d.src.data)
+    } yield {
+      transform(item)
+    }
+
+    result match {
+      case None => Left(404,"Not Found")
+      case Some(json) => Right(json)
+    }
+  }
+}
 
 trait EditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
 
   import play.api.http.Status._
-
-  def itemService: ItemService
 
   def transform: Item => JsValue
 

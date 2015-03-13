@@ -12,18 +12,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import scalaz.{ Failure, Success, Validation }
 
 /**
- * Commit clean up ...
- *
- * edDraft of 1:10
- * gwenDraft of 1:10
- *
- * commit edDraft --> src: 1:10, committed: 1:11
- *
- * find all drafts that target id: 1, list their versions: 8, 9, 10
- * remove all commits with id: 1 and version not in 8,9,10
- *
- * commit gwenDraft - check commits for 1:10 if count > 0 fail
- *
+ * An implementation of <DraftsWithCommitAndCreate> for <Item> backed by some mongo services.
  */
 trait ItemDrafts
   extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, SimpleUser, ItemDraft, ItemCommit] {
@@ -35,6 +24,11 @@ trait ItemDrafts
   def commitService: CommitService
 
   import Helpers._
+
+  def list(id : VersionedId[ObjectId]) : Seq[ItemDraft] = {
+    val version = id.version.getOrElse(itemService.currentVersion(id))
+    draftService.findByIdAndVersion(id.id, version)
+  }
 
   override def load(id: ObjectId): Option[ItemDraft] = draftService.load(id)
 

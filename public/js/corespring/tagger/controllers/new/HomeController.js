@@ -111,17 +111,30 @@
     };
 
     $scope.makeADraft = function(item){
-      item.saveNewVersion( 
-        function success(newId){
-          console.log('new version id: ', newId);
-          //item.id = newId;
-          //item.published = false;
-          $scope.search();
-        }, 
-        function error(err){
-          alert('error making a draft' + JSON.stringify(err));
-        });
+
+      item.createUserDraft(function(draft){
+        console.debug('draft', draft);
+        goToEditDraft(draft.id, item);
+      },
+       function error(err){
+        alert('error making a draft' + JSON.stringify(err));
+      });
     };
+
+    function goToEditDraft(draftId, item){
+      CmsService.itemFormat('draft', draftId, function(format) {
+        Logger.debug('itemFormat:', format);
+        SearchService.currentItem = item;
+        if (format.apiVersion === 2) {
+          //If you go to /edit/itemId - it should try and create a draft for you if it can
+          //$location.url('/edit/' + draft.id);
+          $location.url('/edit/draft/' + draftId);
+        } else {
+          throw new Error('editing v1 drafts not ready yet.');
+          //$location.url('/old/edit/' + item.id + "?panel=metadata");
+        }
+      });
+    }
 
     $scope.cloneItem = function(item){
       item.clone(function success(data){

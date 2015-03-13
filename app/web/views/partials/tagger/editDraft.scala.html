@@ -1,0 +1,26 @@
+<div class="sub-nav v2-sub-nav sub-nav-lower">
+    <div class="container" style="width: 940px;">
+        <a ng-click="backToCollections()" class="back-to-collections" >
+          <i class="icon-white icon-backward"></i>
+        </a>
+        <div class="row">
+
+            <span class="id-label"><b>ID:</b>{{itemId}}</span>
+            <span class="version-label"><b>Revision:</b>{{version}}</span>
+            <div class="pull-right">
+                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
+                <button class="btn btn-success"
+                    ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+                <button class="btn btn-primary" ng-show="!item.published" ng-click="goLive()">Go Live</button>
+                <button class="btn btn-primary" ng-show="!devEditorVisible" ng-click="showDevEditor()">Dev Editor</button>
+                <button class="btn btn-primary" ng-show="devEditorVisible" ng-click="showEditor()">Editor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="edit-container">
+  <div class="item-iframe-container">
+      <iframe frameborder="0" ng-src="{{v2Editor}}"></iframe>
+  </div>
+</div>

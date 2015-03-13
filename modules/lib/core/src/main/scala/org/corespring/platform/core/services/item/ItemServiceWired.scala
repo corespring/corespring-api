@@ -87,6 +87,8 @@ class ItemServiceWired(
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
+  override def currentVersion(id:VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
+
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
 
   def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)

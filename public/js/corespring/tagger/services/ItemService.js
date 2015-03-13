@@ -74,18 +74,22 @@ angular.module('tagger.services')
     function($http){
 
     function CmsService(){
-        this.createFromV1Data = function(data, onSuccess, onError){
-            $http.post('/api/v2/cms/create-from-v1-data', data)
-              .success(onSuccess)
-              .error(onError);
+      this.createFromV1Data = function(data, onSuccess, onError){
+        $http.post('/api/v2/cms/create-from-v1-data', data)
+          .success(onSuccess)
+          .error(onError);
+      };
 
-        };
+      this.itemFormat = function(dataType, id, onSuccess, onError){
 
-        this.itemFormat = function(id, onSuccess, onError){
-            $http.get('/api/v2/cms/item-format/' + id)
-                .success(onSuccess)
-                .error(onError);
-        };
+        if(!_.contains(['item', 'draft'], dataType)){
+          throw new Error('dataType must be either: item or draft');
+        }
+
+        $http.get('/api/v2/cms/'+ dataType +'-format/' + id)
+          .success(onSuccess)
+          .error(onError);
+      };
     }
 
     return new CmsService();
@@ -125,6 +129,25 @@ angular.module('tagger.services')
 
 
     }]);
+
+angular.module('tagger.services')
+  .service('DraftItemService', ['$http', function($http){
+
+    function DraftItemService(){
+
+      this.get = function(params, onSuccess, onError){
+        
+        var url = '/api/v2/items/drafts/' + params.id;
+
+        $http.get(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+    }
+
+    return new DraftItemService();
+
+  }]);
 
 angular.module('tagger.services')
     .factory('ItemService', [ '$resource', 'ServiceLookup', '$http', 'V2ItemService',
@@ -187,6 +210,22 @@ angular.module('tagger.services')
         return ItemService.remove({id:this.id}, cb);
     };
 
+    ItemService.prototype.createUserDraft = function(onSuccess, onError){
+      var listUrl = '/api/v2/items/' + this.id + '/drafts';
+      var createUrl = '/api/v2/items/' + this.id + '/draft';
+
+      $http.get(listUrl)
+       .success(function(drafts){
+        if(drafts.length === 0){
+          $http.post(createUrl)
+            .success(onSuccess)
+            .error(onError);
+        } else {
+          onError({msg: 'There is already a draft for this item'});
+        }
+       })
+       .error(onError);
+    };
 
     ItemService.processor = new com.corespring.model.ItemDataProcessor();
     ItemService.createWorkflowObject = ItemService.processor.createWorkflowObject;

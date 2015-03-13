@@ -8,13 +8,14 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.{ VersionInfo, CompressedAndMinifiedComponentSets }
 import org.corespring.container.client.controllers.{ Assets, ComponentSets }
-import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks }
+import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks, ItemHooks => ContainerItemHooks, EditorHooks => ContainerEditorHooks}
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
+import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
-import org.corespring.platform.core.models.{ Standard, Subject }
+import org.corespring.platform.core.models.{User, Standard, Subject}
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -43,7 +44,8 @@ class V2PlayerBootstrap(comps: => Seq[Component],
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  cdnResolver: CDNResolver)
+  cdnResolver: CDNResolver,
+  itemDraftService: ItemDraftService)
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -165,15 +167,16 @@ class V2PlayerBootstrap(comps: => Seq[Component],
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
-  override def itemHooks: ItemHooks = new apiHooks.ItemHooks {
+  override def itemHooks: ContainerItemHooks = new apiHooks.DraftItemHooks {
+    override def draftService: ItemDraftService = V2PlayerBootstrap.this.itemDraftService
+
+    override def authenticateUser(rh: RequestHeader): Option[User] = {
+      val id = V2PlayerBootstrap.this.secureSocialService.currentUser(rh)
+      id.flatMap{ i => User.getUser(i.identityId)}
+    }
 
     override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
-    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
@@ -211,16 +214,11 @@ class V2PlayerBootstrap(comps: => Seq[Component],
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
-  override def editorHooks: EditorHooks = new apiHooks.EditorHooks {
+  override def editorHooks: ContainerEditorHooks = new apiHooks.DraftEditorHooks {
     override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def itemService: ItemService = ItemServiceWired
 
     override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
-    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
-
+    override def draftService: ItemDraftService = V2PlayerBootstrap.this.itemDraftService
   }
 }

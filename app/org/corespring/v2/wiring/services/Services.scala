@@ -1,8 +1,9 @@
 package org.corespring.v2.wiring.services
 
-import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.{MongoCollection, MongoDB}
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.drafts.item.services.{CommitService, ItemDraftService}
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
@@ -13,6 +14,7 @@ import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.api.V2ApiServices
 import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.services.caching.CachingTokenService
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
@@ -29,13 +31,26 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Success, Failure, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer) {
+class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer) extends V2ApiServices{
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
   lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
+  override val sessionService: MongoService = mainSessionService
+
+  override val itemService: ItemService = ItemServiceWired
+
+  override val draftService: ItemDraftService = new ItemDraftService {
+    override def collection: MongoCollection = db("drafts.items")
+  }
+
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
+
+
+  lazy val itemCommitService : CommitService = new CommitService{
+    override def collection: MongoCollection = db("drafts.item_commits")
+  }
 
   lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)

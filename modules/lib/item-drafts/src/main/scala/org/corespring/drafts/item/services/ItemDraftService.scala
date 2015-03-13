@@ -28,11 +28,20 @@ trait ItemDraftService {
   }
 
   def load(id: ObjectId): Option[ItemDraft] = {
-    collection.findOneByID(id).map(dbo => toDraft(dbo))
+    collection.findOneByID(id).map(dbo => {
+      toDraft(dbo)
+    })
   }
 
   def remove(d: ItemDraft): Boolean = {
     val result = collection.remove(MongoDBObject("_id" -> d.id))
     result.getN == 1
+  }
+
+  def findByIdAndVersion(id:ObjectId, version:Long) : Seq[ItemDraft] = {
+    collection
+      .find(MongoDBObject("src._id._id" -> id, "src._id.version" -> version))
+      .toSeq
+      .map(toDraft)
   }
 }
