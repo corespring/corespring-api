@@ -24,11 +24,13 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOp
 
   override def editorJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
 
+  override def catalogJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
+
   private def load(implicit header: RequestHeader): Future[PlayerJs] = Future {
 
     logger.trace(s"load js...")
     getOrgAndOptions(header) match {
-      case Success(OrgAndOpts(_, opts, _, warnings)) => {
+      case Success(OrgAndOpts(_, opts, _, _, warnings)) => {
         PlayerJs(
           opts.secure,
           header.session,

@@ -17,10 +17,11 @@ import se.radley.plugin.salat._
 import search.Searchable
 
 case class Organization(var name: String = "",
-  var path: Seq[ObjectId] = Seq(),
-  var contentcolls: Seq[ContentCollRef] = Seq(),
-  var metadataSets: Seq[MetadataSetRef] = Seq(),
-  var id: ObjectId = new ObjectId()) {
+                        var path: Seq[ObjectId] = Seq(),
+                        var contentcolls: Seq[ContentCollRef] = Seq(),
+                        var metadataSets: Seq[MetadataSetRef] = Seq(),
+                        var id: ObjectId = new ObjectId()) {
+
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
 }
 
@@ -143,6 +144,17 @@ trait OrganizationImpl
     val access = isRequestForPublicCollection(collectionId, permission) || count(query) > 0
 
     logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
+    access
+  }
+
+  override def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean = {
+
+    val contentColls = Option(org.contentcolls).getOrElse(Seq[ContentCollRef]())
+    val access = contentColls.find(collRef => collRef.collectionId == collectionId && collRef.pval >= permission.value)
+      .map(_ => true)
+      .getOrElse(ContentCollection.isPublic(collectionId) && permission == Permission.Read)
+
+    logger.trace(s"[canAccessCollection] orgId: ${org.id} -> $collectionId ? $access")
     access
   }
 

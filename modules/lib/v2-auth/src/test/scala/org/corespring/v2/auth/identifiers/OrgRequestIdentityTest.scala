@@ -37,10 +37,6 @@ class OrgRequestIdentityTest
       tf(FakeRequest("", "")) mustEqual org
     }
 
-    "return failure - if there is no default collection" in new scope(org = Success(mock[Organization])) {
-      tf(FakeRequest("", "")) mustEqual Failure(noDefaultCollection(org.toEither.right.get.id))
-    }
-
     "return some string - if there is an org + default collection" in new scope(
       Some(ObjectId.get),
       Success(mock[Organization])) {

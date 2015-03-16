@@ -12,6 +12,8 @@ import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import play.api.mvc._
 import play.api.{ Play, Mode => PlayMode }
 
+import scalaz.Success
+
 /**
  * Identifiers that convert a <RequestHeader> into <OrgAndOpts>.
  * @param secureSocialService
@@ -30,7 +32,8 @@ class RequestIdentifiers(
 
     override def userService: UserService = UserServiceWired
 
-    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = Success(
+      OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, apiClientId))
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }
@@ -38,7 +41,8 @@ class RequestIdentifiers(
   lazy val token = new TokenOrgIdentity[OrgAndOpts] {
     override def tokenService: TokenService = RequestIdentifiers.this.tokenService
 
-    override def data(rh: RequestHeader, org: Organization, defaultCollection: ObjectId) = OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken)
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = Success(
+      OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, apiClientId))
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }
