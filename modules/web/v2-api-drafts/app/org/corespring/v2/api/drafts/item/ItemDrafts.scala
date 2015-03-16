@@ -97,4 +97,16 @@ trait ItemDrafts extends Controller {
       Ok("TODO - again does this make sense as part of the api?")
     }
   }
+
+  def delete(draftId:ObjectId) = Action.async{
+    implicit request =>
+      Future {
+        for {
+          user <- validateUser(request)
+          _ <- drafts.removeUserDraft(draftId, SimpleUser.fromUser(user)).leftMap(e => UnknownDraftApiError)
+        } yield {
+          Json.obj("id" -> draftId.toString)
+        }
+      }
+  }
 }

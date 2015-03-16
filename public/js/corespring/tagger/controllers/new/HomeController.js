@@ -11,7 +11,9 @@
     Contributor,
     ItemFormattingUtils,
     Logger,
-    CmsService) {
+    CmsService,
+    UserInfo,
+    DraftItemService) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -27,6 +29,8 @@
     $rootScope.$broadcast('onListViewOpened');
 
     var init = function() {
+      $scope.userName = UserInfo.userName;
+      loadDraftsForOrg();
       loadCollections();
       loadContributors();
       $scope.showDraft = true;
@@ -117,6 +121,21 @@
       },
        function error(err){
         alert('error making a draft' + JSON.stringify(err));
+      });
+    };
+
+    $scope.editDraft  = function(draft){
+      goToEditDraft(draft.id);
+    };
+
+    $scope.deleteDraft = function(draft){
+      DraftItemService.deleteDraft(draft.id, function(result){
+        console.log('deleting draft, successful');
+        $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
+          return d.id === draft.id;
+        });
+      }, function(err){
+        console.warn('Error deleting draft');
       });
     };
 
@@ -252,6 +271,14 @@
       });
     };
 
+    function loadDraftsForOrg(){
+      CmsService.getDraftsForOrg(function(drafts){
+        $scope.orgDrafts = drafts;
+      }, function error(err){
+        console.warn('error: getDraftsForOrg', err);
+      });
+    }
+
     function loadCollections() {
 
       $scope.$watch(function() {
@@ -377,7 +404,9 @@
     'Contributor',
     'ItemFormattingUtils',
     'Logger',
-    'CmsService'
+    'CmsService',
+    'UserInfo',
+    'DraftItemService'
   ];
 
   root.tagger = root.tagger || {};

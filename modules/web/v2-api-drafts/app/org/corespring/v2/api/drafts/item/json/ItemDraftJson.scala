@@ -22,6 +22,7 @@ object ItemDraftJson {
       "id" -> d.id.toString,
       "itemId" -> s"${new VersionedId(d.src.id.id, Some(d.src.id.version)).toString}",
       "user" -> d.user.userName,
+      "orgId" -> d.user.orgId.toString,
       "created" -> timeJson(d.created),
       "expires" -> timeJson(d.expires))
   }

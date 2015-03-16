@@ -2,11 +2,14 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.models.ItemDraft
 import org.corespring.drafts.item.services.ItemDraftService
+import org.corespring.platform.core.models.User
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.api.drafts.item.json.ItemDraftJson
 import play.api.Logger
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
@@ -29,6 +32,8 @@ trait Cms extends Controller {
   def draftService: ItemDraftService
 
   def v1ApiCreate: (Request[AnyContent] => Future[SimpleResult])
+
+  def identifyUser(rh:RequestHeader) : Option[User]
 
   /**
    * AC-65.
@@ -108,5 +113,16 @@ trait Cms extends Controller {
         }
       }.getOrElse(NotFound(""))
     }
+  }
+
+  /** For a given org - list active drafts */
+  def getDraftsForOrg = Action.async{
+    implicit request =>
+      Future{
+        val drafts : Seq[ItemDraft]= identifyUser(request).map{ u =>
+          draftService.listForOrg(u.org.orgId)
+        }.getOrElse(Seq.empty)
+        Ok(Json.toJson(drafts.map(ItemDraftJson.simple)))
+      }
   }
 }

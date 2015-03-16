@@ -6,6 +6,7 @@ sealed abstract class DraftError(msg: String)
 sealed abstract class CommitError(msg: String) extends DraftError(msg)
 
 case class SaveDataFailed(msg: String) extends DraftError(msg)
+case object DeleteFailed extends DraftError("Deletion failed")
 
 case class DeleteDraftFailed[ID](id: ID) extends DraftError(s"couldn't delete draft with id: ${id.toString}")
 

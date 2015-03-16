@@ -296,15 +296,24 @@
                   <item-status item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
                 </td>
                 <td>
-                  <item-edit-buttons
+                  <item-edit-button
                     item="item"
-                    view-item="viewItem(item)"
+                    user-name="userName"
+                    org-drafts="orgDrafts"
+                    edit-draft="editDraft(draft)"
                     edit-item="editItem(item)"
                     go-live="goLive(item)"
                     clone-item="cloneItem(item)"
-                    make-a-draft="makeADraft(item)"></item-edit-buttons>
+                    make-a-draft="makeADraft(item)"></item-edit-button>
                 </td>
-                <td><button ng-click="deleteItem(item)" class="btn btn-danger" ng-disabled="item.readOnly">Delete</button></td>
+                <td>
+                  <item-delete-button 
+                    item="item"
+                    user-name="userName"
+                    org-drafts="orgDrafts"
+                    delete-item="deleteItem(item)"
+                    delete-draft="$parent.deleteDraft">Delete</item-delete-button>
+                  </td>
             </tr>
             </tbody>
         </table>

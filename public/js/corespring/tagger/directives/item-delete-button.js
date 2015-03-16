@@ -1,5 +1,5 @@
 angular.module('tagger')
-  .directive('itemEditButton', [function () {
+  .directive('itemDeleteButton', [function () {
 
     function link($scope, $element, $attrs, ngModel){
       $scope.status = 'draft';
@@ -34,9 +34,17 @@ angular.module('tagger')
 
       function updateFlags(){
         updateDraftStatus();
-        $scope.canGoLive = isNotReadOnlyAndTheresNoDrafts();
-        $scope.canClone = !$scope.item.readOnly; 
+        $scope.canDelete = !$scope.item.readOnly && $scope.draftStatus !== 'draftExists';
+        $scope.deleteLabel = $scope.draftStatus === 'ownsDraft' ? 'Delete Draft' : 'Delete Item';
       }
+
+      $scope.delete = function(){
+        if($scope.draftStatus === 'ownsDraft'){
+          $scope.$eval($scope.deleteDraft)($scope.draft);
+        } else {
+          $scope.deleteItem($scope.item);
+        }
+      };
 
       $scope.$watch('userName', updateFlags);
 
@@ -59,24 +67,13 @@ angular.module('tagger')
         userName: '=',
         orgDrafts: '=',
         item: '=',
-        editItem: '&',
-        editDraft: '&',
-        goLive: '&',
-        makeADraft: '&',
-        cloneItem: '&'
+        deleteItem: '&',
+        //Because 'draft isnt in the isolated scope, we need to parse this ourselves'
+        deleteDraft: '@'
       }, 
       template: [
       '<div>',
-      '  <div class="draft-buttons" ng-switch on="draftStatus">',
-      '    <div ng-switch-when="draftExists">',
-      '      <i class="icon icon-lock"></i>',
-      '      <span>Draft owner: {{draft.user}}</span>',
-      '    </div>',
-      '    <button ng-switch-when="canMakeDraft" ng-click="makeADraft(item)" class="btn btn-sm">Make a Draft</button>',
-      '    <button ng-switch-when="ownsDraft" ng-click="editDraft(draft)" class="btn btn-sm">Edit Draft</button>',
-      '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
-      '  </div>',
-      '  <button ng-click="cloneItem(item)" ng-show"canClone" class="btn btn-sm">Clone</button>',
+      '  <button ng-show="canDelete" ng-click="delete()" class="btn btn-danger">{{deleteLabel}}</button>',
       '</div>'].join('')
     };
   }]);

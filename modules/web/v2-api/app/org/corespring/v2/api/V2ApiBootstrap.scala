@@ -141,6 +141,10 @@ class V2ApiBootstrap(
     override def v1ApiCreate = (request) => { org.corespring.api.v1.ItemApi.create()(request) }
 
     override def draftService: ItemDraftService = services.draftService
+
+    override def identifyUser(rh: RequestHeader): Option[User] = {
+      SecureSocial.currentUser(rh).flatMap(identity => User.getUser(identity.identityId))
+    }
   }
 
   import org.corespring.v2.api.drafts.item.{ItemDrafts => ItemDraftsController}

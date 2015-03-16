@@ -41,6 +41,15 @@ trait ItemDrafts
     }
   }
 
+  def removeUserDraft(id:ObjectId, user : SimpleUser) : Validation[DraftError,ObjectId]= {
+    val result = draftService.removeUserDraft(id, user)
+    if(result.getN != 1){
+      Failure(DeleteFailed)
+    } else {
+      Success(id)
+    }
+  }
+
   override def loadCommits(idAndVersion: IdAndVersion[ObjectId, Long]): Seq[Commit[ObjectId, Long, SimpleUser]] = {
     commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version)
   }

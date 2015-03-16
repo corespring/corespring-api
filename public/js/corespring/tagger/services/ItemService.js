@@ -90,6 +90,14 @@ angular.module('tagger.services')
           .success(onSuccess)
           .error(onError);
       };
+
+      this.getDraftsForOrg = function(onSuccess, onError){
+        var url = 'api/v2/cms/drafts-for-org';
+
+        $http.get(url) 
+          .success(onSuccess)
+          .error(onError);
+      };
     }
 
     return new CmsService();
@@ -140,6 +148,14 @@ angular.module('tagger.services')
         var url = '/api/v2/items/drafts/' + params.id;
 
         $http.get(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.deleteDraft = function(id, onSuccess, onError){
+        var url = '/api/v2/items/drafts/' + id;
+
+        $http.delete(url)
           .success(onSuccess)
           .error(onError);
       };

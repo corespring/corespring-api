@@ -4,7 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ DBObject, WriteResult }
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.{SimpleUser, ItemDraft}
 
 trait ItemDraftService {
 
@@ -44,4 +44,8 @@ trait ItemDraftService {
       .toSeq
       .map(toDraft)
   }
+
+  def listForOrg(orgId:ObjectId) = collection.find(MongoDBObject("user.orgId" -> orgId)).toSeq.map(toDraft)
+
+  def removeUserDraft(id:ObjectId, user : SimpleUser) = collection.remove(MongoDBObject("_id" -> id, "user.userName" -> user.userName))
 }
