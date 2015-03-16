@@ -29,12 +29,11 @@ trait ItemDrafts extends Controller {
     }
   }
 
-  private def validateUser(request:RequestHeader)  = authenticateUser(request).toSuccess(AuthenticationFailed)
+  private def validateUser(request: RequestHeader) = authenticateUser(request).toSuccess(AuthenticationFailed)
 
-
-  def list(itemId:String) = Action.async{ implicit request =>
-    Future{
-      for{
+  def list(itemId: String) = Action.async { implicit request =>
+    Future {
+      for {
         user <- validateUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         drafts <- Success(drafts.list(vid))
@@ -88,7 +87,7 @@ trait ItemDrafts extends Controller {
          * as its only really useful in the context of the editor/dev editor
          * Check w/ ev on what to return here
          */
-        Json.obj("id" -> d.id.toString, "msg" -> "What do we return here?")
+        ItemDraftJson.simple(d)
       }
     }
   }
