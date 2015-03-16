@@ -111,7 +111,6 @@
     };
 
     $scope.makeADraft = function(item){
-
       item.createUserDraft(function(draft){
         console.debug('draft', draft);
         goToEditDraft(draft.id, item);
@@ -126,12 +125,9 @@
         Logger.debug('itemFormat:', format);
         SearchService.currentItem = item;
         if (format.apiVersion === 2) {
-          //If you go to /edit/itemId - it should try and create a draft for you if it can
-          //$location.url('/edit/' + draft.id);
           $location.url('/edit/draft/' + draftId);
         } else {
           throw new Error('editing v1 drafts not ready yet.');
-          //$location.url('/old/edit/' + item.id + "?panel=metadata");
         }
       });
     }
@@ -145,8 +141,7 @@
     };
 
     $scope.getNumberOfSessions = function(id){
-      console.log('[getNumberOfSessions]', id);
-      return 10;
+      //TODO: Are we going to add this?
     };
 
     $scope.sortBy = function(field) {

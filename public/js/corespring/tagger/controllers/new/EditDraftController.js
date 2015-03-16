@@ -61,20 +61,19 @@ function EditDraftController(
   };
 
   $scope.goLive = function(){
-    //1. commit the draft 1:0 -> 1:1
-    //2. set published to true
+    //First Guess
+    //1. set published to true in draft
+    //2. commit the draft 1:0 -> 1:1
     throw new Error('How does go live work when editing a user draft?');
-    //$scope.$emit('goLiveRequested', $scope.item);
   };
 
   $scope.loadDraftItem = function() {
     DraftItemService.get({id: $routeParams.draftId}, function onItemLoaded(draft) {
       $scope.draft = draft;
-      throw new Error('ItemSesisonCount doesn\'t apply for a user draft');
-      /*ItemSessionCountService.get({id:$routeParams.itemId}, function onCountLoaded(countObject) {
-        $scope.item.sessionCount = countObject.sessionCount;
-        $scope.$broadcast("dataLoaded");
-      });*/
+      $scope.itemId = draft.itemId;
+      $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
+      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
+      console.warn('ItemSessionCount doesn\'t apply for a user draft');
     });
   };
 
