@@ -1,10 +1,13 @@
 package org.corespring.v2.api.drafts.item.json
 
 import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.json.ContentView
+import org.corespring.platform.core.models.json.ItemView
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.{ DateTimeZone, DateTime }
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{ JsObject, JsValue, Json }
 
 object ItemDraftJson {
 
@@ -22,4 +25,13 @@ object ItemDraftJson {
       "created" -> timeJson(d.created),
       "expires" -> timeJson(d.expires))
   }
+
+  def withFullItem(d: ItemDraft): JsValue = {
+
+    import ItemView.Writes
+    val itemJson = Json.toJson[ContentView[Item]](ContentView(d.src.data, None))
+    val simpleJson = simple(d)
+    simpleJson.asInstanceOf[JsObject] ++ Json.obj("src" -> Json.obj("data" -> itemJson))
+  }
+
 }
