@@ -133,14 +133,24 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     seqcollid
   }
 
-  def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = {
-    val cursor = if (deep) Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId)) //find the tree of the given organization
-    var seqcollid: Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o, acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval & p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
-    cursor.close()
-    if (p == Permission.Read) {
-      seqcollid = (seqcollid ++ getPublicCollections.map(_.id)).distinct
+  def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getCollectionRefsWithPermission(orgId, p, deep).map(_.collectionId)
+
+  def getCollectionRefsWithPermission(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
+    val cursor = if (deep) Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId))
+
+    def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
+      acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
-    seqcollid
+
+    val out = cursor.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
+
+    cursor.close()
+
+    if (p == Permission.Read) {
+      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, true))
+    } else {
+      out
+    }
   }
 
   def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
