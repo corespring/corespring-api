@@ -177,33 +177,31 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     import ExecutionContext.Implicits.global
     val timeout = Duration(20, duration.SECONDS)
 
-    lazy val domains = unique(Seq(
-      future {
-        find(MongoDBObject(
-          Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
-        )).map(_.subCategory).flatten
-      },
-      future {
-        find(MongoDBObject(
-          Subject -> Subjects.Math
-        )).map(_.category).flatten
-      }
-    ))
+    lazy val domains = {
+      val cacheKey = "domainsCache"
+      def combine(results: Seq[Future[(String, Seq[String])]]) = Await.result(Future.sequence(results), timeout).toMap
 
-    def domainsMatching(query: String): Seq[String] = unique(Seq(
-      future {
-        find(MongoDBObject(
-          Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy)),
-          SubCategory -> MongoDBObject("$regex" -> s".*$query.*")
-        )).map(_.subCategory).flatten
-      },
-      future {
-        find(MongoDBObject(
-          Subject -> Subjects.Math,
-          Category -> MongoDBObject("$regex" -> s".*$query.*")
-        )).map(_.category).flatten
+      Cache.get(cacheKey) match {
+        case Some(map: Map[String, Seq[String]]) => map
+        case _ => {
+          val values = combine(Seq(
+            future {
+              "ELA" -> find(MongoDBObject(
+                Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
+              )).map(_.subCategory).flatten.toSeq.distinct
+            },
+            future {
+              "Math" -> find(MongoDBObject(
+                Subject -> Subjects.Math
+              )).map(_.category).flatten.toSeq.distinct
+            }
+          ))
+          Cache.set(cacheKey, values)
+          values
+        }
       }
-    ))
+
+    }
 
     def domains(dotNotations: Iterable[String]): Set[String] =
       find(MongoDBObject(DotNotation -> MongoDBObject("$in" -> dotNotations))).map(standard => {
@@ -214,9 +212,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
           case _ => None
         }
       }).flatten.toSet
-
-    private def unique(results: Seq[Future[Iterator[String]]]) =
-      Await.result(Future.sequence(results), timeout).flatten.toSet.toSeq
   }
 
   /**

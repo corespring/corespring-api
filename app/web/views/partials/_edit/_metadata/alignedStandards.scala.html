@@ -34,12 +34,46 @@
 
     </div>
 </div>
+
 <div class="control-group">
     <label class="control-label">Standard Cluster(s)</label>
     <div class="controls select2-container-multi">
         <ul class="select2-choices" style="border: none; background-image: none;">
-            <li ng-repeat="domain in itemData.domains" style="padding: 3px 5px;" class="select2-search-choice">{{domain.name}}</li>
+            <li ng-repeat="domain in standardDomains" style="padding: 3px 5px;" class="select2-search-choice">{{domain.name}}</li>
         </ul>
+    </div>
+    <div class="controls select2-container-multi">
+        <ul class="select2-choices" style="border: none; background-image: none;">
+            <li ng-repeat="domain in domains" class="select2-search-choice">
+                <a class="select2-search-choice-close" ng-click="removeDomain(domain)"/>
+                <span>{{domain.name}}</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Additional Clusters</label>
+    <div class="controls">
+        Select from lists below to include additional clusters.
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">Math</label>
+    <div class="controls">
+        <select ng-model="newDomain"
+                ng-options="d for d in domainValues.Math"
+                style="vertical-align:top; width:100px; padding-top: 0px;">
+        </select>
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label">ELA</label>
+    <div class="controls">
+        <select ng-model="newDomain"
+                ng-options="d for d in domainValues.ELA"
+                style="vertical-align:top; width:100px; padding-top: 0px;">
+        </select>
     </div>
 </div>
 }
