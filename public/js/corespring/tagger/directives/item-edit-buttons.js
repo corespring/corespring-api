@@ -49,6 +49,10 @@ angular.module('tagger')
 
       $scope.$watch('item', updateFlags);
 
+      $scope.callEditDraft = function(){
+        $scope.$eval($scope.editDraft)($scope.draft);
+      };
+
     }
 
     return {
@@ -60,7 +64,7 @@ angular.module('tagger')
         orgDrafts: '=',
         item: '=',
         editItem: '&',
-        editDraft: '&',
+        editDraft: '@',
         goLive: '&',
         makeADraft: '&',
         cloneItem: '&'
@@ -73,7 +77,7 @@ angular.module('tagger')
       '      <span>Draft owner: {{draft.user}}</span>',
       '    </div>',
       '    <button ng-switch-when="canMakeDraft" ng-click="makeADraft(item)" class="btn btn-sm">Make a Draft</button>',
-      '    <button ng-switch-when="ownsDraft" ng-click="editDraft(draft)" class="btn btn-sm">Edit Draft</button>',
+      '    <button ng-switch-when="ownsDraft" ng-click="callEditDraft()" class="btn btn-sm">Edit Draft</button>',
       '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
       '  </div>',
       '  <button ng-click="cloneItem(item)" ng-show"canClone" class="btn btn-sm">Clone</button>',

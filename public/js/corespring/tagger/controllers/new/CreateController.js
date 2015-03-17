@@ -4,7 +4,7 @@
    * Controller for creating new item, in practice after the object is persisted
    * Control moves to the EditCtrl
    */
-  function CreateCtrl($routeParams, CmsService, NewItemTemplates) {
+  function CreateCtrl($routeParams, CmsService, NewItemTemplates, DraftItemService) {
 
     "use strict";
 
@@ -30,14 +30,17 @@
     };
     
     CmsService.createFromV1Data(item, function onItemSaved(itemData) {
-      window.location.href = '/web#/edit/' + itemData.id;
+
+      DraftItemService.createUserDraft(itemData.id, function(draft){
+        window.location.href = '/web#/edit/draft/' + draft.id;
+      });
     }, function onError(e) {
         alert("Error Saving Item: " + e.data.message);
       }
     );
   }
 
-  CreateCtrl.$inject = ['$routeParams', 'CmsService', 'NewItemTemplates'];
+  CreateCtrl.$inject = ['$routeParams', 'CmsService', 'NewItemTemplates', 'DraftItemService'];
 
   root.tagger = root.tagger || {};
   root.tagger.CreateCtrl = CreateCtrl;

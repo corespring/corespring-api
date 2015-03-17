@@ -130,7 +130,6 @@ angular.module('tagger.services')
                 .success(onSuccess)
                 .error(onError);
        };
-
     }
 
     return V2ItemService;
@@ -159,6 +158,24 @@ angular.module('tagger.services')
           .success(onSuccess)
           .error(onError);
       };
+      
+      this.createUserDraft = function(itemId, onSuccess, onError){
+        var listUrl = '/api/v2/items/' + itemId + '/drafts';
+        var createUrl = '/api/v2/items/' + itemId + '/draft';
+
+        $http.get(listUrl)
+         .success(function(drafts){
+          if(drafts.length === 0){
+            $http.post(createUrl)
+              .success(onSuccess)
+              .error(onError);
+          } else {
+            onError({msg: 'There is already a draft for this item'});
+          }
+         })
+         .error(onError);
+      };
+
     }
 
     return new DraftItemService();
@@ -166,8 +183,18 @@ angular.module('tagger.services')
   }]);
 
 angular.module('tagger.services')
-    .factory('ItemService', [ '$resource', 'ServiceLookup', '$http', 'V2ItemService',
-        function ($resource, ServiceLookup, $http, V2ItemService) {
+    .factory('ItemService', [ 
+      '$resource', 
+      'ServiceLookup', 
+      '$http', 
+      'V2ItemService',
+      'DraftItemService',
+        function (
+          $resource, 
+          ServiceLookup, 
+          $http, 
+          V2ItemService,
+          DraftItemService) {
 
     var v2Service = new V2ItemService();
 
@@ -227,20 +254,7 @@ angular.module('tagger.services')
     };
 
     ItemService.prototype.createUserDraft = function(onSuccess, onError){
-      var listUrl = '/api/v2/items/' + this.id + '/drafts';
-      var createUrl = '/api/v2/items/' + this.id + '/draft';
-
-      $http.get(listUrl)
-       .success(function(drafts){
-        if(drafts.length === 0){
-          $http.post(createUrl)
-            .success(onSuccess)
-            .error(onError);
-        } else {
-          onError({msg: 'There is already a draft for this item'});
-        }
-       })
-       .error(onError);
+      DraftItemService.createUserDraft(this.id, onSuccess, onError);
     };
 
     ItemService.processor = new com.corespring.model.ItemDataProcessor();

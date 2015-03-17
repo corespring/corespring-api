@@ -115,13 +115,22 @@
     };
 
     $scope.makeADraft = function(item){
-      item.createUserDraft(function(draft){
-        console.debug('draft', draft);
-        goToEditDraft(draft.id, item);
-      },
-       function error(err){
-        alert('error making a draft' + JSON.stringify(err));
+
+      CmsService.itemFormat('item', item.id, function(format) {
+
+        if(format.apiVersion !== 2){
+          alert('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
+          return;
+        }
+
+        item.createUserDraft(function(draft){
+          console.debug('draft', draft);
+          goToEditDraft(draft.id, item);
+          }, function error(err){
+          alert('error making a draft' + JSON.stringify(err));
+        });
       });
+
     };
 
     $scope.editDraft  = function(draft){
@@ -313,7 +322,7 @@
   
 
     function goToEditView(item){
-      CmsService.itemFormat(item.id, function(format) {
+      CmsService.itemFormat('item', item.id, function(format) {
         Logger.debug('itemFormat:', format);
         SearchService.currentItem = item;
         if (format.apiVersion === 2) {
