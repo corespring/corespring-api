@@ -44,6 +44,19 @@ case class Standard(var dotNotation: Option[String] = None,
     case _ => None
   }
 
+  val domain = {
+    import Standard.Subjects._
+    (subject match {
+      case Some(subj) => subj match {
+        case ELALiteracy => subCategory
+        case ELA => subCategory
+        case Math => category
+        case _ => None
+      }
+      case _ => None
+    }).map(Domain(_, true))
+  }
+
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
@@ -157,6 +170,8 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
+
+  def domainFor(dotNotation: String) = findOneByDotNotation(dotNotation).map(_.domain)
 
   object Domain {
     import ExecutionContext.Implicits.global

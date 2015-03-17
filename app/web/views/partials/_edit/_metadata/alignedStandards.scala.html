@@ -35,10 +35,10 @@
     </div>
 </div>
 <div class="control-group">
-    <label class="control-label">Domain(s)</label>
-    <div class="controls">
-        <ul>
-            <li ng-repeat="domain in itemData.domains">{{domain}}</li>
+    <label class="control-label">Standard Cluster(s)</label>
+    <div class="controls select2-container-multi">
+        <ul class="select2-choices" style="border: none; background-image: none;">
+            <li ng-repeat="domain in itemData.domains" style="padding: 3px 5px;" class="select2-search-choice">{{domain.name}}</li>
         </ul>
     </div>
 </div>

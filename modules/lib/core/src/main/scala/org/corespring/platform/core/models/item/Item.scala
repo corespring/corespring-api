@@ -2,7 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Standard
+import org.corespring.platform.core.models.{Domain, Standard}
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
@@ -53,6 +53,8 @@ case class Item(
       case _ => 2
     }
 
+  lazy val domains: Set[Domain] =
+    (taskInfo.map(_.domains).getOrElse(Seq.empty).map(Domain(_, false)) ++ standards.flatMap(Standard.domainFor(_)).flatten).toSet
 }
 
 object Item {
@@ -100,6 +102,7 @@ object Item {
     val dateModified = "dateModified"
     val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
+    val domains = "domains"
     val extended = "extended"
     val files = "files"
     val gradeLevel = "gradeLevel"
@@ -123,7 +126,6 @@ object Item {
     val sharedInCollections = "sharedInCollections"
     val sourceUrl = "sourceUrl"
     val standards = "standards"
-    val domains = "domains"
     val subjects = "subjects"
     val supportingMaterials = "supportingMaterials"
     val taskInfo = "taskInfo"
