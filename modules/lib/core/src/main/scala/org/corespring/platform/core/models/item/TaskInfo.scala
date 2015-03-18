@@ -53,6 +53,7 @@ object TaskInfo extends ValueGetter {
         info.title.map((title -> JsString(_))),
         info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
+        Some(domains -> JsArray(info.domains.toSeq.map(d => JsString(d)))),
         if (info.extended.isEmpty) None else Some((extended -> extendedAsJson(info.extended)))).flatten)
 
       val subjectsJson: Option[JsValue] = info.subjects.map(subjects => Json.toJson(subjects))

@@ -2,22 +2,20 @@ package org.corespring.platform.core.models
 
 import play.api.libs.json._
 
-case class Domain(name: String, fromStandard: Boolean) {
-  override def toString() = s"name = $name, fromStandard = $fromStandard"
-}
+case class Domain(name: String, standards: Seq[String])
 
-object Domain {
+object Domain extends JsonUtil {
 
   implicit object Format extends play.api.libs.json.Format[Domain] {
 
     override def reads(json: JsValue): JsResult[Domain] = JsSuccess(Domain(
       name = (json \ "name").as[String],
-      fromStandard = (json \ "fromStandard").asOpt[Boolean].getOrElse(false)
+      standards = (json \ "standards").asOpt[Seq[String]].getOrElse(Seq.empty[String])
     ))
 
-    override def writes(domain: Domain) = Json.obj(
-      "name" -> domain.name,
-      "fromStandard" -> domain.fromStandard
+    override def writes(domain: Domain) = partialObj(
+      "name" -> Some(JsString(domain.name)),
+      "standards" -> Some(JsArray(domain.standards.map(JsString)))
     )
 
   }

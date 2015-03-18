@@ -33,6 +33,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
   }
 
+  window.domainByStandard = function(standard) {
+    var domain = _.chain($scope.domainValues).values().flatten().find(function(domain) {
+      return domain.standards.indexOf(standard) !== -1;
+    }).value();
+    return (domain && domain.name) ? domain.name : undefined;
+  };
+
   function loadWritableCollections() {
     function writable(collections) {
       return _.filter(collections, function(collection) {
@@ -96,6 +103,23 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       $scope.v2CatalogUrl = ""
     }
   });
+
+  $scope.$watch('newDomain', function(newDomain) {
+    if (newDomain !== undefined) {
+      $scope.itemData.domains.push(newDomain.name);
+      $scope.newDomain = undefined;
+    }
+  });
+
+  $scope.removeDomain = function(domain) {
+    var domains = $scope.itemData.domains;
+    var index = domains.indexOf(domain);
+
+    if (index !== -1) {
+      domains.splice(index, 1);
+      $scope.itemData.domains = domains;
+    }
+  };
 
   $scope.launchV2Preview = function() {
     $scope.v2CatalogUrl = '/v2/player/catalog/' + $scope.itemData.id + '/index.html'
@@ -335,15 +359,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
 
-  $scope.$watch('itemData.domains', function (newValue, oldValue) {
-    $scope.standardDomains = _.filter(newValue, function(domain) {
-      return domain.fromStandard === true;
-    });
-    $scope.domains = _.filter(newValue, function(domain) {
-      return domain.fromStandard !== true;
-    });
-  });
-
   $scope.$watch('isPublished', function(){
       if($scope.isPublished) {
         $scope.itemStatus = "published";
@@ -356,22 +371,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       } else {
         $scope.itemStatus = "Draft"
       }
-  });
-
-
-  $scope.newDomain = undefined;
-
-  $scope.removeDomain = function(domain) {
-    if ($scope.domains.indexOf(domain) !== -1) {
-      $scope.domains.splice($scope.domains.indexOf(domain), 1);
-    }
-  };
-
-  $scope.$watch('newDomain', function(newValue) {
-    if (newValue !== undefined) {
-      $scope.domains.push({name: newValue});
-      $scope.newDomain = undefined;
-    }
   });
 
   $scope.getPValueAsString = function (value) {

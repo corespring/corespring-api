@@ -54,7 +54,7 @@ case class Standard(var dotNotation: Option[String] = None,
         case _ => None
       }
       case _ => None
-    }).map(Domain(_, true))
+    })
   }
 
 }
@@ -171,29 +171,43 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 
-  def domainFor(dotNotation: String) = findOneByDotNotation(dotNotation).map(_.domain)
+  def domainFor(dotNotation: String) = findOneByDotNotation(dotNotation).map(_.domain).flatten
 
   object Domain {
     import ExecutionContext.Implicits.global
     val timeout = Duration(20, duration.SECONDS)
 
-    lazy val domains = {
+    lazy val domains: Map[String, Seq[Domain]] = {
       val cacheKey = "domainsCache"
-      def combine(results: Seq[Future[(String, Seq[String])]]) = Await.result(Future.sequence(results), timeout).toMap
+      def combine(results: Seq[Future[(String, Seq[Domain])]]) = Await.result(Future.sequence(results), timeout).toMap
 
       Cache.get(cacheKey) match {
-        case Some(map: Map[String, Seq[String]]) => map
+        case Some(map: Map[String, Seq[Domain]]) => map
         case _ => {
           val values = combine(Seq(
             future {
               "ELA" -> find(MongoDBObject(
                 Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
-              )).map(_.subCategory).flatten.toSeq.distinct
+              )).foldLeft(Map.empty[String, Seq[String]]){ case (map, standard) => standard.subCategory match {
+                case Some(subCategory) => map.get(subCategory) match {
+                  case Some(standards) =>
+                    map + (subCategory -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+                  case _ => map + (subCategory -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+                }
+                case _ => map
+              }}.map{case (name, standards) => new Domain(name, standards)}.toSeq
             },
             future {
               "Math" -> find(MongoDBObject(
                 Subject -> Subjects.Math
-              )).map(_.category).flatten.toSeq.distinct
+              )).foldLeft(Map.empty[String, Seq[String]]){ case (map, standard) => standard.category match {
+                case Some(category) => map.get(category) match {
+                  case Some(standards) =>
+                    map + (category -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+                  case _ => map + (category -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+                }
+                case _ => map
+              }}.map{case (name, standards) => new Domain(name, standards)}.toSeq
             }
           ))
           Cache.set(cacheKey, values)

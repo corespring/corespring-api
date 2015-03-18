@@ -22,8 +22,8 @@ object ItemView {
 
       val mainItem: JsObject = writeMainItem(itemView.content)
       val details: Option[JsObject] = toJsObject(itemView.content.contributorDetails)
-      val domains: Option[JsObject] = if (itemView.content.domains.size > 0)
-        Some(Json.obj("domains" -> JsArray(itemView.content.domains.toSeq.map(d => Json.toJson(d))))) else None
+      val domains: Option[JsObject] = if (itemView.content.standardDomains.size > 0)
+        Some(Json.obj("standardDomains" -> JsArray(itemView.content.standardDomains.toSeq.map(d => Json.toJson(d))))) else None
       val taskInfo: Option[JsObject] = toJsObject(itemView.content.taskInfo)
       val alignments: Option[JsObject] = toJsObject(itemView.content.otherAlignments)
 

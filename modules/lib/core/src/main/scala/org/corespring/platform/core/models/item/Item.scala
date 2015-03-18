@@ -53,8 +53,8 @@ case class Item(
       case _ => 2
     }
 
-  lazy val domains: Set[Domain] =
-    (taskInfo.map(_.domains).getOrElse(Seq.empty).map(Domain(_, false)) ++ standards.flatMap(Standard.domainFor(_)).flatten).toSet
+  lazy val standardDomains: Set[String] =
+    standards.map(standard => Standard.domainFor(standard)).flatten.toSet
 }
 
 object Item {
@@ -102,7 +102,7 @@ object Item {
     val dateModified = "dateModified"
     val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
-    val domains = "domains"
+    val standardDomains = "standardDomains"
     val extended = "extended"
     val files = "files"
     val gradeLevel = "gradeLevel"
