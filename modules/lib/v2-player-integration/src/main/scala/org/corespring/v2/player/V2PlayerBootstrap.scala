@@ -6,16 +6,17 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.{ VersionInfo, CompressedAndMinifiedComponentSets }
+import org.corespring.container.client.integration.DefaultIntegration
+import org.corespring.container.client._
 import org.corespring.container.client.controllers.{ Assets, ComponentSets }
-import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks, ItemHooks => ContainerItemHooks, EditorHooks => ContainerEditorHooks}
+import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks, ItemHooks => ContainerItemHooks, EditorHooks => ContainerEditorHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
-import org.corespring.platform.core.models.{User, Standard, Subject}
+import org.corespring.platform.core.models.{ User, Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -24,6 +25,7 @@ import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.player.controllers.EditorJs
 import org.corespring.v2.player.hooks._
 import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
 import play.api.libs.concurrent.Akka
@@ -50,6 +52,17 @@ class V2PlayerBootstrap(comps: => Seq[Component],
   extends org.corespring.container.client.integration.DefaultIntegration {
 
   lazy val logger = V2LoggerFactory.getLogger("V2PlayerBootstrap")
+
+  override def controllers: Seq[Controller] = super.controllers :+ editorJsOverride
+
+  lazy val editorJsOverride = new EditorJs {
+
+    override def playerConfig: V2PlayerConfig = V2PlayerBootstrap.this.playerConfig
+
+    override def hooks: PlayerLauncherHooks = V2PlayerBootstrap.this.playerLauncherHooks
+
+    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+  }
 
   override def versionInfo: JsObject = VersionInfo(configuration)
 
@@ -172,7 +185,7 @@ class V2PlayerBootstrap(comps: => Seq[Component],
 
     override def authenticateUser(rh: RequestHeader): Option[User] = {
       val id = V2PlayerBootstrap.this.secureSocialService.currentUser(rh)
-      id.flatMap{ i => User.getUser(i.identityId)}
+      id.flatMap { i => User.getUser(i.identityId) }
     }
 
     override def transform: (Item) => JsValue = itemTransformer.transformToV2Json

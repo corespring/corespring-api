@@ -227,6 +227,7 @@ object Build extends sbt.Build {
       playerLib,
       devTools,
       itemDrafts)
+    .dependsOn(v2Api)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,

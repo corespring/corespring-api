@@ -39,6 +39,9 @@ GET         /                                                         web.contro
 # ->     /v1/player             v1Player.Routes
 ->          /logger/                                                  clientlogging.Routes
 
+# Override the container editor.js
+GET         /v2/player/editor.js                                      @org.corespring.v2.player.controllers.EditorJs.editorJs
+
 ->          /v2/player                                                v2Player.Routes
 ->          /lti                                                      lti.Routes
 ->          /reports                                                  reports.Routes
