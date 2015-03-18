@@ -29,16 +29,28 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   function loadDomainData() {
     $http.get(ServiceLookup.getUrlFor('domain')).success(function(data) {
-      $scope.domainValues = data;
+      $scope.domainValues = {};
+      for (var key in data) {
+        $scope.domainValues[key] = _.sortBy(data[key], 'name');
+      }
+      updateStandardDomains();
     });
   }
 
-  window.domainByStandard = function(standard) {
+  function domainByStandard(standard) {
     var domain = _.chain($scope.domainValues).values().flatten().find(function(domain) {
       return domain.standards.indexOf(standard) !== -1;
     }).value();
     return (domain && domain.name) ? domain.name : undefined;
-  };
+  }
+
+  function updateStandardDomains() {
+    if ($scope.itemData && $scope.itemData.standards && $scope.domainValues) {
+      $scope.itemData.standardDomains = _($scope.itemData.standards).pluck('dotNotation').map(domainByStandard).sort();
+    }
+  }
+
+  $scope.$watch('itemData.standards', updateStandardDomains);
 
   function loadWritableCollections() {
     function writable(collections) {
@@ -104,9 +116,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   });
 
+  function hasDomain(domain) {
+    return $scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
+      $scope.itemData.domains.indexOf(domain.name) >= 0;
+  }
+
   $scope.$watch('newDomain', function(newDomain) {
     if (newDomain !== undefined) {
-      $scope.itemData.domains.push(newDomain.name);
+      if (!hasDomain(newDomain)) {
+        $scope.itemData.domains.push(newDomain.name);
+        $scope.itemData.domains = $scope.itemData.domains.sort();
+      }
       $scope.newDomain = undefined;
     }
   });
