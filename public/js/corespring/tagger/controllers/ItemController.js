@@ -131,20 +131,12 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   function hasDomain(domain) {
-    return ($scope.itemData !== undefined) && ($scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
-      $scope.itemData.domains.indexOf(domain.name) >= 0);
+    return $scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
+      $scope.itemData.domains.indexOf(domain.name) >= 0;
   }
 
-  $scope.$watch('newDomain', function(newDomain) {
-    if (newDomain !== undefined) {
-      if (!hasDomain(newDomain)) {
-        $scope.itemData.domains.push(newDomain.name);
-        $scope.itemData.domains = $scope.itemData.domains.sort();
-      }
-      $scope.newDomain = undefined;
-      updateUnusedDomains();
-    }
-  });
+
+  $scope.$watch('newDomain', $scope.addDomain);
 
   $scope.removeDomain = function(domain) {
     var domains = $scope.itemData.domains;
@@ -156,6 +148,20 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
     updateUnusedDomains();
   };
+
+  $scope.addDomain = function(newDomain) {
+    if (newDomain !== undefined) {
+      console.log('scope.itemData', $scope.itemData);
+      console.log('newDomain', newDomain);
+      if (!hasDomain(newDomain)) {
+        $scope.itemData.domains.push(newDomain.name);
+        $scope.itemData.domains = $scope.itemData.domains.sort();
+      }
+      $scope.newDomain = undefined;
+      updateUnusedDomains();
+    }
+  };
+
 
   $scope.launchV2Preview = function() {
     $scope.v2CatalogUrl = '/v2/player/catalog/' + $scope.itemData.id + '/index.html'
