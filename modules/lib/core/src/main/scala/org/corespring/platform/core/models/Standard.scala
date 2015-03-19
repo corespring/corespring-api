@@ -171,8 +171,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
 
-  def domainFor(dotNotation: String) = findOneByDotNotation(dotNotation).map(_.domain).flatten
-
   object Domain {
     import ExecutionContext.Implicits.global
     val timeout = Duration(20, duration.SECONDS)
