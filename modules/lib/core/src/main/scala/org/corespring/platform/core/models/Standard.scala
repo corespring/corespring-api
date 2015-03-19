@@ -10,6 +10,8 @@ import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.collection.immutable.{ListMap, SortedMap}
+import scala.concurrent._
+import scala.concurrent.duration.Duration
 
 case class Standard(var dotNotation: Option[String] = None,
   var guid: Option[String] = None,
@@ -42,6 +44,19 @@ case class Standard(var dotNotation: Option[String] = None,
     case _ => None
   }
 
+  val domain = {
+    import Standard.Subjects._
+    (subject match {
+      case Some(subj) => subj match {
+        case ELALiteracy => subCategory
+        case ELA => subCategory
+        case Math => category
+        case _ => None
+      }
+      case _ => None
+    })
+  }
+
 }
 
 object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with JsonUtil {
@@ -59,6 +74,12 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   val Standard = "standard"
   val guid = "guid"
   val grades = "grades"
+
+  object Subjects {
+    val ELA = "ELA"
+    val ELALiteracy = "ELA-Literacy"
+    val Math = "Math"
+  }
 
   //Ensure dotNotation is unique
   collection.ensureIndex(DotNotation)
@@ -149,6 +170,52 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
   }
 
   def findOneByDotNotation(dn: String): Option[Standard] = findOne(MongoDBObject(DotNotation -> dn))
+
+  object Domain {
+    import ExecutionContext.Implicits.global
+    val timeout = Duration(20, duration.SECONDS)
+
+    lazy val domains: Map[String, Seq[Domain]] = {
+      val cacheKey = "domainsCache"
+      def combine(results: Seq[Future[(String, Seq[Domain])]]) = Await.result(Future.sequence(results), timeout).toMap
+
+      Cache.get(cacheKey) match {
+        case Some(map: Map[_,_]) =>
+          map.asInstanceOf[Map[String, Seq[Domain]]] //asInstanceOf required due to type erasure
+        case _ => {
+          val values = combine(Seq(
+            future {
+              "ELA" -> find(MongoDBObject(
+                Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
+              )).foldLeft(Map.empty[String, Seq[String]]){ case (map, standard) => standard.subCategory match {
+                case Some(subCategory) => map.get(subCategory) match {
+                  case Some(standards) =>
+                    map + (subCategory -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+                  case _ => map + (subCategory -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+                }
+                case _ => map
+              }}.map{case (name, standards) => new Domain(name, standards)}.toSeq
+            },
+            future {
+              "Math" -> find(MongoDBObject(
+                Subject -> Subjects.Math
+              )).foldLeft(Map.empty[String, Seq[String]]){ case (map, standard) => standard.category match {
+                case Some(category) => map.get(category) match {
+                  case Some(standards) =>
+                    map + (category -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+                  case _ => map + (category -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+                }
+                case _ => map
+              }}.map{case (name, standards) => new Domain(name, standards)}.toSeq
+            }
+          ))
+          Cache.set(cacheKey, values)
+          values
+        }
+      }
+
+    }
+  }
 
   /**
    * validate that the dotNotation exists

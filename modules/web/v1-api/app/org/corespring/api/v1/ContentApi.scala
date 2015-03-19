@@ -38,6 +38,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     TaskInfo.Keys.itemType,
     Alignments.Keys.keySkills,
     primarySubject,
+    TaskInfo.Keys.domains,
     relatedSubject,
     standards,
     author,
