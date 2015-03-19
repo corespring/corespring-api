@@ -216,16 +216,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       }
 
     }
-
-    def domains(dotNotations: Iterable[String]): Set[String] =
-      find(MongoDBObject(DotNotation -> MongoDBObject("$in" -> dotNotations))).map(standard => {
-        standard.subject match {
-          case Some(Subjects.ELALiteracy) => standard.subCategory
-          case Some(Subjects.ELA) => standard.subCategory
-          case Some(Subjects.Math) => standard.category
-          case _ => None
-        }
-      }).flatten.toSet
   }
 
   /**
