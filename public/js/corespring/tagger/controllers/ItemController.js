@@ -18,8 +18,8 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
  */
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
-
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
+  $scope.filteredDomainValues = {};
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
@@ -37,6 +37,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
   }
 
+  function updateUnusedDomains() {
+    var newValues = {};
+    for (var key in $scope.domainValues) {
+      newValues[key] = _.chain($scope.domainValues[key]).filter(function(domain) {
+        return !hasDomain(domain);
+      }).sortBy('name').value();
+    }
+    $scope.filteredDomainValues = newValues;
+  }
+
   function domainByStandard(standard) {
     var domain = _.chain($scope.domainValues).values().flatten().find(function(domain) {
       return domain.standards.indexOf(standard) !== -1;
@@ -47,6 +57,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   function updateStandardDomains() {
     if ($scope.itemData && $scope.itemData.standards && $scope.domainValues) {
       $scope.itemData.standardDomains = _($scope.itemData.standards).pluck('dotNotation').map(domainByStandard).sort();
+      $scope.itemData.domains = _.filter($scope.itemData.domains, function(domain) {
+        return $scope.itemData.standardDomains.indexOf(domain) === -1;
+      });
+      updateUnusedDomains();
     }
   }
 
@@ -112,13 +126,13 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.$watch('showV2Preview',function(newValue){
     if (!newValue){
-      $scope.v2CatalogUrl = ""
+      $scope.v2CatalogUrl = "";
     }
   });
 
   function hasDomain(domain) {
-    return $scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
-      $scope.itemData.domains.indexOf(domain.name) >= 0;
+    return ($scope.itemData !== undefined) && ($scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
+      $scope.itemData.domains.indexOf(domain.name) >= 0);
   }
 
   $scope.$watch('newDomain', function(newDomain) {
@@ -128,6 +142,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
         $scope.itemData.domains = $scope.itemData.domains.sort();
       }
       $scope.newDomain = undefined;
+      updateUnusedDomains();
     }
   });
 
@@ -139,6 +154,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       domains.splice(index, 1);
       $scope.itemData.domains = domains;
     }
+    updateUnusedDomains();
   };
 
   $scope.launchV2Preview = function() {
