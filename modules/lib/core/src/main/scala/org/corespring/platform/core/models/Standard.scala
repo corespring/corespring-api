@@ -180,7 +180,8 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
       def combine(results: Seq[Future[(String, Seq[Domain])]]) = Await.result(Future.sequence(results), timeout).toMap
 
       Cache.get(cacheKey) match {
-        case Some(map: Map[String, Seq[Domain]]) => map
+        case Some(map: Map[_,_]) =>
+          map.asInstanceOf[Map[String, Seq[Domain]]] //asInstanceOf required due to type erasure
         case _ => {
           val values = combine(Seq(
             future {
