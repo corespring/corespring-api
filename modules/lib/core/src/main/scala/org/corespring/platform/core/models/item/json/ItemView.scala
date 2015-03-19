@@ -22,12 +22,10 @@ object ItemView {
 
       val mainItem: JsObject = writeMainItem(itemView.content)
       val details: Option[JsObject] = toJsObject(itemView.content.contributorDetails)
-      val domains: Option[JsObject] = if (itemView.content.standardDomains.size > 0)
-        Some(Json.obj("standardDomains" -> JsArray(itemView.content.standardDomains.toSeq.map(d => Json.toJson(d))))) else None
       val taskInfo: Option[JsObject] = toJsObject(itemView.content.taskInfo)
       val alignments: Option[JsObject] = toJsObject(itemView.content.otherAlignments)
 
-      val out = Seq(Some(mainItem), details, domains, taskInfo, alignments).flatten
+      val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)
       itemView.searchFields.map(stripFields(jsObject, _)).getOrElse(jsObject)
     }

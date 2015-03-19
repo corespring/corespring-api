@@ -52,9 +52,6 @@ case class Item(
       }
       case _ => 2
     }
-
-  lazy val standardDomains: Set[String] =
-    standards.map(standard => Standard.domainFor(standard)).flatten.toSet
 }
 
 object Item {
@@ -102,7 +99,6 @@ object Item {
     val dateModified = "dateModified"
     val depthOfKnowledge = "depthOfKnowledge"
     val description = "description"
-    val standardDomains = "standardDomains"
     val extended = "extended"
     val files = "files"
     val gradeLevel = "gradeLevel"
