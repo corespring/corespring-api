@@ -53,21 +53,36 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
   }
 
-  private def model(implicit node: Node) = Json.obj(
-    "config" -> partialObj(
-      "domainLabel" -> property("xAxisTitle").map(JsString(_)),
-      "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
-      "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
-      "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
-      "domain" -> property("xAxisMaxValue").map(f => JsNumber(f.toInt)),
-      "range" -> property("yAxisMaxValue").map(f => JsNumber(f.toInt)),
-      "showCoordinates" -> Some(JsBoolean(false)),
-      "maxPoints" -> ((node \ "@maxChoices") match {
-        case n: NodeSeq if n.nonEmpty => Some(JsNumber(n.text.toInt))
-        case _ => None
-      })
+  private def model(implicit node: Node) = {
+    def propertyNumber(string: String): JsNumber = {
+      val hasDecimal = "(\\d+)\\.(\\d+)".r
+      val isZero = "0+".r
+      string match {
+        case hasDecimal(one, decimal) => decimal match {
+          case isZero() => JsNumber(one.toInt)
+          case _ => JsNumber(BigDecimal(string))
+        }
+        case _ => JsNumber(string.toInt)
+      }
+    }
+    Json.obj(
+      "config" -> partialObj(
+        "domainLabel" -> property("xAxisTitle").map(JsString(_)),
+        "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
+        "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
+        "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
+        "domain" -> property("xAxisMaxValue").map(propertyNumber),
+        "range" -> property("yAxisMaxValue").map(propertyNumber),
+        "scale" -> property("xAxisStepValue").map(propertyNumber),
+        "tickLabelFrequency" -> property("xAxisLabelPattern").map(propertyNumber),
+        "showCoordinates" -> Some(JsBoolean(false)),
+        "maxPoints" -> ((node \ "@maxChoices") match {
+          case n: NodeSeq if n.nonEmpty => Some(JsNumber(n.text.toInt))
+          case _ => None
+        })
+      )
     )
-  )
+  }
 
   private def property(name: String)(implicit node: Node): Option[String] =
     (node \ "object" \ "param").toSeq.find(p => (p \ "@name").text == name).map(p => (p \ "@value").text)
