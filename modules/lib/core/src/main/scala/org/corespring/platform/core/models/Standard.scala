@@ -176,8 +176,6 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     val timeout = Duration(20, duration.SECONDS)
 
     lazy val domains: Map[String, Seq[Domain]] = {
-      val cacheKey = "domainsCache"
-
       def combineFutures(results: Seq[Future[(String, Seq[Domain])]]) =
         Await.result(Future.sequence(results), timeout).toMap
 
@@ -195,27 +193,18 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
           case _ => map
         }}.map{ case (name, standards) => new Domain(name, standards)}.toSeq
 
-      Cache.get(cacheKey) match {
-        case Some(map: Map[_,_]) =>
-          map.asInstanceOf[Map[String, Seq[Domain]]] // asInstanceOf required due to type erasure
-        case _ => {
-          val values = combineFutures(Seq(
-            future {
-              "ELA" -> mapDomains(find(MongoDBObject(
-                Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
-              )), { _.subCategory })
-            },
-            future {
-              "Math" -> mapDomains(find(MongoDBObject(
-                Subject -> Subjects.Math
-              )), { _.category })
-            }
-          ))
-          Cache.set(cacheKey, values)
-          values
+      combineFutures(Seq(
+        future {
+          "ELA" -> mapDomains(find(MongoDBObject(
+            Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
+          )), { _.subCategory })
+        },
+        future {
+          "Math" -> mapDomains(find(MongoDBObject(
+            Subject -> Subjects.Math
+          )), { _.category })
         }
-      }
-
+      ))
     }
   }
 
