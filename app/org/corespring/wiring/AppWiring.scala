@@ -89,12 +89,12 @@ object AppWiring {
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
-    val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
+    val showNonReleasedComponents: Boolean = containerConfig.getBoolean("components.showNonReleasedComponents")
       .getOrElse {
-        Play.current.mode == Mode.Prod
+        Play.current.mode == Mode.Dev
       }
 
-    val out = new FileComponentLoader(path, showReleasedOnlyComponents)
+    val out = new FileComponentLoader(path, showNonReleasedComponents)
     out.reload
     out
   }

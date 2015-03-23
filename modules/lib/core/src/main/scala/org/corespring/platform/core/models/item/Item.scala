@@ -2,6 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.{Domain, Standard}
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
