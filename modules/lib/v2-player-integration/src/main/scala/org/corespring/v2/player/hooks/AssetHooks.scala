@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.amazon.s3.S3Service
+import org.corespring.container.client.controllers.{ AssetType, Assets }
 import org.corespring.container.client.hooks.{ AssetHooks => ContainerAssetHooks }
 import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
@@ -20,7 +21,9 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
   import scalaz.Scalaz._
   import scalaz._
 
-  def s3: S3Service
+  //def s3: S3Service
+
+  def assets: Assets
 
   def bucket: String
 
@@ -30,8 +33,7 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
 
   import play.api.http.Status._
 
-  //override def delete(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] =
-  override def delete(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
+  override def deleteFile(itemId: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = {
 
     val out = for {
       identity <- getOrgAndOptions(header)
@@ -39,11 +41,9 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
     } yield item
 
     out match {
-      case Failure(e) => Some(UNAUTHORIZED -> e.message)
-      case _ => {
-        val r = s3.delete(bucket, s"$itemId/data/$file")
-        if (r.success) None else Some(BAD_REQUEST -> r.msg)
-      }
+      case Failure(e) => Future(Some(UNAUTHORIZED -> e.message))
+      case _ => assets.delete(AssetType.Item, itemId, file)
+
     }
   }
 
@@ -59,10 +59,9 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
     }
   }
 
-  override def uploadAction(itemId: String, file: String)(block: (Request[Int]) => SimpleResult): Action[Int] = {
-    Action(s3.upload(bucket, s"$itemId/data/$file", canUpload(itemId))) {
+  override def uploadAction(itemId: String, file: String)(block: (Request[Int]) => SimpleResult): Action[Int] =
+    Action(assets.upload(AssetType.Item, itemId, s"data/$file", canUpload(itemId))) {
       request =>
-
         val result: Validation[String, Result] = for {
           vid <- VersionedId(itemId).toSuccess(s"invalid item id: $itemId")
           item <- itemService.findOneById(vid).toSuccess(s"can't find item with id: $vid")
@@ -99,5 +98,13 @@ trait AssetHooks extends ContainerAssetHooks with LoadOrgAndOptions {
         }
 
     }
-  }
+  /*{
+
+
+    Action(s3.upload(bucket, s"$itemId/data/$file", canUpload(itemId))) {
+      request =>
+
+
+    }
+  }*/
 }

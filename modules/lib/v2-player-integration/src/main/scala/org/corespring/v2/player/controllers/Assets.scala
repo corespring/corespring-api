@@ -2,15 +2,14 @@ package org.corespring.v2.player.controllers
 
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
+import org.corespring.container.client.controllers.AssetType.AssetType
+import org.corespring.container.client.controllers.{ AssetType, Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{Resource, StoredFile}
-import org.corespring.v2.errors.Errors._
-import org.corespring.v2.errors.V2Error
-import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.log.V2LoggerFactory
+import play.api.mvc._
+
+import scala.concurrent.Future
 
 trait Assets extends ContainerAssets {
 
@@ -24,44 +23,34 @@ trait Assets extends ContainerAssets {
   def previewSessionService: MongoService
   def itemService: ItemService
 
-  import scalaz.Scalaz._
-  import scalaz._
+  protected lazy val logger = V2LoggerFactory.getLogger("Assets")
 
-  def loadAsset(itemId: String, resourceName: String, file: String)(request: Request[AnyContent]): SimpleResult = {
-
-    val decodedFilename = java.net.URI.create(file).getPath
-    val storedFile : Validation[V2Error, StoredFile] = for {
-      id <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
-      dr <- getResource(item, resourceName).toSuccess(generalError("Can't find resource"))
-      (isItemDataResource, resource) = dr
-      file <- resource.files.find(_.name == decodedFilename).toSuccess(generalError(s"Can't find file with name $decodedFilename"))
-    } yield file.asInstanceOf[StoredFile]
-
-
-    storedFile match {
-      case Success(sf) => {
-        logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
-        playS3.download(bucket, sf.storageKey, Some(request.headers))
-      }
-      case Failure(e) => {
-        logger.warn(s"can't load file: $e")
-        NotFound(e.message)
-      }
-    }
+  override def load(t: AssetType, id: String, path: String)(implicit h: RequestHeader): SimpleResult = {
+    val decodedPath = java.net.URI.create(path).getPath
+    val key = mkKey(t, id, decodedPath)
+    logger.debug(s"[load] assetType=${t}, id=$id, path=$path")
+    playS3.download(bucket, key, Some(h.headers))
   }
 
-  private def getResource(item: Item, name: String): Option[(Boolean, Resource)] = if (name == Resource.DataPath) {
-    item.data.map((true, _))
-  } else {
-    item.supportingMaterials.find(_.name == name).map((false, _))
+  private def mkKey(t: AssetType, p: String*) = t match {
+    case AssetType.Item => p.mkString("/")
+    case AssetType.Draft => (t.folderName :+ p).mkString("/")
   }
 
-  def getItemId(sessionId: String): Option[String] = sessionService.load(sessionId).map {
-    s => (s \ "itemId").as[String]
-  }.orElse {
-    previewSessionService.load(sessionId).map {
-      s => (s \ "itemId").as[String]
+  override def upload(t: AssetType, id: String, path: String)(block: (Request[Int]) => SimpleResult): Action[Int] = {
+    val decodedPath = java.net.URI.create(path).getPath
+    val key = mkKey(t, id, decodedPath)
+    Action(playS3.upload(bucket, key, (_) => None)) { r => block(r) }
+  }
+
+  override def delete(t: AssetType, id: String, path: String)(implicit h: RequestHeader): Future[Option[(Int, String)]] = Future {
+    val decodedPath = java.net.URI.create(path).getPath
+    val key = mkKey(t, id, decodedPath)
+    val response = playS3.delete(bucket, key)
+    if (response.success) {
+      None
+    } else {
+      Some(500 -> response.msg)
     }
   }
 
