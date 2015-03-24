@@ -2,6 +2,7 @@ package org.corespring.wiring
 
 import common.db.Db
 import org.bson.types.ObjectId
+import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
@@ -104,6 +105,12 @@ object AppWiring {
     }
   }.getOrElse(Configuration.empty)
 
+  private lazy val key = AppConfig.amazonKey
+  private lazy val secret = AppConfig.amazonSecret
+  private lazy val bucket = AppConfig.assetsBucket
+
+  lazy val playS3 = new ConcreteS3Service(key, secret)
+
   private lazy val v2PlayerBootstrap = new V2PlayerBootstrap(
     componentLoader.all,
     containerConfig,
@@ -114,7 +121,9 @@ object AppWiring {
     requestIdentifiers.allIdentifiers,
     services.itemAuth,
     services.sessionAuth,
-    new CDNResolver(containerConfig, Defaults.commitHashShort))
+    new CDNResolver(containerConfig, Defaults.commitHashShort),
+    playS3,
+    bucket)
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.

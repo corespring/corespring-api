@@ -2,7 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.container.client.hooks.{ ItemHooks => ContainerItemHooks }
+import org.corespring.container.client.hooks.{ ItemDraftHooks => ContainerItemDraftHooks }
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => ModelItem }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.PlayerJsonToItem
@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
+trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
 
   def transform: ModelItem => JsValue
 

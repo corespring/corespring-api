@@ -5,10 +5,9 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.amazon.s3.S3Service
-import org.corespring.common.config.AppConfig
-import org.corespring.container.client.{ VersionInfo, CompressedAndMinifiedComponentSets }
-import org.corespring.container.client.controllers.{ Assets, ComponentSets }
-import org.corespring.container.client.hooks.{ AssetHooks, DataQueryHooks }
+import org.corespring.container.client.controllers.ComponentSets
+import org.corespring.container.client.hooks.DataQueryHooks
+import org.corespring.container.client.{ CompressedAndMinifiedComponentSets, VersionInfo }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.mongo.json.services.MongoService
@@ -24,12 +23,12 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
-import org.corespring.v2.player.{ controllers => apiControllers, hooks => apiHooks }
+import org.corespring.v2.player.{ hooks => apiHooks }
+import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Play, Mode => PlayMode }
-import play.api.Play.current
+import play.api.{ Configuration, Mode => PlayMode, Play }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -43,7 +42,9 @@ class V2PlayerBootstrap(comps: => Seq[Component],
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  cdnResolver: CDNResolver)
+  cdnResolver: CDNResolver,
+  playS3: S3Service,
+  bucket: String)
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -100,33 +101,6 @@ class V2PlayerBootstrap(comps: => Seq[Component],
         Some(s"console.warn('failed to log $fullPath');")
       }
     }
-  }
-
-  override def assets: Assets = new apiControllers.Assets {
-
-    override def sessionService: MongoService = V2PlayerBootstrap.this.mainSessionService
-
-    override def previewSessionService: MongoService = V2PlayerBootstrap.this.previewSessionService
-
-    override def itemService: ItemService = ItemServiceWired
-
-    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-
-    override def hooks: AssetHooks = new apiHooks.AssetHooks {
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
-
-      override def itemService: ItemService = ItemServiceWired
-
-      override def bucket: String = AppConfig.assetsBucket
-
-      override def s3: S3Service = playS3
-
-      override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-    }
-
   }
 
   override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
@@ -197,6 +171,10 @@ class V2PlayerBootstrap(comps: => Seq[Component],
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
+
+    override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      playS3.download(bucket, s"items/$id/$path")
+    }
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {
@@ -209,9 +187,13 @@ class V2PlayerBootstrap(comps: => Seq[Component],
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
+
+    override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      playS3.download(bucket, s"items/$id/$path")
+    }
   }
 
-  override def editorHooks: EditorHooks = new apiHooks.EditorHooks {
+  override def editorHooks: EditorHooks = new apiHooks.EditorHooks with apiHooks.AssetHooks {
     override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
 
     override def itemService: ItemService = ItemServiceWired
@@ -221,6 +203,10 @@ class V2PlayerBootstrap(comps: => Seq[Component],
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
+
+    override def playS3: S3Service = V2PlayerBootstrap.this.playS3
+
+    override def bucket: String = V2PlayerBootstrap.this.bucket
 
   }
 }
