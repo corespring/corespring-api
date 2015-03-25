@@ -199,6 +199,21 @@
 .item-content-container.editor-active {
     top: @cs-top-bar-height + @cs-subnav-height + @cs-resource-header-height + 13px;
 }
+
+
+.item-iframe-container{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom:0;
+
+  iframe{
+  	width: 100%;
+  	height: 100%;
+  }
+}
+
 .item-content-container{
 
 
@@ -443,9 +458,20 @@
         }
     }
 }
+
+.v2-sub-nav{
+  .id-label, .version-label{
+    color: white;
+    padding: 6px;
+    display: block;
+    float: left;
+  }
+}
+
 .sub-nav-lower{
     top: 39px;
     padding-top: 40px;
+
 }
 
 .sub-nav{
@@ -1031,6 +1057,12 @@ font-style: italic;
     line-height: 200%;
 }
 
+.item-list{
+
+  .item-title {
+  }
+}
+
 .content-sort {
   .sortableHeader {
     cursor: pointer;
@@ -1044,6 +1076,7 @@ font-style: italic;
   .sortingHeader.descending {
     background: url('/assets/images/arrow-up.png') no-repeat center left;
   }
+
 
 
 }
@@ -1090,6 +1123,21 @@ font-style: italic;
   width: 100%;
   z-index: 6;
   display: none;
+}
+
+.extra-large-window{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.edit-container{
+  top: @cs-top-bar-height + @cs-subnav-height;
+  bottom: 0;
+  left:0;
+  right:0;
+	position: absolute;
+	overflow: hidden;
 }
 
 .extra-large-window .window-overlay, .large-window .window-overlay {

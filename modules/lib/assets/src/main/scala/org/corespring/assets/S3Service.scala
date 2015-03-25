@@ -21,22 +21,6 @@ trait CorespringS3Service extends S3Service {
   def getClient: AmazonS3
 }
 
-object EmptyS3Service extends CorespringS3Service {
-  def download(bucket: String, fullKey: String, headers: Option[Headers]): SimpleResult = ???
-
-  def delete(bucket: String, keyName: String): DeleteResponse = ???
-
-  def copyFile(bucket: String, keyName: String, newKeyName: String) {}
-
-  override def online: Boolean = ???
-
-  override def upload(bucket: String, keyName: String, predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Int] = ???
-
-  def getClient = ???
-
-  override def s3Object(bucket: String, keyName: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[S3Object]] = ???
-}
-
 class CorespringS3ServiceExtended(key: String, secret: String)
   extends ConcreteS3Service(key: String, secret: String)
   with CorespringS3Service {

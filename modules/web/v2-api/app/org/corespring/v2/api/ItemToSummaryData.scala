@@ -7,11 +7,11 @@ import org.corespring.v2.log.V2LoggerFactory
 import play.api.Logger
 import play.api.libs.json._
 
-trait ItemTransformerToSummaryData {
+trait ItemToSummaryData {
 
   lazy val logger = V2LoggerFactory.getLogger("api", "V2ItemTransformer")
 
-  def transform(item: Item, detail: Option[String] = None): JsValue = {
+  def toSummaryData(item: Item, detail: Option[String] = None): JsValue = {
     logger.debug(s"itemId=${item.id} function=transform $detail")
 
     val normal = Json.obj(

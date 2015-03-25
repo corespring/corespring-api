@@ -14,7 +14,8 @@ import scala.collection.mutable
 /** An implementation of the Assets-Loader Deployer trait that writes the assets to s3 and returns the s3 url back */
 class S3Deployer(client: Option[AmazonS3], bucket: String, prefix: String) extends Deployer with PackageLogging {
 
-  require(!prefix.startsWith("/"), "the prefix cannot start with a leading /")
+  require(!bucket.contains("/"), s"'/' is not allowed as part of a S3 bucket name: $bucket")
+  require(!bucket.contains("_"), s"'_' is not allowed as part of a S3 bucket name: $bucket")
 
   createCleanBucket
 

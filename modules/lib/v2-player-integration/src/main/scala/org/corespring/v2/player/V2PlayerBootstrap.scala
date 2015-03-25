@@ -2,20 +2,23 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import com.mongodb.casbah.MongoCollection
 import com.typesafe.config.ConfigFactory
-import org.apache.commons.io.{ FileUtils, IOUtils }
+import org.apache.commons.io.{FileUtils, IOUtils}
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.controllers.ComponentSets
-import org.corespring.container.client.hooks.DataQueryHooks
-import org.corespring.container.client.{ CompressedAndMinifiedComponentSets, VersionInfo }
+import org.corespring.container.client.hooks.Hooks.R
+import org.corespring.container.client.hooks.{DataQueryHooks, EditorHooks => ContainerEditorHooks, ItemHooks => ContainerItemHooks}
+import org.corespring.container.client._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
-import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
-import org.corespring.platform.core.models.{ Standard, Subject }
+import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.services.ItemDraftService
+import org.corespring.platform.core.models.item.{FieldValue, Item, PlayerDefinition}
+import org.corespring.platform.core.models.{User, Standard, Subject}
 import org.corespring.platform.core.services._
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
@@ -23,28 +26,28 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
-import org.corespring.v2.player.{ hooks => apiHooks }
+import org.corespring.v2.player.{hooks => apiHooks}
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
-import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc._
-import play.api.{ Configuration, Mode => PlayMode, Play }
+import play.api.{Configuration, Mode => PlayMode, Play}
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
-class V2PlayerBootstrap(comps: => Seq[Component],
+class V2PlayerBootstrap(
+                         val components: Seq[Component],
   val configuration: Configuration,
-  mainSessionService: MongoService,
-  previewSessionService: MongoService,
+                         val resolveDomain: String => String,
   itemTransformer: ItemTransformer,
-  secureSocialService: SecureSocialService,
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
+  itemDraftAuth : Auth[ItemDraft,OrgAndOpts,ObjectId],
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
-  cdnResolver: CDNResolver,
   playS3: S3Service,
-  bucket: String)
+  bucket: String,
+  itemDraftService: ItemDraftService)
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -53,12 +56,6 @@ class V2PlayerBootstrap(comps: => Seq[Component],
   override def versionInfo: JsObject = VersionInfo(configuration)
 
   def ec: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
-
-  override def components: Seq[Component] = comps
-
-  override def resolveDomain(path: String): String = cdnResolver.resolveDomain(path)
-
-  def getOrgIdAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
 
   override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
 
@@ -110,8 +107,8 @@ class V2PlayerBootstrap(comps: => Seq[Component],
 
     override val fieldValueJson: JsObject = {
       val dbo = FieldValue.collection.find().toSeq.head
-      import com.mongodb.util.{ JSON => MongoJson }
-      import play.api.libs.json.{ Json => PlayJson }
+      import com.mongodb.util.{JSON => MongoJson}
+      import play.api.libs.json.{Json => PlayJson}
       PlayJson.parse(MongoJson.serialize(dbo)).as[JsObject]
     }
 
@@ -123,90 +120,69 @@ class V2PlayerBootstrap(comps: => Seq[Component],
         Json.parse(contents).as[JsArray]
       }.getOrElse(throw new RuntimeException("Can't find web/standards_tree.json"))
     }
-
   }
 
-  override def sessionHooks: SessionHooks = new apiHooks.SessionHooks {
+  trait WithDefaults extends HasContext{
+    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
+    def transform: (Item) => JsValue = itemTransformer.transformToV2Json
+    def transformItem: (Item) => JsValue = transform
+    implicit override def ec: ExecutionContext = V2PlayerBootstrap.this.ec
+    def itemService: ItemService = ItemServiceWired
+  }
 
+  override def sessionHooks: SessionHooks = new apiHooks.SessionHooks with WithDefaults{
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
-
-    override def itemService: ItemService = ItemServiceWired
-
-    override def transformItem: (Item) => JsValue = itemTransformer.transformToV2Json
-
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
-  override def itemHooks: ItemHooks = new apiHooks.ItemHooks {
-
-    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
-
+  override def itemHooks: ContainerItemHooks = new apiHooks.ItemHooks with WithDefaults{
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
-  override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks {
-    override def secureSocialService: SecureSocialService = V2PlayerBootstrap.this.secureSocialService
+  override def itemDraftHooks: hooks.ItemDraftHooks = new ItemDraftHooks with WithDefaults {
+    override def authenticateUser(rh: RequestHeader): Option[User] = ???
 
-    override def getOrgAndOptions(header: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(header)
+    override def draftService: ItemDraftService = ???
 
+    override def delete(draftId: String)(implicit h: RequestHeader): R[JsValue] = ???
+
+    override def create(itemId: String)(implicit h: RequestHeader): R[String] = ???
+
+    override def commit(draftId: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = ???
+  }
+
+  override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks with WithDefaults{
     override def userService: UserService = UserServiceWired
-
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
   }
 
-  override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks {
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def itemService: ItemService = ItemServiceWired
-
-    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
+  override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
 
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
 
     override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       playS3.download(bucket, s"items/$id/$path")
     }
   }
 
-  override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-
-    override def itemService: ItemService = ItemServiceWired
+  override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults{
 
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
 
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
-
     override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       playS3.download(bucket, s"items/$id/$path")
     }
   }
 
-  override def editorHooks: EditorHooks = new apiHooks.EditorHooks with apiHooks.AssetHooks {
-    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
+  override def editorHooks: ContainerEditorHooks = new apiHooks.DraftEditorHooks with WithDefaults{
 
-    override def itemService: ItemService = ItemServiceWired
-
-    override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
-
-    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
-
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
+    override def auth: Auth[ItemDraft,OrgAndOpts, ObjectId] = V2PlayerBootstrap.this.itemDraftAuth
 
     override def playS3: S3Service = V2PlayerBootstrap.this.playS3
 
-    override def bucket: String = V2PlayerBootstrap.this.bucket
+    override def draftCollection: MongoCollection = V2PlayerBootstrap.this.itemDraftService.collection
 
+    override def bucket: String = V2PlayerBootstrap.this.bucket
   }
+
 }

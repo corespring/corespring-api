@@ -70,6 +70,42 @@ angular.module('tagger.services')
 
 
 angular.module('tagger.services')
+    .service('CmsService', [ '$http',
+    function($http){
+
+    function CmsService(){
+      this.createFromV1Data = function(data, onSuccess, onError){
+        $http.post('/api/v2/cms/create-from-v1-data', data)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.itemFormat = function(dataType, id, onSuccess, onError){
+
+        if(!_.contains(['item', 'draft'], dataType)){
+          throw new Error('dataType must be either: item or draft');
+        }
+
+        $http.get('/api/v2/cms/'+ dataType +'-format/' + id)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.getDraftsForOrg = function(onSuccess, onError){
+        var url = 'api/v2/cms/drafts-for-org';
+
+        $http.get(url) 
+          .success(onSuccess)
+          .error(onError);
+      };
+    }
+
+    return new CmsService();
+
+
+    }]);
+
+angular.module('tagger.services')
     .factory('V2ItemService', [ '$http',
     function($http){
 
@@ -78,7 +114,22 @@ angular.module('tagger.services')
             $http.post('/api/v2/items', data)
               .success(onSuccess)
               .error(onError);
-        }
+        };
+
+        this.createFromV1Data = function(data, onSuccess, onError){
+            $http.post('/api/v2/cms/create-from-v1-data', data)
+              .success(onSuccess)
+              .error(onError);
+
+        };
+
+        this.clone = function( params, onSuccess, onError) {
+            var url = "/api/v2/items/:id/clone".replace(":id", params.id);
+            
+            $http.post(url, {})
+                .success(onSuccess)
+                .error(onError);
+       };
     }
 
     return V2ItemService;
@@ -87,8 +138,65 @@ angular.module('tagger.services')
     }]);
 
 angular.module('tagger.services')
-    .factory('ItemService', [ '$resource', 'ServiceLookup', '$http',
-        function ($resource, ServiceLookup, $http) {
+  .service('DraftItemService', ['$http', function($http){
+
+    function DraftItemService(){
+
+      this.get = function(params, onSuccess, onError){
+        
+        var url = '/api/v2/items/drafts/' + params.id;
+
+        $http.get(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.deleteDraft = function(id, onSuccess, onError){
+        var url = '/api/v2/items/drafts/' + id;
+
+        $http.delete(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+      
+      this.createUserDraft = function(itemId, onSuccess, onError){
+        var listUrl = '/api/v2/items/' + itemId + '/drafts';
+        var createUrl = '/api/v2/items/' + itemId + '/draft';
+
+        $http.get(listUrl)
+         .success(function(drafts){
+          if(drafts.length === 0){
+            $http.post(createUrl)
+              .success(onSuccess)
+              .error(onError);
+          } else {
+            onError({msg: 'There is already a draft for this item'});
+          }
+         })
+         .error(onError);
+      };
+
+    }
+
+    return new DraftItemService();
+
+  }]);
+
+angular.module('tagger.services')
+    .factory('ItemService', [ 
+      '$resource', 
+      'ServiceLookup', 
+      '$http', 
+      'V2ItemService',
+      'DraftItemService',
+        function (
+          $resource, 
+          ServiceLookup, 
+          $http, 
+          V2ItemService,
+          DraftItemService) {
+
+    var v2Service = new V2ItemService();
 
     var ItemService = $resource(
         ServiceLookup.getUrlFor('items'),
@@ -100,15 +208,34 @@ angular.module('tagger.services')
         }
     );
 
-    ItemService.prototype.clone = function( params, onSuccess, onError) {
-        var url = "/api/v1/items/:id".replace(":id", params.id);
+    ItemService.prototype.saveNewVersion = function(onSuccess, onError){
+      var url = "/api/v2/items/:id/save-new-version".replace(":id", this.id);
+      var successCallback = function(data){
+          onSuccess(data);
+      };
+
+      $http.put(url, {})
+          .success(successCallback)
+          .error(onError);
+
+    };
+
+    ItemService.prototype.publish = function(onSuccess, onError, id){
+
+        id = id || this.id;
+        var url = "/api/v2/items/:id/publish".replace(":id", id);
         var successCallback = function(data){
             onSuccess(data);
         };
 
-        $http.post(url, {})
+        $http.put(url, {})
             .success(successCallback)
             .error(onError);
+
+    };
+
+    ItemService.prototype.clone = function( onSuccess, onError) {
+      v2Service.clone(this, onSuccess, onError);
     };
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {
@@ -126,6 +253,9 @@ angular.module('tagger.services')
         return ItemService.remove({id:this.id}, cb);
     };
 
+    ItemService.prototype.createUserDraft = function(onSuccess, onError){
+      DraftItemService.createUserDraft(this.id, onSuccess, onError);
+    };
 
     ItemService.processor = new com.corespring.model.ItemDataProcessor();
     ItemService.createWorkflowObject = ItemService.processor.createWorkflowObject;

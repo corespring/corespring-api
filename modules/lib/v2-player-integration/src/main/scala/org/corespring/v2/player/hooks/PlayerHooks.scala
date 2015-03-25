@@ -28,7 +28,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
 
-  override def loadItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
 
     logger.debug(s"sessionId=$sessionId function=loadItem")
 

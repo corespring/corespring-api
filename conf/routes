@@ -54,7 +54,7 @@ GET         /web/partials/editItem                                    web.contro
 GET         /web/partials/createItem                                  web.controllers.Partials.createItem
 GET         /web/partials/home                                        web.controllers.Partials.home
 GET         /web/partials/viewItem                                    web.controllers.Partials.viewItem
-
+GET         /web/views/*path                                             web.controllers.Partials.loadFromPath(path:String)
 GET         /web/javascripts/routes                                   web.controllers.ShowResource.javascriptRoutes
 
 GET         /web/show-resource/:itemId/:resourceName/main             web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)

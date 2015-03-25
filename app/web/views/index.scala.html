@@ -1,4 +1,8 @@
-@(templates: List[_root_.org.corespring.platform.core.models.web.QtiTemplate], dbServer : String, dbName : String, username:String, userOrg: org.corespring.platform.core.models.Organization )
+@(templates: List[_root_.org.corespring.platform.core.models.web.QtiTemplate], 
+dbServer : String, 
+dbName : String, 
+user:org.corespring.platform.core.models.User, 
+userOrg: org.corespring.platform.core.models.Organization )
 
 @import web.views.helpers.MainHelper
 
@@ -36,7 +40,8 @@
         angular.module('tagger-context')
                 .factory('UserInfo', function(){
                     return {
-                        userName: "@username",
+                        userName: "@user.userName",
+                        fullName: "@user.fullName",
                         org: @MainHelper.toFullJson(userOrg)
                     }
 
@@ -69,7 +74,15 @@
 </head>
 <body>
 
-    @org.corespring.web.common.views.html.mainNav(templates, username)
+    @org.corespring.web.common.views.html.mainNav(templates, user.fullName)
+
+  <div ui-modal ng-model="showConfirmPublishModal" style="padding: 20px">
+    <h2>Go Live</h2>
+    <br/>
+    <p>Are you sure? This means that the item will be live in your collection of items and will be ready for selection and use.</p>
+    <button class="btn" ng-click="goLiveCancelled()">Cancel</button>
+    <button ng-click="goLiveConfirmed()" class="btn btn-primary">Go Live</button>
+  </div>
 
   <div class="error-box" ui-modal ng-model="showErrorBox">
     <h3>An error has occured</h3>

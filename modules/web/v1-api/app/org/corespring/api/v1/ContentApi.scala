@@ -43,6 +43,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     standards,
     author,
     TaskInfo.Keys.title,
+    "contentFormat",
     published)
 
   /**
@@ -56,7 +57,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     limit: Int,
     sort: Option[String]) = ApiAction {
     implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+      val collections = ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read).map(_.collectionId)
 
       val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
       contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {

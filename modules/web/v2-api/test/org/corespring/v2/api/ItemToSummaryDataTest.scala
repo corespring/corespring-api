@@ -8,7 +8,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.{ Scope, BeforeAfter }
 import play.api.libs.json.JsValue
 
-class ItemTransformerToSummaryDataTest extends Specification with Mockito {
+class ItemToSummaryDataTest extends Specification with Mockito {
 
   /**
    * We should not need to run the app for a unit test.
@@ -41,9 +41,9 @@ class ItemTransformerToSummaryDataTest extends Specification with Mockito {
         bloomsTaxonomy = Some("BloomsTaxonomy"))),
       priorUse = Some("PriorUse"))
 
-    lazy val itemTransformer = new ItemTransformerToSummaryData {}
+    lazy val itemTransformer = new ItemToSummaryData {}
 
-    lazy val json = itemTransformer.transform(item, detail)
+    lazy val json = itemTransformer.toSummaryData(item, detail)
 
     def assertNormalFields = {
       (json \ "id").asOpt[String] === Some(item.id.toString)

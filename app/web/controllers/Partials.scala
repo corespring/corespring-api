@@ -1,10 +1,12 @@
 package web.controllers
 
 import org.corespring.platform.core.models.{ User, Organization }
+import play.api.templates.{Html, Template0}
 import play.api.{ Play, Mode }
 import play.api.mvc.Action
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.controllers.auth.BaseApi
+import play.templates.BaseScalaTemplate
 
 object Partials extends BaseApi {
 
@@ -17,5 +19,30 @@ object Partials extends BaseApi {
   def createItem = Action { Ok(web.views.html.partials.createItem()) }
   def home = Action { Ok(web.views.html.partials.home()) }
   def viewItem = Action { Ok(web.views.html.partials.viewItem()) }
-  def redirect(url: String) = Action { MovedPermanently(url) }
+  def redirect(url: String) = Action {
+    if(Play.current.mode == Mode.Dev){
+      Ok(Html("""Your seeing this because you are running in dev mode. In prod mod this will redirect to the public site. <a href="/web">To Web</a>"""))
+    } else {
+      MovedPermanently(url)
+    }
+  }
+
+  def loadFromPath(path:String) = Action{
+
+    val fullName = s"web.views.html.${path.replace("/", ".")}"
+
+    try {
+      val c : Class[_] = Play.current.classloader.loadClass(fullName)
+      println(s"c: $c")
+      val fn = c.getMethod("render")
+      Ok(fn.invoke(c).asInstanceOf[play.api.templates.HtmlFormat.Appendable])
+    } catch {
+      case t : Throwable => {
+        t.printStackTrace()
+        BadRequest(s"Can't find class with name $path [$fullName]")
+      }
+    }
+
+  }
+
 }

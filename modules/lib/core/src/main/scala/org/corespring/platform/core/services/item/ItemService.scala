@@ -23,6 +23,11 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def moveItemToArchive(id: VersionedId[ObjectId])
 
+  def publish(id: VersionedId[ObjectId]): Boolean
+
+  def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
+
   def collection: MongoCollection
 
+  def currentVersion(id:VersionedId[ObjectId]) : Long
 }

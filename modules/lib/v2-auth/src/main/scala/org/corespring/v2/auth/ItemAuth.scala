@@ -8,11 +8,16 @@ import play.api.mvc.RequestHeader
 
 import scalaz.Validation
 
-trait ItemAuth[A] {
-  def canCreateInCollection(collectionId: String)(implicit identity: A): Validation[V2Error, Boolean]
-  def loadForRead(itemId: String)(implicit identity: A): Validation[V2Error, Item]
-  def loadForWrite(itemId: String)(implicit identity: A): Validation[V2Error, Item]
 
-  def save(item: Item, createNewVersion: Boolean)(implicit identity: A)
-  def insert(item: Item)(implicit identity: A): Option[VersionedId[ObjectId]]
+trait Auth[D,IDENTITY,UID] {
+  def loadForRead(id: String)(implicit identity: IDENTITY): Validation[V2Error, D]
+  def loadForWrite(id: String)(implicit identity: IDENTITY): Validation[V2Error, D]
+  def save(data: D, createNewVersion: Boolean)(implicit identity: IDENTITY)
+  def insert(data: D)(implicit identity: IDENTITY): Option[UID]
 }
+
+trait ItemAuth[A] extends Auth[Item, A, VersionedId[ObjectId]]{
+  def canCreateInCollection(collectionId: String)(implicit identity: A): Validation[V2Error, Boolean]
+}
+
+

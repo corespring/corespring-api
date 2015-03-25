@@ -1,25 +1,28 @@
 package org.corespring.v2.wiring.services
 
-import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.{MongoCollection, MongoDB}
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.services.{CommitService, ItemDraftService}
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ ApiClient, ApiClientService, AccessToken }
+import org.corespring.platform.core.models.auth.{Permission, ApiClient, ApiClientService, AccessToken}
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.api.V2ApiServices
 import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
+import org.corespring.v2.auth.{Auth, ItemAuth, SessionAuth}
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ SessionAuthWired, ItemAuthWired }
-import org.corespring.v2.errors.Errors.{ permissionNotGranted, noOrgForToken, expiredToken, invalidToken }
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.permissions.SimpleWildcardChecker
@@ -29,13 +32,26 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Success, Failure, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer) {
+class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer) extends V2ApiServices{
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
   lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
 
+  override val sessionService: MongoService = mainSessionService
+
+  override val itemService: ItemService = ItemServiceWired
+
+  override val draftService: ItemDraftService = new ItemDraftService {
+    override def collection: MongoCollection = db("drafts.items")
+  }
+
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
+
+
+  lazy val itemCommitService : CommitService = new CommitService{
+    override def collection: MongoCollection = db("drafts.item_commits")
+  }
 
   lazy val secureSocialService = new SecureSocialService {
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
@@ -101,6 +117,52 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     }
   } else {
     mainTokenService
+  }
+
+  lazy val itemDraftAuth = new Auth[ItemDraft,OrgAndOpts,ObjectId]{
+
+    def orgService: OrganizationService = Organization
+
+    def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+      val permissionGranter = new SimpleWildcardChecker()
+      permissionGranter.allow(itemId, None, Mode.evaluate, settings).fold(m => Failure(permissionNotGranted(m)), Success(_))
+    }
+
+    private def canWithPermission(uid:String, p:Permission)(implicit identity:OrgAndOpts) : Validation[V2Error,ItemDraft] = {
+      import scalaz.Scalaz._
+      for{
+        d <- draftService.load(new ObjectId(uid)).toSuccess(generalError("Can't find draft"))
+        collectionId <- d.src.data.collectionId.toSuccess(noCollectionIdForItem(d.src.data.id))
+        canAccess <- if(orgService.canAccessCollection(identity.org, new ObjectId(collectionId), p)){
+          Success(true)
+        } else {
+          Failure(orgCantAccessCollection(identity.org.id, collectionId, Permission.Read.name))
+        }
+        hasPermissions <- hasPermissions(d.src.data.id.toString, identity.opts)
+      } yield d
+    }
+
+    override def loadForRead(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
+      canWithPermission(id, Permission.Read)
+    }
+
+    override def loadForWrite(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
+      canWithPermission(id, Permission.Write)
+    }
+
+    private def saveOrInsert(data:ItemDraft, oid:ObjectId)(implicit identity:OrgAndOpts) = {
+      for{
+        collectionId <- data.src.data.collectionId
+        _ <- if(orgService.canAccessCollection(identity.org, new ObjectId(collectionId), Permission.Write)) Some(true) else None
+        _ <- hasPermissions(data.src.data.id.toString, identity.opts).toOption
+        result <- Some(draftService.save(data.copy(id = oid)))
+        _ <- if(result.getLastError.ok) Some(true) else None
+      } yield oid
+    }
+
+    override def insert(data: ItemDraft)(implicit identity: OrgAndOpts): Option[ObjectId] = saveOrInsert(data, ObjectId.get)
+
+    override def save(data: ItemDraft, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = saveOrInsert(data, data.id)
   }
 
   lazy val itemAuth = new ItemAuthWired {

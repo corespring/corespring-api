@@ -16,8 +16,6 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOp
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerLauncherHooks")
 
-  def secureSocialService: SecureSocialService
-
   def userService: UserService
 
   override def playerJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
