@@ -32,8 +32,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
   case class authContext(
     item: Option[Item] = None,
     org: Option[Organization] = None,
-    perms: Validation[V2Error, Boolean] = Failure(defaultPermFailure),
-    canAccess: Boolean = false) extends Scope {
+    grantResult: Validation[V2Error, Boolean] = Failure(defaultPermFailure)) extends Scope {
 
     val itemAuth = new ItemAuthWired {
 
@@ -43,14 +42,17 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         m
       }
 
-      lazy val access: ItemAccess = mock[ItemAccess]
+      lazy val access: ItemAccess = {
+        val m = mock[ItemAccess]
+        m.grant(any[OrgAndOpts], any[Permission], any[Item]) returns grantResult
+        m
+      }
 
       lazy val itemService = {
         val m = mock[ItemService]
         m.findOneById(any[VersionedId[ObjectId]]) returns item
         m
       }
-
     }
   }
 
@@ -67,26 +69,9 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         itemAuth.loadForRead(vid.toString) must_== Failure(cantFindItemWithId(vid))
       }
 
-      "fail if org can't access collection" in new authContext(
-        item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization])) {
-        val vid = VersionedId(ObjectId.get, None)
-        val identity = mockOrgAndOpts()
-        itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
-      }
-
-      "fail if org can't access collection" in new authContext(
-        item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization])) {
-        val vid = VersionedId(ObjectId.get, None)
-        val identity = mockOrgAndOpts()
-        itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
-      }
-
       "fail if there is a permission error" in new authContext(
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization]),
-        canAccess = true) {
+        org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
         val identity = mockOrgAndOpts()
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(defaultPermFailure)
@@ -95,8 +80,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
       "succeed" in new authContext(
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization]),
-        perms = Success(true),
-        canAccess = true) {
+        grantResult = Success(true)) {
         val vid = VersionedId(ObjectId.get, None)
         val identity = mockOrgAndOpts(AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Success(item.get)

@@ -25,8 +25,6 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
 
   lazy val logger = V2LoggerFactory.getLogger("auth.ItemAccess")
 
-  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
-
   def orgService: OrganizationService
 
   def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
@@ -39,7 +37,14 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
       }
     }
 
-    canWrite(identity.org.id, new ObjectId(collectionId))
+    for {
+      oid <- try {
+        Success(new ObjectId(collectionId))
+      } catch {
+        case t: Throwable => Failure(invalidObjectId(collectionId, "collectionId"))
+      }
+      success <- canWrite(identity.org.id, new ObjectId(collectionId))
+    } yield success
   }
 
   override def grant(identity: OrgAndOpts, permission: Permission, item: Item): Validation[V2Error, Boolean] = {
@@ -47,7 +52,7 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
     def orgCanAccess(collectionId: String) = orgService.canAccessCollection(identity.org, new ObjectId(collectionId), permission)
 
     for {
-      collectionId <- item.collectionId.toSuccess(generalError(s"The item ${item.id} has no collectionId"))
+      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(item.id))
       canAccess <- if (orgCanAccess(collectionId))
         Success(true)
       else
