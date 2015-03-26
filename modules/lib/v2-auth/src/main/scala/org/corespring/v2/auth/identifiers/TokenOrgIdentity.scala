@@ -18,7 +18,7 @@ trait TokenOrgIdentity[B]
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "TokenOrgIdentity")
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = {
+  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, Organization] = {
     def onToken(token: String) = tokenService.orgForToken(token)(rh).map { o =>
       Success(o)
     }.getOrElse(Failure(noOrgForToken(rh)))

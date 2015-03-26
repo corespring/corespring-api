@@ -4,7 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ DBObject, WriteResult }
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.{SimpleUser, ItemDraft}
+import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser }
 
 trait ItemDraftService {
 
@@ -38,14 +38,16 @@ trait ItemDraftService {
     result.getN == 1
   }
 
-  def findByIdAndVersion(id:ObjectId, version:Long) : Seq[ItemDraft] = {
+  def findByIdAndVersion(id: ObjectId, version: Long): Seq[ItemDraft] = {
     collection
       .find(MongoDBObject("src._id._id" -> id, "src._id.version" -> version))
       .toSeq
       .map(toDraft)
   }
 
-  def listForOrg(orgId:ObjectId) = collection.find(MongoDBObject("user.orgId" -> orgId)).toSeq.map(toDraft)
+  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject("user.orgId" -> orgId)).toSeq.map(toDraft)
 
-  def removeUserDraft(id:ObjectId, user : SimpleUser) = collection.remove(MongoDBObject("_id" -> id, "user.userName" -> user.userName))
+  def removeUserDraft(id: ObjectId, user: OrgAndUser) = {
+    collection.remove(MongoDBObject("_id" -> id, "user.org.id" -> user.org.id))
+  }
 }

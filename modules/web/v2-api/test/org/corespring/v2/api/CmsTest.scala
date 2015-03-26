@@ -1,13 +1,12 @@
 package org.corespring.v2.api
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.api.v1.{ ItemApi => V1ItemApi }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.models.item.Item.QtiResource
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, VirtualFile }
+import org.corespring.drafts.item.services.ItemDraftService
+import org.corespring.platform.core.models.User
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -16,11 +15,23 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.test.{ PlaySpecification, FakeRequest }
+import play.api.test.{ FakeRequest, PlaySpecification }
 
 import scala.concurrent.Future
 
 class CmsTest extends Specification with Mockito with PlaySpecification {
+
+  trait BaseCms extends Cms {
+    override def itemTransformer: ItemTransformer = ???
+
+    override def itemService: ItemService = ???
+
+    override def identifyUser(rh: RequestHeader): Option[User] = ???
+
+    override def v1ApiCreate: (Request[AnyContent]) => Future[SimpleResult] = ???
+
+    override def draftService: ItemDraftService = ???
+  }
 
   "Cms" should {
 
@@ -30,17 +41,14 @@ class CmsTest extends Specification with Mockito with PlaySpecification {
 
       case class ItemFormatScope(item: Option[Item] = None) extends Scope {
 
-        lazy val cms = new Cms {
+        lazy val cms = new BaseCms {
 
-          lazy val itemTransformer: ItemTransformer = ???
-
-          lazy val itemService: ItemService = {
+          override lazy val itemService: ItemService = {
             val m = mock[ItemService]
             m.findOneById(any[VersionedId[ObjectId]]) returns item
             m
           }
 
-          override def v1ApiCreate = ???
         }
       }
 
@@ -78,11 +86,11 @@ class CmsTest extends Specification with Mockito with PlaySpecification {
 
         lazy val mockCollection = mock[MongoCollection]
 
-        lazy val cms = new Cms {
+        lazy val cms = new BaseCms {
 
-          lazy val itemTransformer: ItemTransformer = mock[ItemTransformer]
+          override lazy val itemTransformer: ItemTransformer = mock[ItemTransformer]
 
-          val itemService: ItemService = {
+          override val itemService: ItemService = {
             val m = mock[ItemService]
             m.collection returns mockCollection
             m

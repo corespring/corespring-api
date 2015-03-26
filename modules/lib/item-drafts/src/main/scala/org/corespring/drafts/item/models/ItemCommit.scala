@@ -7,8 +7,8 @@ import org.joda.time.DateTime
 
 case class ItemCommit(srcVid: VersionedId[ObjectId],
   commitVid: VersionedId[ObjectId],
-  user: SimpleUser,
-  date: DateTime = DateTime.now) extends Commit[ObjectId, Long, SimpleUser] {
+  user: OrgAndUser,
+  date: DateTime = DateTime.now) extends Commit[ObjectId, Long, OrgAndUser] {
 
   import org.corespring.drafts.item.Helpers._
 

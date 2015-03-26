@@ -1,7 +1,7 @@
 package org.corespring.drafts.item.models
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.User
+import org.corespring.platform.core.models.{ Organization, User }
 
 object SimpleUser {
   def fromUser(u: User): SimpleUser = {
@@ -10,3 +10,11 @@ object SimpleUser {
 }
 
 case class SimpleUser(id: ObjectId, userName: String, provider: String, fullName: String, orgId: ObjectId)
+
+case class SimpleOrg(id: ObjectId, name: String)
+
+object SimpleOrg {
+  def apply(o: Organization): SimpleOrg = SimpleOrg(o.id, o.name)
+}
+
+case class OrgAndUser(val org: SimpleOrg, val user: Option[SimpleUser] = None)

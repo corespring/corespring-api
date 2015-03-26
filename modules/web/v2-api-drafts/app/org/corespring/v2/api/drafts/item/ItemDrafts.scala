@@ -1,7 +1,7 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.SimpleUser
+import org.corespring.drafts.item.models.{ OrgAndUser, SimpleUser }
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
 import org.corespring.platform.core.models.User
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -20,7 +20,9 @@ trait ItemDrafts extends Controller {
 
   def drafts: DraftsBackend
 
-  def authenticateUser(rh: RequestHeader): Option[User]
+  def identifyUser(rh: RequestHeader): Option[OrgAndUser]
+
+  private def toOrgAndUser(request: RequestHeader) = identifyUser(request).toSuccess(AuthenticationFailed)
 
   implicit def validationToResult(in: Validation[DraftApiError, JsValue]): SimpleResult = {
     in match {
@@ -29,12 +31,10 @@ trait ItemDrafts extends Controller {
     }
   }
 
-  private def validateUser(request: RequestHeader) = authenticateUser(request).toSuccess(AuthenticationFailed)
-
   def list(itemId: String) = Action.async { implicit request =>
     Future {
       for {
-        user <- validateUser(request)
+        user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         drafts <- Success(drafts.list(vid))
       } yield {
@@ -54,7 +54,7 @@ trait ItemDrafts extends Controller {
 
     Future {
       for {
-        user <- validateUser(request)
+        user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         //TODO: check user.org access to item _ <- itemAuth.canWrite(user, vid.id)
         draft <- drafts.create(vid.id, SimpleUser.fromUser(user), expires).toSuccess(draftCreationFailed(itemId))
@@ -65,7 +65,7 @@ trait ItemDrafts extends Controller {
   def commit(draftId: ObjectId) = Action.async { implicit request =>
     Future {
       for {
-        user <- validateUser(request)
+        user <- toOrgAndUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
         _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
         commit <- drafts.commit(d).leftMap { e => UnknownDraftApiError }
@@ -78,7 +78,7 @@ trait ItemDrafts extends Controller {
   def get(draftId: ObjectId) = Action.async { implicit request =>
     Future {
       for {
-        user <- validateUser(request)
+        user <- toOrgAndUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
         _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
       } yield {
@@ -98,11 +98,11 @@ trait ItemDrafts extends Controller {
     }
   }
 
-  def delete(draftId:ObjectId) = Action.async{
+  def delete(draftId: ObjectId) = Action.async {
     implicit request =>
       Future {
         for {
-          user <- validateUser(request)
+          user <- toOrgAndUser(request)
           _ <- drafts.removeUserDraft(draftId, SimpleUser.fromUser(user)).leftMap(e => UnknownDraftApiError)
         } yield {
           Json.obj("id" -> draftId.toString)

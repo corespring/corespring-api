@@ -20,7 +20,7 @@ class MockRequestIdentity(
   /** get the apiClient if available */
   override def headerToApiClientId(rh: RequestHeader): Option[String] = apiClientId
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = org
+  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, Organization] = org
 
   override def orgService: OrgService = {
     val o = mock[OrgService]

@@ -3,7 +3,7 @@ package org.corespring.v2.wiring.auth
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.OrgEncryptionService
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.services._
 import org.corespring.v2.auth.identifiers._
@@ -32,7 +32,7 @@ class RequestIdentifiers(
 
     override def userService: UserService = UserServiceWired
 
-    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = Success(
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success(
       OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, apiClientId))
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
@@ -41,7 +41,7 @@ class RequestIdentifiers(
   lazy val token = new TokenOrgIdentity[OrgAndOpts] {
     override def tokenService: TokenService = RequestIdentifiers.this.tokenService
 
-    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = Success(
+    override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success(
       OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, apiClientId))
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService

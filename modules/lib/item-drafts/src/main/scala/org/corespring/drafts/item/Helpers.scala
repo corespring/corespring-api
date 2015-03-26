@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.ObjectIdAndVersion
 import org.corespring.platform.data.mongo.models.VersionedId
 
-private object Helpers {
+private[corespring] object Helpers {
 
   import scala.language.implicitConversions
 

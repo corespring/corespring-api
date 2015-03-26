@@ -40,7 +40,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
 
     s"return a bad param name error" in {
-      identifier.headerToOrg(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
+      identifier.headerToOrgAndMaybeUser(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
     }
 
     "return no apiClientAndPlayerToken error" in {
