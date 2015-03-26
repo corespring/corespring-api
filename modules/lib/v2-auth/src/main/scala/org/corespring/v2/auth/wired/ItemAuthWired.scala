@@ -44,6 +44,10 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
     } yield itemId
   }
 
+  override def canCreateInCollection(collectionId: String)(identity: OrgAndOpts): Validation[V2Error, Boolean] = {
+    access.canCreateInCollection(collectionId)(identity)
+  }
+
   private def canWithPermission(itemId: String, p: Permission)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = {
     logger.trace(s"can ${p.name} to $itemId")
 

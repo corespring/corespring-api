@@ -32,7 +32,7 @@ angular.module('tagger')
           scope.onItemLoad();
         };
 
-        CmsService.itemFormat(attrs.itemId, function(format){
+        CmsService.itemFormat('item', attrs.itemId, function(format){
 
           if(format.apiVersion === 1){
             new com.corespring.players.ItemProfile(

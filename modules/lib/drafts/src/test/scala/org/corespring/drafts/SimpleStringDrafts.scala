@@ -22,6 +22,10 @@ case class SimpleDraft(id: String, src: SimpleSrc, user: String)
   override def update(data: String): SimpleDraft = {
     this.copy(src = src.copy(data = data))
   }
+
+  override def created: DateTime = DateTime.now
+
+  override def expires: DateTime = DateTime.now.plusDays(1)
 }
 
 /**

@@ -16,7 +16,9 @@ trait Auth[D, IDENTITY, UID] {
   def insert(data: D)(implicit identity: IDENTITY): Option[UID]
 }
 
-trait ItemAuth[A] extends Auth[Item, A, VersionedId[ObjectId]]
+trait ItemAuth[A] extends Auth[Item, A, VersionedId[ObjectId]] {
+  def canCreateInCollection(collectionId: String)(identity: A): Validation[V2Error, Boolean]
+}
 
 object SessionAuth {
   type Session = JsValue

@@ -147,7 +147,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     private def saveOrInsert(data: ItemDraft, oid: ObjectId)(implicit identity: OrgAndOpts) = {
       for {
         collectionId <- data.src.data.collectionId
-        granted <- access.grant(identity, Permission.Write, data)
+        granted <- access.grant(identity, Permission.Write, data).toOption
         result <- Some(draftService.save(data.copy(id = oid)))
         _ <- if (result.getLastError.ok) Some(true) else None
       } yield oid

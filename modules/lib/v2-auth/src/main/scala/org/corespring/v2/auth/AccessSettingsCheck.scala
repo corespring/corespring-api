@@ -13,7 +13,7 @@ object AccessSettingsWildcardCheck {
 
   private lazy val logger = V2LoggerFactory.getLogger("AccessSettingsWildcardCheck")
 
-  def notGrantedMsg(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings) = {
+  def notGrantedError(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings) = {
     permissionNotGranted(
       Seq(
         "Permission not granted",
@@ -37,7 +37,7 @@ object AccessSettingsWildcardCheck {
           logger.trace(s"itemId? $itemId -> ${settings.allowItemId(itemId)}")
           sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}") }
           logger.trace(s"allowMode? $mode -> ${settings.allowMode(mode)}")
-          Failure(AccessSettingsWildcardCheck.notGrantedMsg(itemId, sessionId, settings))
+          Failure(AccessSettingsWildcardCheck.notGrantedError(itemId, sessionId, settings))
         }
       }
     result

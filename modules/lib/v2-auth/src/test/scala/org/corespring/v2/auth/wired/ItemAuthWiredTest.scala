@@ -8,6 +8,7 @@ import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.auth.ItemAccess
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
@@ -36,30 +37,18 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
 
     val itemAuth = new ItemAuthWired {
 
-      val itemServiceMock: ItemService = {
+      lazy val itemTransformer: ItemTransformer = {
+        val m = mock[ItemTransformer]
+        m.updateV2Json(any[Item]).answers(i => i.asInstanceOf[Item])
+        m
+      }
+
+      lazy val access: ItemAccess = mock[ItemAccess]
+
+      lazy val itemService = {
         val m = mock[ItemService]
         m.findOneById(any[VersionedId[ObjectId]]) returns item
         m
-      }
-
-      override def itemTransformer = new ItemTransformer {
-        override def configuration: Configuration = ???
-        override def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = itemServiceMock
-        override def findCollection(id: ObjectId): Option[ContentCollection] = ???
-      }
-
-      override def itemService = itemServiceMock
-
-      override def orgService: OrganizationService = {
-        val m = mock[OrganizationService]
-        m.findOneById(any[ObjectId]) returns org
-        m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
-        m.canAccessCollection(any[Organization], any[ObjectId], any[Permission]) returns canAccess
-        m
-      }
-
-      override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
-        perms
       }
 
     }
