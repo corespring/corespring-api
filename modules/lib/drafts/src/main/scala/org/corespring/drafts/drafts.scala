@@ -72,7 +72,7 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   import scalaz.Validation
 
-  override final def commit(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
+  override def commit(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
     val commits = loadCommits(d.src.id)
 
     if (commits.length > 0 && !force) {
@@ -101,11 +101,12 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    */
   override final def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
     findLatestSrc(id).flatMap { src =>
-      val draft = mkDraft(id, src, user)
-      save(draft) match {
-        case Failure(_) => None
-        case Success(id) => Some(draft)
-      }
+      val result = for {
+        draft <- mkDraft(id, src, user)
+        saved <- save(draft)
+      } yield draft
+
+      result.toOption
     }
   }
 
@@ -123,6 +124,6 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   protected def findLatestSrc(id: SRC_ID): Option[SRC]
 
-  protected def mkDraft(srcId: SRC_ID, src: SRC, user: USER): UD
+  protected def mkDraft(srcId: SRC_ID, src: SRC, user: USER): Validation[DraftError, UD]
 }
 

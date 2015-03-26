@@ -1,9 +1,10 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.{ OrgAndUser, SimpleUser }
+import org.corespring.drafts.errors.DraftError
+import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser }
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
-import org.corespring.platform.core.models.User
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ CommitJson, ItemDraftJson }
 import org.joda.time.DateTime
@@ -23,6 +24,8 @@ trait ItemDrafts extends Controller {
   def identifyUser(rh: RequestHeader): Option[OrgAndUser]
 
   private def toOrgAndUser(request: RequestHeader) = identifyUser(request).toSuccess(AuthenticationFailed)
+
+  import scala.language.implicitConversions
 
   implicit def validationToResult(in: Validation[DraftApiError, JsValue]): SimpleResult = {
     in match {
@@ -57,7 +60,7 @@ trait ItemDrafts extends Controller {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         //TODO: check user.org access to item _ <- itemAuth.canWrite(user, vid.id)
-        draft <- drafts.create(vid.id, SimpleUser.fromUser(user), expires).toSuccess(draftCreationFailed(itemId))
+        draft <- drafts.create(vid.id, user, expires).toSuccess(draftCreationFailed(itemId))
       } yield ItemDraftJson.simple(draft)
     }
   }
@@ -67,7 +70,7 @@ trait ItemDrafts extends Controller {
       for {
         user <- toOrgAndUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
-        _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
+        _ <- if (d.user.org.id == user.org.id) Success() else Failure(UnknownDraftApiError)
         commit <- drafts.commit(d).leftMap { e => UnknownDraftApiError }
       } yield {
         CommitJson(commit)
@@ -80,7 +83,7 @@ trait ItemDrafts extends Controller {
       for {
         user <- toOrgAndUser(request)
         d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
-        _ <- if (d.user.userName == user.userName) Success() else Failure(UnknownDraftApiError)
+        _ <- if (d.user.org.id == user.org.id) Success() else Failure(UnknownDraftApiError)
       } yield {
         /**
          * Returning the item json as part of the api doesn't really make sense
@@ -103,7 +106,7 @@ trait ItemDrafts extends Controller {
       Future {
         for {
           user <- toOrgAndUser(request)
-          _ <- drafts.removeUserDraft(draftId, SimpleUser.fromUser(user)).leftMap(e => UnknownDraftApiError)
+          _ <- drafts.removeDraftByIdAndUser(draftId, user).leftMap(e => UnknownDraftApiError)
         } yield {
           Json.obj("id" -> draftId.toString)
         }

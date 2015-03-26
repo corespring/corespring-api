@@ -14,7 +14,7 @@ case class SimpleUser(id: ObjectId, userName: String, provider: String, fullName
 case class SimpleOrg(id: ObjectId, name: String)
 
 object SimpleOrg {
-  def apply(o: Organization): SimpleOrg = SimpleOrg(o.id, o.name)
+  def fromOrganization(o: Organization): SimpleOrg = SimpleOrg(o.id, o.name)
 }
 
 case class OrgAndUser(val org: SimpleOrg, val user: Option[SimpleUser] = None)

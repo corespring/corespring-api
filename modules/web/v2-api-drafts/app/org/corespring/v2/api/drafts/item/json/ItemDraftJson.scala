@@ -21,10 +21,13 @@ object ItemDraftJson {
     Json.obj(
       "id" -> d.id.toString,
       "itemId" -> s"${new VersionedId(d.src.id.id, Some(d.src.id.version)).toString}",
-      "user" -> d.user.userName,
-      "orgId" -> d.user.orgId.toString,
+      "orgId" -> d.user.org.id.toString,
       "created" -> timeJson(d.created),
-      "expires" -> timeJson(d.expires))
+      "expires" -> timeJson(d.expires)) ++
+      d.user.user
+      .map(u => Json.obj("user" -> u.userName))
+      .getOrElse(Json.obj())
+
   }
 
   def withFullItem(d: ItemDraft): JsValue = {

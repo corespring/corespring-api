@@ -28,7 +28,7 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOp
 
     logger.trace(s"load js...")
     getOrgAndOptions(header) match {
-      case Success(OrgAndOpts(_, opts, _, _, warnings)) => {
+      case Success(OrgAndOpts(_, opts, _, _, _, warnings)) => {
         PlayerJs(
           opts.secure,
           header.session,

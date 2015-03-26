@@ -2,8 +2,8 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.models.ItemDraft
-import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.User
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -15,7 +15,7 @@ import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, Future }
 
 /**
  * Some request handlers specific to the CMS.
@@ -29,11 +29,12 @@ trait Cms extends Controller {
   def itemTransformer: ItemTransformer
 
   def itemService: ItemService
-  def draftService: ItemDraftService
+
+  def itemDrafts: ItemDrafts
 
   def v1ApiCreate: (Request[AnyContent] => Future[SimpleResult])
 
-  def identifyUser(rh:RequestHeader) : Option[User]
+  def identifyUser(rh: RequestHeader): Option[User]
 
   /**
    * AC-65.
@@ -82,10 +83,10 @@ trait Cms extends Controller {
 
   def getDraftFormat(id: String) = Action.async { implicit request =>
 
-    def objectId = try{
-      Some( new ObjectId(id))
+    def objectId = try {
+      Some(new ObjectId(id))
     } catch {
-      case _:Throwable => {
+      case _: Throwable => {
         logger.warn(s"Invalid object id: $id")
         None
       }
@@ -94,7 +95,7 @@ trait Cms extends Controller {
       {
         for {
           draftId <- objectId
-          draft <- draftService.load(draftId)
+          draft <- itemDrafts.load(draftId)
         } yield {
           Ok(contentFormat(draft.src.data))
         }
@@ -116,11 +117,11 @@ trait Cms extends Controller {
   }
 
   /** For a given org - list active drafts */
-  def getDraftsForOrg = Action.async{
+  def getDraftsForOrg = Action.async {
     implicit request =>
-      Future{
-        val drafts : Seq[ItemDraft]= identifyUser(request).map{ u =>
-          draftService.listForOrg(u.org.orgId)
+      Future {
+        val drafts: Seq[ItemDraft] = identifyUser(request).map { u =>
+          itemDrafts.listForOrg(u.org.orgId)
         }.getOrElse(Seq.empty)
         Ok(Json.toJson(drafts.map(ItemDraftJson.simple)))
       }

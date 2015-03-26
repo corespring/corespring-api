@@ -5,7 +5,8 @@ import org.bson.types.ObjectId
 import org.corespring.api.v1
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.services.{CommitService, ItemDraftService}
+import org.corespring.drafts.item.models.{ SimpleOrg, SimpleUser, OrgAndUser }
+import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.User
@@ -34,19 +35,19 @@ import scalaz.Validation
  */
 
 trait V2ApiServices {
-  def orgService:OrgService
-  def sessionService:MongoService
-  def itemService:ItemService
-  def itemAuth:ItemAuth[OrgAndOpts]
-  def sessionAuth:SessionAuth[OrgAndOpts,PlayerDefinition]
-  def tokenService:TokenService
-  def orgEncryptionService:OrgEncryptionService
-  def draftService:ItemDraftService
-  def itemCommitService:CommitService
+  def orgService: OrgService
+  def sessionService: MongoService
+  def itemService: ItemService
+  def itemAuth: ItemAuth[OrgAndOpts]
+  def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
+  def tokenService: TokenService
+  def orgEncryptionService: OrgEncryptionService
+  def draftsBackend: ItemDrafts
+  def itemCommitService: CommitService
 }
 
 class V2ApiBootstrap(
-  val services : V2ApiServices,
+  val services: V2ApiServices,
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
   val scoreService: ScoreService,
@@ -140,27 +141,25 @@ class V2ApiBootstrap(
 
     override def v1ApiCreate = (request) => { org.corespring.api.v1.ItemApi.create()(request) }
 
-    override def draftService: ItemDraftService = services.draftService
+    override def itemDrafts: ItemDrafts = services.draftsBackend
 
     override def identifyUser(rh: RequestHeader): Option[User] = {
       SecureSocial.currentUser(rh).flatMap(identity => User.getUser(identity.identityId))
     }
   }
 
-  import org.corespring.v2.api.drafts.item.{ItemDrafts => ItemDraftsController}
+  import org.corespring.v2.api.drafts.item.{ ItemDrafts => ItemDraftsController }
 
-  lazy val itemDrafts = new ItemDraftsController{
-    override def drafts: ItemDrafts = new ItemDrafts {
-      override def itemService: ItemService = services.itemService
+  lazy val itemDrafts = new ItemDraftsController {
 
-      override def draftService: ItemDraftService = services.draftService
+    def orgAndOptsToOrgAndUser(o: OrgAndOpts) = OrgAndUser(
+      SimpleOrg.fromOrganization(o.org),
+      o.user.map(SimpleUser.fromUser))
 
-      override def commitService: CommitService = services.itemCommitService
-    }
+    override def identifyUser(rh: RequestHeader): Option[OrgAndUser] =
+      headerToOrgAndOpts(rh).map(o => orgAndOptsToOrgAndUser(o)).toOption
 
-    override def authenticateUser(rh: RequestHeader): Option[User] = {
-      SecureSocial.currentUser(rh).flatMap(identity => User.getUser(identity.identityId))
-    }
+    override def drafts: ItemDrafts = services.draftsBackend
   }
 
   lazy val controllers: Seq[Controller] = Seq(

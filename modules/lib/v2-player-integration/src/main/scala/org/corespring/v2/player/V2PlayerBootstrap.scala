@@ -13,6 +13,7 @@ import org.corespring.container.client.hooks.{ DataQueryHooks, EditorHooks => Co
 import org.corespring.container.client._
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
+import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.models.ItemDraft
 import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
@@ -47,7 +48,7 @@ class V2PlayerBootstrap(
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   playS3: S3Service,
   bucket: String,
-  itemDraftService: ItemDraftService)
+  itemDrafts: ItemDrafts)
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -139,6 +140,7 @@ class V2PlayerBootstrap(
   }
 
   override def itemDraftHooks: ItemDraftHooks = new ItemDraftHooks with WithDefaults {
+    override def backend: ItemDrafts = V2PlayerBootstrap.this.itemDrafts
   }
 
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks with WithDefaults {
@@ -171,7 +173,8 @@ class V2PlayerBootstrap(
 
     override def playS3: S3Service = V2PlayerBootstrap.this.playS3
 
-    override def draftCollection: MongoCollection = V2PlayerBootstrap.this.itemDraftService.collection
+    //TODO; ..
+    override def draftCollection: MongoCollection = ???
 
     override def bucket: String = V2PlayerBootstrap.this.bucket
   }

@@ -3,6 +3,7 @@ package org.corespring.v2.wiring.services
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
+import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts }
 import org.corespring.drafts.item.models.ItemDraft
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.mongo.json.services.MongoService
@@ -41,8 +42,17 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   override val itemService: ItemService = ItemServiceWired
 
-  override val draftService: ItemDraftService = new ItemDraftService {
-    override def collection: MongoCollection = db("drafts.items")
+  override def draftsBackend: ItemDrafts = new ItemDrafts {
+    override def itemService: ItemService = Services.this.itemService
+
+    override val draftService: ItemDraftService = new ItemDraftService {
+      override def collection: MongoCollection = db("drafts.items")
+    }
+
+    //TODO..
+    override def assets: ItemDraftAssets = ???
+
+    override def commitService: CommitService = Services.this.itemCommitService
   }
 
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
@@ -131,7 +141,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     private def canWithPermission(uid: String, p: Permission)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
       import scalaz.Scalaz._
       for {
-        d <- draftService.load(new ObjectId(uid)).toSuccess(generalError("Can't find draft"))
+        d <- draftsBackend.load(new ObjectId(uid)).toSuccess(generalError("Can't find draft"))
         granted <- access.grant(identity, p, d)
       } yield d
     }
@@ -148,8 +158,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       for {
         collectionId <- data.src.data.collectionId
         granted <- access.grant(identity, Permission.Write, data).toOption
-        result <- Some(draftService.save(data.copy(id = oid)))
-        _ <- if (result.getLastError.ok) Some(true) else None
+        result <- Some(draftsBackend.save(data.copy(id = oid)))
       } yield oid
     }
 

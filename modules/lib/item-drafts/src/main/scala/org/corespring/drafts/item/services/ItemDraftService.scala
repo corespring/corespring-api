@@ -47,7 +47,7 @@ trait ItemDraftService {
 
   def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject("user.orgId" -> orgId)).toSeq.map(toDraft)
 
-  def removeUserDraft(id: ObjectId, user: OrgAndUser) = {
+  def removeDraftByIdAndUser(id: ObjectId, user: OrgAndUser) = {
     collection.remove(MongoDBObject("_id" -> id, "user.org.id" -> user.org.id))
   }
 }
