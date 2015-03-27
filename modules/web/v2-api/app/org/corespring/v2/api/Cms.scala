@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.{ SimpleUser, SimpleOrg, OrgAndUser, ItemDraft }
 import org.corespring.platform.core.models.User
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
@@ -94,8 +94,10 @@ trait Cms extends Controller {
     Future {
       {
         for {
+          user <- identifyUser(request)
+          orgAndUser <- Some(OrgAndUser(SimpleOrg(user.org.orgId, "userOrg"), Some(SimpleUser.fromUser(user))))
           draftId <- objectId
-          draft <- itemDrafts.load(draftId)
+          draft <- itemDrafts.load(orgAndUser)(draftId)
         } yield {
           Ok(contentFormat(draft.src.data))
         }

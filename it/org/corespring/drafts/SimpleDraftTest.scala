@@ -1,22 +1,26 @@
 package org.corespring.drafts
 
+import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.MongoCollection
 import common.db.Db
+import org.bson.types.ObjectId
 import org.corespring.drafts.errors.CommitsWithSameSrc
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ ObjectIdAndVersion, SimpleUser }
+import org.corespring.drafts.item.models.{ OrgAndUser, ObjectIdAndVersion, SimpleUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ userAndItem }
+import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
 
-import scalaz.Failure
+import scalaz.{ Success, Failure }
 
-class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
+class SimpleDraftTest extends IntegrationSpecification with BeforeExample with Mockito {
 
   lazy val db = Db.salatDb()(Play.current)
 
@@ -39,6 +43,17 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample {
     override def draftService: ItemDraftService = SimpleDraftTest.this.draftService
 
     override def commitService: CommitService = SimpleDraftTest.this.commitService
+
+    override def assets: ItemDraftAssets = {
+      val m = mock[ItemDraftAssets]
+      m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (oid, vid) => Success(vid.asInstanceOf[VersionedId[ObjectId]]) }
+      m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (vid, oid) => Success(oid.asInstanceOf[ObjectId]) }
+      m.deleteDraft(any[ObjectId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
+      m
+    }
+
+    /** Check that the user may create the draft for the given src id */
+    override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = true
   }
 
   def updateTitle(item: Item, title: String): Item = {

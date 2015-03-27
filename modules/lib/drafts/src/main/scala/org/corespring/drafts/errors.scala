@@ -4,6 +4,7 @@ import org.corespring.drafts.Commit
 
 sealed abstract class DraftError(val msg: String)
 sealed abstract class CommitError(override val msg: String) extends DraftError(msg)
+sealed abstract class UserCant[U](requester: U, owner: U, action: String) extends DraftError(s"User: $requester, can't commit a draft owned by: $owner")
 
 case class SaveDataFailed(override val msg: String) extends DraftError(msg)
 case object DeleteFailed extends DraftError("Deletion failed")
@@ -17,3 +18,6 @@ case object SaveCommitFailed extends CommitError("Save commit failed")
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")
 case class DeleteAssetsFailed(path: String) extends DraftError(s"An error occurred deleting assets: $path")
+
+case class UserCantCommit[U](requester: U, owner: U) extends UserCant[U](requester, owner, "commit")
+case class UserCantSave[U](requester: U, owner: U) extends UserCant[U](requester, owner, "save")

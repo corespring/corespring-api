@@ -18,7 +18,7 @@ class DraftTest extends Specification {
       "set the data" in draft.get.src.data === "initial data"
       "set the user" in draft.get.user === "Ed"
       "set the id" in draft.get.id === "0"
-      "allows you to load by id" in drafts.load("0") === draft
+      "allows you to load by id" in drafts.load("Ed")("0") === draft
     }
 
     "when committing a draft" should {
@@ -26,7 +26,7 @@ class DraftTest extends Specification {
       drafts.addData("1", "initial data")
       val draft = drafts.create("1", "Ed").get
       val update = draft.update("update:1")
-      val result = drafts.commit(update)
+      val result = drafts.commit("Ed")(update)
       "result is ok" in result.isSuccess
       "commit data is set" in {
         val commit = result.toOption.get
@@ -45,8 +45,8 @@ class DraftTest extends Specification {
       val gwens = drafts.create("1", "Gwen").get
       val edsUpdate = eds.update("ed's update")
       val gwensUpdate = eds.update("gwen's update")
-      val edsCommit = drafts.commit(edsUpdate)
-      val gwensCommit = drafts.commit(gwensUpdate)
+      val edsCommit = drafts.commit("Ed")(edsUpdate)
+      val gwensCommit = drafts.commit("Gwen")(gwensUpdate)
       "eds commit is ok as it was first" in edsCommit.isSuccess === true
       "gwens commit is not ok" in gwensCommit.isFailure === true
       "for gwen's commit, ed's commit is listed as a commit with the same src" in {

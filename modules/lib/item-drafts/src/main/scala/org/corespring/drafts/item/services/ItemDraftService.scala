@@ -33,6 +33,8 @@ trait ItemDraftService {
     })
   }
 
+  def owns(user: OrgAndUser, id: ObjectId) = collection.count(MongoDBObject("_id" -> id, "user.org.id" -> user.org.id)) == 1
+
   def remove(d: ItemDraft): Boolean = {
     val result = collection.remove(MongoDBObject("_id" -> d.id))
     result.getN == 1

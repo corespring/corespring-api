@@ -9,6 +9,7 @@ import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefin
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.PlayerJsonToItem
+import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -18,9 +19,18 @@ import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
 import scalaz.Scalaz._
-import scalaz.{ Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
-trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
+trait DraftHelper {
+
+  import scala.language.implicitConversions
+
+  def getOid(s: String, context: String): Validation[V2Error, ObjectId] = try { Success(new ObjectId(s)) } catch { case t: Throwable => Failure(invalidObjectId(s, context)) }
+  implicit def validationToEither[A](v: Validation[V2Error, A]): Either[StatusMessage, A] = v.leftMap { e => e.statusCode -> e.message }.toEither
+  implicit def validationToOption[A](v: Validation[V2Error, A]): Option[StatusMessage] = v.swap.map { e => e.statusCode -> e.message }.toOption
+}
+
+trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with DraftHelper {
 
   def backend: DraftsBackend
   def itemService: ItemService
@@ -29,19 +39,12 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
 
   private lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
 
-  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-    val result = for {
-      draftId <- Some(new ObjectId(itemId))
-      draft <- backend.load(draftId)
-    } yield {
-      val item = draft.src.data
-      transform(item)
-    }
-
-    result match {
-      case None => Left((404, "Not Found"))
-      case Some(json) => Right(json)
-    }
+  override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+    for {
+      draftAndIdentity <- loadDraftAndIdentity(draftId)
+      draft <- Success(draftAndIdentity._1)
+      json <- Success(transform(draft.src.data))
+    } yield json
   }
 
   override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
@@ -69,7 +72,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
 
   private def loadDraftAndIdentity(draftId: String)(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
     identity <- getOrgAndUser(rh)
-    draft <- backend.load(new ObjectId(draftId)).toSuccess(generalError(s"can't find draft with id: $draftId"))
+    draft <- backend.load(identity)(new ObjectId(draftId)).toSuccess(generalError(s"can't find draft with id: $draftId"))
   } yield {
     (draft, identity)
   }
@@ -82,7 +85,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
       item <- Success(draft.src.data)
       updatedItem <- Success(updateFn(item, json))
       update <- Success(draft.update(updatedItem))
-      saved <- backend.save(update).leftMap { de => generalError(de.msg) }
+      saved <- backend.save(draftAndIdentity._2)(update).leftMap { de => generalError(de.msg) }
     } yield json
   }
 
@@ -100,8 +103,6 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
 
   import scala.language.implicitConversions
 
-  implicit def vToR[A](v: Validation[V2Error, A]): Either[StatusMessage, A] = v.leftMap { e => e.statusCode -> e.message }.toEither
-
   override def create(itemId: String)(implicit h: RequestHeader): R[String] = Future {
     for {
       identity <- getOrgAndUser(h)
@@ -110,8 +111,21 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions {
     } yield draft.id.toString
   }
 
-  override def delete(draftId: String)(implicit h: RequestHeader): R[JsValue] = ???
+  override def delete(draftId: String)(implicit h: RequestHeader): R[JsValue] = Future {
+    for {
+      identity <- getOrgAndUser(h)
+      oid <- getOid(draftId, "delete -> draftId")
+      draft <- backend.removeDraftByIdAndUser(oid, identity).leftMap { e => generalError(e.msg) }
+    } yield Json.obj("id" -> draftId)
+  }
 
-  override def commit(draftId: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = ???
+  override def commit(draftId: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
+    for {
+      identity <- getOrgAndUser(h)
+      oid <- getOid(draftId, "commit -> draftId")
+      draft <- backend.load(identity)(oid).toSuccess(generalError(s"Can't find draft with id $draftId"))
+      result <- backend.commit(identity)(draft, force).leftMap { e => generalError(e.msg) }
+    } yield CommitJson(result)
+  }
 
 }

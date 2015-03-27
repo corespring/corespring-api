@@ -129,7 +129,6 @@ object AppWiring {
     ItemTransformWiring.itemTransformer,
     requestIdentifiers.allIdentifiers,
     services.itemAuth,
-    services.itemDraftAuth,
     services.sessionAuth,
     playS3,
     bucket,

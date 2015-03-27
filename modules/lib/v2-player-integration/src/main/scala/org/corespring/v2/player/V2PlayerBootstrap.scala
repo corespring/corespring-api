@@ -2,22 +2,17 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import com.mongodb.casbah.MongoCollection
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.controllers.ComponentSets
-import org.corespring.container.client.hooks.Hooks.R
-import org.corespring.container.client.hooks.{ DataQueryHooks, EditorHooks => ContainerEditorHooks, ItemHooks => ContainerItemHooks }
 import org.corespring.container.client._
+import org.corespring.container.client.controllers.ComponentSets
+import org.corespring.container.client.hooks.{ DataQueryHooks, EditorHooks => ContainerEditorHooks, ItemHooks => ContainerItemHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.models.ItemDraft
-import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
-import org.corespring.platform.core.models.{ User, Standard, Subject }
+import org.corespring.platform.core.models.{ Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -44,7 +39,6 @@ class V2PlayerBootstrap(
   itemTransformer: ItemTransformer,
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
-  itemDraftAuth: Auth[ItemDraft, OrgAndOpts, ObjectId],
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   playS3: S3Service,
   bucket: String,
@@ -169,14 +163,11 @@ class V2PlayerBootstrap(
 
   override def editorHooks: ContainerEditorHooks = new apiHooks.DraftEditorHooks with WithDefaults {
 
-    override def auth: Auth[ItemDraft, OrgAndOpts, ObjectId] = V2PlayerBootstrap.this.itemDraftAuth
-
     override def playS3: S3Service = V2PlayerBootstrap.this.playS3
 
-    //TODO; ..
-    override def draftCollection: MongoCollection = ???
-
     override def bucket: String = V2PlayerBootstrap.this.bucket
+
+    override def backend: ItemDrafts = V2PlayerBootstrap.this.itemDrafts
   }
 
 }

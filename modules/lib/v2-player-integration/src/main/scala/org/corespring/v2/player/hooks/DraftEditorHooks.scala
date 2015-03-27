@@ -1,15 +1,14 @@
 package org.corespring.v2.player.hooks
 
-import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.{EditorHooks => ContainerEditorHooks, UploadResult}
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
+import org.corespring.drafts.item.ItemDrafts
+import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, StoredFile}
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{Auth, LoadOrgAndOptions}
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
+import org.corespring.v2.auth.LoadOrgAndOptions
+import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.JsValue
@@ -17,17 +16,14 @@ import play.api.mvc._
 
 import scala.concurrent.Future
 
-trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
+trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with DraftHelper {
 
   import play.api.http.Status._
 
+  import scalaz.Scalaz._
   import scalaz._
 
-  private lazy val logger = V2LoggerFactory.getLogger("EditorHooks")
-
-  def draftCollection : MongoCollection
-
-  def auth : Auth[ItemDraft,OrgAndOpts, ObjectId]
+  private lazy val logger = V2LoggerFactory.getLogger("DraftEditorHooks")
 
   def transform: Item => JsValue
 
@@ -35,94 +31,89 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
 
   def bucket: String
 
-  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future{
-    val out : Validation[V2Error,OrgAndOpts] = getOrgAndOptions(header)//.toEither
+  def backend: ItemDrafts
 
-    out.leftMap(e => e.statusCode -> e.message).flatMap{
-      identity =>
+  def draftCollection = backend.collection
 
-        val result : Validation[V2Error, Item] = for{
-          d <- auth.loadForWrite(id)(identity)
-          item <- Success(d.src.data)
-        } yield item
-
-        def redirectIfReadable(e:V2Error) : (Int,String) = {
-          logger.trace(s"can't load item: $id for writing - try to load for read and if successful return a SEE_OTHER")
-          auth.loadForRead(id)(identity) match {
-            case Success(draft) => {
-              import org.corespring.container.client.controllers.apps.routes.Catalog
-              SEE_OTHER -> Catalog.load(draft.src.data.id.toString).url
-            }
-            case Failure(e) => UNAUTHORIZED -> e.message
-          }
-        }
-        result.bimap(redirectIfReadable, transform)
-    }.toEither
+  private def getOrgAndUser(h: RequestHeader): Validation[V2Error, OrgAndUser] = getOrgAndOptions(h).map { oo =>
+    OrgAndUser(SimpleOrg.fromOrganization(oo.org), oo.user.map(SimpleUser.fromUser))
   }
 
+  private def loadDraft(id: String)(implicit header: RequestHeader): Validation[V2Error, ItemDraft] = for {
+    _ <- Success(logger.trace(s"function=loadDraft id=$id"))
+    identity <- getOrgAndUser(header)
+    oid <- getOid(id, "load -> draftId")
+    d <- backend.load(identity)(oid).toSuccess(generalError(s"Can't find draft with id: $id"))
+  } yield d
+
+  override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+
+    logger.trace(s"function=load id=$id")
+
+    for {
+      d <- loadDraft(id)
+      item <- Success(d.src.data)
+    } yield transform(item)
+  }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+    logger.trace(s"function=loadFile id=$id path=$path")
     playS3.download(bucket, mkPath(id, path))
   }
 
-  override def deleteFile(id: String, file: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = {
+  override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
+    logger.trace(s"function=deleteFile id=$id path=$path")
+    for {
+      identity <- getOrgAndUser(header)
+      oid <- getOid(id, "deleteFile -> draftId")
+      owns <- Success(backend.owns(identity)(oid))
+      _ <- if (owns) Success(true) else Failure(generalError(s"${identity.org.name}, can't access $id"))
 
-    val out = for {
-      identity <- getOrgAndOptions(header)
-      canWrite <- auth.loadForWrite(id)(identity)
-    } yield canWrite
-
-    out match {
-      case Failure(e) => Future(Some(UNAUTHORIZED -> e.message))
-      case _ => {
-        Future {
-          val response = playS3.delete(bucket, mkPath(id, file))
-          if (response.success) {
-            None
-          } else {
-            Some(BAD_REQUEST -> response.msg)
-          }
-        }
+    } yield {
+      val response = playS3.delete(bucket, mkPath(id, path))
+      if (response.success) {
+        None
+      } else {
+        Some(BAD_REQUEST -> response.msg)
       }
     }
   }
 
   def mkPath(parts: String*) = ("item-drafts" :+ parts).mkString("/")
 
-  override def upload(draftId: String, file: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[UploadResult]] = {
+  override def upload(id: String, path: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[UploadResult]] = {
 
-    def loadDraft(rh: RequestHeader): Either[SimpleResult,ItemDraft] = {
-      val result = for {
-        identity <- getOrgAndOptions(rh)
-        draft <- auth.loadForWrite(draftId)(identity)
-      } yield draft
-      result.leftMap{e => Results.Status(e.statusCode)(e.message)}.toEither
+    logger.trace(s"function=upload id=$id path=$path")
+
+    def loadDraftPredicate(rh: RequestHeader): Either[SimpleResult, ItemDraft] = {
+      predicate(rh).fold(
+        loadDraft(id)(rh).leftMap { e => Results.Status(e.statusCode)(e.message) }.toEither)(Left(_))
     }
 
-    def addFileToData(draft:ItemDraft, key:String) = {
-        val filename = grizzled.file.util.basename(key)
-        val newFile = StoredFile(file, BaseFile.getContentType(filename), false, filename)
-        import org.corespring.platform.core.models.mongoContext.context
+    def addFileToData(draft: ItemDraft, key: String) = {
+      val filename = grizzled.file.util.basename(key)
+      val newFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
+      import org.corespring.platform.core.models.mongoContext.context
 
-        draft.src.data.data.map { d =>
-          val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
-          draftCollection.update(
-            MongoDBObject("_id._id" -> draft.id),
-            MongoDBObject("$addToSet" -> MongoDBObject("src.data.data.files" -> dbo)),
-            false)
-        }.getOrElse {
+      draft.src.data.data.map { d =>
+        val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
+        draftCollection.update(
+          MongoDBObject("_id._id" -> draft.id),
+          MongoDBObject("$addToSet" -> MongoDBObject("src.data.data.files" -> dbo)),
+          false)
+      }.getOrElse {
 
-          val resource = Resource(None, "data", files = Seq(newFile))
-          val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
+        val resource = Resource(None, "data", files = Seq(newFile))
+        val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
 
-          draftCollection.update(
-            MongoDBObject("_id._id" -> draft.id),
-            MongoDBObject("$set" -> MongoDBObject("src.data.data" -> resourceDbo)),
-            false)
-        }
+        draftCollection.update(
+          MongoDBObject("_id._id" -> draft.id),
+          MongoDBObject("$set" -> MongoDBObject("src.data.data" -> resourceDbo)),
+          false)
+      }
     }
 
-    playS3.s3ObjectAndData[ItemDraft](bucket, mkPath(draftId, file))(loadDraft).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](bucket, mkPath(id, path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         addFileToData(draft, s3Object.getKey)
@@ -130,6 +121,5 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions {
       }
     }
   }
-
 
 }

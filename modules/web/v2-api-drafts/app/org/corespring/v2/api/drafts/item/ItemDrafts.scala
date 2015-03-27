@@ -59,7 +59,6 @@ trait ItemDrafts extends Controller {
       for {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        //TODO: check user.org access to item _ <- itemAuth.canWrite(user, vid.id)
         draft <- drafts.create(vid.id, user, expires).toSuccess(draftCreationFailed(itemId))
       } yield ItemDraftJson.simple(draft)
     }
@@ -69,9 +68,8 @@ trait ItemDrafts extends Controller {
     Future {
       for {
         user <- toOrgAndUser(request)
-        d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
-        _ <- if (d.user.org.id == user.org.id) Success() else Failure(UnknownDraftApiError)
-        commit <- drafts.commit(d).leftMap { e => UnknownDraftApiError }
+        d <- drafts.load(user)(draftId).toSuccess(UnknownDraftApiError)
+        commit <- drafts.commit(user)(d).leftMap { e => UnknownDraftApiError }
       } yield {
         CommitJson(commit)
       }
@@ -82,8 +80,7 @@ trait ItemDrafts extends Controller {
     Future {
       for {
         user <- toOrgAndUser(request)
-        d <- drafts.load(draftId).toSuccess(UnknownDraftApiError)
-        _ <- if (d.user.org.id == user.org.id) Success() else Failure(UnknownDraftApiError)
+        d <- drafts.load(user)(draftId).toSuccess(UnknownDraftApiError)
       } yield {
         /**
          * Returning the item json as part of the api doesn't really make sense

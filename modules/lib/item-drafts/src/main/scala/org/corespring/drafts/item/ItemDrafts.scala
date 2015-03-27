@@ -3,10 +3,10 @@ package org.corespring.drafts.item
 import com.amazonaws.services.s3.AmazonS3Client
 import org.bson.types.ObjectId
 import org.corespring.container.client.AssetUtils
-import org.corespring.drafts.item.models.{ OrgAndUser, ItemCommit, ItemSrc, ItemDraft }
-import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.drafts.{ Commit, IdAndVersion, DraftsWithCommitAndCreate }
 import org.corespring.drafts.errors._
+import org.corespring.drafts.item.models.{ ItemCommit, ItemDraft, ItemSrc, OrgAndUser }
+import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate, IdAndVersion }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -84,14 +84,24 @@ trait ItemDrafts
     draftService.findByIdAndVersion(id.id, version)
   }
 
-  override def load(id: ObjectId): Option[ItemDraft] = draftService.load(id)
+  override def load(requester: OrgAndUser)(id: ObjectId): Option[ItemDraft] = {
+    draftService.load(id).filter { d => d.user == requester }
+  }
 
-  override def save(d: ItemDraft): Validation[DraftError, ObjectId] = {
-    val result = draftService.save(d)
-    if (result.getLastError.ok) {
-      Success(d.id)
+  def collection = draftService.collection
+
+  def owns(requester: OrgAndUser)(id: ObjectId): Boolean = draftService.owns(requester, id)
+
+  override def save(requester: OrgAndUser)(d: ItemDraft): Validation[DraftError, ObjectId] = {
+    if (d.user == requester) {
+      val result = draftService.save(d)
+      if (result.getLastError.ok) {
+        Success(d.id)
+      } else {
+        Failure(SaveDataFailed(result.getLastError.getErrorMessage))
+      }
     } else {
-      Failure(SaveDataFailed(result.getLastError.getErrorMessage))
+      Failure(UserCantSave(requester, d.user))
     }
   }
 
@@ -107,8 +117,8 @@ trait ItemDrafts
     commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version)
   }
 
-  override def commit(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
-    super.commit(d, force).flatMap { c =>
+  override def commit(requester: OrgAndUser)(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
+    super.commit(requester)(d, force).flatMap { c =>
       val copyResult = assets.copyDraftToItem(d.id, d.src.data.id)
       copyResult.map { _ => c }
     }

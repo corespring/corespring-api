@@ -1,12 +1,13 @@
 package org.corespring.v2.wiring.services
 
 import com.amazonaws.services.s3.AmazonS3Client
+import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.drafts.item.{ S3ItemDraftAssets, ItemDraftAssets, ItemDrafts }
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAssets }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
@@ -57,6 +58,17 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     }
 
     override def commitService: CommitService = Services.this.itemCommitService
+
+    override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = {
+      itemService.collection.findOne(MongoDBObject("_id._id" -> id), MongoDBObject("collectionId" -> 1)).map { dbo =>
+        try {
+          val collectionId = dbo.get("collectionId").asInstanceOf[String]
+          Organization.canAccessCollection(user.org.id, new ObjectId(collectionId), Permission.Write)
+        } catch {
+          case t: Throwable => false
+        }
+      }.getOrElse(false)
+    }
   }
 
   lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
@@ -133,41 +145,6 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   lazy val itemAccess = new ItemAccess {
     override def orgService: OrganizationService = Organization
-  }
-
-  lazy val itemDraftAuth = new Auth[ItemDraft, OrgAndOpts, ObjectId] {
-
-    def access: ItemDraftAccess = new ItemDraftAccess {
-      override def itemAccess: ItemAccess = Services.this.itemAccess
-    }
-
-    private def canWithPermission(uid: String, p: Permission)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
-      import scalaz.Scalaz._
-      for {
-        d <- draftsBackend.load(new ObjectId(uid)).toSuccess(generalError("Can't find draft"))
-        granted <- access.grant(identity, p, d)
-      } yield d
-    }
-
-    override def loadForRead(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
-      canWithPermission(id, Permission.Read)
-    }
-
-    override def loadForWrite(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, ItemDraft] = {
-      canWithPermission(id, Permission.Write)
-    }
-
-    private def saveOrInsert(data: ItemDraft, oid: ObjectId)(implicit identity: OrgAndOpts) = {
-      for {
-        collectionId <- data.src.data.collectionId
-        granted <- access.grant(identity, Permission.Write, data).toOption
-        result <- Some(draftsBackend.save(data.copy(id = oid)))
-      } yield oid
-    }
-
-    override def insert(data: ItemDraft)(implicit identity: OrgAndOpts): Option[ObjectId] = saveOrInsert(data, ObjectId.get)
-
-    override def save(data: ItemDraft, createNewVersion: Boolean)(implicit identity: OrgAndOpts): Unit = saveOrInsert(data, data.id)
   }
 
   lazy val itemAuth = new ItemAuthWired {

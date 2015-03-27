@@ -88,6 +88,8 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     versions.headOption
   }
 
+  override protected def userCanCreateDraft(id: String, user: String): Boolean = true
+
   override protected def deleteDraft(d: SimpleDraft): Validation[DraftError, Unit] = {
     val index = drafts.indexWhere(_.id == d.id)
     if (index == -1) {
@@ -98,11 +100,11 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     }
   }
 
-  override def load(id: String): Option[SimpleDraft] = {
+  override def load(user: String)(id: String): Option[SimpleDraft] = {
     drafts.find(_.id == id)
   }
 
-  override def save(d: SimpleDraft): Validation[DraftError, String] = {
+  override def save(user: String)(d: SimpleDraft): Validation[DraftError, String] = {
     drafts.indexWhere(_.id == d.id) match {
       case -1 => drafts.append(d)
       case index: Int => drafts.update(index, d)

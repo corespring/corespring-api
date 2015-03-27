@@ -1,6 +1,6 @@
 package org.corespring.drafts
 
-import org.corespring.drafts.errors.{ CommitError, CommitsWithSameSrc, DraftError }
+import org.corespring.drafts.errors.{ UserCantCommit, CommitError, CommitsWithSameSrc, DraftError }
 import org.joda.time.DateTime
 
 import scalaz.{ Success, Failure }
@@ -57,11 +57,11 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
   /**
    * Commit a draft back to the data store
    */
-  def commit(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
+  def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
   /** load a draft by its id */
-  def load(id: ID): Option[UD]
+  def load(requester: USER)(id: ID): Option[UD]
   /** save a draft */
-  def save(d: UD): Validation[DraftError, ID]
+  def save(requester: USER)(d: UD): Validation[DraftError, ID]
 }
 
 /**
@@ -72,13 +72,18 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   import scalaz.Validation
 
-  override def commit(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
-    val commits = loadCommits(d.src.id)
+  override def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
 
-    if (commits.length > 0 && !force) {
-      Failure(CommitsWithSameSrc(commits))
+    if (d.user == requester) {
+      val commits = loadCommits(d.src.id)
+
+      if (commits.length > 0 && !force) {
+        Failure(CommitsWithSameSrc(commits))
+      } else {
+        commitData(d)
+      }
     } else {
-      commitData(d)
+      Failure(UserCantCommit(requester, d.user))
     }
   }
 
@@ -99,16 +104,23 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    * Creates a draft for the target data.
    * //TODO: add expires
    */
-  override final def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
-    findLatestSrc(id).flatMap { src =>
-      val result = for {
-        draft <- mkDraft(id, src, user)
-        saved <- save(draft)
-      } yield draft
+  override def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
+    if (userCanCreateDraft(id, user)) {
+      findLatestSrc(id).flatMap { src =>
+        val result = for {
+          draft <- mkDraft(id, src, user)
+          saved <- save(user)(draft)
+        } yield draft
 
-      result.toOption
+        result.toOption
+      }
+    } else {
+      None
     }
   }
+
+  /** Check that the user may create the draft for the given src id */
+  protected def userCanCreateDraft(id: SRC_ID, user: USER): Boolean
 
   /**
    * Load commits that have used the same srcId

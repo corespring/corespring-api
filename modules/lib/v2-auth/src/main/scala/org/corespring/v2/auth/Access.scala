@@ -65,10 +65,3 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
   }
 }
 
-trait ItemDraftAccess extends Access[ItemDraft, OrgAndOpts] {
-  def itemAccess: ItemAccess
-  override def grant(identity: OrgAndOpts, permission: Permission, data: ItemDraft): Validation[V2Error, Boolean] = {
-    itemAccess.grant(identity, permission, data.src.data)
-  }
-}
-
