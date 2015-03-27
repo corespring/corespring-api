@@ -141,7 +141,7 @@ object Build extends sbt.Build {
 
   val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test"))
+      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test"))
     .dependsOn(core, drafts)
     .aggregate(core, drafts)
 

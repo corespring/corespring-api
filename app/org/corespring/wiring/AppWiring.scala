@@ -31,6 +31,12 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
+  private lazy val key = AppConfig.amazonKey
+  private lazy val secret = AppConfig.amazonSecret
+  private lazy val bucket = AppConfig.assetsBucket
+
+  lazy val playS3 = new ConcreteS3Service(key, secret)
+
   private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
     override def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent] = ItemApi.get
@@ -52,7 +58,9 @@ object AppWiring {
   private lazy val services: Services = new Services(
     Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
     Db.salatDb(),
-    ItemTransformWiring.itemTransformer)
+    ItemTransformWiring.itemTransformer,
+    playS3.client,
+    bucket)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
     services.secureSocialService,
@@ -113,12 +121,6 @@ object AppWiring {
       out
     }
   }.getOrElse(Configuration.empty)
-
-  private lazy val key = AppConfig.amazonKey
-  private lazy val secret = AppConfig.amazonSecret
-  private lazy val bucket = AppConfig.assetsBucket
-
-  lazy val playS3 = new ConcreteS3Service(key, secret)
 
   private lazy val v2PlayerBootstrap = new V2PlayerBootstrap(
     componentLoader.all,

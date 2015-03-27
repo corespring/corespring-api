@@ -4,6 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.api.v1.{ ItemApi => V1ItemApi }
+import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.User
 import org.corespring.platform.core.models.item.Item
@@ -30,7 +31,7 @@ class CmsTest extends Specification with Mockito with PlaySpecification {
 
     override def v1ApiCreate: (Request[AnyContent]) => Future[SimpleResult] = ???
 
-    override def draftService: ItemDraftService = ???
+    override def itemDrafts: ItemDrafts = ???
   }
 
   "Cms" should {

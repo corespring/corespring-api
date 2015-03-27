@@ -70,14 +70,14 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     Success(commit)
   }
 
-  override protected def mkDraft(srcId: String, src: String, user: String): SimpleDraft = {
+  override protected def mkDraft(srcId: String, src: String, user: String): Validation[DraftError, SimpleDraft] = {
     val versions = data.get(srcId).getOrElse {
       data.put(srcId, Seq(src))
       data.get(srcId).get
     }
 
     val draftId = drafts.length.toString
-    SimpleDraft(draftId, SimpleSrc(versions.last, IdVersion(srcId, versions.length - 1)), user)
+    Success(SimpleDraft(draftId, SimpleSrc(versions.last, IdVersion(srcId, versions.length - 1)), user))
   }
 
   override protected def findLatestSrc(id: String): Option[String] = {

@@ -1,9 +1,10 @@
 package org.corespring.v2.wiring.services
 
+import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts }
+import org.corespring.drafts.item.{ S3ItemDraftAssets, ItemDraftAssets, ItemDrafts }
 import org.corespring.drafts.item.models.ItemDraft
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.mongo.json.services.MongoService
@@ -32,7 +33,7 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Failure, Success, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer) extends V2ApiServices {
+class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client, bucket: String) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
@@ -49,8 +50,11 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       override def collection: MongoCollection = db("drafts.items")
     }
 
-    //TODO..
-    override def assets: ItemDraftAssets = ???
+    override def assets: ItemDraftAssets = new S3ItemDraftAssets {
+      override def bucket: String = Services.this.bucket
+
+      override def s3: AmazonS3Client = Services.this.s3
+    }
 
     override def commitService: CommitService = Services.this.itemCommitService
   }
@@ -128,7 +132,6 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
   }
 
   lazy val itemAccess = new ItemAccess {
-
     override def orgService: OrganizationService = Organization
   }
 
