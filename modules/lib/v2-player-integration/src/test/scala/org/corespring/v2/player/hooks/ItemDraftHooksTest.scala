@@ -6,6 +6,6 @@ class ItemDraftHooksTest extends Specification {
 
   "ItemDraftHooks" should {
 
-    "todo" in { true === false}.pendingUntilFixed
+    "todo" in { true === false }.pendingUntilFixed
   }
 }
