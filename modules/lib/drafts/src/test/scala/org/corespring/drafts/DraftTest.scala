@@ -1,6 +1,6 @@
 package org.corespring.drafts
 
-import org.corespring.drafts.errors.CommitsWithSameSrc
+import org.corespring.drafts.errors.{ CommitsWithSameSrc, UserCantCommit }
 import org.specs2.mutable.Specification
 
 import scalaz.Failure
@@ -44,9 +44,11 @@ class DraftTest extends Specification {
       val eds = drafts.create("1", "Ed").get
       val gwens = drafts.create("1", "Gwen").get
       val edsUpdate = eds.update("ed's update")
-      val gwensUpdate = eds.update("gwen's update")
+      val gwensUpdate = gwens.update("gwen's update")
       val edsCommit = drafts.commit("Ed")(edsUpdate)
       val gwensCommit = drafts.commit("Gwen")(gwensUpdate)
+
+      println(s"gwens commit: $gwensCommit ")
       "eds commit is ok as it was first" in edsCommit.isSuccess === true
       "gwens commit is not ok" in gwensCommit.isFailure === true
       "for gwen's commit, ed's commit is listed as a commit with the same src" in {
@@ -57,6 +59,22 @@ class DraftTest extends Specification {
             c.user === "Ed"
           }
           case _ => failure("should have got a CommitsWithSameSrc error")
+        }
+      }
+    }
+
+    "when gwen tries to commit ed's draft" should {
+      val drafts = new SimpleStringDrafts()
+      drafts.addData("1", "initial data")
+
+      val eds = drafts.create("1", "Ed").get
+      val gwensCommit = drafts.commit("Gwen")(eds)
+
+      "gwens commit is not ok" in gwensCommit.isFailure === true
+      "gwen gets a user can't commit error" in {
+        gwensCommit match {
+          case Failure(UserCantCommit("Gwen", "Ed")) => success
+          case _ => failure("should have got a UserCantCommit error")
         }
       }
     }
