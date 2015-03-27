@@ -1,18 +1,16 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.DraftError
-import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser }
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.drafts.item.models.OrgAndUser
+import org.corespring.drafts.item.{ItemDrafts => DraftsBackend}
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ CommitJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{CommitJson, ItemDraftJson}
 import org.joda.time.DateTime
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, Controller, RequestHeader, SimpleResult }
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, Controller, RequestHeader, SimpleResult}
 
 import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 trait ItemDrafts extends Controller {
 
