@@ -45,8 +45,18 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
     override def assets: ItemDraftAssets = {
       val m = mock[ItemDraftAssets]
-      m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (oid, vid) => Success(vid.asInstanceOf[VersionedId[ObjectId]]) }
-      m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (vid, oid) => Success(oid.asInstanceOf[ObjectId]) }
+      m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
+        {
+          val arr = obj.asInstanceOf[Array[Any]]
+          Success(arr(1).asInstanceOf[VersionedId[ObjectId]])
+        }
+      }
+      m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (obj, mock) =>
+        {
+          val arr = obj.asInstanceOf[Array[Any]]
+          Success(arr(1).asInstanceOf[ObjectId])
+        }
+      }
       m.deleteDraft(any[ObjectId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
       m
     }
@@ -72,7 +82,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
     "load a created draft by its id" in new orgAndUserAndItem {
       val draft = drafts.create(itemId.id, orgAndUser)
-      drafts.load(orgAndUser)(draft.get.id) === draft
+      drafts.load(orgAndUser)(draft.get.id).map(_.id) === draft.map(_.id)
     }
 
     "save a draft" in new orgAndUserAndItem {

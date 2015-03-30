@@ -379,7 +379,7 @@ object Build extends sbt.Build {
       clientLogging % "compile->compile;test->test",
       qtiToV2,
       itemImport,
-      itemDrafts)
+      itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
       scormWeb,
       reports,
