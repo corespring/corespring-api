@@ -52,13 +52,10 @@ class ItemDraftsTest extends Specification with Mockito {
             Success(arr(1).asInstanceOf[ObjectId])
           }
 
-          override val draftService: ItemDraftService = {
-            val m = mock[ItemDraftService]
-            m.save(any[ItemDraft]) returns {
-              mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
-            }
-            m
+          override val draftService: ItemDraftService = mock[ItemDraftService].save(any[ItemDraft]) returns {
+            mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
           }
+
         }
       }
 
@@ -79,12 +76,8 @@ class ItemDraftsTest extends Specification with Mockito {
       class scp extends Scope {
         val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item, ObjectIdAndVersion(item.id.id, 0)), gwen)
         lazy val drafts = new TestDrafts {
-          override def draftService: ItemDraftService = {
-            val m = mock[ItemDraftService]
-            m.save(any[ItemDraft]) returns {
-              mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
-            }
-            m
+          override def draftService: ItemDraftService = mock[ItemDraftService].save(any[ItemDraft]) returns {
+            mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
           }
         }
       }
@@ -128,28 +121,23 @@ class ItemDraftsTest extends Specification with Mockito {
         lazy val drafts = new TestDrafts {
           override val draftService: ItemDraftService = {
             val m = mock[ItemDraftService]
-            m.listForOrg(any[ObjectId]) returns Seq.empty
-            m.save(any[ItemDraft]) returns {
+            m.listForOrg(any[ObjectId]).returns(Seq.empty)
+            m.remove(any[ItemDraft]).returns(true)
+            m.save(any[ItemDraft]).returns {
               mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
             }
-
-            m.remove(any[ItemDraft]) returns true
-            m
           }
 
           override val commitService: CommitService = {
             val m = mock[CommitService]
             m.save(any[ItemCommit])
-              .returns(mock[WriteResult].getLastError
-                .returns(mock[CommandResult].ok returns true))
-
+            m.returns(mock[WriteResult].getLastError.returns {
+              mock[CommandResult].ok returns true
+            })
             m.findByIdAndVersion(any[ObjectId], any[Long]) returns Seq.empty
-            m
           }
 
-          override val itemService: ItemService = {
-            mock[ItemService].save(any[Item], any[Boolean]) returns Right(item.id)
-          }
+          override val itemService: ItemService = mock[ItemService].save(any[Item], any[Boolean]) returns Right(item.id)
 
           override val assets: ItemDraftAssets = {
             val m = mock[ItemDraftAssets]
@@ -158,7 +146,6 @@ class ItemDraftsTest extends Specification with Mockito {
               Success(array(1).asInstanceOf[VersionedId[ObjectId]])
             }
             m.deleteDraft(any[ObjectId]) answers { (id) => Success(id.asInstanceOf[ObjectId]) }
-            m
           }
         }
       }

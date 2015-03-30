@@ -37,9 +37,9 @@ trait ItemDrafts extends Controller {
       for {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        drafts <- Success(drafts.list(vid))
+        draftList <- Success(drafts.list(vid))
       } yield {
-        val seq = drafts.map(ItemDraftJson.simple)
+        val seq = draftList.map(ItemDraftJson.simple)
         Json.toJson(seq)
       }
     }
@@ -66,8 +66,8 @@ trait ItemDrafts extends Controller {
     Future {
       for {
         user <- toOrgAndUser(request)
-        d <- drafts.load(user)(draftId).toSuccess(UnknownDraftApiError)
-        commit <- drafts.commit(user)(d).leftMap { e => UnknownDraftApiError }
+        d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
+        commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
       } yield {
         CommitJson(commit)
       }
@@ -78,7 +78,7 @@ trait ItemDrafts extends Controller {
     Future {
       for {
         user <- toOrgAndUser(request)
-        d <- drafts.load(user)(draftId).toSuccess(UnknownDraftApiError)
+        d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
       } yield {
         /**
          * Returning the item json as part of the api doesn't really make sense
@@ -101,7 +101,7 @@ trait ItemDrafts extends Controller {
       Future {
         for {
           user <- toOrgAndUser(request)
-          _ <- drafts.removeDraftByIdAndUser(draftId, user).leftMap(e => UnknownDraftApiError)
+          _ <- drafts.removeDraftByIdAndUser(draftId, user).leftMap(e => generalDraftApiError(e.msg))
         } yield {
           Json.obj("id" -> draftId.toString)
         }
