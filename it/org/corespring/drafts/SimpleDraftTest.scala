@@ -1,12 +1,11 @@
 package org.corespring.drafts
 
-import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.MongoCollection
 import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.CommitsWithSameSrc
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ OrgAndUser, ObjectIdAndVersion, SimpleUser }
+import org.corespring.drafts.item.models.{ ObjectIdAndVersion, SimpleOrg, SimpleUser, OrgAndUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.Item
@@ -56,79 +55,83 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = true
   }
 
+  trait orgAndUserAndItem extends userAndItem {
+    lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
+  }
+
   def updateTitle(item: Item, title: String): Item = {
     item.copy(taskInfo = item.taskInfo.map(_.copy(title = Some(title))))
   }
 
   "SimpleDraftTest" should {
 
-    "create a draft of an item" in new userAndItem {
-      val draft = drafts.create(itemId.id, SimpleUser(user))
-      draft.map(_.user.id) === Some(user.id)
+    "create a draft of an item" in new orgAndUserAndItem {
+      val draft = drafts.create(itemId.id, orgAndUser)
+      draft.flatMap(_.user.user.map(_.id)) === Some(user.id)
     }
 
-    "load a created draft by its id" in new userAndItem {
-      val draft = drafts.create(itemId.id, SimpleUser(user))
-      drafts.load(draft.get.id) === draft
+    "load a created draft by its id" in new orgAndUserAndItem {
+      val draft = drafts.create(itemId.id, orgAndUser)
+      drafts.load(orgAndUser)(draft.get.id) === draft
     }
 
-    "save a draft" in new userAndItem {
-      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+    "save a draft" in new orgAndUserAndItem {
+      val draft = drafts.create(itemId.id, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "updated title")
       val update = draft.update(newItem)
-      drafts.save(update)
-      drafts.load(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
+      drafts.save(orgAndUser)(update)
+      drafts.load(orgAndUser)(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
     }
 
-    "commit a draft" in new userAndItem {
-      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+    "commit a draft" in new orgAndUserAndItem {
+      val draft = drafts.create(itemId.id, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "commit a draft")
       val update = draft.update(newItem)
-      drafts.commit(update)
+      drafts.commit(orgAndUser)(update)
       val latestItem = ItemHelper.get(item.id.copy(version = None))
       latestItem.get.taskInfo.get.title === Some("commit a draft")
       latestItem.get.id.version === Some(1)
     }
 
-    "committing a draft, removes the draft and creates a commit" in new userAndItem {
-      val draft = drafts.create(itemId.id, SimpleUser(user)).get
+    "committing a draft, removes the draft and creates a commit" in new orgAndUserAndItem {
+      val draft = drafts.create(itemId.id, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = draft.update(newItem)
-      drafts.commit(update)
-      drafts.load(update.id) === None
+      drafts.commit(orgAndUser)(update)
+      drafts.load(orgAndUser)(update.id) === None
       val commits = drafts.loadCommits(ObjectIdAndVersion(itemId.id, itemId.version.get))
       commits.length === 1
       val commit = commits(0)
-      commit.user.userName === user.userName
+      commit.user.user.map(_.userName) === Some(user.userName)
     }
 
-    "committing a 2nd draft with the same src id/version fails" in new userAndItem {
-      val eds = drafts.create(itemId.id, SimpleUser(user)).get
-      val edsSecondDraft = drafts.create(itemId.id, SimpleUser(user)).get
+    "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
+      val eds = drafts.create(itemId.id, orgAndUser).get
+      val edsSecondDraft = drafts.create(itemId.id, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = eds.update(newItem)
-      drafts.commit(update)
-      drafts.commit(edsSecondDraft) match {
+      drafts.commit(orgAndUser)(update)
+      drafts.commit(orgAndUser)(edsSecondDraft) match {
         case Failure(CommitsWithSameSrc(commits)) => {
           val commit = commits(0)
-          commit.user === SimpleUser(user)
+          commit.user === orgAndUser
         }
         case _ => failure("should have returnd commits with same src")
       }
     }
 
-    "committing a 2nd draft with the same src id/version and force=true succeeds" in new userAndItem {
-      val eds = drafts.create(itemId.id, SimpleUser(user)).get
-      val edsSecondDraft = drafts.create(itemId.id, SimpleUser(user)).get
+    "committing a 2nd draft with the same src id/version and force=true succeeds" in new orgAndUserAndItem {
+      val eds = drafts.create(itemId.id, orgAndUser).get
+      val edsSecondDraft = drafts.create(itemId.id, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = eds.update(newItem)
-      drafts.commit(update)
-      drafts.commit(edsSecondDraft, force = true) match {
+      drafts.commit(orgAndUser)(update)
+      drafts.commit(orgAndUser)(edsSecondDraft, force = true) match {
         case Failure(CommitsWithSameSrc(commits)) => failure("should have succeeded")
         case _ => success
       }

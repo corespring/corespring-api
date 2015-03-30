@@ -62,9 +62,9 @@ class LoadImageTest extends IntegrationSpecification {
 
     "work" in new AddImageAndItem("it/org/corespring/v2/player/load-image/puppy.png") {
 
-      import org.corespring.container.client.controllers.routes.Assets
+      import org.corespring.container.client.controllers.apps.routes.Player
 
-      val call = Assets.session(sessionId.toString, "puppy.png")
+      val call = Player.getFile(sessionId.toString, "puppy.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
