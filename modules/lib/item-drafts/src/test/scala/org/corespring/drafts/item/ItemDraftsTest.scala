@@ -130,10 +130,10 @@ class ItemDraftsTest extends Specification with Mockito {
 
           override val commitService: CommitService = {
             val m = mock[CommitService]
-            m.save(any[ItemCommit])
-            m.returns(mock[WriteResult].getLastError.returns {
-              mock[CommandResult].ok returns true
-            })
+            m.save(any[ItemCommit]).returns(
+              mock[WriteResult].getLastError.returns {
+                mock[CommandResult].ok returns true
+              })
             m.findByIdAndVersion(any[ObjectId], any[Long]) returns Seq.empty
           }
 
