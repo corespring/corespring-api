@@ -5,6 +5,7 @@ import java.io.File
 import com.amazonaws.auth.{ AWSCredentials, BasicAWSCredentials }
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
+import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.common.config.AppConfig
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
@@ -23,13 +24,15 @@ class LoadImageTest extends IntegrationSpecification {
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
-    lazy val sessionId = V2SessionHelper.create(itemId)
+    lazy val sessionId = V2SessionHelper.create(itemId, V2SessionHelper.v2ItemSessionsPreview)
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
+      import org.corespring.platform.core.models.mongoContext._
 
       super.before
 
+      logger.debug(s"sessionId: $sessionId")
       val file = new File(imagePath)
       require(file.exists)
 
@@ -37,12 +40,12 @@ class LoadImageTest extends IntegrationSpecification {
       val name = grizzled.file.util.basename(file.getCanonicalPath)
       val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/${name}"
 
-      val update = item.copy(
-        data = Some(
-          Resource(name = "data", files = Seq(
-            StoredFile(name = name, contentType = "image/png", storageKey = key)))))
+      val sf = StoredFile(name = name, contentType = "image/png", storageKey = key)
+      val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
 
-      ItemServiceWired.save(update)
+      ItemServiceWired.collection.update(
+        MongoDBObject("_id._id" -> item.id.id),
+        MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
 
       logger.debug(s"Uploading image...: ${file.getPath} -> $key")
       val upload: Upload = tm.upload(bucketName, key, file)
@@ -68,7 +71,9 @@ class LoadImageTest extends IntegrationSpecification {
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
-      }.getOrElse(failure("Can't load asset"))
+      }.getOrElse {
+        failure("Can't load asset")
+      }
     }
   }
 }

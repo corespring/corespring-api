@@ -19,6 +19,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
@@ -30,7 +31,7 @@ import play.api.mvc._
 import play.api.{ Configuration, Mode => PlayMode, Play }
 
 import scala.concurrent.ExecutionContext
-import scalaz.Validation
+import scalaz.{ Scalaz, Success, Failure, Validation }
 
 class V2PlayerBootstrap(
   val components: Seq[Component],
@@ -146,7 +147,8 @@ class V2PlayerBootstrap(
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
     override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      playS3.download(bucket, s"items/$id/$path")
+      val start = id.split(":").mkString("/")
+      playS3.download(bucket, s"$start/$path")
     }
   }
 
@@ -156,8 +158,20 @@ class V2PlayerBootstrap(
 
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-    override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      playS3.download(bucket, s"items/$id/$path")
+    override def loadFile(sessionId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+
+      import Scalaz._
+
+      val out: Validation[V2Error, SimpleResult] = for {
+        identity <- identifier(request)
+        s <- sessionAuth.loadForRead(sessionId)(identity)
+        itemId <- (s._1 \ "itemId").asOpt[String].toSuccess(generalError("no item id for session"))
+        start <- Success(itemId.split(":").mkString("/"))
+      } yield playS3.download(bucket, s"$start/data/$path")
+
+      out.fold[SimpleResult]((e: V2Error) => {
+        Results.Status(e.statusCode)(e.json)
+      }, r => r)
     }
   }
 
