@@ -35,15 +35,16 @@ for item 1:0, make a draft for user Gwen
 
 It may be that a user wants to discard their draft - but there is no option to do that.
 
-## publish/unpublishet vs golive/draft
+## publish/unpublished vs golive/draft
 
 It may be the case that you want to create a draft, commit it but not make it available to students straight away.
 eg you may want others to look at it and approve it.
-
-
 
 The button status [Draft/Live] == published: false/true
 
 If ed creates a draft of item 1:0 , when gwen logs in - she can't 'make a draft of 1:0' because the system will know that ed has a draft targeting 1:0 active. this applies for published/unpublished.
 
 given item 1:0, if the status says [Draft], when you click edit - you create a 'user draft' with a src of 1:0, when you commit you don't save a new version you overwrite the existing item so you go back to 1:0
+
+
+## clone when there's a draft

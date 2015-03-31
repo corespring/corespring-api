@@ -60,6 +60,10 @@ function ItemController(
     $scope.$emit('goLiveRequested', $scope.item);
   };
 
+  $scope.commit = function(){
+    //Commit the draft
+  };
+
   $scope.loadItem = function() {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $scope.item = itemData;

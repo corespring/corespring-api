@@ -210,15 +210,30 @@ case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[S
   val inclusion = method == 1
   val exclusion = method == 0
 
+  /**
+   * Ensure that playerDefinition and data are returned so the item format can be derived.
+   * @return
+   */
+  def fieldsToReturn = {
+    dbfields.put("playerDefinition", 1)
+    dbfields.put("data", 1)
+    dbfields
+  }
+
+  /**
+   * Ensure that "format" is always added and never removed
+   * @param json
+   * @return
+   */
   def processJson(json: JsObject): JsObject = {
 
-    def addToJson(key: String, acc: JsObject): JsObject = if (jsfields.contains(key)) {
+    def addToJson(key: String, acc: JsObject): JsObject = if ((Seq("format") ++ jsfields).contains(key)) {
       acc ++ Json.obj(key -> (json \ key))
     } else {
       acc
     }
 
-    def removeFromJson(key: String, acc: JsObject): JsObject = if (jsfields.contains(key)) {
+    def removeFromJson(key: String, acc: JsObject): JsObject = if ((jsfields diff "format").contains(key)) {
       acc - key
     } else {
       acc

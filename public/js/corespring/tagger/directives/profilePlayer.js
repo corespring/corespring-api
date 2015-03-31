@@ -14,8 +14,6 @@ angular.module('tagger')
       scope.$watch("itemId", function (val) {
         if (!val) return;
 
-
-
         var options = {
           itemId: attrs.itemId,
           mode: "preview",
@@ -26,7 +24,6 @@ angular.module('tagger')
         var onError = function (err) {
           throw "Error loading test player: " + err.msg;
         };
-
 
         var onLoad = function () {
           scope.onItemLoad();

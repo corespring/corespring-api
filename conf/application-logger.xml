@@ -57,6 +57,7 @@
     <logger name="org.corespring.qtiToV2.ItemTransformer" level="TRACE"/>
     <logger name="SalatVersioningDao" level="WARN"/>
     <logger name="v2player.test" level="TRACE"/>
+    <logger name="ItemApi" level="TRACE"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

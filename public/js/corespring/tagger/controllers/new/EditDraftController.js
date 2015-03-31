@@ -43,6 +43,44 @@ function EditDraftController(
 
   $scope.draftId = $routeParams.draftId;
 
+
+
+  $scope.clone = function () {
+
+    $scope.$emit('clone-item', $scope.itemId, {
+      onStart: function(){
+        $scope.showProgressModal = true;
+      },
+      onComplete: function(err, result){
+        $scope.showProgressModal = false;
+
+        if(err){
+
+        } else {
+          
+        }
+      }
+    });
+    $scope.showProgressModal = true;
+
+    $scope.item.clone(function onCloneSuccess(data) {
+      $scope.showProgressModal = false;
+      $location.path('/edit/' + data.id);
+    }, function onError(error) {
+      $scope.showProgressModal = false;
+      alert("Error cloning item: " + JSON.stringify(error));
+    });
+  };
+
+  $scope.goLive = function(){
+    $scope.$emit('goLiveRequested', $scope.item);
+  };
+
+  $scope.commit = function(){
+    //Commit the draft
+  };
+
+
   //$scope.version = ($scope.itemId.indexOf(':') !== -1) ? $scope.itemId.split(':')[1] : '0';
 
   $scope.clone = function () {

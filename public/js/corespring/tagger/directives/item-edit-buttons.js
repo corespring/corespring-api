@@ -59,8 +59,21 @@ angular.module('tagger')
 
       $scope.$watch('item', updateFlags);
 
-      $scope.callEditDraft = function(){
-        $scope.$eval($scope.editDraft)($scope.draft);
+      $scope.edit = function(){
+
+        if(!$scope.item || !$scope.item.format ){
+          return;
+        } 
+
+        if($scope.item.readOnly){
+          return;
+        }
+
+        if($scope.item.format.apiVersion === 1){
+          $scope.editItem($scope.item);
+        } else if($scope.item.format.apiVersion === 2){
+          $scope.editDraft($scope.item);
+        }
       };
 
     }
@@ -75,20 +88,20 @@ angular.module('tagger')
         org: '=',
         item: '=',
         editItem: '&',
-        editDraft: '@',
+        editDraft: '&',
         goLive: '&',
         makeADraft: '&',
         cloneItem: '&'
       }, 
       template: [
       '<div>',
+      '  <div>Format: {{item.format.apiVersion}}</div>',
       '  <div class="draft-buttons" ng-switch on="draftStatus">',
       '    <div ng-switch-when="draftExists">',
       '      <i class="icon icon-lock"></i>',
       '      <span>Draft owner: {{draft.orgId}}</span>',
       '    </div>',
-      '    <button ng-switch-when="canMakeDraft" ng-click="makeADraft(item)" class="btn btn-sm">Make a Draft</button>',
-      '    <button ng-switch-when="ownsDraft" ng-click="callEditDraft()" class="btn btn-sm">Edit Draft</button>',
+      '    <button ng-disabled="item.readOnly" ng-click="edit()" class="btn btn-sm">Edit</button>',
       '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
       '  </div>',
       '  <button ng-click="cloneItem(item)" ng-show"canClone" class="btn btn-sm">Clone</button>',

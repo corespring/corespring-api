@@ -37,6 +37,7 @@ object ItemView {
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> Json.toJson(item.id))),
+        Some("format" -> Json.obj("apiVersion" -> item.createdByApiVersion, "hasQti" -> item.hasQti, "hasPlayerDefinition" -> item.hasPlayerDefinition)),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
         item.collectionId.map(collectionId -> JsString(_)),

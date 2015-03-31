@@ -115,27 +115,16 @@
       $scope.showConfirmDestroyModal = false;
     };
 
-    $scope.makeADraft = function(item){
-
-      CmsService.itemFormat('item', item.id, function(format) {
-
-        if(format.apiVersion !== 2){
-          alert('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
-          return;
-        }
-
-        item.createUserDraft(function(draft){
-          console.debug('draft', draft);
-          goToEditDraft(draft.id, item);
-          }, function error(err){
-          alert('error making a draft' + JSON.stringify(err));
-        });
+    $scope.editDraft  = function(item){
+      var draft = _.find($scope.orgDrafts, function(d){
+        return d.itemId === item.id;
       });
 
-    };
-
-    $scope.editDraft  = function(draft){
-      goToEditDraft(draft.id);
+      if(draft){
+        goToEditDraft(draft.id);
+      } else {
+        $scope.makeADraft(item);
+      }
     };
 
     $scope.deleteDraft = function(draft){
