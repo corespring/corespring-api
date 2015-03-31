@@ -53,7 +53,7 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, String, Int, 
     Success()
   }
 
-  override protected def saveDraftSrcAsNewVersion(d: SimpleDraft): Validation[DraftError, SimpleCommit] = {
+  override protected def saveDraftBackToSrc(d: SimpleDraft): Validation[DraftError, SimpleCommit] = {
     val versions = data.get(d.id).getOrElse {
       data.put(d.id, Seq.empty)
       data.get(d.id).get

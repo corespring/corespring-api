@@ -67,7 +67,7 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
 /**
  * Checks if there have been any commits with the same src id/version and fails if there have been.
  */
-trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER], CMT <: Commit[SRC_ID, SRC_VERSION, USER]]
+trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER], CMT <: Commit[SRC_ID, SRC_VERSION, USER], IDV <: IdAndVersion[SRC_ID, SRC_VERSION]]
   extends Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD] {
 
   import scalaz.Validation
@@ -91,11 +91,11 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    * Commit the draft, create a commit and store it for future checks.
    */
   private def commitData(d: UD): Validation[DraftError, CMT] = {
-    saveDraftSrcAsNewVersion(d) match {
+    saveDraftBackToSrc(d) match {
       case Failure(err) => Failure(err)
       case Success(commit) => for {
+        _ <- updateDraftSrcId(d, commit.committedId)
         _ <- saveCommit(commit)
-        _ <- deleteDraft(d)
       } yield commit
     }
   }
@@ -119,6 +119,13 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
     }
   }
 
+  /**
+   * update the draft src id to the new id
+   * @param newSrcId
+   * @return
+   */
+  protected def updateDraftSrcId(d: UD, newSrcId: IDV): Validation[DraftError, Unit]
+
   /** Check that the user may create the draft for the given src id */
   protected def userCanCreateDraft(id: SRC_ID, user: USER): Boolean
 
@@ -132,7 +139,7 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   protected def deleteDraft(d: UD): Validation[DraftError, Unit]
 
-  protected def saveDraftSrcAsNewVersion(d: UD): Validation[DraftError, CMT]
+  protected def saveDraftBackToSrc(d: UD): Validation[DraftError, CMT]
 
   protected def findLatestSrc(id: SRC_ID): Option[SRC]
 

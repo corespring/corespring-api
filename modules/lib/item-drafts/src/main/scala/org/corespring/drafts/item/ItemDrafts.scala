@@ -2,7 +2,7 @@ package org.corespring.drafts.item
 
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
-import org.corespring.drafts.item.models.{ ItemCommit, ItemDraft, ItemSrc, OrgAndUser }
+import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate, IdAndVersion }
 import org.corespring.platform.core.models.item.Item
@@ -16,7 +16,7 @@ import scalaz.{ Failure, Success, Validation }
  * An implementation of <DraftsWithCommitAndCreate> for <Item> backed by some mongo services.
  */
 trait ItemDrafts
-  extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, OrgAndUser, ItemDraft, ItemCommit] {
+  extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, OrgAndUser, ItemDraft, ItemCommit, ObjectIdAndVersion] {
 
   protected val logger = Logger("org.corespring.drafts.item.ItemDrafts")
 
@@ -91,8 +91,24 @@ trait ItemDrafts
     }
   }
 
-  override protected def saveDraftSrcAsNewVersion(d: ItemDraft): Validation[DraftError, ItemCommit] = {
-    itemService.save(d.src.data.copy(id = d.src.data.id.copy(version = None)), true) match {
+  override protected def updateDraftSrcId(d: ItemDraft, newSrcId: ObjectIdAndVersion): Validation[DraftError, Unit] = {
+    val newId = new VersionedId(newSrcId.id, Some(newSrcId.version))
+    val update = d.copy(src = d.src.copy(data = d.src.data.copy(id = newId), id = newSrcId))
+
+    val result = draftService.save(update)
+
+    if (result.getLastError.ok) {
+      Success(Unit)
+    } else {
+      Failure(SaveDraftFailed(d.id.toString))
+    }
+  }
+
+  override protected def saveDraftBackToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
+
+    val saveNewVersion = itemService.isPublished(d.src.data.id)
+
+    itemService.save(d.src.data.copy(id = d.src.data.id.copy(version = None)), saveNewVersion) match {
       case Left(err) => Failure(SaveDataFailed(err))
       case Right(vid) => Success(ItemCommit(d.src.data.id, vid, d.user))
     }

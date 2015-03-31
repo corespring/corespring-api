@@ -29,5 +29,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def collection: MongoCollection
 
-  def currentVersion(id:VersionedId[ObjectId]) : Long
+  def currentVersion(id: VersionedId[ObjectId]): Long
+
+  def isPublished(id: VersionedId[ObjectId]): Boolean
 }

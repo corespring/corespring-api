@@ -150,20 +150,39 @@ class ItemDraftsTest extends Specification with Mockito {
         }
       }
 
-      "not allow ed to save gwen's commit" in new scp {
-        drafts.commit(ed)(gwensDraft) must_== Failure(UserCantCommit(ed, gwen))
+      "not delete the draft" in new scp {
+        drafts.commit(gwen)(gwensDraft, false)
+        there was no(drafts.draftService).remove(gwensDraft)
       }
 
-      "allow gwen to save gwen's commit" in new scp {
-        drafts.commit(gwen)(gwensDraft) match {
-          case Success(ItemCommit(srcId, newId, user, _)) => {
-            srcId must_== item.id
-            user must_== gwen
-            there was one(drafts.assets).copyDraftToItem(gwensDraft.id, item.id)
-            there was one(drafts.assets).deleteDraft(gwensDraft.id)
-            there was one(drafts.itemService).save(item.copy(id = item.id.copy(version = None)), true)
+      "when the item is published" should {
+
+        "save commit to a new version" in new scp {
+
+          //TODO: drafts.commit(gwen)(gwens)
+        }
+
+        "update the draft to target the new version" in {
+
+        }
+      }
+
+      "when 2 users are trying to commit" should {
+
+        "not allow ed to save gwen's commit" in new scp {
+          drafts.commit(ed)(gwensDraft) must_== Failure(UserCantCommit(ed, gwen))
+        }
+
+        "allow gwen to save gwen's commit" in new scp {
+          drafts.commit(gwen)(gwensDraft) match {
+            case Success(ItemCommit(srcId, newId, user, _)) => {
+              srcId must_== item.id
+              user must_== gwen
+              there was one(drafts.assets).copyDraftToItem(gwensDraft.id, item.id)
+              there was one(drafts.itemService).save(item.copy(id = item.id.copy(version = None)), true)
+            }
+            case _ => failure("should have got an item commit")
           }
-          case _ => failure("should have got an item commit")
         }
       }
     }

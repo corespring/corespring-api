@@ -15,6 +15,7 @@ case class CommitsWithSameSrc[ID, VERSION, USER](commits: Seq[Commit[ID, VERSION
   extends DraftError("There are existing data items that come from the same src")
 
 case object SaveCommitFailed extends CommitError("Save commit failed")
+case class SaveDraftFailed(id: String) extends CommitError(s"Save draft: $id failed")
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")
 case class DeleteAssetsFailed(path: String) extends DraftError(s"An error occurred deleting assets: $path")

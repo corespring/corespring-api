@@ -87,7 +87,7 @@ class ItemServiceWired(
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
-  override def currentVersion(id:VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
+  override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
 
@@ -171,6 +171,10 @@ class ItemServiceWired(
 
   def bucket: String = AppConfig.assetsBucket
 
+  override def isPublished(vid: VersionedId[casbah.Imports.ObjectId]): Boolean = {
+    val dbo = vidToDbo(vid) ++ MongoDBObject("published" -> true)
+    count(dbo) == 1
+  }
 }
 
 object ItemVersioningDao extends SalatVersioningDao[Item] {
