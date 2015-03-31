@@ -158,7 +158,7 @@ angular.module('tagger.services')
       this.deleteDraft = function(id, onSuccess, onError){
         var url = '/api/v2/items/drafts/' + id;
 
-        $http.delete(url)
+        $http['delete'](url)
           .success(onSuccess)
           .error(onError);
       };

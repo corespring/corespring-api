@@ -38,7 +38,7 @@ angular.module('tagger')
         $scope.deleteLabel = $scope.draftStatus === 'ownsDraft' ? 'Delete Draft' : 'Delete Item';
       }
 
-      $scope.delete = function(){
+      $scope['delete'] = function(){
         if($scope.draftStatus === 'ownsDraft'){
           $scope.$eval($scope.deleteDraft)($scope.draft);
         } else {
