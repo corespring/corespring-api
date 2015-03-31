@@ -10,6 +10,7 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.drafts.item.json.ItemDraftJson
+import org.corespring.v2.auth.services.OrgService
 import play.api.Logger
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.json.Json
@@ -81,6 +82,8 @@ trait Cms extends Controller {
       "apiVersion" -> i.createdByApiVersion)
   }
 
+  def orgService : OrgService
+
   def getDraftFormat(id: String) = Action.async { implicit request =>
 
     def objectId = try {
@@ -91,11 +94,13 @@ trait Cms extends Controller {
         None
       }
     }
+    //TODO: UT
     Future {
       {
         for {
           user <- identifyUser(request)
-          orgAndUser <- Some(OrgAndUser(SimpleOrg(user.org.orgId, "userOrg"), Some(SimpleUser.fromUser(user))))
+          o <- orgService.org(user.org.orgId)
+          orgAndUser <- Some(OrgAndUser(SimpleOrg(o.id, o.name), Some(SimpleUser.fromUser(user))))
           draftId <- objectId
           draft <- itemDrafts.load(orgAndUser)(draftId)
         } yield {

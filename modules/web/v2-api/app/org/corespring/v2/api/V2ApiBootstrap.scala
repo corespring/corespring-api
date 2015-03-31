@@ -146,6 +146,8 @@ class V2ApiBootstrap(
     override def identifyUser(rh: RequestHeader): Option[User] = {
       SecureSocial.currentUser(rh).flatMap(identity => User.getUser(identity.identityId))
     }
+
+    override def orgService: OrgService = services.orgService
   }
 
   import org.corespring.v2.api.drafts.item.{ ItemDrafts => ItemDraftsController }

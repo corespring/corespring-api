@@ -30,6 +30,7 @@
 
     var init = function() {
       $scope.userName = UserInfo.userName;
+      $scope.org = UserInfo.org;
       loadDraftsForOrg();
       loadCollections();
       loadContributors();
@@ -317,8 +318,6 @@
     $scope.showGradeLevel = function() {
       return $scope.createGradeLevelString(this.item.gradeLevel);
     };
-
-
   
 
     function goToEditView(item){
@@ -326,7 +325,8 @@
         Logger.debug('itemFormat:', format);
         SearchService.currentItem = item;
         if (format.apiVersion === 2) {
-          $location.url('/edit/' + item.id);
+          $scope.search();
+          Logger.warn('can\'t directly edit a v2 item - you need to create a draft');
         } else {
           $location.url('/old/edit/' + item.id + "?panel=metadata");
         }

@@ -44,7 +44,10 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with
       draftAndIdentity <- loadDraftAndIdentity(draftId)
       draft <- Success(draftAndIdentity._1)
       json <- Success(transform(draft.src.data))
-    } yield json
+    } yield {
+      logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
+      Json.obj("item" -> json)
+    }
   }
 
   override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {

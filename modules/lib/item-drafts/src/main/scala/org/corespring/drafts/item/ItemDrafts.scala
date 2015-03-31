@@ -8,6 +8,7 @@ import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate, IdAndVersion }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }
 
@@ -16,6 +17,8 @@ import scalaz.{ Failure, Success, Validation }
  */
 trait ItemDrafts
   extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, OrgAndUser, ItemDraft, ItemCommit] {
+
+  protected val logger = Logger("org.corespring.drafts.item.ItemDrafts")
 
   def itemService: ItemService
 
@@ -34,8 +37,13 @@ trait ItemDrafts
     draftService.findByIdAndVersion(id.id, version)
   }
 
+  //TODO: UT
   override def load(requester: OrgAndUser)(id: ObjectId): Option[ItemDraft] = {
-    draftService.load(id).filter { d => d.user == requester }
+    logger.debug(s"function=load, id=$id")
+    draftService.load(id).filter { d =>
+      logger.trace(s"function=load, draft.org=${d.user.org}, requester.org=${requester.org}")
+      d.user.org == requester.org
+    }
   }
 
   def collection = draftService.collection

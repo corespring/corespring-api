@@ -86,6 +86,10 @@ angular.module('tagger.services')
           throw new Error('dataType must be either: item or draft');
         }
 
+        onError = onError || function(err){
+          console.warn(err);
+        };
+
         $http.get('/api/v2/cms/'+ dataType +'-format/' + id)
           .success(onSuccess)
           .error(onError);

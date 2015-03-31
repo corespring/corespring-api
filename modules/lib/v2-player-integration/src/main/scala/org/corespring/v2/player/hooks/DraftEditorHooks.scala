@@ -79,7 +79,16 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
     }
   }
 
-  def mkPath(parts: String*) = ("item-drafts" :+ parts).mkString("/")
+  /**
+   * Note: for now it is safe to assume that the asset will be put do and retrieved from the 'data' folder.
+   * Because assets are disabled in supporting materials. When it comes to adding that back in we'll need to
+   * change this. I'm proposing that the client uses the appropriate path, eg: data/img.png supporting-materials/name/img.png
+   * @see PE-98
+   * @param id
+   * @param path
+   * @return
+   */
+  def mkPath(id:String,path:String) = s"item-drafts/$id/data/$path"
 
   override def upload(id: String, path: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[UploadResult]] = {
 

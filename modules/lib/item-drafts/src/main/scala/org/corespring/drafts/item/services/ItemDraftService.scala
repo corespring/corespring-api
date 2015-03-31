@@ -8,6 +8,8 @@ import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser }
 
 trait ItemDraftService {
 
+  protected val userOrgId : String = "user.org._id"
+
   def collection: MongoCollection
 
   import com.novus.salat.grater
@@ -33,7 +35,7 @@ trait ItemDraftService {
     })
   }
 
-  def owns(user: OrgAndUser, id: ObjectId) = collection.count(MongoDBObject("_id" -> id, "user.org.id" -> user.org.id)) == 1
+  def owns(user: OrgAndUser, id: ObjectId) = collection.count(MongoDBObject("_id" -> id, userOrgId -> user.org.id)) == 1
 
   def remove(d: ItemDraft): Boolean = {
     val result = collection.remove(MongoDBObject("_id" -> d.id))
@@ -47,9 +49,10 @@ trait ItemDraftService {
       .map(toDraft)
   }
 
-  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject("user.orgId" -> orgId)).toSeq.map(toDraft)
+  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject( userOrgId -> orgId)).toSeq.map(toDraft)
+
 
   def removeDraftByIdAndUser(id: ObjectId, user: OrgAndUser) = {
-    collection.remove(MongoDBObject("_id" -> id, "user.org.id" -> user.org.id))
+    collection.remove(MongoDBObject("_id" -> id, userOrgId -> user.org.id))
   }
 }

@@ -16,25 +16,29 @@ angular.module('tagger')
         }
 
         if($scope.draft && !$scope.item.readOnly){
-          if($scope.draft.user === $scope.userName){
+          if($scope.org && $scope.draft.orgId === $scope.org.id){
             $scope.draftStatus = 'ownsDraft';
           } else {
             $scope.draftStatus = 'draftExists';
           }
         }
       }
+      
+      function isReadOnly(){
+        return $scope.item && $scope.item.readOnly;
+      }
 
-      function isNotReadOnlyAndTheresNoDrafts(){
-        if($scope.item.readOnly){
-          return false;
-        } else {
-          return $scope.draftStatus === 'noDraft'  || $scope.draftStatus === 'canMakeDraft';
-        }
+      function isPublished(){
+        return $scope.item && $scope.item.published;
+      }
+
+      function hasDraft(){
+        return $scope.draftStatus === 'noDraft'  || $scope.draftStatus === 'canMakeDraft';
       }
 
       function updateFlags(){
         updateDraftStatus();
-        $scope.canGoLive = isNotReadOnlyAndTheresNoDrafts();
+        $scope.canGoLive = !isReadOnly() && !isPublished() && !hasDraft();
         $scope.canClone = !$scope.item.readOnly; 
       }
 
@@ -45,6 +49,12 @@ angular.module('tagger')
           return d.itemId == $scope.item.id;
         });
         updateFlags();
+      });
+
+      $scope.$watch('org', function(o){
+        if(o){
+          updateFlags();
+        }
       });
 
       $scope.$watch('item', updateFlags);
@@ -62,6 +72,7 @@ angular.module('tagger')
       scope: {
         userName: '=',
         orgDrafts: '=',
+        org: '=',
         item: '=',
         editItem: '&',
         editDraft: '@',
@@ -74,7 +85,7 @@ angular.module('tagger')
       '  <div class="draft-buttons" ng-switch on="draftStatus">',
       '    <div ng-switch-when="draftExists">',
       '      <i class="icon icon-lock"></i>',
-      '      <span>Draft owner: {{draft.user}}</span>',
+      '      <span>Draft owner: {{draft.orgId}}</span>',
       '    </div>',
       '    <button ng-switch-when="canMakeDraft" ng-click="makeADraft(item)" class="btn btn-sm">Make a Draft</button>',
       '    <button ng-switch-when="ownsDraft" ng-click="callEditDraft()" class="btn btn-sm">Edit Draft</button>',

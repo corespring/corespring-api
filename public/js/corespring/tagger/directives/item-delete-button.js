@@ -16,7 +16,7 @@ angular.module('tagger')
         }
 
         if($scope.draft && !$scope.item.readOnly){
-          if($scope.draft.user === $scope.userName){
+          if($scope.org && $scope.draft.orgId === $scope.org.id){
             $scope.draftStatus = 'ownsDraft';
           } else {
             $scope.draftStatus = 'draftExists';
@@ -65,6 +65,7 @@ angular.module('tagger')
       replace: true,
       scope: {
         userName: '=',
+        org: '=',
         orgDrafts: '=',
         item: '=',
         deleteItem: '&',
