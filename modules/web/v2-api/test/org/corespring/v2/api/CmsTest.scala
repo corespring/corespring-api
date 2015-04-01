@@ -11,6 +11,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.v2.auth.services.OrgService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -32,6 +33,8 @@ class CmsTest extends Specification with Mockito with PlaySpecification {
     override def v1ApiCreate: (Request[AnyContent]) => Future[SimpleResult] = ???
 
     override def itemDrafts: ItemDrafts = ???
+
+    override def orgService: OrgService = ???
   }
 
   "Cms" should {

@@ -5,12 +5,13 @@ import org.joda.time.DateTime
 
 import scalaz.{ Success, Failure }
 
-trait HasVid[VID] {
-  def id: VID
-}
-
 /** The data src for the draft and it's id/version */
 trait Src[VID, DATA] {
+
+  protected trait HasVid[VID] {
+    def id: VID
+  }
+
   def data: DATA
   protected def dataWithVid: HasVid[VID]
   def id[VID] = dataWithVid.id

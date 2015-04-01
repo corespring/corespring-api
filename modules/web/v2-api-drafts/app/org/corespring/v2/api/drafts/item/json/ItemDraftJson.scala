@@ -20,7 +20,7 @@ object ItemDraftJson {
   def simple(d: ItemDraft): JsValue = {
     Json.obj(
       "id" -> d.id.toString,
-      "itemId" -> s"${new VersionedId(d.src.id.id, Some(d.src.id.version)).toString}",
+      "itemId" -> s"${d.src.id.toString}",
       "orgId" -> d.user.org.id.toString,
       "created" -> timeJson(d.created),
       "expires" -> timeJson(d.expires)) ++

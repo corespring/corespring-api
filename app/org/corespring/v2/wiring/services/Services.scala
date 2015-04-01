@@ -17,6 +17,7 @@ import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiCli
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.V2ApiServices
 import org.corespring.v2.auth._
@@ -59,8 +60,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
     override def commitService: CommitService = Services.this.itemCommitService
 
-    override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = {
-      itemService.collection.findOne(MongoDBObject("_id._id" -> id), MongoDBObject("collectionId" -> 1)).map { dbo =>
+    override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = {
+      itemService.collection.findOne(MongoDBObject("_id._id" -> id.id), MongoDBObject("collectionId" -> 1)).map { dbo =>
         try {
           val collectionId = dbo.get("collectionId").asInstanceOf[String]
           Organization.canAccessCollection(user.org.id, new ObjectId(collectionId), Permission.Write)
