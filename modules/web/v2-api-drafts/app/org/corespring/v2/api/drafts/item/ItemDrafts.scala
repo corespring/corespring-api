@@ -57,7 +57,7 @@ trait ItemDrafts extends Controller {
       for {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        draft <- drafts.create(vid.id, user, expires).toSuccess(draftCreationFailed(itemId))
+        draft <- drafts.create(vid, user, expires).toSuccess(draftCreationFailed(itemId))
       } yield ItemDraftJson.simple(draft)
     }
   }

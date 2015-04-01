@@ -19,10 +19,10 @@ class ItemViewTest extends Specification {
 
       case class writeScope(sf: Option[SearchFields] = None) extends Scope {
         val item = Item(taskInfo = Some(TaskInfo(title = Some("Hi"))))
-        val rawJson: JsObject = ItemFormat.writes(item).asInstanceOf[JsObject]
+        val rawJson: JsObject = ItemFormat.writes(item).asInstanceOf[JsObject] - "format"
         import ItemView._
         val itemView = ContentView[Item](item, searchFields = sf)
-        val result = ItemView.Writes.writes(itemView)
+        val result = ItemView.Writes.writes(itemView).as[JsObject] - "format"
       }
 
       "will not strip anything if searchFields is None" in new writeScope {

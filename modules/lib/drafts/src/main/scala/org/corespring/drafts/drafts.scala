@@ -5,38 +5,38 @@ import org.joda.time.DateTime
 
 import scalaz.{ Success, Failure }
 
-trait IdAndVersion[ID, VERSION] {
-  def id: ID
-  def version: VERSION
+trait HasVid[VID] {
+  def id: VID
 }
 
 /** The data src for the draft and it's id/version */
-trait Src[DATA, ID, VERSION] {
+trait Src[VID, DATA] {
   def data: DATA
-  def id: IdAndVersion[ID, VERSION]
+  protected def dataWithVid: HasVid[VID]
+  def id[VID] = dataWithVid.id
 }
 
-trait Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA] {
+trait Draft[ID, VID, SRC_DATA] {
   def id: ID
-  def src: Src[SRC_DATA, SRC_ID, SRC_VERSION]
+  def src: Src[VID, SRC_DATA]
   /** update the data in the draft */
-  def update(data: SRC_DATA): Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA]
+  def update(data: SRC_DATA): Draft[ID, VID, SRC_DATA]
   def created: DateTime //= DateTime.now
   def expires: DateTime
 }
 
 /** a draft created by a user */
-trait UserDraft[ID, SRC_ID, SRC_VERSION, SRC_DATA, USER]
-  extends Draft[ID, SRC_ID, SRC_VERSION, SRC_DATA] {
+trait UserDraft[ID, VID, SRC_DATA, USER]
+  extends Draft[ID, VID, SRC_DATA] {
   def user: USER
 }
 
 /** A record of a draft that was committed as data */
-trait Commit[ID, VERSION, USER] {
+trait Commit[VID, USER] {
   /** The id and version used as the src for the draft */
-  def srcId: IdAndVersion[ID, VERSION]
+  def srcId: VID
   /** The id and version that the commit went to. */
-  def committedId: IdAndVersion[ID, VERSION]
+  def committedId: VID
   /** When */
   def date: DateTime
   /** By who */
@@ -46,18 +46,18 @@ trait Commit[ID, VERSION, USER] {
 /**
  * Operations you can perform on drafts
  */
-trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER]] {
+trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER]] {
 
   import scalaz.Validation
   /**
    * Creates a draft for the target data.
    */
-  def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD]
+  def create(id: VID, user: USER, expires: Option[DateTime] = None): Option[UD]
 
   /**
-   * Commit a draft back to the data store
+   * Commit a draft back to the data store.
    */
-  def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, Commit[SRC_ID, SRC_VERSION, USER]]
+  def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, Commit[VID, USER]]
   /** load a draft by its id */
   def load(requester: USER)(id: ID): Option[UD]
   /** save a draft */
@@ -67,8 +67,8 @@ trait Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC
 /**
  * Checks if there have been any commits with the same src id/version and fails if there have been.
  */
-trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDraft[ID, SRC_ID, SRC_VERSION, SRC, USER], CMT <: Commit[SRC_ID, SRC_VERSION, USER], IDV <: IdAndVersion[SRC_ID, SRC_VERSION]]
-  extends Drafts[ID, SRC_ID, SRC_VERSION, SRC, USER, UD] {
+trait DraftsWithCommitAndCreate[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER]]
+  extends Drafts[ID, VID, SRC, USER, UD] {
 
   import scalaz.Validation
 
@@ -104,7 +104,7 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    * Creates a draft for the target data.
    * //TODO: add expires
    */
-  override def create(id: SRC_ID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
+  override def create(id: VID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
     if (userCanCreateDraft(id, user)) {
       findLatestSrc(id).flatMap { src =>
         val result = for {
@@ -124,16 +124,16 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
    * @param newSrcId
    * @return
    */
-  protected def updateDraftSrcId(d: UD, newSrcId: IDV): Validation[DraftError, Unit]
+  protected def updateDraftSrcId(d: UD, newSrcId: VID): Validation[DraftError, Unit]
 
   /** Check that the user may create the draft for the given src id */
-  protected def userCanCreateDraft(id: SRC_ID, user: USER): Boolean
+  protected def userCanCreateDraft(id: VID, user: USER): Boolean
 
   /**
    * Load commits that have used the same srcId
    * @return
    */
-  protected def loadCommits(idAndVersion: IdAndVersion[SRC_ID, SRC_VERSION]): Seq[Commit[SRC_ID, SRC_VERSION, USER]]
+  protected def loadCommits(idAndVersion: VID): Seq[Commit[VID, USER]]
 
   protected def saveCommit(c: CMT): Validation[CommitError, Unit]
 
@@ -141,8 +141,8 @@ trait DraftsWithCommitAndCreate[ID, SRC_ID, SRC_VERSION, SRC, USER, UD <: UserDr
 
   protected def saveDraftBackToSrc(d: UD): Validation[DraftError, CMT]
 
-  protected def findLatestSrc(id: SRC_ID): Option[SRC]
+  protected def findLatestSrc(id: VID): Option[SRC]
 
-  protected def mkDraft(srcId: SRC_ID, src: SRC, user: USER): Validation[DraftError, UD]
+  protected def mkDraft(srcId: VID, src: SRC, user: USER): Validation[DraftError, UD]
 }
 

@@ -14,7 +14,7 @@ class DraftTest extends Specification {
     "when creating a draft" should {
       val drafts = new SimpleStringDrafts()
       drafts.addData("1", "initial data")
-      val draft = drafts.create("1", "Ed")
+      val draft = drafts.create(IdVersion("1", 0), "Ed")
       "set the data" in draft.get.src.data === "initial data"
       "set the user" in draft.get.user === "Ed"
       "set the id" in draft.get.id === "0"
@@ -24,7 +24,7 @@ class DraftTest extends Specification {
     "when committing a draft" should {
       val drafts = new SimpleStringDrafts()
       drafts.addData("1", "initial data")
-      val draft = drafts.create("1", "Ed").get
+      val draft = drafts.create(IdVersion("1", 0), "Ed").get
       val update = draft.update("update:1")
       val result = drafts.commit("Ed")(update)
       "result is ok" in result.isSuccess
@@ -41,8 +41,8 @@ class DraftTest extends Specification {
       val drafts = new SimpleStringDrafts()
       drafts.addData("1", "initial data")
 
-      val eds = drafts.create("1", "Ed").get
-      val gwens = drafts.create("1", "Gwen").get
+      val eds = drafts.create(IdVersion("1", 0), "Ed").get
+      val gwens = drafts.create(IdVersion("1", 0), "Gwen").get
       val edsUpdate = eds.update("ed's update")
       val gwensUpdate = gwens.update("gwen's update")
       val edsCommit = drafts.commit("Ed")(edsUpdate)
@@ -67,7 +67,7 @@ class DraftTest extends Specification {
       val drafts = new SimpleStringDrafts()
       drafts.addData("1", "initial data")
 
-      val eds = drafts.create("1", "Ed").get
+      val eds = drafts.create(IdVersion("1", 0), "Ed").get
       val gwensCommit = drafts.commit("Gwen")(eds)
 
       "gwens commit is not ok" in gwensCommit.isFailure === true

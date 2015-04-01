@@ -11,7 +11,7 @@ case object DeleteFailed extends DraftError("Deletion failed")
 
 case class DeleteDraftFailed[ID](id: ID) extends DraftError(s"couldn't delete draft with id: ${id.toString}")
 
-case class CommitsWithSameSrc[ID, VERSION, USER](commits: Seq[Commit[ID, VERSION, USER]])
+case class CommitsWithSameSrc[IDV, USER](commits: Seq[Commit[IDV, USER]])
   extends DraftError("There are existing data items that come from the same src")
 
 case object SaveCommitFailed extends CommitError("Save commit failed")

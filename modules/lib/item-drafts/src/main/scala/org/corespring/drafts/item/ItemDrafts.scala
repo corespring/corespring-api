@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate, IdAndVersion }
+import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -16,7 +16,7 @@ import scalaz.{ Failure, Success, Validation }
  * An implementation of <DraftsWithCommitAndCreate> for <Item> backed by some mongo services.
  */
 trait ItemDrafts
-  extends DraftsWithCommitAndCreate[ObjectId, ObjectId, Long, Item, OrgAndUser, ItemDraft, ItemCommit, ObjectIdAndVersion] {
+  extends DraftsWithCommitAndCreate[ObjectId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
 
   protected val logger = Logger("org.corespring.drafts.item.ItemDrafts")
 
@@ -27,8 +27,6 @@ trait ItemDrafts
   def commitService: CommitService
 
   def assets: ItemDraftAssets
-
-  import Helpers._
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
@@ -71,8 +69,9 @@ trait ItemDrafts
     } yield draftId
   }
 
-  override def loadCommits(idAndVersion: IdAndVersion[ObjectId, Long]): Seq[Commit[ObjectId, Long, OrgAndUser]] = {
-    commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version)
+  override protected def loadCommits(idAndVersion: VersionedId[ObjectId]): Seq[ItemCommit] = {
+    require(idAndVersion.version.isDefined, "version must be defined")
+    commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version.get)
   }
 
   override def commit(requester: OrgAndUser)(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
@@ -91,16 +90,25 @@ trait ItemDrafts
     }
   }
 
-  override protected def updateDraftSrcId(d: ItemDraft, newSrcId: ObjectIdAndVersion): Validation[DraftError, Unit] = {
-    val newId = new VersionedId(newSrcId.id, Some(newSrcId.version))
-    val update = d.copy(src = d.src.copy(data = d.src.data.copy(id = newId), id = newSrcId))
+  /**
+   * update the draft src id to the new id
+   * @param newSrcId
+   * @return
+   */
+  override protected def updateDraftSrcId(d: ItemDraft, newSrcId: VersionedId[ObjectId]): Validation[DraftError, Unit] = {
 
-    val result = draftService.save(update)
-
-    if (result.getLastError.ok) {
+    if (d.src.id == newSrcId) {
       Success(Unit)
     } else {
-      Failure(SaveDraftFailed(d.id.toString))
+      val update = d.copy(src = d.src.copy(data = d.src.data.copy(id = newSrcId)))
+
+      val result = draftService.save(update)
+
+      if (result.getLastError.ok) {
+        Success(Unit)
+      } else {
+        Failure(SaveDraftFailed(d.id.toString))
+      }
     }
   }
 
@@ -108,17 +116,23 @@ trait ItemDrafts
 
     val saveNewVersion = itemService.isPublished(d.src.data.id)
 
-    itemService.save(d.src.data.copy(id = d.src.data.id.copy(version = None)), saveNewVersion) match {
+    val noVersionId: VersionedId[ObjectId] = d.src.data.id.copy(version = None)
+    /**
+     * Note: we remove the version because we want to save this as the latest version of the item.
+     * If we kept the version and it had been bumped - save would fail.
+     */
+    val itemWithVersionRemoved = d.src.data.copy(id = noVersionId)
+    itemService.save(itemWithVersionRemoved, saveNewVersion) match {
       case Left(err) => Failure(SaveDataFailed(err))
       case Right(vid) => Success(ItemCommit(d.src.data.id, vid, d.user))
     }
   }
 
-  override protected def findLatestSrc(id: ObjectId): Option[Item] = itemService.findOneById(VersionedId(id, None))
+  override protected def findLatestSrc(id: VersionedId[ObjectId]): Option[Item] = itemService.findOneById(id.copy(version = None))
 
-  override protected def mkDraft(srcId: ObjectId, src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
+  override protected def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
     assets.copyItemToDraft(src.id, ObjectId.get).map { oid =>
-      ItemDraft(oid, ItemSrc(src, src.id), user)
+      ItemDraft(oid, ItemSrc(src), user)
     }
   }
 

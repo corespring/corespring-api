@@ -25,23 +25,27 @@ class ItemDraftsTest extends Specification with Mockito {
 
     override def commitService: CommitService = ???
 
-    /** Check that the user may create the draft for the given src id */
-    override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = ???
+    override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
+
+  }
+
+  trait OrgsAndItems extends Scope {
+
+    val itemId = VersionedId(ObjectId.get, Some(0))
+    val ed = OrgAndUser(SimpleOrg(ObjectId.get, "ed-org"), None)
+    val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
+    val item = Item(id = itemId)
   }
 
   "ItemDrafts" should {
 
-    val ed = OrgAndUser(SimpleOrg(ObjectId.get, "ed-org"), None)
-    val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
-    val item = Item(id = VersionedId(ObjectId.get, Some(0)))
-
     "when creating" should {
 
-      class scp(canCreate: Boolean) extends Scope {
-        val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item, ObjectIdAndVersion(item.id.id, 0)), gwen)
+      class scp(canCreate: Boolean) extends OrgsAndItems {
+        val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item), gwen)
         lazy val drafts = new TestDrafts {
 
-          override def userCanCreateDraft(id: ObjectId, user: OrgAndUser) = canCreate
+          override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = canCreate
 
           override val itemService: ItemService = {
             mock[ItemService].findOneById(any[VersionedId[ObjectId]]) returns Some(item)
@@ -60,21 +64,26 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return error if create" in new scp(false) {
-        drafts.create(ObjectId.get, ed) must_== None
+        drafts.create(VersionedId(ObjectId.get), ed) must_== None
       }
 
-      "return error if create" in new scp(true) {
-        drafts.create(ObjectId.get, ed) match {
+      "return the item draft" in new scp(true) {
+        drafts.create(VersionedId(ObjectId.get), ed) match {
           case Some(ItemDraft(_, _, _, _, _)) => success
           case _ => failure("should have got an item draft")
         }
+      }
+
+      "always uses the latest version of an item as the src for a draft" in new scp(true) {
+        drafts.create(itemId, ed)
+        there was one(drafts.itemService).findOneById(itemId.copy(version = None))
       }
     }
 
     "when saving" should {
 
-      class scp extends Scope {
-        val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item, ObjectIdAndVersion(item.id.id, 0)), gwen)
+      class scp extends OrgsAndItems {
+        val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item), gwen)
         lazy val drafts = new TestDrafts {
           override def draftService: ItemDraftService = mock[ItemDraftService].save(any[ItemDraft]) returns {
             mock[WriteResult].getLastError.returns(mock[CommandResult].ok returns true)
@@ -93,7 +102,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "when removing a draft" should {
 
-      class scp(n: Int) extends Scope {
+      class scp(n: Int) extends OrgsAndItems {
         val oid = ObjectId.get
         lazy val drafts = new TestDrafts {
           override val draftService: ItemDraftService = mock[ItemDraftService]
@@ -116,8 +125,19 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "when committing" should {
 
-      class scp extends Scope {
-        val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item, ObjectIdAndVersion(item.id.id, 0)), gwen)
+      trait scp extends OrgsAndItems {
+        lazy val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item), gwen)
+        val mockCommitService: CommitService = {
+          val m = mock[CommitService]
+          m.save(any[ItemCommit]).returns(
+            mock[WriteResult].getLastError.returns {
+              mock[CommandResult].ok returns true
+            })
+          m.findByIdAndVersion(any[ObjectId], any[Long]) returns Seq.empty
+        }
+
+        lazy val mockItemService: ItemService = mock[ItemService].save(any[Item], any[Boolean]) returns Right(item.id)
+
         lazy val drafts = new TestDrafts {
           override val draftService: ItemDraftService = {
             val m = mock[ItemDraftService]
@@ -128,16 +148,9 @@ class ItemDraftsTest extends Specification with Mockito {
             }
           }
 
-          override val commitService: CommitService = {
-            val m = mock[CommitService]
-            m.save(any[ItemCommit]).returns(
-              mock[WriteResult].getLastError.returns {
-                mock[CommandResult].ok returns true
-              })
-            m.findByIdAndVersion(any[ObjectId], any[Long]) returns Seq.empty
-          }
+          override val commitService: CommitService = mockCommitService
 
-          override val itemService: ItemService = mock[ItemService].save(any[Item], any[Boolean]) returns Right(item.id)
+          override val itemService: ItemService = mockItemService
 
           override val assets: ItemDraftAssets = {
             val m = mock[ItemDraftAssets]
@@ -155,15 +168,48 @@ class ItemDraftsTest extends Specification with Mockito {
         there was no(drafts.draftService).remove(gwensDraft)
       }
 
-      "when the item is published" should {
+      class publishedScp(isPublished: Boolean) extends scp {
+        override val item = Item(id = itemId, published = true)
+        override lazy val gwensDraft = ItemDraft(ObjectId.get, ItemSrc(item), gwen)
 
-        "save commit to a new version" in new scp {
+        protected def bump(vid: VersionedId[ObjectId]): VersionedId[ObjectId] = vid.copy(version = vid.version.map { n => n + 1 })
 
-          //TODO: drafts.commit(gwen)(gwens)
+        override lazy val mockItemService: ItemService = {
+          val m = mock[ItemService]
+
+          m.isPublished(any[VersionedId[ObjectId]]) returns isPublished
+          m.save(any[Item], any[Boolean]) answers { (obj, mock) =>
+            val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
+            val createNewVersion = arr(1).asInstanceOf[Boolean]
+            Right(
+              if (createNewVersion) bump(itemId) else itemId)
+          }
+        }
+        lazy val commit = drafts.commit(gwen)(gwensDraft).toOption.get
+      }
+
+      "when the item is not published" should {
+        "save commit to the same version" in new publishedScp(false) {
+          commit.srcId must_== item.id
+          commit.committedId must_== item.id
         }
 
-        "update the draft to target the new version" in {
+        "not save the draft with a new id" in new publishedScp(false) {
+          val update = gwensDraft.copy(src = gwensDraft.src.copy(data = gwensDraft.src.data.copy(id = commit.committedId)))
+          there was no(drafts.draftService).save(update)
+        }
+      }
 
+      "when the item is published" should {
+
+        "save commit to a new version" in new publishedScp(true) {
+          commit.srcId must_== item.id
+          commit.committedId must_== bump(item.id)
+        }
+
+        "update the draft to target the new version" in new publishedScp(true) {
+          val update = gwensDraft.copy(src = gwensDraft.src.copy(data = gwensDraft.src.data.copy(id = commit.committedId)))
+          there was one(drafts.draftService).save(update)
         }
       }
 
@@ -179,7 +225,7 @@ class ItemDraftsTest extends Specification with Mockito {
               srcId must_== item.id
               user must_== gwen
               there was one(drafts.assets).copyDraftToItem(gwensDraft.id, item.id)
-              there was one(drafts.itemService).save(item.copy(id = item.id.copy(version = None)), true)
+              there was one(drafts.itemService).save(item.copy(id = item.id.copy(version = None)), false)
             }
             case _ => failure("should have got an item commit")
           }
