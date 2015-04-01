@@ -132,7 +132,7 @@ trait ItemDrafts
 
   override protected def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
     assets.copyItemToDraft(src.id, ObjectId.get).map { oid =>
-      ItemDraft(oid, ItemSrc(src), user)
+      ItemDraft(oid, ItemSrc(src.copy(published = false)), user)
     }
   }
 

@@ -16,12 +16,15 @@ import org.corespring.v2.player.scopes.{ userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
+import play.api.libs.json.Json
 
 import scalaz.{ Success, Failure }
 
 class SimpleDraftTest extends IntegrationSpecification with BeforeExample with Mockito {
 
   lazy val db = Db.salatDb()(Play.current)
+
+  def bump(vid: VersionedId[ObjectId]) = vid.copy(version = vid.version.map(_ + 1))
 
   override protected def before: Any = {
     db("it.drafts.item").drop()
@@ -76,6 +79,12 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
   "SimpleDraftTest" should {
 
+    "a draft item is unpublished" in new orgAndUserAndItem {
+      ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
+      val draft = drafts.create(itemId, orgAndUser).get
+      draft.src.data.published must_== false
+    }
+
     "create a draft of an item" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser)
       draft.flatMap(_.user.user.map(_.id)) === Some(user.id)
@@ -106,7 +115,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       latestItem.get.id.version === Some(0)
     }
 
-    "committing a draft, removes the draft and creates a commit" in new orgAndUserAndItem {
+    "committing a draft, keeps the draft and creates a commit" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "update for committing - 2")
@@ -132,7 +141,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
           val commit = commits(0)
           commit.user === orgAndUser
         }
-        case _ => failure("should have returnd commits with same src")
+        case _ => failure("should have returned commits with same src")
       }
     }
 
@@ -149,5 +158,50 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       }
     }
 
+    "committing a draft to an item that is published" should {
+
+      "add the new version id as the committed id" in new orgAndUserAndItem {
+        val eds = drafts.create(itemId, orgAndUser).get
+        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
+        drafts.commit(orgAndUser)(eds) match {
+          case Success(commit) => {
+            commit.srcId must_== itemId
+            commit.committedId must_== bump(itemId)
+          }
+          case _ => failure("should have been successful committing")
+        }
+
+      }
+
+      "update the src id to the latest id" in new orgAndUserAndItem {
+        val eds = drafts.create(itemId, orgAndUser).get
+        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
+        drafts.commit(orgAndUser)(eds)
+        val dbDraft = drafts.load(orgAndUser)(eds.id).get
+        dbDraft.src.id must_== bump(itemId)
+      }
+    }
+
+    "in a typical workflow" should {
+
+      "after committing to a published item, later commits will target the subsequent version" in new orgAndUserAndItem {
+        val eds = drafts.create(itemId, orgAndUser).get
+        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
+        drafts.commit(orgAndUser)(eds)
+        val newDraft = drafts.load(orgAndUser)(eds.id).get
+
+        newDraft.src.id must_== bump(itemId)
+
+        drafts.commit(orgAndUser)(newDraft) match {
+          case Success(commit) => {
+
+            commit.srcId must_== newDraft.src.id
+            commit.committedId must_== newDraft.src.id
+          }
+          case _ => failure("should have been a successful commit")
+        }
+
+      }
+    }
   }
 }
