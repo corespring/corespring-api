@@ -76,7 +76,7 @@ trait DraftsWithCommitAndCreate[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC
   override def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
 
     if (d.user == requester) {
-      val commits = loadCommits(d.src.id)
+      val commits = loadCommitsNotByDraft(d.id, d.src.id)
 
       if (commits.length > 0 && !force) {
         Failure(CommitsWithSameSrc(commits))
@@ -131,10 +131,10 @@ trait DraftsWithCommitAndCreate[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC
   protected def userCanCreateDraft(id: VID, user: USER): Boolean
 
   /**
-   * Load commits that have used the same srcId
+   * Load commits from other drafts with same srcId.
    * @return
    */
-  protected def loadCommits(idAndVersion: VID): Seq[Commit[VID, USER]]
+  protected def loadCommitsNotByDraft(draftId: ID, idAndVersion: VID): Seq[Commit[VID, USER]]
 
   protected def saveCommit(c: CMT): Validation[CommitError, Unit]
 

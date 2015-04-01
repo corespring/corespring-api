@@ -221,7 +221,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
         "allow gwen to save gwen's commit" in new scp {
           drafts.commit(gwen)(gwensDraft) match {
-            case Success(ItemCommit(srcId, newId, user, _)) => {
+            case Success(ItemCommit(_, srcId, newId, user, _)) => {
               srcId must_== item.id
               user must_== gwen
               there was one(drafts.assets).copyDraftToItem(gwensDraft.id, item.id)

@@ -13,7 +13,7 @@
     Logger,
     CmsService,
     UserInfo,
-    DraftItemService) {
+    ItemDraftService) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -147,7 +147,7 @@
     };
 
     $scope.deleteDraft = function(draft){
-      DraftItemService.deleteDraft(draft.id, function(result){
+      ItemDraftService.deleteDraft(draft.id, function(result){
         console.log('deleting draft, successful');
         $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
           return d.id === draft.id;
@@ -423,7 +423,7 @@
     'Logger',
     'CmsService',
     'UserInfo',
-    'DraftItemService'
+    'ItemDraftService'
   ];
 
   root.tagger = root.tagger || {};

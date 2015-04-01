@@ -142,9 +142,9 @@ angular.module('tagger.services')
     }]);
 
 angular.module('tagger.services')
-  .service('DraftItemService', ['$http', function($http){
+  .service('ItemDraftService', ['$http', function($http){
 
-    function DraftItemService(){
+    function ItemDraftService(){
 
       this.get = function(params, onSuccess, onError){
         
@@ -161,6 +161,13 @@ angular.module('tagger.services')
         $http['delete'](url)
           .success(onSuccess)
           .error(onError);
+      };
+
+      this.commit = function(id, onSuccess, onError){
+      	var url = '/api/v2/items/drafts/' + id + '/commit';
+      	$http.put(url)
+      	  .success(onSuccess)
+      	  .error(onError);
       };
       
       this.createUserDraft = function(itemId, onSuccess, onError){
@@ -182,7 +189,7 @@ angular.module('tagger.services')
 
     }
 
-    return new DraftItemService();
+    return new ItemDraftService();
 
   }]);
 
@@ -192,13 +199,13 @@ angular.module('tagger.services')
       'ServiceLookup', 
       '$http', 
       'V2ItemService',
-      'DraftItemService',
+      'ItemDraftService',
         function (
           $resource, 
           ServiceLookup, 
           $http, 
           V2ItemService,
-          DraftItemService) {
+          ItemDraftService) {
 
     var v2Service = new V2ItemService();
 
@@ -258,7 +265,7 @@ angular.module('tagger.services')
     };
 
     ItemService.prototype.createUserDraft = function(onSuccess, onError){
-      DraftItemService.createUserDraft(this.id, onSuccess, onError);
+      ItemDraftService.createUserDraft(this.id, onSuccess, onError);
     };
 
     ItemService.processor = new com.corespring.model.ItemDataProcessor();

@@ -66,7 +66,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
         val controller = new TestController {
           override def identifyUser(rh: RequestHeader) = user
 
-          override def drafts: item.ItemDrafts = mock[item.ItemDrafts].create(any[ObjectId], any[OrgAndUser], any[Option[DateTime]]) returns createResult
+          override def drafts: item.ItemDrafts = mock[item.ItemDrafts].create(any[VersionedId[ObjectId]], any[OrgAndUser], any[Option[DateTime]]) returns createResult
         }
       }
 
@@ -121,7 +121,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
         contentAsJson(result) must_== generalDraftApiError(SaveCommitFailed.msg).json
       }
 
-      "work if commit is returned" in new scp(Some(user), Some(mockItemDraft), Success(ItemCommit(itemId, itemId, user, DateTime.now))) {
+      "work if commit is returned" in new scp(Some(user), Some(mockItemDraft), Success(ItemCommit(draftId, itemId, itemId, user, DateTime.now))) {
         val result = controller.commit(draftId)(req)
         status(result) must_== OK
       }

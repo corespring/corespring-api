@@ -69,9 +69,9 @@ trait ItemDrafts
     } yield draftId
   }
 
-  override def loadCommits(idAndVersion: VersionedId[ObjectId]): Seq[ItemCommit] = {
+  override def loadCommitsNotByDraft(draftId: ObjectId, idAndVersion: VersionedId[ObjectId]): Seq[ItemCommit] = {
     require(idAndVersion.version.isDefined, "version must be defined")
-    commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version.get)
+    commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version.get).filterNot(_.draftId == draftId)
   }
 
   override def commit(requester: OrgAndUser)(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
@@ -124,7 +124,7 @@ trait ItemDrafts
     val itemWithVersionRemoved = d.src.data.copy(id = noVersionId)
     itemService.save(itemWithVersionRemoved, saveNewVersion) match {
       case Left(err) => Failure(SaveDataFailed(err))
-      case Right(vid) => Success(ItemCommit(d.src.data.id, vid, d.user))
+      case Right(vid) => Success(ItemCommit(d.id, d.src.data.id, vid, d.user))
     }
   }
 

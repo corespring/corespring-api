@@ -48,7 +48,7 @@ class SimpleStringDrafts extends DraftsWithCommitAndCreate[String, IdVersion, St
     data.put(id, Seq(value))
   }
 
-  override protected def loadCommits(idAndVersion: IdVersion): Seq[SimpleCommit] = {
+  override protected def loadCommitsNotByDraft(draftId: String, idAndVersion: IdVersion): Seq[SimpleCommit] = {
     commits.filter(_.srcId == idAndVersion)
   }
 

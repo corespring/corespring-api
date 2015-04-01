@@ -21,7 +21,7 @@ function EditDraftController(
   $scope, 
   $location, 
   $routeParams, 
-  DraftItemService,  
+  ItemDraftService,  
   Logger, 
   ItemSessionCountService) {
 
@@ -43,7 +43,13 @@ function EditDraftController(
 
   $scope.draftId = $routeParams.draftId;
 
-
+  $scope.saveBackToItem = function(){
+  	ItemDraftService.commit($scope.draftId, function success(){
+  		Logger.info('commit successful');
+  	}, function error(err){
+  		Logger.warn(err);
+  	});
+  };
 
   $scope.clone = function () {
 
@@ -106,7 +112,7 @@ function EditDraftController(
   };
 
   $scope.loadDraftItem = function() {
-    DraftItemService.get({id: $routeParams.draftId}, function onItemLoaded(draft) {
+    ItemDraftService.get({id: $routeParams.draftId}, function onItemLoaded(draft) {
       $scope.draft = draft;
       $scope.itemId = draft.itemId;
       $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
@@ -132,7 +138,7 @@ EditDraftController.$inject = [
   '$scope',
   '$location',
   '$routeParams',
-  'DraftItemService',
+  'ItemDraftService',
   'Logger',
   'ItemSessionCountService'
 ];

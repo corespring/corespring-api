@@ -1,6 +1,7 @@
 package org.corespring.drafts
 
 import com.mongodb.casbah.MongoCollection
+import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.CommitsWithSameSrc
@@ -123,10 +124,9 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       drafts.commit(orgAndUser)(update)
       drafts.load(orgAndUser)(update.id) must_!= None
       println(s"load commits for: $itemId")
-      val commits = drafts.loadCommits(itemId)
-      commits.length === 1
-      val commit = commits(0)
-      commit.user.user.map(_.userName) === Some(user.userName)
+      val commits = drafts.loadCommitsNotByDraft(draft.id, itemId)
+      commits.length === 0
+      commitService.collection.count(MongoDBObject("draftId" -> draft.id)) must_== 1
     }
 
     "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
