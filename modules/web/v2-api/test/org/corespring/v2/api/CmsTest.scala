@@ -5,7 +5,6 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.api.v1.{ ItemApi => V1ItemApi }
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.services.ItemDraftService
 import org.corespring.platform.core.models.User
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService

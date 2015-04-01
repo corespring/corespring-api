@@ -5,7 +5,7 @@ import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.CommitsWithSameSrc
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ ObjectIdAndVersion, SimpleOrg, SimpleUser, OrgAndUser }
+import org.corespring.drafts.item.models.{ SimpleOrg, SimpleUser, OrgAndUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.Item
@@ -62,7 +62,8 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     }
 
     /** Check that the user may create the draft for the given src id */
-    override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = true
+    override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
+
   }
 
   trait orgAndUserAndItem extends userAndItem {
@@ -76,17 +77,17 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
   "SimpleDraftTest" should {
 
     "create a draft of an item" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId.id, orgAndUser)
+      val draft = drafts.create(itemId, orgAndUser)
       draft.flatMap(_.user.user.map(_.id)) === Some(user.id)
     }
 
     "load a created draft by its id" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId.id, orgAndUser)
+      val draft = drafts.create(itemId, orgAndUser)
       drafts.load(orgAndUser)(draft.get.id).map(_.id) === draft.map(_.id)
     }
 
     "save a draft" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId.id, orgAndUser).get
+      val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "updated title")
       val update = draft.update(newItem)
@@ -95,32 +96,33 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     }
 
     "commit a draft" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId.id, orgAndUser).get
+      val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "commit a draft")
       val update = draft.update(newItem)
       drafts.commit(orgAndUser)(update)
       val latestItem = ItemHelper.get(item.id.copy(version = None))
       latestItem.get.taskInfo.get.title === Some("commit a draft")
-      latestItem.get.id.version === Some(1)
+      latestItem.get.id.version === Some(0)
     }
 
     "committing a draft, removes the draft and creates a commit" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId.id, orgAndUser).get
+      val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = draft.update(newItem)
       drafts.commit(orgAndUser)(update)
-      drafts.load(orgAndUser)(update.id) === None
-      val commits = drafts.loadCommits(ObjectIdAndVersion(itemId.id, itemId.version.get))
+      drafts.load(orgAndUser)(update.id) must_!= None
+      println(s"load commits for: $itemId")
+      val commits = drafts.loadCommits(itemId)
       commits.length === 1
       val commit = commits(0)
       commit.user.user.map(_.userName) === Some(user.userName)
     }
 
     "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
-      val eds = drafts.create(itemId.id, orgAndUser).get
-      val edsSecondDraft = drafts.create(itemId.id, orgAndUser).get
+      val eds = drafts.create(itemId, orgAndUser).get
+      val edsSecondDraft = drafts.create(itemId, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = eds.update(newItem)
@@ -135,8 +137,8 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     }
 
     "committing a 2nd draft with the same src id/version and force=true succeeds" in new orgAndUserAndItem {
-      val eds = drafts.create(itemId.id, orgAndUser).get
-      val edsSecondDraft = drafts.create(itemId.id, orgAndUser).get
+      val eds = drafts.create(itemId, orgAndUser).get
+      val edsSecondDraft = drafts.create(itemId, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
       val update = eds.update(newItem)

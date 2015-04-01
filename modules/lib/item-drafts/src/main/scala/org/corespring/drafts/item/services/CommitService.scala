@@ -22,7 +22,7 @@ trait CommitService {
   }
 
   def findByIdAndVersion(id: ObjectId, version: Long): Seq[ItemCommit] = {
-    val query = MongoDBObject("srcVid._id" -> id, "srcVid.version" -> version)
+    val query = MongoDBObject("srcId._id" -> id, "srcId.version" -> version)
     collection.find(query).toSeq.map { dbo => toCommit(dbo) }
   }
 

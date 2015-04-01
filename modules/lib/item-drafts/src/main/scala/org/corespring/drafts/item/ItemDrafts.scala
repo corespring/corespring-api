@@ -69,7 +69,7 @@ trait ItemDrafts
     } yield draftId
   }
 
-  override protected def loadCommits(idAndVersion: VersionedId[ObjectId]): Seq[ItemCommit] = {
+  override def loadCommits(idAndVersion: VersionedId[ObjectId]): Seq[ItemCommit] = {
     require(idAndVersion.version.isDefined, "version must be defined")
     commitService.findByIdAndVersion(idAndVersion.id, idAndVersion.version.get)
   }
