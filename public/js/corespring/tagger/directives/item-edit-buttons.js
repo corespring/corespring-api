@@ -33,12 +33,12 @@ angular.module('tagger')
       }
 
       function hasDraft(){
-        return $scope.draftStatus === 'noDraft'  || $scope.draftStatus === 'canMakeDraft';
+        return $scope.draftStatus !== 'noDraft' && $scope.draftStatus !== 'canMakeDraft';
       }
 
       function updateFlags(){
         updateDraftStatus();
-        $scope.canGoLive = !isReadOnly() && !isPublished() && !hasDraft();
+        $scope.canGoLive = !isReadOnly() && (!isPublished() || hasDraft());
         $scope.canClone = !$scope.item.readOnly; 
       }
 

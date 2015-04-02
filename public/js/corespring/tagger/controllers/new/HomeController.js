@@ -88,7 +88,23 @@
     };
 
     $scope.goLive = function(item){
-      $scope.$emit('goLiveRequested',item);
+
+      var draft = _.find($scope.orgDrafts, function(d){
+          return d.itemId == item.id;
+      });
+
+      if(!draft){
+        Logger.warn('can\'t find draft for item: item.id');
+        return;
+      }
+
+      ItemDraftService.goLive(draft.id, 
+        function(result){
+          $scope.search();
+        }, 
+        function(err){
+          Logger.error(err);
+        });
     };
 
     $scope.deleteItem = function(item) {
