@@ -57,7 +57,7 @@ angular.module('tagger')
         }
       });
 
-      $scope.$watch('item', updateFlags);
+      $scope.$watch('item', updateFlags, true);
 
       $scope.edit = function(){
 

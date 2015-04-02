@@ -88,6 +88,14 @@
     };
 
     $scope.goLive = function(item){
+      if(item.format.apiVersion === 2){
+        $scope.publishDraft(item);
+      } else if(item.format.apiVersion === 1){
+        $scope.v1.goLive(item);
+      }
+    };
+    
+    $scope.publishDraft = function(item){
 
       var draft = _.find($scope.orgDrafts, function(d){
           return d.itemId == item.id;
@@ -105,6 +113,33 @@
         function(err){
           Logger.error(err);
         });
+
+    };
+
+
+    $scope.v1 = {
+      goLive: function(item){
+        $scope.v1.itemToPublish = item;
+        $scope.v1.showConfirmPublishModal = true;
+      },
+      goLiveConfirmed : function(){
+        $scope.v1.showConfirmPublishModal = false;
+
+        $scope.v1.itemToPublish.publish(function(result){
+          if(!result.published){
+            alert('Error publishing');
+          }
+          $scope.v1.itemToPublish.published = result.published;
+          $scope.v1.itemToPublish = null;
+        }, 
+        function(err){
+          alert(err);
+        });
+      },
+      goLiveCancelled : function(){
+        $scope.v1.itemToPublish = null;
+        $scope.v1.showConfirmPublishModal = false;
+      }
     };
 
     $scope.deleteItem = function(item) {
