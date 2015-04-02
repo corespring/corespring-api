@@ -1,9 +1,10 @@
 package org.corespring.v2.player.hooks
 
 import com.mongodb.casbah.commons.MongoDBObject
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
-import org.corespring.drafts.item.ItemDrafts
+import org.corespring.drafts.item.{ S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
@@ -58,7 +59,7 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
     logger.trace(s"function=loadFile id=$id path=$path")
-    playS3.download(bucket, mkPath(id, path))
+    playS3.download(bucket, S3Paths.draftFile(new ObjectId(id), path))
   }
 
   override def deleteFile(id: String, path: String)(implicit header: RequestHeader): Future[Option[(Int, String)]] = Future {
@@ -70,7 +71,7 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
       _ <- if (owns) Success(true) else Failure(generalError(s"${identity.org.name}, can't access $id"))
 
     } yield {
-      val response = playS3.delete(bucket, mkPath(id, path))
+      val response = playS3.delete(bucket, S3Paths.draftFile(new ObjectId(id), path))
       if (response.success) {
         None
       } else {
@@ -78,17 +79,6 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
       }
     }
   }
-
-  /**
-   * Note: for now it is safe to assume that the asset will be put do and retrieved from the 'data' folder.
-   * Because assets are disabled in supporting materials. When it comes to adding that back in we'll need to
-   * change this. I'm proposing that the client uses the appropriate path, eg: data/img.png supporting-materials/name/img.png
-   * @see PE-98
-   * @param id
-   * @param path
-   * @return
-   */
-  def mkPath(id:String,path:String) = s"item-drafts/$id/data/$path"
 
   override def upload(id: String, path: String)(predicate: (RequestHeader) => Option[SimpleResult]): BodyParser[Future[UploadResult]] = {
 
@@ -122,7 +112,7 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
       }
     }
 
-    playS3.s3ObjectAndData[ItemDraft](bucket, mkPath(id, path))(loadDraftPredicate).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](bucket, S3Paths.draftFile(new ObjectId(id), path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         addFileToData(draft, s3Object.getKey)

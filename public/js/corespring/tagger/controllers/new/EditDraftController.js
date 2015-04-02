@@ -82,6 +82,7 @@ function EditDraftController(
     ItemDraftService.goLive($scope.draftId, function(result){
       Logger.info('go live complete');
       Logger.info(result);
+      $location.path('/home');
     }, 
     function(err){
       Logger.error(err);

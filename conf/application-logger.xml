@@ -51,14 +51,12 @@
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
     -->
-    <logger name="org.corespring.v2" level="TRACE"/>
-    <logger name="org.corespring.v2.SessionHooks" level="TRACE"/>
-    <logger name="org.corespring.v2.ItemSessionApi" level="TRACE"/>
+    <logger name="org.corespring.v2" level="INFO"/>
     <logger name="org.corespring.qtiToV2.ItemTransformer" level="TRACE"/>
     <logger name="SalatVersioningDao" level="WARN"/>
     <logger name="v2player.test" level="TRACE"/>
     <logger name="ItemApi" level="TRACE"/>
-
+    <logger name="org.corespring.container.AssetUtils" level="TRACE" />
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

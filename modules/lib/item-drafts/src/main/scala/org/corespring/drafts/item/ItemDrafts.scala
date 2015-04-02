@@ -95,7 +95,7 @@ trait ItemDrafts
 
   override def commit(requester: OrgAndUser)(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
     super.commit(requester)(d, force).flatMap { c =>
-      val copyResult = assets.copyDraftToItem(d.id, d.src.data.id)
+      val copyResult = assets.copyDraftToItem(d.id, c.committedId)
       copyResult.map { _ => c }
     }
   }
@@ -133,7 +133,7 @@ trait ItemDrafts
 
   override protected def saveDraftBackToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
 
-    val saveNewVersion = itemService.isPublished(d.src.data.id)
+    val saveNewVersion = itemService.isPublished(d.src.data.id) || d.src.data.published
 
     val noVersionId: VersionedId[ObjectId] = d.src.data.id.copy(version = None)
     /**

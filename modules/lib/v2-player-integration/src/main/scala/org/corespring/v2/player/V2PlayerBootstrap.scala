@@ -10,7 +10,7 @@ import org.corespring.container.client.controllers.ComponentSets
 import org.corespring.container.client.hooks.{ DataQueryHooks, EditorHooks => ContainerEditorHooks, ItemHooks => ContainerItemHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
-import org.corespring.drafts.item.ItemDrafts
+import org.corespring.drafts.item.{ S3Paths, ItemDrafts }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
 import org.corespring.platform.core.models.{ Standard, Subject }
 import org.corespring.platform.core.services._
@@ -147,8 +147,8 @@ class V2PlayerBootstrap(
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
     override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val start = id.split(":").mkString("/")
-      playS3.download(bucket, s"$start/$path")
+      val s3Path = S3Paths.itemFile(id, path)
+      playS3.download(bucket, s3Path)
     }
   }
 
@@ -167,7 +167,7 @@ class V2PlayerBootstrap(
         s <- sessionAuth.loadForRead(sessionId)(identity)
         itemId <- (s._1 \ "itemId").asOpt[String].toSuccess(generalError("no item id for session"))
         start <- Success(itemId.split(":").mkString("/"))
-      } yield playS3.download(bucket, s"$start/data/$path")
+      } yield playS3.download(bucket, S3Paths.itemFile(itemId, path))
 
       out.fold[SimpleResult]((e: V2Error) => {
         Results.Status(e.statusCode)(e.json)

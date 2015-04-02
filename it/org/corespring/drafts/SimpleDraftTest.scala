@@ -25,7 +25,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
   lazy val db = Db.salatDb()(Play.current)
 
-  def bump(vid: VersionedId[ObjectId]) = vid.copy(version = vid.version.map(_ + 1))
+  def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
   override protected def before: Any = {
     db("it.drafts.item").drop()
@@ -40,38 +40,38 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     override def collection: MongoCollection = db("it.drafts.item_commits")
   }
 
-  lazy val drafts = new ItemDrafts {
-    override def itemService: ItemService = ItemServiceWired
-
-    override def draftService: ItemDraftService = SimpleDraftTest.this.draftService
-
-    override def commitService: CommitService = SimpleDraftTest.this.commitService
-
-    override def assets: ItemDraftAssets = {
-      val m = mock[ItemDraftAssets]
-      m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
-        {
-          val arr = obj.asInstanceOf[Array[Any]]
-          Success(arr(1).asInstanceOf[VersionedId[ObjectId]])
-        }
-      }
-      m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (obj, mock) =>
-        {
-          val arr = obj.asInstanceOf[Array[Any]]
-          Success(arr(1).asInstanceOf[ObjectId])
-        }
-      }
-      m.deleteDraft(any[ObjectId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
-      m
-    }
-
-    /** Check that the user may create the draft for the given src id */
-    override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
-
-  }
-
   trait orgAndUserAndItem extends userAndItem {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
+
+    lazy val drafts = new ItemDrafts {
+      override val itemService: ItemService = ItemServiceWired
+
+      override val draftService: ItemDraftService = SimpleDraftTest.this.draftService
+
+      override val commitService: CommitService = SimpleDraftTest.this.commitService
+
+      val assets = {
+        val m = mock[ItemDraftAssets]
+        m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
+          {
+            val arr = obj.asInstanceOf[Array[Any]]
+            Success(arr(1).asInstanceOf[VersionedId[ObjectId]])
+          }
+        }
+        m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (obj, mock) =>
+          {
+            val arr = obj.asInstanceOf[Array[Any]]
+            Success(arr(1).asInstanceOf[ObjectId])
+          }
+        }
+        m.deleteDraft(any[ObjectId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
+        m
+      }
+
+      /** Check that the user may create the draft for the given src id */
+      override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
+
+    }
   }
 
   def updateTitle(item: Item, title: String): Item = {
@@ -222,6 +222,31 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
         item.taskInfo.flatMap(_.title) must_== Some("update")
         item.published must_== true
+      }
+    }
+
+    "publishing multiple times keeps bumping the version of the item" in new orgAndUserAndItem {
+
+      val draftOne = drafts.create(itemId, orgAndUser).get
+      val update = draftOne.update(draftOne.src.data.copy(taskInfo = draftOne.src.data.taskInfo.map(_.copy(title = Some("update")))))
+      drafts.save(orgAndUser)(update)
+      drafts.publish(orgAndUser)(draftOne.id)
+
+      val two = drafts.create(itemId, orgAndUser).get
+
+      two.src.data.id must_== bump(itemId)
+
+      val updateTwo = two.update(two.src.data.copy(taskInfo = two.src.data.taskInfo.map(_.copy(title = Some("update")))))
+      drafts.save(orgAndUser)(updateTwo)
+
+      two.id must_== updateTwo.id
+
+      drafts.publish(orgAndUser)(two.id) match {
+        case Success(vid) => {
+          vid must_== bump(itemId, 1)
+          there was one(drafts.assets).copyDraftToItem(draftOne.id, itemId) andThen one(drafts.assets).copyDraftToItem(two.id, vid)
+        }
+        case _ => failure("publish should have been successful")
       }
     }
   }

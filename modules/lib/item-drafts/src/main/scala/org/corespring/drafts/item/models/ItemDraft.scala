@@ -22,6 +22,7 @@ case class ItemDraft(
   val created: DateTime = DateTime.now(DateTimeZone.UTC),
   val expires: DateTime = DateTime.now(DateTimeZone.UTC).plusDays(1))
   extends UserDraft[ObjectId, VersionedId[ObjectId], Item, OrgAndUser] {
+
   /**
    * Update the src data and copy over the created and expires otherwise they'll get refreshed
    */
