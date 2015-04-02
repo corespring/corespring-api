@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Commit, DraftsWithCommitAndCreate }
+import org.corespring.drafts.{ DraftsWithCommitAndCreate }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -33,6 +33,25 @@ trait ItemDrafts
   def list(id: VersionedId[ObjectId]): Seq[ItemDraft] = {
     val version = id.version.getOrElse(itemService.currentVersion(id))
     draftService.findByIdAndVersion(id.id, version)
+  }
+
+  /**
+   * Publish the draft.
+   * Set published to true, commit and delete the draft.
+   * @param requester
+   * @param draftId
+   * @return
+   */
+  def publish(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, VersionedId[ObjectId]] = {
+
+    import scalaz.Scalaz._
+
+    for {
+      d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+      published <- Success(d.update(d.src.data.copy(published = true)))
+      commit <- commit(requester)(published)
+      deleteResult <- removeDraftByIdAndUser(draftId, requester)
+    } yield d.src.data.id
   }
 
   //TODO: UT

@@ -74,6 +74,17 @@ trait ItemDrafts extends Controller {
     }
   }
 
+  def publish(draftId: ObjectId) = Action.async { implicit request =>
+    Future {
+      for {
+        user <- toOrgAndUser(request)
+        itemId <- drafts.publish(user)(draftId).leftMap { e => generalDraftApiError(e.msg) }
+      } yield {
+        Json.obj("itemId" -> itemId.toString)
+      }
+    }
+  }
+
   def get(draftId: ObjectId) = Action.async { implicit request =>
     Future {
       for {

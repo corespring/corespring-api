@@ -146,6 +146,14 @@ angular.module('tagger.services')
 
     function ItemDraftService(){
 
+      this.goLive = function(id, onSuccess, onError) {
+        var url = '/api/v2/items/drafts/' + id + '/publish';
+
+        $http.put(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+      
       this.get = function(params, onSuccess, onError){
         
         var url = '/api/v2/items/drafts/' + params.id;

@@ -6,6 +6,7 @@ sealed abstract class DraftError(val msg: String)
 sealed abstract class CommitError(override val msg: String) extends DraftError(msg)
 sealed abstract class UserCant[U](requester: U, owner: U, action: String) extends DraftError(s"User: $requester, can't commit a draft owned by: $owner")
 
+case class LoadDraftFailed(val draftId: String) extends DraftError(s"Can't load draft with id: $draftId")
 case class SaveDataFailed(override val msg: String) extends DraftError(msg)
 case object DeleteFailed extends DraftError("Deletion failed")
 

@@ -203,5 +203,26 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
 
       }
     }
+
+    "publishing a draft" should {
+      "set published to true, commit and delete the draft" in new orgAndUserAndItem {
+        val eds = drafts.create(itemId, orgAndUser).get
+        val update = eds.update(eds.src.data.copy(taskInfo = eds.src.data.taskInfo.map(_.copy(title = Some("update")))))
+
+        update.src.data.published must_== false
+
+        val saveResult = drafts.save(orgAndUser)(update)
+        val publishedItemId = drafts.publish(orgAndUser)(eds.id)
+        drafts.collection.findOneByID(eds.id) must_== None
+        val commits = commitService.findByIdAndVersion(itemId.id, itemId.version.get)
+        commits.length must_== 1
+        commits(0).draftId must_== eds.id
+
+        val item = ItemHelper.get(commits(0).committedId).get
+
+        item.taskInfo.flatMap(_.title) must_== Some("update")
+        item.published must_== true
+      }
+    }
   }
 }

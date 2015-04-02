@@ -52,6 +52,7 @@ GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCac
 GET     /items/:itemId/drafts              @org.corespring.v2.api.drafts.item.ItemDrafts.list(itemId:String)
 POST    /items/:itemId/draft               @org.corespring.v2.api.drafts.item.ItemDrafts.create(itemId:String)
 PUT     /items/drafts/:draftId/commit      @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:ObjectId)
+PUT     /items/drafts/:draftId/publish     @org.corespring.v2.api.drafts.item.ItemDrafts.publish(draftId:ObjectId)
 GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:ObjectId)
 PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:ObjectId)
 DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:ObjectId)

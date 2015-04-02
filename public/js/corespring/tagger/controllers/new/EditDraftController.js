@@ -79,7 +79,13 @@ function EditDraftController(
   };
 
   $scope.goLive = function(){
-    $scope.$emit('goLiveRequested', $scope.item);
+    ItemDraftService.goLive($scope.draftId, function(result){
+      Logger.info('go live complete');
+      Logger.info(result);
+    }, 
+    function(err){
+      Logger.error(err);
+    });
   };
 
   $scope.commit = function(){
@@ -102,13 +108,6 @@ function EditDraftController(
       alert("Error cloning item: " + JSON.stringify(error));
     });
     */
-  };
-
-  $scope.goLive = function(){
-    //First Guess
-    //1. set published to true in draft
-    //2. commit the draft 1:0 -> 1:1
-    throw new Error('How does go live work when editing a user draft?');
   };
 
   $scope.loadDraftItem = function() {
