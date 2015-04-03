@@ -11,10 +11,14 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 /**
  * An implementation of <DraftsWithCommitAndCreate> for <Item> backed by some mongo services.
  */
+
+case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: ObjectId)
+
 trait ItemDrafts
   extends DraftsWithCommitAndCreate[ObjectId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
 
@@ -44,14 +48,21 @@ trait ItemDrafts
    */
   def publish(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, VersionedId[ObjectId]] = {
 
-    import scalaz.Scalaz._
-
     for {
       d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
       published <- Success(d.update(d.src.data.copy(published = true)))
       commit <- commit(requester)(published)
       deleteResult <- removeDraftByIdAndUser(draftId, requester)
     } yield d.src.data.id
+  }
+
+  def clone(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, DraftCloneResult] = {
+    for {
+      d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+      itemId <- Success(VersionedId(ObjectId.get))
+      vid <- itemService.save(d.src.data.copy(id = itemId)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+      newDraft <- create(vid, requester).toSuccess(CreateDraftFailed(vid.toString))
+    } yield DraftCloneResult(vid, newDraft.id)
   }
 
   //TODO: UT

@@ -52,29 +52,14 @@ function EditDraftController(
   };
 
   $scope.clone = function () {
-
-    $scope.$emit('clone-item', $scope.itemId, {
-      onStart: function(){
-        $scope.showProgressModal = true;
-      },
-      onComplete: function(err, result){
-        $scope.showProgressModal = false;
-
-        if(err){
-
-        } else {
-          
-        }
-      }
-    });
     $scope.showProgressModal = true;
-
-    $scope.item.clone(function onCloneSuccess(data) {
+    ItemDraftService.clone($scope.draftId, function (result){
+      Logger.info(result);
       $scope.showProgressModal = false;
-      $location.path('/edit/' + data.id);
-    }, function onError(error) {
+      $location.path('/edit/draft' + result.draft.id);
+    }, function(err){
+      Logger.error(err);
       $scope.showProgressModal = false;
-      alert("Error cloning item: " + JSON.stringify(error));
     });
   };
 

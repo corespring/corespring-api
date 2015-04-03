@@ -1,10 +1,11 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
+import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ CommitJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, Controller, RequestHeader, SimpleResult }
@@ -62,43 +63,32 @@ trait ItemDrafts extends Controller {
     }
   }
 
-  def commit(draftId: ObjectId) = Action.async { implicit request =>
-    Future {
-      for {
-        user <- toOrgAndUser(request)
-        d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
-        commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
-      } yield {
-        CommitJson(commit)
-      }
-    }
+  def commit(draftId: ObjectId) = draftsAction { (user) =>
+    for {
+      d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
+      commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
+    } yield CommitJson(commit)
   }
 
-  def publish(draftId: ObjectId) = Action.async { implicit request =>
-    Future {
-      for {
-        user <- toOrgAndUser(request)
-        itemId <- drafts.publish(user)(draftId).leftMap { e => generalDraftApiError(e.msg) }
-      } yield {
-        Json.obj("itemId" -> itemId.toString)
-      }
-    }
+  def clone(draftId: ObjectId) = draftsAction { (user) =>
+    drafts.clone(user)(draftId).bimap(
+      e => generalDraftApiError(e.msg),
+      result => DraftCloneResultJson(result))
   }
 
-  def get(draftId: ObjectId) = Action.async { implicit request =>
-    Future {
-      for {
-        user <- toOrgAndUser(request)
-        d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
-      } yield {
-        /**
-         * Returning the item json as part of the api doesn't really make sense
-         * as its only really useful in the context of the editor/dev editor
-         * Check w/ ev on what to return here
-         */
-        ItemDraftJson.simple(d)
-      }
-    }
+  def publish(draftId: ObjectId) = draftsAction { (user: OrgAndUser) =>
+    drafts.publish(user)(draftId).bimap(
+      e => generalDraftApiError(e.msg),
+      id => Json.obj("itemId" -> id.toString))
+  }
+
+  /**
+   * Returning the item json as part of the api doesn't really make sense
+   * as its only really useful in the context of the editor/dev editor
+   * Check w/ ev on what to return here
+   */
+  def get(draftId: ObjectId) = draftsAction { (user) =>
+    drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
   }
 
   def save(draftId: ObjectId) = Action.async { implicit request =>
@@ -107,15 +97,22 @@ trait ItemDrafts extends Controller {
     }
   }
 
-  def delete(draftId: ObjectId) = Action.async {
-    implicit request =>
-      Future {
-        for {
-          user <- toOrgAndUser(request)
-          _ <- drafts.removeDraftByIdAndUser(draftId, user).leftMap(e => generalDraftApiError(e.msg))
-        } yield {
-          Json.obj("id" -> draftId.toString)
-        }
-      }
+  def delete(draftId: ObjectId) = draftsAction { (user) =>
+    drafts.removeDraftByIdAndUser(draftId, user)
+      .bimap(
+        e => generalDraftApiError(e.msg),
+        _ => Json.obj("id" -> draftId.toString))
   }
+
+  private def draftsAction(fn: (OrgAndUser) => Validation[DraftApiError, JsValue]) = Action.async { implicit request =>
+    Future {
+      for {
+        user <- toOrgAndUser(request)
+        result <- fn(user)
+      } yield {
+        result
+      }
+    }
+  }
+
 }
