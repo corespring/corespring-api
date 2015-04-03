@@ -107,7 +107,6 @@ trait DraftsWithCommitAndCreate[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC
    */
   override def create(id: VID, user: USER, expires: Option[DateTime] = None): Option[UD] = {
     if (userCanCreateDraft(id, user)) {
-      println(s" --> vid: $id")
       findLatestSrc(id).flatMap { src =>
         val result = for {
           draft <- mkDraft(id, src, user)

@@ -56,7 +56,7 @@ function EditDraftController(
     ItemDraftService.clone($scope.draftId, function (result){
       Logger.info(result);
       $scope.showProgressModal = false;
-      $location.path('/edit/draft' + result.draft.id);
+      $location.path('/edit/draft/' + result.draftId);
     }, function(err){
       Logger.error(err);
       $scope.showProgressModal = false;
@@ -72,28 +72,6 @@ function EditDraftController(
     function(err){
       Logger.error(err);
     });
-  };
-
-  $scope.commit = function(){
-    //Commit the draft
-  };
-
-
-  //$scope.version = ($scope.itemId.indexOf(':') !== -1) ? $scope.itemId.split(':')[1] : '0';
-
-  $scope.clone = function () {
-
-    throw new Error('What does clone do when you are editing a user draft?');
-    /*
-    $scope.showProgressModal = true;
-    $scope.item.clone(function onCloneSuccess(data) {
-      $scope.showProgressModal = false;
-      $location.path('/edit/' + data.id);
-    }, function onError(error) {
-      $scope.showProgressModal = false;
-      alert("Error cloning item: " + JSON.stringify(error));
-    });
-    */
   };
 
   $scope.loadDraftItem = function() {

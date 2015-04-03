@@ -70,7 +70,7 @@ trait ItemDrafts extends Controller {
     } yield CommitJson(commit)
   }
 
-  def clone(draftId: ObjectId) = draftsAction { (user) =>
+  def cloneDraft(draftId: ObjectId) = draftsAction { (user) =>
     drafts.clone(user)(draftId).bimap(
       e => generalDraftApiError(e.msg),
       result => DraftCloneResultJson(result))
