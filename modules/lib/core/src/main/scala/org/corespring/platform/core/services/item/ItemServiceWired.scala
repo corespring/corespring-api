@@ -44,7 +44,7 @@ class ItemServiceWired(
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
-  def clone(item: Item): Option[Item] = {
+  override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
     result match {
@@ -53,6 +53,9 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
+        files.foreach{ f =>
+          f.throwable.map{ e => e.printStackTrace }
+        }
         None
       }
     }

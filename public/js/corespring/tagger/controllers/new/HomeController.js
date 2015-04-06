@@ -1,5 +1,86 @@
 (function(root) {
 
+  function SubNavController($scope, CollectionManager){
+    $scope.getContributorTitle = function(c) {
+      return c.name;
+    };
+
+    $scope.getContributorSelectedTitle = function(items) {
+      if (!items || items.length === 0) {
+        return "None Selected";
+      }
+      return items.length + " Selected";
+    };
+
+    $scope.getCollectionTitle = function(c) {
+      return c.name.replace("CoreSpring", "");
+    };
+
+    $scope.getTitle = function(o) {
+      return o.key.replace(/^0/, "");
+    };
+    $scope.getLabel = function(o) {
+      return o.label;
+    };
+
+    $scope.getCollectionSelectedTitle = function(items) {
+      if (!items || items.length === 0) {
+        return "None Selected";
+      }
+      return items.length + " selected";
+    };
+
+    $scope.getSelectedTitle = function(items) {
+      if (!items || items.length === 0) {
+        return "None Selected";
+      }
+      var out = _.pluck(items, "key").map(function(key) {
+        var numericKey = parseInt(key);
+        return isNaN(numericKey) ? key : numericKey;
+      });
+      return out.join(", ");
+    };
+
+    var defaultsFactory = new com.corespring.model.Defaults();
+    $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
+    $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
+    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
+      return {
+        key: e,
+        label: e
+      };
+    });
+    $scope.flatItemTypeDataProvided.push({
+      key: "Other",
+      label: "Other"
+    });
+    $scope.statuses = [{
+      label: "Setup",
+      key: "setup"
+    }, {
+      label: "Tagged",
+      key: "tagged"
+    }, {
+      label: "Standards Aligned",
+      key: "standardsAligned"
+    }, {
+      label: "QA Review",
+      key: "qaReview"
+    }, {
+      label: "Exact Match",
+      key: "exactMatch"
+    }];
+    $scope.publishStatuses = [{
+      label: "Published",
+      key: "published"
+    }, {
+      label: "Draft",
+      key: "draft"
+    }];
+  }
+
+  SubNavController.$inject = ['$scope', 'CollectionManager'];
+
   function HomeController($scope,
     $timeout,
     $rootScope,
@@ -24,7 +105,6 @@
 
     $scope.$root.mode = "home";
 
-
     $rootScope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
     $rootScope.$broadcast('onListViewOpened');
 
@@ -35,47 +115,10 @@
       loadCollections();
       loadContributors();
       $scope.showDraft = true;
-
-      var defaultsFactory = new com.corespring.model.Defaults();
-      $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
-      $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-      $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
-        return {
-          key: e,
-          label: e
-        };
-      });
-      $scope.flatItemTypeDataProvided.push({
-        key: "Other",
-        label: "Other"
-      });
-      $scope.statuses = [{
-        label: "Setup",
-        key: "setup"
-      }, {
-        label: "Tagged",
-        key: "tagged"
-      }, {
-        label: "Standards Aligned",
-        key: "standardsAligned"
-      }, {
-        label: "QA Review",
-        key: "qaReview"
-      }, {
-        label: "Exact Match",
-        key: "exactMatch"
-      }];
-      $scope.publishStatuses = [{
-        label: "Published",
-        key: "published"
-      }, {
-        label: "Draft",
-        key: "draft"
-      }];
     };
 
-    $scope.editItem=function(item){
-      console.log('editItem', item);
+      
+    $scope.v1.editItem = function(item){
       if(!item.readOnly){
         $scope.itemClick.bind({item: item})();
       }
@@ -98,7 +141,7 @@
     $scope.publishDraft = function(item){
 
       var draft = _.find($scope.orgDrafts, function(d){
-          return d.itemId == item.id;
+        return d.itemId == item.id;
       });
 
       if(!draft){
@@ -113,7 +156,6 @@
         function(err){
           Logger.error(err);
         });
-
     };
 
 
@@ -166,34 +208,38 @@
       $scope.showConfirmDestroyModal = false;
     };
 
-    $scope.makeADraft = function(item){
-
-      CmsService.itemFormat('item', item.id, function(format) {
-
-        if(format.apiVersion !== 2){
-          alert('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
-          return;
-        }
-
-        item.createUserDraft(function(draft){
-          console.debug('draft', draft);
-          goToEditDraft(draft.id, item);
-          }, function error(err){
-          alert('error making a draft' + JSON.stringify(err));
-        });
+    function getItem(id){
+      return _.find($scope.items, function(i){
+        return i.id === id;
       });
+    }
 
+    $scope.makeADraft = function(itemId){
+
+      var item = getItem(itemId);
+      
+      if(item && item.format.apiVersion !== 2){
+        alert('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
+        return;
+      }
+
+      ItemDraftService.createUserDraft(itemId, function(draft){
+        $scope.orgDrafts.push(draft);
+        goToEditDraft(draft.id);
+        }, function error(err){
+        alert('error making a draft' + JSON.stringify(err));
+      });
     };
 
-    $scope.editDraft  = function(item){
+    $scope.editDraft  = function(itemId){
       var draft = _.find($scope.orgDrafts, function(d){
-        return d.itemId === item.id;
+        return d.itemId === itemId;
       });
 
       if(draft){
         goToEditDraft(draft.id);
       } else {
-        $scope.makeADraft(item);
+        $scope.makeADraft(itemId);
       }
     };
 
@@ -208,25 +254,35 @@
       });
     };
 
-    function goToEditDraft(draftId, item){
-      CmsService.itemFormat('draft', draftId, function(format) {
-        Logger.debug('itemFormat:', format);
-        SearchService.currentItem = item;
-        if (format.apiVersion === 2) {
-          $location.url('/edit/draft/' + draftId);
-        } else {
-          throw new Error('editing v1 drafts not ready yet.');
-        }
-      });
+    function goToEditDraft(draftId){
+      $location.url('/edit/draft/' + draftId);
     }
 
     $scope.cloneItem = function(item){
-      item.clone(function success(data){
-        goToEditView(data);
+
+      item.clone(function success(newItem){
+        if(item.format.apiVersion === 1){
+          goToEditView(newItem);
+        } else {
+          $scope.makeADraft(newItem.id);
+        }
       }, function error(err){
-        alert('cloneItem:', JSON.stringify(err));
-      });
+          alert('cloneItem:', JSON.stringify(err));
+        });
     };
+
+    function goToEditView(item){
+      CmsService.itemFormat('item', item.id, function(format) {
+        Logger.debug('itemFormat:', format);
+        SearchService.currentItem = item;
+        if (format.apiVersion === 2) {
+          $scope.search();
+          Logger.warn('can\'t directly edit a v2 item - you need to create a draft');
+        } else {
+          $location.url('/old/edit/' + item.id + "?panel=metadata");
+        }
+      });
+    }
 
     $scope.getNumberOfSessions = function(id){
       //TODO: Are we going to add this?
@@ -243,62 +299,7 @@
       $scope.search();
     };
 
-    $scope.getContributorTitle = function(c) {
-      return c.name;
-    };
-
-    $scope.getContributorSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      return items.length + " Selected";
-    };
-
-    $scope.getCollectionTitle = function(c) {
-      return c.name.replace("CoreSpring", "");
-    };
-
-    $scope.getTitle = function(o) {
-      return o.key.replace(/^0/, "");
-    };
-    $scope.getLabel = function(o) {
-      return o.label;
-    };
-
-    $scope.getCollectionSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      return items.length + " selected";
-    };
-
-    $scope.getSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      var out = _.pluck(items, "key").map(function(key) {
-        var numericKey = parseInt(key);
-        return isNaN(numericKey) ? key : numericKey;
-      });
-      return out.join(", ");
-    };
-
-    function applyPermissions(items) {
-      var readOnlyCollections = _.filter(CollectionManager.rawCollections, function(c) {
-        return c.permission == "read";
-      });
-      return _.map(items, function(item) {
-        var readOnlyColl = _.find(readOnlyCollections, function(coll) {
-          return coll.id == item.collectionId; //1 represents read-only access
-        });
-        if (readOnlyColl) {
-          item.readOnly = true;
-        } else {
-          item.readOnly = false;
-        }
-        return item;
-      });
-    }
+   
 
     $scope.lazySearch = _.debounce(function() {
       $scope.search();
@@ -340,6 +341,23 @@
       });
     };
 
+    function applyPermissions(items) {
+      var readOnlyCollections = _.filter(CollectionManager.rawCollections, function(c) {
+        return c.permission == "read";
+      });
+      return _.map(items, function(item) {
+        var readOnlyColl = _.find(readOnlyCollections, function(coll) {
+          return coll.id == item.collectionId; //1 represents read-only access
+        });
+        if (readOnlyColl) {
+          item.readOnly = true;
+        } else {
+          item.readOnly = false;
+        }
+        return item;
+      });
+    }
+
     function loadDraftsForOrg(){
       CmsService.getDraftsForOrg(function(drafts){
         $scope.orgDrafts = drafts;
@@ -377,20 +395,6 @@
     $scope.showGradeLevel = function() {
       return $scope.createGradeLevelString(this.item.gradeLevel);
     };
-  
-
-    function goToEditView(item){
-      CmsService.itemFormat('item', item.id, function(format) {
-        Logger.debug('itemFormat:', format);
-        SearchService.currentItem = item;
-        if (format.apiVersion === 2) {
-          $scope.search();
-          Logger.warn('can\'t directly edit a v2 item - you need to create a draft');
-        } else {
-          $location.url('/old/edit/' + item.id + "?panel=metadata");
-        }
-      });
-    }
 
     $scope.launchCatalogView = function(){
       $scope.openItem(this.item.id);
@@ -438,7 +442,7 @@
       $('#player').show();
     };
 
-    var fn = function(m) {
+    var handlePostMessage = function(m) {
       try {
         var data = JSON.parse(m.data);
         if (data.message == 'closeProfilePopup') {
@@ -448,14 +452,13 @@
         }
       } catch (err) {
         //it is normal for this error to be thrown
-        // Logger.error("Error occurred on window event listener in home controller: "+JSON.stringify(err));
       }
     };
 
     if (window.addEventListener) {
-      window.addEventListener('message', fn, true);
+      window.addEventListener('message', handlePostMessage, true);
     } else if (window.attachEvent) {
-      window.attachEvent('message', fn);
+      window.attachEvent('message', handlePostMessage);
     }
 
     init();
@@ -479,5 +482,5 @@
 
   root.tagger = root.tagger || {};
   root.tagger.HomeController = HomeController;
-
+  root.tagger.SubNavController = SubNavController;
 })(this);

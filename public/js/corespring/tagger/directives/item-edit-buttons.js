@@ -104,7 +104,7 @@ angular.module('tagger')
       '    <button ng-disabled="item.readOnly" ng-click="edit()" class="btn btn-sm">Edit</button>',
       '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
       '  </div>',
-      '  <button ng-click="cloneItem(item)" ng-show"canClone" class="btn btn-sm">Clone</button>',
+      '  <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm">Clone</button>',
       '</div>'].join('')
     };
   }]);

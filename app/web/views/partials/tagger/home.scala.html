@@ -155,7 +155,7 @@
     </div>
 </div>
 
-        <div class="navbar-filter navbar-filter-top">
+        <div class="navbar-filter navbar-filter-top" ng-controller="tagger.SubNavController">
 
         <table class="filter-nav">
         <tbody>
@@ -310,7 +310,7 @@
                     user-name="userName"
                     org="org"
                     org-drafts="orgDrafts"
-                    edit-draft="editDraft(item)"
+                    edit-draft="editDraft(item.id)"
                     edit-item="editItem(item)"
                     go-live="goLive(item)"
                     clone-item="cloneItem(item)" ></item-edit-button>
