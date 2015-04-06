@@ -55,6 +55,10 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     savePartOfPlayerDef(itemId, Json.obj("xhtml" -> xhtml))
   }
 
+  override def saveCustomScoring(itemId: String, customScoring: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    savePartOfPlayerDef(itemId, Json.obj("customScoring" -> customScoring))
+  }
+
   override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
   }
