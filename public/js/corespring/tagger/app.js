@@ -36,10 +36,7 @@
         mk('/edit/:itemId', '/web/views/partials/tagger/editItem', tagger.ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);
         /* jshint ignore:start */
-        mk('/old/home', '/web/partials/home', HomeController);
-        mk('/old/new/:type', '/web/partials/createItem', CreateCtrl);
         mk('/old/edit/:itemId', '/web/partials/editItem', ItemController, false);
-        mk('/old/view/:itemId', '/web/partials/viewItem', ViewItemController, false);
         /* jshint ignore:end */
         $rp.otherwise({
           redirectTo: '/home'

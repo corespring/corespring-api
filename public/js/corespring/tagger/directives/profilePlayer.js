@@ -17,7 +17,7 @@ angular.module('tagger')
         var options = {
           itemId: attrs.itemId,
           mode: "preview",
-          width: "640px",
+          width: "740px",
           autoHeight: true
         };
 
@@ -29,27 +29,18 @@ angular.module('tagger')
           scope.onItemLoad();
         };
 
-        CmsService.itemFormat('item', attrs.itemId, function(format){
+        new org.corespring.players.ItemCatalog(
+          angular.element(element).find('#content')[0],
+          options, 
+          function(error){
+            console.error("error creating catalog " + error);
+          });
 
-          if(format.apiVersion === 1){
-            new com.corespring.players.ItemProfile(
-              angular.element(element).find('#content')[0], options, onError, onLoad);
-          } else {
-            new org.corespring.players.ItemCatalog(
-              angular.element(element).find('#content')[0],
-              options, 
-              function(error){
-                console.error("error creating catalog " + error);
-              });
-
-            //0.24 of the container catalog doesn't have an onLoad callback,
-            //timeout for now.
-            $timeout(function(){
-              scope.onItemLoad();
-            }, 1000);
-          }
-        });
-
+        //0.24 of the container catalog doesn't have an onLoad callback,
+        //timeout for now.
+        $timeout(function(){
+          scope.onItemLoad();
+        }, 1000);
       });
     }
   };
