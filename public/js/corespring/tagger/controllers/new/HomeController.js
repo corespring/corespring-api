@@ -113,7 +113,7 @@
 
       this.edit = function(item){
         var draft = _.find($scope.orgDrafts, function(d){
-          return d.itemId === itemId;
+          return d.itemId === item.id;
         });
 
         if(draft){
