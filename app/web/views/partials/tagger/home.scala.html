@@ -293,14 +293,13 @@
                 <td class="item-title" ng-click="launchCatalogView()" ng-bind-html-unsafe="item.title"></td>
                 <td ng-bind-html-unsafe="item.description"></td>
                 <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td>{{showGradeLevel()}} </td>
+                <td>{{createGradeLevelString(item.gradeLevel)}} </td>
                 <td>{{showItemType(item)}}</td>
                 <td>
                     <a ui-jq="tooltip"
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td>{{getAuthorAbbreviation(item.contributor)}}</td>
-                <!-- {{publishStatus(item.published)}} -->
                 <td>
                   <item-status item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
                 </td>
@@ -310,8 +309,7 @@
                     user-name="userName"
                     org="org"
                     org-drafts="orgDrafts"
-                    edit-draft="editDraft(item.id)"
-                    edit-item="editItem(item)"
+                    edit="edit(item)"
                     go-live="goLive(item)"
                     clone-item="cloneItem(item)" ></item-edit-button>
                 </td>

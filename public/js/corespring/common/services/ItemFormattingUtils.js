@@ -82,7 +82,9 @@ angular.module('corespring-utils')
         if (!map[key]) return;
         return  "/assets/images/copyright/" + map[key];
       },
-
+      publishStatus: function (isPublished) {
+        return isPublished ? "Published" : "Draft";
+      },
       getPrimarySubjectLabel: function (primarySubject) {
         if (!primarySubject) {
           return "";

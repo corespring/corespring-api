@@ -280,7 +280,7 @@
                 <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.description"></td>
                 <td class="new-window" ng-click="itemClick()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
                 <td class="new-window" ng-click="itemClick()">
-                    {{showGradeLevel()}}
+                    {{createGradeLevelString(item.gradeLevel)}}
                 </td>
                 <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
                 <td class="new-window" ng-click="itemClick()">

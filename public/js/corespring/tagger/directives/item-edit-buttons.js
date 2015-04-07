@@ -59,23 +59,6 @@ angular.module('tagger')
 
       $scope.$watch('item', updateFlags, true);
 
-      $scope.edit = function(){
-
-        if(!$scope.item || !$scope.item.format ){
-          return;
-        } 
-
-        if($scope.item.readOnly){
-          return;
-        }
-
-        if($scope.item.format.apiVersion === 1){
-          $scope.editItem($scope.item);
-        } else if($scope.item.format.apiVersion === 2){
-          $scope.editDraft($scope.item);
-        }
-      };
-
     }
 
     return {
@@ -87,10 +70,8 @@ angular.module('tagger')
         orgDrafts: '=',
         org: '=',
         item: '=',
-        editItem: '&',
-        editDraft: '&',
+        edit: '&',
         goLive: '&',
-        makeADraft: '&',
         cloneItem: '&'
       }, 
       template: [
@@ -101,7 +82,7 @@ angular.module('tagger')
       '      <i class="icon icon-lock"></i>',
       '      <span>Draft owner: {{draft.orgId}}</span>',
       '    </div>',
-      '    <button ng-disabled="item.readOnly" ng-click="edit()" class="btn btn-sm">Edit</button>',
+      '    <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-sm">Edit</button>',
       '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
       '  </div>',
       '  <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm">Clone</button>',

@@ -1,4 +1,4 @@
-function RootController($scope, ItemService) {
+function RootController($scope, $rootScope, ItemService, SearchService, CollectionManager) {
   "use strict";
   $scope.uiState = {
     showCollectionsPane: false
@@ -18,6 +18,74 @@ function RootController($scope, ItemService) {
     $scope.errorDetails = null;
     $scope.errorUid = null;
   };
+
+  $scope.sortBy = function(field) {
+    if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
+      $rootScope.searchParams.sort[field] *= -1;
+    } else {
+      $rootScope.searchParams.sort = {};
+      $rootScope.searchParams.sort[field] = 1;
+    }
+    $scope.$broadcast("sortingOnField", field, $rootScope.searchParams.sort[field] == 1);
+    $scope.search();
+  };
+
+  $scope.lazySearch = _.debounce(function() {
+    $scope.search();
+    $scope.$apply();
+  }, 500);
+
+  $scope.search = function() {
+    var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
+      return e.label == "Other";
+    });
+
+    if (isOtherSelected) {
+      $rootScope.searchParams.notSelectedItemTypes = [];
+      _.each($scope.flatItemTypeDataProvided, function(e) {
+        var isSelected = _.find($rootScope.searchParams.itemType, function(f) {
+          return e.label == f.label;
+        });
+        if (!isSelected)
+          $rootScope.searchParams.notSelectedItemTypes.push(e);
+      });
+    }
+    SearchService.search($rootScope.searchParams, function(res) {
+      $rootScope.items = applyPermissions(res);
+      setTimeout(function() {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }, 200);
+    });
+  };
+
+  $scope.loadMore = function() {
+    SearchService.loadMore(function() {
+      // re-bind the scope collection to the services model after result comes back
+      $rootScope.items = applyPermissions(SearchService.itemDataCollection);
+      //Trigger MathJax
+      setTimeout(function() {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }, 200);
+
+    });
+  };
+
+  function applyPermissions(items) {
+    var readOnlyCollections = _.filter(CollectionManager.rawCollections, function(c) {
+      return c.permission == "read";
+    });
+    return _.map(items, function(item) {
+      var readOnlyColl = _.find(readOnlyCollections, function(coll) {
+        return coll.id == item.collectionId; //1 represents read-only access
+      });
+      if (readOnlyColl) {
+        item.readOnly = true;
+      } else {
+        item.readOnly = false;
+      }
+      return item;
+    });
+  }
 }
 
-RootController.$inject = ['$scope', 'ItemService'];
+RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'SearchService','CollectionManager'];

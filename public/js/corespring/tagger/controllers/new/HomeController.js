@@ -1,86 +1,5 @@
 (function(root) {
 
-  function SubNavController($scope, CollectionManager){
-    $scope.getContributorTitle = function(c) {
-      return c.name;
-    };
-
-    $scope.getContributorSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      return items.length + " Selected";
-    };
-
-    $scope.getCollectionTitle = function(c) {
-      return c.name.replace("CoreSpring", "");
-    };
-
-    $scope.getTitle = function(o) {
-      return o.key.replace(/^0/, "");
-    };
-    $scope.getLabel = function(o) {
-      return o.label;
-    };
-
-    $scope.getCollectionSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      return items.length + " selected";
-    };
-
-    $scope.getSelectedTitle = function(items) {
-      if (!items || items.length === 0) {
-        return "None Selected";
-      }
-      var out = _.pluck(items, "key").map(function(key) {
-        var numericKey = parseInt(key);
-        return isNaN(numericKey) ? key : numericKey;
-      });
-      return out.join(", ");
-    };
-
-    var defaultsFactory = new com.corespring.model.Defaults();
-    $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
-    $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
-      return {
-        key: e,
-        label: e
-      };
-    });
-    $scope.flatItemTypeDataProvided.push({
-      key: "Other",
-      label: "Other"
-    });
-    $scope.statuses = [{
-      label: "Setup",
-      key: "setup"
-    }, {
-      label: "Tagged",
-      key: "tagged"
-    }, {
-      label: "Standards Aligned",
-      key: "standardsAligned"
-    }, {
-      label: "QA Review",
-      key: "qaReview"
-    }, {
-      label: "Exact Match",
-      key: "exactMatch"
-    }];
-    $scope.publishStatuses = [{
-      label: "Published",
-      key: "published"
-    }, {
-      label: "Draft",
-      key: "draft"
-    }];
-  }
-
-  SubNavController.$inject = ['$scope', 'CollectionManager'];
-
   function HomeController($scope,
     $timeout,
     $rootScope,
@@ -117,247 +36,6 @@
       $scope.showDraft = true;
     };
 
-      
-    $scope.v1.editItem = function(item){
-      if(!item.readOnly){
-        $scope.itemClick.bind({item: item})();
-      }
-    };
-
-    $scope.viewItem = function(item){
-      if(item.readOnly){
-        $scope.itemClick.bind(item)();
-      }
-    };
-
-    $scope.goLive = function(item){
-      if(item.format.apiVersion === 2){
-        $scope.publishDraft(item);
-      } else if(item.format.apiVersion === 1){
-        $scope.v1.goLive(item);
-      }
-    };
-    
-    $scope.publishDraft = function(item){
-
-      var draft = _.find($scope.orgDrafts, function(d){
-        return d.itemId == item.id;
-      });
-
-      if(!draft){
-        Logger.warn('can\'t find draft for item: item.id');
-        return;
-      }
-
-      ItemDraftService.goLive(draft.id, 
-        function(result){
-          $scope.search();
-        }, 
-        function(err){
-          Logger.error(err);
-        });
-    };
-
-
-    $scope.v1 = {
-      goLive: function(item){
-        $scope.v1.itemToPublish = item;
-        $scope.v1.showConfirmPublishModal = true;
-      },
-      goLiveConfirmed : function(){
-        $scope.v1.showConfirmPublishModal = false;
-
-        $scope.v1.itemToPublish.publish(function(result){
-          if(!result.published){
-            alert('Error publishing');
-          }
-          $scope.v1.itemToPublish.published = result.published;
-          $scope.v1.itemToPublish = null;
-        }, 
-        function(err){
-          alert(err);
-        });
-      },
-      goLiveCancelled : function(){
-        $scope.v1.itemToPublish = null;
-        $scope.v1.showConfirmPublishModal = false;
-      }
-    };
-
-    $scope.deleteItem = function(item) {
-      $scope.itemToDelete = item;
-      $scope.showConfirmDestroyModal = true;
-    };
-
-    $scope.deleteConfirmed = function() {
-      var deletingId = $scope.itemToDelete.id;
-      ItemService.remove({
-          id: $scope.itemToDelete.id
-        },
-        function(result) {
-          $scope.itemToDelete = null;
-          $scope.search();
-        }
-      );
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
-    };
-
-    $scope.deleteCancelled = function() {
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
-    };
-
-    function getItem(id){
-      return _.find($scope.items, function(i){
-        return i.id === id;
-      });
-    }
-
-    $scope.makeADraft = function(itemId){
-
-      var item = getItem(itemId);
-      
-      if(item && item.format.apiVersion !== 2){
-        alert('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
-        return;
-      }
-
-      ItemDraftService.createUserDraft(itemId, function(draft){
-        $scope.orgDrafts.push(draft);
-        goToEditDraft(draft.id);
-        }, function error(err){
-        alert('error making a draft' + JSON.stringify(err));
-      });
-    };
-
-    $scope.editDraft  = function(itemId){
-      var draft = _.find($scope.orgDrafts, function(d){
-        return d.itemId === itemId;
-      });
-
-      if(draft){
-        goToEditDraft(draft.id);
-      } else {
-        $scope.makeADraft(itemId);
-      }
-    };
-
-    $scope.deleteDraft = function(draft){
-      ItemDraftService.deleteDraft(draft.id, function(result){
-        console.log('deleting draft, successful');
-        $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
-          return d.id === draft.id;
-        });
-      }, function(err){
-        console.warn('Error deleting draft');
-      });
-    };
-
-    function goToEditDraft(draftId){
-      $location.url('/edit/draft/' + draftId);
-    }
-
-    $scope.cloneItem = function(item){
-
-      item.clone(function success(newItem){
-        if(item.format.apiVersion === 1){
-          goToEditView(newItem);
-        } else {
-          $scope.makeADraft(newItem.id);
-        }
-      }, function error(err){
-          alert('cloneItem:', JSON.stringify(err));
-        });
-    };
-
-    function goToEditView(item){
-      CmsService.itemFormat('item', item.id, function(format) {
-        Logger.debug('itemFormat:', format);
-        SearchService.currentItem = item;
-        if (format.apiVersion === 2) {
-          $scope.search();
-          Logger.warn('can\'t directly edit a v2 item - you need to create a draft');
-        } else {
-          $location.url('/old/edit/' + item.id + "?panel=metadata");
-        }
-      });
-    }
-
-    $scope.getNumberOfSessions = function(id){
-      //TODO: Are we going to add this?
-    };
-
-    $scope.sortBy = function(field) {
-      if ($rootScope.searchParams.sort && $rootScope.searchParams.sort[field]) {
-        $rootScope.searchParams.sort[field] *= -1;
-      } else {
-        $rootScope.searchParams.sort = {};
-        $rootScope.searchParams.sort[field] = 1;
-      }
-      $scope.$broadcast("sortingOnField", field, $rootScope.searchParams.sort[field] == 1);
-      $scope.search();
-    };
-
-   
-
-    $scope.lazySearch = _.debounce(function() {
-      $scope.search();
-      $scope.$apply();
-    }, 500);
-
-    $scope.search = function() {
-      var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
-        return e.label == "Other";
-      });
-
-      if (isOtherSelected) {
-        $rootScope.searchParams.notSelectedItemTypes = [];
-        _.each($scope.flatItemTypeDataProvided, function(e) {
-          var isSelected = _.find($rootScope.searchParams.itemType, function(f) {
-            return e.label == f.label;
-          });
-          if (!isSelected)
-            $rootScope.searchParams.notSelectedItemTypes.push(e);
-        });
-      }
-      SearchService.search($rootScope.searchParams, function(res) {
-        $rootScope.items = applyPermissions(res);
-        setTimeout(function() {
-          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-        }, 200);
-      });
-    };
-
-    $scope.loadMore = function() {
-      SearchService.loadMore(function() {
-        // re-bind the scope collection to the services model after result comes back
-        $rootScope.items = applyPermissions(SearchService.itemDataCollection);
-        //Trigger MathJax
-        setTimeout(function() {
-          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-        }, 200);
-
-      });
-    };
-
-    function applyPermissions(items) {
-      var readOnlyCollections = _.filter(CollectionManager.rawCollections, function(c) {
-        return c.permission == "read";
-      });
-      return _.map(items, function(item) {
-        var readOnlyColl = _.find(readOnlyCollections, function(coll) {
-          return coll.id == item.collectionId; //1 represents read-only access
-        });
-        if (readOnlyColl) {
-          item.readOnly = true;
-        } else {
-          item.readOnly = false;
-        }
-        return item;
-      });
-    }
-
     function loadDraftsForOrg(){
       CmsService.getDraftsForOrg(function(drafts){
         $scope.orgDrafts = drafts;
@@ -366,42 +44,39 @@
       });
     }
 
-    function loadCollections() {
-
-      $scope.$watch(function() {
-        return CollectionManager.sortedCollections;
-      }, function(newValue, oldValue) {
-        if (newValue) {
-          $scope.sortedCollections = newValue;
-          if (!$rootScope.searchParams.collection && $scope.sortedCollections) {
-            $rootScope.searchParams.collection = _.clone($scope.sortedCollections[0].collections);
-          }
-          $scope.search();
-        }
-      }, true);
-
-      CollectionManager.init();
-    }
-
-    function loadContributors() {
-      Contributor.get({}, function(data) {
-          $scope.contributors = data;
-        },
-        function(err) {
-          console.log("error occurred when loading contributors: " + JSON.stringify(e));
-        });
-    }
-
-    $scope.showGradeLevel = function() {
-      return $scope.createGradeLevelString(this.item.gradeLevel);
-    };
-
     $scope.launchCatalogView = function(){
-      $scope.openItem(this.item.id);
+      openPreview(this.item.id);
     };
 
-    $scope.openItem = function(id) {
+    function route(action, item){
+      if(item.format.apiVersion === 1){
+        v1[action](item);
+      } else {
+        v2[action](item);
+      }
+    }
 
+    $scope.edit = function(item){
+      route('edit', item);
+    };
+    
+    $scope.goLive = function(item){
+      route('goLive', item);
+    };
+    
+    $scope.cloneItem = function(item){
+      route('cloneItem', item);
+    };
+    
+    $scope.deleteItem = function(item){
+      //applies to v1 and v2
+    };
+
+    $scope.deleteDraft = function(item){
+      //v2 only...
+    };
+
+    function openPreview(id) {
       $timeout(function() {
         $scope.showPopup = true;
         $scope.popupBg = "extra-large-window";
@@ -412,54 +87,8 @@
       $timeout(function() {
         $('.window-overlay').scrollTop(0);
       }, 100);
-    };
-
-    $scope.itemClick = function() {
-      var itemId = this.item.id;
-
-      if (this.item.readOnly) {
-        $scope.openItem(itemId);
-      } else {
-        goToEditView(this.item);
-      }
-    };
-
-    $scope.publishStatus = function(isPublished) {
-      if (isPublished) return "Published";
-      else return "Draft";
-    };
-
-    //from items-app.js
-    $scope.hidePopup = function() {
-      $scope.showPopup = false;
-      $scope.previewingId = "";
-      $scope.popupBg = "";
-    };
-
-
-    $scope.onItemLoad = function() {
-      $('#preloader').hide();
-      $('#player').show();
-    };
-
-    var handlePostMessage = function(m) {
-      try {
-        var data = JSON.parse(m.data);
-        if (data.message == 'closeProfilePopup') {
-          $timeout(function() {
-            $scope.hidePopup();
-          }, 10);
-        }
-      } catch (err) {
-        //it is normal for this error to be thrown
-      }
-    };
-
-    if (window.addEventListener) {
-      window.addEventListener('message', handlePostMessage, true);
-    } else if (window.attachEvent) {
-      window.attachEvent('message', handlePostMessage);
     }
+
 
     init();
   }
@@ -482,5 +111,4 @@
 
   root.tagger = root.tagger || {};
   root.tagger.HomeController = HomeController;
-  root.tagger.SubNavController = SubNavController;
 })(this);
