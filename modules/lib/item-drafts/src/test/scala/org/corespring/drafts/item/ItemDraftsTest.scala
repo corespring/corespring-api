@@ -173,6 +173,8 @@ class ItemDraftsTest extends Specification with Mockito {
         there was no(drafts.draftService).remove(gwensDraft)
       }
 
+      "return an error if another draft exists that has committed"
+
       def bump(vid: VersionedId[ObjectId]): VersionedId[ObjectId] = vid.copy(version = vid.version.map { n => n + 1 })
 
       class publishedScp(isItemPublished: Boolean, isDraftPublished: Boolean) extends scp {

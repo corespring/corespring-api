@@ -1,6 +1,7 @@
 package org.corespring.drafts.errors
 
 import org.corespring.drafts.Commit
+import org.joda.time.DateTime
 
 sealed abstract class DraftError(val msg: String)
 sealed abstract class CommitError(override val msg: String) extends DraftError(msg)
@@ -12,8 +13,11 @@ case object DeleteFailed extends DraftError("Deletion failed")
 
 case class DeleteDraftFailed[ID](id: ID) extends DraftError(s"couldn't delete draft with id: ${id.toString}")
 
+case class ItemHasBeenModified[ID](id: ID, srcDateModified: DateTime, draftDateModified: DateTime)
+  extends DraftError(s"The item with id: $id has been modified after this draft was created: item.dateModified: $srcDateModified, draft item.dateModified: $draftDateModified")
+
 case class CommitsWithSameSrc[IDV, USER](commits: Seq[Commit[IDV, USER]])
-  extends DraftError("There are existing data items that come from the same src")
+  extends DraftError(s"There are existing data items that come from the same src: ${commits.mkString(",")}.")
 
 case object SaveCommitFailed extends CommitError("Save commit failed")
 case class SaveDraftFailed(id: String) extends CommitError(s"Save draft: $id failed")

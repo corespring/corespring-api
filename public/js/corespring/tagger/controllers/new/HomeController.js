@@ -130,18 +130,28 @@
         });
 
         if(!draft){
-          Logger.warn('can\'t find draft for item: item.id');
-          return;
+          Logger.warn('can\'t find draft for item: item.id, going to just publish the item');
+          /**
+           * Not sure if this is the correct behaviour - will check w/ gwen/whitney
+           */
+          item.publish(
+            function(){
+              $scope.search();
+            }, 
+            function(err){
+              Logger.error(err);
+            }
+          );
+        } else {
+          ItemDraftService.goLive(draft.id, 
+            function(result){
+              $scope.search();
+            }, 
+            function(err){
+              Logger.error(err);
+            }
+          );
         }
-
-        ItemDraftService.goLive(draft.id, 
-          function(result){
-            $scope.search();
-          }, 
-          function(err){
-            Logger.error(err);
-          }
-        );
       };
 
       this.cloneItem = function(item){
