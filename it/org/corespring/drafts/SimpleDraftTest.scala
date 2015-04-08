@@ -115,7 +115,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       latestItem.get.taskInfo.get.title === Some("commit a draft")
       latestItem.get.id.version === Some(0)
     }
-
+    /*
     "committing a draft, keeps the draft and creates a commit" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
@@ -127,7 +127,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       val commits = drafts.loadCommitsNotByDraft(draft.id, itemId)
       commits.length === 0
       commitService.collection.count(MongoDBObject("draftId" -> draft.id)) must_== 1
-    }
+    }*/
 
     "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
       val eds = drafts.create(itemId, orgAndUser).get

@@ -21,6 +21,10 @@ case class CommitsWithSameSrc[IDV, USER](commits: Seq[Commit[IDV, USER]])
 
 case object SaveCommitFailed extends CommitError("Save commit failed")
 case class SaveDraftFailed(id: String) extends CommitError(s"Save draft: $id failed")
+
+case class CommitsAfterDraft[VID, USER](commits: Seq[Commit[VID, USER]])
+  extends CommitError(s"There have been commits since this draft was created/updated: ${commits.mkString(",")}")
+
 case class CreateDraftFailed(id: String) extends DraftError(s"Create draft: $id failed")
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")

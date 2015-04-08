@@ -20,7 +20,8 @@ case class ItemDraft(
   val src: ItemSrc,
   val user: OrgAndUser,
   val created: DateTime = DateTime.now(DateTimeZone.UTC),
-  val expires: DateTime = DateTime.now(DateTimeZone.UTC).plusDays(1))
+  val expires: DateTime = DateTime.now(DateTimeZone.UTC).plusDays(1),
+  val committed: Option[DateTime] = None)
   extends UserDraft[ObjectId, VersionedId[ObjectId], Item, OrgAndUser] {
 
   /**
