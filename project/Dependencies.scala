@@ -53,7 +53,7 @@ object Dependencies {
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
-  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
+  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
