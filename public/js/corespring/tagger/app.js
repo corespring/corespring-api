@@ -4,6 +4,7 @@
   // Declare app level module which depends on filters, and services
   var taggerApp = angular.module('tagger',
     ['cs',
+      'tagger.directives',
       'tagger.services',
       'angularBootstrap',
       'buttonToggle',

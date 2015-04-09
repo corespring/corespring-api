@@ -10,7 +10,8 @@
     Logger,
     CmsService,
     UserInfo,
-    ItemDraftService) {
+    ItemDraftService,
+    V2ItemService) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -168,6 +169,7 @@
       this.cloneItem = function(item){
         V2ItemService.clone({id: item.id}, 
           function success(newItem){
+            $scope.items.push(newItem);
             makeADraft(newItem.id, goToEditDraft);
           }, 
           function error(err){
@@ -296,7 +298,8 @@
     'Logger',
     'CmsService',
     'UserInfo',
-    'ItemDraftService'
+    'ItemDraftService',
+    'V2ItemService'
   ];
 
   root.tagger = root.tagger || {};

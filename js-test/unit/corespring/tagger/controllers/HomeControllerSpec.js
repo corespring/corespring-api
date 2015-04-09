@@ -5,9 +5,14 @@ describe('tagger.HomeController', function () {
   
   function MockItemService() {
    this.createWorkflowObject = jasmine.createSpy('createWorkflowObject');
+   this.remove = jasmine.createSpy('remove');
   }
 
-  var cmsService, mockItemService, location, itemDraftService;
+  var cmsService, 
+  itemService, 
+  location, 
+  itemDraftService,
+  v2ItemService;
 
   beforeEach(function () {
     cmsService = {
@@ -18,20 +23,27 @@ describe('tagger.HomeController', function () {
       url: jasmine.createSpy('url')
     };
 
+    v2ItemService = {
+      clone: jasmine.createSpy('clone')
+    };
 
     itemDraftService = {
       createUserDraft: jasmine.createSpy('createUserDraft').andCallFake(function(id, success,error){
         success({id: 'd3'});
+      }),
+      publish: jasmine.createSpy('publish').andCallFake(function(id, success){
+        success({});
       })
     };
 
-    mockItemService = new MockItemService();
+    itemService = new MockItemService();
     module(function ($provide) {
       $provide.value('$timeout', function(fn){fn();});
       $provide.value('$location',  location);
-      $provide.value('ItemService', mockItemService);
+      $provide.value('ItemService', itemService);
       $provide.value('CmsService', cmsService);
       $provide.value('ItemDraftService', itemDraftService);
+      $provide.value('V2ItemService', v2ItemService);
       $provide.value('UserInfo', {userName: 'ed', org: '111'});
     }, 'corespring-utils');
   });
@@ -81,16 +93,87 @@ describe('tagger.HomeController', function () {
 
       it('sets the location to the draft', function(){
         scope.v2.edit({id: '1'});
+        scope.v2.editConfirmed();
         expect(location.url).toHaveBeenCalledWith('/edit/draft/d1');
       });
       
       it('sets the location to the draft', function(){
         scope.v2.edit({id: '2'});
+        scope.v2.editConfirmed();
         expect(itemDraftService.createUserDraft).toHaveBeenCalled();
         expect(location.url).toHaveBeenCalledWith('/edit/draft/d3');
       });
     });
+
+    describe('publish', function(){
+
+      var item;
+
+
+      beforeEach(function(){
+        item = {id: 'a', format: {apiVersion: 2}};
+        scope.orgDrafts = [{id: 'da', itemId: 'a'}];
+        scope.publish(item);
+      });
+      
+      it('sets the publish flag', function(){
+        expect(scope.showPublishNotification).toBe(true);
+      });
+      
+      it('sets the item to be published', function(){
+        expect(scope.itemToPublish).toEqual(item);
+      }); 
+
+      it('calls the underlying publish', function(){
+        scope.publishConfirmed();
+        expect(itemDraftService.publish).toHaveBeenCalled();
+      });
+    });
+
+    describe('clone', function(){
+
+      beforeEach(function(){
+        scope.items = [];
+        scope.orgDrafts = [];
+      });
+
+      it('calls V2ItemService.clone', function(){
+
+        v2ItemService.clone.andCallFake(function(obj, success){
+          success({id: 2, format: { apiVersion: 2}});
+        });
+
+        scope.v2.cloneItem({});
+
+        expect(v2ItemService.clone).toHaveBeenCalled();
+        expect(itemDraftService.createUserDraft).toHaveBeenCalled();
+      });
+    });
+
+    describe('delete item', function(){
+
+      beforeEach(function(){
+        scope.deleteItem({});
+      });
+
+      it('sets delete flag', function(){
+        scope.showConfirmDestroyModal = true;
+      });
+
+      it('sets delete item to delete', function(){
+        expect(scope.itemToDelete).toEqual({});
+      });
+
+      it('calls ItemService.remove', function(){
+        scope.deleteConfirmed();
+        expect(itemService.remove).toHaveBeenCalled();
+      });
+    });
   });
+
+
+
+  
 
     /*
     it("Search should invoke search service", function () {

@@ -1,4 +1,4 @@
-angular.module('tagger')
+angular.module('tagger.directives')
   .directive('itemEditButton', [function () {
 
     function link($scope, $element, $attrs, ngModel){
