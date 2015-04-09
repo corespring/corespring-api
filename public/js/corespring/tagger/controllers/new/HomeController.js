@@ -13,6 +13,8 @@
     ItemDraftService,
     V2ItemService) {
 
+    var v2ItemService = new V2ItemService();
+
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
 
@@ -94,12 +96,6 @@
       }
 
       function makeADraft(itemId, onSuccess){
-        var item = getItem(itemId);
-        
-        if(item && item.format.apiVersion !== 2){
-          throw new Error('Drafts are not supported for v1 items, format: ' + JSON.stringify(format));
-        }
-
         ItemDraftService.createUserDraft(itemId, 
           function(draft){
             $scope.orgDrafts.push(draft);
@@ -167,7 +163,7 @@
       };
 
       this.cloneItem = function(item){
-        V2ItemService.clone({id: item.id}, 
+        v2ItemService.clone({id: item.id}, 
           function success(newItem){
             $scope.items.push(newItem);
             makeADraft(newItem.id, goToEditDraft);
