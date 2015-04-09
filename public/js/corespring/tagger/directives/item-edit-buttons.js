@@ -16,7 +16,9 @@ angular.module('tagger')
         }
 
         if($scope.draft && !$scope.item.readOnly){
-          if($scope.org && $scope.draft.orgId === $scope.org.id){
+          if($scope.org && 
+            $scope.draft.orgId === $scope.org.id && 
+            $scope.draft.user === $scope.userName){
             $scope.draftStatus = 'ownsDraft';
           } else {
             $scope.draftStatus = 'draftExists';
@@ -71,7 +73,7 @@ angular.module('tagger')
         org: '=',
         item: '=',
         edit: '&',
-        goLive: '&',
+        publish: '&',
         cloneItem: '&'
       }, 
       template: [
@@ -80,10 +82,12 @@ angular.module('tagger')
       '  <div class="draft-buttons" ng-switch on="draftStatus">',
       '    <div ng-switch-when="draftExists">',
       '      <i class="icon icon-lock"></i>',
-      '      <span>Draft owner: {{draft.orgId}}</span>',
+      '      <span>{{draft.user}} is editing</span>',
       '    </div>',
-      '    <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-sm">Edit</button>',
-      '    <button ng-click="goLive(item)" ng-show="canGoLive" class="btn btn-sm">Go live</button>',
+      '    <div ng-switch-default>',
+      '      <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-sm">Edit</button>',
+      '      <button ng-click="publish(item)" ng-show="canGoLive" class="btn btn-sm">Publish</button>',
+      '    </div>',
       '  </div>',
       '  <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm">Clone</button>',
       '</div>'].join('')

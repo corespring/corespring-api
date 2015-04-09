@@ -8,13 +8,22 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Delete</button>
 </div>
 
-<div ui-modal ng-model="v1.showConfirmPublishModal" style="padding: 20px">
-  <h2>Go Live</h2>
+<div ui-modal ng-model="v2.showEditWarning" style="padding: 20px">
+  <h2>Edit</h2>
   <br/>
-  <p>Are you sure? This means that the item will be live in your collection of items and will be ready for selection and use.</p>
-  <button class="btn" ng-click="v1.goLiveCancelled()">Cancel</button>
-  <button ng-click="v1.goLiveConfirmed()" class="btn btn-primary">Go Live</button>
+  <p>Are you sure? This means that the changes won't be live until you click 'Publish'</p>
+  <button class="btn" ng-click="v2.editCancelled()">Cancel</button>
+  <button ng-click="v2.editConfirmed()" class="btn btn-primary">Edit</button>
 </div>
+
+<div ui-modal ng-model="showPublishNotification" style="padding: 20px">
+  <h2>Publish</h2>
+  <br/>
+  <p>Are you sure? This means that the item will be live in your collection and will be ready for selection and use.</p>
+  <button class="btn" ng-click="publishCancelled()">Cancel</button>
+  <button ng-click="publishConfirmed()" class="btn btn-primary">Publish</button>
+</div>
+
 
 
 
@@ -310,7 +319,7 @@
                     org="org"
                     org-drafts="orgDrafts"
                     edit="edit(item)"
-                    go-live="goLive(item)"
+                    publish="publish(item)"
                     clone-item="cloneItem(item)" ></item-edit-button>
                 </td>
                 <td>

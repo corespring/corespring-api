@@ -146,7 +146,7 @@ angular.module('tagger.services')
 
     function ItemDraftService(){
 
-      this.goLive = function(id, onSuccess, onError) {
+      this.publish = function(id, onSuccess, onError) {
         var url = '/api/v2/items/drafts/' + id + '/publish';
 
         $http.put(url)

@@ -63,9 +63,9 @@ function EditDraftController(
     });
   };
 
-  $scope.goLive = function(){
-    ItemDraftService.goLive($scope.draftId, function(result){
-      Logger.info('go live complete');
+  $scope.publish = function(){
+    ItemDraftService.publish($scope.draftId, function(result){
+      Logger.info('publish complete');
       Logger.info(result);
       $location.path('/home');
     }, 

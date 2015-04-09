@@ -137,17 +137,6 @@ trait ItemDrafts
     } yield draftId
   }
 
-  private implicit class WriteResultToValidation(w: WriteResult) {
-    require(w != null)
-
-    def failed(e: DraftError): Validation[DraftError, Unit] = failed(_ => e)
-
-    def failed(e: CommandResult => DraftError): Validation[DraftError, Unit] = if (w.getLastError.ok) {
-      Success()
-    } else {
-      Failure(e(w.getLastError))
-    }
-  }
 
   protected def saveCommit(c: ItemCommit): Validation[DraftError, Unit] = {
     commitService.save(c).failed(SaveCommitFailed)
@@ -193,5 +182,17 @@ trait ItemDrafts
     _ <- if (result) Success() else Failure(DeleteDraftFailed(d.id))
     deleteComplete <- assets.deleteDraft(d.id)
   } yield Unit
+
+  private implicit class WriteResultToValidation(w: WriteResult) {
+    require(w != null)
+
+    def failed(e: DraftError): Validation[DraftError, Unit] = failed(_ => e)
+
+    def failed(e: CommandResult => DraftError): Validation[DraftError, Unit] = if (w.getLastError.ok) {
+      Success()
+    } else {
+      Failure(e(w.getLastError))
+    }
+  }
 
 }

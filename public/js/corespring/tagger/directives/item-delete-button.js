@@ -16,7 +16,9 @@ angular.module('tagger')
         }
 
         if($scope.draft && !$scope.item.readOnly){
-          if($scope.org && $scope.draft.orgId === $scope.org.id){
+          if($scope.org && 
+            $scope.draft.orgId === $scope.org.id &&
+            $scope.draft.user === $scope.userName){
             $scope.draftStatus = 'ownsDraft';
           } else {
             $scope.draftStatus = 'draftExists';
@@ -24,18 +26,21 @@ angular.module('tagger')
         }
       }
 
-      function isNotReadOnlyAndTheresNoDrafts(){
-        if($scope.item.readOnly){
-          return false;
-        } else {
-          return $scope.draftStatus === 'noDraft'  || $scope.draftStatus === 'canMakeDraft';
-        }
-      }
-
       function updateFlags(){
         updateDraftStatus();
-        $scope.canDelete = !$scope.item.readOnly && $scope.draftStatus !== 'draftExists';
-        $scope.deleteLabel = $scope.draftStatus === 'ownsDraft' ? 'Delete Draft' : 'Delete Item';
+
+        switch ($scope.draftStatus) {
+          case 'ownsDraft' : 
+            $scope.canDelete = true;
+            $scope.deleteLabel = 'Delete Draft';
+            break;
+          case 'draftExists' : 
+            $scope.canDelete = false;
+            break;
+          case 'canMakeDraft' : 
+            $scope.canDelete = true;
+            $scope.deleteLabel = 'Delete Item';
+        }
       }
 
       $scope['delete'] = function(){

@@ -33,7 +33,7 @@ class RequestIdentifiers(
     override def userService: UserService = UserServiceWired
 
     override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success(
-      OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, apiClientId))
+      OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, apiClientId, user))
 
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }

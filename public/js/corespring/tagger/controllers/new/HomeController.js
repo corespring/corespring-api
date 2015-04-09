@@ -15,7 +15,6 @@
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
 
-
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
@@ -55,12 +54,12 @@
         );
       };
 
-      this.goLive = function(item){
+      this.publish = function(item){
         $scope.v1.itemToPublish = item;
         $scope.v1.showConfirmPublishModal = true;
       };
       
-      this.goLiveConfirmed = function(){
+      this.publishConfirmed = function(){
         $scope.v1.showConfirmPublishModal = false;
 
         $scope.v1.itemToPublish.publish(function(result){
@@ -75,7 +74,7 @@
         });
       };
 
-      this.goLiveCancelled  = function(){
+      this.publishCancelled  = function(){
         $scope.v1.itemToPublish = null;
         $scope.v1.showConfirmPublishModal = false;
       };
@@ -112,6 +111,13 @@
       }
 
       this.edit = function(item){
+        $scope.v2.showEditWarning = true;
+        $scope.v2.itemToEdit = item;
+      };
+
+      this.editConfirmed = function(){
+        $scope.v2.showEditWarning = false;
+        var item = $scope.v2.itemToEdit;
         var draft = _.find($scope.orgDrafts, function(d){
           return d.itemId === item.id;
         });
@@ -123,7 +129,12 @@
         }
       };
 
-      this.goLive = function(item){
+      this.editCancelled = function(){
+        $scope.v2.showEditWarning = false;
+        $scope.v2.itemToEdit = null;
+      };
+
+      this.publish = function(item){
 
         var draft = _.find($scope.orgDrafts, function(d){
           return d.itemId == item.id;
@@ -143,7 +154,7 @@
             }
           );
         } else {
-          ItemDraftService.goLive(draft.id, 
+          ItemDraftService.publish(draft.id, 
             function(result){
               $scope.search();
             }, 
@@ -185,8 +196,19 @@
       route('edit', item);
     };
     
-    $scope.goLive = function(item){
-      route('goLive', item);
+    $scope.publish = function(item){
+      $scope.showPublishNotification = true;
+      $scope.itemToPublish = item;
+    };
+
+    $scope.publishCancelled = function(item){
+      $scope.showPublishNotification = false;
+      $scope.itemToPublish = null;
+    };
+    
+    $scope.publishConfirmed = function(item){
+      $scope.showPublishNotification = false;
+      route('publish', $scope.itemToPublish);
     };
     
     $scope.cloneItem = function(item){
