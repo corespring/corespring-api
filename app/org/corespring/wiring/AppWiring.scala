@@ -6,7 +6,7 @@ import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.services.item.{ElasticSearchItemIndexService, ItemServiceWired}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.BasicScoreService
 import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, V2ApiBootstrap }
@@ -66,6 +66,7 @@ object AppWiring {
     services.mainSessionService,
     services.itemAuth,
     ItemServiceWired,
+    ElasticSearchItemIndexService,
     services.sessionAuth,
     v2ApiRequestIdentity,
     Some((itemId: VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),

@@ -7,11 +7,11 @@ import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
-import org.corespring.v2.auth.identifiers.RequestIdentity
+import org.corespring.v2.auth.identifiers.{TokenOrgIdentity, RequestIdentity}
 import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
@@ -32,6 +32,7 @@ class V2ApiBootstrap(
   val sessionService: MongoService,
   val itemAuth: ItemAuth[OrgAndOpts],
   val itemService: ItemService,
+  val itemIndexService: ItemIndexService,
   val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   val headerToOrgAndOpts: RequestIdentity[OrgAndOpts],
   val sessionCreatedHandler: Option[VersionedId[ObjectId] => Unit],
@@ -65,6 +66,8 @@ class V2ApiBootstrap(
     }
 
     override def itemService: ItemService = V2ApiBootstrap.this.itemService
+
+    override def itemIndexService: ItemIndexService = V2ApiBootstrap.this.itemIndexService
   }
 
   lazy val itemSessionApi = new ItemSessionApi {
