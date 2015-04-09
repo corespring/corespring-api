@@ -4,7 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.CommitsWithSameSrc
+import org.corespring.drafts.errors.{ CommitsAfterDraft, CommitsWithSameSrc }
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models.{ SimpleOrg, SimpleUser, OrgAndUser }
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 
 import scalaz.{ Success, Failure }
 
-class SimpleDraftTest extends IntegrationSpecification with BeforeExample with Mockito {
+class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mockito {
 
   lazy val db = Db.salatDb()(Play.current)
 
@@ -46,9 +46,9 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     lazy val drafts = new ItemDrafts {
       override val itemService: ItemService = ItemServiceWired
 
-      override val draftService: ItemDraftService = SimpleDraftTest.this.draftService
+      override val draftService: ItemDraftService = ItemDraftsTest.this.draftService
 
-      override val commitService: CommitService = SimpleDraftTest.this.commitService
+      override val commitService: CommitService = ItemDraftsTest.this.commitService
 
       val assets = {
         val m = mock[ItemDraftAssets]
@@ -78,7 +78,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
     item.copy(taskInfo = item.taskInfo.map(_.copy(title = Some(title))))
   }
 
-  "SimpleDraftTest" should {
+  "ItemDrafts" should {
 
     "a draft item is unpublished" in new orgAndUserAndItem {
       ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
@@ -115,19 +115,14 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       latestItem.get.taskInfo.get.title === Some("commit a draft")
       latestItem.get.id.version === Some(0)
     }
-    /*
-    "committing a draft, keeps the draft and creates a commit" in new orgAndUserAndItem {
+
+    "committing sets the committed DateTime" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser).get
-      val item = draft.src.data
-      val newItem = updateTitle(item, "update for committing - 2")
-      val update = draft.update(newItem)
-      drafts.commit(orgAndUser)(update)
-      drafts.load(orgAndUser)(update.id) must_!= None
-      println(s"load commits for: $itemId")
-      val commits = drafts.loadCommitsNotByDraft(draft.id, itemId)
-      commits.length === 0
-      commitService.collection.count(MongoDBObject("draftId" -> draft.id)) must_== 1
-    }*/
+      drafts.commit(orgAndUser)(draft)
+      val updatedDraft = drafts.load(orgAndUser)(draft.id).get
+      updatedDraft.committed.isDefined === true
+      updatedDraft.committed.get.isAfter(draft.created)
+    }
 
     "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
       val eds = drafts.create(itemId, orgAndUser).get
@@ -137,7 +132,7 @@ class SimpleDraftTest extends IntegrationSpecification with BeforeExample with M
       val update = eds.update(newItem)
       drafts.commit(orgAndUser)(update)
       drafts.commit(orgAndUser)(edsSecondDraft) match {
-        case Failure(CommitsWithSameSrc(commits)) => {
+        case Failure(CommitsAfterDraft(commits)) => {
           val commit = commits(0)
           commit.user === orgAndUser
         }

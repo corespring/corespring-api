@@ -39,6 +39,10 @@ trait CommitService {
         "$gt" -> date),
       "srcId._id" -> id.id)
 
-    collection.find(query).toSeq.map(toCommit)
+    val stream = collection.find(query)
+    println(s"stream: $stream")
+    val out = stream.toSeq.map(toCommit)
+    println(s"out: $out")
+    out
   }
 }

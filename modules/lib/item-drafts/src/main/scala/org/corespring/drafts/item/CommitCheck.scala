@@ -14,7 +14,7 @@ trait CommitCheck {
   def canCommit(d: ItemDraft): Validation[CommitError, Unit] = {
     commitsAfterDraft(d) match {
       case Nil => Success()
-      case head :: xs => {
+      case head #:: xs => {
         Failure(CommitsAfterDraft(head +: xs))
       }
     }
