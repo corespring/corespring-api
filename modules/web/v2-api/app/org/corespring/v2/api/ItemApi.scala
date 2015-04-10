@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
+import org.corespring.drafts.item.models.ItemDraft
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -183,6 +184,7 @@ trait ItemApi extends V2Api {
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
+
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 

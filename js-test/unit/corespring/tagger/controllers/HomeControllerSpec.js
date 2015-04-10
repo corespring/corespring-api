@@ -41,7 +41,6 @@ describe('tagger.HomeController', function () {
       $provide.value('$timeout', function(fn){fn();});
       $provide.value('$location',  location);
       $provide.value('ItemService', itemService);
-      $provide.value('CmsService', cmsService);
       $provide.value('ItemDraftService', itemDraftService);
       $provide.value('V2ItemService', v2ItemService);
       $provide.value('UserInfo', {userName: 'ed', org: '111'});

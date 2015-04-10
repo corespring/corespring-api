@@ -1,30 +1,26 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.MongoCollection
 import org.bson.types.ObjectId
-import org.corespring.api.v1
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.models.{ SimpleOrg, SimpleUser, OrgAndUser }
-import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.item.models.{OrgAndUser, SimpleOrg, SimpleUser}
+import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
-import org.corespring.platform.core.models.User
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
+import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
+import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{ PlayerTokenService, _ }
+import org.corespring.v2.api.services.{PlayerTokenService, _}
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
-import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.models.{IdentityJson, OrgAndOpts}
+import org.corespring.v2.auth.services.{OrgService, TokenService}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.libs.concurrent.Akka
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
-import securesocial.core.SecureSocial
 
 import scala.concurrent.ExecutionContext
 import scalaz.Scalaz._
@@ -134,23 +130,8 @@ class V2ApiBootstrap(
     override def orgEncryptionService: OrgEncryptionService = services.orgEncryptionService
   }
 
-  lazy val cms = new Cms {
-    override def itemTransformer: ItemTransformer = V2ApiBootstrap.this.itemTransformer
 
-    override def itemService: ItemService = services.itemService
-
-    override def v1ApiCreate = (request) => { org.corespring.api.v1.ItemApi.create()(request) }
-
-    override def itemDrafts: ItemDrafts = services.draftsBackend
-
-    override def identifyUser(rh: RequestHeader): Option[User] = {
-      SecureSocial.currentUser(rh).flatMap(identity => User.getUser(identity.identityId))
-    }
-
-    override def orgService: OrgService = services.orgService
-  }
-
-  import org.corespring.v2.api.drafts.item.{ ItemDrafts => ItemDraftsController }
+  import org.corespring.v2.api.drafts.item.{ItemDrafts => ItemDraftsController}
 
   lazy val itemDrafts = new ItemDraftsController {
 
@@ -170,7 +151,6 @@ class V2ApiBootstrap(
     playerTokenApi,
     externalModelLaunchApi,
     utils,
-    cms,
     itemDrafts)
 
 }

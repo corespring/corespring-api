@@ -32,7 +32,6 @@
         });
 
         mk('/home', '/web/views/partials/tagger/home', tagger.HomeController);
-        mk('/new/:type', '/web/views/partials/tagger/createItem', tagger.CreateCtrl);
         mk('/edit/draft/:draftId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
         mk('/edit/:itemId', '/web/views/partials/tagger/editItem', tagger.ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);

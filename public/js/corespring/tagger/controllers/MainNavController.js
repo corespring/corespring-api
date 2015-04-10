@@ -1,4 +1,4 @@
-function MainNavController($scope, $rootScope, $location, SearchService) {
+function MainNavController($scope, $rootScope, $location, SearchService, V2ItemService, ItemDraftService) {
 
   "use strict";
 
@@ -30,6 +30,23 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   $scope.$on('createNewItem', function (evt) {
     $rootScope.items = [];
   });
+
+  $scope.createItem = function(){
+     V2ItemService.create({}, function onCreated(itemData) {
+      ItemDraftService.createUserDraft(itemData.id, function(draft){
+        window.location.href = '/web#/edit/draft/' + draft.id;
+      });
+    }, function onError(e) {
+        alert("Error Saving Item: " + e.data.message);
+      }
+    );
+  };
 }
 
-MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];
+MainNavController.$inject = [
+  '$scope', 
+  '$rootScope', 
+  '$location', 
+  'SearchService', 
+  'V2ItemService', 
+  'ItemDraftService'];

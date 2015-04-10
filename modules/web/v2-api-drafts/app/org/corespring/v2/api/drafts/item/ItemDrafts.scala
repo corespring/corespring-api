@@ -104,6 +104,11 @@ trait ItemDrafts extends Controller {
         _ => Json.obj("id" -> draftId.toString))
   }
 
+  def getDraftsForOrg = draftsAction { (user) =>
+    val list = drafts.listForOrg(user.org.id).map(ItemDraftJson.simple)
+    Success(Json.toJson(list))
+  }
+
   private def draftsAction(fn: (OrgAndUser) => Validation[DraftApiError, JsValue]) = Action.async { implicit request =>
     Future {
       for {

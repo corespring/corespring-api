@@ -8,13 +8,10 @@
     ItemService,
     ItemFormattingUtils,
     Logger,
-    CmsService,
     UserInfo,
     ItemDraftService,
     V2ItemService,
     Modals) {
-
-    var v2ItemService = new V2ItemService();
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -34,7 +31,7 @@
     };
 
     function loadDraftsForOrg(){
-      CmsService.getDraftsForOrg(function(drafts){
+      ItemDraftService.getDraftsForOrg(function(drafts){
         $scope.orgDrafts = drafts;
       }, function error(err){
         console.warn('error: getDraftsForOrg', err);
@@ -159,9 +156,8 @@
       };
 
       this.cloneItem = function(item){
-        v2ItemService.clone({id: item.id}, 
+        V2ItemService.clone({id: item.id}, 
           function success(newItem){
-            $scope.items.push(newItem);
             makeADraft(newItem.id, goToEditDraft);
           }, 
           function error(err){
@@ -268,7 +264,6 @@
     'ItemService',
     'ItemFormattingUtils',
     'Logger',
-    'CmsService',
     'UserInfo',
     'ItemDraftService',
     'V2ItemService',

@@ -68,47 +68,6 @@ angular.module('tagger.services')
         );
     }]);
 
-
-angular.module('tagger.services')
-    .service('CmsService', [ '$http',
-    function($http){
-
-    function CmsService(){
-      this.createFromV1Data = function(data, onSuccess, onError){
-        $http.post('/api/v2/cms/create-from-v1-data', data)
-          .success(onSuccess)
-          .error(onError);
-      };
-
-      this.itemFormat = function(dataType, id, onSuccess, onError){
-
-        if(!_.contains(['item', 'draft'], dataType)){
-          throw new Error('dataType must be either: item or draft');
-        }
-
-        onError = onError || function(err){
-          console.warn(err);
-        };
-
-        $http.get('/api/v2/cms/'+ dataType +'-format/' + id)
-          .success(onSuccess)
-          .error(onError);
-      };
-
-      this.getDraftsForOrg = function(onSuccess, onError){
-        var url = 'api/v2/cms/drafts-for-org';
-
-        $http.get(url) 
-          .success(onSuccess)
-          .error(onError);
-      };
-    }
-
-    return new CmsService();
-
-
-    }]);
-
 angular.module('tagger.services')
     .factory('V2ItemService', [ '$http',
     function($http){
@@ -120,13 +79,6 @@ angular.module('tagger.services')
               .error(onError);
         };
 
-        this.createFromV1Data = function(data, onSuccess, onError){
-            $http.post('/api/v2/cms/create-from-v1-data', data)
-              .success(onSuccess)
-              .error(onError);
-
-        };
-
         this.clone = function( params, onSuccess, onError) {
             var url = "/api/v2/items/:id/clone".replace(":id", params.id);
             
@@ -136,7 +88,7 @@ angular.module('tagger.services')
        };
     }
 
-    return V2ItemService;
+    return new V2ItemService();
 
 
     }]);
@@ -166,6 +118,13 @@ angular.module('tagger.services')
         
         var url = '/api/v2/items/drafts/' + params.id;
 
+        $http.get(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.getDraftsForOrg = function(onSuccess, onError){
+        var url = '/api/v2/items/drafts';
         $http.get(url)
           .success(onSuccess)
           .error(onError);
@@ -223,8 +182,6 @@ angular.module('tagger.services')
           V2ItemService,
           ItemDraftService) {
 
-    var v2Service = new V2ItemService();
-
     var ItemService = $resource(
         ServiceLookup.getUrlFor('items'),
         { },
@@ -262,7 +219,7 @@ angular.module('tagger.services')
     };
 
     ItemService.prototype.clone = function( onSuccess, onError) {
-      v2Service.clone(this, onSuccess, onError);
+      V2ItemService.clone(this, onSuccess, onError);
     };
 
     ItemService.prototype.update = function (paramsObject, cb, onErrorCallback) {

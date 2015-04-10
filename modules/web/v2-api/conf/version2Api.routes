@@ -1,3 +1,13 @@
+GET     /items/:itemId/drafts              @org.corespring.v2.api.drafts.item.ItemDrafts.list(itemId:String)
+POST    /items/:itemId/draft               @org.corespring.v2.api.drafts.item.ItemDrafts.create(itemId:String)
+PUT     /items/drafts/:draftId/commit      @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:ObjectId)
+PUT     /items/drafts/:draftId/publish     @org.corespring.v2.api.drafts.item.ItemDrafts.publish(draftId:ObjectId)
+PUT     /items/drafts/:draftId/clone       @org.corespring.v2.api.drafts.item.ItemDrafts.cloneDraft(draftId:ObjectId)
+GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:ObjectId)
+PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:ObjectId)
+DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:ObjectId)
+GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
+
 GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
 
 ## Check a score
@@ -8,12 +18,6 @@ POST /items/:itemId/sessions               @org.corespring.v2.api.ItemSessionApi
 
 POST /items                                @org.corespring.v2.api.ItemApi.create()
 
-# This is a temporary endpoint to allow the existing cms to create v2 items
-# using the v1 templates it has loaded.
-POST /cms/create-from-v1-data              @org.corespring.v2.api.Cms.createItemFromV1Data()
-GET  /cms/item-format/:itemId              @org.corespring.v2.api.Cms.getItemFormat(itemId:String)
-GET  /cms/draft-format/:draftId            @org.corespring.v2.api.Cms.getDraftFormat(draftId:String)
-GET  /cms/drafts-for-org                   @org.corespring.v2.api.Cms.getDraftsForOrg()
 
 PUT  /items/:itemId/check-score.json       @org.corespring.v2.api.ItemApi.checkScore(itemId:String)
 
@@ -49,11 +53,3 @@ GET  /collections                          @org.corespring.v2.api.V1CollectionAp
 
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 
-GET     /items/:itemId/drafts              @org.corespring.v2.api.drafts.item.ItemDrafts.list(itemId:String)
-POST    /items/:itemId/draft               @org.corespring.v2.api.drafts.item.ItemDrafts.create(itemId:String)
-PUT     /items/drafts/:draftId/commit      @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:ObjectId)
-PUT     /items/drafts/:draftId/publish     @org.corespring.v2.api.drafts.item.ItemDrafts.publish(draftId:ObjectId)
-PUT     /items/drafts/:draftId/clone       @org.corespring.v2.api.drafts.item.ItemDrafts.cloneDraft(draftId:ObjectId)
-GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:ObjectId)
-PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:ObjectId)
-DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:ObjectId)

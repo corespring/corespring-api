@@ -1,5 +1,5 @@
 angular.module('tagger')
-  .directive('profilePlayer', ['$timeout','CmsService',function ($timeout, CmsService) {
+  .directive('profilePlayer', ['$timeout',function ($timeout) {
 
   var definition = {
     replace: false,

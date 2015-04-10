@@ -40,7 +40,6 @@
 }
 
 .pager {
-    padding-top: 10px;
     margin-bottom: 0px;
     .pager-progress-bar,
     .pager-text {
@@ -585,15 +584,13 @@ button.tight{
         padding-left: 0px;
     }
 
-    .nav > li > a {
-        color: lighten( @cs-neutral-color, 50%);
-        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-
-        &:hover{
-
-            color: lighten( @cs-base-color, 10%);
-        }
+    .nav.pull-right{
+      padding-top: 10px;
+      a{
+        color: white;
+      }
     }
+
 }
 
 a{
@@ -782,6 +779,11 @@ body{
 /*
  * Icon links up the top right.
  */
+
+.create-item{
+  padding-top: 10px;
+  color: white;
+}
 
 .navbar .nav > li > a.cs-icon-link {
     float: none;
