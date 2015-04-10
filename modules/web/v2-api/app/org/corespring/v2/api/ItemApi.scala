@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.JsonUtil
+import org.corespring.platform.core.models.{ContentCollRef, JsonUtil}
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.v2.api.services.ScoreService
@@ -83,12 +83,18 @@ trait ItemApi extends V2Api with JsonUtil {
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val queryString = query.getOrElse("{}")
 
+    implicit class Accessible(collections: Seq[ContentCollRef]) {
+      private val readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
+
+      def accessible = collections.filter(readable)
+    }
+
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
           case JsSuccess(query, _) => {
-            val accessibleCollections = orgAndOpts.org.contentcolls.map(_.collectionId.toString)
-            val collections = query.collections.filter(accessibleCollections.contains(_))
+            val accessibleCollections = orgAndOpts.org.contentcolls.accessible.map(_.collectionId.toString)
+            val collections = query.collections.filter(id => accessibleCollections.contains(id))
             val scopedQuery = (collections.isEmpty match {
               case true => query.copy(collections = accessibleCollections)
               case _ => query.copy(collections = collections)
