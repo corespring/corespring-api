@@ -12,6 +12,10 @@ import scalaz._
 
 /**
  * An ItemIndexService based on Elastic Search.
+ *
+ * TODO: Testing this is *very* difficult, as mocking the native WS in Play < 2.3.x requires starting a Mock HTTP
+ * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
+ * test this exhaustively.
  */
 class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexService {
 
