@@ -4,6 +4,12 @@ function RootController($scope, $rootScope, ItemService, SearchService, Collecti
     showCollectionsPane: false
   };
 
+  $rootScope.$watch('modals', function(n,o){
+    if(n && !o){
+      $scope.modals = n;
+    }
+  });
+
   $scope.$on("error", function(event, errorSubType, data){
     $scope.showErrorBox = true;
     $scope.errorSubType = errorSubType;

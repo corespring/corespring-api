@@ -91,5 +91,31 @@ userOrg: org.corespring.platform.core.models.Organization )
     <button class="btn btn-info acknowledge-button" ng-click="errorAcknowledged()">Ok</button>
   </div>
     <div ng-view class="extra-large-window"></div>
+
+<div ui-modal ng-model="modals.delete.show" style="padding: 20px">
+    <h2>Delete Item</h2>
+    <br/>
+    <p>Are you sure? This can't be undone.</p>
+    <button class="btn" ng-click="modals.delete.done(true)">Cancel</button>
+    <button ng-click="modals.delete.done()" class="btn btn-danger">Delete</button>
+</div>
+
+<div ui-modal ng-model="modals.edit.show" style="padding: 20px">
+  <h2>Edit</h2>
+  <br/>
+  <p>Are you sure? This means that the changes won't be live until you click 'Publish'</p>
+  <button class="btn" ng-click="modals.edit.done(true)">Cancel</button>
+  <button ng-click="modals.edit.done()" class="btn btn-primary">Edit</button>
+</div>
+
+<div ui-modal ng-model="modals.publish.show" style="padding: 20px">
+  <h2>Publish</h2>
+  <br/>
+  <p>Are you sure? This means that the item will be live in your collection and will be ready for selection and use.</p>
+  <button class="btn" ng-click="modals.publish.done(true)">Cancel</button>
+  <button ng-click="modals.publish.done()" class="btn btn-primary">Publish</button>
+</div>
+
+
 </body>
 </html>

@@ -11,7 +11,8 @@
     CmsService,
     UserInfo,
     ItemDraftService,
-    V2ItemService) {
+    V2ItemService,
+    Modals) {
 
     var v2ItemService = new V2ItemService();
 
@@ -108,27 +109,22 @@
       }
 
       this.edit = function(item){
-        $scope.v2.showEditWarning = true;
-        $scope.v2.itemToEdit = item;
-      };
+        Modals.edit(function(cancelled){
+          
+          if(cancelled){
+            return;
+          }
 
-      this.editConfirmed = function(){
-        $scope.v2.showEditWarning = false;
-        var item = $scope.v2.itemToEdit;
-        var draft = _.find($scope.orgDrafts, function(d){
-          return d.itemId === item.id;
+          var draft = _.find($scope.orgDrafts, function(d){
+            return d.itemId === item.id;
+          });
+
+          if(draft){
+            goToEditDraft(draft.id);
+          } else {
+            makeADraft(item.id, goToEditDraft); 
+          }
         });
-
-        if(draft){
-          goToEditDraft(draft.id);
-        } else {
-          makeADraft(item.id, goToEditDraft); 
-        }
-      };
-
-      this.editCancelled = function(){
-        $scope.v2.showEditWarning = false;
-        $scope.v2.itemToEdit = null;
       };
 
       this.publish = function(item){
@@ -195,18 +191,11 @@
     };
     
     $scope.publish = function(item){
-      $scope.showPublishNotification = true;
-      $scope.itemToPublish = item;
-    };
-
-    $scope.publishCancelled = function(item){
-      $scope.showPublishNotification = false;
-      $scope.itemToPublish = null;
-    };
-    
-    $scope.publishConfirmed = function(item){
-      $scope.showPublishNotification = false;
-      route('publish', $scope.itemToPublish);
+      Modals.publish(function(cancelled){
+        if(!cancelled){
+          route('publish', item);
+        }
+      });
     };
     
     $scope.cloneItem = function(item){
@@ -214,27 +203,14 @@
     };
     
     $scope.deleteItem = function(item) {
-      $scope.itemToDelete = item;
-      $scope.showConfirmDestroyModal = true;
-    };
-
-    $scope.deleteConfirmed = function() {
-      var deletingId = $scope.itemToDelete.id;
-      ItemService.remove({
-          id: $scope.itemToDelete.id
-        },
-        function(result) {
-          $scope.itemToDelete = null;
-          $scope.search();
+      Modals['delete'](function(cancelled){
+        if(!cancelled){
+          ItemService.remove({ id: item.id },
+            function(result) {
+              $scope.search();
+            });
         }
-      );
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
-    };
-
-    $scope.deleteCancelled = function() {
-      $scope.itemToDelete = null;
-      $scope.showConfirmDestroyModal = false;
+      });
     };
 
     $scope.deleteDraft = function(draft){
@@ -295,7 +271,8 @@
     'CmsService',
     'UserInfo',
     'ItemDraftService',
-    'V2ItemService'
+    'V2ItemService',
+    'Modals'
   ];
 
   root.tagger = root.tagger || {};

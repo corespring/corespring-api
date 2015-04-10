@@ -23,7 +23,8 @@ function EditDraftController(
   $routeParams, 
   ItemDraftService,  
   Logger, 
-  ItemSessionCountService) {
+  ItemSessionCountService,
+  Modals) {
 
   $scope.devEditorVisible = false;
   
@@ -64,13 +65,19 @@ function EditDraftController(
   };
 
   $scope.publish = function(){
-    ItemDraftService.publish($scope.draftId, function(result){
-      Logger.info('publish complete');
-      Logger.info(result);
-      $location.path('/home');
-    }, 
-    function(err){
-      Logger.error(err);
+    Modals.publish(
+      function(cancelled){
+        if(cancelled){
+          return;
+        }
+        ItemDraftService.publish($scope.draftId, function(result){
+          Logger.info('publish complete');
+          Logger.info(result);
+          $location.path('/home');
+        }, 
+        function(err){
+          Logger.error(err);
+        });
     });
   };
 
@@ -103,7 +110,8 @@ EditDraftController.$inject = [
   '$routeParams',
   'ItemDraftService',
   'Logger',
-  'ItemSessionCountService'
+  'ItemSessionCountService',
+  'Modals'
 ];
   
   root.tagger = root.tagger || {};
