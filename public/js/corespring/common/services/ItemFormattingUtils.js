@@ -158,7 +158,8 @@ angular.module('corespring-utils')
           return "";
         }
         var out = [];
-
+        console.debug('****************** WTF ******************');
+        console.debug(standards.length);
         if (standards.length == 1 && standards[0].standard) {
           return "<span>" + standards[0].standard + "</span>";
         }
@@ -176,6 +177,30 @@ angular.module('corespring-utils')
 
         return "<span>" + out.join(", ") + "</span>";
       },
+
+      buildDescriptionEllipsis: function (titles) {
+        if (!titles) {
+          return "";
+        }
+
+        if (titles) {
+          var titleCut = titles.substr(0, 50);
+
+          return titleCut + "...";
+        }
+        
+      }, 
+
+      buildDescriptionTooltip: function (titles) {
+        if (!titles) {
+          return "";
+        }
+        if (titles) {
+
+          return titles;
+        }
+        
+      },      
 
       showItemType: function (item) {
 

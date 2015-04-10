@@ -39,7 +39,7 @@ angular.module('tagger')
             break;
           case 'canMakeDraft' : 
             $scope.canDelete = true;
-            $scope.deleteLabel = 'Delete Item';
+            $scope.deleteLabel = 'Delete';
         }
       }
 
