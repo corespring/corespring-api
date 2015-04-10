@@ -17,7 +17,7 @@
         <div class="well" style="position: relative; top: 100px; width:500px;">
 
         @request.flash.get("error").map { msg =>
-        <div class="alert alert-error">
+        <div class="alert alert-danger">
             @Messages(msg)
         </div>
     }
