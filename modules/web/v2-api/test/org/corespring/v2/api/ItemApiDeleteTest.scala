@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
@@ -76,7 +76,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] =
         if (isLoggedIn)
-          Success(OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
+          Success(OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
         else
           Failure(unAuthorized(""))
 
@@ -84,6 +84,8 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
         val m = mock[ScoreService]
         m
       }
+
+      override def itemIndexService: ItemIndexService = ???
     }
   }
 

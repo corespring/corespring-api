@@ -10,6 +10,9 @@ import play.api.libs.ws.WS
 import scala.concurrent._
 import scalaz._
 
+/**
+ * An ItemIndexService based on Elastic Search.
+ */
 class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexService {
 
   import ExecutionContext.Implicits.global
@@ -26,10 +29,9 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexServ
     try {
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
-      val opts = Json.toJson(query)
-      println(Json.prettyPrint(opts))
+
       WS.url(baseUrl + "/content/_search").withHeaders(authHeader)
-        .post(opts)
+        .post(Json.toJson(query))
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
           case _ => Failure(new Error("Could not read results"))

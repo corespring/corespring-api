@@ -115,7 +115,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
     }
 
-    def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, m, clientId)
+    def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, m, clientId)
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")

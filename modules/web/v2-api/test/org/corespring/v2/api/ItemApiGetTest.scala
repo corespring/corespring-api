@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
@@ -64,6 +64,8 @@ class ItemApiGetTest extends Specification with Mockito with MockFactory {
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = Some(defaultCollectionId.toString)
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => mockOrgAndOpts())
+
+      override def itemIndexService: ItemIndexService = ???
     }
   }
 

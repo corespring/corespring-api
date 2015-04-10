@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
+import org.corespring.platform.core.models.JsonUtil
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.v2.api.services.ScoreService
@@ -22,7 +23,7 @@ import play.api.mvc._
 import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
-trait ItemApi extends V2Api {
+trait ItemApi extends V2Api with JsonUtil {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
@@ -83,17 +84,24 @@ trait ItemApi extends V2Api {
     val queryString = query.getOrElse("{}")
 
     getOrgAndOptions(request) match {
-      case Success(orgAndOpts) => Json.fromJson[ItemIndexQuery](Json.parse(queryString)) match {
-        case JsSuccess(query, _) => {
-          val accessibleCollections = orgAndOpts.org.contentcolls.map(_.collectionId.toString)
-          val scopedQuery = (query.collections.isEmpty match {
-            case true => query.copy(collections = accessibleCollections)
-            case _ => query.copy(collections = query.collections.filter(accessibleCollections.contains(_)))
-          })
-          itemIndexService.search(scopedQuery).map(result => result match {
-            case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
-            case Failure(error) => BadRequest(error.getMessage)
-          })
+      case Success(orgAndOpts) => safeParse(queryString) match {
+        case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
+          case JsSuccess(query, _) => {
+            val accessibleCollections = orgAndOpts.org.contentcolls.map(_.collectionId.toString)
+            val collections = query.collections.filter(accessibleCollections.contains(_))
+            val scopedQuery = (collections.isEmpty match {
+              case true => query.copy(collections = accessibleCollections)
+              case _ => query.copy(collections = collections)
+            })
+            itemIndexService.search(scopedQuery).map(result => result match {
+              case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
+              case Failure(error) => BadRequest(error.getMessage)
+            })
+          }
+          case _ => future {
+            val error = invalidJson(queryString)
+            Status(error.statusCode)(error.message)
+          }
         }
         case _ => future {
           val error = invalidJson(queryString)

@@ -1,7 +1,11 @@
 package org.corespring.platform.core.services.item
 
+import org.corespring.platform.core.models.JsonUtil
 import play.api.libs.json._
 
+/**
+ * Contains fields used for querying the item index
+ */
 case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
                           count: Int = ItemIndexQuery.Defaults.count,
                           text: Option[String] = ItemIndexQuery.Defaults.text,
@@ -14,6 +18,9 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
 
 object ItemIndexQuery {
 
+  /**
+   * Default query values
+   */
   object Defaults {
     val offset = 0
     val count = 50
@@ -26,6 +33,9 @@ object ItemIndexQuery {
     val workflows = Seq.empty[String]
   }
 
+  /**
+   * Reads JSON in the format provided by requests to the search API.
+   */
   object ApiReads extends Reads[ItemIndexQuery] {
     override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
       ItemIndexQuery(
@@ -42,7 +52,10 @@ object ItemIndexQuery {
     )
   }
 
-  object ElasticSearchWrites extends Writes[ItemIndexQuery] {
+  /**
+   * Writes the query to a JSON format understood by Elastic Search.
+   */
+  object ElasticSearchWrites extends Writes[ItemIndexQuery] with JsonUtil {
 
     private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)
                         (implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
@@ -65,7 +78,7 @@ object ItemIndexQuery {
         named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
 
 
-    override def writes(query: ItemIndexQuery): JsValue = {
+    def writes(query: ItemIndexQuery): JsValue = {
       import query._
       Json.obj(
         "from" -> offset,
@@ -96,8 +109,6 @@ object ItemIndexQuery {
       )
     }
 
-    def partialObj(fields : (String, Option[JsValue])*): JsObject =
-      JsObject(fields.filter{ case (_, v) => v.nonEmpty }.map{ case (a,b) => (a, b.get) })
   }
 
 }

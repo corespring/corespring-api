@@ -26,7 +26,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
   val defaultPermFailure = generalError("Perm failure")
   val defaultOrgAndOptsFailure = generalError("Org and opts failure")
 
-  implicit val identity: OrgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+  implicit val identity: OrgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
 
   case class authContext(
     item: Option[Item] = None,
