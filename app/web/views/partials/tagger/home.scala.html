@@ -242,7 +242,7 @@
             <td class="nav-vr"><div></div></td>
             <td>
 
-                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="input-small"
+                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="input-small form-control"
                        id="appendedInputButtons"
                        size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
             </td>
@@ -256,7 +256,8 @@
         <table class="item-list table content-sort">
             <thead>
             <tr>
-                <th sort-column-header field="title" >Title</th>
+                <th sort-column-header field="preview"></th>
+                <th sort-column-header field="title">Title</th>
                 <th sort-column-header field="description">Description</th>
                 <th>Subject</th>
                 <th sort-column-header field="gradeLevel">Grade</th>
@@ -270,7 +271,11 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td class="item-title" ng-click="launchCatalogView()" ng-bind-html-unsafe="item.title"></td>
+                <td><a class="btn btn-default" ng-click="launchCatalogView()">Preview</a></td>
+                <td>
+                    <a ui-jq="tooltip"
+                       ui-options="{title: buildDescriptionTooltip(item.title)}">{{buildDescriptionEllipsis(item.title)}}</a>
+                </td>
                 <td ng-bind-html-unsafe="item.description"></td>
                 <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
                 <td>{{createGradeLevelString(item.gradeLevel)}} </td>

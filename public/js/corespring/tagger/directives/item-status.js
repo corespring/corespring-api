@@ -19,7 +19,7 @@ angular.module('tagger')
       template: [
       '<div class="item-status" ng-switch on="status">',
       '  <div class="item-status-holder" ng-switch-when="live">',
-      '    <span class="label label-primary">LIVE</span>',
+      '    <span class="label label-info">LIVE</span>',
       '  </div>',
       '</div>'].join('')
     };
