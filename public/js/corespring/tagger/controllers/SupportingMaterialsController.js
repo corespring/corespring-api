@@ -155,20 +155,23 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
     };
 
     $scope.editResource = function (resource) {
+      var urls = $scope.getUrls($scope.itemId, resource.name);
+      $rootScope.$broadcast('enterEditor', resource, true, urls, [], $scope.itemId, $scope.itemData.latest);
+    };
 
-        var urls = {};
+    $scope.getUrls = function(itemId, name){
 
         var substitutions = {
-            itemId: $routeParams.itemId,
-            resourceName: resource.name
+          itemId: itemId,
+          resourceName: name
         };
 
-        urls.uploadFile = ServiceLookup.getUrlFor('uploadSupportingMaterialFile', substitutions);
-        urls.createFile = ServiceLookup.getUrlFor('createSupportingMaterialFile', substitutions);
-        urls.updateFile = ServiceLookup.getUrlFor('updateSupportingMaterialFile', substitutions);
-        urls.deleteFile = ServiceLookup.getUrlFor('deleteSupportingMaterialFile', substitutions);
-
-        $rootScope.$broadcast('enterEditor', resource, true, urls);
+        return {
+          uploadFile: ServiceLookup.getUrlFor('uploadSupportingMaterialFile', substitutions),
+          createFile: ServiceLookup.getUrlFor('createSupportingMaterialFile', substitutions),
+          updateFile: ServiceLookup.getUrlFor('updateSupportingMaterialFile', substitutions),
+          deleteFile: ServiceLookup.getUrlFor('deleteSupportingMaterialFile', substitutions)
+        };
     };
 
     $scope.$on('enterEditor', function(event){
