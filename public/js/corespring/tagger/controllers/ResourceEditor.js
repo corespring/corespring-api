@@ -28,6 +28,10 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
   $scope.$on('enterEditor', function(event, resource, showBackNav, urls, lockedFiles, itemId, latestVersion) {
 
+    if(!itemId){
+      throw new Error('no itemId specified');
+    }
+
     function versionedId(id) {
       var match = id.match(/(.*)\:([0-9]*)/);
       return (match && match.length === 3) ? {
