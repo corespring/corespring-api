@@ -176,7 +176,7 @@ angular.module('corespring-utils')
         return "<span>" + out.join(", ") + "</span>";
       },
 
-      buildDescriptionEllipsis: function (titles) {
+      buildTitleEllipsis: function (titles) {
         if (!titles) {
           return "";
         }
@@ -189,7 +189,7 @@ angular.module('corespring-utils')
         
       }, 
 
-      buildDescriptionTooltip: function (titles) {
+      buildTitleTooltip: function (titles) {
         if (!titles) {
           return "";
         }

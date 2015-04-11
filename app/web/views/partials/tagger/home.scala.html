@@ -252,14 +252,14 @@
     </div>
 
 <div class="row" style="padding-top: 90px">
-    <div class="container" style="margin-left: 74px;" when-scrolled="loadMore()" watch="itemDataCollection">
+    <div class="container-fluid" when-scrolled="loadMore()" watch="itemDataCollection">
         <table class="item-list table content-sort">
             <thead>
             <tr>
                 <th sort-column-header field="preview"></th>
-                <th sort-column-header field="title">Title</th>
-                <th sort-column-header field="description">Description</th>
-                <th>Subject</th>
+                <th sort-column-header field="title" style="width: 200px;">Title</th>
+                <th sort-column-header field="description" style="width: 300px;">Description</th>
+                <th style="width: 100px;">Subject</th>
                 <th sort-column-header field="gradeLevel">Grade</th>
                 <th sort-column-header field="itemType">Item Type</th>
                 <th>Standard(s)</th>
@@ -274,7 +274,7 @@
                 <td><a class="btn btn-default" ng-click="launchCatalogView()">Preview</a></td>
                 <td>
                     <a ui-jq="tooltip"
-                       ui-options="{title: buildDescriptionTooltip(item.title)}">{{buildDescriptionEllipsis(item.title)}}</a>
+                       ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
                 </td>
                 <td ng-bind-html-unsafe="item.description"></td>
                 <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
