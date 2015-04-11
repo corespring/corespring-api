@@ -129,7 +129,7 @@ angular.module('corespring-utils')
           out.push(gradeLevels[x]);
         }
         out.sort(sortGradeLevels);
-        return out.join(",");
+        return out.join(", ");
       },
 
 
