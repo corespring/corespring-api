@@ -158,8 +158,6 @@ angular.module('corespring-utils')
           return "";
         }
         var out = [];
-        console.debug('****************** WTF ******************');
-        console.debug(standards.length);
         if (standards.length == 1 && standards[0].standard) {
           return "<span>" + standards[0].standard + "</span>";
         }

@@ -36,27 +36,9 @@
                     </li>
                 </ul>
                 <span class="nav pull-right">
-
-
-                    <li class="dropdown">
-                        <a href="#"
-                        data-toggle="dropdown"
-                        class="dropdown-toggle">Create Item <b class="caret"></b></a>
-                        <ul style="z-index: 99999" class="dropdown-menu">
-                            @templates.groupBy(_.group).toSeq.sortWith(_._1.length > _._1.length).map { group =>
-                                <li>
-                                    @group._1
-                                    <ul>
-                                        @group._2.sortBy(_.position).map{ template =>
-                                            <li><a href="#/new/@template.code">@template.label</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                        </ul>
-                    </li>
+                    <a ng-click="createItem()">Create Item</a>
                 </span>
-                <span class="nav pull-right" style="padding-top: 10px;">
+                <span class="nav pull-right">
                     <a style="color: white;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Collections</a>
                 </span>
             }
