@@ -1,11 +1,12 @@
 package org.corespring.drafts.item
 
+import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Drafts }
+import org.corespring.drafts.{ Src, Drafts }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -15,17 +16,16 @@ import play.api.Logger
 import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
+case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: ObjectId)
+
 /**
  * An implementation of <Drafts> for <Item> backed by some mongo services.
  */
-
-case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: ObjectId)
-
 trait ItemDrafts
   extends Drafts[ObjectId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit]
   with CommitCheck {
 
-  protected val logger = Logger("org.corespring.drafts.item.ItemDrafts")
+  protected val logger = Logger(classOf[ItemDrafts].getName)
 
   def itemService: ItemService
 
@@ -35,25 +35,21 @@ trait ItemDrafts
 
   def assets: ItemDraftAssets
 
-  override def commit(requester: OrgAndUser)(d: ItemDraft, force: Boolean = false): Validation[DraftError, ItemCommit] = {
+  /**
+   * Check that the draft src matches the latest src,
+   * so that a commit is possible.
+   */
+  override def getLatestSrc(d: ItemDraft): Src[VersionedId[ObjectId], Item] = ItemSrc(itemService.findOneById(d.src.id.copy(version = None)).get)
 
-    def commitAndCopyAssets = for {
-      commit <- saveDraftBackToSrc(d)
-      _ <- updateDraft(d, commit.committedId)
+  private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
+
+  override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
+    for {
+      vid <- itemService.save(noVersion(d.src.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
+      commit <- Success(ItemCommit(d.id, d.src.data.id, d.user))
       _ <- saveCommit(commit)
-      _ <- assets.copyDraftToItem(d.id, commit.committedId)
+      _ <- assets.copyDraftToItem(d.id, commit.srcId)
     } yield commit
-
-    (d.user == requester, force) match {
-      case (false, _) => Failure(UserCantCommit(requester, d.user))
-      case (true, true) => commitAndCopyAssets
-      case (true, false) => {
-        for {
-          can <- canCommit(d)
-          c <- commitAndCopyAssets
-        } yield c
-      }
-    }
   }
 
   /** Check that the user may create the draft for the given src id */
@@ -62,21 +58,21 @@ trait ItemDrafts
   /**
    * Creates a draft for the target data.
    */
-  override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime] = None): Option[ItemDraft] = {
-    if (userCanCreateDraft(id, user)) {
-      itemService
-        .findOneById(id.copy(version = None))
-        .flatMap { src =>
-          val result = for {
-            draft <- mkDraft(id, src, user)
-            saved <- save(user)(draft)
-          } yield draft
+  override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime] = None): Validation[DraftError, ItemDraft] = {
 
-          result.toOption
-        }
-    } else {
-      None
+    def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
+      require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
+      val draft = ItemDraft(src, user)
+      assets.copyItemToDraft(src.id, draft.id).map { _ => draft }
     }
+
+    for {
+      canCreate <- if (userCanCreateDraft(id, user)) Success(true) else Failure(UserCantCreate(user, id))
+      newVid <- itemService.saveNewUnpublishedVersion(id).toSuccess(SaveNewUnpublishedItemError(id))
+      item <- itemService.findOneById(newVid).toSuccess(LoadItemFailed(id))
+      draft <- mkDraft(id, item, user)
+      saved <- save(user)(draft)
+    } yield draft
   }
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
@@ -89,22 +85,28 @@ trait ItemDrafts
   /**
    * Publish the draft.
    * Set published to true, commit and delete the draft.
-   * @param requester
    * @param draftId
    * @return
+   * d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+   * published <- Success(d.mkChange(d.src.data.copy(published = true)))
+   * commit <- commit(requester)(published)
+   * deleteResult <- removeDraftByIdAndUser(draftId, requester)
+   * } yield d.src.data.id
    */
-  def publish(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, VersionedId[ObjectId]] = for {
-    d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-    published <- Success(d.update(d.src.data.copy(published = true)))
-    commit <- commit(requester)(published)
-    deleteResult <- removeDraftByIdAndUser(draftId, requester)
-  } yield d.src.data.id
+  def publish(user: OrgAndUser)(draftId: ObjectId): Validation[DraftError, VersionedId[ObjectId]] = for {
+    d <- load(user)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+    commit <- commit(user)(d)
+    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.src.id))
+    deleteResult <- removeDraftByIdAndUser(draftId, user)
+  } yield {
+    commit.srcId
+  }
 
   def clone(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
     itemId <- Success(VersionedId(ObjectId.get))
-    vid <- itemService.save(d.src.data.copy(id = itemId)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
-    newDraft <- create(vid, requester).toSuccess(CreateDraftFailed(vid.toString))
+    vid <- itemService.save(d.src.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    newDraft <- create(vid, requester)
   } yield DraftCloneResult(vid, newDraft.id)
 
   override def load(requester: OrgAndUser)(id: ObjectId): Option[ItemDraft] = {
@@ -137,44 +139,8 @@ trait ItemDrafts
     } yield draftId
   }
 
-
   protected def saveCommit(c: ItemCommit): Validation[DraftError, Unit] = {
     commitService.save(c).failed(SaveCommitFailed)
-  }
-
-  /**
-   * update the draft src id to the new id
-   * @param newSrcId
-   * @return
-   */
-  protected def updateDraft(d: ItemDraft, newSrcId: VersionedId[ObjectId]): Validation[DraftError, Unit] = {
-    val update = d.copy(src = d.src.copy(data = d.src.data.copy(id = newSrcId)), committed = Some(DateTime.now))
-    val result = draftService.save(update)
-    println(s"result: $result")
-    result.failed(SaveDraftFailed(d.id.toString))
-  }
-
-  protected def saveDraftBackToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
-
-    val saveNewVersion = itemService.isPublished(d.src.data.id) || d.src.data.published
-
-    val noVersionId: VersionedId[ObjectId] = d.src.data.id.copy(version = None)
-
-    /**
-     * Note: we remove the version because we want to save this as the latest version of the item.
-     * If we kept the version and it had been bumped - save would fail.
-     */
-    val itemWithVersionRemoved = d.src.data.copy(id = noVersionId, dateModified = Some(DateTime.now))
-    itemService.save(itemWithVersionRemoved, saveNewVersion) match {
-      case Left(err) => Failure(SaveDataFailed(err))
-      case Right(vid) => Success(ItemCommit(d.id, d.src.data.id, vid, d.user))
-    }
-  }
-
-  protected def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
-    assets.copyItemToDraft(src.id, ObjectId.get).map { oid =>
-      ItemDraft(oid, ItemSrc(src.copy(published = false)), user)
-    }
   }
 
   protected def deleteDraft(d: ItemDraft): Validation[DraftError, Unit] = for {

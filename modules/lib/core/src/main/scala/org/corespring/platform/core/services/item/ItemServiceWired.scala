@@ -53,8 +53,8 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
-        files.foreach{ f =>
-          f.throwable.map{ e => e.printStackTrace }
+        files.foreach { f =>
+          f.throwable.map { e => e.printStackTrace }
         }
         None
       }
@@ -81,8 +81,12 @@ class ItemServiceWired(
    */
   override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
     dao.get(id).flatMap { item =>
-      dao.save(item.copy(published = false), true)
-      dao.get(id.copy(version = None)).map(_.id)
+      dao.save(item.copy(published = false), true).fold(
+        e => {
+          logger.error(s"function=saveNewUnpublishedVersion error=$e")
+          None
+        },
+        vid => Some(vid))
     }
   }
 

@@ -100,7 +100,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "updated title")
-      val update = draft.update(newItem)
+      val update = draft.mkChange(newItem)
       drafts.save(orgAndUser)(update)
       drafts.load(orgAndUser)(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
     }
@@ -109,7 +109,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       val draft = drafts.create(itemId, orgAndUser).get
       val item = draft.src.data
       val newItem = updateTitle(item, "commit a draft")
-      val update = draft.update(newItem)
+      val update = draft.mkChange(newItem)
       drafts.commit(orgAndUser)(update)
       val latestItem = ItemHelper.get(item.id.copy(version = None))
       latestItem.get.taskInfo.get.title === Some("commit a draft")
@@ -129,7 +129,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       val edsSecondDraft = drafts.create(itemId, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
-      val update = eds.update(newItem)
+      val update = eds.mkChange(newItem)
       drafts.commit(orgAndUser)(update)
       drafts.commit(orgAndUser)(edsSecondDraft) match {
         case Failure(CommitsAfterDraft(commits)) => {
@@ -145,7 +145,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       val edsSecondDraft = drafts.create(itemId, orgAndUser).get
       val item = eds.src.data
       val newItem = updateTitle(item, "update for committing - 2")
-      val update = eds.update(newItem)
+      val update = eds.mkChange(newItem)
       drafts.commit(orgAndUser)(update)
       drafts.commit(orgAndUser)(edsSecondDraft, force = true) match {
         case Failure(CommitsWithSameSrc(commits)) => failure("should have succeeded")
@@ -202,7 +202,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
     "publishing a draft" should {
       "set published to true, commit and delete the draft" in new orgAndUserAndItem {
         val eds = drafts.create(itemId, orgAndUser).get
-        val update = eds.update(eds.src.data.copy(taskInfo = eds.src.data.taskInfo.map(_.copy(title = Some("update")))))
+        val update = eds.mkChange(eds.src.data.copy(taskInfo = eds.src.data.taskInfo.map(_.copy(title = Some("update")))))
 
         update.src.data.published must_== false
 
@@ -223,7 +223,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
     "publishing multiple times keeps bumping the version of the item" in new orgAndUserAndItem {
 
       val draftOne = drafts.create(itemId, orgAndUser).get
-      val update = draftOne.update(draftOne.src.data.copy(taskInfo = draftOne.src.data.taskInfo.map(_.copy(title = Some("update")))))
+      val update = draftOne.mkChange(draftOne.src.data.copy(taskInfo = draftOne.src.data.taskInfo.map(_.copy(title = Some("update")))))
       drafts.save(orgAndUser)(update)
       drafts.publish(orgAndUser)(draftOne.id)
 
@@ -231,7 +231,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
 
       two.src.data.id must_== bump(itemId)
 
-      val updateTwo = two.update(two.src.data.copy(taskInfo = two.src.data.taskInfo.map(_.copy(title = Some("update")))))
+      val updateTwo = two.mkChange(two.src.data.copy(taskInfo = two.src.data.taskInfo.map(_.copy(title = Some("update")))))
       drafts.save(orgAndUser)(updateTwo)
 
       two.id must_== updateTwo.id

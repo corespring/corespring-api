@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
+import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
 import org.joda.time.DateTime
@@ -19,6 +20,8 @@ trait ItemDrafts extends Controller {
   import scalaz.Scalaz._
 
   def drafts: DraftsBackend
+
+  def itemService: ItemService
 
   def identifyUser(rh: RequestHeader): Option[OrgAndUser]
 
@@ -48,17 +51,15 @@ trait ItemDrafts extends Controller {
 
   def create(itemId: String) = Action.async { implicit request =>
 
-    def expires: Option[DateTime] = {
-      request.body.asJson.flatMap { json =>
-        (json \ "expires").asOpt[String].map { DateTime.parse }
-      }
+    def expires: Option[DateTime] = request.body.asJson.flatMap { json =>
+      (json \ "expires").asOpt[String].map { DateTime.parse }
     }
 
     Future {
       for {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        draft <- drafts.create(vid, user, expires).toSuccess(draftCreationFailed(itemId))
+        draft <- drafts.create(vid, user, expires).leftMap { e => generalDraftApiError(e.msg) }
       } yield ItemDraftJson.simple(draft)
     }
   }
@@ -77,9 +78,11 @@ trait ItemDrafts extends Controller {
   }
 
   def publish(draftId: ObjectId) = draftsAction { (user: OrgAndUser) =>
-    drafts.publish(user)(draftId).bimap(
-      e => generalDraftApiError(e.msg),
-      id => Json.obj("itemId" -> id.toString))
+    for {
+      vid <- drafts.publish(user)(draftId).leftMap(e => generalDraftApiError(e.msg))
+    } yield {
+      Json.obj("itemId" -> vid.toString)
+    }
   }
 
   /**

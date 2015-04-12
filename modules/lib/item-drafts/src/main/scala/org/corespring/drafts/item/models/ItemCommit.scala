@@ -8,7 +8,6 @@ import org.joda.time.DateTime
 case class ItemCommit(
   draftId: ObjectId,
   srcId: VersionedId[ObjectId],
-  committedId: VersionedId[ObjectId],
   user: OrgAndUser,
   date: DateTime = DateTime.now)
   extends Commit[VersionedId[ObjectId], OrgAndUser]

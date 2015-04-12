@@ -87,7 +87,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with
       draft <- Success(draftAndIdentity._1)
       item <- Success(draft.src.data)
       updatedItem <- Success(updateFn(item, json))
-      update <- Success(draft.update(updatedItem))
+      update <- Success(draft.mkChange(updatedItem))
       saved <- backend.save(draftAndIdentity._2)(update).leftMap { de => generalError(de.msg) }
     } yield json
   }
