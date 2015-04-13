@@ -129,7 +129,7 @@ angular.module('corespring-utils')
           out.push(gradeLevels[x]);
         }
         out.sort(sortGradeLevels);
-        return out.join(",");
+        return out.join(", ");
       },
 
 
@@ -158,7 +158,6 @@ angular.module('corespring-utils')
           return "";
         }
         var out = [];
-
         if (standards.length == 1 && standards[0].standard) {
           return "<span>" + standards[0].standard + "</span>";
         }
@@ -176,6 +175,30 @@ angular.module('corespring-utils')
 
         return "<span>" + out.join(", ") + "</span>";
       },
+
+      buildTitleEllipsis: function (titles) {
+        if (!titles) {
+          return "";
+        }
+
+        if (titles) {
+          var titleCut = titles.substr(0, 50);
+
+          return titleCut + "...";
+        }
+        
+      }, 
+
+      buildTitleTooltip: function (titles) {
+        if (!titles) {
+          return "";
+        }
+        if (titles) {
+
+          return titles;
+        }
+        
+      },      
 
       showItemType: function (item) {
 

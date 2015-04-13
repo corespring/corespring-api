@@ -1,16 +1,15 @@
 <div class="sub-nav v2-sub-nav sub-nav-lower">
     <div class="container" style="width: 940px;">
         <a ng-click="backToCollections()" class="back-to-collections" >
-          <i class="icon-white icon-backward"></i>
+          <i class="icon-white icon-backward"></i> back to search results
         </a>
         <div class="row">
 
             <span class="id-label"><b>ID:</b>{{baseId}}</span>
             <span class="version-label"><b>Revision:</b>{{version}}</span>
-            <div class="pull-right">
-                <button class="btn btn-success"
-                    ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+            <div class="pull-right edit-draft-buttons">
                 <button class="btn btn-primary" ng-click="saveBackToItem()">Save</button>
+                <button class="btn btn-success" ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
                 <button class="btn btn-primary" ng-show="!item.published" ng-click="publish()">Publish</button>
                 <button class="btn btn-primary" ng-show="!devEditorVisible" ng-click="showDevEditor()">Dev Editor</button>
                 <button class="btn btn-primary" ng-show="devEditorVisible" ng-click="showEditor()">Editor</button>
