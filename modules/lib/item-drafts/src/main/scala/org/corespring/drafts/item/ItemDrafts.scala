@@ -109,11 +109,29 @@ trait ItemDrafts
     newDraft <- create(vid, requester)
   } yield DraftCloneResult(vid, newDraft.id)
 
+  /**
+   * Load  a draft.
+   * If the draft has a conflict load it as is.
+   * If not copy the latest src from the item to the draft before loading.
+   * @param requester
+   * @param id
+   * @return
+   */
   override def load(requester: OrgAndUser)(id: ObjectId): Option[ItemDraft] = {
     logger.debug(s"function=load, id=$id")
+
     draftService.load(id).filter { d =>
       logger.trace(s"function=load, draft.org=${d.user.org}, requester.org=${requester.org}")
       d.user.org == requester.org
+    }.map { d =>
+      if (d.hasConflict) {
+        d
+      } else {
+        val latest = itemService.findOneById(d.src.id).get
+        val updatedDraft = d.copy(src = d.src.copy(latest), change = d.change.copy(latest))
+        draftService.save(updatedDraft)
+        updatedDraft
+      }
     }
   }
 

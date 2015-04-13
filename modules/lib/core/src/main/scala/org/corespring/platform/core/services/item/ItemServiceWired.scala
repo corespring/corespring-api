@@ -30,12 +30,13 @@ class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item])
-  extends ItemService with PackageLogging with ItemFiles {
+  extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
   import org.corespring.platform.core.models.mongoContext.context
 
   RegisterJodaTimeConversionHelpers()
+
   val FieldValuesVersion = "0.0.1"
 
   lazy val collection = dao.currentCollection
@@ -182,6 +183,14 @@ class ItemServiceWired(
     val dbo = vidToDbo(vid) ++ MongoDBObject("published" -> true)
     count(dbo) == 1
   }
+
+  override def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item] = {
+    val unpublished = dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, "published" -> false))
+    unpublished.orElse {
+      saveNewUnpublishedVersion(id).flatMap(vid => findOneById(vid))
+    }
+  }
+
 }
 
 object ItemVersioningDao extends SalatVersioningDao[Item] {

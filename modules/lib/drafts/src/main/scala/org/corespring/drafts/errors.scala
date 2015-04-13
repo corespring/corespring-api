@@ -30,6 +30,8 @@ case class CommitsAfterDraft[VID, USER](commits: Seq[Commit[VID, USER]])
 case class PublishItemError[VID](id: VID) extends DraftError(s"Error publishing item: $id")
 case class SaveNewUnpublishedItemError[VID](id: VID) extends DraftError(s"Error saving a new version of the item with publish = false: $id")
 
+case class GetUnpublishedItemError[VID](id: VID) extends DraftError(s"Error getting an upublished item with id: $id")
+
 case class CreateDraftFailed(id: String) extends DraftError(s"Create draft: $id failed")
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")

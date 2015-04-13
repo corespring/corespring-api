@@ -110,7 +110,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with
     for {
       identity <- getOrgAndUser(h)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-      draft <- backend.create(vid, identity).toSuccess(generalError("Error creating draft"))
+      draft <- backend.create(vid, identity).leftMap { e => generalError(e.msg) }
     } yield draft.id.toString
   }
 

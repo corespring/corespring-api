@@ -80,8 +80,8 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
 
   protected def copyDraftToSrc(d: UD): Validation[DraftError, CMT]
 
-  /** load a draft by its id */
-  def load(requester: USER)(id: ID): Option[UD]
+  /** load a draft for the src <VID> for that user*/
+  def load(requester: USER)(srcId: VID): Validation[DraftError, UD]
 
   /** save a draft */
   def save(requester: USER)(d: UD): Validation[DraftError, ID]

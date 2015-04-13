@@ -1,10 +1,8 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend }
-import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
 import org.joda.time.DateTime
@@ -20,8 +18,6 @@ trait ItemDrafts extends Controller {
   import scalaz.Scalaz._
 
   def drafts: DraftsBackend
-
-  def itemService: ItemService
 
   def identifyUser(rh: RequestHeader): Option[OrgAndUser]
 

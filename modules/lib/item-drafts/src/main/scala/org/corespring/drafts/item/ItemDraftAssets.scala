@@ -4,14 +4,14 @@ import com.amazonaws.services.s3.AmazonS3Client
 import org.bson.types.ObjectId
 import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors._
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.{ DraftId, ItemDraft }
 import org.corespring.platform.data.mongo.models.VersionedId
 
 import scalaz.{ Failure, Success, Validation }
 trait ItemDraftAssets {
-  def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: ObjectId): Validation[DraftError, ObjectId]
-  def copyDraftToItem(draftId: ObjectId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
-  def deleteDraft(draftId: ObjectId): Validation[DraftError, Unit]
+  def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]
+  def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
+  def deleteDraft(draftId: DraftId): Validation[DraftError, Unit]
 }
 
 /**
