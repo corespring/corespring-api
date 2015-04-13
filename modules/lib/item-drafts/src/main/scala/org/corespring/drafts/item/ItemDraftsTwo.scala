@@ -2,7 +2,7 @@ package org.corespring.drafts.item
 
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
-import org.corespring.drafts.item.models.{ DraftId, ItemCommit, ItemDraft, OrgAndUser }
+import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
@@ -55,17 +55,21 @@ trait ItemDraftsTwo
 
   /** load a draft for the src <VID> for that user */
   override def load(requester: OrgAndUser)(srcId: VersionedId[ObjectId]): Validation[DraftError, ItemDraft] = {
-    //find a draft by srcId+orgId+username + hasConflict
-    //if there return it as is - it needs to be resolved
-    //if not create it
-
     draftService
       .load(DraftId(srcId.id, requester))
-      .orElse(create(srcId, requester))
-      .getOrElse {
-        throw new RuntimeException("??")
-      }
+      .map { d =>
 
+        if (d.hasConflict) {
+          Success(d)
+        } else {
+          itemService.getOrCreateUnpublishedVersion(d.src.id).map { i =>
+            val update = d.copy(src = ItemSrc(i), change = ItemSrc(i))
+            draftService.save(update)
+            update
+          }
+        }
+      }
+      .getOrElse(create(srcId, requester))
   }
 
   /** save a draft */
