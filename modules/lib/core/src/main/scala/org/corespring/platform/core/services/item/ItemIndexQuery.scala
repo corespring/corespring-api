@@ -6,15 +6,15 @@ import play.api.libs.json._
 /**
  * Contains fields used for querying the item index
  */
-case class ItemIndexQuery(offset: Option[Int] = ItemIndexQuery.Defaults.offset,
-                          count: Option[Int] = ItemIndexQuery.Defaults.count,
+case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
+                          count: Int = ItemIndexQuery.Defaults.count,
                           text: Option[String] = ItemIndexQuery.Defaults.text,
-                          contributors: Option[Seq[String]] = ItemIndexQuery.Defaults.contributors,
-                          collections: Option[Seq[String]] = ItemIndexQuery.Defaults.collections,
-                          itemTypes: Option[Seq[String]] = ItemIndexQuery.Defaults.itemTypes,
-                          gradeLevels: Option[Seq[String]] = ItemIndexQuery.Defaults.gradeLevels,
+                          contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
+                          collections: Seq[String] = ItemIndexQuery.Defaults.collections,
+                          itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
+                          gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
                           published: Option[Boolean] = ItemIndexQuery.Defaults.published,
-                          workflows: Option[Seq[String]] = ItemIndexQuery.Defaults.workflows)
+                          workflows: Seq[String] = ItemIndexQuery.Defaults.workflows)
 
 object ItemIndexQuery {
 
@@ -22,15 +22,34 @@ object ItemIndexQuery {
    * Default query values
    */
   object Defaults {
-    val offset = Some(0)
-    val count = Some(50)
+    val offset = 0
+    val count = 50
     val text = None
-    val contributors = None
-    val collections = None
-    val itemTypes = None
-    val gradeLevels = None
+    val contributors = Seq.empty[String]
+    val collections = Seq.empty[String]
+    val itemTypes = Seq.empty[String]
+    val gradeLevels = Seq.empty[String]
     val published = None
-    val workflows = None
+    val workflows = Seq.empty[String]
+  }
+
+  /**
+   * Reads JSON in the format provided by requests to the search API.
+   */
+  object ApiReads extends Reads[ItemIndexQuery] {
+    override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
+      ItemIndexQuery(
+        offset = (json \ "offset").asOpt[Int].getOrElse(Defaults.offset),
+        count = (json \ "count").asOpt[Int].getOrElse(Defaults.count),
+        text = (json \ "text").asOpt[String],
+        contributors = (json \ "contributors").asOpt[Seq[String]].getOrElse(Defaults.contributors),
+        collections = (json \ "collections").asOpt[Seq[String]].getOrElse(Defaults.collections),
+        itemTypes = (json \ "itemTypes").asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
+        gradeLevels = (json \ "gradeLevels").asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
+        published = (json \ "published").asOpt[Boolean],
+        workflows = (json \ "workflows").asOpt[Seq[String]].getOrElse(Defaults.workflows)
+      )
+    )
   }
 
   /**
@@ -38,25 +57,26 @@ object ItemIndexQuery {
    */
   object ElasticSearchWrites extends Writes[ItemIndexQuery] with JsonUtil {
 
-    private def terms[A](field: String, values: Option[Seq[A]], execution: Option[String] = None)
+    private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)
                         (implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
     private def term[A](field: String, values: Option[A])
                        (implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
       filter("term", field, values, execution)
 
-    private def filter[A](named: String, field: String, values: Option[A], execution: Option[String])
+    private def filter[A](named: String, field: String, values: Seq[A], execution: Option[String])
                          (implicit writes: Writes[A]): Option[JsObject] =
-      values match {
-        case Some(values: Seq[A]) => values.nonEmpty match {
-          case true => Some(Json.obj(named -> partialObj(
-            field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString)
-          )))
-          case _ => None
-        }
-        case Some(value) => Some(partialObj(
-          named -> Some(Json.obj(field -> Json.toJson(value))), "execution" -> execution.map(JsString)))
+      values.nonEmpty match {
+        case true => Some(Json.obj(named -> partialObj(
+          field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString)
+        )))
         case _ => None
       }
+
+    private def filter[A](named: String, field: String, value: Option[A], execution: Option[String])
+                         (implicit writes: Writes[A]): Option[JsObject] =
+      value.map(v => partialObj(
+        named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
+
 
     def writes(query: ItemIndexQuery): JsValue = {
       import query._

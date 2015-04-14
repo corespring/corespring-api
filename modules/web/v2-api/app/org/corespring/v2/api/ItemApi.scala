@@ -79,7 +79,7 @@ trait ItemApi extends V2Api with JsonUtil {
   }
 
   def search(query: Option[String]) = Action.async { implicit request =>
-    implicit val QueryReads = Json.reads[ItemIndexQuery]
+    implicit val QueryReads = ItemIndexQuery.ApiReads
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val queryString = query.getOrElse("{}")
 
@@ -94,9 +94,9 @@ trait ItemApi extends V2Api with JsonUtil {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
           case JsSuccess(query, _) => {
             val accessibleCollections = orgAndOpts.org.contentcolls.accessible.map(_.collectionId.toString)
-            val collections = query.collections.map(f => f.filter(id => accessibleCollections.contains(id)))
-            val scopedQuery = (collections match {
-              case Some(collections) if (collections.isEmpty) => query.copy(collections = Some(accessibleCollections))
+            val collections = query.collections.filter(id => accessibleCollections.contains(id))
+            val scopedQuery = (collections.isEmpty match {
+              case true => query.copy(collections = accessibleCollections)
               case _ => query.copy(collections = collections)
             })
             itemIndexService.search(scopedQuery).map(result => result match {
@@ -105,7 +105,6 @@ trait ItemApi extends V2Api with JsonUtil {
             })
           }
           case _ => future {
-            println(Json.fromJson[ItemIndexQuery](json))
             val error = invalidJson(queryString)
             Status(error.statusCode)(error.message)
           }
