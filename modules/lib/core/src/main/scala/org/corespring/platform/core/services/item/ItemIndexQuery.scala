@@ -47,9 +47,12 @@ object ItemIndexQuery {
     private def filter[A](named: String, field: String, values: Option[A], execution: Option[String])
                          (implicit writes: Writes[A]): Option[JsObject] =
       values match {
-        case Some(values: Seq[A]) => Some(Json.obj(named -> partialObj(
-          field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString)
-        )))
+        case Some(values: Seq[A]) => values.nonEmpty match {
+          case true => Some(Json.obj(named -> partialObj(
+            field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString)
+          )))
+          case _ => None
+        }
         case Some(value) => Some(partialObj(
           named -> Some(Json.obj(field -> Json.toJson(value))), "execution" -> execution.map(JsString)))
         case _ => None
