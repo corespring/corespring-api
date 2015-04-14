@@ -24,50 +24,6 @@ class ItemIndexQueryTest extends Specification {
     }
   }
 
-  "ApiReads" should {
-    implicit val ApiReads = ItemIndexQuery.ApiReads
-
-    val offset = 10
-    val count = 10
-    val text = "hey this is some text for the query"
-    val contributors = Seq("these", "are", "contributors")
-    val collections = (1 to 5).map(f => new ObjectId().toString)
-    val itemTypes = Seq("Multiple Choice", "Short Answer - Fill In The Blank")
-    val gradeLevels = Seq("09", "10", "11", "12")
-    val published = true
-    val workflows = Seq("qaReview")
-
-    val apiJson = s"""{
-      "offset" : $offset,
-      "count" : $count,
-      "text": "$text",
-      "contributors": ["${contributors.mkString("\",\"")}"],
-      "collections": ["${collections.mkString("\",\"")}"],
-      "itemTypes": ["${itemTypes.mkString("\",\"")}"],
-      "gradeLevels": ["${gradeLevels.mkString("\",\"")}"],
-      "published" : $published,
-      "workflows" : ["${workflows.mkString("\",\"")}"]
-    }"""
-
-    "fromJson" should {
-      val query = Json.fromJson[ItemIndexQuery](Json.parse(apiJson)).getOrElse(throw new Exception("Couldn't parse JSON"))
-
-      "set fields on ItemIndexQuery" in {
-        query.offset must be equalTo(offset)
-        query.count must be equalTo(count)
-        query.text must be equalTo(Some(text))
-        query.contributors must be equalTo(contributors)
-        query.collections must be equalTo(collections)
-        query.itemTypes must be equalTo(itemTypes)
-        query.gradeLevels must be equalTo(gradeLevels)
-        query.published must be equalTo(Some(published))
-        query.workflows must be equalTo(workflows)
-      }
-
-    }
-
-  }
-
   "ElasticSearchWrites" should {
     implicit val ElasticSearchWrites = ItemIndexQuery.ElasticSearchWrites
 
