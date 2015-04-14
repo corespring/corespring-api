@@ -11,7 +11,8 @@ case class ItemIndexHit(id: String,
                         subject: Option[String],
                         gradeLevels: Seq[String],
                         title: Option[String],
-                        description: Option[String])
+                        description: Option[String],
+                        apiVersion: Option[Int])
 
 object ItemIndexHit {
 
@@ -40,7 +41,8 @@ object ItemIndexHit {
       subject = (json \ "_source" \ "taskInfo" \ "subjects" \ "primary").asOpt[JsObject].map(subjectify),
       gradeLevels = (json \ "_source" \ "taskInfo" \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
       title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
-      description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String]
+      description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
+      apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int]
     ))
 
     def writes(indexItemHit: ItemIndexHit) = {
@@ -53,7 +55,8 @@ object ItemIndexHit {
         "subject" -> subject,
         "gradeLevels" -> gradeLevels,
         "title" -> title,
-        "description" -> description
+        "description" -> description,
+        "apiVersion" -> apiVersion
       )
     }
   }

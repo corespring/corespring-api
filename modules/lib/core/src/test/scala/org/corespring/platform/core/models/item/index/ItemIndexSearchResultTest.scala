@@ -22,6 +22,7 @@ class ItemIndexSearchResultTest extends Specification {
     val gradeLevels = Seq("09", "10", "11", "12")
     val title = "This is the title"
     val description = "This is the description"
+    val apiVersion = 1
 
     val searchResult = ItemIndexSearchResult(
       total = total,
@@ -34,7 +35,8 @@ class ItemIndexSearchResultTest extends Specification {
         subject = Some(s"${primarySubject.category}: ${primarySubject.subject}"),
         gradeLevels = gradeLevels,
         title = Some(title),
-        description = Some(description)
+        description = Some(description),
+        apiVersion = Some(apiVersion)
         )
       )
     )
@@ -47,6 +49,7 @@ class ItemIndexSearchResultTest extends Specification {
           "hits" : [{
             "_id": "$id",
             "_source": {
+              "apiVersion" : 1,
               "collectionId": "$collectionId",
               "contributorDetails" : {
                 "contributor": "$contributor"
@@ -100,7 +103,8 @@ class ItemIndexSearchResultTest extends Specification {
             "subject" : "${primarySubject.category}: ${primarySubject.subject}",
             "gradeLevels" : ["${gradeLevels.mkString("\",\"")}"],
             "title" : "$title",
-            "description" : "$description"
+            "description" : "$description",
+            "apiVersion" : $apiVersion
           }]
         }""")
       }
