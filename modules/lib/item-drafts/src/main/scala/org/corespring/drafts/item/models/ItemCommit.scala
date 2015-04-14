@@ -6,9 +6,10 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 
 case class ItemCommit(
-  draftId: ObjectId,
+  draftId: DraftId,
   srcId: VersionedId[ObjectId],
-  user: OrgAndUser,
   date: DateTime = DateTime.now)
-  extends Commit[VersionedId[ObjectId], OrgAndUser]
+  extends Commit[VersionedId[ObjectId], OrgAndUser] {
+  override def user: OrgAndUser = draftId.user
+}
 

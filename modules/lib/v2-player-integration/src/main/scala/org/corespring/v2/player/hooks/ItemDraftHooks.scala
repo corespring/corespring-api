@@ -75,7 +75,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with
 
   private def loadDraftAndIdentity(draftId: String)(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
     identity <- getOrgAndUser(rh)
-    draft <- backend.load(identity)(new ObjectId(draftId)).toSuccess(generalError(s"can't find draft with id: $draftId"))
+    draft <- backend.loadOrCreate(identity)(new ObjectId(draftId)).toSuccess(generalError(s"can't find draft with id: $draftId"))
   } yield {
     (draft, identity)
   }
@@ -126,7 +126,7 @@ trait ItemDraftHooks extends ContainerItemDraftHooks with LoadOrgAndOptions with
     for {
       identity <- getOrgAndUser(h)
       oid <- getOid(draftId, "commit -> draftId")
-      draft <- backend.load(identity)(oid).toSuccess(generalError(s"Can't find draft with id $draftId"))
+      draft <- backend.loadOrCreate(identity)(oid).toSuccess(generalError(s"Can't find draft with id $draftId"))
       result <- backend.commit(identity)(draft, force).leftMap { e => generalError(e.msg) }
     } yield CommitJson(result)
   }

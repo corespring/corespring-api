@@ -62,7 +62,7 @@ trait ItemDrafts extends Controller {
 
   def commit(draftId: ObjectId) = draftsAction { (user) =>
     for {
-      d <- drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId))
+      d <- drafts.loadOrCreate(user)(draftId).toSuccess(cantLoadDraft(draftId))
       commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
     } yield CommitJson(commit)
   }
@@ -87,7 +87,7 @@ trait ItemDrafts extends Controller {
    * Check w/ ev on what to return here
    */
   def get(draftId: ObjectId) = draftsAction { (user) =>
-    drafts.load(user)(draftId).toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
+    drafts.loadOrCreate(user)(draftId).toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
   }
 
   def save(draftId: ObjectId) = Action.async { implicit request =>

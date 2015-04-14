@@ -93,7 +93,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
 
     "load a created draft by its id" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser)
-      drafts.load(orgAndUser)(draft.get.id).map(_.id) === draft.map(_.id)
+      drafts.loadOrCreate(orgAndUser)(draft.get.id).map(_.id) === draft.map(_.id)
     }
 
     "save a draft" in new orgAndUserAndItem {
@@ -102,7 +102,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       val newItem = updateTitle(item, "updated title")
       val update = draft.mkChange(newItem)
       drafts.save(orgAndUser)(update)
-      drafts.load(orgAndUser)(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
+      drafts.loadOrCreate(orgAndUser)(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
     }
 
     "commit a draft" in new orgAndUserAndItem {
@@ -119,7 +119,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
     "committing sets the committed DateTime" in new orgAndUserAndItem {
       val draft = drafts.create(itemId, orgAndUser).get
       drafts.commit(orgAndUser)(draft)
-      val updatedDraft = drafts.load(orgAndUser)(draft.id).get
+      val updatedDraft = drafts.loadOrCreate(orgAndUser)(draft.id).get
       updatedDraft.committed.isDefined === true
       updatedDraft.committed.get.isAfter(draft.created)
     }
@@ -172,7 +172,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         val eds = drafts.create(itemId, orgAndUser).get
         ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
         drafts.commit(orgAndUser)(eds)
-        val dbDraft = drafts.load(orgAndUser)(eds.id).get
+        val dbDraft = drafts.loadOrCreate(orgAndUser)(eds.id).get
         dbDraft.src.id must_== bump(itemId)
       }
     }
@@ -183,7 +183,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         val eds = drafts.create(itemId, orgAndUser).get
         ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
         drafts.commit(orgAndUser)(eds)
-        val newDraft = drafts.load(orgAndUser)(eds.id).get
+        val newDraft = drafts.loadOrCreate(orgAndUser)(eds.id).get
 
         newDraft.src.id must_== bump(itemId)
 

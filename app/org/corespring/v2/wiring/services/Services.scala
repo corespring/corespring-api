@@ -5,7 +5,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.drafts.item.models.OrgAndUser
+import org.corespring.drafts.errors.DraftError
+import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAssets }
 import org.corespring.mongo.json.services.MongoService
@@ -56,6 +57,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       override def bucket: String = Services.this.bucket
 
       override def s3: AmazonS3Client = Services.this.s3
+
     }
 
     override def commitService: CommitService = Services.this.itemCommitService

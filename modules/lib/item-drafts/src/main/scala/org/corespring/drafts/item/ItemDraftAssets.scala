@@ -12,6 +12,7 @@ trait ItemDraftAssets {
   def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]
   def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
   def deleteDraft(draftId: DraftId): Validation[DraftError, Unit]
+  def deleteDrafts(draftId: DraftId*): Validation[DraftError, Unit]
 }
 
 /**
@@ -39,11 +40,11 @@ object S3Paths {
     id.replace(":", "/")
   }
 
-  def draftFolder(id: ObjectId): String = s"item-drafts/$id"
+  def draftFolder(id: DraftId): String = s"item-drafts/${id.itemId}/${id.orgId}/${id.name}"
 
-  def draftFile(id: ObjectId, path: String): String = s"${draftFolder(id)}/data/$path"
+  def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 
-  def draftSupportingMaterialFile(id: ObjectId, supportingMaterial: String, path: String): String = {
+  def draftSupportingMaterialFile(id: DraftId, supportingMaterial: String, path: String): String = {
     s"${draftFolder(id)}/supporting-materials/$supportingMaterial/$path"
   }
 }
@@ -60,23 +61,28 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
     case false => Failure(CopyAssetsFailed(from, to))
   }
 
-  override def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: ObjectId): Validation[DraftError, ObjectId] = {
+  override def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId] = {
     val from = S3Paths.itemFolder(itemId)
     val to = S3Paths.draftFolder(draftId)
-    cp[ObjectId](from, to, draftId)
+    cp[DraftId](from, to, draftId)
   }
 
-  override def deleteDraft(draftId: ObjectId): Validation[DraftError, Unit] = {
-    val path = s"item-drafts/$draftId/"
+  override def deleteDraft(draftId: DraftId): Validation[DraftError, Unit] = {
+    val path = S3Paths.draftFolder(draftId)
     utils.deleteDir(path) match {
       case true => Success(Unit)
       case false => Failure(DeleteAssetsFailed(path))
     }
   }
 
-  override def copyDraftToItem(draftId: ObjectId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]] = {
+  override def deleteDrafts(ids: DraftId*): Seq[Validation[DraftError, Unit]] = {
+    ids.map { deleteDraft }
+  }
+
+  override def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]] = {
     val from = S3Paths.draftFolder(draftId)
     val to = S3Paths.itemFolder(itemId)
     cp[VersionedId[ObjectId]](from, to, itemId)
   }
+
 }

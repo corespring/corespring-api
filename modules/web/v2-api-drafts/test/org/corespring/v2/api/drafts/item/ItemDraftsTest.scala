@@ -100,7 +100,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
 
           override def drafts: item.ItemDrafts = {
             val m = mock[item.ItemDrafts]
-            m.load(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
+            m.loadOrCreate(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
             m.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]).returns(commitResult)
           }
         }
@@ -134,7 +134,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
 
           override def drafts: item.ItemDrafts = {
             val m = mock[item.ItemDrafts]
-            m.load(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
+            m.loadOrCreate(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
           }
         }
       }

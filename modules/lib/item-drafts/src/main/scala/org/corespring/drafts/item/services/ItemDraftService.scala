@@ -8,7 +8,7 @@ import org.corespring.drafts.item.models.{ DraftId, ItemDraft, OrgAndUser }
 
 trait ItemDraftService {
 
-  protected val userOrgId: String = "_id.org._id"
+  protected val userOrgId: String = "_id.user.org._id"
 
   def collection: MongoCollection
 
@@ -42,7 +42,7 @@ trait ItemDraftService {
 
   def hasConflict(id: DraftId): Option[Boolean] = load(id).map { d => d.hasConflict }
 
-  def owns(user: OrgAndUser, id: DraftId) = id.user == user
+  def owns(user: OrgAndUser, id: DraftId) = user.user.exists(_.userName == id.name) && id.orgId == user.org.id
 
   def remove(d: ItemDraft): Boolean = {
     val result = collection.remove(MongoDBObject("_id" -> idToDbo(d.id)))
@@ -50,5 +50,21 @@ trait ItemDraftService {
   }
 
   def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(userOrgId -> orgId)).toSeq.map(toDraft)
+
+  def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Seq[DraftId] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("itemId" -> itemId, "user.org._id" -> orgId, "hasConflict" -> false))
+
+    val ids = collection.find(query, MongoDBObject()).toSeq.map { dbo =>
+      val id = dbo.get("_id")
+      grater[DraftId].asObject(id)
+    }
+
+    val result = collection.remove(query)
+    if (ids.length == result.getN) {
+      ids
+    } else {
+      throw new RuntimeException("Error deleting all items")
+    }
+  }
 
 }

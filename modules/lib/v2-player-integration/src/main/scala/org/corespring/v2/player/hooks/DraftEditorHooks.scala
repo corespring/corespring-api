@@ -44,7 +44,7 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
     _ <- Success(logger.trace(s"function=loadDraft id=$id"))
     identity <- getOrgAndUser(header)
     oid <- getOid(id, "load -> draftId")
-    d <- backend.load(identity)(oid).toSuccess(generalError(s"Can't find draft with id: $id"))
+    d <- backend.loadOrCreate(identity)(oid).toSuccess(generalError(s"Can't find draft with id: $id"))
   } yield d
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {

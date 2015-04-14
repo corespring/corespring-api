@@ -15,7 +15,7 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 trait ItemDraftsTwo
-  extends Drafts[ObjectId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
@@ -53,23 +53,21 @@ trait ItemDraftsTwo
     } yield draft
   }
 
-  /** load a draft for the src <VID> for that user */
-  override def load(requester: OrgAndUser)(srcId: VersionedId[ObjectId]): Validation[DraftError, ItemDraft] = {
-    draftService
-      .load(DraftId(srcId.id, requester))
-      .map { d =>
+  /** load a draft for the src <VID> for that user, if not found create it */
+  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Validation[DraftError, ItemDraft] = {
+    val draft: Option[ItemDraft] = draftService.load(id)
 
-        if (d.hasConflict) {
-          Success(d)
-        } else {
-          itemService.getOrCreateUnpublishedVersion(d.src.id).map { i =>
-            val update = d.copy(src = ItemSrc(i), change = ItemSrc(i))
-            draftService.save(update)
-            update
-          }
-        }
-      }
-      .getOrElse(create(srcId, requester))
+    def updateIfNotConflicted(d: ItemDraft): ItemDraft = {
+      itemService.getOrCreateUnpublishedVersion(d.src.id).map { i =>
+        val update = d.copy(src = ItemSrc(i), change = ItemSrc(i))
+        draftService.save(update)
+        update
+      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.src.id}"))
+    }
+
+    val updated: Option[ItemDraft] = draft.map(updateIfNotConflicted)
+
+    updated.map(_ => Success(_)).getOrElse(create(VersionedId(id.itemId), requester)) //.toSuccess(CreateDraftFailed(""))
   }
 
   /** save a draft */

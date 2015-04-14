@@ -1,6 +1,5 @@
 package org.corespring.drafts.item
 
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
@@ -16,13 +15,13 @@ import play.api.Logger
 import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
-case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: ObjectId)
+case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
 /**
  * An implementation of <Drafts> for <Item> backed by some mongo services.
  */
 trait ItemDrafts
-  extends Drafts[ObjectId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit]
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit]
   with CommitCheck {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
@@ -46,7 +45,7 @@ trait ItemDrafts
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
     for {
       vid <- itemService.save(noVersion(d.src.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
-      commit <- Success(ItemCommit(d.id, d.src.data.id, d.user))
+      commit <- Success(ItemCommit(d.id, d.src.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
     } yield commit
@@ -77,10 +76,10 @@ trait ItemDrafts
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
-  def list(id: VersionedId[ObjectId]): Seq[ItemDraft] = {
+  /*def list(id: VersionedId[ObjectId]): Seq[ItemDraft] = {
     val version = id.version.getOrElse(itemService.currentVersion(id))
     draftService.findByIdAndVersion(id.id, version)
-  }
+  }*/
 
   /**
    * Publish the draft.
@@ -93,17 +92,17 @@ trait ItemDrafts
    * deleteResult <- removeDraftByIdAndUser(draftId, requester)
    * } yield d.src.data.id
    */
-  def publish(user: OrgAndUser)(draftId: ObjectId): Validation[DraftError, VersionedId[ObjectId]] = for {
-    d <- load(user)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+  def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
+    d <- loadOrCreate(user)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
     commit <- commit(user)(d)
     publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.src.id))
-    deleteResult <- removeDraftByIdAndUser(draftId, user)
+    deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
   } yield {
     commit.srcId
   }
 
-  def clone(requester: OrgAndUser)(draftId: ObjectId): Validation[DraftError, DraftCloneResult] = for {
-    d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+  def clone(requester: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
+    d <- loadOrCreate(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
     itemId <- Success(VersionedId(ObjectId.get))
     vid <- itemService.save(d.src.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
     newDraft <- create(vid, requester)
@@ -117,7 +116,7 @@ trait ItemDrafts
    * @param id
    * @return
    */
-  override def load(requester: OrgAndUser)(id: ObjectId): Option[ItemDraft] = {
+  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Option[ItemDraft] = {
     logger.debug(s"function=load, id=$id")
 
     draftService.load(id).filter { d =>
@@ -137,9 +136,9 @@ trait ItemDrafts
 
   def collection = draftService.collection
 
-  def owns(requester: OrgAndUser)(id: ObjectId): Boolean = draftService.owns(requester, id)
+  def owns(requester: OrgAndUser)(id: DraftId): Boolean = draftService.owns(requester, id)
 
-  override def save(requester: OrgAndUser)(d: ItemDraft): Validation[DraftError, ObjectId] = {
+  override def save(requester: OrgAndUser)(d: ItemDraft): Validation[DraftError, DraftId] = {
     if (d.user == requester) {
       draftService.save(d)
         .failed(e => SaveDataFailed(e.getErrorMessage))
@@ -149,12 +148,12 @@ trait ItemDrafts
     }
   }
 
-  def removeDraftByIdAndUser(id: ObjectId, user: OrgAndUser): Validation[DraftError, ObjectId] = {
-    for {
-      result <- Success(draftService.removeDraftByIdAndUser(id, user))
-      draftId <- if (result.getN != 1) Failure(DeleteFailed) else Success(id)
-      deleteComplete <- assets.deleteDraft(draftId)
-    } yield draftId
+  def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Validation[DraftError, ObjectId] = {
+    val out = for {
+      ids <- Success(draftService.removeNonConflictingDraftsForOrg(itemId, orgId))
+      deleteComplete <- assets.deleteDrafts(ids: _*)
+    } yield ids
+    out.map(_ => itemId)
   }
 
   protected def saveCommit(c: ItemCommit): Validation[DraftError, Unit] = {
