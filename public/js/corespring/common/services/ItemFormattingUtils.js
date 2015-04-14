@@ -182,9 +182,12 @@ angular.module('corespring-utils')
         }
 
         if (titles) {
-          var titleCut = titles.substr(0, 50);
-
-          return titleCut + "...";
+          if(titles.length > 50){
+            var titleCut = titles.substr(0, 50);
+            return titleCut + "...";
+          } else {
+            return titles;
+          }
         }
         
       }, 
@@ -194,11 +197,41 @@ angular.module('corespring-utils')
           return "";
         }
         if (titles) {
-
-          return titles;
+          if(titles.length > 50){
+            return titles;
+          } else {
+            return "";
+          }
         }
         
       },      
+      buildDescriptionEllipsis: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+        if (descriptions) {
+          if(descriptions.length > 100){
+            var descriptionCut = descriptions.substr(0, 100);
+            return descriptionCut + "...";
+          } else {
+            return descriptions;
+          }
+        }
+      },
+
+      buildDescriptionTooltip: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+
+        if (descriptions) {
+          if(descriptions.length > 100){
+            return descriptions;
+          } else {
+            return "";
+          }
+        }
+      },
 
       showItemType: function (item) {
 

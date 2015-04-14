@@ -69,6 +69,46 @@ describe('common.ItemFormattingUtils', function () {
         ).toBe(subjNoSubject.category);
     });
 
+    it("builds title with an ellipsis", function(){
+      var fullTitle = "This is my awesome title";
+
+      if(fullTitle.length > 50){
+        expect(scope.buildTitleEllipsis(fullTitle)).toBe(fullTitle.substr(0,50) + "...");
+      } else {
+        expect(scope.buildTitleEllipsis(fullTitle)).toBe(fullTitle);
+      }
+    });
+
+    it("builds title tooltip", function(){
+      var fullTitle = "This is my title tooltip text ";
+
+      if(fullTitle.length > 50){
+        expect(scope.buildTitleTooltip(fullTitle)).toBe(fullTitle);
+      } else {
+        expect(scope.buildTitleTooltip(fullTitle)).toBe("");
+      }
+    });
+
+    it("builds description with an ellipsis", function(){
+      var fullDescription = "This is my awesome description";
+
+      if(fullDescription.length > 100){
+        expect(scope.buildDescriptionEllipsis(fullDescription)).toBe(fullDescription.substr(0,50) + "...");
+      } else {
+        expect(scope.buildDescriptionEllipsis(fullDescription)).toBe(fullDescription);
+      }
+    });
+
+    it("builds description tooltip", function(){
+      var fullDescription = "This is my description tooltip text ";
+
+      if(fullDescription.length > 100){
+        expect(scope.buildDescriptionTooltip(fullDescription)).toBe(fullDescription);
+      } else {
+        expect(scope.buildDescriptionTooltip(fullDescription)).toBe("");
+      }
+    });
+
     it("builds a standard label", function(){
 
       expect(scope.buildStandardLabel([])).toBe("");

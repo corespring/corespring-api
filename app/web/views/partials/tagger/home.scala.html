@@ -271,12 +271,14 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td><a class="btn btn-default" ng-click="launchCatalogView()">Preview</a></td>
+                <td><a class="btn btn-warning btn-small" ng-click="launchCatalogView()">Preview</a></td>
                 <td>
                     <a ui-jq="tooltip"
                        ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
                 </td>
-                <td ng-bind-html-unsafe="item.description"></td>
+                <td><a ui-jq="tooltip"
+                       ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
+               </td>
                 <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
                 <td>{{createGradeLevelString(item.gradeLevel)}} </td>
                 <td>{{showItemType(item)}}</td>

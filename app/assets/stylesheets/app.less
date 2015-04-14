@@ -47,7 +47,6 @@
     }
     .pager-text {
         padding-right: 5px;
-        color: #ffffff;
     }
     .pager-progress-bar {
         width: 50px;
@@ -486,9 +485,7 @@
     left: 0px;
     background-color: @cs-subnav-color;
     border-bottom: solid 1px darken(@cs-subnav-color, 15%);
-    @top: darken(@cs-subnav-color, 5%);
-    @bottom: darken(@cs-subnav-color, 5% + @cs-bar-gradient-nudge);
-    .mixin-bg-gradient(@bottom, @top);
+
 
     border-bottom: solid 1px darken(@cs-subnav-color,20%);
     height: 40px;
@@ -631,12 +628,9 @@ ul.dropdown-menu {
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
-    border-bottom: solid 1px darken(@cs-navbar-color, 60%);
-    background: transparent;
+    background: #f8f8f8;
     box-shadow: none;
     min-height: 0;
-    background: @cs-dark-grey url(/assets/images/title-wrap-bg-tile-bw.png) repeat;
-    border-bottom: solid 1px @cs-dark-grey;
     .mixin-simple-box-shadow( #000000, 3px, 30%);
 }
 
