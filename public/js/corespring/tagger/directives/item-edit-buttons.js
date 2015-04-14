@@ -85,11 +85,11 @@ angular.module('tagger.directives')
       '      <span>{{draft.user}} is editing</span>',
       '    </div>',
       '    <div ng-switch-default>',
-      '      <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-sm">Edit</button>',
-      '      <button ng-click="publish(item)" ng-show="canGoLive" class="btn btn-sm">Publish</button>',
+      '      <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-info btn-sm">Edit</button>',
+      '      <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm"><i class="icon-plus-sign"></i>&nbsp;Clone</button>',
       '    </div>',
       '  </div>',
-      '  <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm">Clone</button>',
+      '  <button ng-click="publish(item)" ng-show="canGoLive" class="btn btn-success btn-sm" style="margin-top:2px;">Publish</button>',
       '</div>'].join('')
     };
   }]);

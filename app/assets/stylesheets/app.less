@@ -650,7 +650,7 @@ input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus,
 select:focus {
-        outline: auto 5px @cs-focus-color;
+        // outline: auto 5px @cs-focus-color;
 }
 
 
@@ -667,23 +667,6 @@ select:focus {
     background-repeat: repeat-x;
     border-color: darken(@color, 5) darken(@color, 10%) darken(@color, 10%);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-}
-
-.btn-success {
-    .mixin-btn-color(@cs-btn-success-color);
-}
-
-.btn-success:hover,
-.btn-success:active,
-.btn-success.active,
-.btn-success.disabled,
-.btn-success[disabled] {
-    background-color: darken(@cs-btn-success-color, 10%);
-}
-
-.btn-success:active,
-.btn-success.active {
-    background-color: @cs-btn-success-color;
 }
 
 
@@ -1199,4 +1182,14 @@ font-style: italic;
     font-size: 11px;
     font-style: italic;
   }
+}
+
+.item-status{
+    margin-right: 5px;
+}
+
+.btn-sm{
+  padding: 5px 9px;
+  font-size: 11px;
+  line-height: 16px;
 }

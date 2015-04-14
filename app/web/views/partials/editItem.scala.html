@@ -72,7 +72,7 @@
                         data-loading-text="Saving..."
                         ng-click="save()">Save
                 </button>
-                <button class="btn btn-success"
+                <button class="btn btn-default"
                     ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
                 <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
                                style="cursor: pointer"
@@ -225,7 +225,7 @@
                 }
                 <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
                    <div class="catalog-preview-content">
-                     <button ng-click="showV2Preview=false" class="button btn-sm btn btn-success close-btn">Close</button>
+                     <button ng-click="showV2Preview=false" class="button btn-sm btn btn-default close-btn">close</button>
                      <iframe src="{{v2CatalogUrl}}" frameborder="0"></iframe>
                    </div>
                 </div>
