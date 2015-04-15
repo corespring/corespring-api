@@ -1,7 +1,7 @@
 
 <div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
-        <span class="close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false"></span>
+          <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false">×</span>
         <div class="header">
             <button type="button" class="btn btn-default" ng-click="viewState = 'org'" ng-disabled="viewState == 'org'">{{orgName}} Collections</button>
             <button type="button" class="btn btn-default" ng-click="viewState = 'shared'" ng-disabled="viewState == 'shared'">Shared Collections</button>
@@ -128,7 +128,7 @@
                 <div class="clearfix">
                     <div id="preloader" class="preloader" style="height: 600px">
                     </div>
-                    <span profile-player="" id='player' style="display: block; width: 100%; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
+                    <span profile-player="" id='player' style="display: block; width: 103%; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
                 </div>
             </div>
         </div>
