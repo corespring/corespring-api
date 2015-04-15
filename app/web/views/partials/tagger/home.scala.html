@@ -213,7 +213,6 @@
             </td>
             <td class="nav-vr"><div></div></td>
             <td>
-
                 <span multi-select
                   multi-get-title="getLabel"
                   multi-options="statuses"
@@ -226,25 +225,15 @@
                 </span>
             </td>
             <td class="nav-vr"><div></div></td>
-           <!--  <td>
-
-                <span multi-select
-                      multi-get-title="getLabel"
-                      multi-options="publishStatuses"
-                      multi-change="search"
-                      multi-model="searchParams.publishStatuses">
-                  <div class="summary">
-                      <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                      <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
-                  </div>
-                </span>
-            </td> -->
-            <td class="nav-vr"><div></div></td>
             <td>
-
-                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="input-small form-control"
-                       id="appendedInputButtons"
-                       size="16" type="text"><span class="add-on"><i class="icon-search"></i></span>
+              <div class="input-append">
+                <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="span3 form-control" id="appendedInputButtons" type="text"><span class="add-on"><i class="fa fa-search"></i></span>
+               </div>
+            </td>
+            <td>
+                <span class="nav" style="padding-left: 10px; padding-top: 10px;">
+                  <a style="text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
+                </span>
             </td>
         </tr>
         </tbody>
@@ -302,6 +291,30 @@
                     clone-item="cloneItem(item)" ></item-edit-button>
                 </td>
                 <td style="vertical-align: middle">
+
+                  <ul class="nav pills">
+                    <li class="dropdown" id="menu1">
+                      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu1">
+                        Dropdown
+                        <b class="caret"></b>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><item-delete-button
+                    item="item"
+                    org="org"
+                    user-name="userName"
+                    org-drafts="orgDrafts"
+                    delete-item="deleteItem(item)"
+                    delete-draft="$parent.deleteDraft">Delete</item-delete-button></li>
+                      </ul>
+                    </li>
+                  </ul>
+
+
                   <item-delete-button
                     item="item"
                     org="org"
