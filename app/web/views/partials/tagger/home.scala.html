@@ -260,7 +260,9 @@
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td><a class="btn btn-warning btn-small" ng-click="launchCatalogView()">Preview</a></td>
+                <td><a class="btn btn-warning btn-small" ng-click="launchCatalogView()">Preview</a>
+                    
+                </td>
                 <td>
                     <item-status class="pull-left" item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
                     <a ui-jq="tooltip"
