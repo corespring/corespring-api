@@ -13,7 +13,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Validation, Success, Failure }
 
 class ItemDraftsTest extends Specification with Mockito {
 
@@ -219,15 +219,52 @@ class ItemDraftsTest extends Specification with Mockito {
       }
     }
 
-    /*
-
     "cloneDraft" should {
-      "fail if load fails" in {}.pending
-      "fail if itemService.save fails" in {}.pending
-      "fail if create fails" in {}.pending
-      "succeed" in {}.pending
+
+      class __(
+        loadResult: Validation[DraftError, ItemDraft],
+        createResult: Validation[DraftError, ItemDraft],
+        saveSuccess: Boolean) extends Scope with MockItemDrafts {
+
+        override def load(user: OrgAndUser)(id: DraftId) = loadResult
+        override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime]) = createResult
+
+        val draft = mkDraft(ed, item)
+        mockItemService.save(any[Item], any[Boolean]) returns {
+          if (saveSuccess) Right(itemId) else Left("Err")
+        }
+      }
+
+      "fail if load fails" in new __(
+        Failure(TestError),
+        Failure(TestError),
+        false) {
+        cloneDraft(ed)(oid) must_== Failure(TestError)
+      }
+
+      "fail if itemService.save" in new __(
+        Success(mkDraft(ed, item)),
+        Failure(TestError),
+        false) {
+        cloneDraft(ed)(oid) must_== Failure(SaveDraftFailed("Err"))
+      }
+
+      "fail if create fails" in new __(
+        Success(mkDraft(ed, item)),
+        Failure(TestError),
+        true) {
+        cloneDraft(ed)(oid) must_== Failure(TestError)
+      }
+
+      "succeed" in new __(
+        Success(mkDraft(ed, item)),
+        Success(mkDraft(ed, item)),
+        true) {
+        cloneDraft(ed)(oid) must_== Success(DraftCloneResult(itemId, oid))
+      }
     }
 
+    /*
     "create" should {
       "fail if userCanCreateDraft fails" in {}.pending
       "fail if itemService.getOrCreateUnpublishedVersion fails" in {}.pending
