@@ -1,4 +1,4 @@
-function MainNavController($scope, $rootScope, $location, SearchService) {
+function MainNavController($scope, $rootScope, $location, SearchService, V2SearchService) {
 
   "use strict";
 
@@ -11,8 +11,8 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   };
 
   $scope.loadMore = function (index, onLoaded) {
-    SearchService.loadMore(function () {
-      $rootScope.items = SearchService.itemDataCollection;
+    V2SearchService.loadMore(function () {
+      $rootScope.items = V2SearchService.itemDataCollection;
       if (onLoaded) {
         onLoaded();
       }
@@ -30,6 +30,7 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   $scope.$on('createNewItem', function (evt) {
     $rootScope.items = [];
   });
+
 }
 
-MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];
+MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService', 'V2SearchService'];

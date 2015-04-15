@@ -1,4 +1,4 @@
-function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
+function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection, V2SearchService) {
 
   $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
   $scope.unpreppedGradeLevel = [];
@@ -84,7 +84,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     }
 
     $rootScope.$broadcast("beginSearch");
-    SearchService.search(params, function onSuccess(res){
+    V2SearchService.search(params, function onSuccess(res){
       $rootScope.items = res;
     },
     function onError(data){
@@ -106,7 +106,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $rootScope.searchParams = {};
     $rootScope.items = null;
     $rootScope.itemCount = null;
-    SearchService.resetDataCollection();
+    V2SearchService.resetDataCollection();
     $rootScope.$broadcast("beginSearch");
   };
 
@@ -118,9 +118,10 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $scope.loadMore();
   });
 
-  $scope.loadMore = function () {
-    SearchService.loadMore(function () {
+  $scope.loadMore = function() {
+    V2SearchService.loadMore(function() {
         // re-bind the scope collection to the services model after result comes back
+        console.log(SearchService.itemDataCollection);
         $rootScope.items = SearchService.itemDataCollection;
 
         $rootScope.isSearching = false;
@@ -169,4 +170,5 @@ SearchController.$inject = ['$scope',
   '$http',
   'ItemService',
   'SearchService',
+  'V2SearchService',
   'Collection'];

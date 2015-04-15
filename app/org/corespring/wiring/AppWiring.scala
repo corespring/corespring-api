@@ -123,7 +123,8 @@ object AppWiring {
   private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
     override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
       requestIdentifiers.token,
-      requestIdentifiers.clientIdAndPlayerTokenQueryString)
+      requestIdentifiers.clientIdAndPlayerTokenQueryString,
+      requestIdentifiers.userSession)
   }
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++

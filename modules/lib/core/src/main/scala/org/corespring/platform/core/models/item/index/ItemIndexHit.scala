@@ -7,12 +7,13 @@ case class ItemIndexHit(id: String,
                         collectionId: String,
                         contributor: Option[String],
                         published: Boolean,
-                        standards: Seq[String],
+                        standards: Map[String, String],
                         subject: Option[String],
                         gradeLevels: Seq[String],
                         title: Option[String],
                         description: Option[String],
-                        apiVersion: Option[Int])
+                        apiVersion: Option[Int],
+                        itemTypes: Seq[String])
 
 object ItemIndexHit {
 
@@ -37,12 +38,13 @@ object ItemIndexHit {
       contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
       published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
       standards = (json \ "_source" \ "standards").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-        .map(standard => (standard \ "dotNotation").as[String]),
+        .map(s => (s \ "dotNotation").as[String] -> (s \ "standard").as[String]).toMap,
       subject = (json \ "_source" \ "taskInfo" \ "subjects" \ "primary").asOpt[JsObject].map(subjectify),
       gradeLevels = (json \ "_source" \ "taskInfo" \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
       title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
       description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
-      apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int]
+      apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int],
+      itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)
     ))
 
     def writes(indexItemHit: ItemIndexHit) = {
@@ -50,13 +52,15 @@ object ItemIndexHit {
       Json.obj(
         "id" -> id,
         "collectionId" -> collectionId,
+        "contributor" -> contributor,
         "published" -> published,
         "standards" -> standards,
         "subject" -> subject,
         "gradeLevels" -> gradeLevels,
         "title" -> title,
         "description" -> description,
-        "apiVersion" -> apiVersion
+        "apiVersion" -> apiVersion,
+        "itemTypes" -> itemTypes
       )
     }
   }

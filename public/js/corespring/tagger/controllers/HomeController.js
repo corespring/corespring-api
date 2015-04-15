@@ -1,4 +1,4 @@
-function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, CollectionManager, Contributor, ItemFormattingUtils, Logger) {
+function HomeController($scope, $timeout, $rootScope, $http, $location, ItemService, SearchService, V2SearchService, CollectionManager, Contributor, ItemFormattingUtils, Logger) {
 
   //Mixin ItemFormattingUtils
   angular.extend($scope, ItemFormattingUtils);
@@ -21,10 +21,6 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
     var defaultsFactory = new com.corespring.model.Defaults();
     $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider("gradeLevels");
     $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider("itemTypes");
-    $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function (e) {
-      return {key: e, label: e};
-    });
-    $scope.flatItemTypeDataProvided.push({key: "Other", label: "Other"});
     $scope.statuses = [
       {label: "Setup", key: "setup"},
       {label: "Tagged", key: "tagged"},
@@ -126,8 +122,8 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
           $rootScope.searchParams.notSelectedItemTypes.push(e);
       });
     }
-    SearchService.search($rootScope.searchParams, function (res) {
-        $rootScope.items = applyPermissions(res);
+    V2SearchService.search($rootScope.searchParams, function (res) {
+      $rootScope.items = applyPermissions(res);
       setTimeout(function () {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
       }, 200);
@@ -135,9 +131,9 @@ function HomeController($scope, $timeout, $rootScope, $http, $location, ItemServ
   };
 
   $scope.loadMore = function () {
-    SearchService.loadMore(function () {
+    V2SearchService.loadMore(function(results) {
         // re-bind the scope collection to the services model after result comes back
-        $rootScope.items = applyPermissions(SearchService.itemDataCollection);
+        $rootScope.items = applyPermissions(results);
         //Trigger MathJax
         setTimeout(function () {
           MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -276,6 +272,7 @@ HomeController.$inject = ['$scope',
   '$location',
   'ItemService',
   'SearchService',
+  'V2SearchService',
   'CollectionManager',
   'Contributor',
   'ItemFormattingUtils',

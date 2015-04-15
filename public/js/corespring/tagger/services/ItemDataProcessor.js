@@ -5,7 +5,6 @@ com.corespring.model = (com.corespring.model || {});
 com.corespring.model.Defaults = function(){
     
     this.$defaults = (function(){
-
         if(!window.fieldValues){
           return {};
         }
@@ -20,7 +19,7 @@ com.corespring.model.Defaults = function(){
           gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
               return {key:g.key, label:g.value};
           }),
-          itemTypes:_.map(window.fieldValues.itemTypes, function (g) {
+          itemTypes:_.map(window.fieldValues['v2ItemTypes'], function (g) {
               return {key:g.key, label:g.value};
           })
         };
@@ -68,6 +67,7 @@ com.corespring.model.ItemDataProcessor = function () {
         var processedData = { _id:undefined };
         processedData.priorGradeLevel = this.buildDtoKeyArray(itemData.$priorGradeLevelDataProvider);
         processedData.gradeLevel = this.buildDtoKeyArray(itemData.$gradeLevelDataProvider);
+        processedData.itemType = this.buildDtoKeyArray(itemData.$itemTypeDataProvider);
         processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
         processedData.primarySubject = this.convertEmbeddedToOid(itemData.primarySubject);
         processedData.relatedSubject = this.convertEmbeddedToOid(itemData.relatedSubject);
@@ -142,13 +142,13 @@ com.corespring.model.ItemDataProcessor = function () {
          * @type {Array}
          */
         item.$gradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.gradeLevel);
+        item.$itemTypeDataProvider = this.buildNgDataProvider(this.$defaults.v2ItemTypes, item.itemType);
         item.$priorGradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.priorGradeLevel);
         item.$reviewsPassedDataProvider = this.buildNgDataProvider(this.$defaults.reviewsPassed, item.reviewsPassed);
         item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, getKey);
         item.$credentialsDataProvider = _.map(window.fieldValues.credentials, getKey);
         item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, getKey);
         item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, getKey);
-        item.$itemTypeDataProvider = _.filter( window.fieldValues.itemTypes, function(c){ return c.value != "Other" });
         item.$depthOfKnowledgeDataProvider = _.map(window.fieldValues.depthOfKnowledge, getKey);
 
         if (!item.keySkills) {
@@ -164,13 +164,16 @@ com.corespring.model.ItemDataProcessor = function () {
 
         return {
           keySkills:_.map(window.fieldValues.keySkills, function (k) {
-              return {header:k.key, list:k.value}
+              return {header:k.key, list:k.value};
           }),
           reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
-              return {key:g.key, label:g.value}
+              return {key:g.key, label:g.value};
           }),
           gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
-              return {key:g.key, label:g.value}
+              return {key:g.key, label:g.value};
+          }),
+          itemType: _.map(window.fieldValues.itemTypes, function(g) {
+              return {key: g.key, label: g.value};
           })
         }
     }());

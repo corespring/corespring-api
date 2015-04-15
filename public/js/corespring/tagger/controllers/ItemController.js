@@ -251,27 +251,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.$root.mode = "edit";
 
-  /**
-   * If the itemData.itemType is not one of the defaults,
-   * set otherItemType to be its value so the ui picks it up.
-   */
-  function initItemType() {
-
-    var type = $scope.itemData.itemType;
-    if (!type) {
-      return;
-    }
-    var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
-      return _.find(d.value, function(e) {
-        return e == type;
-      });
-    });
-
-    if (!foundType) {
-      $scope.otherItemType = type;
-    }
-  }
-
   function enterEditorIfInContentPanel() {
 
     if ($scope.currentPanel == 'content' && $scope.itemData) {
@@ -366,8 +345,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
 
       enterEditorIfInContentPanel();
-      initItemType();
-
     });
   };
 

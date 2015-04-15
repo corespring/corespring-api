@@ -6,7 +6,7 @@ import java.util.Properties
 import org.corespring.platform.core.models.item.FieldValue
 import play.api.Play
 import play.api.Play.current
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsObject, JsArray, JsValue, Json}
 
 object Defaults {
 
@@ -28,7 +28,10 @@ object Defaults {
       import org.corespring.platform.core.models.json._
       implicit val writes = Json.writes[FieldValue]
 
-      val json: JsValue = writes.writes(fv)
+      val json: JsValue = (writes.writes(fv) match {
+        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes))
+        case value: JsValue => value
+      })
       Json.stringify(json)
     }
     case _ => "{}"
@@ -56,5 +59,21 @@ object Defaults {
       licenseKey = get("newrelic.license-key").getOrElse(""),
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
+
+  // TODO: Pull these from the index?
+  private val v2ItemTypes = JsArray(Map(
+    "Drag And Drop" -> "corespring-drag-and-drop",
+    "Evaluate an Expression" -> "corespring-function-entry",
+    "Graph Lines" -> "corespring-line",
+    "Multiple Choice" -> "corespring-multiple-choice",
+    "Numbered Lines" -> "corespring-numbered-lines",
+    "Open Ended Answer" -> "corespring-extended-text-entry",
+    "Ordering" -> "corespring-ordering",
+    "Plot Points" -> "corespring-point-intercept",
+    "Select Evidence in Text" -> "corespring-select-text",
+    "Short Answer - Drop Down" -> "corespring-inline-choice",
+    "Short Answer - Enter Text" -> "corespring-text-entry",
+    "Visual Choice" -> "corespring-focus-task"
+  ).map{ case(value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq)
 
 }

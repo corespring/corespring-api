@@ -141,13 +141,13 @@ angular.module('corespring-utils')
           return "";
         }
 
-        var out = standards[0].dotNotation;
+        var out = _.keys(standards)[0];
 
-        if (standards.length == 1) {
+        if (_.keys(standards).length == 1) {
           return out;
         }
 
-        return out + " plus " + (standards.length - 1) + " more";
+        return out + " plus " + (_.keys(standards).length - 1) + " more";
       },
 
 
@@ -155,32 +155,29 @@ angular.module('corespring-utils')
         if (!standards) {
           return "";
         }
-        var out = [];
-
-        if (standards.length == 1 && standards[0].standard) {
-          return "<span>" + standards[0].standard + "</span>";
+        if (_.keys(standards).length == 1) {
+          return "<span>" + _.values(standards)[0] + "</span>";
+        } else {
+          return "<span>" + (_.chain(standards).map(function (standard, dotNotation) {
+            var wordArray = standard.split(/\W+/);
+            var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
+            return dotNotation + ": " + standardLabel;
+          }).filter(function (standard) {
+            return !_.isEmpty(standard);
+          }).value().join(", ")) + "</span>";
         }
-
-        for (var i = 0; i < standards.length; i++) {
-
-          if (!standards[i] || !standards[i].standard) {
-            return "";
-          }
-          var wordArray = standards[i].standard.split(/\W+/);
-
-          var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
-          out.push(standards[i].dotNotation + ": " + standardLabel);
-        }
-
-        return "<span>" + out.join(", ") + "</span>";
       },
 
       showItemType: function (item) {
-
-        if (item.itemType != "Other") {
-          return item.itemType;
+        if (item.itemTypes) {
+          return _.chain(item.itemTypes).map(function(itemType) {
+            var v2Type = _.find(window.fieldValues.v2ItemTypes, function(v2ItemType) {
+              return v2ItemType.key == itemType
+            });
+            return (v2Type && v2Type.value) ? v2Type.value : undefined;
+          }).filter(function(value) { return value !== undefined;}).value().join(", ");
         }
-        return item.itemType + ": " + item.itemTypeOther;
+        return undefined;
       },
 
       showItemTypeAbbreviated: function (item) {
