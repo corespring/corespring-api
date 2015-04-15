@@ -5,28 +5,24 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Src, Drafts }
+import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Logger
 
-import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
+import scalaz.{ ValidationNel, Failure, Success, Validation }
 
 case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
-/**
- * An implementation of <Drafts> for <Item> backed by some mongo services.
- */
 trait ItemDrafts
-  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit]
-  with CommitCheck {
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
-  def itemService: ItemService
+  def itemService: ItemService with ItemPublishingService
 
   def draftService: ItemDraftService
 
@@ -34,30 +30,66 @@ trait ItemDrafts
 
   def assets: ItemDraftAssets
 
-  /**
-   * Check that the draft src matches the latest src,
-   * so that a commit is possible.
-   */
-  override def getLatestSrc(d: ItemDraft): Src[VersionedId[ObjectId], Item] = ItemSrc(itemService.findOneById(d.src.id.copy(version = None)).get)
-
-  private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
-
-  override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
-    for {
-      vid <- itemService.save(noVersion(d.src.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
-      commit <- Success(ItemCommit(d.id, d.src.data.id))
-      _ <- saveCommit(commit)
-      _ <- assets.copyDraftToItem(d.id, commit.srcId)
-    } yield commit
-  }
+  def collection = draftService.collection
 
   /** Check that the user may create the draft for the given src id */
   protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean
 
+  def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
+
+  def remove(requester: OrgAndUser)(id: DraftId) = {
+    logger.debug(s"function=remove, id=$id")
+    for {
+      _ <- if (owns(requester)(id)) Success(true) else Failure(UserCantRemove(requester, id))
+      _ <- draftService.remove(id) match {
+        case true => Success()
+        case false => Failure(DeleteDraftFailed(id))
+      }
+      _ <- assets.deleteDraft(id)
+    } yield id
+  }
+
+  def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
+
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId).toSeq
+
+  def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
+    d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+    commit <- commit(user)(d)
+    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.src.id))
+    deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
+  } yield {
+    commit.srcId
+  }
+
+  def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
+    if (draftService.owns(user, draftId)) {
+      draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
+    } else {
+      Failure(UserCantLoad(user, draftId))
+    }
+  }
+
+  def cloneDraft(requester: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
+    d <- load(requester)(draftId)
+    itemId <- Success(VersionedId(ObjectId.get))
+    vid <- itemService.save(d.src.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    newDraft <- create(vid, requester)
+  } yield DraftCloneResult(vid, newDraft.id)
+
+  protected def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Validation[DraftError, ObjectId] = {
+    def v(v: Validation[DraftError, Unit]): ValidationNel[DraftError, Unit] = v.toValidationNel
+    val out = for {
+      ids <- Success(draftService.removeNonConflictingDraftsForOrg(itemId, orgId))
+      deleteComplete <- assets.deleteDrafts(ids: _*).toList.traverseU(v)
+    } yield ids
+    out.bimap[DraftError, ObjectId](errs => RemoveDraftFailed(errs.list), _ => itemId)
+  }
+
   /**
    * Creates a draft for the target data.
    */
-  override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime] = None): Validation[DraftError, ItemDraft] = {
+  override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime]): Validation[DraftError, ItemDraft] = {
 
     def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
       require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
@@ -67,79 +99,37 @@ trait ItemDrafts
 
     for {
       canCreate <- if (userCanCreateDraft(id, user)) Success(true) else Failure(UserCantCreate(user, id))
-      newVid <- itemService.saveNewUnpublishedVersion(id).toSuccess(SaveNewUnpublishedItemError(id))
-      item <- itemService.findOneById(newVid).toSuccess(LoadItemFailed(id))
-      draft <- mkDraft(id, item, user)
+      unpublishedItem <- itemService.getOrCreateUnpublishedVersion(id).toSuccess(GetUnpublishedItemError(id))
+      draft <- mkDraft(id, unpublishedItem, user)
       saved <- save(user)(draft)
     } yield draft
   }
 
-  def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
+  /** load a draft for the src <VID> for that user, if not found create it */
+  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Validation[DraftError, ItemDraft] = {
+    val draft: Option[ItemDraft] = draftService.load(id)
 
-  /*def list(id: VersionedId[ObjectId]): Seq[ItemDraft] = {
-    val version = id.version.getOrElse(itemService.currentVersion(id))
-    draftService.findByIdAndVersion(id.id, version)
-  }*/
-
-  /**
-   * Publish the draft.
-   * Set published to true, commit and delete the draft.
-   * @param draftId
-   * @return
-   * d <- load(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-   * published <- Success(d.mkChange(d.src.data.copy(published = true)))
-   * commit <- commit(requester)(published)
-   * deleteResult <- removeDraftByIdAndUser(draftId, requester)
-   * } yield d.src.data.id
-   */
-  def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
-    d <- loadOrCreate(user)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-    commit <- commit(user)(d)
-    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.src.id))
-    deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
-  } yield {
-    commit.srcId
-  }
-
-  def clone(requester: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
-    d <- loadOrCreate(requester)(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-    itemId <- Success(VersionedId(ObjectId.get))
-    vid <- itemService.save(d.src.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
-    newDraft <- create(vid, requester)
-  } yield DraftCloneResult(vid, newDraft.id)
-
-  /**
-   * Load  a draft.
-   * If the draft has a conflict load it as is.
-   * If not copy the latest src from the item to the draft before loading.
-   * @param requester
-   * @param id
-   * @return
-   */
-  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Option[ItemDraft] = {
-    logger.debug(s"function=load, id=$id")
-
-    draftService.load(id).filter { d =>
-      logger.trace(s"function=load, draft.org=${d.user.org}, requester.org=${requester.org}")
-      d.user.org == requester.org
-    }.map { d =>
-      if (d.hasConflict) {
-        d
-      } else {
-        val latest = itemService.findOneById(d.src.id).get
-        val updatedDraft = d.copy(src = d.src.copy(latest), change = d.change.copy(latest))
-        draftService.save(updatedDraft)
-        updatedDraft
-      }
+    def updateIfNotConflicted(d: ItemDraft): ItemDraft = if (d.hasConflict) d else {
+      itemService.getOrCreateUnpublishedVersion(d.src.id).map { i =>
+        val update = d.copy(src = ItemSrc(i), change = ItemSrc(i))
+        draftService.save(update)
+        update
+      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.src.id}"))
     }
+
+    val updated: Option[ItemDraft] = draft.map(updateIfNotConflicted)
+
+    updated.map(d => Success(d)).getOrElse(create(VersionedId(id.itemId), requester))
   }
 
-  def collection = draftService.collection
+  private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
 
-  def owns(requester: OrgAndUser)(id: DraftId): Boolean = draftService.owns(requester, id)
+  protected def saveCommit(c: ItemCommit): Validation[DraftError, Unit] = {
+    commitService.save(c).failed(SaveCommitFailed)
+  }
 
   override def save(requester: OrgAndUser)(d: ItemDraft): Validation[DraftError, DraftId] = {
-    if (d.user == requester) {
+    if (draftService.owns(requester, d.id)) {
       draftService.save(d)
         .failed(e => SaveDataFailed(e.getErrorMessage))
         .map(_ => d.id)
@@ -148,23 +138,20 @@ trait ItemDrafts
     }
   }
 
-  def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Validation[DraftError, ObjectId] = {
-    val out = for {
-      ids <- Success(draftService.removeNonConflictingDraftsForOrg(itemId, orgId))
-      deleteComplete <- assets.deleteDrafts(ids: _*)
-    } yield ids
-    out.map(_ => itemId)
+  override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
+    for {
+      vid <- itemService.save(noVersion(d.src.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
+      commit <- Success(ItemCommit(d.id, d.user, d.src.data.id))
+      _ <- saveCommit(commit)
+      _ <- assets.copyDraftToItem(d.id, commit.srcId)
+    } yield commit
   }
 
-  protected def saveCommit(c: ItemCommit): Validation[DraftError, Unit] = {
-    commitService.save(c).failed(SaveCommitFailed)
-  }
-
-  protected def deleteDraft(d: ItemDraft): Validation[DraftError, Unit] = for {
-    result <- Success(draftService.remove(d))
-    _ <- if (result) Success() else Failure(DeleteDraftFailed(d.id))
-    deleteComplete <- assets.deleteDraft(d.id)
-  } yield Unit
+  /**
+   * Check that the draft src matches the latest src,
+   * so that a commit is possible.
+   */
+  override def getLatestSrc(d: ItemDraft): Option[ItemSrc] = itemService.findOneById(d.src.id.copy(version = None)).map(i => ItemSrc(i))
 
   private implicit class WriteResultToValidation(w: WriteResult) {
     require(w != null)
@@ -177,5 +164,4 @@ trait ItemDrafts
       Failure(e(w.getLastError))
     }
   }
-
 }

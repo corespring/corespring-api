@@ -5,6 +5,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ DBObject, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.{ DraftId, ItemDraft, OrgAndUser }
+import org.corespring.platform.data.mongo.models.VersionedId
 
 trait ItemDraftService {
 
@@ -42,21 +43,37 @@ trait ItemDraftService {
 
   def hasConflict(id: DraftId): Option[Boolean] = load(id).map { d => d.hasConflict }
 
-  def owns(user: OrgAndUser, id: DraftId) = user.user.exists(_.userName == id.name) && id.orgId == user.org.id
+  def owns(ou: OrgAndUser, id: DraftId) = {
+    val orgMatches = ou.org.id == id.orgId
+    val userMatches = ou.user.map(_.userName == id.name)
+    orgMatches && userMatches.getOrElse(true)
+  }
 
-  def remove(d: ItemDraft): Boolean = {
-    val result = collection.remove(MongoDBObject("_id" -> idToDbo(d.id)))
+  def remove(id: DraftId): Boolean = {
+    val result = collection.remove(MongoDBObject("_id" -> idToDbo(id)))
     result.getN == 1
   }
 
+  def remove(d: ItemDraft): Boolean = remove(d.id)
+
+  def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
+    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> vid.id)
+    collection.find(query).map(toDraft)
+  }
+
   def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(userOrgId -> orgId)).toSeq.map(toDraft)
+
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
+    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId.id)
+    collection.find(query).map(toDraft)
+  }
 
   def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Seq[DraftId] = {
     val query = MongoDBObject("_id" -> MongoDBObject("itemId" -> itemId, "user.org._id" -> orgId, "hasConflict" -> false))
 
     val ids = collection.find(query, MongoDBObject()).toSeq.map { dbo =>
-      val id = dbo.get("_id")
-      grater[DraftId].asObject(id)
+      val id = dbo.get("_id").asInstanceOf[DBObject]
+      grater[DraftId].asObject(new MongoDBObject(id))
     }
 
     val result = collection.remove(query)

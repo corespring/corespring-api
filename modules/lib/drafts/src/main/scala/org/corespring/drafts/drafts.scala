@@ -4,6 +4,7 @@ import org.corespring.drafts.errors._
 import org.joda.time.DateTime
 
 import scalaz.{ Failure }
+import scalaz.Scalaz._
 
 /** The data src for the draft and it's id/version */
 trait Src[VID, DATA] {
@@ -60,7 +61,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
    * Check that the draft src matches the latest src,
    * so that a commit is possible.
    */
-  def getLatestSrc(d: UD): Src[VID, SRC]
+  def getLatestSrc(d: UD): Option[Src[VID, SRC]]
 
   /**
    * Commit a draft back to the data store.
@@ -69,12 +70,14 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
     if (d.user != requester) {
       Failure(UserCantCommit(requester, d.user))
     } else {
-      val latest = getLatestSrc(d)
-      if (latest != d.src && !force) {
-        Failure(DraftIsOutOfDate(d, latest))
-      } else {
-        copyDraftToSrc(d)
-      }
+      for {
+        latest <- getLatestSrc(d).toSuccess(CantFindLatestSrc(d.id))
+        result <- if (latest != d.src && !force) {
+          Failure(DraftIsOutOfDate(d, latest))
+        } else {
+          copyDraftToSrc(d)
+        }
+      } yield result
     }
   }
 

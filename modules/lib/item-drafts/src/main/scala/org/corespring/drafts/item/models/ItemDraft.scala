@@ -9,7 +9,7 @@ import org.joda.time.{ DateTimeZone, DateTime }
 object ItemDraft {
   def apply(item: Item, user: OrgAndUser): ItemDraft = {
     ItemDraft(
-      DraftId(item.id.id, user.user.map { _.userName }.getOrElse("unknown_user"), user.org.id),
+      DraftId(item.id, user),
       user,
       ItemSrc(item),
       ItemSrc(item),
@@ -17,8 +17,16 @@ object ItemDraft {
   }
 }
 
+object DraftId {
+  def apply(id: VersionedId[ObjectId], ou: OrgAndUser): DraftId = {
+    DraftId(id.id, ou.user.map { _.userName }.getOrElse("unknown_user"), ou.org.id)
+  }
+}
+
 /** A Draft is unique to the itemId (base id) and org and user) */
-case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId)
+case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
+  override def toString = s"$itemId~$name"
+}
 
 case class ItemDraft(
   val id: DraftId,
@@ -28,7 +36,7 @@ case class ItemDraft(
   val hasConflict: Boolean,
   val created: DateTime = DateTime.now(DateTimeZone.UTC),
   val expires: DateTime = DateTime.now(DateTimeZone.UTC).plusDays(1))
-  extends UserDraft[ObjectId, VersionedId[ObjectId], Item, OrgAndUser] {
+  extends UserDraft[DraftId, VersionedId[ObjectId], Item, OrgAndUser] {
 
   /**
    * Update the src data and copy over the created and expires otherwise they'll get refreshed

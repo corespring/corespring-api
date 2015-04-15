@@ -2,6 +2,7 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import com.amazonaws.auth.policy.Principal.Services
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.amazon.s3.S3Service
@@ -19,6 +20,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -43,7 +45,8 @@ class V2PlayerBootstrap(
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   playS3: S3Service,
   bucket: String,
-  itemDrafts: ItemDrafts)
+  itemDrafts: ItemDrafts,
+  orgService: OrgService)
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -136,6 +139,8 @@ class V2PlayerBootstrap(
 
   override def itemDraftHooks: ItemDraftHooks = new ItemDraftHooks with WithDefaults {
     override def backend: ItemDrafts = V2PlayerBootstrap.this.itemDrafts
+
+    override def orgService: OrgService = V2PlayerBootstrap.this.orgService
   }
 
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks with WithDefaults {

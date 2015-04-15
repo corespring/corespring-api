@@ -7,9 +7,9 @@ import org.joda.time.DateTime
 
 case class ItemCommit(
   draftId: DraftId,
+  user: OrgAndUser,
   srcId: VersionedId[ObjectId],
   date: DateTime = DateTime.now)
   extends Commit[VersionedId[ObjectId], OrgAndUser] {
-  override def user: OrgAndUser = draftId.user
 }
 

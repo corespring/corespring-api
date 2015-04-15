@@ -12,7 +12,7 @@ trait ItemDraftAssets {
   def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]
   def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
   def deleteDraft(draftId: DraftId): Validation[DraftError, Unit]
-  def deleteDrafts(draftId: DraftId*): Validation[DraftError, Unit]
+  def deleteDrafts(draftId: DraftId*): Seq[Validation[DraftError, Unit]]
 }
 
 /**
@@ -40,7 +40,7 @@ object S3Paths {
     id.replace(":", "/")
   }
 
-  def draftFolder(id: DraftId): String = s"item-drafts/${id.itemId}/${id.orgId}/${id.name}"
+  def draftFolder(id: DraftId): String = s"item-drafts/${id.orgId}/${id.itemId}/${id.name}"
 
   def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 

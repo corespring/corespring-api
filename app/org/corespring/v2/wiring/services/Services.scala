@@ -5,8 +5,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.drafts.errors.DraftError
-import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
+import org.corespring.drafts.item.models.{ OrgAndUser }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAssets }
 import org.corespring.mongo.json.services.MongoService
@@ -16,7 +15,7 @@ import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionServ
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -44,10 +43,10 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   override val sessionService: MongoService = mainSessionService
 
-  override val itemService: ItemService = ItemServiceWired
+  override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
   override def draftsBackend: ItemDrafts = new ItemDrafts {
-    override def itemService: ItemService = Services.this.itemService
+    override def itemService = Services.this.itemService
 
     override val draftService: ItemDraftService = new ItemDraftService {
       override def collection: MongoCollection = db("drafts.items")
@@ -86,11 +85,14 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   /** A wrapper around organization */
   lazy val orgService = new OrgService {
-    override def defaultCollection(o: Organization): Option[ObjectId] = {
-      Organization.getDefaultCollection(o.id) match {
+    override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
+      Organization.getDefaultCollection(oid) match {
         case Right(coll) => Some(coll.id)
         case Left(e) => None
       }
+    }
+    override def defaultCollection(o: Organization): Option[ObjectId] = {
+      defaultCollection(o.id)
     }
 
     override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
