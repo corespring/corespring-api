@@ -245,22 +245,28 @@
         <table class="item-list table content-sort" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
-                <th sort-column-header field="preview"></th>
+                <th width="150" sort-column-header field="preview"></th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th sort-column-header field="description" width="300">Description</th>
-                <th width="200">Subject</th>
+                <th width="100">Subject</th>
                 <th width="100" sort-column-header field="gradeLevel">Grade</th>
-                <th sort-column-header field="itemType">Item Type</th>
-                <th>Standard(s)</th>
+                <th width="100" sort-column-header field="itemType">Item Type</th>
+                <th width="100">Standard(s)</th>
                 <th width="100" sort-column-header field="contributor">Source</th>
-                <!-- <th sort-column-header field="published">Status</th> -->
-                <th width="200" sort-column-header>Editing</th>
-                <th sort-column-header></th>
+                <th width="100" sort-column-header>Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
-                <td><a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
+                <td>
+                  <a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
+
+                  <item-edit-button-only
+                    item="item"
+                    user-name="userName"
+                    org="org"
+                    org-drafts="orgDrafts"
+                    edit="edit(item)" ></item-edit-button-only>
 
                 </td>
                 <td>
@@ -279,52 +285,18 @@
                        ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td>{{getAuthorAbbreviation(item.contributor)}}</td>
-                <!-- <td>
-                  <item-status item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
-                </td> -->
                 <td>
-                  <item-edit-button
+                  <item-action-button
                     item="item"
                     user-name="userName"
                     org="org"
                     org-drafts="orgDrafts"
                     edit="edit(item)"
                     publish="publish(item)"
-                    clone-item="cloneItem(item)" ></item-edit-button>
+                    clone-item="cloneItem(item)" 
+                    delete-item="deleteItem(item)"
+                    delete-draft="$parent.deleteDraft"></item-action-button>
                 </td>
-                <td style="vertical-align: middle">
-
-                  <ul class="nav pills">
-                    <li class="dropdown" id="menu1">
-                      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu1">
-                        Dropdown
-                        <b class="caret"></b>
-                      </button>
-                      <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li><item-delete-button
-                    item="item"
-                    org="org"
-                    user-name="userName"
-                    org-drafts="orgDrafts"
-                    delete-item="deleteItem(item)"
-                    delete-draft="$parent.deleteDraft">Delete</item-delete-button></li>
-                      </ul>
-                    </li>
-                  </ul>
-
-
-                  <item-delete-button
-                    item="item"
-                    org="org"
-                    user-name="userName"
-                    org-drafts="orgDrafts"
-                    delete-item="deleteItem(item)"
-                    delete-draft="$parent.deleteDraft">Delete</item-delete-button>
-                  </td>
             </tr>
             </tbody>
         </table>
