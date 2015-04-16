@@ -137,7 +137,7 @@ angular.module('corespring-utils')
        * @return label string
        */
       buildStandardLabel: function (standards) {
-        if (standards == null || standards.length == 0) {
+        if (standards == null || _.keys(standards).length == 0) {
           return "";
         }
 
