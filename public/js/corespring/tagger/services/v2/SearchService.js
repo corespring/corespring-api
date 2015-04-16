@@ -6,6 +6,11 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
 
     function toQuery(params) {
       return {
+        sort: _.map(params.sort, function(direction, field) {
+          var sort = {};
+          sort[field] = (direction == 1) ? "asc" : "desc";
+          return sort;
+        })[0],
         text: params.searchText,
         contributors: _.map(params.contributor, function(contributor) {
           return contributor.name;

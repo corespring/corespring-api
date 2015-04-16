@@ -14,7 +14,45 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
                           itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
                           gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
                           published: Option[Boolean] = ItemIndexQuery.Defaults.published,
-                          workflows: Seq[String] = ItemIndexQuery.Defaults.workflows)
+                          workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
+                          sort: Seq[Sort] = ItemIndexQuery.Defaults.sort)
+
+case class Sort(field: String, direction: Option[String])
+
+object Sort {
+
+  private val fieldMapping = Map(
+    "title" -> "taskInfo.title.raw",
+    "description" -> "taskInfo.description.raw",
+    "subject" -> "taskInfo.subjects.primary.subject",
+    "gradeLevel" -> "taskInfo.gradeLevel",
+    "itemType" -> "taskInfo.itemTypes",
+    "standard" -> "taskInfo.standards.dotNotation",
+    "contributor" -> "contributorDetails.contributor"
+  )
+
+  object ElasticSearchWrites extends Writes[Sort] {
+    override def writes(sort: Sort): JsValue = Json.obj(
+      fieldMapping.get(sort.field).getOrElse(sort.field) -> Json.obj(
+        "order" -> (sort.direction match {
+          case Some("desc") => "desc"
+          case _ => "asc"
+        })
+      )
+    )
+  }
+
+  object Reads extends Reads[Sort] {
+    override def reads(json: JsValue): JsResult[Sort] = json match {
+      case obj: JsObject => JsSuccess(Sort(
+        field = obj.keys.head,
+        direction = (obj \ (obj.keys.head)).asOpt[String]
+      ))
+      case _ => JsError("Must be object")
+    }
+  }
+
+}
 
 object ItemIndexQuery {
 
@@ -31,12 +69,15 @@ object ItemIndexQuery {
     val gradeLevels = Seq.empty[String]
     val published = None
     val workflows = Seq.empty[String]
+    val sort = Seq.empty[Sort]
   }
 
   /**
    * Reads JSON in the format provided by requests to the search API.
    */
   object ApiReads extends Reads[ItemIndexQuery] {
+    implicit val SortReads = Sort.Reads
+
     override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
       ItemIndexQuery(
         offset = (json \ "offset").asOpt[Int].getOrElse(Defaults.offset),
@@ -47,7 +88,10 @@ object ItemIndexQuery {
         itemTypes = (json \ "itemTypes").asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
         gradeLevels = (json \ "gradeLevels").asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
         published = (json \ "published").asOpt[Boolean],
-        workflows = (json \ "workflows").asOpt[Seq[String]].getOrElse(Defaults.workflows)
+        workflows = (json \ "workflows").asOpt[Seq[String]].getOrElse(Defaults.workflows),
+        sort = (json \ "sort").asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
+          .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
+          .getOrElse(Defaults.sort)
       )
     )
   }
@@ -80,10 +124,12 @@ object ItemIndexQuery {
 
     def writes(query: ItemIndexQuery): JsValue = {
       import query._
-      Json.obj(
-        "from" -> offset,
-        "size" -> count,
-        "query" -> Json.obj(
+      implicit val SortWrites = Sort.ElasticSearchWrites
+
+      partialObj(
+        "from" -> Some(JsNumber(offset)),
+        "size" -> Some(JsNumber(count)),
+        "query" -> Some(Json.obj(
           "filtered" -> partialObj(
             "query" -> query.text.map(text => Json.obj(
               "simple_query_string" -> Json.obj(
@@ -105,7 +151,11 @@ object ItemIndexQuery {
               })
             ))
           )
-        )
+        )),
+        "sort" -> (query.sort.nonEmpty match {
+          case true => Some(JsArray(query.sort.map(Json.toJson(_))))
+          case _ => None
+        })
       )
     }
 
