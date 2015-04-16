@@ -44,7 +44,7 @@ trait ItemDraftHooks
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate _)
       draft <- Success(draftAndIdentity._1)
-      json <- Success(transform(draft.src.data))
+      json <- Success(transform(draft.parent.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
       Json.obj("item" -> json)
@@ -93,7 +93,7 @@ trait ItemDraftHooks
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load _)
       draft <- Success(draftAndIdentity._1)
-      item <- Success(draft.src.data)
+      item <- Success(draft.parent.data)
       updatedItem <- Success(updateFn(item, json))
       update <- Success(draft.mkChange(updatedItem))
       saved <- backend.save(draftAndIdentity._2)(update).v2Error

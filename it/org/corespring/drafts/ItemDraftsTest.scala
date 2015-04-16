@@ -4,22 +4,20 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.{ CommitsAfterDraft, CommitsWithSameSrc }
+import org.corespring.drafts.errors.DraftIsOutOfDate
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ SimpleOrg, SimpleUser, OrgAndUser }
-import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
+import org.corespring.drafts.item.models._
+import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ userAndItem }
+import org.corespring.v2.player.scopes.userAndItem
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
-import play.api.libs.json.Json
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
 class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mockito {
 
@@ -28,6 +26,8 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
   def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
   override protected def before: Any = {
+    println(s"--> dropping it.drafts.item and it.drafts.item_commits")
+
     db("it.drafts.item").drop()
     db("it.drafts.item_commits").drop()
   }
@@ -43,8 +43,10 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
   trait orgAndUserAndItem extends userAndItem {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
 
+    lazy val item = ItemServiceWired.findOneById(itemId).get
+
     lazy val drafts = new ItemDrafts {
-      override val itemService: ItemService = ItemServiceWired
+      override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
       override val draftService: ItemDraftService = ItemDraftsTest.this.draftService
 
@@ -52,19 +54,19 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
 
       val assets = {
         val m = mock[ItemDraftAssets]
-        m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
+        m.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
           {
             val arr = obj.asInstanceOf[Array[Any]]
             Success(arr(1).asInstanceOf[VersionedId[ObjectId]])
           }
         }
-        m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]) answers { (obj, mock) =>
+        m.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) answers { (obj, mock) =>
           {
             val arr = obj.asInstanceOf[Array[Any]]
-            Success(arr(1).asInstanceOf[ObjectId])
+            Success(arr(1).asInstanceOf[DraftId])
           }
         }
-        m.deleteDraft(any[ObjectId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
+        m.deleteDraft(any[DraftId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
         m
       }
 
@@ -80,169 +82,84 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
 
   "ItemDrafts" should {
 
-    "a draft item is unpublished" in new orgAndUserAndItem {
-      ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
-      val draft = drafts.create(itemId, orgAndUser).get
-      draft.src.data.published must_== false
-    }
+    "load/create" should {
+      "create a new draft for a user" in new orgAndUserAndItem {
 
-    "create a draft of an item" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId, orgAndUser)
-      draft.flatMap(_.user.user.map(_.id)) === Some(user.id)
-    }
+        draftService.collection.count(MongoDBObject()) must_== 0
 
-    "load a created draft by its id" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId, orgAndUser)
-      drafts.loadOrCreate(orgAndUser)(draft.get.id).map(_.id) === draft.map(_.id)
-    }
-
-    "save a draft" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId, orgAndUser).get
-      val item = draft.src.data
-      val newItem = updateTitle(item, "updated title")
-      val update = draft.mkChange(newItem)
-      drafts.save(orgAndUser)(update)
-      drafts.loadOrCreate(orgAndUser)(draft.id).get.src.data.taskInfo.map(_.title).get === Some("updated title")
-    }
-
-    "commit a draft" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId, orgAndUser).get
-      val item = draft.src.data
-      val newItem = updateTitle(item, "commit a draft")
-      val update = draft.mkChange(newItem)
-      drafts.commit(orgAndUser)(update)
-      val latestItem = ItemHelper.get(item.id.copy(version = None))
-      latestItem.get.taskInfo.get.title === Some("commit a draft")
-      latestItem.get.id.version === Some(0)
-    }
-
-    "committing sets the committed DateTime" in new orgAndUserAndItem {
-      val draft = drafts.create(itemId, orgAndUser).get
-      drafts.commit(orgAndUser)(draft)
-      val updatedDraft = drafts.loadOrCreate(orgAndUser)(draft.id).get
-      updatedDraft.committed.isDefined === true
-      updatedDraft.committed.get.isAfter(draft.created)
-    }
-
-    "committing a 2nd draft with the same src id/version fails" in new orgAndUserAndItem {
-      val eds = drafts.create(itemId, orgAndUser).get
-      val edsSecondDraft = drafts.create(itemId, orgAndUser).get
-      val item = eds.src.data
-      val newItem = updateTitle(item, "update for committing - 2")
-      val update = eds.mkChange(newItem)
-      drafts.commit(orgAndUser)(update)
-      drafts.commit(orgAndUser)(edsSecondDraft) match {
-        case Failure(CommitsAfterDraft(commits)) => {
-          val commit = commits(0)
-          commit.user === orgAndUser
-        }
-        case _ => failure("should have returned commits with same src")
-      }
-    }
-
-    "committing a 2nd draft with the same src id/version and force=true succeeds" in new orgAndUserAndItem {
-      val eds = drafts.create(itemId, orgAndUser).get
-      val edsSecondDraft = drafts.create(itemId, orgAndUser).get
-      val item = eds.src.data
-      val newItem = updateTitle(item, "update for committing - 2")
-      val update = eds.mkChange(newItem)
-      drafts.commit(orgAndUser)(update)
-      drafts.commit(orgAndUser)(edsSecondDraft, force = true) match {
-        case Failure(CommitsWithSameSrc(commits)) => failure("should have succeeded")
-        case _ => success
-      }
-    }
-
-    "committing a draft to an item that is published" should {
-
-      "add the new version id as the committed id" in new orgAndUserAndItem {
-        val eds = drafts.create(itemId, orgAndUser).get
-        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
-        drafts.commit(orgAndUser)(eds) match {
-          case Success(commit) => {
-            commit.srcId must_== itemId
-            commit.committedId must_== bump(itemId)
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
+          case Success(draft) => {
+            draft.parent.data must_== item
+            draftService.collection.count(MongoDBObject()) must_== 1
           }
-          case _ => failure("should have been successful committing")
+          case _ => failure("should have been successful")
         }
-
       }
 
-      "update the src id to the latest id" in new orgAndUserAndItem {
-        val eds = drafts.create(itemId, orgAndUser).get
-        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
-        drafts.commit(orgAndUser)(eds)
-        val dbDraft = drafts.loadOrCreate(orgAndUser)(eds.id).get
-        dbDraft.src.id must_== bump(itemId)
+      "load a user's existing draft" in new orgAndUserAndItem {
+        draftService.collection.count(MongoDBObject()) must_== 0
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser))
+        draftService.collection.count(MongoDBObject()) must_== 1
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser))
+        draftService.collection.count(MongoDBObject()) must_== 1
       }
-    }
 
-    "in a typical workflow" should {
+      "load a user's existing draft with the latest update of item" in new orgAndUserAndItem {
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser))
+        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
+          case Success(d) => d.parent.data.playerDefinition must_== Some(PlayerDefinition("hello!"))
+          case _ => failure("should have been successful")
+        }
+      }
 
-      "after committing to a published item, later commits will target the subsequent version" in new orgAndUserAndItem {
-        val eds = drafts.create(itemId, orgAndUser).get
-        ItemHelper.update(itemId, Json.obj("$set" -> Json.obj("published" -> true)))
-        drafts.commit(orgAndUser)(eds)
-        val newDraft = drafts.loadOrCreate(orgAndUser)(eds.id).get
-
-        newDraft.src.id must_== bump(itemId)
-
-        drafts.commit(orgAndUser)(newDraft) match {
-          case Success(commit) => {
-
-            commit.srcId must_== newDraft.src.id
-            commit.committedId must_== newDraft.src.id
+      "load a user's existing draft with no update because it's conflicted" in new orgAndUserAndItem {
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
+          case Success(d) => {
+            val update = d.copy(hasConflict = true)
+            draftService.save(update)
           }
-          case _ => failure("should have been a successful commit")
+          case _ => failure("should have been succesful")
         }
 
-      }
-    }
+        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
 
-    "publishing a draft" should {
-      "set published to true, commit and delete the draft" in new orgAndUserAndItem {
-        val eds = drafts.create(itemId, orgAndUser).get
-        val update = eds.mkChange(eds.src.data.copy(taskInfo = eds.src.data.taskInfo.map(_.copy(title = Some("update")))))
-
-        update.src.data.published must_== false
-
-        val saveResult = drafts.save(orgAndUser)(update)
-        val publishedItemId = drafts.publish(orgAndUser)(eds.id)
-        drafts.collection.findOneByID(eds.id) must_== None
-        val commits = commitService.findByIdAndVersion(itemId.id, itemId.version.get)
-        commits.length must_== 1
-        commits(0).draftId must_== eds.id
-
-        val item = ItemHelper.get(commits(0).committedId).get
-
-        item.taskInfo.flatMap(_.title) must_== Some("update")
-        item.published must_== true
-      }
-    }
-
-    "publishing multiple times keeps bumping the version of the item" in new orgAndUserAndItem {
-
-      val draftOne = drafts.create(itemId, orgAndUser).get
-      val update = draftOne.mkChange(draftOne.src.data.copy(taskInfo = draftOne.src.data.taskInfo.map(_.copy(title = Some("update")))))
-      drafts.save(orgAndUser)(update)
-      drafts.publish(orgAndUser)(draftOne.id)
-
-      val two = drafts.create(itemId, orgAndUser).get
-
-      two.src.data.id must_== bump(itemId)
-
-      val updateTwo = two.mkChange(two.src.data.copy(taskInfo = two.src.data.taskInfo.map(_.copy(title = Some("update")))))
-      drafts.save(orgAndUser)(updateTwo)
-
-      two.id must_== updateTwo.id
-
-      drafts.publish(orgAndUser)(two.id) match {
-        case Success(vid) => {
-          vid must_== bump(itemId, 1)
-          there was one(drafts.assets).copyDraftToItem(draftOne.id, itemId) andThen one(drafts.assets).copyDraftToItem(two.id, vid)
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
+          case Success(d) => d.parent.data.playerDefinition must_== None
+          case _ => failure("should have been successful")
         }
-        case _ => failure("publish should have been successful")
       }
     }
+
+    "commit" should {
+      "allow a commit if the parent matches the item" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val commit = drafts.commit(orgAndUser)(draft).toOption.get
+        commit.draftId must_== draft.id
+        commit.srcId must_== item.id
+        commit.user must_== orgAndUser
+      }
+
+      "not allow a commit if the parent does not match the item" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+      }
+
+      "flags the draft as conflicted if the parent does not match the item" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+        drafts.load(orgAndUser)(draft.id).toOption.get.hasConflict must_== true
+        //drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+      }
+
+      "allow a forced commit of a conflicted item" in pending
+    }
+
+    "show what's changed" should {
+      "show what's changed" in pending
+    }
+
   }
 }

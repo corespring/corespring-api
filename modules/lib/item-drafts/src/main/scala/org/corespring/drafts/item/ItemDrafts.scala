@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Drafts }
+import org.corespring.drafts.{ Src, Drafts }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -56,7 +56,7 @@ trait ItemDrafts
   def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
     d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
     commit <- commit(user)(d)
-    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.src.id))
+    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.parent.id))
     deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
   } yield {
     commit.srcId
@@ -73,7 +73,7 @@ trait ItemDrafts
   def cloneDraft(requester: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(requester)(draftId)
     itemId <- Success(VersionedId(ObjectId.get))
-    vid <- itemService.save(d.src.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    vid <- itemService.save(d.parent.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
     newDraft <- create(vid, requester)
   } yield DraftCloneResult(vid, newDraft.id)
 
@@ -110,11 +110,11 @@ trait ItemDrafts
     val draft: Option[ItemDraft] = draftService.load(id)
 
     def updateIfNotConflicted(d: ItemDraft): ItemDraft = if (d.hasConflict) d else {
-      itemService.getOrCreateUnpublishedVersion(d.src.id).map { i =>
-        val update = d.copy(src = ItemSrc(i), change = ItemSrc(i))
+      itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
+        val update = d.copy(parent = ItemSrc(i), change = ItemSrc(i))
         draftService.save(update)
         update
-      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.src.id}"))
+      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.parent.id}"))
     }
 
     val updated: Option[ItemDraft] = draft.map(updateIfNotConflicted)
@@ -140,8 +140,8 @@ trait ItemDrafts
 
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
     for {
-      vid <- itemService.save(noVersion(d.src.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
-      commit <- Success(ItemCommit(d.id, d.user, d.src.data.id))
+      vid <- itemService.save(noVersion(d.parent.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
+      commit <- Success(ItemCommit(d.id, d.user, d.parent.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
     } yield commit
@@ -151,7 +151,7 @@ trait ItemDrafts
    * Check that the draft src matches the latest src,
    * so that a commit is possible.
    */
-  override def getLatestSrc(d: ItemDraft): Option[ItemSrc] = itemService.findOneById(d.src.id.copy(version = None)).map(i => ItemSrc(i))
+  override def getLatestSrc(d: ItemDraft): Option[ItemSrc] = itemService.findOneById(d.parent.id.copy(version = None)).map(i => ItemSrc(i))
 
   private implicit class WriteResultToValidation(w: WriteResult) {
     require(w != null)
@@ -163,5 +163,11 @@ trait ItemDrafts
     } else {
       Failure(e(w.getLastError))
     }
+  }
+
+  override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item] = {
+    val update = d.copy(hasConflict = true)
+    draftService.save(update)
+    DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](update, src)
   }
 }

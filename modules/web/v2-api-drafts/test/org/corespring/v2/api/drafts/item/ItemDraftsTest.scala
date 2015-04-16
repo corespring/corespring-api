@@ -144,7 +144,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
       }
 
       "fail if draft loading fails" in new scp(Some(user)) {
-        contentAsJson(get(draftId.toIdString)(req)) === cantLoadDraft(draftId.toIdString).json
+        contentAsJson(get(draftId.toIdString)(req)) === generalDraftApiError("load").json
       }
 
       s"return $OK" in new scp(Some(user), Success(mockItemDraft)) {
@@ -153,7 +153,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
     }
 
     "save" should {
-      s"return $OK" in { true === false }.pendingUntilFixed
+      s"Do we allow an api save of a draft?" in pending
     }
 
     "delete" should {

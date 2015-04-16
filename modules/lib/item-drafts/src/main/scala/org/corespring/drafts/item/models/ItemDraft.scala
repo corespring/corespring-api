@@ -31,7 +31,7 @@ case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
 case class ItemDraft(
   val id: DraftId,
   val user: OrgAndUser,
-  val src: ItemSrc,
+  val parent: ItemSrc,
   val change: ItemSrc,
   val hasConflict: Boolean,
   val created: DateTime = DateTime.now(DateTimeZone.UTC),

@@ -94,7 +94,7 @@ class ItemDraftsTest extends Specification with Mockito {
   def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
   def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(i, u)
   val gwensDraft = mkDraft(gwen)
-  val oid = DraftId(item.id, ed)
+  val oid = DraftId.fromIdAndUser(item.id, ed)
   def TestError(name: String = "test error") = GeneralError(name)
 
   "ItemDrafts" should {
@@ -273,7 +273,7 @@ class ItemDraftsTest extends Specification with Mockito {
       "succeed" in new __(true, Some(item), Success(oid), Success(oid)) {
         create(itemId, ed, None) match {
           case Success(d) => {
-            d.src.data must_== getUnpublishedVersion.get
+            d.parent.data must_== getUnpublishedVersion.get
           }
           case _ => failure("should have been successful")
         }
@@ -305,7 +305,7 @@ class ItemDraftsTest extends Specification with Mockito {
         Some(mkDraft(ed, item).copy(hasConflict = true)),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.src.data must_== item
+          case Success(draft) => draft.parent.data must_== item
           case Failure(e) => failure("should have been successful")
         }
       }
@@ -314,7 +314,7 @@ class ItemDraftsTest extends Specification with Mockito {
         Some(mkDraft(ed, item).copy(hasConflict = false)),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.src.data must_== getUnpublishedVersion.get
+          case Success(draft) => draft.parent.data must_== getUnpublishedVersion.get
           case Failure(e) => failure("should have been successful")
         }
       }

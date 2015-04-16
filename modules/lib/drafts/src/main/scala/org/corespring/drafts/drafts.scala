@@ -21,7 +21,7 @@ trait Src[VID, DATA] {
 trait Draft[ID, VID, SRC_DATA] {
   def id: ID
   /** the data from which draft was created */
-  def src: Src[VID, SRC_DATA]
+  def parent: Src[VID, SRC_DATA]
   /** the change to that data */
   def change: Src[VID, SRC_DATA]
   def mkChange(data: SRC_DATA): Draft[ID, VID, SRC_DATA]
@@ -63,6 +63,8 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
    */
   def getLatestSrc(d: UD): Option[Src[VID, SRC]]
 
+  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): DraftIsOutOfDate[ID, VID, SRC]
+
   /**
    * Commit a draft back to the data store.
    */
@@ -72,8 +74,8 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
     } else {
       for {
         latest <- getLatestSrc(d).toSuccess(CantFindLatestSrc(d.id))
-        result <- if (latest != d.src && !force) {
-          Failure(DraftIsOutOfDate(d, latest))
+        result <- if (latest != d.parent && !force) {
+          Failure(draftIsOutOfDate(d, latest))
         } else {
           copyDraftToSrc(d)
         }

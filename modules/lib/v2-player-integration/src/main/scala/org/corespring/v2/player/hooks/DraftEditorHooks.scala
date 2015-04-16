@@ -58,7 +58,7 @@ trait DraftEditorHooks
 
     for {
       d <- loadDraft(id)
-      item <- Success(d.src.data)
+      item <- Success(d.parent.data)
     } yield transform(item)
   }
 
@@ -112,7 +112,7 @@ trait DraftEditorHooks
       val newFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
       import org.corespring.platform.core.models.mongoContext.context
 
-      draft.src.data.data.map { d =>
+      draft.parent.data.data.map { d =>
         val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
         backend.collection.update(
           MongoDBObject("_id._id" -> draft.id),
