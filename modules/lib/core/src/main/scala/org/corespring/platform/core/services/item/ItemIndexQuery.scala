@@ -131,11 +131,15 @@ object ItemIndexQuery {
         "size" -> Some(JsNumber(count)),
         "query" -> Some(Json.obj(
           "filtered" -> partialObj(
-            "query" -> query.text.map(text => Json.obj(
-              "simple_query_string" -> Json.obj(
-                "query" -> text
-              )
-            )),
+            "query" -> (query.text match {
+              case Some("") => None
+              case Some(text) => Some(Json.obj(
+                "simple_query_string" -> Json.obj(
+                  "query" -> text
+                )
+              ))
+              case _ => None
+            }),
             "filter" -> Some(Json.obj(
               "bool" -> Json.obj("must" -> {
                 // need an explicit val, because Scala can't infer this type
