@@ -9,10 +9,10 @@
             <span class="version-label"><b>Revision:</b>{{version}}</span>
             <div class="pull-right edit-draft-buttons">
                 <button class="btn btn-primary" ng-click="saveBackToItem()">Save</button>
-                <button class="btn btn-success" ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
-                <button class="btn btn-primary" ng-show="!item.published" ng-click="publish()">Publish</button>
-                <button class="btn btn-primary" ng-show="!devEditorVisible" ng-click="showDevEditor()">Dev Editor</button>
-                <button class="btn btn-primary" ng-show="devEditorVisible" ng-click="showEditor()">Editor</button>
+                <button class="btn btn-default" ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+                <button class="btn btn-success" ng-show="!item.published" ng-click="publish()">Publish</button>
+                <button class="btn btn-info" ng-show="!devEditorVisible" ng-click="showDevEditor()">Dev Editor</button>
+                <button class="btn btn-info" ng-show="devEditorVisible" ng-click="showEditor()">Editor</button>
             </div>
         </div>
     </div>

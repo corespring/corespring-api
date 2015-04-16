@@ -1,5 +1,5 @@
 angular.module('tagger.directives')
-  .directive('itemEditButton', [function () {
+  .directive('itemEditButtonOnly', [function () {
 
     function link($scope, $element, $attrs, ngModel){
       $scope.status = 'draft';
@@ -10,7 +10,6 @@ angular.module('tagger.directives')
       });
 
       function updateDraftStatus(){
-
         if(!$scope.item.readOnly){
           $scope.draftStatus = 'canMakeDraft';
         }
@@ -24,6 +23,7 @@ angular.module('tagger.directives')
             $scope.draftStatus = 'draftExists';
           }
         }
+
       }
       
       function isReadOnly(){
@@ -72,24 +72,22 @@ angular.module('tagger.directives')
         orgDrafts: '=',
         org: '=',
         item: '=',
-        edit: '&',
-        publish: '&',
-        cloneItem: '&'
+        edit: '&'
       }, 
       template: [
-      '<div>',
-      '  <div>Format: {{item.format.apiVersion}}</div>',
-      '  <div class="draft-buttons" ng-switch on="draftStatus">',
+      '<span>',
+      '  <div class="pull-left" ng-switch on="draftStatus">',
       '    <div ng-switch-when="draftExists">',
       '      <i class="icon icon-lock"></i>',
       '      <span>{{draft.user}} is editing</span>',
       '    </div>',
-      '    <div ng-switch-default>',
-      '      <button ng-disabled="item.readOnly" ng-click="edit(item)" class="btn btn-info btn-sm">edit</button>',
-      '      <button ng-click="cloneItem(item)" ng-disabled="item.readOnly" ng-show"canClone" class="btn btn-sm"><i class="fa fa-plus-circle"></i>&nbsp;clone</button>',
+      '  <div class="pull-left" ng-switch on="draftStatus">',
+      '    <div ng-switch-when="canMakeDraft">',
+      '      <button ng-click="edit(item)" class="btn btn-info btn-sm">edit</button>',
       '    </div>',
       '  </div>',
-      '  <button ng-click="publish(item)" ng-show="canGoLive" class="btn btn-success btn-sm" style="margin-top:2px;">publish</button>',
-      '</div>'].join('')
+      '  </div>',
+      '  <div style="clear:both;display:block;font-size: 9px;color:#ccc;">api version: v{{item.format.apiVersion}}</div>',
+      '</span>'].join('')
     };
   }]);

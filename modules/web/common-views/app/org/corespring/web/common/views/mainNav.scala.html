@@ -2,21 +2,19 @@
 <div class="navbar navbar-fixed-top" ng-controller="MainNavController">
     <div class="navbar-inner" style="padding-bottom: 0px; padding-top:0px;">
         <div class="container-fluid">
-            <a class="brand" href="@root">
-                <img src="/assets/images/cs-white-logo-11px.png"
+            <a class="pull-left" href="@root">
+                <img src="/assets/images/logo2015-small.png"
                                             alt="Corespring"/></a>
 
 
             @if( username != "" && username != null){
 
-                <div style="margin-left: 200px; float: left;">
+                <div style="margin-left: 10px; float: left;">
 
-                <span class="nav" style="color:#fff;">
-                    <a class="btn" ng-click="createItem()">Create Item</a>
+                <span class="nav">
+                    <a class="btn btn-large btn-info" ng-click="createItem()">Create Item</a>
                 </span>
-                <span class="nav" style="padding-left: 10px; padding-top: 10px;">
-                    <a style="color: white; text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
-                </span>
+
                 <ul 
                   id="resultPager"
                   class="nav"
@@ -27,7 +25,7 @@
                   item-count="resultCount"
                   current-item="itemData"
                   >
-                    <li style="padding-left: 10px; padding-top: 10px;">
+                    <li style="padding-top: 11px;">
                         <div class="pager">
                             <div ng-show="pagerText" class="muted pager-text">{{pagerText}} items</div>
                             <div class="progress progress-success progress-striped
@@ -43,8 +41,8 @@
                 </ul>
             </div>
 
-                <span style="float:right; padding-left: 10px; padding-top: 10px;">hi, @username&nbsp;
-                    <a class="logout-icon" title="logout" href="/logout"><i class="icon-share icon-white"></i></a>
+                <span style="float:right; line-height: 38px;">hi, @username&nbsp;
+                    <a class="logout-icon" title="logout" href="/logout"><i class="fa fa-sign-out"></i></a>
                 </span>
             }
 

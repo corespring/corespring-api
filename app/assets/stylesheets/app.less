@@ -47,7 +47,6 @@
     }
     .pager-text {
         padding-right: 5px;
-        color: #ffffff;
     }
     .pager-progress-bar {
         width: 50px;
@@ -486,9 +485,7 @@
     left: 0px;
     background-color: @cs-subnav-color;
     border-bottom: solid 1px darken(@cs-subnav-color, 15%);
-    @top: darken(@cs-subnav-color, 5%);
-    @bottom: darken(@cs-subnav-color, 5% + @cs-bar-gradient-nudge);
-    .mixin-bg-gradient(@bottom, @top);
+
 
     border-bottom: solid 1px darken(@cs-subnav-color,20%);
     height: 40px;
@@ -631,12 +628,9 @@ ul.dropdown-menu {
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
-    border-bottom: solid 1px darken(@cs-navbar-color, 60%);
-    background: transparent;
+    background: #f8f8f8;
     box-shadow: none;
     min-height: 0;
-    background: @cs-dark-grey url(/assets/images/title-wrap-bg-tile-bw.png) repeat;
-    border-bottom: solid 1px @cs-dark-grey;
     .mixin-simple-box-shadow( #000000, 3px, 30%);
 }
 
@@ -656,7 +650,7 @@ input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus,
 select:focus {
-        outline: auto 5px @cs-focus-color;
+        // outline: auto 5px @cs-focus-color;
 }
 
 
@@ -673,23 +667,6 @@ select:focus {
     background-repeat: repeat-x;
     border-color: darken(@color, 5) darken(@color, 10%) darken(@color, 10%);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-}
-
-.btn-success {
-    .mixin-btn-color(@cs-btn-success-color);
-}
-
-.btn-success:hover,
-.btn-success:active,
-.btn-success.active,
-.btn-success.disabled,
-.btn-success[disabled] {
-    background-color: darken(@cs-btn-success-color, 10%);
-}
-
-.btn-success:active,
-.btn-success.active {
-    background-color: @cs-btn-success-color;
 }
 
 
@@ -1090,6 +1067,7 @@ font-style: italic;
   position: relative;
   width: 100%;
   z-index: 0;
+  padding: 20px 20px 5px 0;
 }
 
 .window-up {
@@ -1159,7 +1137,6 @@ font-style: italic;
   position: absolute;
   right: 10px;
   top: 8px;
-  background: url('/assets/images/close.png') no-repeat center center;
   width: 24px;
   height: 24px;
   cursor: hand; cursor: pointer;
@@ -1175,7 +1152,6 @@ font-style: italic;
       position: absolute;
       margin-right: auto;
       top: 8px;
-      background: url('/assets/images/close.png') no-repeat center center;
       width: 24px;
       height: 24px;
       cursor: hand; cursor: pointer;
@@ -1205,4 +1181,29 @@ font-style: italic;
     font-size: 11px;
     font-style: italic;
   }
+}
+
+.item-status{
+    margin-right: 5px;
+    .label-info{
+        color:#3a87ad;
+        border: none;
+        background:transparent;
+    }
+    .label{
+        text-shadow: none;
+    }
+}
+
+.btn-sm{
+  padding: 2px 5px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.dropdown-menu-actions{
+    min-width: 100px !important;
+    .btn-sm{
+        width: 100%;
+    }
 }
