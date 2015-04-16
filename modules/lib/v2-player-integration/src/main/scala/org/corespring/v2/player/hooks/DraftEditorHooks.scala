@@ -112,7 +112,7 @@ trait DraftEditorHooks extends ContainerEditorHooks with LoadOrgAndOptions with 
       }
     }
 
-    playS3.s3ObjectAndData[ItemDraft](bucket, S3Paths.draftFile(new ObjectId(id), path))(loadDraftPredicate).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](bucket, _ => S3Paths.draftFile(new ObjectId(id), path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         addFileToData(draft, s3Object.getKey)
