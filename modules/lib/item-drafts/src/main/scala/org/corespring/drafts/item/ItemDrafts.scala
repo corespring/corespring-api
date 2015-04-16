@@ -140,8 +140,8 @@ trait ItemDrafts
 
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
     for {
-      vid <- itemService.save(noVersion(d.parent.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
-      commit <- Success(ItemCommit(d.id, d.user, d.parent.data.id))
+      vid <- itemService.save(noVersion(d.change.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
+      commit <- Success(ItemCommit(d.id, d.user, d.change.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
     } yield commit

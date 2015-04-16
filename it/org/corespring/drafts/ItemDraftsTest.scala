@@ -151,10 +151,20 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
         drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
         drafts.load(orgAndUser)(draft.id).toOption.get.hasConflict must_== true
-        //drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
       }
 
-      "allow a forced commit of a conflicted item" in pending
+      "allow a forced commit of a conflicted item" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("!!"))))
+        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        drafts.commit(orgAndUser)(update) must_== Failure(DraftIsOutOfDate(update.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+        drafts.commit(orgAndUser)(update, true) match {
+          case Success(commit) => success
+          case _ => failure("should have been successful")
+        }
+        update.change.data.playerDefinition.map(_.xhtml) must_== Some("!!")
+        ItemServiceWired.findOneById(itemId).get.playerDefinition.map(_.xhtml) must_== Some("!!")
+      }
     }
 
     "show what's changed" should {
