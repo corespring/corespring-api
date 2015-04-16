@@ -22,10 +22,12 @@ class ItemDraftsTest extends Specification with Mockito {
   val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
   val item = Item(id = itemId)
 
-  private def mockWriteResult(ok: Boolean = true): WriteResult = {
+  private def mockWriteResult(ok: Boolean = true, err: String = "mock mongo error"): WriteResult = {
     val m = mock[WriteResult]
     m.getLastError.returns {
-      mock[CommandResult].ok returns ok
+      val cr = mock[CommandResult]
+      cr.ok returns ok
+      cr.getErrorMessage returns err
     }
     m
   }
@@ -93,7 +95,7 @@ class ItemDraftsTest extends Specification with Mockito {
   def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(i, u)
   val gwensDraft = mkDraft(gwen)
   val oid = DraftId(item.id, ed)
-  def TestError = GeneralError("test error")
+  def TestError(name: String = "test error") = GeneralError(name)
 
   "ItemDrafts" should {
 
@@ -105,7 +107,7 @@ class ItemDraftsTest extends Specification with Mockito {
         mockDraftService.remove(any[DraftId]) returns removeSuccessful
         mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
         mockAssets.deleteDraft(any[DraftId]) returns {
-          if (assetsSuccessful) Success(Unit) else Failure(TestError)
+          if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
         }
       }
 
@@ -118,7 +120,7 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "fail if assets.deleteDraft failed" in new __(true, true, false) {
-        remove(ed)(oid) must_== Failure(TestError)
+        remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
       }
       "succeed" in new __(true, true, true) {
         remove(ed)(oid) must_== Success(oid)
@@ -147,7 +149,7 @@ class ItemDraftsTest extends Specification with Mockito {
         }
 
         mockAssets.deleteDrafts(any[DraftId]) returns {
-          Seq(if (removeDrafts) Success(Unit) else Failure(TestError))
+          Seq(if (removeDrafts) Success(Unit) else Failure(TestError("delete-drafts")))
         }
       }
 
@@ -159,37 +161,25 @@ class ItemDraftsTest extends Specification with Mockito {
         publish(ed)(oid) must_== Failure(CantFindLatestSrc(oid))
       }
 
-      "fail if loading latest src doesnt match draft" in new __(
-        true,
-        Some(item.cloneItem),
-        true,
-        false) {
-        publish(ed)(oid) must_== Failure(DraftIsOutOfDate(draft, ItemSrc(latestSrc.get)))
-      }
+      "fail if loading latest src doesnt match draft" in
+        new __(true, Some(item.cloneItem), true, false) {
+          publish(ed)(oid) must_== Failure(DraftIsOutOfDate(draft, ItemSrc(latestSrc.get)))
+        }
 
-      "fail if itemService.publish failed" in new __(
-        true,
-        Some(item),
-        false,
-        false) {
-        publish(ed)(oid) must_== Failure(PublishItemError(item.id))
-      }
+      "fail if itemService.publish failed" in
+        new __(true, Some(item), false, false) {
+          publish(ed)(oid) must_== Failure(PublishItemError(item.id))
+        }
 
-      "fail if removeNonConflictingDrafts failed" in new __(
-        true,
-        Some(item),
-        true,
-        false) {
-        publish(ed)(oid) must_== Failure(RemoveDraftFailed(List(TestError)))
-      }
+      "fail if removeNonConflictingDrafts failed" in
+        new __(true, Some(item), true, false) {
+          publish(ed)(oid) must_== Failure(RemoveDraftFailed(List(TestError("delete-drafts"))))
+        }
 
-      "succeed" in new __(
-        true,
-        Some(item),
-        true,
-        true) {
-        publish(ed)(oid) must_== Success(item.id)
-      }
+      "succeed" in
+        new __(true, Some(item), true, true) {
+          publish(ed)(oid) must_== Success(item.id)
+        }
     }
 
     "load" should {
@@ -222,9 +212,9 @@ class ItemDraftsTest extends Specification with Mockito {
     "cloneDraft" should {
 
       class __(
-        loadResult: Validation[DraftError, ItemDraft],
-        createResult: Validation[DraftError, ItemDraft],
-        saveSuccess: Boolean) extends Scope with MockItemDrafts {
+        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")),
+        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
+        saveSuccess: Boolean = false) extends Scope with MockItemDrafts {
 
         override def load(user: OrgAndUser)(id: DraftId) = loadResult
         override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime]) = createResult
@@ -235,58 +225,119 @@ class ItemDraftsTest extends Specification with Mockito {
         }
       }
 
-      "fail if load fails" in new __(
-        Failure(TestError),
-        Failure(TestError),
-        false) {
-        cloneDraft(ed)(oid) must_== Failure(TestError)
+      "fail if load fails" in new __() {
+        cloneDraft(ed)(oid) must_== Failure(TestError("load"))
       }
 
-      "fail if itemService.save" in new __(
-        Success(mkDraft(ed, item)),
-        Failure(TestError),
-        false) {
+      "fail if itemService.save" in new __(Success(mkDraft(ed, item))) {
         cloneDraft(ed)(oid) must_== Failure(SaveDraftFailed("Err"))
       }
 
-      "fail if create fails" in new __(
-        Success(mkDraft(ed, item)),
-        Failure(TestError),
-        true) {
-        cloneDraft(ed)(oid) must_== Failure(TestError)
+      "fail if create fails" in new __(Success(mkDraft(ed, item)), saveSuccess = true) {
+        cloneDraft(ed)(oid) must_== Failure(TestError("create"))
       }
 
-      "succeed" in new __(
-        Success(mkDraft(ed, item)),
-        Success(mkDraft(ed, item)),
-        true) {
+      "succeed" in new __(Success(mkDraft(ed, item)), Success(mkDraft(ed, item)), true) {
         cloneDraft(ed)(oid) must_== Success(DraftCloneResult(itemId, oid))
       }
     }
 
-    /*
     "create" should {
-      "fail if userCanCreateDraft fails" in {}.pending
-      "fail if itemService.getOrCreateUnpublishedVersion fails" in {}.pending
-      "fail if mkDraft fails" in {}.pending
-      "fail if save fails" in {}.pending
-      "succeed" in {}.pending
+      class __(
+        canCreate: Boolean,
+        val getUnpublishedVersion: Option[Item] = None,
+        copyResult: Validation[DraftError, DraftId] = Failure(TestError("copyAssets")),
+        saveResult: Validation[DraftError, DraftId] = Failure(TestError("save"))) extends Scope with MockItemDrafts {
+        override def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = canCreate
+        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+        mockAssets.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) returns copyResult
+        override def save(u: OrgAndUser)(d: ItemDraft) = saveResult
+      }
+
+      "fail if userCanCreateDraft fails" in new __(false) {
+        create(itemId, ed, None) must_== Failure(UserCantCreate(ed, itemId))
+      }
+
+      "fail if itemService.getOrCreateUnpublishedVersion fails" in new __(true) {
+        create(itemId, ed, None) must_== Failure(GetUnpublishedItemError(itemId))
+      }
+
+      "fail if assets.copyItemToDraft fails" in new __(true, Some(item)) {
+        create(itemId, ed, None) must_== Failure(TestError("copyAssets"))
+      }
+
+      "fail if save fails" in new __(true, Some(item), Success(oid)) {
+        create(itemId, ed, None) must_== Failure(TestError("save"))
+      }
+
+      "succeed" in new __(true, Some(item), Success(oid), Success(oid)) {
+        create(itemId, ed, None) match {
+          case Success(d) => {
+            d.src.data must_== getUnpublishedVersion.get
+          }
+          case _ => failure("should have been successful")
+        }
+      }
     }
 
     "loadOrCreate" should {
-      "create if not found" in{}.pending
-      "update if not conflicting" in{}.pending
+
+      class __(
+        load: Option[ItemDraft] = None,
+        val getUnpublishedVersion: Option[Item] = None,
+        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
+        extends Scope
+        with MockItemDrafts {
+        mockDraftService.load(any[DraftId]) returns load
+        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+        override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime] = None) = createResult
+      }
+
+      "fail if load fails and create fails" in new __() {
+        loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
+      }
+
+      "throw an exception if it can't load unpublished item" in new __(Some(mkDraft(ed, item))) {
+        loadOrCreate(ed)(oid) must throwA[RuntimeException]
+      }
+
+      "not update the item if is has a conflict" in new __(
+        Some(mkDraft(ed, item).copy(hasConflict = true)),
+        Some(item.cloneItem)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.src.data must_== item
+          case Failure(e) => failure("should have been successful")
+        }
+      }
+
+      "update the item if is has a conflict" in new __(
+        Some(mkDraft(ed, item).copy(hasConflict = false)),
+        Some(item.cloneItem)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.src.data must_== getUnpublishedVersion.get
+          case Failure(e) => failure("should have been successful")
+        }
+      }
     }
 
-    "save" should{
-      "fail if user doesn't own" in{}.pending
-      "fail if save fails" in{}.pending
-      "fail if saveCommit fails" in{}.pending
-      "fail if assets.copyDraftToItem fails" in{}.pending
-      "succeed" in {}.pending
-    }
-    */
+    "save" should {
 
+      class __(owns: Boolean = false, saveDraft: Boolean = false) extends Scope with MockItemDrafts {
+        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
+        mockDraftService.save(any[ItemDraft]) returns mockWriteResult(saveDraft)
+      }
+
+      "fail if user doesn't own" in new __() {
+        save(ed)(mkDraft(gwen, item)) must_== Failure(UserCantSave(ed, gwen))
+      }
+
+      "fail if save fails" in new __(true) {
+        save(ed)(mkDraft(ed, item)) must_== Failure(SaveDataFailed(mockWriteResult(false).getLastError.getErrorMessage))
+      }
+
+      "succeed" in new __(true, true) {
+        save(ed)(mkDraft(ed, item)) must_== Success(oid)
+      }
+    }
   }
-
 }
