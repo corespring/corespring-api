@@ -230,14 +230,12 @@
                 <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="span3 form-control" id="appendedInputButtons" type="text"><span class="add-on"><i class="fa fa-search"></i></span>
                </div>
             </td>
-            <td>
-                <span class="nav" style="padding-left: 10px; padding-top: 10px;">
-                  <a style="text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
-                </span>
-            </td>
         </tr>
         </tbody>
         </table>
+        <div style="position: absolute; top: 15px; right: 20px;">
+          <a style="text-decoration: underline;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Manage Collections</a>
+        </div>
     </div>
 
 <div class="row" style="padding-top: 90px">
@@ -259,7 +257,7 @@
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td>
-                  <a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
+                  <a class="pull-left btn btn-warning btn-sm" ng-click="launchCatalogView()" style="margin-right: 5px;">Preview</a>
 
                   <item-edit-button-only
                     item="item"
