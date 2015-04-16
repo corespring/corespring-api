@@ -9,7 +9,7 @@ import org.joda.time.{ DateTimeZone, DateTime }
 object ItemDraft {
   def apply(item: Item, user: OrgAndUser): ItemDraft = {
     ItemDraft(
-      DraftId(item.id, user),
+      DraftId.fromIdAndUser(item.id, user),
       user,
       ItemSrc(item),
       ItemSrc(item),
@@ -18,14 +18,14 @@ object ItemDraft {
 }
 
 object DraftId {
-  def apply(id: VersionedId[ObjectId], ou: OrgAndUser): DraftId = {
+  def fromIdAndUser(id: VersionedId[ObjectId], ou: OrgAndUser): DraftId = {
     DraftId(id.id, ou.user.map { _.userName }.getOrElse("unknown_user"), ou.org.id)
   }
 }
 
 /** A Draft is unique to the itemId (base id) and org and user) */
 case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
-  override def toString = s"$itemId~$name"
+  def toIdString = s"$itemId~$name"
 }
 
 case class ItemDraft(

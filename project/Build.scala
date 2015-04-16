@@ -180,7 +180,7 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
 
-  val draftsApi = builders.web("v2-api-drafts").dependsOn(itemDrafts)
+  val draftsApi = builders.web("v2-api-drafts").dependsOn(itemDrafts, testLib % "test->test")
 
   val v2Api = builders.web("v2-api")
     .settings(
