@@ -6,14 +6,14 @@ import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Validation, Success, Failure }
 
 class ItemDraftsTest extends Specification with Mockito {
 
@@ -22,10 +22,12 @@ class ItemDraftsTest extends Specification with Mockito {
   val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
   val item = Item(id = itemId)
 
-  private def mockWriteResult(ok: Boolean = true): WriteResult = {
+  private def mockWriteResult(ok: Boolean = true, err: String = "mock mongo error"): WriteResult = {
     val m = mock[WriteResult]
     m.getLastError.returns {
-      mock[CommandResult].ok returns ok
+      val cr = mock[CommandResult]
+      cr.ok returns ok
+      cr.getErrorMessage returns err
     }
     m
   }
@@ -34,8 +36,9 @@ class ItemDraftsTest extends Specification with Mockito {
 
   trait MockItemDrafts extends ItemDrafts {
 
+    trait IS extends ItemService with ItemPublishingService
     val mockItemService = {
-      val m = mock[ItemService]
+      val m = mock[IS]
       m.save(any[Item], any[Boolean]).answers {
         (obj, mock) =>
           val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
@@ -51,32 +54,32 @@ class ItemDraftsTest extends Specification with Mockito {
     val mockDraftService = {
       val m = mock[ItemDraftService]
       m.save(any[ItemDraft]) returns mockWriteResult()
+      m.owns(any[OrgAndUser], any[DraftId]) returns true
       m
     }
 
     val mockAssets = {
       val m = mock[ItemDraftAssets]
-      m.copyDraftToItem(any[ObjectId], any[VersionedId[ObjectId]]).answers { (obj, mock) =>
+      m.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]).answers { (obj, mock) =>
         val arr = obj.asInstanceOf[Array[Any]]
         val d = arr(1).asInstanceOf[VersionedId[ObjectId]]
         Success(d)
       }
-      m.copyItemToDraft(any[VersionedId[ObjectId]], any[ObjectId]).answers { (obj, mock) =>
+      m.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]).answers { (obj, mock) =>
         val arr = obj.asInstanceOf[Array[Any]]
-        val d = arr(1).asInstanceOf[ObjectId]
+        val d = arr(1).asInstanceOf[DraftId]
         Success(d)
       }
-      m.deleteDraft(any[ObjectId]) returns Success()
+      m.deleteDraft(any[DraftId]) returns Success()
       m
     }
     val mockCommitService = {
       val m = mock[CommitService]
       m.save(any[ItemCommit]) returns mockWriteResult()
-      m.findCommitsSince(any[VersionedId[ObjectId]], any[DateTime]) returns Seq.empty
       m
     }
 
-    val itemService: ItemService = mockItemService
+    val itemService = mockItemService
 
     /** Check that the user may create the draft for the given src id */
     override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
@@ -89,193 +92,251 @@ class ItemDraftsTest extends Specification with Mockito {
   }
 
   def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
-  def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(ObjectId.get, ItemSrc(i), u)
+  def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(i, u)
   val gwensDraft = mkDraft(gwen)
+  val oid = DraftId.fromIdAndUser(item.id, ed)
+  def TestError(name: String = "test error") = GeneralError(name)
 
   "ItemDrafts" should {
 
     sequential
 
-    "when creating" should {
+    "remove" should {
 
-      class scp(canCreate: Boolean) extends Scope with MockItemDrafts {
-        override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = canCreate
-      }
-
-      "return error if create" in new scp(false) {
-        create(VersionedId(ObjectId.get), ed) must_== None
-      }
-
-      "return the item draft" in new scp(true) {
-        create(VersionedId(ObjectId.get), ed) match {
-          case Some(ItemDraft(_, _, _, _, _, _)) => success
-          case _ => failure("should have got an item draft")
+      class __(removeSuccessful: Boolean, owns: Boolean, assetsSuccessful: Boolean) extends Scope with MockItemDrafts {
+        mockDraftService.remove(any[DraftId]) returns removeSuccessful
+        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
+        mockAssets.deleteDraft(any[DraftId]) returns {
+          if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
         }
       }
 
-      "always uses the latest version of an item as the src for a draft" in new scp(true) {
-        create(itemId, ed)
-        there was one(itemService).findOneById(itemId.copy(version = None))
+      "fail if user doesn't own draft" in new __(true, false, false) {
+        remove(gwen)(oid) must_== Failure(UserCantRemove(gwen, oid))
+      }
+
+      "fail if remove failed" in new __(false, true, false) {
+        remove(ed)(oid) must_== Failure(DeleteDraftFailed(oid))
+      }
+
+      "fail if assets.deleteDraft failed" in new __(true, true, false) {
+        remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
+      }
+      "succeed" in new __(true, true, true) {
+        remove(ed)(oid) must_== Success(oid)
       }
     }
 
-    "when saving" should {
+    "publish" should {
 
-      "not allow ed to save gwen's draft" in new Scope with MockItemDrafts {
-        save(ed)(gwensDraft) must_== Failure(UserCantSave(ed, gwen))
-      }
+      class __(
+        load: Boolean,
+        val latestSrc: Option[Item],
+        itemPublish: Boolean,
+        removeDrafts: Boolean) extends Scope with MockItemDrafts {
 
-      "allow gwen to save gwen's draft" in new Scope with MockItemDrafts {
-        save(gwen)(gwensDraft) must_== Success(gwensDraft.id)
-      }
-    }
+        val draft = mkDraft(ed, item)
 
-    "when removing a draft" should {
+        mockDraftService.load(any[DraftId]) returns {
+          if (load) Some(draft) else None
+        }
 
-      class s(n: Int) extends Scope with MockItemDrafts {
-        val oid = ObjectId.get
-        mockDraftService.removeDraftByIdAndUser(any[ObjectId], any[OrgAndUser]) returns {
-          mock[WriteResult].getN.returns(n)
+        mockItemService.findOneById(any[VersionedId[ObjectId]]) returns latestSrc
+        mockItemService.publish(any[VersionedId[ObjectId]]) returns itemPublish
+
+        mockDraftService.removeNonConflictingDraftsForOrg(any[ObjectId], any[ObjectId]) returns {
+          Seq.empty
+        }
+
+        mockAssets.deleteDrafts(any[DraftId]) returns {
+          Seq(if (removeDrafts) Success(Unit) else Failure(TestError("delete-drafts")))
         }
       }
 
-      "return delete failed" in new s(0) {
-        removeDraftByIdAndUser(oid, ed) must_== Failure(DeleteFailed)
+      "fail if load draft failed" in new __(false, None, false, false) {
+        publish(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
       }
 
-      "return draft id" in new s(1) {
-        removeDraftByIdAndUser(oid, ed) must_== Success(oid)
-        there was one(assets).deleteDraft(oid)
+      "fail if loading latest src fails" in new __(true, None, false, false) {
+        publish(ed)(oid) must_== Failure(CantFindLatestSrc(oid))
+      }
+
+      "fail if loading latest src doesnt match draft" in
+        new __(true, Some(item.cloneItem), true, false) {
+          publish(ed)(oid) must_== Failure(DraftIsOutOfDate(draft, ItemSrc(latestSrc.get)))
+        }
+
+      "fail if itemService.publish failed" in
+        new __(true, Some(item), false, false) {
+          publish(ed)(oid) must_== Failure(PublishItemError(item.id))
+        }
+
+      "fail if removeNonConflictingDrafts failed" in
+        new __(true, Some(item), true, false) {
+          publish(ed)(oid) must_== Failure(RemoveDraftFailed(List(TestError("delete-drafts"))))
+        }
+
+      "succeed" in
+        new __(true, Some(item), true, true) {
+          publish(ed)(oid) must_== Success(item.id)
+        }
+    }
+
+    "load" should {
+
+      class __(
+        owns: Boolean, load: Boolean) extends Scope with MockItemDrafts {
+
+        val draft = mkDraft(ed, item)
+        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns {
+          owns
+        }
+        mockDraftService.load(any[DraftId]) returns {
+          if (load) Some(draft) else None
+        }
+      }
+
+      "fail if user doesn't own draft" in new __(false, false) {
+        load(ed)(oid) must_== Failure(UserCantLoad(ed, oid))
+      }
+
+      "fail if service.load fails" in new __(true, false) {
+        load(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
+      }
+
+      "succeed" in new __(true, true) {
+        load(ed)(oid) must_== Success(draft)
       }
     }
 
-    "when committing" should {
+    "cloneDraft" should {
 
-      "return an error if there has been a commit *after* the draft was created/updated" in {
+      class __(
+        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")),
+        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
+        saveSuccess: Boolean = false) extends Scope with MockItemDrafts {
 
-        val drafts = new MockItemDrafts {}
-        drafts.mockCommitService.findCommitsSince(gwensDraft.src.data.id, gwensDraft.committed.getOrElse(gwensDraft.created)) returns {
-          Seq(
-            ItemCommit(ObjectId.get, gwensDraft.src.data.id, gwensDraft.src.data.id, gwen))
+        override def load(user: OrgAndUser)(id: DraftId) = loadResult
+        override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime]) = createResult
+
+        val draft = mkDraft(ed, item)
+        mockItemService.save(any[Item], any[Boolean]) returns {
+          if (saveSuccess) Right(itemId) else Left("Err")
         }
+      }
 
-        drafts.commit(gwen)(gwensDraft, false) match {
-          case Failure(CommitsAfterDraft(commits)) => {
-            commits.length === 1
+      "fail if load fails" in new __() {
+        cloneDraft(ed)(oid) must_== Failure(TestError("load"))
+      }
+
+      "fail if itemService.save" in new __(Success(mkDraft(ed, item))) {
+        cloneDraft(ed)(oid) must_== Failure(SaveDraftFailed("Err"))
+      }
+
+      "fail if create fails" in new __(Success(mkDraft(ed, item)), saveSuccess = true) {
+        cloneDraft(ed)(oid) must_== Failure(TestError("create"))
+      }
+
+      "succeed" in new __(Success(mkDraft(ed, item)), Success(mkDraft(ed, item)), true) {
+        cloneDraft(ed)(oid) must_== Success(DraftCloneResult(itemId, oid))
+      }
+    }
+
+    "create" should {
+      class __(
+        canCreate: Boolean,
+        val getUnpublishedVersion: Option[Item] = None,
+        copyResult: Validation[DraftError, DraftId] = Failure(TestError("copyAssets")),
+        saveResult: Validation[DraftError, DraftId] = Failure(TestError("save"))) extends Scope with MockItemDrafts {
+        override def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = canCreate
+        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+        mockAssets.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) returns copyResult
+        override def save(u: OrgAndUser)(d: ItemDraft) = saveResult
+      }
+
+      "fail if userCanCreateDraft fails" in new __(false) {
+        create(itemId, ed, None) must_== Failure(UserCantCreate(ed, itemId))
+      }
+
+      "fail if itemService.getOrCreateUnpublishedVersion fails" in new __(true) {
+        create(itemId, ed, None) must_== Failure(GetUnpublishedItemError(itemId))
+      }
+
+      "fail if assets.copyItemToDraft fails" in new __(true, Some(item)) {
+        create(itemId, ed, None) must_== Failure(TestError("copyAssets"))
+      }
+
+      "fail if save fails" in new __(true, Some(item), Success(oid)) {
+        create(itemId, ed, None) must_== Failure(TestError("save"))
+      }
+
+      "succeed" in new __(true, Some(item), Success(oid), Success(oid)) {
+        create(itemId, ed, None) match {
+          case Success(d) => {
+            d.parent.data must_== getUnpublishedVersion.get
           }
-          case _ => failure("should have returned CommitsAfterDraft")
-        }
-      }
-
-      "not delete the draft" in {
-        val drafts = new MockItemDrafts {}
-        drafts.commit(gwen)(gwensDraft, false)
-        there was no(drafts.draftService).remove(gwensDraft)
-      }
-
-      class publishedScope(isItemPublished: Boolean, isDraftPublished: Boolean) extends Scope {
-        val drafts = new MockItemDrafts {}
-        drafts.itemService.isPublished(any[VersionedId[ObjectId]]) returns isItemPublished
-        val item = mkItem(isDraftPublished)
-        val draft = mkDraft(gwen, item)
-        lazy val commit = drafts.commit(gwen)(draft).toOption.get
-      }
-
-      def runAssertions(
-        isItemPublished: Boolean,
-        isDraftPublished: Boolean,
-        expectedId: VersionedId[ObjectId] => VersionedId[ObjectId],
-        count: Int) = {
-
-        def callCount[T <: AnyRef]: (T) => T = count match {
-          case 0 => no[T]
-          case 1 => one[T]
-          case _ => throw new RuntimeException("Not supported")
-        }
-
-        s"when the item.published=$isItemPublished and draft.item.published=$isDraftPublished" should {
-
-          s"commit the correct id" in new publishedScope(isItemPublished, isDraftPublished) {
-            commit.srcId must_== item.id
-            commit.committedId must_== expectedId(item.id)
-
-            there was callCount[ItemDraftService](drafts.draftService).save {
-              gwensDraft.copy(
-                src = gwensDraft.src.copy(data = gwensDraft.src.data.copy(id = commit.committedId)),
-                committed = any[Option[DateTime]])
-            }
-          }
-        }
-      }
-
-      runAssertions(false, false, id => id, 1)
-      runAssertions(false, true, id => bump(id), 1)
-      runAssertions(true, false, id => bump(id), 1)
-      runAssertions(true, true, id => bump(id), 1)
-    }
-
-    "when 2 people are committing" should {
-
-      "not allow ed to save gwen's commit" in new Scope with MockItemDrafts {
-        commit(ed)(gwensDraft) must_== Failure(UserCantCommit(ed, gwen))
-      }
-
-      "allow gwen to save gwen's commit" in new Scope with MockItemDrafts {
-        commit(gwen)(gwensDraft) match {
-          case Success(ItemCommit(_, srcId, newId, user, _)) => {
-            srcId must_== item.id
-            user must_== gwen
-            there was one(assets).copyDraftToItem(gwensDraft.id, item.id)
-            there was one(itemService).save(any[Item], any[Boolean])
-          }
-          case _ => failure("should have got an item commit")
+          case _ => failure("should have been successful")
         }
       }
     }
 
-    "clone" should {
+    "loadOrCreate" should {
 
-      class c(draft: Option[ItemDraft] = None,
-        saveOk: Boolean = false,
-        itemServiceSaveOk: Boolean = false) extends Scope with MockItemDrafts {
-        val oid = ObjectId.get
-        mockDraftService.load(any[ObjectId]) returns draft
-        mockDraftService.save(any[ItemDraft]) returns mockWriteResult(saveOk)
-        mockItemService.save(any[Item], any[Boolean]).answers { (obj: Any, mock: Any) =>
-          val arr = obj.asInstanceOf[Array[Any]]
-          if (itemServiceSaveOk) {
-            Right(arr(0).asInstanceOf[Item].id)
-          } else {
-            Left("Mock Error")
-          }
+      class __(
+        load: Option[ItemDraft] = None,
+        val getUnpublishedVersion: Option[Item] = None,
+        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
+        extends Scope
+        with MockItemDrafts {
+        mockDraftService.load(any[DraftId]) returns load
+        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+        override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime] = None) = createResult
+      }
+
+      "fail if load fails and create fails" in new __() {
+        loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
+      }
+
+      "throw an exception if it can't load unpublished item" in new __(Some(mkDraft(ed, item))) {
+        loadOrCreate(ed)(oid) must throwA[RuntimeException]
+      }
+
+      "not update the item if is has a conflict" in new __(
+        Some(mkDraft(ed, item).copy(hasConflict = true)),
+        Some(item.cloneItem)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data must_== item
+          case Failure(e) => failure("should have been successful")
         }
       }
 
-      "return LoadDraftFailed" in new c {
-        clone(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
-      }
-
-      val mockDraft = ItemDraft(item, ed)
-
-      "return SaveDraftFailed" in new c(Some(mockDraft)) {
-        clone(ed)(oid) must_== Failure(SaveDraftFailed("Mock Error"))
-      }
-
-      "return CreateDraftFailed" in new c(draft = Some(mockDraft), itemServiceSaveOk = true) {
-        clone(ed)(oid) match {
-          case Failure(CreateDraftFailed(_)) => success
-          case _ => failure("should have had a failure")
+      "update the item if is has a conflict" in new __(
+        Some(mkDraft(ed, item).copy(hasConflict = false)),
+        Some(item.cloneItem)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data must_== getUnpublishedVersion.get
+          case Failure(e) => failure("should have been successful")
         }
       }
+    }
 
-      "return DraftCloneResult" in new c(
-        draft = Some(mockDraft),
-        saveOk = true,
-        itemServiceSaveOk = true) {
-        clone(ed)(oid) match {
-          case Success(DraftCloneResult(vid, id)) => success
-          case _ => failure("should have had a failure")
-        }
+    "save" should {
+
+      class __(owns: Boolean = false, saveDraft: Boolean = false) extends Scope with MockItemDrafts {
+        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
+        mockDraftService.save(any[ItemDraft]) returns mockWriteResult(saveDraft)
+      }
+
+      "fail if user doesn't own" in new __() {
+        save(ed)(mkDraft(gwen, item)) must_== Failure(UserCantSave(ed, gwen))
+      }
+
+      "fail if save fails" in new __(true) {
+        save(ed)(mkDraft(ed, item)) must_== Failure(SaveDataFailed(mockWriteResult(false).getLastError.getErrorMessage))
+      }
+
+      "succeed" in new __(true, true) {
+        save(ed)(mkDraft(ed, item)) must_== Success(oid)
       }
     }
   }

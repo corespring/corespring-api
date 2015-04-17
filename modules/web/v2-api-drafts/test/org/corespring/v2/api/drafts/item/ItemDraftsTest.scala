@@ -1,11 +1,12 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.{ DeleteDraftFailed, SaveCommitFailed, DraftError }
+import org.corespring.drafts.errors.{ GeneralError, DeleteDraftFailed, SaveCommitFailed, DraftError }
 import org.corespring.drafts.item
-import org.corespring.drafts.item.models.{ ItemCommit, ItemDraft, SimpleOrg, OrgAndUser }
+import org.corespring.drafts.item.models._
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.PlaySingleton
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -17,75 +18,79 @@ import scalaz.{ Success, Failure, Validation }
 
 class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
 
-  trait TestController extends ItemDrafts {
-    override def drafts: item.ItemDrafts = ???
+  PlaySingleton.start()
 
-    override def identifyUser(rh: RequestHeader): Option[OrgAndUser] = ???
+  trait TestController extends ItemDrafts {
+
+    val mockDrafts = mock[item.ItemDrafts]
+
+    override def drafts: item.ItemDrafts = mockDrafts
+
+    override def identifyUser(rh: RequestHeader): Option[OrgAndUser] = None
   }
 
-  val user = OrgAndUser(SimpleOrg(ObjectId.get, "test-org"), None)
+  def TestError(msg: String = "item-drafts-test error") = GeneralError(msg)
+
+  val user = OrgAndUser(
+    SimpleOrg(ObjectId.get, "test-org"),
+    Some(SimpleUser(ObjectId.get, "ed", "provider", "ed eustace", ObjectId.get)))
 
   "ItemDrafts" should {
 
     val req = FakeRequest("", "")
 
     val itemId = VersionedId(ObjectId.get, Some(0))
-    val draftId = ObjectId.get
+    val draftId = DraftId.fromIdAndUser(itemId, user)
     val mockItemDraft = ItemDraft(Item(id = VersionedId(ObjectId.get, Some(1))), user)
 
     "list" should {
 
-      class scp(user: Option[OrgAndUser] = None) extends Scope {
-        val controller = new TestController {
-          override def identifyUser(rh: RequestHeader) = user
-
-          override val drafts: item.ItemDrafts = {
-            mock[item.ItemDrafts].list(any[VersionedId[ObjectId]]) returns Seq.empty
-          }
-        }
+      class scp(user: Option[OrgAndUser] = None) extends Scope with TestController {
+        override def identifyUser(rh: RequestHeader) = user
+        mockDrafts.listByItemAndOrgId(any[VersionedId[ObjectId]], any[ObjectId]) returns Seq.empty
       }
 
       "fail if no user is found" in new scp {
-        val result = controller.commit(draftId)(req)
+        val result = listByItem("")(req)
         contentAsJson(result) must_== AuthenticationFailed.json
       }
 
       "return error if id is bad" in new scp(Some(user)) {
-        val result = controller.list("?")(req)
+        val result = listByItem("?")(req)
         status(result) === BAD_REQUEST
       }
 
       "return a list" in new scp(Some(user)) {
-        val result = controller.list(itemId.toString)(req)
+        val result = listByItem(itemId.toString)(req)
         status(result) === OK
       }
     }
 
     "create" should {
-      class scp(user: Option[OrgAndUser] = None, createResult: Option[ItemDraft] = None) extends Scope {
-        val controller = new TestController {
-          override def identifyUser(rh: RequestHeader) = user
-
-          override def drafts: item.ItemDrafts = mock[item.ItemDrafts].create(any[VersionedId[ObjectId]], any[OrgAndUser], any[Option[DateTime]]) returns createResult
-        }
+      class scp(user: Option[OrgAndUser] = None,
+        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
+        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load"))) extends Scope with TestController {
+        override def identifyUser(rh: RequestHeader) = user
+        mockDrafts.create(any[VersionedId[ObjectId]], any[OrgAndUser], any[Option[DateTime]]) returns createResult
+        mockDrafts.load(any[OrgAndUser])(any[DraftId]) returns loadResult
       }
 
       "return error if id is bad" in new scp(Some(user)) {
-        val result = controller.create("?")(req)
+        val result = create("?")(req)
         status(result) === BAD_REQUEST
       }
 
       "returns draft creation failed error" in new scp(Some(user)) {
-        val result = controller.create(itemId.toString)(req)
+        val result = create(itemId.toString)(req)
         val err = draftCreationFailed(itemId.toString)
         status(result) === err.statusCode
       }
 
       "returns ok" in new scp(Some(user),
-        Some(
+        Success(
           ItemDraft(
             Item(id = VersionedId(ObjectId.get, Some(1))), user))) {
-        val result = controller.create(itemId.toString)(req)
+        val result = create(itemId.toString)(req)
         status(result) === OK
       }
     }
@@ -93,94 +98,84 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
     "commit" should {
 
       class scp(user: Option[OrgAndUser] = None,
-        loadResult: Option[ItemDraft] = None,
-        commitResult: Validation[DraftError, ItemCommit] = Failure(SaveCommitFailed)) extends Scope {
-        val controller = new TestController {
-          override def identifyUser(rh: RequestHeader) = user
-
-          override def drafts: item.ItemDrafts = {
-            val m = mock[item.ItemDrafts]
-            m.load(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
-            m.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]).returns(commitResult)
-          }
-        }
+        loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")),
+        commitResult: Validation[DraftError, ItemCommit] = Failure(SaveCommitFailed))
+        extends Scope
+        with TestController {
+        override def identifyUser(rh: RequestHeader) = user
+        mockDrafts.load(any[OrgAndUser])(any[DraftId]) returns loadResult
+        mockDrafts.commit(any[OrgAndUser])(any[ItemDraft], any[Boolean]).returns(commitResult)
       }
 
       "fail if no user is found" in new scp {
-        val result = controller.commit(draftId)(req)
+        val result = commit(draftId.toIdString)(req)
         contentAsJson(result) must_== AuthenticationFailed.json
       }
 
       "fail if draft is not loaded" in new scp(Some(user)) {
-        val result = controller.commit(draftId)(req)
-        contentAsJson(result) must_== cantLoadDraft(draftId).json
+        val result = commit(draftId.toIdString)(req)
+        contentAsJson(result) must_== generalDraftApiError("load").json //cantLoadDraft(draftId.toIdString).json
       }
 
-      "fail if commit fails" in new scp(Some(user), Some(mockItemDraft)) {
-        val result = controller.commit(draftId)(req)
+      "fail if commit fails" in new scp(Some(user), Success(mockItemDraft)) {
+        val result = commit(draftId.toIdString)(req)
         contentAsJson(result) must_== generalDraftApiError(SaveCommitFailed.msg).json
       }
 
-      "work if commit is returned" in new scp(Some(user), Some(mockItemDraft), Success(ItemCommit(draftId, itemId, itemId, user, DateTime.now))) {
-        val result = controller.commit(draftId)(req)
+      "work if commit is returned" in new scp(Some(user),
+        Success(mockItemDraft),
+        Success(ItemCommit(draftId, user, itemId, DateTime.now))) {
+        val result = commit(draftId.toIdString)(req)
         status(result) must_== OK
       }
     }
 
     "get" should {
-      class scp(user: Option[OrgAndUser] = None, loadResult: Option[ItemDraft] = None) extends Scope {
-        val controller = new TestController {
-          override def identifyUser(rh: RequestHeader) = user
-
-          override def drafts: item.ItemDrafts = {
-            val m = mock[item.ItemDrafts]
-            m.load(any[OrgAndUser])(any[ObjectId]).returns(loadResult)
-          }
-        }
+      class scp(user: Option[OrgAndUser] = None, loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")))
+        extends Scope
+        with TestController {
+        override def identifyUser(rh: RequestHeader) = user
+        mockDrafts.loadOrCreate(any[OrgAndUser])(any[DraftId]).returns(loadResult)
       }
 
       "fail if no user is found" in new scp {
-        val result = controller.commit(draftId)(req)
+        val result = get(draftId.toIdString)(req)
         contentAsJson(result) must_== AuthenticationFailed.json
       }
 
       "fail if draft loading fails" in new scp(Some(user)) {
-        contentAsJson(controller.get(draftId)(req)) === cantLoadDraft(draftId).json
+        contentAsJson(get(draftId.toIdString)(req)) === generalDraftApiError("load").json
       }
 
-      s"return $OK" in new scp(Some(user), Some(mockItemDraft)) {
-        status(controller.get(draftId)(req)) === OK
+      s"return $OK" in new scp(Some(user), Success(mockItemDraft)) {
+        status(get(draftId.toIdString)(req)) === OK
       }
     }
 
     "save" should {
-      s"return $OK" in { true === false }.pendingUntilFixed
+      s"Do we allow an api save of a draft?" in pending
     }
 
     "delete" should {
 
       class scp(user: Option[OrgAndUser] = None,
-        deleteResult: Validation[DraftError, ObjectId] = Failure(DeleteDraftFailed(draftId))) extends Scope {
-        val controller = new TestController {
-          override def identifyUser(rh: RequestHeader) = user
-
-          override def drafts: item.ItemDrafts = {
-            mock[item.ItemDrafts]
-              .removeDraftByIdAndUser(any[ObjectId], any[OrgAndUser]).returns(deleteResult)
-          }
-        }
+        deleteResult: Validation[DraftError, DraftId] = Failure(DeleteDraftFailed(draftId)))
+        extends Scope
+        with TestController {
+        override def identifyUser(rh: RequestHeader) = user
+        mockDrafts.remove(any[OrgAndUser])(any[DraftId]).returns(deleteResult)
       }
 
       "fail if no user is found" in new scp {
-        contentAsJson(controller.delete(draftId)(req)) === AuthenticationFailed.json
+        contentAsJson(delete(draftId.toIdString)(req)) === AuthenticationFailed.json
       }
 
       "fail if delete fails" in new scp(Some(user)) {
-        contentAsJson(controller.delete(draftId)(req)) === generalDraftApiError(DeleteDraftFailed(draftId).msg).json
+        contentAsJson(delete(draftId.toIdString)(req)) === generalDraftApiError(DeleteDraftFailed(draftId).msg).json
       }
 
-      s"return $OK" in new scp(Some(user), Success(ObjectId.get)) {
-        status(controller.delete(draftId)(req)) === OK
+      s"return $OK" in new scp(Some(user), Success(draftId)) {
+        status(delete(draftId.toIdString)(req)) === OK
       }
     }
 

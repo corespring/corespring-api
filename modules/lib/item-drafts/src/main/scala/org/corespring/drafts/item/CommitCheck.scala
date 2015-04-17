@@ -8,7 +8,7 @@ import scalaz.{ Failure, Success, Validation }
 
 trait CommitCheck {
 
-  def commitService: CommitService
+  /*def commitService: CommitService
 
   /** Check whether this draft may be committed */
   def canCommit(d: ItemDraft): Validation[CommitError, Unit] = {
@@ -23,5 +23,6 @@ trait CommitCheck {
   def commitsAfterDraft(d: ItemDraft): Seq[ItemCommit] = {
     commitService.findCommitsSince(d.src.data.id, d.committed.getOrElse(d.created))
   }
+  */
 
 }

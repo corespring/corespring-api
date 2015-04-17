@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 
 trait OrgService {
-
   def defaultCollection(o: Organization): Option[ObjectId]
-  def org(id:ObjectId) : Option[Organization]
+  def defaultCollection(oid: ObjectId): Option[ObjectId]
+  def org(id: ObjectId): Option[Organization]
 }

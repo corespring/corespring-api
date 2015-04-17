@@ -5,8 +5,6 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ DBObject, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.ItemCommit
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.joda.time.DateTime
 
 trait CommitService {
 
@@ -30,19 +28,5 @@ trait CommitService {
 
   def save(c: ItemCommit): WriteResult = {
     collection.save(toDbo(c))
-  }
-
-  def findCommitsSince(id: VersionedId[ObjectId], date: DateTime): Seq[ItemCommit] = {
-
-    val query = MongoDBObject(
-      "date" -> MongoDBObject(
-        "$gt" -> date),
-      "srcId._id" -> id.id)
-
-    val stream = collection.find(query)
-    println(s"stream: $stream")
-    val out = stream.toSeq.map(toCommit)
-    println(s"out: $out")
-    out
   }
 }

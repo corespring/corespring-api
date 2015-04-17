@@ -16,7 +16,7 @@ trait ItemDraftHelper {
 
   def collection: MongoCollection = Play.current.plugin[SalatPlugin].map(_.db()("drafts.items")).get
 
-  def create(itemId: VersionedId[ObjectId], org: Organization): ObjectId = {
+  def create(itemId: VersionedId[ObjectId], org: Organization): DraftId = {
     ItemServiceWired.findOneById(itemId).map { item =>
       val draft = ItemDraft(item, OrgAndUser(SimpleOrg(org.id, org.name), None))
       val dbo = com.novus.salat.grater[ItemDraft].asDBObject(draft)

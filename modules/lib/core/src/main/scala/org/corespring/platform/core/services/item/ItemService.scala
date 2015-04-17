@@ -33,3 +33,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def isPublished(id: VersionedId[ObjectId]): Boolean
 }
+
+trait ItemPublishingService {
+
+  def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item]
+}
