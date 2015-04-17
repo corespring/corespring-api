@@ -111,7 +111,6 @@ com.corespring.model.ItemDataProcessor = function () {
      * @param resource
      */
     this.processIncomingData = function (item) {
-
         item.$defaults = this.$defaults;
 
         if (item.files == null) {
@@ -142,7 +141,8 @@ com.corespring.model.ItemDataProcessor = function () {
          * @type {Array}
          */
         item.$gradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.gradeLevel);
-        item.$itemTypeDataProvider = this.buildNgDataProvider(this.$defaults.v2ItemTypes, item.itemType);
+        item.$itemTypeDataProvider = this.buildNgDataProvider(
+          this.$defaults.v2ItemTypes ? this.$defaults.v2ItemTypes : this.$defaults.itemType, item.itemType);
         item.$priorGradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.priorGradeLevel);
         item.$reviewsPassedDataProvider = this.buildNgDataProvider(this.$defaults.reviewsPassed, item.reviewsPassed);
         item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, getKey);
