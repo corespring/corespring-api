@@ -109,17 +109,13 @@ trait ItemDrafts
   override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Validation[DraftError, ItemDraft] = {
     val draft: Option[ItemDraft] = draftService.load(id)
 
-    def updateIfNotConflicted(d: ItemDraft): ItemDraft = if (d.hasConflict) d else {
+    def updateIfNotConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = if (d.hasConflict) Success(d) else {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
-        val update = d.copy(parent = ItemSrc(i), change = ItemSrc(i))
-        draftService.save(update)
-        update
-      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.parent.id}"))
+        copySrcToDraft(i, d)
+      }.getOrElse(Failure(GeneralError("can't find unpublished version")))
     }
 
-    val updated: Option[ItemDraft] = draft.map(updateIfNotConflicted)
-
-    updated.map(d => Success(d)).getOrElse(create(VersionedId(id.itemId), requester))
+    draft.map(updateIfNotConflicted).getOrElse(create(VersionedId(id.itemId), requester))
   }
 
   private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
@@ -136,6 +132,14 @@ trait ItemDrafts
     } else {
       Failure(UserCantSave(requester, d.user))
     }
+  }
+
+  override protected def copySrcToDraft(src: Item, draft: ItemDraft): Validation[DraftError, ItemDraft] = {
+    val update = draft.copy(parent = ItemSrc(src), change = ItemSrc(src))
+    for {
+      _ <- draftService.save(update).failed(e => SaveDataFailed(e.getErrorMessage))
+      _ <- assets.copyItemToDraft(src.id, draft.id)
+    } yield update
   }
 
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {

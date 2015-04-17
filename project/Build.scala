@@ -336,6 +336,7 @@ object Build extends sbt.Build {
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
+      (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       libraryDependencies ++= Dependencies.all,
