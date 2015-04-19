@@ -104,7 +104,7 @@ angular.module('tagger.directives')
       }, 
       template: [
       '<div>',
-      '<a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu-item-{{item.id}}">actions <b class="caret"></b></a>',
+      '<a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#menu-item-{{item.id}}">actions <b class="caret"></b></a>',
       '<div class="dropdown" id="menu-item-{{item.id}}">',
         '<ul class="dropdown-menu dropdown-menu-actions">',
           '<li>',
