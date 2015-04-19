@@ -146,7 +146,6 @@ angular.module('corespring-utils')
         var allStandards = [];
       
         if(standards.length > 0) {
-          console.debug('the length of the standards is: '+standards.length);
           for ( i = 0; i < standards.length; i++){
               if (i > 8){
                 allStandards.push("+" + (standards.length - 8) + " more...");
