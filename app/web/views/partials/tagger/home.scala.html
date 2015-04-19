@@ -48,7 +48,7 @@
 
         <div class="footer">
              <input type="text" id="newcollection" ui-keypress="{13:'createCollection(newcolname)'}" placeholder="type collection name..." ng-model="newcolname">
-             <button class="btn btn-mini btn-success" ng-click="createCollection(newcolname)">add</button>
+             <button class="btn btn-primary" ng-click="createCollection(newcolname)">add</button>
         </div>
         <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
@@ -165,7 +165,7 @@
                           </div>
 
                       </div>
-                      <a ng-click="clear()">clear</a>
+                      <a class="btn btn-default btn-sm pull-right" ng-click="clear()">clear</a>
                   </div>
                 </span>
             </td>
@@ -243,13 +243,13 @@
         <table class="item-list table content-sort" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
-                <th width="150" sort-column-header field="preview"></th>
+                <th width="90" sort-column-header field="preview"></th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th sort-column-header field="description" width="300">Description</th>
                 <th width="100">Subject</th>
                 <th width="100" sort-column-header field="gradeLevel">Grade</th>
                 <th width="100" sort-column-header field="itemType">Item Type</th>
-                <th width="100">Standard(s)</th>
+                <th width="125">Standard(s)</th>
                 <th width="100" sort-column-header field="contributor">Source</th>
                 <th width="100" sort-column-header>Actions</th>
             </tr>
@@ -280,7 +280,13 @@
                 <td>{{showItemType(item)}}</td>
                 <td>
                     <a ui-jq="tooltip"
-                       ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+                       ui-options="{title: buildStandardTooltip(item.standards)}"
+                       class="standards-list"
+                       >
+                       <span ng-repeat="standard in buildStandardLabel(item.standards)">
+                        {{standard}}<span class="list-comma">,</span> 
+                       </span>
+                     </a>
                 </td>
                 <td>{{getAuthorAbbreviation(item.contributor)}}</td>
                 <td>
