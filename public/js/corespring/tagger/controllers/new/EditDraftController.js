@@ -45,12 +45,25 @@ function EditDraftController(
   $scope.draftId = $routeParams.draftId;
 
   $scope.saveBackToItem = function(){
-  	ItemDraftService.commit($scope.draftId, function success(){
+  	if($scope.draftIsConflicted){
+  		Modals.saveConflictedDraft(function(cancelled){
+  			if(!cancelled){
+      		commit(true);	
+  			}
+  		});
+  	} else {
+  		commit(false);	
+  	}
+  };
+
+  function commit(force) {
+  	ItemDraftService.commit($scope.draftId, force, function success(){
   		Logger.info('commit successful');
+  		$scope.draftIsConflicted = false;
   	}, function error(err){
   		Logger.warn(err);
   	});
-  };
+  }
 
   $scope.clone = function () {
     $scope.showProgressModal = true;
@@ -83,7 +96,7 @@ function EditDraftController(
 
   $scope.loadDraftItem = function(ignoreConflict) {
 
-  	ignoreConflict = ignoreConflict === true ? true : false;
+  	ignoreConflict = ignoreConflict === true;
 
     ItemDraftService.get({
     	id: $routeParams.draftId, 
@@ -97,6 +110,7 @@ function EditDraftController(
 	      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
 	      console.warn('ItemSessionCount doesn\'t apply for a user draft');
         $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
+     		$scope.draftIsConflicted = ignoreConflict; 
       },
       function onError(err, statusCode){
       	if(statusCode == 409){

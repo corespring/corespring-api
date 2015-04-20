@@ -62,10 +62,10 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
-  def commit(id: String) = draftsAction(id) { (user, draftId, _) =>
+  def commit(id: String, force: Option[Boolean] = None) = draftsAction(id) { (user, draftId, _) =>
     for {
       d <- drafts.load(user)(draftId).leftMap { e => generalDraftApiError(e.msg) }
-      commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
+      commit <- drafts.commit(user)(d, force.getOrElse(false)).leftMap { e => generalDraftApiError(e.msg) }
     } yield CommitJson(commit)
   }
 
@@ -88,11 +88,9 @@ trait ItemDrafts extends Controller with MakeDraftId {
    * as its only really useful in the context of the editor/dev editor
    * Check w/ ev on what to return here
    */
-  def get(id: String) = draftsAction(id) { (user, draftId, rh) =>
+  def get(id: String, ignoreConflicts: Option[Boolean] = None) = draftsAction(id) { (user, draftId, rh) =>
 
-    val ignoreConflict = rh.getQueryString("ignore-conflict").exists(_ == "true")
-
-    drafts.loadOrCreate(user)(draftId, ignoreConflict).bimap(
+    drafts.loadOrCreate(user)(draftId, ignoreConflicts.getOrElse(false)).bimap(
       e => e match {
         case ood : DraftIsOutOfDate[ObjectId, VersionedId[ObjectId], Item] => {
             draftIsOutOfDate(ood.d.asInstanceOf[ItemDraft],ood.src.data)

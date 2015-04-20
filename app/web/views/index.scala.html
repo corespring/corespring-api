@@ -119,6 +119,15 @@ userOrg: org.corespring.platform.core.models.Organization )
   <button ng-click="modals.publish.done()" class="btn btn-primary">Publish</button>
 </div>
 
+<div ui-modal ng-model="modals.saveConflictedDraft.show" style="padding: 20px">
+  <h2>Save</h2>
+  <br/>
+  <p>Are you sure? Saving this will overwrite existing changes to the item?</p>
+  <button class="btn" ng-click="modals.saveConflictedDraft.done(true)">Cancel</button>
+  <button ng-click="modals.saveConflictedDraft.done()" class="btn btn-primary">Save</button>
+</div>
+
+
 
 </body>
 </html>

@@ -13,6 +13,9 @@ angular.module('tagger.services')
     },
     'delete' : {
       show: false
+    },
+    saveConflictedDraft: {
+    	show: false
     }
   };
 
@@ -28,6 +31,10 @@ angular.module('tagger.services')
 
     this['delete'] = function(done){
       showModal('delete', done);
+    };
+
+    this.saveConflictedDraft = function(done){
+    	showModal('saveConflictedDraft', done);
     };
 
     function showModal(name, done){

@@ -119,7 +119,7 @@ angular.module('tagger.services')
         var url = '/api/v2/items/drafts/' + params.id;
 
        	if(params.ignoreConflict) {
-        	url += '?ignore-conflict=true';
+        	url += '?ignoreConflicts=true';
        	} 
 
         $http.get(url)
@@ -142,8 +142,16 @@ angular.module('tagger.services')
           .error(onError);
       };
 
-      this.commit = function(id, onSuccess, onError){
+      this.commit = function(id, force, onSuccess, onError){
+
+      	force = force === true;
+
       	var url = '/api/v2/items/drafts/' + id + '/commit';
+
+      	if(force){
+      		url += '?force=true';
+      	}
+
       	$http.put(url)
       	  .success(onSuccess)
       	  .error(onError);
