@@ -7,6 +7,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors.DraftIsOutOfDate
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models._
+import org.corespring.drafts.item.models.{ Conflict => ItemConflict }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
@@ -104,29 +105,25 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         draftService.collection.count(MongoDBObject()) must_== 1
       }
 
-      "load a user's existing draft with the latest update of item" in new orgAndUserAndItem {
+      "load a user's existing draft with their changes" in new orgAndUserAndItem {
         drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser))
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
-        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
-          case Success(d) => d.parent.data.playerDefinition must_== Some(PlayerDefinition("hello!"))
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser), true) match {
+          case Success(d) => d.parent.data.playerDefinition must_== None
           case _ => failure("should have been successful")
         }
       }
 
-      "load a user's existing draft with no update because it's conflicted" in new orgAndUserAndItem {
-        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
-          case Success(d) => {
-            val update = d.copy(hasConflict = true)
-            draftService.save(update)
-          }
-          case _ => failure("should have been succesful")
-        }
-
+      "return a draft is out of date error" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
 
+        val updatedItem = ItemServiceWired.findOneById(item.id).get
         drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
-          case Success(d) => d.parent.data.playerDefinition must_== None
-          case _ => failure("should have been successful")
+          case Success(d) => failure("should have failed")
+          case Failure(e) => {
+            e.msg must_== DraftIsOutOfDate(draft, ItemSrc(updatedItem)).msg
+          }
         }
       }
     }
@@ -167,8 +164,21 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       }
     }
 
-    "show what's changed" should {
-      "show what's changed" in pending
+    "conflict" should {
+      "return no conflict" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        drafts.conflict(orgAndUser)(draft.id) must_== Success(None)
+      }
+
+      "return a conflict" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val updatedItem = item.copy(playerDefinition = Some(PlayerDefinition("change")))
+        ItemServiceWired.save(updatedItem)
+        drafts.conflict(orgAndUser)(draft.id) match {
+          case Success(Some(c)) => success
+          case _ => failure("should have been successful")
+        }
+      }
     }
 
   }

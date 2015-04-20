@@ -117,6 +117,13 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
+  def conflict(id: String) = draftsAction(id) { (user, draftId) =>
+    drafts.conflict(user)(draftId)
+      .bimap(
+        e => generalDraftApiError(e.msg),
+        c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
+  }
+
   private def draftsAction(id: String)(fn: (OrgAndUser, DraftId) => Validation[DraftApiError, JsValue]) = Action.async { implicit request =>
     Future {
       for {

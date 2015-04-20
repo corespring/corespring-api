@@ -44,3 +44,5 @@ case class ItemDraft(
   override def mkChange(d: Item): ItemDraft = this.copy(change = change.copy(data = d), created = this.created, expires = this.expires)
 
 }
+
+case class Conflict(draft: ItemDraft, item: Item)

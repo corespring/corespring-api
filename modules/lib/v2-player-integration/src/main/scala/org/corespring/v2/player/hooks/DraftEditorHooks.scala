@@ -58,7 +58,7 @@ trait DraftEditorHooks
 
     for {
       d <- loadDraft(id)
-      item <- Success(d.parent.data)
+      item <- Success(d.change.data)
     } yield transform(item)
   }
 

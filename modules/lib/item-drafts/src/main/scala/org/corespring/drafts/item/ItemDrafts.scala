@@ -105,18 +105,40 @@ trait ItemDrafts
     } yield draft
   }
 
-  /** load a draft for the src <VID> for that user, if not found create it */
-  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Validation[DraftError, ItemDraft] = {
+  //get the conflict
+  def conflict(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, Option[Conflict]] = {
+    for {
+      d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toIdString))
+      i <- itemService.getOrCreateUnpublishedVersion(d.parent.id).toSuccess(CantFindLatestSrc(d.parent.id))
+    } yield {
+      if (d.parent.data == i) {
+        logger.debug(s"function=conflict, the parent matches the item - no conflicts found")
+        None
+      } else {
+        Some(Conflict(d, i))
+      }
+    }
+  }
+
+  /** load a draft for the src <VID> for that user if not conflicted, if not found create it */
+  override def loadOrCreate(requester: OrgAndUser)(id: DraftId, ignoreConflict: Boolean = false): Validation[DraftError, ItemDraft] = {
     val draft: Option[ItemDraft] = draftService.load(id)
 
-    def updateIfNotConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = if (d.hasConflict) Success(d) else {
+    def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
-        copySrcToDraft(i, d)
+        if (d.parent.data == i || ignoreConflict) {
+          logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, (draft.parent == item)=${d.parent == i}")
+          Success(d)
+        } else {
+          Failure(draftIsOutOfDate(d, ItemSrc(i)))
+        }
       }.getOrElse(Failure(GeneralError("can't find unpublished version")))
     }
 
-    draft.map(updateIfNotConflicted).getOrElse(create(VersionedId(id.itemId), requester))
+    draft.map(failIfConflicted).getOrElse(create(VersionedId(id.itemId), requester))
   }
+
+  def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
 
   private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
 

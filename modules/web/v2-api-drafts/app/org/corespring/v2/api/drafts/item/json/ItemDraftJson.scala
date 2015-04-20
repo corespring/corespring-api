@@ -1,6 +1,6 @@
 package org.corespring.v2.api.drafts.item.json
 
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.{ Conflict, ItemDraft }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.json.ItemView
@@ -36,6 +36,14 @@ object ItemDraftJson {
     val itemJson = Json.toJson[ContentView[Item]](ContentView(d.parent.data, None))
     val simpleJson = simple(d)
     simpleJson.asInstanceOf[JsObject] ++ Json.obj("src" -> Json.obj("data" -> itemJson))
+  }
+
+  def conflict(c: Conflict): JsValue = {
+    Json.obj(
+      "draftId" -> c.draft.id.toIdString,
+      "draftParent" -> Json.toJson(c.draft.parent.data),
+      "draftChange" -> Json.toJson(c.draft.change.data),
+      "item" -> Json.toJson(c.item))
   }
 
 }

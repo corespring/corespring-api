@@ -87,7 +87,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
   protected def copySrcToDraft(src: SRC, draft: UD): Validation[DraftError, UD]
 
   /** load a draft for the src <VID> for that user*/
-  def loadOrCreate(requester: USER)(id: ID): Validation[DraftError, UD]
+  def loadOrCreate(requester: USER)(id: ID, ignoreConflicts: Boolean = false): Validation[DraftError, UD]
 
   /** save a draft */
   def save(requester: USER)(d: UD): Validation[DraftError, ID]

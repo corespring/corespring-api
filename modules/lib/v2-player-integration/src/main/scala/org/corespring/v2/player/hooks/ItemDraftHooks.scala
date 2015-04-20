@@ -40,11 +40,12 @@ trait ItemDraftHooks
 
   private lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
 
+  //TODO: Why do we load the draft twice? Once in DraftEditorHooks and once here
   override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate _)
+      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, true))
       draft <- Success(draftAndIdentity._1)
-      json <- Success(transform(draft.parent.data))
+      json <- Success(transform(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
       Json.obj("item" -> json)
@@ -80,10 +81,10 @@ trait ItemDraftHooks
     }
   }
 
-  private def loadDraftAndIdentity(id: String, loadFn: OrgAndUser => DraftId => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
+  private def loadDraftAndIdentity(id: String, loadFn: (OrgAndUser, DraftId) => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
     identity <- getOrgAndUser(rh)
     draftId <- mkDraftId(identity, id).v2Error
-    draft <- loadFn(identity)(draftId).v2Error
+    draft <- loadFn(identity, draftId).v2Error
   } yield {
     (draft, identity)
   }
@@ -91,7 +92,7 @@ trait ItemDraftHooks
   private def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     logger.debug(s"update draftId=$draftId")
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load _)
+      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
       draft <- Success(draftAndIdentity._1)
       item <- Success(draft.parent.data)
       updatedItem <- Success(updateFn(item, json))
