@@ -156,7 +156,6 @@ angular.module('corespring-utils')
               }
               
             }
-            console.debug(allStandards);
             return allStandards;
           }
       },
