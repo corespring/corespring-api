@@ -258,17 +258,10 @@
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td>
                   <a class="pull-left btn btn-warning btn-sm" ng-click="launchCatalogView()" style="margin-right: 5px;">Preview</a>
-
-                  <item-edit-button-only
-                    item="item"
-                    user-name="userName"
-                    org="org"
-                    org-drafts="orgDrafts"
-                    edit="edit(item)" ></item-edit-button-only>
-
+                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-info btn-sm">edit</button>
                 </td>
                 <td>
-                    <item-status class="pull-left" item="item" get-number-of-sessions="getNumberOfSessions(item.id)"></item-status>
+                    <span ng-show="item.published">LIVE</span>
                     <a ui-jq="tooltip"
                        ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
                 </td>
@@ -284,7 +277,7 @@
                        class="standards-list"
                        >
                        <span ng-repeat="standard in buildStandardLabel(item.standards)">
-                        {{standard}}<span class="list-comma">,</span> 
+                        {{standard}}<span class="list-comma">,</span>
                        </span>
                      </a>
                 </td>
@@ -292,14 +285,10 @@
                 <td>
                   <item-action-button
                     item="item"
-                    user-name="userName"
-                    org="org"
-                    org-drafts="orgDrafts"
                     edit="edit(item)"
                     publish="publish(item)"
-                    clone-item="cloneItem(item)" 
-                    delete-item="deleteItem(item)"
-                    delete-draft="$parent.deleteDraft"></item-action-button>
+                    clone-item="cloneItem(item)"
+                    delete-item="deleteItem(item)"></item-action-button>
                 </td>
             </tr>
             </tbody>
