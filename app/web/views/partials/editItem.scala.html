@@ -34,53 +34,69 @@
 </div>
 
 <div class="sub-nav sub-nav-lower">
-    <div class="container" style="width: 940px;">
-        <a ng-click="backToCollections()" class="back-to-collections" >
-          <i class="icon-white icon-backward"></i> back to search results 
-        </a>
-        <div class="row">
-            <ul class="span6 nav nav-pills">
-                <li ng-class="{true:'active', false:''}[currentPanel=='content']">
-                    <a
-                            href="javascript:void(1)"
-                            ng-click="changePanel('content')">Interaction</a>
-                </li>
-                <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
-                    <a
-                            href="javascript:void(1)"
-                            ng-click="changePanel('metadata')">Profile</a></li>
+    <div class="container-fluid">
+        <ul class="nav nav-pills" style="padding-top: 9px;">
+            <li>
+                <span><a style="color:#fff" ng-click="backToCollections()">
+                  <i class="icon-white icon-backward"></i> back to search results 
+                </a></span>
+            </li>
+            <li style="line-height: 38px" ng-class="{true:'active', false:''}[currentPanel=='content']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('content')">Interaction</a>
+            </li>
+            <li style="line-height: 38px" ng-class="{true:'active', false:''}[currentPanel=='metadata']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('metadata')">Profile</a></li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
-                    <a href="javascript:void(1)"
-                       ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
-                </li>
+            <li style="line-height: 38px" ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
+                <a href="javascript:void(1)"
+                   ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+            </li>
 
-                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
-                    <a href="javascript:void(1)"
-                       ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
+            <li style="line-height: 38px" ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
+                <a href="javascript:void(1)"
+                   ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
+            </li>
+            <li style="line-height: 25px;color:#fff">
+                Status: {{itemStatus}}
                 </li>
-            </ul>
-
-            <div class="pull-right">
-                <label style="padding-top:5px; padding-right:5px;">Status: {{itemStatus}}</label>
-                <label style="padding-top:5px; padding-right:5px;" ng-show="!isPublished"><a href="" style="color: white;" ng-click="publish()">Publish...</a></label>
+            <li>
                 <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
+            </li>
+            <li style="line-height: 38px">
                 <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">{{sessionCount}}</label>
+            </li>
+            <li style="padding-left: 20px;">
                 <button class="btn btn-primary"
                         ng-model="isSaving"
                         loading-button
                         data-loading-text="Saving..."
                         ng-click="save()">Save
                 </button>
-                <button class="btn btn-default"
-                    ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
-                <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
-                               style="cursor: pointer"
-                               ng-click="togglePreview()"
-                               title="toggle preview"
-                               ng-show="mode == 'edit'"></i>
-            </div>
-        </div>
+            </li>
+            <li style="padding-left: 5px; " class="dropdown" id="menu-actions">
+                <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu-actions">
+                Select an action
+                <b class="caret"></b>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-actions">
+                <li> <button class="btn btn-default btn-sm"
+                ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+                
+                </li>
+                <li><button ng-show="!isPublished" class="btn btn-info btn-sm" href="" style="color: white;" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;Publish</button></li>
+                </ul>
+            </li>
+            <li style="padding-left: 5px;"><i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
+                style="cursor: pointer"
+                ng-click="togglePreview()"
+                title="toggle preview"
+                ng-show="mode == 'edit'"></i>
+            </li>
+        </ul>
     </div>
 </div>
 

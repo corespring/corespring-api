@@ -143,13 +143,22 @@ angular.module('corespring-utils')
           return "";
         }
 
-        var out = standards[0].dotNotation;
-
-        if (standards.length == 1) {
-          return out;
-        }
-
-        return out + " plus " + (standards.length - 1) + " more";
+        var allStandards = [];
+      
+        if(standards.length > 0) {
+          for ( i = 0; i < standards.length; i++){
+              if (i > 8){
+                allStandards.push("+" + (standards.length - 8) + " more...");
+                break;
+              }
+              else{ 
+                allStandards.push(standards[i].dotNotation);
+              }
+              
+            }
+            console.debug(allStandards);
+            return allStandards;
+          }
       },
 
 
@@ -169,11 +178,13 @@ angular.module('corespring-utils')
           }
           var wordArray = standards[i].standard.split(/\W+/);
 
-          var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
+          var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "...<br />" : wordArray.join(" ");
           out.push(standards[i].dotNotation + ": " + standardLabel);
         }
 
-        return "<span>" + out.join(", ") + "</span>";
+        // return "<span>" + out.join(", ") + "</span>";
+        return "<span>" + out.join("") + "</span>";
+
       },
 
       buildTitleEllipsis: function (titles) {

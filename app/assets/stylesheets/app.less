@@ -479,9 +479,24 @@
 
 }
 
+.sub-nav-create-item{
+    z-index: 1000;
+    position: absolute;
+    .item-back-to-search{
+        padding-left: 10px;
+    }
+    .item-base-id{
+        padding-left: 200px;
+        padding-right: 20px;
+    }
+    .revision-version{
+        padding-right: 300px;
+    }
+}
 .sub-nav{
     padding-top: 0px;
-    position: fixed;
+    position: absolute;
+    z-index: 1002;
     left: 0px;
     background-color: @cs-subnav-color;
     border-bottom: solid 1px darken(@cs-subnav-color, 15%);
@@ -1206,4 +1221,200 @@ font-style: italic;
     .btn-sm{
         width: 100%;
     }
+}
+
+.nav-pills .open .dropdown-toggle,
+.nav li.dropdown.open .caret{
+    color: #000;
+}
+
+/* BOOSTRAP v2.0.0 OVERRIDES */
+.btn {
+    text-shadow: none;
+    box-shadow: none;
+    background: none;
+}
+
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default.focus,
+.btn-default:active,
+.btn-default.active,
+.open > .dropdown-toggle.btn-default {
+  outline: 0;
+  box-shadow: none;
+  color: #333;
+  background: #e6e6e6;
+  border:1px solid #adadad;
+}
+
+.btn-default{
+
+    &:focus{
+        outline: none;
+    }
+    color: #333;
+    background: #fff;
+    border:1px solid #ccc;
+
+    &:hover{
+        background: #e6e6e6;
+        border: 1px solid #adadad;
+    }
+}
+
+.btn-info{
+    color: #fff;
+    background: #5bc0de;
+    border:1px solid #46b8da;
+
+    &:hover{
+        background: #31b0d5;
+        border: 1px solid #269abc;
+    }
+}
+
+.btn-primary{
+
+    color: #fff;
+    background: #337ab7;
+    border: 1px solid #2e6da4;
+
+    &:hover{
+        background: #286090;
+        border: 1px solid #204d74;
+    }
+}
+
+
+.btn-warning {
+  color: #fff;
+  background: #f0ad4e;
+  border:1px solid #eea236;
+}
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning.focus,
+.btn-warning:active,
+.btn-warning.active,
+.open > .dropdown-toggle.btn-warning {
+  color: #fff;
+  background: #ec971f;
+  border:1px solid #d58512;
+}
+.btn-warning:active,
+.btn-warning.active,
+.open > .dropdown-toggle.btn-warning {
+  background-image: none;
+}
+
+
+.btn-danger {
+  color: #fff;
+  background: #d9534f;
+  border:1px solid #d43f3a;
+}
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger.focus,
+.btn-danger:active,
+.btn-danger.active,
+.open > .dropdown-toggle.btn-danger {
+  color: #fff;
+  background: #c9302c;
+  border:1px solid #ac2925;
+}
+.btn-danger:active,
+.btn-danger.active,
+.open > .dropdown-toggle.btn-danger {
+  background-image: none;
+}
+
+.btn-success {
+  color: #fff;
+  background: #5cb85c;
+  border:1px solid #4cae4c;
+}
+.btn-success:hover,
+.btn-success:focus,
+.btn-success.focus,
+.btn-success:active,
+.btn-success.active,
+.open > .dropdown-toggle.btn-success {
+  color: #fff;
+  background: #449d44;
+  border:1px solid #398439;
+}
+.btn-success:active,
+.btn-success.active,
+.open > .dropdown-toggle.btn-success {
+  background-image: none;
+}
+.btn-success.disabled,
+.btn-success[disabled],
+fieldset[disabled] .btn-success,
+.btn-success.disabled:hover,
+.btn-success[disabled]:hover,
+fieldset[disabled] .btn-success:hover,
+.btn-success.disabled:focus,
+.btn-success[disabled]:focus,
+fieldset[disabled] .btn-success:focus,
+.btn-success.disabled.focus,
+.btn-success[disabled].focus,
+fieldset[disabled] .btn-success.focus,
+.btn-success.disabled:active,
+.btn-success[disabled]:active,
+fieldset[disabled] .btn-success:active,
+.btn-success.disabled.active,
+.btn-success[disabled].active,
+fieldset[disabled] .btn-success.active {
+  background: #5cb85c;
+  border:1px solid #4cae4c;
+}
+
+.standards-list span:last-child .list-comma{
+    display: none
+}
+
+/** BOOTSTRAP TOOLTIP OVERRIDE **/
+.tooltip{
+    font-size: 14px;
+    .tooltip-inner{
+        text-align: left;
+        padding: 10px 15px;
+        background:#fff;
+        color:#000;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        border: 1px solid rgba(0, 0, 0, 0.15);
+    }
+}
+.tooltip.in {
+  filter: alpha(opacity=95);
+  opacity: .95;
+}
+
+.tooltip.top .tooltip-arrow {
+  border-top-color: #fff;
+}
+.tooltip.top-left .tooltip-arrow {
+  border-top-color: #fff;
+}
+.tooltip.top-right .tooltip-arrow {
+  border-top-color: #fff;
+}
+.tooltip.right .tooltip-arrow {
+  border-right-color: #fff;
+}
+.tooltip.left .tooltip-arrow {
+  border-left-color: #fff;
+}
+.tooltip.bottom .tooltip-arrow {
+  border-bottom-color: #fff;
+}
+.tooltip.bottom-left .tooltip-arrow {
+  border-bottom-color: #fff;
+}
+.tooltip.bottom-right .tooltip-arrow {
+  border-bottom-color: #fff;
 }
