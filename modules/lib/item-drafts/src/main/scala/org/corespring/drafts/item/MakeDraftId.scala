@@ -8,16 +8,23 @@ import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
 trait MakeDraftId {
+
+  //if itemId - the return itemid, user, orgId
   def mkDraftId(user: OrgAndUser, id: String): Validation[DraftError, DraftId] = {
+
+    val (itemId, name) = {
+      if (id.contains("~")) {
+        val Array(itemId, name) = id.split("~")
+        (itemId, name)
+      } else {
+        (id, user.user.map(_.userName).getOrElse("unknown_user"))
+      }
+    }
+
     for {
-      arr <- if (id.contains("~"))
-        Success(id.split("~"))
-      else
-        Failure(CantParseDraftId(id))
-      vid <- VersionedId(arr(0)).toSuccess(CantParseVersionedId(arr(0)))
+      vid <- VersionedId(itemId).toSuccess(CantParseVersionedId(itemId))
     } yield {
-      val Array(_, name) = arr
-      DraftId(vid.id, user.user.map(_.userName).getOrElse(name), user.org.id)
+      DraftId(vid.id, name, user.org.id)
     }
   }
 }

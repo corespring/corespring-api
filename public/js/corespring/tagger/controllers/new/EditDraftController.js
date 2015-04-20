@@ -29,20 +29,18 @@ function EditDraftController(
   $scope.devEditorVisible = false;
 
   var normalEditor = ['/v2/player/editor/',
-                      $routeParams.draftId,
+                      $routeParams.itemId,
                       '/index.html',
                       '?bypass-iframe-launch-mechanism=true']
    .join('');
 
-  var devEditor = '/v2/player/dev-editor/' + $routeParams.draftId + '/index.html';
-
-  //$scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
+  var devEditor = '/v2/player/dev-editor/' + $routeParams.itemId + '/index.html';
 
   $scope.backToCollections = function(){
     $location.path("/home").search('');
   };
 
-  $scope.draftId = $routeParams.draftId;
+  $scope.itemId = $routeParams.itemId;
 
   $scope.saveBackToItem = function(){
   	if($scope.draftIsConflicted){
@@ -57,7 +55,7 @@ function EditDraftController(
   };
 
   function commit(force) {
-  	ItemDraftService.commit($scope.draftId, force, function success(){
+  	ItemDraftService.commit($scope.itemId, force, function success(){
   		Logger.info('commit successful');
   		$scope.draftIsConflicted = false;
   	}, function error(err){
@@ -74,10 +72,10 @@ function EditDraftController(
 
   $scope.clone = function () {
     $scope.showProgressModal = true;
-    ItemDraftService.clone($scope.draftId, function (result){
+    ItemDraftService.clone($scope.itemId, function (result){
       Logger.info(result);
       $scope.showProgressModal = false;
-      $location.path('/edit/draft/' + result.draftId);
+      $location.path('/edit/draft/' + result.itemId);
     }, function(err){
       Logger.error(err);
       $scope.showProgressModal = false;
@@ -90,7 +88,7 @@ function EditDraftController(
         if(cancelled){
           return;
         }
-        ItemDraftService.publish($scope.draftId, function(result){
+        ItemDraftService.publish($scope.itemId, function(result){
           Logger.info('publish complete');
           Logger.info(result);
           $location.path('/home');
@@ -106,7 +104,7 @@ function EditDraftController(
   	ignoreConflict = ignoreConflict === true;
 
     ItemDraftService.get({
-    	id: $routeParams.draftId,
+    	id: $routeParams.itemId,
     	ignoreConflict: ignoreConflict
     },
     	function onItemLoaded(draft) {
@@ -129,7 +127,7 @@ function EditDraftController(
   };
 
   $scope.discard = function(){
-  	ItemDraftService.deleteDraft($routeParams.draftId, function(){
+  	ItemDraftService.deleteDraft($routeParams.itemId, function(){
   		$scope.loadDraftItem();
   	}, function(){
   		console.error('An error occured deleting the draft');

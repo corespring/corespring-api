@@ -26,13 +26,13 @@
             reloadOnSearch: reloadOnSearch
           });
         }
-        
+
         $rp.when('/new', {
           redirectTo: '/new/blank'
         });
 
         mk('/home', '/web/views/partials/tagger/home', tagger.HomeController);
-        mk('/edit/draft/:draftId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
+        mk('/edit/draft/:itemId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
         mk('/edit/:itemId', '/web/views/partials/tagger/editItem', tagger.ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);
         /* jshint ignore:start */

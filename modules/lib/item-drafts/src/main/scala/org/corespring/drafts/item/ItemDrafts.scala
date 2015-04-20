@@ -17,17 +17,10 @@ import scalaz.{ ValidationNel, Failure, Success, Validation }
 
 case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
-case class ItemDraftIsOutOfDate(d : ItemDraft, src : Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
+case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
 
 trait ItemDrafts
-  extends Drafts[
-    DraftId,
-    VersionedId[ObjectId],
-    Item,
-    OrgAndUser,
-    ItemDraft,
-    ItemCommit,
-    ItemDraftIsOutOfDate] {
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
@@ -135,7 +128,7 @@ trait ItemDrafts
 
     def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
-        if (draftParentMatchesItem(d.parent.data, i) || ignoreConflict) {
+        if (draftParentMatchesLatest(d.parent.data, i) || ignoreConflict) {
           logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, (draft.parent == item)=${d.parent == i}")
           Success(d)
         } else {
@@ -147,10 +140,10 @@ trait ItemDrafts
     draft.map(failIfConflicted).getOrElse(create(VersionedId(id.itemId), requester))
   }
 
-  def draftParentMatchesItem(parent:Item, item:Item) = {
+  override def draftParentMatchesLatest(parent: Item, item: Item) = {
     parent.taskInfo == item.taskInfo &&
-    parent.playerDefinition == item.playerDefinition &&
-    parent.supportingMaterials == item.supportingMaterials
+      parent.playerDefinition == item.playerDefinition &&
+      parent.supportingMaterials == item.supportingMaterials
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
@@ -185,6 +178,9 @@ trait ItemDrafts
       commit <- Success(ItemCommit(d.id, d.user, d.change.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
+      // we also need to reset the draft so that subsequent checks will load
+      _ <- Success(logger.debug(s"reset the draft parent"))
+      _ <- draftService.save(d.copy(parent = d.change)).failed(SaveDraftFailed(d.id.toIdString))
     } yield commit
   }
 
@@ -205,7 +201,6 @@ trait ItemDrafts
       Failure(e(w.getLastError))
     }
   }
-
 
   override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): ItemDraftIsOutOfDate = {
     ItemDraftIsOutOfDate(d, src)

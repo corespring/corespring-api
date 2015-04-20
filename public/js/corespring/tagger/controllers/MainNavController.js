@@ -1,11 +1,10 @@
 function MainNavController(
-	$scope, 
-	$rootScope, 
-	$location, 
-	SearchService, 
-	V2ItemService, 
-	ItemDraftService, 
-	UserInfo) {
+	$scope,
+	$rootScope,
+	$location,
+	SearchService,
+	V2ItemService,
+	ItemDraftService) {
 
   "use strict";
 
@@ -40,7 +39,7 @@ function MainNavController(
 
   $scope.createItem = function(){
      V2ItemService.create({}, function onCreated(itemData) {
-     	$location.url('/edit/draft/' + itemData.id + '~' + UserInfo.userName);
+     	$location.url('/edit/draft/' + itemData.id);
     }, function onError(e) {
         alert("Error creating item: " + e.data.message);
       }
@@ -49,10 +48,9 @@ function MainNavController(
 }
 
 MainNavController.$inject = [
-  '$scope', 
-  '$rootScope', 
-  '$location', 
-  'SearchService', 
-  'V2ItemService', 
-  'ItemDraftService',
-  'UserInfo'];
+  '$scope',
+  '$rootScope',
+  '$location',
+  'SearchService',
+  'V2ItemService',
+  'ItemDraftService' ];

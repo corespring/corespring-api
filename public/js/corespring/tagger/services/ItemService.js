@@ -81,7 +81,7 @@ angular.module('tagger.services')
 
         this.clone = function( params, onSuccess, onError) {
             var url = "/api/v2/items/:id/clone".replace(":id", params.id);
-            
+
             $http.post(url, {})
                 .success(onSuccess)
                 .error(onError);
@@ -105,22 +105,22 @@ angular.module('tagger.services')
           .success(onSuccess)
           .error(onError);
       };
-      
+
       this.clone = function(id, onSuccess, onError){
         var url = '/api/v2/items/drafts/' + id + '/clone';
-        
+
         $http.put(url)
           .success(onSuccess)
           .error(onError);
       };
 
       this.get = function(params, onSuccess, onError){
-       	
+
         var url = '/api/v2/items/drafts/' + params.id;
 
        	if(params.ignoreConflict) {
         	url += '?ignoreConflicts=true';
-       	} 
+       	}
 
         $http.get(url)
           .success(onSuccess)
@@ -156,7 +156,7 @@ angular.module('tagger.services')
       	  .success(onSuccess)
       	  .error(onError);
       };
-     	
+
       this.createUserDraft = function(itemId, onSuccess, onError){
         var listUrl = '/api/v2/items/' + itemId + '/drafts';
         var createUrl = '/api/v2/items/' + itemId + '/draft';
@@ -181,16 +181,16 @@ angular.module('tagger.services')
   }]);
 
 angular.module('tagger.services')
-    .factory('ItemService', [ 
-      '$resource', 
-      'ServiceLookup', 
-      '$http', 
+    .factory('ItemService', [
+      '$resource',
+      'ServiceLookup',
+      '$http',
       'V2ItemService',
       'ItemDraftService',
         function (
-          $resource, 
-          ServiceLookup, 
-          $http, 
+          $resource,
+          ServiceLookup,
+          $http,
           V2ItemService,
           ItemDraftService) {
 

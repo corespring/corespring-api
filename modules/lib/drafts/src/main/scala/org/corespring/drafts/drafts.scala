@@ -48,7 +48,7 @@ trait Commit[VID, USER] {
 /**
  * Operations you can perform on drafts
  */
-trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER], OOD <: DraftIsOutOfDate[ID,VID,SRC]] {
+trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER], OOD <: DraftIsOutOfDate[ID, VID, SRC]] {
 
   import scalaz.Validation
 
@@ -63,8 +63,9 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
    */
   def getLatestSrc(d: UD): Option[Src[VID, SRC]]
 
-  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): OOD 
+  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): OOD
 
+  def draftParentMatchesLatest(parent: SRC, latest: SRC): Boolean
   /**
    * Commit a draft back to the data store.
    */
@@ -74,7 +75,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
     } else {
       for {
         latest <- getLatestSrc(d).toSuccess(CantFindLatestSrc(d.id))
-        result <- if (latest != d.parent && !force) {
+        result <- if (!draftParentMatchesLatest(d.parent.data, latest.data) && !force) {
           Failure(draftIsOutOfDate(d, latest))
         } else {
           copyDraftToSrc(d)

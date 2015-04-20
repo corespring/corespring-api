@@ -48,7 +48,7 @@
         item.clone(
           function success(newItem){
             $location.url('/old/edit/' + newItem.id );
-          }, 
+          },
           function error(err){
             alert('cloneItem:', JSON.stringify(err));
           }
@@ -59,7 +59,7 @@
         $scope.v1.itemToPublish = item;
         $scope.v1.showConfirmPublishModal = true;
       };
-      
+
       this.publishConfirmed = function(){
         $scope.v1.showConfirmPublishModal = false;
 
@@ -69,7 +69,7 @@
           }
           $scope.v1.itemToPublish.published = result.published;
           $scope.v1.itemToPublish = null;
-        }, 
+        },
         function(err){
           alert(err);
         });
@@ -90,7 +90,7 @@
       }
 
       function goToEditDraft(itemId){
-        $location.url('/edit/draft/' + itemId + '~' + $scope.userName);
+        $location.url('/edit/draft/' + itemId);
       }
 
       this.edit = function(item){
@@ -116,16 +116,16 @@
           item.publish(
             function(){
               $scope.search();
-            }, 
+            },
             function(err){
               Logger.error(err);
             }
           );
         } else {
-          ItemDraftService.publish(draft.id, 
+          ItemDraftService.publish(draft.id,
             function(result){
               $scope.search();
-            }, 
+            },
             function(err){
               Logger.error(err);
             }
@@ -134,10 +134,10 @@
       };
 
       this.cloneItem = function(item){
-        V2ItemService.clone({id: item.id}, 
+        V2ItemService.clone({id: item.id},
           function success(newItem){
             makeADraft(newItem.id, goToEditDraft);
-          }, 
+          },
           function error(err){
             alert('cloneItem:', JSON.stringify(err));
           }
@@ -163,7 +163,7 @@
     $scope.edit = function(item){
       route('edit', item);
     };
-    
+
     $scope.publish = function(item){
       Modals.publish(function(cancelled){
         if(!cancelled){
@@ -171,11 +171,11 @@
         }
       });
     };
-    
+
     $scope.cloneItem = function(item){
       route('cloneItem', item);
     };
-    
+
     $scope.deleteItem = function(item) {
       Modals['delete'](function(cancelled){
         if(!cancelled){
@@ -188,13 +188,13 @@
     };
 
     $scope.deleteDraft = function(draft){
-      ItemDraftService.deleteDraft(draft.id, 
+      ItemDraftService.deleteDraft(draft.id,
         function(result){
           console.log('deleting draft, successful');
           $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
             return d.id === draft.id;
           });
-        }, 
+        },
         function(err){
           console.warn('Error deleting draft');
         }
