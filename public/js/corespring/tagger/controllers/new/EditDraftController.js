@@ -36,7 +36,7 @@ function EditDraftController(
 
   var devEditor = '/v2/player/dev-editor/' + $routeParams.draftId + '/index.html';
   
-  $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
+  //$scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
 
   $scope.backToCollections = function(){
     $location.path("/home").search('');
@@ -81,18 +81,42 @@ function EditDraftController(
     });
   };
 
-  $scope.loadDraftItem = function() {
-    ItemDraftService.get({id: $routeParams.draftId}, 
+  $scope.loadDraftItem = function(ignoreConflict) {
+
+  	ignoreConflict = ignoreConflict === true ? true : false;
+
+    ItemDraftService.get({
+    	id: $routeParams.draftId, 
+    	ignoreConflict: ignoreConflict
+    }, 
     	function onItemLoaded(draft) {
+    		$scope.showConflictError = false;
 	      $scope.draft = draft;
 	      $scope.itemId = draft.itemId;
 	      $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
 	      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
 	      console.warn('ItemSessionCount doesn\'t apply for a user draft');
+        $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
       },
-      function onError(){
-      	console.warn('error -> ', arguments);	
+      function onError(err, statusCode){
+      	if(statusCode == 409){
+      		$scope.showConflictError = true;
+      	} else {
+      		console.error('An error has occured', err);
+      	}
       });
+  };
+
+  $scope.discard = function(){
+  	ItemDraftService.deleteDraft($routeParams.draftId, function(){
+  		$scope.loadDraftItem();
+  	}, function(){
+  		console.error('An error occured deleting the draft');
+  	});
+  };
+
+  $scope.ignoreConflict = function(){
+  	$scope.loadDraftItem(true);
   };
 
   $scope.showDevEditor = function(){

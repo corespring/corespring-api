@@ -27,7 +27,22 @@
 </div>
 
 <div class="edit-container">
-  <div class="item-iframe-container">
-      <iframe frameborder="0" ng-src="{{v2Editor}}"></iframe> 
+  <div class="conflict-pane" ng-show="showConflictError">
+
+  	<div class="well">
+  	  <h3>Your changes are out of date!</h3>
+  	  <p>This item has been updated since you started editing it.<br/>
+  	  What would you like to do?</p>
+  	  <a ng-click="ignoreConflict()" class="btn btn-warning">Continue</a>
+  	  <a ng-click="discard()" class="btn btn-primary">Discard my changes</a>
+  	  <br/>
+  	  <br/>
+  	  <div class="alert alert-warning" role="alert">If you continue, you can save but you'll overwrite the changes that have been made.</div>
+
+  	</div>
+
+  </div>
+  <div class="item-iframe-container" ng-show="!showConflictError">
+     <iframe frameborder="0" ng-src="{{v2Editor}}"></iframe>
   </div>
 </div>

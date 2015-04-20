@@ -50,7 +50,7 @@ trait ItemDraftService {
   }
 
   def remove(id: DraftId): Boolean = {
-    val result = collection.remove(MongoDBObject("_id" -> idToDbo(id)))
+    val result = collection.remove(idToDbo(id))
     result.getN == 1
   }
 

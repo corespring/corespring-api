@@ -39,8 +39,6 @@ trait DraftEditorHooks
 
   def backend: ItemDrafts
 
-  //def draftCollection = backend.collection
-
   private def getOrgAndUser(h: RequestHeader): Validation[V2Error, OrgAndUser] = getOrgAndOptions(h).map { oo =>
     OrgAndUser(SimpleOrg.fromOrganization(oo.org), oo.user.map(SimpleUser.fromUser))
   }
@@ -49,7 +47,8 @@ trait DraftEditorHooks
     _ <- Success(logger.trace(s"function=loadDraft id=$id"))
     identity <- getOrgAndUser(header)
     draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-    d <- backend.loadOrCreate(identity)(draftId).leftMap { e => generalError(e.msg) }
+    //Note: for now we ignor conflicts
+    d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap { e => generalError(e.msg) }
   } yield d
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {

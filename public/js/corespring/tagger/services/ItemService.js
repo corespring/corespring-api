@@ -115,8 +115,12 @@ angular.module('tagger.services')
       };
 
       this.get = function(params, onSuccess, onError){
-        
+       	
         var url = '/api/v2/items/drafts/' + params.id;
+
+       	if(params.ignoreConflict) {
+        	url += '?ignore-conflict=true';
+       	} 
 
         $http.get(url)
           .success(onSuccess)

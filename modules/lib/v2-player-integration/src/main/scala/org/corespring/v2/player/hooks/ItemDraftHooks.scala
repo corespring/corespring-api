@@ -43,7 +43,7 @@ trait ItemDraftHooks
   //TODO: Why do we load the draft twice? Once in DraftEditorHooks and once here
   override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, true))
+      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, ignoreConflict = true))
       draft <- Success(draftAndIdentity._1)
       json <- Success(transform(draft.change.data))
     } yield {
