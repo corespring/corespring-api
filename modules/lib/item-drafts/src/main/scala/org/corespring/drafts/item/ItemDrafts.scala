@@ -17,8 +17,17 @@ import scalaz.{ ValidationNel, Failure, Success, Validation }
 
 case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
+case class ItemDraftIsOutOfDate(d : ItemDraft, src : Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
+
 trait ItemDrafts
-  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
+  extends Drafts[
+    DraftId,
+    VersionedId[ObjectId],
+    Item,
+    OrgAndUser,
+    ItemDraft,
+    ItemCommit,
+    ItemDraftIsOutOfDate] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
@@ -197,9 +206,9 @@ trait ItemDrafts
     }
   }
 
-  override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item] = {
-    val update = d.copy(hasConflict = true)
-    draftService.save(update)
-    DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](update, src)
+
+  override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): ItemDraftIsOutOfDate = {
+    ItemDraftIsOutOfDate(d, src)
   }
+
 }

@@ -1,4 +1,4 @@
-(function(root){ 
+(function(root){
   'use strict';
 
 /**
@@ -18,24 +18,24 @@ if (Array.prototype.removeItem === null) Array.prototype.removeItem = function (
  * Controller for editing Item
  */
 function EditDraftController(
-  $scope, 
-  $location, 
-  $routeParams, 
-  ItemDraftService,  
-  Logger, 
+  $scope,
+  $location,
+  $routeParams,
+  ItemDraftService,
+  Logger,
   ItemSessionCountService,
   Modals) {
 
   $scope.devEditorVisible = false;
-  
+
   var normalEditor = ['/v2/player/editor/',
-                      $routeParams.draftId, 
+                      $routeParams.draftId,
                       '/index.html',
                       '?bypass-iframe-launch-mechanism=true']
    .join('');
 
   var devEditor = '/v2/player/dev-editor/' + $routeParams.draftId + '/index.html';
-  
+
   //$scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
 
   $scope.backToCollections = function(){
@@ -48,11 +48,11 @@ function EditDraftController(
   	if($scope.draftIsConflicted){
   		Modals.saveConflictedDraft(function(cancelled){
   			if(!cancelled){
-      		commit(true);	
+      		commit(true);
   			}
   		});
   	} else {
-  		commit(false);	
+  		commit(false);
   	}
   };
 
@@ -62,6 +62,13 @@ function EditDraftController(
   		$scope.draftIsConflicted = false;
   	}, function error(err){
   		Logger.warn(err);
+      Modals.commitFailedDueToConflict(function(cancelled){
+  		  $scope.draftIsConflicted = true;
+        if(cancelled){
+          return;
+        }
+        commit(true);
+      });
   	});
   }
 
@@ -87,7 +94,7 @@ function EditDraftController(
           Logger.info('publish complete');
           Logger.info(result);
           $location.path('/home');
-        }, 
+        },
         function(err){
           Logger.error(err);
         });
@@ -99,9 +106,9 @@ function EditDraftController(
   	ignoreConflict = ignoreConflict === true;
 
     ItemDraftService.get({
-    	id: $routeParams.draftId, 
+    	id: $routeParams.draftId,
     	ignoreConflict: ignoreConflict
-    }, 
+    },
     	function onItemLoaded(draft) {
     		$scope.showConflictError = false;
 	      $scope.draft = draft;
@@ -110,7 +117,7 @@ function EditDraftController(
 	      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
 	      console.warn('ItemSessionCount doesn\'t apply for a user draft');
         $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
-     		$scope.draftIsConflicted = ignoreConflict; 
+     		$scope.draftIsConflicted = ignoreConflict;
       },
       function onError(err, statusCode){
       	if(statusCode == 409){
@@ -155,8 +162,8 @@ EditDraftController.$inject = [
   'ItemSessionCountService',
   'Modals'
 ];
-  
+
   root.tagger = root.tagger || {};
   root.tagger.EditDraftController = EditDraftController;
-  
+
 })(this);

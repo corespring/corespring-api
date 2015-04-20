@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 sealed abstract class DraftError(val msg: String)
 sealed abstract class CommitError(override val msg: String) extends DraftError(msg)
 sealed abstract class UserCant[U](requester: U, owner: U, action: String) extends DraftError(s"User: $requester, can't commit a draft owned by: $owner")
+abstract class DraftIsOutOfDate[ID, VID, SRC_DATA](d: Draft[ID, VID, SRC_DATA], src: Src[VID, SRC_DATA]) extends DraftError("The src has changed since the draft was created.")
 
 case class LoadDraftFailed(val draftId: String) extends DraftError(s"Can't load draft with id: $draftId")
 case class SaveDataFailed(override val msg: String) extends DraftError(msg)
@@ -53,4 +54,3 @@ case class UserCantCreate[U, VID](requester: U, id: VID) extends DraftError(s"Us
 case class UserCantLoad[U, ID](requester: U, id: ID) extends DraftError(s"User $requester can't load draft with id $id")
 case class UserCantRemove[U, ID](requester: U, id: ID) extends DraftError(s"User $requester can't remove draft with id $id")
 
-case class DraftIsOutOfDate[ID, VID, SRC_DATA](d: Draft[ID, VID, SRC_DATA], src: Src[VID, SRC_DATA]) extends DraftError("The src has changed since the draft was created.")

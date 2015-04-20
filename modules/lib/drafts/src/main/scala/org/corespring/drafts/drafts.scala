@@ -48,7 +48,7 @@ trait Commit[VID, USER] {
 /**
  * Operations you can perform on drafts
  */
-trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER]] {
+trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER], OOD <: DraftIsOutOfDate[ID,VID,SRC]] {
 
   import scalaz.Validation
 
@@ -63,7 +63,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
    */
   def getLatestSrc(d: UD): Option[Src[VID, SRC]]
 
-  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): DraftIsOutOfDate[ID, VID, SRC]
+  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): OOD 
 
   /**
    * Commit a draft back to the data store.
@@ -92,4 +92,3 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
   /** save a draft */
   def save(requester: USER)(d: UD): Validation[DraftError, ID]
 }
-

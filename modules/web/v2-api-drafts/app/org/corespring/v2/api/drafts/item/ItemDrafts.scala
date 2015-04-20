@@ -3,7 +3,7 @@ package org.corespring.v2.api.drafts.item
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.{DraftIsOutOfDate, DraftError}
 import org.corespring.drafts.item.models.{ItemSrc, ItemDraft, DraftId, OrgAndUser}
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.drafts.item.{ItemDrafts => DraftsBackend, ItemDraftIsOutOfDate, MakeDraftId}
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
@@ -62,10 +62,15 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
+  private def toApiError(e:DraftError) : DraftApiError  = e match {
+    case ItemDraftIsOutOfDate(d,src) => draftIsOutOfDate(d, src.data)
+    case _ => generalDraftApiError(e.msg)
+  }
+
   def commit(id: String, force: Option[Boolean] = None) = draftsAction(id) { (user, draftId, _) =>
     for {
-      d <- drafts.load(user)(draftId).leftMap { e => generalDraftApiError(e.msg) }
-      commit <- drafts.commit(user)(d, force.getOrElse(false)).leftMap { e => generalDraftApiError(e.msg) }
+      d <- drafts.load(user)(draftId).leftMap(toApiError)
+      commit <- drafts.commit(user)(d, force.getOrElse(false)).leftMap(toApiError)
     } yield CommitJson(commit)
   }
 
@@ -89,15 +94,9 @@ trait ItemDrafts extends Controller with MakeDraftId {
    * Check w/ ev on what to return here
    */
   def get(id: String, ignoreConflicts: Option[Boolean] = None) = draftsAction(id) { (user, draftId, rh) =>
-
     drafts.loadOrCreate(user)(draftId, ignoreConflicts.getOrElse(false)).bimap(
-      e => e match {
-        case ood : DraftIsOutOfDate[ObjectId, VersionedId[ObjectId], Item] => {
-            draftIsOutOfDate(ood.d.asInstanceOf[ItemDraft],ood.src.data)
-        }
-        case _ => generalDraftApiError(e.msg)
-      },
-      d => ItemDraftJson.withFullItem(d)) //.toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
+      toApiError,
+      d => ItemDraftJson.withFullItem(d))
   }
 
   private implicit def draftErrorToDraftApiError[A](v: Validation[DraftError, A]): Validation[DraftApiError, A] = {
