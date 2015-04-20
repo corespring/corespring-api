@@ -94,7 +94,7 @@ trait ItemDraftHooks
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
       draft <- Success(draftAndIdentity._1)
-      item <- Success(draft.parent.data)
+      item <- Success(draft.change.data)
       updatedItem <- Success(updateFn(item, json))
       update <- Success(draft.mkChange(updatedItem))
       saved <- backend.save(draftAndIdentity._2)(update).v2Error

@@ -98,7 +98,6 @@
           if(cancelled){
             return;
           }
-
           goToEditDraft(item.id);
         });
       };

@@ -82,13 +82,17 @@ function EditDraftController(
   };
 
   $scope.loadDraftItem = function() {
-    ItemDraftService.get({id: $routeParams.draftId}, function onItemLoaded(draft) {
-      $scope.draft = draft;
-      $scope.itemId = draft.itemId;
-      $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
-      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
-      console.warn('ItemSessionCount doesn\'t apply for a user draft');
-    });
+    ItemDraftService.get({id: $routeParams.draftId}, 
+    	function onItemLoaded(draft) {
+	      $scope.draft = draft;
+	      $scope.itemId = draft.itemId;
+	      $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
+	      $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
+	      console.warn('ItemSessionCount doesn\'t apply for a user draft');
+      },
+      function onError(){
+      	console.warn('error -> ', arguments);	
+      });
   };
 
   $scope.showDevEditor = function(){

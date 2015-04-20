@@ -144,7 +144,7 @@ angular.module('tagger.services')
       	  .success(onSuccess)
       	  .error(onError);
       };
-      
+     	
       this.createUserDraft = function(itemId, onSuccess, onError){
         var listUrl = '/api/v2/items/' + itemId + '/drafts';
         var createUrl = '/api/v2/items/' + itemId + '/draft';

@@ -1,9 +1,10 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.DraftError
-import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
+import org.corespring.drafts.errors.{DraftIsOutOfDate, DraftError}
+import org.corespring.drafts.item.models.{ItemSrc, ItemDraft, DraftId, OrgAndUser}
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
 import org.joda.time.DateTime
@@ -88,7 +89,14 @@ trait ItemDrafts extends Controller with MakeDraftId {
    * Check w/ ev on what to return here
    */
   def get(id: String) = draftsAction(id) { (user, draftId) =>
-    drafts.loadOrCreate(user)(draftId).map(d => ItemDraftJson.withFullItem(d)) //.toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
+    drafts.loadOrCreate(user)(draftId).bimap(
+      e => e match {
+        case ood : DraftIsOutOfDate[ObjectId, VersionedId[ObjectId], Item] => {
+            draftIsOutOfDate(ood.d.asInstanceOf[ItemDraft],ood.src.data)
+        }
+        case _ => generalDraftApiError(e.msg)
+      },
+      d => ItemDraftJson.withFullItem(d)) //.toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
   }
 
   private implicit def draftErrorToDraftApiError[A](v: Validation[DraftError, A]): Validation[DraftApiError, A] = {
