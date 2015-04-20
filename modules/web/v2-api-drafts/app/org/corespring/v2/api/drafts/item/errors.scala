@@ -13,6 +13,6 @@ case class cantParseItemId(id: String) extends DraftApiError(s"Can't parse: $id"
 
 case class draftCreationFailed(id: String) extends DraftApiError(s"Draft creation failed for item $id")
 
-case class cantLoadDraft(id: ObjectId) extends DraftApiError(s"Cant load draft: ${id.toString}")
+case class cantLoadDraft(id: String) extends DraftApiError(s"Cant load draft: $id")
 
 case class generalDraftApiError(override val msg: String) extends DraftApiError(msg)

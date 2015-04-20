@@ -132,7 +132,8 @@ object AppWiring {
     services.sessionAuth,
     playS3,
     bucket,
-    services.draftsBackend)
+    services.draftsBackend,
+    services.orgService)
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++
     v2ApiBootstrap.controllers ++

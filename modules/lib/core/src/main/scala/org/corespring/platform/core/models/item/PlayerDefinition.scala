@@ -13,10 +13,6 @@ import org.slf4j.LoggerFactory
 /**
  * Model to contain the new v2 player model
  * Note: this is not a case class as we need to support custom serialization w/ salat
- * @param files
- * @param xhtml
- * @param components
- * @param summaryFeedback
  */
 
 object PlayerDefinition {

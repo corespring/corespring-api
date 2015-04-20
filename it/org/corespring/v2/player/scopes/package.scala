@@ -3,6 +3,7 @@ package org.corespring.v2.player
 import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.ItemDraftHelper
+import org.corespring.drafts.item.models.DraftId
 import org.corespring.platform.core.models.{ mongoContext, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
@@ -143,7 +144,7 @@ package object scopes {
 
     def organization: Organization
 
-    def getCall(itemId: ObjectId): Call
+    def getCall(itemId: DraftId): Call
 
     lazy val itemDraftHelper = new ItemDraftHelper {
       override implicit def context: Context = mongoContext.context
