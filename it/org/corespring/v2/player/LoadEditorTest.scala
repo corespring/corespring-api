@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -50,20 +51,20 @@ class LoadEditorTest
   }
 
   class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemDraftLoader {
-    override def getCall(draftId: ObjectId): Call = Editor.load(draftId.toString)
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
   }
 
   class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemDraftLoader {
-    override def getCall(draftId: ObjectId): Call = Editor.load(draftId.toString)
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
-    override def getCall(draftId: ObjectId): Call = Editor.load(draftId.toString)
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
 
     override def organization: Organization = Organization.findOneById(user.org.orgId).get
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {
-    override def getCall(draftId: ObjectId): Call = Editor.load(draftId.toString)
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
   }
 }

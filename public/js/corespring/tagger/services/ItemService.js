@@ -115,8 +115,12 @@ angular.module('tagger.services')
       };
 
       this.get = function(params, onSuccess, onError){
-        
+       	
         var url = '/api/v2/items/drafts/' + params.id;
+
+       	if(params.ignoreConflict) {
+        	url += '?ignore-conflict=true';
+       	} 
 
         $http.get(url)
           .success(onSuccess)
@@ -144,7 +148,7 @@ angular.module('tagger.services')
       	  .success(onSuccess)
       	  .error(onError);
       };
-      
+     	
       this.createUserDraft = function(itemId, onSuccess, onError){
         var listUrl = '/api/v2/items/' + itemId + '/drafts';
         var createUrl = '/api/v2/items/' + itemId + '/draft';

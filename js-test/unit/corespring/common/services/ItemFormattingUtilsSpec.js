@@ -35,7 +35,7 @@ describe('common.ItemFormattingUtils', function () {
     it("generates a copyright image url ", function(){
       var item = {
         copyrightOwner: "New York State Education Department"
-      }
+      };
       expect(
         scope.getCopyrightUrl(item) )
       .toEqual( "/assets/images/copyright/nysed.png");

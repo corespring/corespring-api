@@ -4,11 +4,12 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ DBObject, WriteResult }
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser }
+import org.corespring.drafts.item.models.{ DraftId, ItemDraft, OrgAndUser }
+import org.corespring.platform.data.mongo.models.VersionedId
 
 trait ItemDraftService {
 
-  protected val userOrgId : String = "user.org._id"
+  protected val userOrgId: String = "_id.user.org._id"
 
   def collection: MongoCollection
 
@@ -29,30 +30,58 @@ trait ItemDraftService {
     collection.save(d)
   }
 
-  def load(id: ObjectId): Option[ItemDraft] = {
-    collection.findOneByID(id).map(dbo => {
+  private def idToDbo(draftId: DraftId): DBObject = {
+    val id = grater[DraftId].asDBObject(draftId)
+    MongoDBObject("_id" -> id)
+  }
+
+  def load(id: DraftId): Option[ItemDraft] = {
+    collection.findOne(idToDbo(id)).map(dbo => {
       toDraft(dbo)
     })
   }
 
-  def owns(user: OrgAndUser, id: ObjectId) = collection.count(MongoDBObject("_id" -> id, userOrgId -> user.org.id)) == 1
+  def hasConflict(id: DraftId): Option[Boolean] = load(id).map { d => d.hasConflict }
 
-  def remove(d: ItemDraft): Boolean = {
-    val result = collection.remove(MongoDBObject("_id" -> d.id))
+  def owns(ou: OrgAndUser, id: DraftId) = {
+    val orgMatches = ou.org.id == id.orgId
+    val userMatches = ou.user.map(_.userName == id.name)
+    orgMatches && userMatches.getOrElse(true)
+  }
+
+  def remove(id: DraftId): Boolean = {
+    val result = collection.remove(idToDbo(id))
     result.getN == 1
   }
 
-  def findByIdAndVersion(id: ObjectId, version: Long): Seq[ItemDraft] = {
-    collection
-      .find(MongoDBObject("src._id._id" -> id, "src._id.version" -> version))
-      .toSeq
-      .map(toDraft)
+  def remove(d: ItemDraft): Boolean = remove(d.id)
+
+  def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
+    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> vid.id)
+    collection.find(query).map(toDraft)
   }
 
-  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject( userOrgId -> orgId)).toSeq.map(toDraft)
+  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(userOrgId -> orgId)).toSeq.map(toDraft)
 
-
-  def removeDraftByIdAndUser(id: ObjectId, user: OrgAndUser) = {
-    collection.remove(MongoDBObject("_id" -> id, userOrgId -> user.org.id))
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
+    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId.id)
+    collection.find(query).map(toDraft)
   }
+
+  def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Seq[DraftId] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("itemId" -> itemId, "user.org._id" -> orgId, "hasConflict" -> false))
+
+    val ids = collection.find(query, MongoDBObject()).toSeq.map { dbo =>
+      val id = dbo.get("_id").asInstanceOf[DBObject]
+      grater[DraftId].asObject(new MongoDBObject(id))
+    }
+
+    val result = collection.remove(query)
+    if (ids.length == result.getN) {
+      ids
+    } else {
+      throw new RuntimeException("Error deleting all items")
+    }
+  }
+
 }

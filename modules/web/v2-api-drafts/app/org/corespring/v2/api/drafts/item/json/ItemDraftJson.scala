@@ -1,6 +1,6 @@
 package org.corespring.v2.api.drafts.item.json
 
-import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.drafts.item.models.{ Conflict, ItemDraft }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.json.ItemView
@@ -20,7 +20,7 @@ object ItemDraftJson {
   def simple(d: ItemDraft): JsValue = {
     Json.obj(
       "id" -> d.id.toString,
-      "itemId" -> s"${d.src.id.toString}",
+      "itemId" -> s"${d.parent.id.toString}",
       "orgId" -> d.user.org.id.toString,
       "created" -> timeJson(d.created),
       "expires" -> timeJson(d.expires)) ++
@@ -33,9 +33,17 @@ object ItemDraftJson {
   def withFullItem(d: ItemDraft): JsValue = {
 
     import ItemView.Writes
-    val itemJson = Json.toJson[ContentView[Item]](ContentView(d.src.data, None))
+    val itemJson = Json.toJson[ContentView[Item]](ContentView(d.parent.data, None))
     val simpleJson = simple(d)
     simpleJson.asInstanceOf[JsObject] ++ Json.obj("src" -> Json.obj("data" -> itemJson))
+  }
+
+  def conflict(c: Conflict): JsValue = {
+    Json.obj(
+      "draftId" -> c.draft.id.toIdString,
+      "draftParent" -> Json.toJson(c.draft.parent.data),
+      "draftChange" -> Json.toJson(c.draft.change.data),
+      "item" -> Json.toJson(c.item))
   }
 
 }

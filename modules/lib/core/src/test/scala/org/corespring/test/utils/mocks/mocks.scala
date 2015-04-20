@@ -39,7 +39,7 @@ package object mocks {
 
     def getClient = ???
 
-    override def s3ObjectAndData[A](bucket: String, keyName: String)(predicate: (RequestHeader) => Either[SimpleResult, A]): BodyParser[Future[(S3Object, A)]] = ???
+    override def s3ObjectAndData[A](bucket: String, keyName: A => String)(predicate: (RequestHeader) => Either[SimpleResult, A]): BodyParser[Future[(S3Object, A)]] = ???
   }
 
 }

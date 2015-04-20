@@ -89,38 +89,16 @@
         });
       }
 
-      function goToEditDraft(draftId){
-        $location.url('/edit/draft/' + draftId);
-      }
-
-      function makeADraft(itemId, onSuccess){
-        ItemDraftService.createUserDraft(itemId, 
-          function(draft){
-            $scope.orgDrafts.push(draft);
-            onSuccess(draft.id);
-          }, 
-          function error(err){
-            alert('error making a draft' + JSON.stringify(err));
-          }
-        );
+      function goToEditDraft(itemId){
+        $location.url('/edit/draft/' + itemId + '~' + $scope.userName);
       }
 
       this.edit = function(item){
         Modals.edit(function(cancelled){
-          
           if(cancelled){
             return;
           }
-
-          var draft = _.find($scope.orgDrafts, function(d){
-            return d.itemId === item.id;
-          });
-
-          if(draft){
-            goToEditDraft(draft.id);
-          } else {
-            makeADraft(item.id, goToEditDraft); 
-          }
+          goToEditDraft(item.id);
         });
       };
 
