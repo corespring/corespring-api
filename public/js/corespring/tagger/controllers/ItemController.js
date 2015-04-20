@@ -18,14 +18,53 @@ if (Array.prototype.removeItem == null) Array.prototype.removeItem = function (i
  */
 function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
-
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
+  $scope.filteredDomainValues = {};
 
   function loadStandardsSelectionData() {
     $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
       $scope.standardsOptions = data;
     });
   }
+
+  function loadDomainData() {
+    $http.get(ServiceLookup.getUrlFor('domain')).success(function(data) {
+      $scope.domainValues = {};
+      for (var key in data) {
+        $scope.domainValues[key] = _.sortBy(data[key], 'name');
+      }
+      updateStandardDomains();
+    });
+  }
+
+  function updateUnusedDomains() {
+    var newValues = {};
+    for (var key in $scope.domainValues) {
+      newValues[key] = _.chain($scope.domainValues[key]).filter(function(domain) {
+        return !hasDomain(domain);
+      }).sortBy('name').value();
+    }
+    $scope.filteredDomainValues = newValues;
+  }
+
+  function domainByStandard(standard) {
+    var domain = _.chain($scope.domainValues).values().flatten().find(function(domain) {
+      return domain.standards.indexOf(standard) !== -1;
+    }).value();
+    return (domain && domain.name) ? domain.name : undefined;
+  }
+
+  function updateStandardDomains() {
+    if ($scope.itemData && $scope.itemData.standards && $scope.domainValues) {
+      $scope.itemData.standardDomains = _($scope.itemData.standards).pluck('dotNotation').map(domainByStandard).sort();
+      $scope.itemData.domains = _.filter($scope.itemData.domains, function(domain) {
+        return $scope.itemData.standardDomains.indexOf(domain) === -1;
+      });
+      updateUnusedDomains();
+    }
+  }
+
+  $scope.$watch('itemData.standards', updateStandardDomains);
 
   function loadWritableCollections() {
     function writable(collections) {
@@ -51,6 +90,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.changePanel(panelName);
     loadStandardsSelectionData();
     loadWritableCollections();
+    loadDomainData();
     $scope.$watch(
       function () {
         return $location.url();
@@ -86,9 +126,42 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.$watch('showV2Preview',function(newValue){
     if (!newValue){
-      $scope.v2CatalogUrl = ""
+      $scope.v2CatalogUrl = "";
     }
   });
+
+  function hasDomain(domain) {
+    return $scope.itemData.standardDomains.indexOf(domain.name) >= 0 ||
+      $scope.itemData.domains.indexOf(domain.name) >= 0;
+  }
+
+
+  $scope.$watch('newDomain', $scope.addDomain);
+
+  $scope.removeDomain = function(domain) {
+    var domains = $scope.itemData.domains;
+    var index = domains.indexOf(domain);
+
+    if (index !== -1) {
+      domains.splice(index, 1);
+      $scope.itemData.domains = domains;
+    }
+    updateUnusedDomains();
+  };
+
+  $scope.addDomain = function(newDomain) {
+    if (newDomain !== undefined) {
+      console.log('scope.itemData', $scope.itemData);
+      console.log('newDomain', newDomain);
+      if (!hasDomain(newDomain)) {
+        $scope.itemData.domains.push(newDomain.name);
+        $scope.itemData.domains = $scope.itemData.domains.sort();
+      }
+      $scope.newDomain = undefined;
+      updateUnusedDomains();
+    }
+  };
+
 
   $scope.launchV2Preview = function() {
     $scope.v2CatalogUrl = '/v2/player/catalog/' + $scope.itemData.id + '/index.html'
@@ -287,7 +360,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem = function() {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $rootScope.itemData = itemData;
-
       ItemSessionCountService.get({id:$routeParams.itemId}, function onItemLoaded(countObject) {
         $rootScope.itemData.sessionCount = countObject.sessionCount;
         $scope.$broadcast("dataLoaded");
@@ -331,10 +403,16 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.$watch('isPublished', function(){
       if($scope.isPublished) {
-        $scope.itemStatus = "published"
-        if($scope.itemData.sessionCount == 1) $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)"
-        else $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
-      } else $scope.itemStatus = "Draft"
+        $scope.itemStatus = "published";
+        if($scope.itemData.sessionCount == 1) {
+          $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)";
+        }
+        else {
+          $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
+        }
+      } else {
+        $scope.itemStatus = "Draft"
+      }
   });
 
   $scope.getPValueAsString = function (value) {
@@ -510,7 +588,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   };
 
   $scope.standardAdapter.formatResult = function (standard) {
-    var markup = "<blockquote>"
+    var markup = "<blockquote>";
     markup += '<p>' + standard.standard + '</p>';
     markup += '<small>' + standard.dotNotation + ', ' + standard.subject + ', ' + standard.subCategory + '</small>';
     markup += '<small>' + standard.category + '</small>';

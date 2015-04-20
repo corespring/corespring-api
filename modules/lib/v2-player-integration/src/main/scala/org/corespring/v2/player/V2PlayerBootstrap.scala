@@ -194,6 +194,9 @@ class V2PlayerBootstrap(comps: => Seq[Component],
 
     override def transform: (Item) => JsValue = itemTransformer.transformToV2Json
 
+    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
+
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = V2PlayerBootstrap.this.getOrgIdAndOptions(request)
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks {

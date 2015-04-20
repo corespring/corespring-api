@@ -47,7 +47,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
           m
         }
 
-        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]): String = "Worked"
+        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]) = Success("Worked")
       }
     }
 

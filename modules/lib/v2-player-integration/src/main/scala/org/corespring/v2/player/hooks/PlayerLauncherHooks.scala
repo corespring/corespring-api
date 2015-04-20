@@ -24,6 +24,8 @@ trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOp
 
   override def editorJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
 
+  override def catalogJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
+
   private def load(implicit header: RequestHeader): Future[PlayerJs] = Future {
 
     logger.trace(s"load js...")

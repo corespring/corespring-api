@@ -132,6 +132,7 @@ object FieldValuesApi extends BaseApi {
           }
         }
       }
+      case "domain" => Json.toJson(Standard.Domain.domains)
       case _ => {
         Cache.getAs[FieldValue](FieldValueCacheKey) match {
           case None => {
