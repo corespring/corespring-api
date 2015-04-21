@@ -65,17 +65,21 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
 
   def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): OOD
 
-  def draftParentMatchesLatest(parent: SRC, latest: SRC): Boolean
+  def hasSrcChanged(a: SRC, b: SRC): Boolean
+
   /**
    * Commit a draft back to the data store.
    */
   final def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
-    if (d.user != requester) {
+
+    if (!hasSrcChanged(d.parent.data, d.change.data)) {
+      Failure(NothingToCommit(d.id))
+    } else if (d.user != requester) {
       Failure(UserCantCommit(requester, d.user))
     } else {
       for {
         latest <- getLatestSrc(d).toSuccess(CantFindLatestSrc(d.id))
-        result <- if (!draftParentMatchesLatest(d.parent.data, latest.data) && !force) {
+        result <- if (hasSrcChanged(d.parent.data, latest.data) && !force) {
           Failure(draftIsOutOfDate(d, latest))
         } else {
           copyDraftToSrc(d)

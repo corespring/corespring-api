@@ -1,12 +1,20 @@
 package org.corespring.v2.api.drafts.item
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.{Conflict, ItemDraft}
+import org.corespring.drafts.item.models.{ Conflict, ItemDraft }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.v2.api.drafts.item.json.ItemDraftJson
 import play.api.http.Status._
-import play.api.libs.json.Json
-sealed abstract class DraftApiError(val msg: String, val statusCode: Int = BAD_REQUEST) {
+import play.api.libs.json.{ Json, JsValue }
+
+sealed abstract class DraftApiResult(val msg: String, val statusCode: Int) {
+  def json: JsValue
+}
+
+sealed abstract class DraftApiError(
+  override val msg: String,
+  override val statusCode: Int = BAD_REQUEST)
+  extends DraftApiResult(msg, statusCode) {
   def json = Json.obj("error" -> msg)
 }
 
@@ -18,11 +26,14 @@ case class draftCreationFailed(id: String) extends DraftApiError(s"Draft creatio
 
 case class cantLoadDraft(id: String) extends DraftApiError(s"Cant load draft: $id")
 
-case class draftIsOutOfDate(d:ItemDraft, item : Item) extends DraftApiError(s"The draft is out of date", CONFLICT){
+case class draftIsOutOfDate(d: ItemDraft, item: Item) extends DraftApiError(s"The draft is out of date", CONFLICT) {
   override def json = Json.obj(
     "error" -> msg,
-    "details" -> ItemDraftJson.conflict(Conflict(d,item))
-  )
+    "details" -> ItemDraftJson.conflict(Conflict(d, item)))
+}
+
+case class nothingToCommit(id: String) extends DraftApiResult(s"nothing to commit for id: $id", ACCEPTED) {
+  def json = Json.obj("note" -> msg)
 }
 
 case class generalDraftApiError(override val msg: String) extends DraftApiError(msg)

@@ -47,7 +47,7 @@ case class CreateDraftFailed(id: String) extends DraftError(s"Create draft: $id 
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")
 case class DeleteAssetsFailed(path: String) extends DraftError(s"An error occurred deleting assets: $path")
-
+case class NothingToCommit[ID](id: ID) extends DraftError(s"There's nothing to commit for draft: ${id.toString}")
 case class UserCantCommit[U](requester: U, owner: U) extends UserCant[U](requester, owner, "commit")
 case class UserCantSave[U](requester: U, owner: U) extends UserCant[U](requester, owner, "save")
 case class UserCantCreate[U, VID](requester: U, id: VID) extends DraftError(s"User $requester can't create from id $id")

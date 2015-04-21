@@ -128,7 +128,7 @@ trait ItemDrafts
 
     def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
-        if (draftParentMatchesLatest(d.parent.data, i) || ignoreConflict) {
+        if (!hasSrcChanged(d.parent.data, i) || ignoreConflict) {
           logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, (draft.parent == item)=${d.parent == i}")
           Success(d)
         } else {
@@ -140,10 +140,10 @@ trait ItemDrafts
     draft.map(failIfConflicted).getOrElse(create(VersionedId(id.itemId), requester))
   }
 
-  override def draftParentMatchesLatest(parent: Item, item: Item) = {
-    parent.taskInfo == item.taskInfo &&
-      parent.playerDefinition == item.playerDefinition &&
-      parent.supportingMaterials == item.supportingMaterials
+  override def hasSrcChanged(a: Item, b: Item) = {
+    a.taskInfo != b.taskInfo ||
+      a.playerDefinition != b.playerDefinition ||
+      a.supportingMaterials != b.supportingMaterials
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
