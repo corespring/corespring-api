@@ -71,18 +71,6 @@ class LoadImageTest extends IntegrationSpecification {
       }.getOrElse(failure("Can't load asset"))
     }
 
-    "allow blanks in image name" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pu ppy.png") {
-
-      import org.corespring.container.client.controllers.routes.Assets
-
-      val call = Assets.session(sessionId.toString, "pu ppy.png")
-      val r = makeRequest(call)
-      println(s"request $r");
-      route(r)(writeable).map { r =>
-        status(r) === OK
-      }.getOrElse(failure("Can't load asset"))
-    }
-
   }
 
 }
