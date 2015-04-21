@@ -17,7 +17,7 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexService {
+class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexService with ComponentMap {
 
   import ExecutionContext.Implicits.global
   import Base64._
@@ -45,6 +45,28 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexServ
     }
   }
 
+  def distinct(field: String): Future[Validation[Error, Seq[String]]] = {
+    try {
+      implicit val AggregationWrites = ItemIndexAggregation.Writes
+      val agg = ItemIndexAggregation(field = field)
+      WS.url(baseUrl + "/content/_search").withHeaders(authHeader)
+        .post(Json.toJson(agg))
+        .map(result => {
+          Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]
+            .map(obj  => (obj \ "key").as[String]))
+        })
+    } catch {
+      case e: Exception => future { Failure(new Error(e.getMessage)) }
+    }
+  }
+
+  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] =
+    distinct("taskInfo.itemTypes").map(result => result.map(itemTypes => itemTypes.map(itemType =>
+      componentMap.get(itemType).map(t => t.nonEmpty match {
+        case true => Some(t -> itemType)
+        case _ => None
+      }).flatten
+    ).flatten.toMap))
 }
 
 object ElasticSearchItemIndexService extends ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)

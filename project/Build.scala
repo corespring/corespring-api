@@ -98,6 +98,7 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       sprayCaching,
+      componentLoader,
       playTest % "test",
       scalaFaker))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)

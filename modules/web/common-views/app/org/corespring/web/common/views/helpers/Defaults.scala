@@ -4,11 +4,15 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
 import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.platform.core.services.item._
 import play.api.Play
 import play.api.Play.current
-import play.api.libs.json.{JsObject, JsArray, JsValue, Json}
+import play.api.libs.json._
 
-object Defaults {
+import scala.concurrent.Await
+
+
+class Defaults(itemIndexService: ItemIndexService) {
 
   val propsFile = "/buildInfo.properties"
 
@@ -60,20 +64,12 @@ object Defaults {
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
 
-  // TODO: Pull these from the index?
-  private val v2ItemTypes = JsArray(Map(
-    "Drag And Drop" -> "corespring-drag-and-drop",
-    "Evaluate an Expression" -> "corespring-function-entry",
-    "Graph Lines" -> "corespring-line",
-    "Multiple Choice" -> "corespring-multiple-choice",
-    "Numbered Lines" -> "corespring-numbered-lines",
-    "Open Ended Answer" -> "corespring-extended-text-entry",
-    "Ordering" -> "corespring-ordering",
-    "Plot Points" -> "corespring-point-intercept",
-    "Select Evidence in Text" -> "corespring-select-text",
-    "Short Answer - Drop Down" -> "corespring-inline-choice",
-    "Short Answer - Enter Text" -> "corespring-text-entry",
-    "Visual Choice" -> "corespring-focus-task"
-  ).map{ case(value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq)
+  lazy val v2ItemTypes = JsArray({
+    import scala.concurrent.duration._
+    Await.result(itemIndexService.componentTypes, Duration(10, SECONDS))
+      .getOrElse(throw new Exception("Could not run aggregate query on ElasticSearch node"))
+  }.map{ case(value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq)
 
 }
+
+object Defaults extends Defaults(ElasticSearchItemIndexService)
