@@ -4,7 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.DraftIsOutOfDate
+import org.corespring.drafts.errors.{ NothingToCommit, DraftIsOutOfDate }
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.models.{ Conflict => ItemConflict }
@@ -21,6 +21,8 @@ import play.api.Play
 import scalaz.{ Failure, Success }
 
 class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mockito {
+
+  sequential
 
   lazy val db = Db.salatDb()(Play.current)
 
@@ -74,6 +76,7 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
       /** Check that the user may create the draft for the given src id */
       override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
 
+      override protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
     }
   }
 
@@ -122,45 +125,72 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
           case Success(d) => failure("should have failed")
           case Failure(e) => {
-            e.msg must_== DraftIsOutOfDate(draft, ItemSrc(updatedItem)).msg
+            e.msg must_== ItemDraftIsOutOfDate(draft, ItemSrc(updatedItem)).msg
           }
         }
       }
     }
 
     "commit" should {
+
+      "return an error if there is nothing to commit" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val commit = drafts.commit(orgAndUser)(draft) must_== Failure(NothingToCommit(draft.id))
+      }
+
       "allow a commit if the parent matches the item" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
-        val commit = drafts.commit(orgAndUser)(draft).toOption.get
+        val update = draft.mkChange(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        val commit = drafts.commit(orgAndUser)(update).toOption.get
         commit.draftId must_== draft.id
         commit.srcId must_== item.id
         commit.user must_== orgAndUser
       }
 
-      "not allow a commit if the parent does not match the item" in new orgAndUserAndItem {
+      "return an ItemDraftIsOutOfDate error commit if the parent does not match the item" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val update = draft.mkChange(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
-      }
-
-      "flags the draft as conflicted if the parent does not match the item" in new orgAndUserAndItem {
-        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
-        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        drafts.commit(orgAndUser)(draft) must_== Failure(DraftIsOutOfDate(draft.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
-        drafts.load(orgAndUser)(draft.id).toOption.get.hasConflict must_== true
+        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(ItemServiceWired.findOneById(itemId).get)))
       }
 
       "allow a forced commit of a conflicted item" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
         val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("!!"))))
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        drafts.commit(orgAndUser)(update) must_== Failure(DraftIsOutOfDate(update.copy(hasConflict = true), ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(ItemServiceWired.findOneById(itemId).get)))
         drafts.commit(orgAndUser)(update, true) match {
           case Success(commit) => success
           case _ => failure("should have been successful")
         }
         update.change.data.playerDefinition.map(_.xhtml) must_== Some("!!")
         ItemServiceWired.findOneById(itemId).get.playerDefinition.map(_.xhtml) must_== Some("!!")
+      }
+
+      "updates the draft parent so subsequent commits will work" in new orgAndUserAndItem {
+        val draftOne = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val updateOne = draftOne.mkChange(draftOne.change.data.copy(playerDefinition = Some(PlayerDefinition("1"))))
+        drafts.commit(orgAndUser)(updateOne).isSuccess must_== true
+        val draftTwo = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        draftTwo.parent.data.playerDefinition must_== Some(PlayerDefinition("1"))
+      }
+
+      "allows multiple commits" in new orgAndUserAndItem {
+        val draftOne = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val updateOne = draftOne.mkChange(draftOne.change.data.copy(playerDefinition = Some(PlayerDefinition("1"))))
+        drafts.commit(orgAndUser)(updateOne).isSuccess must_== true
+
+        val draftTwo = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        draftTwo.parent.data.playerDefinition must_== Some(PlayerDefinition("1"))
+        val updateTwo = draftTwo.mkChange(draftTwo.change.data.copy(playerDefinition = Some(PlayerDefinition("2"))))
+        updateTwo.parent.data.playerDefinition must_== Some(PlayerDefinition("1"))
+        drafts.commit(orgAndUser)(updateTwo).isSuccess must_== true
+
+        val draftThree = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        draftThree.parent.data.playerDefinition must_== Some(PlayerDefinition("2"))
+        val updateThree = draftThree.mkChange(draftThree.change.data.copy(playerDefinition = Some(PlayerDefinition("3"))))
+        updateThree.parent.data.playerDefinition must_== Some(PlayerDefinition("2"))
+        drafts.commit(orgAndUser)(updateThree).isSuccess must_== true
       }
     }
 

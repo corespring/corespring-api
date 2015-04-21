@@ -41,8 +41,6 @@ trait ItemDraftService {
     })
   }
 
-  def hasConflict(id: DraftId): Option[Boolean] = load(id).map { d => d.hasConflict }
-
   def owns(ou: OrgAndUser, id: DraftId) = {
     val orgMatches = ou.org.id == id.orgId
     val userMatches = ou.user.map(_.userName == id.name)

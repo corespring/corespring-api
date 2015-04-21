@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Src, Drafts }
+import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -13,7 +13,7 @@ import org.joda.time.DateTime
 import play.api.Logger
 
 import scalaz.Scalaz._
-import scalaz.{ ValidationNel, Failure, Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
@@ -138,9 +138,11 @@ trait ItemDrafts
   }
 
   override def hasSrcChanged(a: Item, b: Item) = {
-    a.taskInfo != b.taskInfo ||
-      a.playerDefinition != b.playerDefinition ||
-      a.supportingMaterials != b.supportingMaterials
+    val taskInfo = a.taskInfo != b.taskInfo
+    val playerDef = a.playerDefinition != b.playerDefinition
+    val supportingMaterials = a.supportingMaterials != b.supportingMaterials
+    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials")
+    taskInfo || playerDef || supportingMaterials
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)

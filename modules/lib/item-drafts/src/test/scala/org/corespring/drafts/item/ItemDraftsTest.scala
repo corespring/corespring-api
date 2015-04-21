@@ -83,12 +83,14 @@ class ItemDraftsTest extends Specification with Mockito {
 
     /** Check that the user may create the draft for the given src id */
     override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
+    override protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
 
     val draftService: ItemDraftService = mockDraftService
 
     val assets: ItemDraftAssets = mockAssets
 
     val commitService: CommitService = mockCommitService
+
   }
 
   def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
@@ -125,61 +127,6 @@ class ItemDraftsTest extends Specification with Mockito {
       "succeed" in new __(true, true, true) {
         remove(ed)(oid) must_== Success(oid)
       }
-    }
-
-    "publish" should {
-
-      class __(
-        load: Boolean,
-        val latestSrc: Option[Item],
-        itemPublish: Boolean,
-        removeDrafts: Boolean) extends Scope with MockItemDrafts {
-
-        val draft = mkDraft(ed, item)
-
-        mockDraftService.load(any[DraftId]) returns {
-          if (load) Some(draft) else None
-        }
-
-        mockItemService.findOneById(any[VersionedId[ObjectId]]) returns latestSrc
-        mockItemService.publish(any[VersionedId[ObjectId]]) returns itemPublish
-
-        mockDraftService.removeNonConflictingDraftsForOrg(any[ObjectId], any[ObjectId]) returns {
-          Seq.empty
-        }
-
-        mockAssets.deleteDrafts(any[DraftId]) returns {
-          Seq(if (removeDrafts) Success(Unit) else Failure(TestError("delete-drafts")))
-        }
-      }
-
-      "fail if load draft failed" in new __(false, None, false, false) {
-        publish(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
-      }
-
-      "fail if loading latest src fails" in new __(true, None, false, false) {
-        publish(ed)(oid) must_== Failure(CantFindLatestSrc(oid))
-      }
-
-      "fail if loading latest src doesnt match draft" in
-        new __(true, Some(item.cloneItem), true, false) {
-          publish(ed)(oid) must_== Failure(DraftIsOutOfDate(draft, ItemSrc(latestSrc.get)))
-        }
-
-      "fail if itemService.publish failed" in
-        new __(true, Some(item), false, false) {
-          publish(ed)(oid) must_== Failure(PublishItemError(item.id))
-        }
-
-      "fail if removeNonConflictingDrafts failed" in
-        new __(true, Some(item), true, false) {
-          publish(ed)(oid) must_== Failure(RemoveDraftFailed(List(TestError("delete-drafts"))))
-        }
-
-      "succeed" in
-        new __(true, Some(item), true, true) {
-          publish(ed)(oid) must_== Success(item.id)
-        }
     }
 
     "load" should {
@@ -302,7 +249,7 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "not update the item if is has a conflict" in new __(
-        Some(mkDraft(ed, item).copy(hasConflict = true)),
+        Some(mkDraft(ed, item)),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
           case Success(draft) => draft.parent.data must_== item
@@ -311,7 +258,7 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "update the item if is has a conflict" in new __(
-        Some(mkDraft(ed, item).copy(hasConflict = false)),
+        Some(mkDraft(ed, item)),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
           case Success(draft) => draft.parent.data must_== getUnpublishedVersion.get
