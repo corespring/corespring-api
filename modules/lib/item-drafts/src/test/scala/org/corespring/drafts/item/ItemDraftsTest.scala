@@ -230,9 +230,9 @@ class ItemDraftsTest extends Specification with Mockito {
     "loadOrCreate" should {
 
       class __(
-        load: Option[ItemDraft] = None,
+        val load: Option[ItemDraft] = None,
         val getUnpublishedVersion: Option[Item] = None,
-        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
+        val createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
         extends Scope
         with MockItemDrafts {
         mockDraftService.load(any[DraftId]) returns load
@@ -244,25 +244,34 @@ class ItemDraftsTest extends Specification with Mockito {
         loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
       }
 
-      "throw an exception if it can't load unpublished item" in new __(Some(mkDraft(ed, item))) {
-        loadOrCreate(ed)(oid) must throwA[RuntimeException]
-      }
-
-      "not update the item if is has a conflict" in new __(
+      "fail if the draft.parent is out of date" in new __(
         Some(mkDraft(ed, item)),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.parent.data must_== item
-          case Failure(e) => failure("should have been successful")
+          case Success(draft) => failure("should have failed")
+          case Failure(ItemDraftIsOutOfDate(d, i)) => {
+            d must_== load.get
+            i must_== ItemSrc(getUnpublishedVersion.get)
+          }
         }
       }
 
-      "update the item if is has a conflict" in new __(
-        Some(mkDraft(ed, item)),
-        Some(item.cloneItem)) {
+      "return a new item if the draft isn't found" in new __(
+        None,
+        None,
+        Success(mkDraft(ed, item))) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.parent.data must_== getUnpublishedVersion.get
-          case Failure(e) => failure("should have been successful")
+          case Success(draft) => draft must_== createResult.toOption.get
+          case Failure(ItemDraftIsOutOfDate(d, i)) => failure("should have been successful")
+        }
+      }
+
+      "return the draft if found" in new __(
+        Some(mkDraft(ed, item)),
+        Some(item)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft must_== load.get
+          case Failure(_) => failure("should have been successful")
         }
       }
     }
