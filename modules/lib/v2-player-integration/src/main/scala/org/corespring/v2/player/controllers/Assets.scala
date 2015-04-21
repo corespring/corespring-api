@@ -46,7 +46,7 @@ trait Assets extends ContainerAssets {
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
       dr <- getResource(item, resourceName).toSuccess(generalError("Can't find resource"))
       (isItemDataResource, resource) = dr
-      file <- resource.files.find(compareToFile(_)).toSuccess(generalError(s"Can't find file with name $file"))
+      file <- resource.files.find(compareToFile).toSuccess(generalError(s"Can't find file with name $file"))
     } yield file.asInstanceOf[StoredFile]
 
     storedFile match {

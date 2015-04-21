@@ -71,6 +71,26 @@ class LoadImageTest extends IntegrationSpecification {
       }.getOrElse(failure("Can't load asset"))
     }
 
-  }
+    "work when imagePath is encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup%20py.png") {
 
+      import org.corespring.container.client.controllers.routes.Assets
+
+      val call = Assets.session(sessionId.toString, "pup%20py.png")
+      val r = makeRequest(call)
+      route(r)(writeable).map { r =>
+        status(r) === OK
+      }.getOrElse(failure("Can't load asset"))
+    }
+
+    "work when imagePath is not encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup py.png") {
+
+      import org.corespring.container.client.controllers.routes.Assets
+
+      val call = Assets.session(sessionId.toString, "pup%20py.png")
+      val r = makeRequest(call)
+      route(r)(writeable).map { r =>
+        status(r) === OK
+      }.getOrElse(failure("Can't load asset"))
+    }
+  }
 }
