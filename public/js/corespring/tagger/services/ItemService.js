@@ -99,11 +99,7 @@ angular.module('tagger.services')
     function ItemDraftService(){
 
       this.publish = function(id, onSuccess, onError) {
-        var url = '/api/v2/items/drafts/' + id + '/publish';
-
-        $http.put(url)
-          .success(onSuccess)
-          .error(onError);
+        throw new Error('publish on drafts not supported');
       };
 
       this.clone = function(id, onSuccess, onError){
@@ -134,9 +130,8 @@ angular.module('tagger.services')
           .error(onError);
       };
 
-      this.deleteDraft = function(id, onSuccess, onError){
-        var url = '/api/v2/items/drafts/' + id;
-
+      this.deleteByItemId = function(id, onSuccess, onError){
+        var url = '/api/v2/items/drafts/' + id + '?all=true';
         $http['delete'](url)
           .success(onSuccess)
           .error(onError);
@@ -206,28 +201,17 @@ angular.module('tagger.services')
 
     ItemService.prototype.saveNewVersion = function(onSuccess, onError){
       var url = "/api/v2/items/:id/save-new-version".replace(":id", this.id);
-      var successCallback = function(data){
-          onSuccess(data);
-      };
-
       $http.put(url, {})
-          .success(successCallback)
-          .error(onError);
-
+        .success(onSuccess)
+        .error(onError);
     };
 
     ItemService.prototype.publish = function(onSuccess, onError, id){
-
         id = id || this.id;
         var url = "/api/v2/items/:id/publish".replace(":id", id);
-        var successCallback = function(data){
-            onSuccess(data);
-        };
-
         $http.put(url, {})
-            .success(successCallback)
-            .error(onError);
-
+          .success(onSuccess)
+          .error(onError);
     };
 
     ItemService.prototype.clone = function( onSuccess, onError) {

@@ -81,13 +81,13 @@ trait ItemDrafts extends Controller with MakeDraftId {
       result => DraftCloneResultJson(result))
   }
 
-  def publish(id: String) = draftsAction(id) { (user, draftId, _) =>
-    for {
-      vid <- drafts.publish(user)(draftId).leftMap(e => generalDraftApiError(e.msg))
-    } yield {
-      Json.obj("itemId" -> vid.toString)
-    }
-  }
+  // def publish(id: String) = draftsAction(id) { (user, draftId, _) =>
+  //   for {
+  //     vid <- drafts.publish(user)(draftId).leftMap(e => generalDraftApiError(e.msg))
+  //   } yield {
+  //     Json.obj("itemId" -> vid.toString)
+  //   }
+  // }
 
   /**
    * Returning the item json as part of the api doesn't really make sense
@@ -110,11 +110,19 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
-  def delete(id: String) = draftsAction(id) { (user, draftId, _) =>
-    drafts.remove(user)(draftId)
-      .bimap(
-        e => generalDraftApiError(e.msg),
-        _ => Json.obj("id" -> draftId.toString))
+  def delete(id: String, all: Option[Boolean]) = draftsAction(id) { (user, draftId, _) =>
+
+    if (all.getOrElse(false)) {
+      drafts.removeByItemId(user)(draftId.itemId).bimap(
+        toApiResult,
+        itemId => Json.obj("itemId" -> itemId.toString,
+          "id" -> draftId.toIdString))
+    } else {
+      drafts.remove(user)(draftId)
+        .bimap(
+          e => generalDraftApiError(e.msg),
+          _ => Json.obj("id" -> draftId.toIdString))
+    }
   }
 
   def getDraftsForOrg = Action.async { request =>

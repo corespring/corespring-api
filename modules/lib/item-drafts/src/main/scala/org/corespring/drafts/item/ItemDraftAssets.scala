@@ -13,6 +13,7 @@ trait ItemDraftAssets {
   def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
   def deleteDraft(draftId: DraftId): Validation[DraftError, Unit]
   def deleteDrafts(draftId: DraftId*): Seq[Validation[DraftError, Unit]]
+  def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit]
 }
 
 /**
@@ -40,7 +41,9 @@ object S3Paths {
     id.replace(":", "/")
   }
 
-  def draftFolder(id: DraftId): String = s"item-drafts/${id.orgId}/${id.itemId}/${id.name}"
+  def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-$itemId"
+
+  def draftFolder(id: DraftId): String = s"${draftItemIdFolder(id.itemId)}/org-${id.orgId}/${id.name}"
 
   def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 
@@ -77,6 +80,14 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
 
   override def deleteDrafts(ids: DraftId*): Seq[Validation[DraftError, Unit]] = {
     ids.map { deleteDraft }
+  }
+
+  override def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit] = {
+    val path = S3Paths.draftItemIdFolder(itemId)
+    utils.deleteDir(path) match {
+      case true => Success(Unit)
+      case false => Failure(DeleteAssetsFailed(path))
+    }
   }
 
   override def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]] = {

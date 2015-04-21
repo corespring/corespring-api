@@ -94,49 +94,33 @@
       }
 
       this.edit = function(item){
-        Modals.edit(function(cancelled){
-          if(cancelled){
-            return;
-          }
+        if(item.published){
+          Modals.edit(function(cancelled){
+            if(cancelled){
+              return;
+            }
+            goToEditDraft(item.id);
+          });
+        } else {
           goToEditDraft(item.id);
-        });
+        }
       };
 
       this.publish = function(item){
-
-        var draft = _.find($scope.orgDrafts, function(d){
-          return d.itemId == item.id;
-        });
-
-        if(!draft){
-          Logger.warn('can\'t find draft for item: item.id, going to just publish the item');
-          /**
-           * Not sure if this is the correct behaviour - will check w/ gwen/whitney
-           */
-          item.publish(
-            function(){
-              $scope.search();
-            },
-            function(err){
-              Logger.error(err);
-            }
-          );
-        } else {
-          ItemDraftService.publish(draft.id,
-            function(result){
-              $scope.search();
-            },
-            function(err){
-              Logger.error(err);
-            }
-          );
-        }
+        item.publish(
+          function(){
+            $scope.search();
+          },
+          function(err){
+            Logger.error(err);
+          }
+        );
       };
 
       this.cloneItem = function(item){
         V2ItemService.clone({id: item.id},
           function success(newItem){
-            makeADraft(newItem.id, goToEditDraft);
+            goToEditDraft(newItem.id);
           },
           function error(err){
             alert('cloneItem:', JSON.stringify(err));
@@ -179,26 +163,25 @@
     $scope.deleteItem = function(item) {
       Modals['delete'](function(cancelled){
         if(!cancelled){
-          ItemService.remove({ id: item.id },
-            function(result) {
-              $scope.search();
+          ItemDraftService.deleteByItemId(
+            item.id, 
+            function draftsDeleted(result){
+              ItemService.remove(
+                { id: item.id },
+                function(result) {
+                  Logger.debug('item removed');
+                  $scope.search();
+                },
+                function error(err){
+                  Logger.error(err);
+                }
+              );
+            }, 
+            function error(err){
+              Logger.error(err);
             });
         }
       });
-    };
-
-    $scope.deleteDraft = function(draft){
-      ItemDraftService.deleteDraft(draft.id,
-        function(result){
-          console.log('deleting draft, successful');
-          $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
-            return d.id === draft.id;
-          });
-        },
-        function(err){
-          console.warn('Error deleting draft');
-        }
-      );
     };
 
     function openPreview(id) {

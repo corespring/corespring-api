@@ -62,6 +62,14 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def commitService: CommitService = Services.this.itemCommitService
 
     override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = {
+      hasWriteAccess(id, user)
+    }
+
+    override protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = {
+      hasWriteAccess(id, user)
+    }
+
+    private def hasWriteAccess(id: VersionedId[ObjectId], user: OrgAndUser) = {
       itemService.collection.findOne(MongoDBObject("_id._id" -> id.id), MongoDBObject("collectionId" -> 1)).map { dbo =>
         try {
           val collectionId = dbo.get("collectionId").asInstanceOf[String]
