@@ -11,6 +11,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.utils.UriEncoding
 
 trait Assets extends ContainerAssets {
 
@@ -30,13 +31,18 @@ trait Assets extends ContainerAssets {
   def loadAsset(itemId: String, resourceName: String, file: String)(request: Request[AnyContent]): SimpleResult = {
 
     lazy val decodedFilename = java.net.URI.create(file).getPath
+    lazy val encodedFilename = UriEncoding.encodePathSegment(file, "utf-8")
+
+    logger.debug(s"loadAsset: itemId: $itemId, file: $file, decodedFilename: $decodedFilename, encoded: $encodedFilename resourceName: $resourceName")
 
     val storedFile : Validation[V2Error, StoredFile] = for {
       id <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
       dr <- getResource(item, resourceName).toSuccess(generalError("Can't find resource"))
       (isItemDataResource, resource) = dr
-      file <- resource.files.find((f:BaseFile) => f.name == file || f.name == decodedFilename).toSuccess(generalError(s"Can't find file with name $decodedFilename"))
+      file <- resource.files.find((f:BaseFile) =>
+        f.name == file || f.name == decodedFilename || f.name == encodedFilename
+      ).toSuccess(generalError(s"Can't find file with name $file"))
     } yield file.asInstanceOf[StoredFile]
 
 
