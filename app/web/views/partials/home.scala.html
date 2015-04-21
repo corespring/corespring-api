@@ -262,7 +262,7 @@
 
 <div class="row" style="padding-top: 90px">
     <div class="container-fluid" when-scrolled="loadMore()" watch="itemDataCollection">
-        <table class="table content-sort">
+        <table class="table content-sort table-striped">
             <thead>
             <tr>
                 <th sort-column-header field="title" >Title</th>
@@ -286,7 +286,7 @@
                 <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
                 <td class="new-window" ng-click="itemClick()">
                     <a ui-jq="tooltip"
-                       ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+                       ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td class="new-window" ng-click="itemClick()">{{getAuthorAbbreviation(item.contributor)}}</td>
                 <td class="new-window" ng-click="itemClick()">{{publishStatus(item.published)}}</td>

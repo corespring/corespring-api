@@ -177,7 +177,7 @@ angular.module('corespring-utils')
           }
           var wordArray = standards[i].standard.split(/\W+/);
 
-          var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "...<br />" : wordArray.join(" ");
+          var standardLabel = wordArray.length > 12 ? wordArray.splice(0, 12).join(" ") + "...<br />" : wordArray.join(" ");
           out.push(standards[i].dotNotation + ": " + standardLabel);
         }
 
