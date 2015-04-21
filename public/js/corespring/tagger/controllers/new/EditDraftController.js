@@ -22,8 +22,8 @@ function EditDraftController(
   $location,
   $routeParams,
   ItemDraftService,
+  ItemService,
   Logger,
-  ItemSessionCountService,
   Modals) {
 
   $scope.devEditorVisible = false;
@@ -35,6 +35,8 @@ function EditDraftController(
    .join('');
 
   var devEditor = '/v2/player/dev-editor/' + $routeParams.itemId + '/index.html';
+
+  var itemService = new ItemService({id: $routeParams.itemId});
 
   $scope.backToCollections = function(){
     $location.path("/home").search('');
@@ -54,18 +56,23 @@ function EditDraftController(
   	}
   };
 
-  function commit(force) {
+  function commit(force, done) {
+
+    done = done || function(){};
+
   	ItemDraftService.commit($scope.itemId, force, function success(){
   		Logger.info('commit successful');
   		$scope.draftIsConflicted = false;
+      done();
   	}, function error(err){
   		Logger.warn(err);
       Modals.commitFailedDueToConflict(function(cancelled){
   		  $scope.draftIsConflicted = true;
         if(cancelled){
+          done();
           return;
         }
-        commit(true);
+        commit(true, done);
       });
   	});
   }
@@ -88,13 +95,15 @@ function EditDraftController(
         if(cancelled){
           return;
         }
-        ItemDraftService.publish($scope.itemId, function(result){
-          Logger.info('publish complete');
-          Logger.info(result);
-          $location.path('/home');
-        },
-        function(err){
-          Logger.error(err);
+
+        commit(false, function(){
+          itemService.publish(function success(){
+            $scope.backToCollections();
+          }, 
+          function err(e){
+            Logger.error('Error publishing: ', e);
+          }, 
+          $scope.itemId);
         });
     });
   };
@@ -156,8 +165,8 @@ EditDraftController.$inject = [
   '$location',
   '$routeParams',
   'ItemDraftService',
+  'ItemService',
   'Logger',
-  'ItemSessionCountService',
   'Modals'
 ];
 

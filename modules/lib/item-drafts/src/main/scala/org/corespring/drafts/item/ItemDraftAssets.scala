@@ -6,6 +6,7 @@ import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models.{ DraftId, ItemDraft }
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }
 trait ItemDraftAssets {
@@ -55,13 +56,19 @@ object S3Paths {
 trait S3ItemDraftAssets extends ItemDraftAssets {
   def s3: AmazonS3Client
 
+  lazy val logger = Logger(classOf[S3ItemDraftAssets])
+
   def bucket: String
 
   def utils = new AssetUtils(s3, bucket)
 
-  private def cp[A](from: String, to: String, id: A): Validation[DraftError, A] = utils.copyDir(from, to) match {
-    case true => Success(id)
-    case false => Failure(CopyAssetsFailed(from, to))
+  private def cp[A](from: String, to: String, id: A): Validation[DraftError, A] = {
+    logger.debug(s"function=cp from=$from to=$to id=$id")
+
+    utils.copyDir(from, to) match {
+      case true => Success(id)
+      case false => Failure(CopyAssetsFailed(from, to))
+    }
   }
 
   override def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId] = {

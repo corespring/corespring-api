@@ -1,12 +1,10 @@
 package org.corespring.v2.api.drafts.item
 
-import org.bson.types.ObjectId
-import org.corespring.drafts.errors.{ NothingToCommit, DraftIsOutOfDate, DraftError }
-import org.corespring.drafts.item.models.{ ItemSrc, ItemDraft, DraftId, OrgAndUser }
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, ItemDraftIsOutOfDate, MakeDraftId }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
+import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
+import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, Controller, RequestHeader, SimpleResult }
@@ -80,14 +78,6 @@ trait ItemDrafts extends Controller with MakeDraftId {
       e => generalDraftApiError(e.msg),
       result => DraftCloneResultJson(result))
   }
-
-  // def publish(id: String) = draftsAction(id) { (user, draftId, _) =>
-  //   for {
-  //     vid <- drafts.publish(user)(draftId).leftMap(e => generalDraftApiError(e.msg))
-  //   } yield {
-  //     Json.obj("itemId" -> vid.toString)
-  //   }
-  // }
 
   /**
    * Returning the item json as part of the api doesn't really make sense

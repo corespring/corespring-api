@@ -71,24 +71,6 @@ trait ItemDrafts
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId).toSeq
 
-  // def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
-  //   d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-  //   commit <- commit(user)(d)
-  //   publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.parent.id))
-  //   deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
-  // } yield {
-  //   commit.srcId
-  // }
-
-  // protected def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Validation[DraftError, ObjectId] = {
-  //   def v(v: Validation[DraftError, Unit]): ValidationNel[DraftError, Unit] = v.toValidationNel
-  //   val out = for {
-  //     ids <- Success(draftService.removeNonConflictingDraftsForOrg(itemId, orgId))
-  //     deleteComplete <- assets.deleteDrafts(ids: _*).toList.traverseU(v)
-  //   } yield ids
-  //   out.bimap[DraftError, ObjectId](errs => RemoveDraftFailed(errs.list), _ => itemId)
-  // }
-
   def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
     if (draftService.owns(user, draftId)) {
       draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
@@ -99,8 +81,8 @@ trait ItemDrafts
 
   def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(user)(draftId)
-    itemId <- Success(VersionedId(ObjectId.get))
-    vid <- itemService.save(d.parent.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    cloned <- Success(d.change.data.cloneItem)
+    vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
     newDraft <- create(vid, user)
   } yield DraftCloneResult(vid, newDraft.id)
 
@@ -123,7 +105,6 @@ trait ItemDrafts
     } yield draft
   }
 
-  //get the conflict
   def conflict(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, Option[Conflict]] = {
     for {
       d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toIdString))
@@ -144,8 +125,8 @@ trait ItemDrafts
 
     def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
+        logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, hasSrcChanged(parent, latest)=${hasSrcChanged(d.parent.data, i)}")
         if (!hasSrcChanged(d.parent.data, i) || ignoreConflict) {
-          logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, (draft.parent == item)=${d.parent == i}")
           Success(d)
         } else {
           Failure(draftIsOutOfDate(d, ItemSrc(i)))
