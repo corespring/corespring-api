@@ -70,5 +70,7 @@ class LoadImageTest extends IntegrationSpecification {
         status(r) === OK
       }.getOrElse(failure("Can't load asset"))
     }
+
   }
+
 }
