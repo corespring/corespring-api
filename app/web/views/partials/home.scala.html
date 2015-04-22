@@ -1,3 +1,5 @@
+<!-- Delete Modal -->
+
 <div ui-modal ng-model="showConfirmDestroyModal" style="padding: 20px">
     <h2>Delete Item</h2>
     <br/>
@@ -7,10 +9,13 @@
     <button ng-click="deleteConfirmed()" class="btn btn-danger">Yes</button>
     <button class="btn btn-info" ng-click="deleteCancelled()">No</button>
 </div>
+<!-- //Delete Modal -->
+
+
 <div ui-modal class="create-collection-pane" ng-model="uiState.showCollectionsPane" style="padding: 20px" ng-controller="CreateCollection" ng-click="paneClicked()">
     <div class="modal-header create-collections">
 
-        <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false">×</span>
+        <span class="close close-window-button" style="display: inline-block;" ng-click="uiState.showCollectionsPane = false">× asads</span>
         <div class="header">
             <button type="button" class="btn btn-default" ng-click="viewState = 'org'" ng-disabled="viewState == 'org'">{{orgName}} Collections</button>
             <button type="button" class="btn btn-default" ng-click="viewState = 'shared'" ng-disabled="viewState == 'shared'">Shared Collections</button>
@@ -262,12 +267,12 @@
 
 <div class="row" style="padding-top: 90px">
     <div class="container-fluid" when-scrolled="loadMore()" watch="itemDataCollection">
-        <table class="table content-sort">
+        <table class="table content-sort table-striped">
             <thead>
             <tr>
                 <th sort-column-header field="title" >Title</th>
                 <th sort-column-header field="description">Description</th>
-                <th>Primary Subject</th>
+                <th sort-column-header field="primarySubject">Primary Subject</th>
                 <th sort-column-header field="gradeLevel">Grade</th>
                 <th sort-column-header field="itemType">Item Type</th>
                 <th>Standard(s)</th>
@@ -286,7 +291,7 @@
                 <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
                 <td class="new-window" ng-click="itemClick()">
                     <a ui-jq="tooltip"
-                       ui-options="{title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
+                       ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}">{{buildStandardLabel(item.standards)}}</a>
                 </td>
                 <td class="new-window" ng-click="itemClick()">{{getAuthorAbbreviation(item.contributor)}}</td>
                 <td class="new-window" ng-click="itemClick()">{{publishStatus(item.published)}}</td>
