@@ -1,4 +1,8 @@
-@(templates: List[_root_.org.corespring.platform.core.models.web.QtiTemplate], dbServer : String, dbName : String, username:String, userOrg: org.corespring.platform.core.models.Organization )
+@(templates: List[_root_.org.corespring.platform.core.models.web.QtiTemplate],
+dbServer : String,
+dbName : String,
+user:org.corespring.platform.core.models.User,
+userOrg: org.corespring.platform.core.models.Organization )
 
 @import web.views.helpers.MainHelper
 
@@ -15,7 +19,10 @@
     @org.corespring.web.common.views.html.head.coreJs()
     @org.corespring.web.common.views.html.head.mathMl()
     <!-- TODO: move to 2.1.1 -->
+    <!-- DONE:  moved to 3.3.4 -->
     @org.corespring.web.common.views.html.head.bootstrap("2.0.3")
+    <!-- org.corespring.web.common.views.html.head.bootstrap("3.3.4") -->
+
     @org.corespring.web.common.views.html.head.angular()
     @org.corespring.web.common.views.html.head.select2()
     @org.corespring.web.common.views.html.head.aceEditor()
@@ -26,7 +33,7 @@
 
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
     <link href="/assets/stylesheets/item-chooser.css" rel="stylesheet"/>
-
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script type="text/javascript">
 
         //init the bootstrap dropdowns - TODO: make this a directive?
@@ -36,7 +43,8 @@
         angular.module('tagger-context')
                 .factory('UserInfo', function(){
                     return {
-                        userName: "@username",
+                        userName: "@user.userName",
+                        fullName: "@user.fullName",
                         org: @MainHelper.toFullJson(userOrg)
                     }
 
@@ -69,7 +77,8 @@
 </head>
 <body>
 
-    @org.corespring.web.common.views.html.mainNav(templates, username)
+    @org.corespring.web.common.views.html.mainNav(templates, user.fullName)
+
 
   <div class="error-box" ui-modal ng-model="showErrorBox">
     <h3>An error has occured</h3>
@@ -85,5 +94,47 @@
     <button class="btn btn-info acknowledge-button" ng-click="errorAcknowledged()">Ok</button>
   </div>
     <div ng-view class="extra-large-window"></div>
+
+<div ui-modal ng-model="modals.delete.show" style="padding: 20px">
+    <h2>Delete Item</h2>
+    <br/>
+    <p>Are you sure? This can't be undone.</p>
+    <button class="btn" ng-click="modals.delete.done(true)">Cancel</button>
+    <button ng-click="modals.delete.done()" class="btn btn-danger">Delete</button>
+</div>
+
+<div ui-modal ng-model="modals.edit.show" style="padding: 20px">
+  <h2>Edit</h2>
+  <br/>
+  <p>Are you sure? This means that the changes won't be live until you click 'Publish'</p>
+  <button class="btn" ng-click="modals.edit.done(true)">Cancel</button>
+  <button ng-click="modals.edit.done()" class="btn btn-primary">Edit</button>
+</div>
+
+<div ui-modal ng-model="modals.publish.show" style="padding: 20px">
+  <h2>Publish</h2>
+  <br/>
+  <p>Are you sure? This means that the item will be live in your collection and will be ready for selection and use.</p>
+  <button class="btn" ng-click="modals.publish.done(true)">Cancel</button>
+  <button ng-click="modals.publish.done()" class="btn btn-primary">Publish</button>
+</div>
+
+<div ui-modal ng-model="modals.saveConflictedDraft.show" style="padding: 20px">
+  <h2>Save</h2>
+  <br/>
+  <p>Are you sure? Saving this will overwrite existing changes to the item?</p>
+  <button class="btn" ng-click="modals.saveConflictedDraft.done(true)">Cancel</button>
+  <button ng-click="modals.saveConflictedDraft.done()" class="btn btn-primary">Save</button>
+</div>
+
+<div ui-modal ng-model="modals.commitFailedDueToConflict.show" style="padding: 20px">
+  <h2>Save Failed</h2>
+  <br/>
+  <p>Couldn't save - someone else has updated the item. Do you want to overwrite their changes?</p>
+  <button class="btn" ng-click="modals.commitFailedDueToConflict.done(false)">Overwrite</button>
+  <button class="btn" ng-click="modals.commitFailedDueToConflict.done(true)">Close</button>
+</div>
+
+
 </body>
 </html>

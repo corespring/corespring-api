@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.corespring.platform.core.controllers.auth.TokenReader
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.errors.Errors.{ invalidToken, noOrgForToken, noToken }
 import org.corespring.v2.errors.V2Error
@@ -18,9 +18,9 @@ trait TokenOrgIdentity[B]
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "TokenOrgIdentity")
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = {
+  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     def onToken(token: String) = tokenService.orgForToken(token)(rh).map { o =>
-      Success(o)
+      Success(o, None)
     }.getOrElse(Failure(noOrgForToken(rh)))
 
     def onError(e: String) = Failure(if (e == "Invalid token") invalidToken(rh) else noToken(rh))

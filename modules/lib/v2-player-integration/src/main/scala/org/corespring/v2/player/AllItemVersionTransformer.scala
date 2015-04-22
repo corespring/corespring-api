@@ -22,13 +22,13 @@ class AllItemVersionTransformer extends ItemTransformer {
 
   override def configuration: Configuration = Play.current.configuration
 
-  override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
+  override def findCollection(id: ObjectId) = ContentCollection.findOneById(id)
 
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
 
     override def findOneById(id: VersionedId[Imports.ObjectId]): Option[Item] = ItemServiceWired.findOneById(id)
 
-    override def save(i: Item, createNewVersion: Boolean): Unit = {
+    override def save(i: Item, createNewVersion: Boolean): Either[String, VersionedId[ObjectId]] = {
       import com.mongodb.casbah.Imports._
       import com.novus.salat._
       import org.corespring.platform.core.models.mongoContext.context
@@ -56,11 +56,14 @@ class AllItemVersionTransformer extends ItemTransformer {
 
       logger.trace(s"function=save id=${i.id} collection=${collectionToSaveIn}")
 
-      collectionToSaveIn.foreach { c => c.save(dbo) }
-
-      if (collectionToSaveIn.isEmpty) {
-        logger.warn(s"function=save - no collection found that can save the item with the id: ${i.id}")
-      }
+      collectionToSaveIn.map { c =>
+        val result = c.save(dbo)
+        if (result.getLastError.ok) {
+          Right(i.id)
+        } else {
+          Left(result.getLastError.getErrorMessage)
+        }
+      }.getOrElse(Left("Can't find a collection to save in"))
     }
   }
 }

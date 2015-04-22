@@ -30,12 +30,13 @@ class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item])
-  extends ItemService with PackageLogging with ItemFiles {
+  extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
   import org.corespring.platform.core.models.mongoContext.context
 
   RegisterJodaTimeConversionHelpers()
+
   val FieldValuesVersion = "0.0.1"
 
   lazy val collection = dao.currentCollection
@@ -44,7 +45,7 @@ class ItemServiceWired(
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
-  def clone(item: Item): Option[Item] = {
+  override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
     result match {
@@ -53,14 +54,48 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
+        files.foreach { f =>
+          f.throwable.map { e => e.printStackTrace }
+        }
         None
       }
+    }
+  }
+
+  def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
+    val base = MongoDBObject("_id._id" -> vid.id)
+    vid.version.map { v =>
+      base ++ MongoDBObject("_id.version" -> v)
+    }.getOrElse(base)
+  }
+
+  override def publish(id: VersionedId[ObjectId]): Boolean = {
+    val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
+    val result = collection.update(vidToDbo(id), update, false)
+    result.getLastError.ok
+  }
+
+  /**
+   * save a new version of the item and set published to false
+   * @param id
+   * @return the VersionedId[ObjectId] of the new item
+   */
+  override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
+    dao.get(id).flatMap { item =>
+      dao.save(item.copy(published = false), true).fold(
+        e => {
+          logger.error(s"function=saveNewUnpublishedVersion error=$e")
+          None
+        },
+        vid => Some(vid))
     }
   }
 
   def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
+
+  override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
 
   def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
 
@@ -74,9 +109,9 @@ class ItemServiceWired(
 
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
-  def save(item: Item, createNewVersion: Boolean = false) = {
+  override def save(item: Item, createNewVersion: Boolean = false): Either[String, VersionedId[ObjectId]] = {
 
-    dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
 
     if (createNewVersion) {
 
@@ -89,8 +124,11 @@ class ItemServiceWired(
         case Failure(files) => {
           dao.revertToVersion(item.id)
           files.foreach(r => if (r.successful) { s3service.delete(bucket, r.file.storageKey) })
+          Left("Cloning of files failed")
         }
       }
+    } else {
+      savedVid
     }
   }
 
@@ -133,13 +171,25 @@ class ItemServiceWired(
   }
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
-    val update = MongoDBObject("$set" -> MongoDBObject( Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
+    val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
     saveUsingDbo(id, update, false)
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
 
   def bucket: String = AppConfig.assetsBucket
+
+  override def isPublished(vid: VersionedId[casbah.Imports.ObjectId]): Boolean = {
+    val dbo = vidToDbo(vid) ++ MongoDBObject("published" -> true)
+    count(dbo) == 1
+  }
+
+  override def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item] = {
+    val unpublished = dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, "published" -> false))
+    unpublished.orElse {
+      saveNewUnpublishedVersion(id).flatMap(vid => findOneById(vid))
+    }
+  }
 
 }
 

@@ -7,6 +7,7 @@ import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -46,7 +47,7 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
 
-      override def transform: (Item, Option[String]) => JsValue = transformItemToJson
+      override def getSummaryData: (Item, Option[String]) => JsValue = transformItemToJson
 
       private def transformItemToJson(item: Item, detail: Option[String]): JsValue = {
         Json.toJson(item)

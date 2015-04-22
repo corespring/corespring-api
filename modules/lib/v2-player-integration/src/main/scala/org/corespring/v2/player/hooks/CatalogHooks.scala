@@ -1,15 +1,12 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.v2.auth.models.OrgAndOpts
-
-import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogHooks }
+import org.corespring.container.client.hooks.{CatalogHooks => ContainerCatalogHooks}
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.{LoadOrgAndOptions, ItemAuth}
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
 import org.corespring.v2.log.V2LoggerFactory
-import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.JsValue
 import play.api.mvc._
@@ -28,7 +25,7 @@ trait CatalogHooks extends ContainerCatalogHooks with LoadOrgAndOptions {
 
   private lazy val logger = V2LoggerFactory.getLogger("Catalog")
 
-  private def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  override def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     val result = for {
       oid <- VersionedId(itemId).toSuccess("Invalid object id")
       identity <- getOrgAndOptions(header)
@@ -54,9 +51,6 @@ trait CatalogHooks extends ContainerCatalogHooks with LoadOrgAndOptions {
       case Success(item) => None
       case Failure(e) => Some((UNAUTHORIZED, e.message))
     }
-
   }
-
-  override def loadItem(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = load(id)
 
 }

@@ -1,83 +1,167 @@
-'use strict';
 
-describe('HomeController', function () {
+describe('tagger.HomeController', function () {
 
-  var MockUserInfo = {};
-  // Mock dependencies
-  var MockItemService = function () {
-  };
-  MockItemService.prototype.$save = jasmine.createSpy("Resource Save");
-  MockItemService.createWorkflowObject = jasmine.createSpy("Create Workflow Object");
-
-  var MockSearchService = function () {
+  'use strict';
+  
+  function MockItemService() {
+   this.createWorkflowObject = jasmine.createSpy('createWorkflowObject');
+   this.remove = jasmine.createSpy('remove');
   }
-  MockSearchService.search = jasmine.createSpy("Search");
+
+  var cmsService, 
+  itemService, 
+  location, 
+  itemDraftService,
+  v2ItemService;
+
+  beforeEach(module('tagger.services'));
 
   beforeEach(function () {
+    location = {
+      url: jasmine.createSpy('url')
+    };
+
+    v2ItemService = {
+      clone: jasmine.createSpy('clone')
+    };
+
+    itemDraftService = {
+      getDraftsForOrg: jasmine.createSpy('getDraftsForOrg'),
+      createUserDraft: jasmine.createSpy('createUserDraft').andCallFake(function(id, success,error){
+        success({id: 'd3'});
+      }),
+      publish: jasmine.createSpy('publish').andCallFake(function(id, success){
+        success({});
+      })
+    };
+
+    itemService = new MockItemService();
     module(function ($provide) {
-      $provide.value('ItemService', MockItemService);
-      $provide.value('ServiceLookup', {});
-      $provide.value('SupportingMaterial', {});
-      $provide.value('SearchService', MockSearchService);
-      $provide.value('CollectionManager', {
-        init: function(){},
-        addCollection: function(){},
-        removeCollection: function(){},
-        renameCollection: function(){},
-        sortedCollections: []
-      });
-      $provide.value('Contributor', {
-        query: function (data, result) {
-          setTimeout(result, 0);
-          return ["item1", "item2"];
-        },
-        get: function () {
-        }
-      });
-
-
+      $provide.value('$timeout', function(fn){fn();});
+      $provide.value('$location',  location);
+      $provide.value('ItemService', itemService);
+      $provide.value('ItemDraftService', itemDraftService);
+      $provide.value('V2ItemService', v2ItemService);
+      $provide.value('UserInfo', {userName: 'ed', org: '111'});
     }, 'corespring-utils');
   });
 
-  var scope, ctrl, $httpBackend;
+  var scope, ctrl;
 
-  var prepareBackend = function ($backend) {
-
-    var urls = [
-      {method: 'PUT', url: /.*/, response: { ok: true }},
-      {method: 'POST', url: /.*/, data: {}, response: { ok: true }}
-    ];
-
-    for (var i = 0; i < urls.length; i++) {
-      var definition = urls[i];
-      $backend.when(definition.method, definition.url).respond(200, definition.response);
-    }
-  };
 
 
   beforeEach(inject(function (_$httpBackend_, $rootScope, $controller) {
-    $httpBackend = _$httpBackend_;
-    prepareBackend($httpBackend);
     scope = $rootScope.$new();
-    scope.search = function () {
+    scope.search = function () {};
 
-    }
-
-    try {
-      ctrl = $controller(HomeController, {$scope: scope,Logger:{}});
-    } catch (e) {
-      throw("Error with the controller: " + e);
-    }
+    ctrl = $controller(tagger.HomeController, {$scope: scope,Logger:{}});
   }));
 
   describe("inits", function () {
-
     it("is inited correctly", function () {
-
       expect(ctrl).not.toBeNull();
     });
+  });
+
+  function itSets(key, value){
+    it('sets' + key + ' to ' + value, function(){
+      console.log('scope: ', scope);
+      expect(scope[key]).toEqual(value);
+    });
+  }
+
+  describe('launchCatalogView', function(){
+
+    beforeEach(function(){
+      scope.launchCatalogView.bind({item: {id: '1'}})();
+    });
+
+    itSets('showPopup', true);
+    itSets('previewingId', '1');
+    itSets('popupBg', 'extra-large-window');
+  });
+
+  describe('v2', function(){
+
+    describe('edit', function(){
+
+      beforeEach(function(){
+        scope.orgDrafts = [{id: 'd1', itemId: '1'}];
+      });
+
+    });
+
+    describe('publish', function(){
+
+      var item;
 
 
+      beforeEach(function(){
+        item = {id: 'a', format: {apiVersion: 2}};
+        scope.orgDrafts = [{id: 'da', itemId: 'a'}];
+        scope.publish(item);
+      });
+      
+      // it('sets the publish flag', function(){
+      //   expect(scope.showPublishNotification).toBe(true);
+      // });
+      
+      // it('sets the item to be published', function(){
+      //   expect(scope.itemToPublish).toEqual(item);
+      // }); 
+
+      // it('calls the underlying publish', function(){
+      //   scope.publishConfirmed();
+      //   expect(itemDraftService.publish).toHaveBeenCalled();
+      // });
+    });
+
+    describe('clone', function(){
+
+      beforeEach(function(){
+        scope.items = [];
+        scope.orgDrafts = [];
+      });
+
+      it('calls V2ItemService.clone', function(){
+
+        v2ItemService.clone.andCallFake(function(obj, success){
+          success({id: 2, format: { apiVersion: 2}});
+        });
+
+        scope.v2.cloneItem({});
+
+        expect(v2ItemService.clone).toHaveBeenCalled();
+        expect(itemDraftService.createUserDraft).toHaveBeenCalled();
+      });
+    });
+
+    describe('delete item', function(){
+
+      beforeEach(function(){
+        scope.deleteItem({});
+      });
+
+      // it('sets delete flag', function(){
+      //   scope.showConfirmDestroyModal = true;
+      // });
+
+      // it('sets delete item to delete', function(){
+      //   expect(scope.itemToDelete).toEqual({});
+      // });
+
+      // it('calls ItemService.remove', function(){
+      //   scope.deleteConfirmed();
+      //   expect(itemService.remove).toHaveBeenCalled();
+      // });
+    });
+  });
+
+
+
+  
+
+    /*
     it("Search should invoke search service", function () {
       MockSearchService.search = jasmine.createSpy("Search").andCallFake(function (params, handler) {
         handler(["item"]);
@@ -85,8 +169,9 @@ describe('HomeController', function () {
       scope.search();
       expect(MockSearchService.search).toHaveBeenCalled();
       expect(scope.items).toEqual(["item"]);
-    });
-  });
+    });*/
+
+  /*
 
   describe("getSelectedTitle", function(){
 
@@ -116,6 +201,6 @@ describe('HomeController', function () {
       expect(result).toEqual("abc");
     });
 
-  });
+  }); */
 
 });

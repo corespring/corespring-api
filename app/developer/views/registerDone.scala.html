@@ -5,13 +5,13 @@
 @import securesocial.core.providers.UsernamePasswordProvider.UsernamePassword
 
 @main("Registration") {
-    <div class="container" style="width: 960px;">
-        <div class="well" style="position: relative; top: 100px; width:500px;">
+    <div class="container-fluid">
+        <div class="well col-md-4 col-md-offset-4" style="position: relative; top: 100px;">
 
             <h3>Thank you!</h3>
             <br/>
             @errorMsg.map { msg =>
-            <div class="alert alert-error">
+            <div class="alert alert-danger">
                 @Messages(msg)
             </div>
             }

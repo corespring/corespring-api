@@ -1,6 +1,6 @@
 package org.corespring.v2.auth.models
 
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.warnings.V2Warning
 import play.api.libs.json.{ JsString, Json, JsValue }
@@ -26,5 +26,6 @@ case class OrgAndOpts(
   opts: PlayerAccessSettings,
   authMode: AuthMode,
   apiClientId: Option[String],
+  user: Option[User] = None,
   warnings: Seq[V2Warning] = Seq.empty)
 

@@ -41,8 +41,8 @@
     <logger name="org.corespring.platform.core.encryption" level="DEBUG"/>
     <logger name="org.corespring.platform.core.models.item" level="OFF"/>
     <logger name="org.corespring.api.v1" level="TRACE"/>
-    <logger name="org.corespring.v2" level="TRACE"/>
     <logger name="org.corespring.container" level="TRACE"/>
+    <logger name="org.corespring.v2" level="TRACE"/>
     <logger name="org.corespring.container.JsConsole" level="TRACE"/>
     <logger name="org.corespring.container.RhinoScopeBuilder" level="INFO"/>
     <logger name="org.corespring.container.FileComponentLoader" level="INFO"/>
@@ -51,8 +51,14 @@
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
     -->
+    <logger name="com.mongodb" level="TRACE"/>
+    <logger name="org.corespring.platform.core.files" level="TRACE"/>
+    <logger name="org.corespring.v2" level="INFO"/>
+    <logger name="org.corespring.qtiToV2.ItemTransformer" level="TRACE"/>
     <logger name="SalatVersioningDao" level="WARN"/>
-
+    <logger name="v2player.test" level="TRACE"/>
+    <logger name="ItemApi" level="TRACE"/>
+    <logger name="org.corespring.container.AssetUtils" level="TRACE" />
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

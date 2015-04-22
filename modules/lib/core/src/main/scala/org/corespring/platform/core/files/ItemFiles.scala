@@ -8,7 +8,9 @@ import scalaz.{ Validation, Failure, Success }
 
 case class CloneResourceResult(files: Seq[CloneFileResult])
 
-case class CloneFileResult(file: StoredFile, successful: Boolean)
+case class CloneFileResult(file: StoredFile, throwable: Option[Throwable]){
+  def successful = throwable.isEmpty
+}
 
 trait ItemFiles extends PackageLogging {
 
@@ -32,7 +34,9 @@ trait ItemFiles extends PackageLogging {
 
     val files: Seq[CloneFileResult] = result.map(r => r.files).flatten
 
-    def successful = files.filter(!_.successful).length == 0
+    def successful = files.filterNot(_.successful).length == 0
+
+    logger.trace(s"Failed clone result: $files")
 
     if (successful) Success(item) else Failure(files)
   }
@@ -52,11 +56,11 @@ trait ItemFiles extends PackageLogging {
     logger.debug("[ItemFiles] clone file: " + file.storageKey + " --> " + newStorageKey)
     s3service.copyFile(bucket, file.storageKey, newStorageKey)
     file.storageKey = newStorageKey
-    CloneFileResult(file, true)
+    CloneFileResult(file, None)
   } catch {
     case e: Throwable => {
       logger.debug("An error occurred cloning the file: " + e.getMessage)
-      CloneFileResult(file, false)
+      CloneFileResult(file, Some(e))
     }
   }
 

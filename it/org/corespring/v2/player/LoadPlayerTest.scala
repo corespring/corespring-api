@@ -14,7 +14,6 @@ import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.Mode.Mode
-import play.api.Mode.Mode
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -39,7 +38,9 @@ class LoadPlayerTest
         Right(sessionId)
       }
 
-      override def loadItem(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+      override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = ???
+
+      override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
 
       override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
     }

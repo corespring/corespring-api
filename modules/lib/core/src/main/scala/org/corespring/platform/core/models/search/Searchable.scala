@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.{ JSONParseException, JSON }
 import java.util.regex.Pattern
 import org.corespring.platform.core.models.error.CorespringInternalError
+import play.api.libs.json.{ Json, JsValue, JsObject }
 import scala.Left
 import scala.Right
 import scala.Some
@@ -208,6 +209,42 @@ case class SearchCancelled(error: Option[CorespringInternalError])
 case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[String] = Seq(), method: Int) {
   val inclusion = method == 1
   val exclusion = method == 0
+
+  /**
+   * Ensure that playerDefinition and data are returned so the item format can be derived.
+   * @return
+   */
+  def fieldsToReturn = {
+    dbfields.put("playerDefinition", 1)
+    dbfields.put("data", 1)
+    dbfields
+  }
+
+  /**
+   * Ensure that "format" is always added and never removed
+   * @param json
+   * @return
+   */
+  def processJson(json: JsObject): JsObject = {
+
+    def addToJson(key: String, acc: JsObject): JsObject = if ((Seq("format") ++ jsfields).contains(key)) {
+      acc ++ Json.obj(key -> (json \ key))
+    } else {
+      acc
+    }
+
+    def removeFromJson(key: String, acc: JsObject): JsObject = if ((jsfields diff "format").contains(key)) {
+      acc - key
+    } else {
+      acc
+    }
+
+    if (inclusion) {
+      json.keys.foldRight(Json.obj())(addToJson)
+    } else {
+      json.keys.foldRight(json)(removeFromJson)
+    }
+  }
 
   def addDbFieldsToJsFields = {
     dbfields.foreach(field => if (!jsfields.contains(field._1)) jsfields = jsfields :+ field._1)
