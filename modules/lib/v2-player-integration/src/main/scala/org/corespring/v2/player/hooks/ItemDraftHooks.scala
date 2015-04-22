@@ -102,7 +102,7 @@ trait ItemDraftHooks
     (draft, identity)
   }
 
-  private def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     logger.debug(s"update draftId=$draftId")
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
