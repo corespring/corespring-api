@@ -58,13 +58,19 @@ class ItemDraftHooksTest
     }
 
     "saveProfile" should {
-      "save should call update" in new __ {
-        override protected def update(draftId: String, json: JsValue, updateFn: (Item, JsValue) => Item)(rh: RequestHeader) = {
-          updateFn(Item(), Json.obj())
-          Future(Right(Json.obj()))
+
+      class u extends __ {
+        override protected def update(draftId: String,
+          json: JsValue,
+          updateFn: (Item, JsValue) => Item)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+          updateFn(Item(), json)
+          Future(Right(json))
         }
+      }
+
+      "save should call update" in new u {
         val result = await[Either[(Int, String), JsValue]] {
-          saveProfile("itemId", Json.obj("profile" -> Json.obj()))(rh)
+          saveProfile("itemId", Json.obj("a" -> "b"))(rh)
         }
         println(result)
         result.isRight must_== true
