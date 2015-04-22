@@ -4,7 +4,7 @@ angular.module('tagger')
   var definition = {
     replace: false,
     restrict: 'A',
-    template: '<div style=""><span class="close close-window-button" ng-click="hidePopup()" style="z-index: 10">×</span><div id="content"></div></div>',
+    template: '<span class="close close-window-button" ng-click="hidePopup()">&times;</span><div id="content"></div>',
     scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
     link: function (scope, element, attrs) {
       scope.hidePopup = function() {
