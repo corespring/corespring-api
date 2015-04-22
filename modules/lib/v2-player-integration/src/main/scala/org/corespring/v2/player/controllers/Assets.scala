@@ -24,6 +24,8 @@ trait Assets extends ContainerAssets {
 
   lazy val playS3 = new ConcreteS3Service(key, secret)
 
+  private lazy val logger = V2LoggerFactory.getLogger(classOf[Assets])
+
   def sessionService: MongoService
 
   def previewSessionService: MongoService

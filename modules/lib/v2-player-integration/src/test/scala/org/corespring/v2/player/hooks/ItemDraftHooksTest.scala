@@ -1,11 +1,74 @@
 package org.corespring.v2.player.hooks
 
-import org.specs2.mutable.Specification
+import java.util.concurrent.TimeUnit
 
-class ItemDraftHooksTest extends Specification {
+import org.corespring.drafts.item.ItemDrafts
+import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.item.ItemService
+import org.corespring.test.PlaySingleton
+import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
+import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.errors.V2Error
+import org.specs2.mock.Mockito
+import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
+import play.api.libs.json.{ Json, JsValue }
+import play.api.mvc.RequestHeader
+import play.api.test.FakeRequest
+
+import scala.concurrent.{ Future, Await }
+import scala.concurrent.duration.Duration
+import scalaz.{ Success, Validation }
+
+class ItemDraftHooksTest
+  extends Specification
+  with Mockito
+  with MockFactory {
+
+  PlaySingleton.start()
+
+  class __ extends Scope with ItemDraftHooks {
+
+    val mockDrafts = mock[ItemDrafts]
+    val mockItemService = mock[ItemService]
+    val mockOrgService = mock[OrgService]
+
+    def await[A](f: Future[A]): A = {
+      Await.result[A](f, Duration(1, TimeUnit.SECONDS))
+    }
+
+    def rh = FakeRequest("", "")
+
+    override def backend: ItemDrafts = mockDrafts
+
+    override def itemService: ItemService = mockItemService
+
+    override def transform: (Item) => JsValue = i => Json.obj()
+
+    override def orgService: OrgService = mockOrgService
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
+      Success(mockOrgAndOpts())
+    }
+  }
 
   "ItemDraftHooks" should {
 
-    "todo" in { true === false }.pendingUntilFixed
+    "load" should {
+      "return error of can't find draft and identity" in pending
+    }
+
+    "saveProfile" should {
+      "save should call update" in new __ {
+        override protected def update(draftId: String, json: JsValue, updateFn: (Item, JsValue) => Item)(rh: RequestHeader) = {
+          updateFn(Item(), Json.obj())
+          Future(Right(Json.obj()))
+        }
+        val result = await[Either[(Int, String), JsValue]] {
+          saveProfile("itemId", Json.obj("profile" -> Json.obj()))(rh)
+        }
+        println(result)
+        result.isRight must_== true
+      }
+    }
   }
 }

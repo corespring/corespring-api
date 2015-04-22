@@ -222,7 +222,8 @@ object Build extends sbt.Build {
       mongoJsonService,
       playS3)).dependsOn(
       qtiToV2,
-      v2Auth,
+      testLib,
+      v2Auth % "test->test;compile->compile",
       core % "test->test;compile->compile",
       playerLib,
       devTools,
