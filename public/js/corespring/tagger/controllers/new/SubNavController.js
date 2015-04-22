@@ -28,7 +28,7 @@
         { label: 'Exact Match', key: 'exactMatch' }];
       
       $scope.publishStatuses = [
-        { label: 'Published', key: 'published' }, 
+        { label: 'Live', key: 'published' }, 
         { label: 'Draft', key: 'draft' } ];
     }
 
