@@ -62,6 +62,19 @@ trait ItemDraftHooks
     logger.debug(s"saveSupportingMaterials itemId=$itemId")
     update(itemId, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
   }
+  override def saveCustomScoring(draftId: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = {
+
+    def updateCustomScoring(item: ModelItem, json: JsValue): ModelItem = {
+      val updatedDefinition = item.playerDefinition.map { pd =>
+        new PlayerDefinition(pd.files, pd.xhtml, pd.components, pd.summaryFeedback, Some(customScoring))
+      }.getOrElse {
+        PlayerDefinition(Seq.empty, "", Json.obj(), "", Some(customScoring))
+      }
+      item.copy(playerDefinition = Some(updatedDefinition))
+    }
+
+    update(draftId, Json.obj("customScoring" -> customScoring), updateCustomScoring)
+  }
 
   override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(itemId, Json.obj("components" -> json))
@@ -151,4 +164,5 @@ trait ItemDraftHooks
 
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
   }
+
 }
