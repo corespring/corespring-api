@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -94,7 +94,14 @@ class ItemDraftsTest extends Specification with Mockito {
   }
 
   def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
-  def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(i, u)
+  def mkItemWithXhtml(xhtml: String) = item.copy(playerDefinition = Some(PlayerDefinition(xhtml)))
+  def mkDraft(u: OrgAndUser, parent: Item = item, change: Item = item) = {
+    ItemDraft(
+      DraftId.fromIdAndUser(parent.id, u),
+      u,
+      ItemSrc(parent),
+      ItemSrc(change))
+  }
   val gwensDraft = mkDraft(gwen)
   val oid = DraftId.fromIdAndUser(item.id, ed)
   def TestError(name: String = "test error") = GeneralError(name)
@@ -244,8 +251,8 @@ class ItemDraftsTest extends Specification with Mockito {
         loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
       }
 
-      "fail if the draft.parent is out of date" in new __(
-        Some(mkDraft(ed, item)),
+      "fail if the draft.parent is out of date and the draft.parent != draft.change" in new __(
+        Some(mkDraft(ed, item, item.copy(playerDefinition = Some(PlayerDefinition("Change!"))))),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
           case Success(draft) => failure("should have failed")
@@ -253,6 +260,7 @@ class ItemDraftsTest extends Specification with Mockito {
             d must_== load.get
             i must_== ItemSrc(getUnpublishedVersion.get)
           }
+          case _ => failure("should have been an out of date error")
         }
       }
 
@@ -263,15 +271,48 @@ class ItemDraftsTest extends Specification with Mockito {
         loadOrCreate(ed)(oid) match {
           case Success(draft) => draft must_== createResult.toOption.get
           case Failure(ItemDraftIsOutOfDate(d, i)) => failure("should have been successful")
+          case _ => failure("should have been an out of date error")
         }
       }
 
-      "return the draft if found" in new __(
+      "create a new draft from the item if draft isn't found" in new __(
+        None,
+        Some(item),
+        Success(mkDraft(ed, mkItemWithXhtml("created")))) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
+        }
+      }
+
+      "create a new draft from the item if the loaded draft doesn't have changes" in new __(
         Some(mkDraft(ed, item)),
+        Some(item),
+        Success(mkDraft(ed, mkItemWithXhtml("created")))) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
+        }
+      }
+
+      "return the draft if found and has local changes" in new __(
+        Some(mkDraft(ed, item, mkItemWithXhtml("change"))),
         Some(item)) {
         loadOrCreate(ed)(oid) match {
           case Success(draft) => draft must_== load.get
-          case Failure(_) => failure("should have been successful")
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
         }
       }
     }
