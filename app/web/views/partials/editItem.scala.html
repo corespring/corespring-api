@@ -241,7 +241,7 @@
                 }
                 <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
                    <div class="catalog-preview-content">
-                     <span ng-click="showV2Preview=false" class="close close-btn">×</span>
+                    <div class="modal-header"><span class="close close-window-button" ng-click="showV2Preview=false">&times;</span><h4 class="modal-title">Question Information</h4></div>
                      <iframe src="{{v2CatalogUrl}}" frameborder="0"></iframe>
                    </div>
                 </div>
