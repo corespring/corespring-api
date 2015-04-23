@@ -286,7 +286,9 @@
                   <a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
                 </td>
                 <td>
-                    <span ng-show="item.published" class="label label-info"><i class="fa fa-bolt"></i>&nbsp;</span>
+                    <span ng-show="item.published" class="label label-info">
+                      <i class="fa fa-bolt" title="Published"></i>&nbsp;
+                    </span>
                     <a ng-click="launchCatalogView()" ui-jq="tooltip"
                        ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
                 </td>
