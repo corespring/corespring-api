@@ -123,6 +123,18 @@ angular.module('tagger.services')
           .error(onError);
       };
 
+      this.deleteDraft = function(id, onSuccess, onError, all){
+        var url = '/api/v2/items/drafts/' + id;
+
+        if(all){
+          url += '?all=true';
+        }
+
+        $http['delete'](url)
+          .success(onSuccess)
+          .error(onError);
+      };
+
       this.getDraftsForOrg = function(onSuccess, onError){
         var url = '/api/v2/items/drafts';
         $http.get(url)
@@ -131,10 +143,7 @@ angular.module('tagger.services')
       };
 
       this.deleteByItemId = function(id, onSuccess, onError){
-        var url = '/api/v2/items/drafts/' + id + '?all=true';
-        $http['delete'](url)
-          .success(onSuccess)
-          .error(onError);
+        this.deleteDraft(id, onSuccess, onError, true);
       };
 
       this.commit = function(id, force, onSuccess, onError){

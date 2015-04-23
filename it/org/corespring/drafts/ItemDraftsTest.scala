@@ -108,24 +108,53 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         draftService.collection.count(MongoDBObject()) must_== 1
       }
 
-      "load a user's existing draft with their changes" in new orgAndUserAndItem {
-        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser))
+      "load a user's existing draft with their changes if they have non committed changes" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("Change"))))
+        drafts.save(orgAndUser)(update)
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
         drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser), true) match {
-          case Success(d) => d.parent.data.playerDefinition must_== None
+          case Success(d) => {
+            d.parent.data.playerDefinition must_== None
+            d.change.data.playerDefinition.map(_.xhtml) must_== Some("Change")
+          }
           case _ => failure("should have been successful")
         }
       }
 
-      "return a draft is out of date error" in new orgAndUserAndItem {
+      "loads the latest item if the user doesn't have any changes in their draft" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("change 1"))))
+        drafts.commit(orgAndUser)(update)
+
+        ItemServiceWired.findOneById(itemId).map { i =>
+          val itemUpdate = i.copy(playerDefinition = Some(PlayerDefinition("change 1 - from another draft")))
+          ItemServiceWired.save(itemUpdate)
+        }
+
+        drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
+          case Success(d) => {
+            d.parent.data.playerDefinition.map(_.xhtml) must_== Some("change 1 - from another draft")
+            d.change.data.playerDefinition.map(_.xhtml) must_== Some("change 1 - from another draft")
+          }
+          case Failure(e) => failure("load should have been successful")
+        }
+
+      }
+
+      "return a draft is out of date error, if the draft has non committed changes and the draft.parent != item" in new orgAndUserAndItem {
+        val draft = drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)).toOption.get
+        val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("Change"))))
+        drafts.save(orgAndUser)(update)
+
         ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
 
         val updatedItem = ItemServiceWired.findOneById(item.id).get
+
         drafts.loadOrCreate(orgAndUser)(DraftId.fromIdAndUser(itemId, orgAndUser)) match {
           case Success(d) => failure("should have failed")
           case Failure(e) => {
-            e.msg must_== ItemDraftIsOutOfDate(draft, ItemSrc(updatedItem)).msg
+            e.msg must_== ItemDraftIsOutOfDate(update, ItemSrc(updatedItem)).msg
           }
         }
       }
