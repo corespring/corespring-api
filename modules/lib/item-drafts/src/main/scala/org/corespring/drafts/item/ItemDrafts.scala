@@ -134,7 +134,14 @@ trait ItemDrafts
       }.getOrElse(Failure(GeneralError("can't find unpublished version")))
     }
 
-    draft.map(failIfConflicted).getOrElse(create(VersionedId(id.itemId), user))
+    draft.map { d =>
+      //If the draft hasn't any local changes
+      if (!hasSrcChanged(d.parent.data, d.change.data)) {
+        create(VersionedId(id.itemId), user)
+      } else {
+        failIfConflicted(d)
+      }
+    }.getOrElse(create(VersionedId(id.itemId), user))
   }
 
   override def hasSrcChanged(a: Item, b: Item) = {

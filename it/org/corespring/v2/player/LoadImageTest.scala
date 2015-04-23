@@ -76,11 +76,10 @@ class LoadImageTest extends IntegrationSpecification {
       }
     }
 
+    import org.corespring.container.client.controllers.apps.routes.Player
+
     "work when imagePath is encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup%20py.png") {
-
-      import org.corespring.container.client.controllers.routes.Assets
-
-      val call = Assets.session(sessionId.toString, "pup%20py.png")
+      val call = Player.getFile(sessionId.toString, "pup%20py.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
@@ -88,10 +87,7 @@ class LoadImageTest extends IntegrationSpecification {
     }
 
     "work when imagePath is not encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup py.png") {
-
-      import org.corespring.container.client.controllers.routes.Assets
-
-      val call = Assets.session(sessionId.toString, "pup%20py.png")
+      val call = Player.getFile(sessionId.toString, "pup%20py.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
