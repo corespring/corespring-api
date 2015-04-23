@@ -1,4 +1,4 @@
-function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
+function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection, V2SearchService) {
 
   $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
   $scope.unpreppedGradeLevel = [];
@@ -10,26 +10,26 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
      * Only allow KG->8 and add HS for 09->13
      */
     function processDefaults(defaults) {
-      var validKeys = "KG,01,02,03,04,05,06,07,08".split(",");
-      var highschool = "09,10,11,12,13".split(",");
+     var validKeys = "KG,01,02,03,04,05,06,07,08".split(",");
+     var highschool = "09,10,11,12,13".split(",");
 
-      var out = [];
-      var hs = { key: "HS", value: ""};
-      for( var i = 0 ; i < defaults.length ; i++ ){
-        var d = defaults[i];
+     var out = [];
+     var hs = { key: "HS", value: ""};
+     for( var i = 0 ; i < defaults.length ; i++ ){
+       var d = defaults[i];
 
-        if(highschool.indexOf(d.key) != -1){
+       if(highschool.indexOf(d.key) != -1){
           if(!hs.value){
             hs.value = [];
           }
           hs.value.push(d);
-        }
-        if(validKeys.indexOf(d.key) != -1){
-          out.push(d);
-        }
-      }
-      out.push(hs);
-      return out;
+       }
+       if(validKeys.indexOf(d.key) != -1){
+         out.push(d);
+       }
+     }
+     out.push(hs);
+     return out;
     }
 
 
@@ -84,13 +84,13 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     }
 
     $rootScope.$broadcast("beginSearch");
-    SearchService.search(params, function onSuccess(res){
-        $rootScope.items = res;
-      },
-      function onError(data){
-        $rootScope.$broadcast("searchFailed");
-        alert("there was an error searching");
-      });
+    V2SearchService.search(params, function onSuccess(res){
+      $rootScope.items = res;
+    },
+    function onError(data){
+      $rootScope.$broadcast("searchFailed");
+      alert("there was an error searching");
+    });
   };
 
   $rootScope.$on('onNetworkLoading', function(event,count){
@@ -106,7 +106,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $rootScope.searchParams = {};
     $rootScope.items = null;
     $rootScope.itemCount = null;
-    SearchService.resetDataCollection();
+    V2SearchService.resetDataCollection();
     $rootScope.$broadcast("beginSearch");
   };
 
@@ -118,9 +118,10 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
     $scope.loadMore();
   });
 
-  $scope.loadMore = function () {
-    SearchService.loadMore(function () {
+  $scope.loadMore = function() {
+    V2SearchService.loadMore(function() {
         // re-bind the scope collection to the services model after result comes back
+        console.log(SearchService.itemDataCollection);
         $rootScope.items = SearchService.itemDataCollection;
 
         $rootScope.isSearching = false;
@@ -148,7 +149,7 @@ function SearchController($scope, $rootScope, $http, ItemService, SearchService,
         function preProcess(c){
           return _.filter(c, function(i){
             return i.name.indexOf("Mathematics") != -1
-              || i.name.indexOf("ELA") != -1
+             || i.name.indexOf("ELA") != -1
           })
         }
         var filtered = preProcess(data);
@@ -169,4 +170,5 @@ SearchController.$inject = ['$scope',
   '$http',
   'ItemService',
   'SearchService',
+  'V2SearchService',
   'Collection'];

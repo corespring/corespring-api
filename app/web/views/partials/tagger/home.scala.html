@@ -296,8 +296,8 @@
                     <a ng-click="launchCatalogView()" ui-jq="tooltip"
                        ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
                </td>
-                <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td>{{createGradeLevelString(item.gradeLevel)}} </td>
+                <td>{{item.subject}}</td>
+                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
                 <td>{{showItemType(item)}}</td>
                 <td>
                     <a ui-jq="tooltip"

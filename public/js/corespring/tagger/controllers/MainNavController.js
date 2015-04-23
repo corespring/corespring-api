@@ -3,7 +3,6 @@ function MainNavController(
 	$scope,
 	$rootScope,
 	$location,
-	SearchService,
   V2SearchService,
 	V2ItemService,
 	ItemDraftService) {
@@ -53,7 +52,6 @@ MainNavController.$inject = [
   '$scope',
   '$rootScope',
   '$location',
-  'SearchService',
   'V2SearchService',
   'V2ItemService',
   'ItemDraftService' ];
