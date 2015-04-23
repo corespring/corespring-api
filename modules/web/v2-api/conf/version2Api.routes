@@ -36,6 +36,8 @@ DELETE /items/:itemId                      @org.corespring.v2.api.ItemApi.delete
 
 POST /items                                @org.corespring.v2.api.ItemApi.create()
 
+GET  /items                                @org.corespring.v2.api.ItemApi.search(query: Option[String] ?= None)
+
 POST /items/:itemId/clone                  @org.corespring.v2.api.ItemApi.cloneItem(itemId)
 
 PUT /items/:itemId/publish                 @org.corespring.v2.api.ItemApi.publish(itemId)

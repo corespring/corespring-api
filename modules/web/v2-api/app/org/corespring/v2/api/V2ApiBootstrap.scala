@@ -8,7 +8,7 @@ import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
 import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{PlayerTokenService, _}
@@ -34,6 +34,7 @@ trait V2ApiServices {
   def orgService: OrgService
   def sessionService: MongoService
   def itemService: ItemService
+  def itemIndexService: ItemIndexService
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def tokenService: TokenService
@@ -72,6 +73,7 @@ class V2ApiBootstrap(
       collection.toOption
     }
 
+    override def itemIndexService: ItemIndexService = services.itemIndexService
     override def itemService: ItemService = services.itemService
   }
 

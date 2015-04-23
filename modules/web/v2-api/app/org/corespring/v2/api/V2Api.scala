@@ -21,4 +21,5 @@ trait V2Api extends Controller with LoadOrgAndOptions {
     def errResult(e: V2Error): SimpleResult = Status(e.statusCode)(e.json)
     v.fold[SimpleResult](errResult, fn)
   }
+
 }

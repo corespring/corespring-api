@@ -280,7 +280,9 @@
                   <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
                 </td>
                 <td>
-                    <span ng-show="item.published" class="label label-info"><i class="fa fa-bolt"></i>&nbsp;</span>
+                    <span ng-show="item.published" class="label label-info">
+                      <i class="fa fa-bolt" title="Published"></i>&nbsp;
+                    </span>
                     <a ng-click="launchCatalogView()" ui-jq="tooltip"
                        ui-options="{title: buildTitleTooltip(item.title)}">{{buildTitleEllipsis(item.title)}}</a>
                 </td>
@@ -288,8 +290,8 @@
                     <a ng-click="launchCatalogView()" ui-jq="tooltip"
                        ui-options="{title: buildDescriptionTooltip(item.description)}">{{buildDescriptionEllipsis(item.description)}}</a>
                </td>
-                <td>{{getPrimarySubjectLabel(item.primarySubject)}}</td>
-                <td>{{createGradeLevelString(item.gradeLevel)}} </td>
+                <td>{{item.subject}}</td>
+                <td>{{createGradeLevelString(item.gradeLevels)}} </td>
                 <td>{{showItemType(item)}}</td>
                 <td>
                     <a ui-jq="tooltip"

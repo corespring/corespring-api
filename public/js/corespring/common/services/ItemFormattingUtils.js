@@ -138,52 +138,35 @@ angular.module('corespring-utils')
        * @param standards
        * @return label string
        */
-      buildStandardLabel: function (standards) {
-        if (standards == null || standards.length == 0) {
+      buildStandardLabel: function(standards) {
+        if (standards == null || _.keys(standards).length == 0) {
           return "";
         }
 
-        var allStandards = [];
-      
-        if(standards.length > 0) {
-          for ( i = 0; i < standards.length; i++){
-              if (i > 8){
-                allStandards.push("+" + (standards.length - 8) + " more...");
-                break;
-              }
-              else{ 
-                allStandards.push(standards[i].dotNotation);
-              }
-              
-            }
-            return allStandards;
-          }
+        var dotNotation = _.chain(standards).keys().take(8).value();
+        if (_.keys(standards).length > 8) {
+          dotNotation.push("+" + (_.keys(standards).length - 8) + " more...");
+        }
+
+        return dotNotation;
       },
 
 
-      buildStandardTooltip: function (standards) {
+      buildStandardTooltip: function(standards) {
         if (!standards) {
           return "";
         }
-        var out = [];
-        if (standards.length == 1 && standards[0].standard) {
-          return "<span>" + standards[0].standard + "</span>";
+        if (_.keys(standards).length == 1) {
+          return "<span>" + _.values(standards)[0] + "</span>";
+        } else {
+          return "<span>" + (_.chain(standards).map(function (standard, dotNotation) {
+            var wordArray = standard.split(/\W+/);
+            var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
+            return dotNotation + ": " + standardLabel;
+          }).filter(function (standard) {
+            return !_.isEmpty(standard);
+          }).value().join(", ")) + "</span>";
         }
-
-        for (var i = 0; i < standards.length; i++) {
-
-          if (!standards[i] || !standards[i].standard) {
-            return "";
-          }
-          var wordArray = standards[i].standard.split(/\W+/);
-
-          var standardLabel = wordArray.length > 12 ? wordArray.splice(0, 12).join(" ") + "...<br />" : wordArray.join(" ");
-          out.push(standards[i].dotNotation + ": " + standardLabel);
-        }
-
-        // return "<span>" + out.join(", ") + "</span>";
-        return "<span>" + out.join("") + "</span>";
-
       },
 
       buildTitleEllipsis: function (titles) {
@@ -199,8 +182,8 @@ angular.module('corespring-utils')
             return titles;
           }
         }
-        
-      }, 
+
+      },
 
       buildTitleTooltip: function (titles) {
         if (!titles) {
@@ -213,8 +196,8 @@ angular.module('corespring-utils')
             return "";
           }
         }
-        
-      },      
+
+      },
       buildDescriptionEllipsis: function(descriptions){
         if (!descriptions) {
           return "";
@@ -243,12 +226,20 @@ angular.module('corespring-utils')
         }
       },
 
-      showItemType: function (item) {
-
-        if (item.itemType != "Other") {
-          return item.itemType;
+      showItemType: function(item) {
+        if (!window.fieldValues || !window.fieldValues.v2ItemTypes) {
+          return undefined;
         }
-        return item.itemType + ": " + item.itemTypeOther;
+        return _.chain(item.itemTypes)
+          .map(function(itemType) {
+            var v2ItemType = _.find(window.fieldValues.v2ItemTypes, function(v2ItemType) {
+              return v2ItemType.key === itemType;
+            });
+            return v2ItemType ? v2ItemType.value : undefined;
+          })
+          .filter(function(v) {
+            return !_.isUndefined(v);
+          }).value().join(", ");
       },
 
       showItemTypeAbbreviated: function (item) {

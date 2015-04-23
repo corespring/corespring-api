@@ -1,8 +1,9 @@
+
 function MainNavController(
 	$scope,
 	$rootScope,
 	$location,
-	SearchService,
+  V2SearchService,
 	V2ItemService,
 	ItemDraftService) {
 
@@ -17,8 +18,8 @@ function MainNavController(
   };
 
   $scope.loadMore = function (index, onLoaded) {
-    SearchService.loadMore(function () {
-      $rootScope.items = SearchService.itemDataCollection;
+    V2SearchService.loadMore(function() {
+      $rootScope.items = V2SearchService.itemDataCollection;
       if (onLoaded) {
         onLoaded();
       }
@@ -51,6 +52,6 @@ MainNavController.$inject = [
   '$scope',
   '$rootScope',
   '$location',
-  'SearchService',
+  'V2SearchService',
   'V2ItemService',
   'ItemDraftService' ];

@@ -137,7 +137,7 @@
     };
 
     function route(action, item){
-      if(item.format.apiVersion === 1){
+      if (item.apiVersion === 1) {
         $scope.v1[action](item);
       } else {
         $scope.v2[action](item);

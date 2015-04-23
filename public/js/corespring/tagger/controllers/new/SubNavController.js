@@ -7,18 +7,8 @@
       loadContributors();
       var defaultsFactory = new com.corespring.model.Defaults();
       $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider('gradeLevels');
-      $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('itemTypes');
-      $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
-        return {
-          key: e,
-          label: e
-        };
-      });
-
-      $scope.flatItemTypeDataProvided.push({
-        key: 'Other',
-        label: 'Other'
-      });
+      $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('v2ItemTypes');
+      $scope.flatItemTypeDataProvided = $scope.itemTypeDataProvider;
 
       $scope.statuses = [
         { label: 'Setup', key: 'setup' }, 

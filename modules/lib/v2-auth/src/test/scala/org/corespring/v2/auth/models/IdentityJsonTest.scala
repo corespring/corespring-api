@@ -9,7 +9,7 @@ class IdentityJsonTest extends Specification with MockFactory{
   "IdentityJson.apply" should {
 
     "create json with apiClient" in {
-      val o = mockOrg
+      val o = mockOrg()
 
       val json = IdentityJson(OrgAndOpts(o, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, Some("1")))
 
@@ -22,7 +22,7 @@ class IdentityJsonTest extends Specification with MockFactory{
     }
 
     "create json with apiClient set to 'unknown'" in {
-      val o = mockOrg
+      val o = mockOrg()
 
       val json = IdentityJson(OrgAndOpts(o, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
 

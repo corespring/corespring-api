@@ -18,7 +18,7 @@ import scalaz.{ Failure, Success, Validation }
 class PlayerTokenApiTest extends Specification
   with Mockito with PlaySpecification with MockFactory {
 
-  val org = mockOrg
+  val org = mockOrg()
 
   class playerScope(
     val createTokenResult: Validation[V2Error, CreateTokenResult] = Failure(generalError("Create token failure")),

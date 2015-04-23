@@ -15,7 +15,7 @@ import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionServ
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
+import org.corespring.platform.core.services.item._
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -35,7 +35,8 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Failure, Success, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client, bucket: String) extends V2ApiServices {
+class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client,
+               bucket: String) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
@@ -44,6 +45,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
   override val sessionService: MongoService = mainSessionService
 
   override val itemService: ItemService with ItemPublishingService = ItemServiceWired
+
+  override val itemIndexService: ItemIndexService = ElasticSearchItemIndexService
 
   override def draftsBackend: ItemDrafts = new ItemDrafts {
     override def itemService = Services.this.itemService

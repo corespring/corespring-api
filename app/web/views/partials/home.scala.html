@@ -216,12 +216,12 @@
                 <span multi-select
                   multi-get-title="getLabel"
                   multi-get-selected-title="getSelectedTitle"
-                  multi-options="flatItemTypeDataProvided"
+                  multi-options="v2ItemTypeDataProvider"
                   multi-change="search"
                   multi-model="searchParams.itemType">
                   <div class="summary">
-                    <div class="multi-title-text grade-level">TYPE<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                    <div class="multi-title-text item-type">TYPE<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    <div class="selected-multi-options item-type" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
                   </div>
                 </span>
             </td>
@@ -284,9 +284,9 @@
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.title"></td>
                 <td class="new-window" ng-click="itemClick()" ng-bind-html-unsafe="item.description"></td>
-                <td class="new-window" ng-click="itemClick()" width="100">{{getPrimarySubjectLabel(item.primarySubject)}}</td>
+                <td class="new-window" ng-click="itemClick()" width="100">{{item.subject}}</td>
                 <td class="new-window" ng-click="itemClick()">
-                    {{createGradeLevelString(item.gradeLevel)}}
+                    {{item.gradeLevels.join(", ")}}
                 </td>
                 <td class="new-window" ng-click="itemClick()">{{showItemType(item)}}</td>
                 <td class="new-window" ng-click="itemClick()">
