@@ -118,20 +118,17 @@ class ItemServiceWired(
 
     val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
     savedVid match {
-      case Left(_) => println("Cannot index a failure")
+      case Left(_) => logger.error("Cannot index a failure")
       case Right(id) => {
-        println("********************* result ******************************")
-        Await.result(itemIndexService.reindex(id), Duration.Inf) match {
-          case Success(string) => println(s"Success: $string")
-          case Failure(error) => println(s"Failure: $error")
-        }
-        println("***********************************************************")
-        println()
+        import ExecutionContext.Implicits.global
+        itemIndexService.reindex(id).map(_ match {
+          case Failure(error) => logger.error(s"Item indexing failed: ${error.getMessage}")
+          case Success(message) => logger.info(s"Item indexing succeeded: $message")
+        })
       }
     }
 
     if (createNewVersion) {
-
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(newItem)
       result match {

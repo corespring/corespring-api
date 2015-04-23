@@ -10,8 +10,6 @@
       $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('v2ItemTypes');
       $scope.flatItemTypeDataProvided = $scope.itemTypeDataProvider;
 
-      console.log($scope.itemTypeDataProvider);
-
       $scope.statuses = [
         { label: 'Setup', key: 'setup' }, 
         { label: 'Tagged', key: 'tagged' }, 
