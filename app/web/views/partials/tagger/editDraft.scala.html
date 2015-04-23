@@ -9,14 +9,14 @@
       <li style="line-height: 38px; color:#fff"><span class="item-base-id"><b>ID:</b>  {{baseId}}</span>
       </li>
       <li style="line-height: 38px; color:#fff"><span class="revision-version"><b>Revision:</b>  {{version}}</span></li>
-      <li style="line-height: 38px;padding-right: 10px"><button class="btn btn-primary" ng-click="saveBackToItem()">Save</button></li>
+      <li style="line-height: 38px;padding-right: 10px"><button class="btn btn-primary" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
       <li style="line-height: 38px;" class="dropdown" id="menu2">
         <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu2">
           Select an action
           <b class="caret"></b>
         </button>
         <ul class="dropdown-menu dropdown-menu-actions">
-          <li><button class="btn btn-sm" ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button></li>
+          <li><button class="btn btn-sm" ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;Clone</button></li>
           <li><button class="btn btn-info btn-sm" ng-show="!item.published" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;Publish</button></li>
         </ul>
       </li>

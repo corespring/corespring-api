@@ -257,7 +257,7 @@
 <!-- //Filter Nav Bar -->
 
 <!-- Search Results -->
-<div class="row" style="padding-top: 90px">
+<div class="row search-results">
     <div class="container-fluid" when-scrolled="loadMore()" watch="itemDataCollection">
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
@@ -276,8 +276,8 @@
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td class="buttons-align-right">
-                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-info btn-sm">edit</button>
-                  <a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
+                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
+                  <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
                 </td>
                 <td>
                     <span ng-show="item.published" class="label label-info"><i class="fa fa-bolt"></i>&nbsp;</span>
