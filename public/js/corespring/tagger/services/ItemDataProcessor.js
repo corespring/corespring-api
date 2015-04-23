@@ -22,6 +22,9 @@ com.corespring.model.Defaults = function(){
       }),
       itemTypes:_.map(window.fieldValues.itemTypes, function (g) {
         return {key:g.key, label:g.value};
+      }),
+      v2ItemTypes: _.map(window.fieldValues.v2ItemTypes, function(g) {
+        return {key: g.key, label: g.value};
       })
     };
   }());
