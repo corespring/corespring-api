@@ -181,7 +181,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   };
 
   $scope.devUrl = function() {
-    return '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html';
+    return ($scope.itemData && $scope.itemData.id) ?
+      '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
   }
 
   $scope.changePlayerVersion = function() {
