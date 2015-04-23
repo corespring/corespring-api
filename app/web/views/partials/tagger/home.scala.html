@@ -133,7 +133,8 @@
                 <div class="clearfix">
                     <div id="preloader" class="preloader" style="height: 600px">
                     </div>
-                    <span profile-player="" id='player' style="display: block; width: 104%; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/>
+                    <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
+                      
                 </div>
             </div>
         </div>
@@ -156,8 +157,8 @@
                   multi-uid="id"
                   multi-model="searchParams.collection">
                   <div class="summary">
-                    <div class="multi-title-text collection"> COLLECTION <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></div>
+                    <div class="multi-title-text collection"> COLLECTION <span class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    
                   </div>
 
                   <!-- note: we are overriding the default repeater here  - see multi-select.coffee in corespring-ng-components for more info -->
@@ -177,8 +178,6 @@
                   </div>
                 </span>
             </td>
-            <td class="nav-vr">
-              <div></div></td>
             <td>
                 <span multi-select
                   multi-get-title="getContributorTitle"
@@ -187,12 +186,11 @@
                   multi-uid="name"
                   multi-model="searchParams.contributor">
                   <div class="summary">
-                    <div class="multi-title-text collection"> CONTRIBUTOR <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getContributorSelectedTitle(selected)"></div>
+                    <div class="multi-title-text collection"> CONTRIBUTOR <span class="selected-multi-options collection" ng-bind-html-unsafe="getContributorSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
             <td class="grade-level-chooser">
                 <span multi-select
                   multi-get-title="getTitle"
@@ -201,12 +199,11 @@
                   multi-change="search"
                   multi-model="searchParams.gradeLevel">
                   <div class="summary">
-                    <div class="multi-title-text grade-level">GRADE LEVEL<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                    <div class="multi-title-text grade-level">GRADE LEVEL <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
             <td>
                 <span multi-select
                   multi-get-title="getLabel"
@@ -215,12 +212,11 @@
                   multi-change="search"
                   multi-model="searchParams.itemType">
                   <div class="summary">
-                    <div class="multi-title-text grade-level">TYPE<span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                    <div class="multi-title-text grade-level">TYPE <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
             <td>
                 <span multi-select
                   multi-get-title="getLabel"
@@ -228,12 +224,11 @@
                   multi-change="search"
                   multi-model="searchParams.statuses">
                   <div class="summary">
-                    <div class="multi-title-text collection"> WORKFLOW <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                    <div class="multi-title-text collection"> WORKFLOW <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                    
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
             <td>
 
                 <span multi-select
@@ -242,12 +237,11 @@
                       multi-change="search"
                       multi-model="searchParams.publishStatuses">
                   <div class="summary">
-                      <div class="multi-title-text collection"> STATUS <span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                      <div class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></div>
+                      <div class="multi-title-text collection"> STATUS <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+                      
                   </div>
                 </span>
             </td>
-            <td class="nav-vr"><div></div></td>
             <td>
               <div class="input-append">
                 <input placeholder="Search" ng-model="searchParams.searchText" ng-change="lazySearch()" class="span3 form-control" id="appendedInputButtons" type="text"><span class="add-on"><i class="fa fa-search"></i></span>
@@ -263,7 +257,7 @@
 <!-- //Filter Nav Bar -->
 
 <!-- Search Results -->
-<div class="row" style="padding-top: 90px">
+<div class="row search-results">
     <div class="container-fluid" when-scrolled="loadMore()" watch="itemDataCollection">
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
@@ -282,8 +276,8 @@
             <tbody>
             <tr ng-repeat="item in items" style="cursor: pointer;">
                 <td class="buttons-align-right">
-                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-info btn-sm">edit</button>
-                  <a class="btn btn-warning btn-sm" ng-click="launchCatalogView()">Preview</a>
+                  <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
+                  <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>
                 </td>
                 <td>
                     <span ng-show="item.published" class="label label-info">
