@@ -238,7 +238,7 @@ angular.module('corespring-utils')
             return v2ItemType ? v2ItemType.value : undefined;
           })
           .filter(function(v) {
-            return _.isUndefined(v);
+            return !_.isUndefined(v);
           }).value().join(", ");
       },
 
