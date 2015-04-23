@@ -46,7 +46,7 @@ describe('ResourceEditor should', function () {
         $httpBackend = _$httpBackend_;
         prepareBackend($httpBackend);
         scope = $rootScope.$new();
-
+        scope.saveSelectedFileFinished = jasmine.createSpy('saveSelectedFileFinished');
         try {
             ctrl = $controller(ResourceEditor, {$scope:scope});
         } catch (e) {

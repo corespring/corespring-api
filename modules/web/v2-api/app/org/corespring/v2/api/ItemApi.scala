@@ -4,11 +4,16 @@ import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.{ContentCollRef, JsonUtil}
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.platform.core.models.item.Item.Keys._
+import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
+import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent._
 
@@ -174,7 +179,7 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  def transform: (Item, Option[String]) => JsValue
+  def getSummaryData: (Item, Option[String]) => JsValue
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -184,11 +189,48 @@ trait ItemApi extends V2Api with JsonUtil {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
-      } yield transform(item, detail)
+      } yield getSummaryData(item, detail)
 
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
+
+  def cloneItem(id: String) = Action.async { implicit request =>
+    Future {
+      val out = for {
+        identity <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        item <- itemAuth.loadForRead(id)(identity)
+        cloned <- itemService.clone(item).toSuccess(generalError(s"Error cloning item with id: $id"))
+      } yield Json.obj("id" -> cloned.id.toString)
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
+  def publish(id: String) = Action.async { implicit request =>
+    Future {
+      val out = for {
+        _ <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        published <- Success(itemService.publish(vid))
+      } yield Json.obj("id" -> id, "published" -> published)
+
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
+  def saveNewVersion(id: String) = Action.async { implicit request =>
+    Future {
+      val out = for {
+        _ <- getOrgAndOptions(request)
+        vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+        newId <- itemService.saveNewUnpublishedVersion(vid).toSuccess(generalError(s"Error saving new version of $id"))
+      } yield Json.obj("id" -> newId.toString)
+
+      validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 

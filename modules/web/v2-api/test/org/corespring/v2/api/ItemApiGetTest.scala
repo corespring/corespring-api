@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -42,7 +43,7 @@ class ItemApiGetTest extends Specification with Mockito with MockFactory {
         m
       }
 
-      override def transform: (Item, Option[String]) => JsValue = transformItemToJson
+      override def getSummaryData: (Item, Option[String]) => JsValue = transformItemToJson
 
       def transformItemToJson(item: Item, detail: Option[String] = None): JsValue = {
         Json.toJson(item)

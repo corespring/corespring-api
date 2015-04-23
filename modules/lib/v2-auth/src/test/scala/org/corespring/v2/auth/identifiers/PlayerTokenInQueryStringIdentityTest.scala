@@ -40,7 +40,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
 
     s"return a bad param name error" in {
-      identifier.headerToOrg(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
+      identifier.headerToOrgAndMaybeUser(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
     }
 
     "return no apiClientAndPlayerToken error" in {
@@ -69,7 +69,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
       val result = identifier.apply(request)
 
       result match {
-        case Success(OrgAndOpts(_, _, _, _, warnings)) => {
+        case Success(OrgAndOpts(_, _, _, _, _, warnings)) => {
           warnings(0) === deprecatedQueryStringParameter(options, playerToken)
         }
         case _ => failure("didn't find warning")
@@ -83,7 +83,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
       val result = identifier.apply(request)
 
       result match {
-        case Success(OrgAndOpts(org, _, _, _, warnings)) => {
+        case Success(OrgAndOpts(org, _, _, _, _, warnings)) => {
           warnings.length === 0
           org === this.org
         }

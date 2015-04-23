@@ -1,6 +1,10 @@
 package org.corespring.v2.player
 
+import com.novus.salat.Context
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.ItemDraftHelper
+import org.corespring.drafts.item.models.DraftId
+import org.corespring.platform.core.models.{ mongoContext, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models._
@@ -16,7 +20,8 @@ package object scopes {
   val logger = Logger("it.scopes")
 
   trait orgWithAccessToken extends BeforeAfter {
-    val orgId = OrganizationHelper.create("org")
+    val organization = OrganizationHelper.createAndReturnOrg("org")
+    val orgId = organization.id
     val apiClient = ApiClientHelper.create(orgId)
     val user = UserHelper.create(orgId, "test_user")
     val accessToken = AccessTokenHelper.create(orgId, "test_user")
@@ -129,6 +134,26 @@ package object scopes {
 
     lazy val result = {
       val call = getCall(itemId)
+      implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
+      val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
+      play.api.test.Helpers.route(makeRequest(call))(writeable).getOrElse(throw new RuntimeException("Error calling route"))
+    }
+  }
+
+  trait itemDraftLoader { self: RequestBuilder with HasItemId =>
+
+    def organization: Organization
+
+    def getCall(itemId: DraftId): Call
+
+    lazy val itemDraftHelper = new ItemDraftHelper {
+      override implicit def context: Context = mongoContext.context
+    }
+
+    lazy val result = {
+
+      val draftId = itemDraftHelper.create(itemId, organization)
+      val call = getCall(draftId)
       implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
       val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
       play.api.test.Helpers.route(makeRequest(call))(writeable).getOrElse(throw new RuntimeException("Error calling route"))

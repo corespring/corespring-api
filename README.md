@@ -61,6 +61,13 @@ These tests are more expensive than the unit tests.
 
     play it:test
 
+
+
+To test a single example in a given test run:
+
+    it:test-only *ItemSessionApiTest* -- -ex "1: return 200 and 100% - for multiple choice"
+
+
 ### Application configuration
 
 The application will run without any configuration by using a set of default values.

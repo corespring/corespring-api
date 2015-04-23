@@ -82,7 +82,9 @@ angular.module('corespring-utils')
         if (!map[key]) return;
         return  "/assets/images/copyright/" + map[key];
       },
-
+      publishStatus: function (isPublished) {
+        return isPublished ? "Published" : "Draft";
+      },
       getPrimarySubjectLabel: function (primarySubject) {
         if (!primarySubject) {
           return "";
@@ -127,7 +129,7 @@ angular.module('corespring-utils')
           out.push(gradeLevels[x]);
         }
         out.sort(sortGradeLevels);
-        return out.join(",");
+        return out.join(", ");
       },
 
 
@@ -137,17 +139,25 @@ angular.module('corespring-utils')
        * @return label string
        */
       buildStandardLabel: function (standards) {
-        if (standards == null || _.keys(standards).length == 0) {
+        if (standards == null || standards.length == 0) {
           return "";
         }
 
-        var out = _.keys(standards)[0];
+        var allStandards = [];
 
-        if (_.keys(standards).length == 1) {
-          return out;
+        if(standards.length > 0) {
+          for ( i = 0; i < standards.length; i++){
+            if (i > 8){
+              allStandards.push("+" + (standards.length - 8) + " more...");
+              break;
+            }
+            else{
+              allStandards.push(standards[i].dotNotation);
+            }
+
+          }
+          return allStandards;
         }
-
-        return out + " plus " + (_.keys(standards).length - 1) + " more";
       },
 
 
@@ -155,29 +165,90 @@ angular.module('corespring-utils')
         if (!standards) {
           return "";
         }
-        if (_.keys(standards).length == 1) {
-          return "<span>" + _.values(standards)[0] + "</span>";
-        } else {
-          return "<span>" + (_.chain(standards).map(function (standard, dotNotation) {
-            var wordArray = standard.split(/\W+/);
-            var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
-            return dotNotation + ": " + standardLabel;
-          }).filter(function (standard) {
-            return !_.isEmpty(standard);
-          }).value().join(", ")) + "</span>";
+        var out = [];
+        if (standards.length == 1 && standards[0].standard) {
+          return "<span>" + standards[0].standard + "</span>";
+        }
+
+        for (var i = 0; i < standards.length; i++) {
+
+          if (!standards[i] || !standards[i].standard) {
+            return "";
+          }
+          var wordArray = standards[i].standard.split(/\W+/);
+
+          var standardLabel = wordArray.length > 12 ? wordArray.splice(0, 12).join(" ") + "...<br />" : wordArray.join(" ");
+          out.push(standards[i].dotNotation + ": " + standardLabel);
+        }
+
+        // return "<span>" + out.join(", ") + "</span>";
+        return "<span>" + out.join("") + "</span>";
+
+      },
+
+      buildTitleEllipsis: function (titles) {
+        if (!titles) {
+          return "";
+        }
+
+        if (titles) {
+          if(titles.length > 50){
+            var titleCut = titles.substr(0, 50);
+            return titleCut + "...";
+          } else {
+            return titles;
+          }
+        }
+
+      },
+
+      buildTitleTooltip: function (titles) {
+        if (!titles) {
+          return "";
+        }
+        if (titles) {
+          if(titles.length > 50){
+            return titles;
+          } else {
+            return "";
+          }
+        }
+
+      },
+      buildDescriptionEllipsis: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+        if (descriptions) {
+          if(descriptions.length > 100){
+            var descriptionCut = descriptions.substr(0, 100);
+            return descriptionCut + "...";
+          } else {
+            return descriptions;
+          }
+        }
+      },
+
+      buildDescriptionTooltip: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+
+        if (descriptions) {
+          if(descriptions.length > 100){
+            return descriptions;
+          } else {
+            return "";
+          }
         }
       },
 
       showItemType: function (item) {
-        if (item.itemTypes) {
-          return _.chain(item.itemTypes).map(function(itemType) {
-            var v2Type = _.find(window.fieldValues.v2ItemTypes, function(v2ItemType) {
-              return v2ItemType.key == itemType
-            });
-            return (v2Type && v2Type.value) ? v2Type.value : undefined;
-          }).filter(function(value) { return value !== undefined;}).value().join(", ");
+
+        if (item.itemType != "Other") {
+          return item.itemType;
         }
-        return undefined;
+        return item.itemType + ": " + item.itemTypeOther;
       },
 
       showItemTypeAbbreviated: function (item) {

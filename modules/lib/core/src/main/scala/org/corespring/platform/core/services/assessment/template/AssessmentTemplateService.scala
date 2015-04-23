@@ -3,7 +3,7 @@ package org.corespring.platform.core.services.assessment.template
 import com.mongodb.casbah.Imports._
 import se.radley.plugin.salat._
 import org.corespring.platform.core.services.BaseContentService
-import com.novus.salat.dao.{ModelCompanion, SalatDAO, SalatMongoCursor}
+import com.novus.salat.dao.{ ModelCompanion, SalatDAO, SalatMongoCursor }
 import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
 import org.corespring.platform.core.models.assessment.SalatAssessmentTemplate
@@ -41,8 +41,14 @@ class AssessmentTemplateServiceImpl(salatDao: SalatDAO[SalatAssessmentTemplate, 
 
   def findOne(query: DBObject): Option[SalatAssessmentTemplate] = salatDao.findOne(query)
 
-  def save(assessmentTemplate: SalatAssessmentTemplate, createNewVersion: Boolean) =
-    Dao.save(assessmentTemplate.copy(dateModified = Some(new DateTime())))
+  def save(assessmentTemplate: SalatAssessmentTemplate, createNewVersion: Boolean) = {
+    val result = Dao.save(assessmentTemplate.copy(dateModified = Some(new DateTime())))
+    if (result.getLastError.ok) {
+      Right(assessmentTemplate.id)
+    } else {
+      Left(result.getLastError.getErrorMessage)
+    }
+  }
 
   def insert(assessmentTemplate: SalatAssessmentTemplate): Option[ObjectId] = salatDao.insert(assessmentTemplate)
 

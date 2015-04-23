@@ -27,6 +27,8 @@ sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Fai
 
 private[v2] object Errors {
 
+  case class invalidObjectId(id: String, context: String) extends V2Error(s"Invalid object id: $id, context: $context")
+
   case class missingRequiredField(fields: Field*) extends V2Error(s"Missing the following required field(s): ${fields.map(f => s"${f.name} : ${f.fieldType}").mkString(", ")}")
 
   case class encryptionFailed(msg: String) extends V2Error(s"encryption failed: $msg", BAD_REQUEST)

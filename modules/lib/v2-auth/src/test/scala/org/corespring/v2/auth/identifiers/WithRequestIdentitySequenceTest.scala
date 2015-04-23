@@ -25,7 +25,7 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
     }
   }
 
-  def successfulTransformer = new MockRequestIdentity(Some(ObjectId.get), Success(mock[Organization]))
+  def successfulTransformer = new MockRequestIdentity(Some(ObjectId.get), Success((mock[Organization], None)))
 
   def failedTransformer = new MockRequestIdentity()
 

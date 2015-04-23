@@ -18,26 +18,17 @@ object ItemView {
   implicit object Writes extends Writes[ContentView[Item]] {
     def writes(itemView: ContentView[Item]): JsValue = {
 
-      def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = a.map(w.writes(_).asInstanceOf[JsObject])
+      def toJsObject[T](a: Option[T])(implicit w: Writes[T]): Option[JsObject] = {
+        a.map(w.writes(_).asInstanceOf[JsObject])
+      }
 
       val mainItem: JsObject = writeMainItem(itemView.content)
       val details: Option[JsObject] = toJsObject(itemView.content.contributorDetails)
       val taskInfo: Option[JsObject] = toJsObject(itemView.content.taskInfo)
       val alignments: Option[JsObject] = toJsObject(itemView.content.otherAlignments)
-
       val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
       val jsObject = out.tail.foldRight(out.head)(_ ++ _)
-      itemView.searchFields.map(stripFields(jsObject, _)).getOrElse(jsObject)
-    }
-
-    private def stripFields(jsObject: JsObject, searchFields: SearchFields): JsObject = {
-      def checkFields(key: String): Boolean = if (searchFields.inclusion) searchFields.jsfields.exists(_ == key)
-      else searchFields.jsfields.exists(_ != key)
-
-      JsObject(jsObject.fields.foldRight[Seq[(String, JsValue)]](Seq())((field, result) => {
-        if (checkFields(field._1)) result :+ field
-        else result
-      }))
+      itemView.searchFields.map { _.processJson(jsObject) }.getOrElse(jsObject)
     }
 
     private def writeMainItem(item: Item): JsObject = {
@@ -46,6 +37,7 @@ object ItemView {
 
       val basics: Seq[Option[(String, JsValue)]] = Seq(
         Some(("id" -> Json.toJson(item.id))),
+        Some("format" -> Json.obj("apiVersion" -> item.createdByApiVersion, "hasQti" -> item.hasQti, "hasPlayerDefinition" -> item.hasPlayerDefinition)),
         item.workflow.map((workflow -> Json.toJson(_))),
         item.data.map((data -> Json.toJson(_))),
         item.collectionId.map(collectionId -> JsString(_)),

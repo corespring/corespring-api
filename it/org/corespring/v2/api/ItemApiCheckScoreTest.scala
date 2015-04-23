@@ -4,9 +4,9 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.AnyContentAsJson
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ItemApiCheckScoreTest extends IntegrationSpecification {
 
@@ -18,7 +18,7 @@ class ItemApiCheckScoreTest extends IntegrationSpecification {
 
       trait checkScore extends orgWithAccessTokenAndItem {
 
-        val update = ItemServiceWired.findOneById(itemId).get.copy(playerDefinition = Some(
+        val update = ItemServiceWired.findOneById(itemId).get.copy(data = None, playerDefinition = Some(
           PlayerDefinition(
             Seq.empty,
             "html",

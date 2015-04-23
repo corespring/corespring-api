@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.platform.core.models.{ContentCollection, Standard}
+import org.corespring.platform.core.models.{ ContentCollection, Standard }
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.BaseFindAndSaveService
@@ -25,13 +25,13 @@ trait ItemTransformer {
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(itemId) match {
-      case Some(item) if (item.createdByApiVersion == 1) => updateV2Json(item)
+      case Some(item) if (item.createdByApiVersion == 1) => Some(updateV2Json(item))
       case Some(item) => Some(item)
       case _ => None
     }
   }
 
-  def findCollection(id:ObjectId):Option[ContentCollection]
+  def findCollection(id: ObjectId): Option[ContentCollection]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
 
@@ -39,7 +39,7 @@ trait ItemTransformer {
     itemService.findOneById(itemId) match {
       case Some(item) => item.playerDefinition match {
         case None => try {
-          updateV2Json(item)
+          Some(updateV2Json(item))
         } catch {
           case e: Exception => {
             e.printStackTrace
@@ -67,24 +67,24 @@ trait ItemTransformer {
     }
   }
 
-  def updateV2Json(item: Item): Option[Item] = {
+  def updateV2Json(item: Item): Item = {
     item.createdByApiVersion match {
       case 1 => {
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
             case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-              case true => Some(updatedItem)
+              case true => updatedItem
               case _ => {
                 logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
                 itemService.save(updatedItem)
-                Some(updatedItem)
+                updatedItem
               }
             }
-            case _ => None
+            case _ => item
           }
       }
-      case _ => Some(item)
+      case _ => item
     }
   }
 
@@ -123,13 +123,11 @@ trait ItemTransformer {
       collection <- findCollection(new ObjectId(collectionId))
     } yield Json.toJson(collection)).getOrElse(Json.obj())
 
-
     val out = root ++ Json.obj(
       "itemId" -> Json.toJson(item.id.toString()),
       "profile" -> profile,
       "supportingMaterials" -> Json.toJson(item.supportingMaterials),
-      "collection" -> collectionJs
-      )
+      "collection" -> collectionJs)
 
     logger.trace(s"itemId=${item.id} function=transformToV2Json json=${Json.stringify(out)}")
     out
@@ -200,7 +198,7 @@ trait ItemTransformer {
       data <- item.data
       qti <- data.files.find(_.name == "qti.xml")
     } yield qti.asInstanceOf[VirtualFile]
-    require(qti.isDefined, s"item: ${item.id} has no qti xml")
+    require(qti.isDefined, s"item: ${item.id} has no qti xml. data: ${item.data}")
     val transformedJson = QtiTransformer.transform(scala.xml.XML.loadString(XMLCleaner.clean(CDataHandler.addCDataTags(qti.get.content))))
     logger.trace(s"itemId=${item.id} function=getTransformation generatedJson=${Json.stringify(transformedJson)}")
     transformedJson

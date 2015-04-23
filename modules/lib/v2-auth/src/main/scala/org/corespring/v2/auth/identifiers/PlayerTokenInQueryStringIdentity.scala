@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
@@ -28,10 +28,16 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "PlayerTokenInQueryStringIdentity")
 
-  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String]): Validation[V2Error, OrgAndOpts] = {
+  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {
     toAccessSettings(org.id, rh).map { tuple: (PlayerAccessSettings, Option[V2Warning]) =>
       val (accessSettings, maybeWarning) = tuple
-      OrgAndOpts(org, accessSettings, AuthMode.ClientIdAndPlayerToken, apiClientId, maybeWarning.toSeq)
+      OrgAndOpts(
+        org,
+        accessSettings,
+        AuthMode.ClientIdAndPlayerToken,
+        apiClientId,
+        None,
+        maybeWarning.toSeq)
     }
   }
 
@@ -61,7 +67,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     }
   }
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = {
+  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     logger.trace(s"function=headerToOrgId path=${rh.path}")
 
     if (rh.getQueryString("apiClientId").isDefined) {
@@ -78,7 +84,8 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
         logger.trace(s"function=headerToOrg org=${org.id} orgName=${org.name} ${Keys.apiClient}=$apiClientId")
         org
       }
-      out.map(Success(_)).getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
+      out.map(Success(_, None))
+        .getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
     }
   }
 

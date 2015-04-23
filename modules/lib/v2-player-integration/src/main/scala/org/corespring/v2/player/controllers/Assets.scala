@@ -8,6 +8,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -18,6 +19,8 @@ trait Assets extends ContainerAssets {
   private lazy val key = AppConfig.amazonKey
   private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
+
+  lazy val logger = V2LoggerFactory.getLogger(classOf[Assets])
 
   lazy val playS3 = new ConcreteS3Service(key, secret)
 
