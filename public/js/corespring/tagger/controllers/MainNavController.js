@@ -19,7 +19,7 @@ function MainNavController(
   };
 
   $scope.loadMore = function (index, onLoaded) {
-    V2SearchService.loadMore(function () {
+    V2SearchService.loadMore(function() {
       $rootScope.items = V2SearchService.itemDataCollection;
       if (onLoaded) {
         onLoaded();

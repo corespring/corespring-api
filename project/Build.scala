@@ -100,7 +100,8 @@ object Build extends sbt.Build {
       sprayCaching,
       componentLoader,
       playTest % "test",
-      scalaFaker))
+      scalaFaker,
+      elasticsearchPlayWS))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
 
   val playerLib = builders.lib("player-lib")

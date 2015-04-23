@@ -4,9 +4,7 @@ import org.corespring.container.components.loader.{FileComponentLoader, Componen
 import play.api.{Mode, Configuration, Play}
 import play.api.libs.json._
 
-trait ComponentMap {
-
-  val application = Play.current
+class ComponentMap(application: play.api.Application) {
 
   def componentLoader: ComponentLoader = {
     val containerConfig = {
@@ -36,3 +34,5 @@ trait ComponentMap {
     } }.map{ case(k, v) => k -> (v.asInstanceOf[JsObject] \ "title").as[String] }.toMap
 
 }
+
+object ComponentMap extends ComponentMap(play.api.Play.current)

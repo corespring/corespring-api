@@ -2,9 +2,13 @@ package org.corespring.platform.core.services.item
 
 import java.net.URL
 
+import com.mongodb.casbah.commons.MongoDBObject
 import org.apache.commons.codec.binary.Base64
+import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.elasticsearch._
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
 import play.api.libs.ws.WS
 import scala.concurrent._
@@ -17,10 +21,14 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexService with ComponentMap {
+class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: ExecutionContext, application: play.api.Application)
+    extends ItemIndexService {
 
-  import ExecutionContext.Implicits.global
   import Base64._
+
+  val components = new ComponentMap(application)
+
+  private val contentIndex = ElasticSearchClient(elasticSearchUrl).index("content")
 
   val authHeader = "Authorization" -> {
     val Array(username, password) = elasticSearchUrl.getUserInfo.split(":")
@@ -60,13 +68,40 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL) extends ItemIndexServ
     }
   }
 
+  def reindex(id: VersionedId[ObjectId]) = Indexer.reindex(id)
+
   lazy val componentTypes: Future[Validation[Error, Map[String, String]]] =
     distinct("taskInfo.itemTypes").map(result => result.map(itemTypes => itemTypes.map(itemType =>
-      componentMap.get(itemType).map(t => t.nonEmpty match {
+      components.componentMap.get(itemType).map(t => t.nonEmpty match {
         case true => Some(t -> itemType)
         case _ => None
       }).flatten
     ).flatten.toMap))
+
+  /**
+   * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
+   */
+  private object Indexer {
+
+    val contentDenormalizer =
+      new ContentDenormalizer(play.api.Play.current.configuration
+        .getConfig("mongodb").map(_.getConfig("default")).flatten.map(_.getString("uri")).flatten
+        .getOrElse(throw new Exception("Cannot connect to MongoDB without URI")))
+
+
+    def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
+      contentDenormalizer.withCollection("content", collection => {
+        collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
+          case Some(record) => {
+            contentIndex.add(id.id.toString, contentDenormalizer.denormalize(Json.parse(record.toString)).toString)
+          }
+          case _ => future { Failure(new Error(s"Item with id=$id not found")) }
+        }
+      })
+    }
+  }
+
 }
 
-object ElasticSearchItemIndexService extends ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)
+object ElasticSearchItemIndexService extends
+    ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)(ExecutionContext.Implicits.global, play.api.Play.current)

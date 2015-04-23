@@ -19,7 +19,10 @@ com.corespring.model.Defaults = function(){
           gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
               return {key:g.key, label:g.value};
           }),
-          itemTypes:_.map(window.fieldValues['v2ItemTypes'], function (g) {
+          itemTypes: _.map(window.fieldValues.itemTypes, function(g) {
+            return {key: g.key, label: g.value};
+          }),
+          v2itemTypes:_.map(window.fieldValues['v2ItemTypes'], function (g) {
               return {key:g.key, label:g.value};
           })
         };
@@ -141,8 +144,8 @@ com.corespring.model.ItemDataProcessor = function () {
          * @type {Array}
          */
         item.$gradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.gradeLevel);
-        item.$itemTypeDataProvider = this.buildNgDataProvider(
-          this.$defaults.v2ItemTypes ? this.$defaults.v2ItemTypes : this.$defaults.itemType, item.itemType);
+        item.$itemTypeDataProvider = this.buildNgDataProvider(this.$defaults.itemTypes, item.itemType);
+        item.$v2ItemTypeDataProvider = this.buildNgDataProvider(this.$defaults.v2ItemTypes, item.itemType);
         item.$priorGradeLevelDataProvider = this.buildNgDataProvider(this.$defaults.gradeLevels, item.priorGradeLevel);
         item.$reviewsPassedDataProvider = this.buildNgDataProvider(this.$defaults.reviewsPassed, item.reviewsPassed);
         item.$priorUseDataProvider = _.map(window.fieldValues.priorUses, getKey);
