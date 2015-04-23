@@ -69,7 +69,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   function loadWritableCollections() {
     function writable(collections) {
       return _.filter(collections, function(collection) {
-         return collection.permission == "write";
+        return collection.permission == "write";
       });
     }
 
@@ -105,9 +105,9 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.launchV1Player = function(){
     new com.corespring.players.ItemPlayer("#item-preview-target", {
-      mode : "preview",
-      itemId : $scope.itemData.id,
-      omitSubmitButton: false
+        mode : "preview",
+        itemId : $scope.itemData.id,
+        omitSubmitButton: false
       }
     );
   };
@@ -251,6 +251,27 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.$root.mode = "edit";
 
+  /**
+   * If the itemData.itemType is not one of the defaults,
+   * set otherItemType to be its value so the ui picks it up.
+   */
+  function initItemType() {
+
+    var type = $scope.itemData.itemType;
+    if (!type) {
+      return;
+    }
+    var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
+      return _.find(d.value, function(e) {
+        return e == type;
+      });
+    });
+
+    if (!foundType) {
+      $scope.otherItemType = type;
+    }
+  }
+
   function enterEditorIfInContentPanel() {
 
     if ($scope.currentPanel == 'content' && $scope.itemData) {
@@ -278,7 +299,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   var isViewingMetadataPanel = function() {
-   return $scope.currentPanel == "orgMetadata";
+    return $scope.currentPanel == "orgMetadata";
   };
 
   $scope.changePanel = function (panelName) {
@@ -345,6 +366,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
 
       enterEditorIfInContentPanel();
+      initItemType();
+
     });
   };
 
@@ -379,17 +402,17 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   });
 
   $scope.$watch('isPublished', function(){
-      if($scope.isPublished) {
-        $scope.itemStatus = "published";
-        if($scope.itemData.sessionCount == 1) {
-          $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)";
-        }
-        else {
-          $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
-        }
-      } else {
-        $scope.itemStatus = "Draft"
+    if($scope.isPublished) {
+      $scope.itemStatus = "published";
+      if($scope.itemData.sessionCount == 1) {
+        $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)";
       }
+      else {
+        $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
+      }
+    } else {
+      $scope.itemStatus = "Draft"
+    }
   });
 
   $scope.getPValueAsString = function (value) {
@@ -440,11 +463,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.publish = function(){
     $scope.itemData.published = true;
     $scope.itemData.update({},function(data){
-        if(data.published) {
-            $scope.isPublished = true
-        }else alert("error publishing: status ok but no published property found")
+      if(data.published) {
+        $scope.isPublished = true
+      }else alert("error publishing: status ok but no published property found")
     },function(error){
-        alert("error publishing: "+JSON.stringify(error))
+      alert("error publishing: "+JSON.stringify(error))
     })
   }
 
@@ -458,7 +481,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       $scope.isSaving = true;
     }
     if($scope.showSaveWarning){
-        $scope.showSaveWarning = false;
+      $scope.showSaveWarning = false;
     }
 
     if ($scope.showResourceEditor && !saveItemData) {
@@ -467,27 +490,27 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
 
     if(!saveItemData && $scope.itemData.published && ($scope.itemData.sessionCount > 0)){
-        $scope.showSaveWarning = true;
-        $scope.isSaving = false
+      $scope.showSaveWarning = true;
+      $scope.isSaving = false
     }else{
-        $scope.validationResult = {};
-        $scope.itemData.update({}, function (data) {
-            $scope.isSaving = false;
-            $scope.suppressSave = false;
-            $scope.processValidationResults(data["$validationResult"]);
-            if(data.id != $scope.itemData.id){
-                $location.path('/edit/' + data.id);
-            }else{
-                $rootScope.itemData = data;
-                $scope.$broadcast("dataLoaded")
-            }
-            $scope.reloadPlayer();
-          },
-          function onError(err) {
-            $scope.isSaving = false;
-            $scope.suppressSave = false;
+      $scope.validationResult = {};
+      $scope.itemData.update({}, function (data) {
+          $scope.isSaving = false;
+          $scope.suppressSave = false;
+          $scope.processValidationResults(data["$validationResult"]);
+          if(data.id != $scope.itemData.id){
+            $location.path('/edit/' + data.id);
+          }else{
+            $rootScope.itemData = data;
+            $scope.$broadcast("dataLoaded")
           }
-        );
+          $scope.reloadPlayer();
+        },
+        function onError(err) {
+          $scope.isSaving = false;
+          $scope.suppressSave = false;
+        }
+      );
     }
   };
 
@@ -650,4 +673,3 @@ ItemController.$inject = [
   'Logger',
   'ItemSessionCountService'
 ];
-
