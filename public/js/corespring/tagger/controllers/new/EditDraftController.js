@@ -21,6 +21,7 @@ function EditDraftController(
   $scope,
   $location,
   $routeParams,
+  $timeout,
   ItemDraftService,
   ItemService,
   Logger,
@@ -60,9 +61,14 @@ function EditDraftController(
 
     done = done || function(){};
 
+    $scope.isSaveDone = false;
   	ItemDraftService.commit($scope.itemId, force, function success(){
   		Logger.info('commit successful');
   		$scope.draftIsConflicted = false;
+      $scope.isSaveDone = true;
+      $timeout(function() {
+        $scope.isSaveDone = false;
+      }, 3000);
       done();
   	}, function error(err){
   		Logger.warn(err);
@@ -164,6 +170,7 @@ EditDraftController.$inject = [
   '$scope',
   '$location',
   '$routeParams',
+  '$timeout',
   'ItemDraftService',
   'ItemService',
   'Logger',
