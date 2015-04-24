@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import play.Project._
 import MongoDbSeederPlugin._
+import ElasticsearchIndexerPlugin._
 
 object Build extends sbt.Build {
 
@@ -277,6 +278,20 @@ object Build extends sbt.Build {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
 
+  def safeIndex(s: TaskStreams): Unit = {
+    lazy val isRemoteIndexingAllowed = System.getProperty("allow.remote.indexing", "false") == "true"
+    val mongoUri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api")
+    val elasticSearchUri = getEnv("BONSAI_URL").getOrElse("http://localhost:9200")
+    if (isRemoteIndexingAllowed || elasticSearchUri.contains("localhost") || elasticSearchUri.contains("127.0.0.1")) {
+      ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
+      s.log.info(s"[safeIndex] Indexing $elasticSearchUri complete")
+    } else {
+      s.log.error(
+        s"[safeIndex] - Not allowed to index to a remote elasticsearch. Add -Dallow.remote.indexing=true to override.")
+    }
+    ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
+  }
+
   def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
     lazy val overrideClear = System.getProperty("clear.before.seeding", "false") == "true"
@@ -337,6 +352,9 @@ object Build extends sbt.Build {
       seedSampleData.value)
   }
 
+  val index = TaskKey[Unit]("index")
+  val indexTask = index <<= (streams) map safeIndex
+
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
@@ -367,6 +385,7 @@ object Build extends sbt.Build {
     .settings(seedStaticDataTask)
     .settings(seedDevTask)
     .settings(seedProdTask)
+    .settings(indexTask)
     .dependsOn(scormWeb,
       reports,
       public,
