@@ -55,7 +55,7 @@ class ItemApiTest extends Specification with Mockito with MockFactory with PlayS
 
           override def itemIndexService: ItemIndexService = {
             val m = mock[ItemIndexService]
-            m.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult(0, Seq.empty)) }
+            m.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
             m
           }
 

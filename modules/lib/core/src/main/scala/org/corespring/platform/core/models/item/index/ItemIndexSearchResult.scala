@@ -24,4 +24,6 @@ object ItemIndexSearchResult {
 
   }
 
+  def empty = new ItemIndexSearchResult(0, Seq.empty)
+
 }

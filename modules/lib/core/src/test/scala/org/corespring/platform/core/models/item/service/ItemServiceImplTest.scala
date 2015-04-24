@@ -5,10 +5,11 @@ import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
+import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
-import org.corespring.platform.core.services.item.{ItemIndexService, ItemVersioningDao, ItemServiceWired}
+import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -19,11 +20,17 @@ import play.api.Play
 import play.api.libs.json.Json
 import se.radley.plugin.salat.SalatPlugin
 
+import scala.concurrent._
+import scalaz.Success
+
 class ItemServiceImplTest extends BaseTest with Mockito {
 
   val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
   val itemIndexService = mock[ItemIndexService]
+  itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
+  itemIndexService.reindex(any[ItemIndexQuery]) returns future { Success("") }
+
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
   "save" should {

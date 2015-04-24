@@ -35,6 +35,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
 
     val indexService = mock[ItemIndexService]
     indexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
+    indexService.reindex(any[ItemIndexQuery]) returns future { Success("") }
 
     lazy val api = new ItemApi {
       implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
