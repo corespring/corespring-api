@@ -62,7 +62,7 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
 
       override def itemIndexService = {
         val m = mock[ItemIndexService]
-        m.reindex(any[ItemIndexQuery]) returns future { Success("") }
+        m.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
         m
       }
 

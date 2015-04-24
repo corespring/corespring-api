@@ -27,9 +27,14 @@ class ItemServiceImplTest extends BaseTest with Mockito {
 
   val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
-  val itemIndexService = mock[ItemIndexService]
-  itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
-  itemIndexService.reindex(any[ItemIndexQuery]) returns future { Success("") }
+  val itemIndexService = {
+    import ExecutionContext.Implicits.global
+    val m = mock[ItemIndexService]
+    m.search(any[ItemIndexQuery]) returns Future { Success(ItemIndexSearchResult.empty) }
+    m.reindex(any[VersionedId[ObjectId]]) returns Future { Success("") }
+    m
+  }
+
 
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
