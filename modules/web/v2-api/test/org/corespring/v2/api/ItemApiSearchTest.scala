@@ -45,6 +45,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
       def itemService = ???
       def itemAuth = ???
       def scoreService = ???
+      def getSummaryData = ???
     }
   }
 

@@ -2,7 +2,8 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -16,7 +17,7 @@ import play.api.libs.json.JsValue
 import play.api.mvc.RequestHeader
 import play.api.test.{FakeRequest, PlaySpecification}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent._
 import scalaz.{Failure, Success, Validation}
 
 class ItemApiTest extends Specification with Mockito with MockFactory with PlaySpecification{
@@ -49,6 +50,12 @@ class ItemApiTest extends Specification with Mockito with MockFactory with PlayS
           override def itemService: ItemService = {
             val m = mock[ItemService]
             m.clone(any[Item]) returns (if(itemServiceClones) item else None)
+            m
+          }
+
+          override def itemIndexService: ItemIndexService = {
+            val m = mock[ItemIndexService]
+            m.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult(0, Seq.empty)) }
             m
           }
 
