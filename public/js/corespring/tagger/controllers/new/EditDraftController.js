@@ -48,16 +48,16 @@
       id: $routeParams.itemId
     });
 
-    $scope.backToCollections = function () {
+    $scope.backToCollections = function() {
       $location.path("/home").search('');
     };
 
     $scope.itemId = $routeParams.itemId;
     $scope.hasChanges = false;
 
-    $scope.saveBackToItem = function () {
+    $scope.saveBackToItem = function() {
       if ($scope.draftIsConflicted) {
-        Modals.saveConflictedDraft(function (cancelled) {
+        Modals.saveConflictedDraft(function(cancelled) {
           if (!cancelled) {
             commit(true);
           }
@@ -70,21 +70,20 @@
 
     function commit(force, done) {
 
-      done = done || function () {
-        };
+      done = done || function() {};
 
       $scope.isSaveDone = false;
       ItemDraftService.commit($scope.itemId, force, function success() {
         Logger.info('commit successful');
         $scope.draftIsConflicted = false;
         $scope.isSaveDone = true;
-        $timeout(function () {
+        $timeout(function() {
           $scope.isSaveDone = false;
         }, 3000);
         done();
       }, function error(err) {
         Logger.warn(err);
-        Modals.commitFailedDueToConflict(function (cancelled) {
+        Modals.commitFailedDueToConflict(function(cancelled) {
           $scope.draftIsConflicted = true;
           if (cancelled) {
             done();
@@ -95,26 +94,26 @@
       });
     }
 
-    $scope.clone = function () {
+    $scope.clone = function() {
       $scope.showProgressModal = true;
-      ItemDraftService.clone($scope.itemId, function (result) {
+      ItemDraftService.clone($scope.itemId, function(result) {
         Logger.info(result);
         $scope.showProgressModal = false;
         $location.path('/edit/draft/' + result.itemId);
-      }, function (err) {
+      }, function(err) {
         Logger.error(err);
         $scope.showProgressModal = false;
       });
     };
 
-    $scope.publish = function () {
+    $scope.publish = function() {
       Modals.publish(
-        function (cancelled) {
+        function(cancelled) {
           if (cancelled) {
             return;
           }
 
-          commit(false, function () {
+          commit(false, function() {
             itemService.publish(function success() {
                 $scope.backToCollections();
               },
@@ -126,7 +125,7 @@
         });
     };
 
-    $scope.loadDraftItem = function (ignoreConflict) {
+    $scope.loadDraftItem = function(ignoreConflict) {
 
       ignoreConflict = ignoreConflict === true;
 
@@ -153,19 +152,19 @@
         });
     };
 
-    $scope.discard = function () {
-      ItemDraftService.deleteDraft($routeParams.itemId, function () {
+    $scope.discard = function() {
+      ItemDraftService.deleteDraft($routeParams.itemId, function() {
         $scope.loadDraftItem();
-      }, function () {
+      }, function() {
         console.error('An error occured deleting the draft');
       });
     };
 
-    $scope.ignoreConflict = function () {
+    $scope.ignoreConflict = function() {
       $scope.loadDraftItem(true);
     };
 
-    $scope.showDevEditor = function () {
+    $scope.showDevEditor = function() {
       $scope.devEditorVisible = true;
       $scope.v2Editor = devEditor;
       if ($scope.channel) {
@@ -173,7 +172,7 @@
       }
     };
 
-    $scope.showEditor = function () {
+    $scope.showEditor = function() {
       $scope.devEditorVisible = false;
       $scope.v2Editor = normalEditor;
       if ($scope.channel) {
@@ -181,8 +180,8 @@
       }
     };
 
-    $scope.onItemChanged = function (data, done) {
-      $scope.$apply(function () {
+    $scope.onItemChanged = function(data, done) {
+      $scope.$apply(function() {
         $scope.hasChanges = true;
       });
     };
