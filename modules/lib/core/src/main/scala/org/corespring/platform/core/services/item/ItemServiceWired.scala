@@ -24,8 +24,8 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.{ Play, Application, PlayException }
 import scala.Some
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
+import scala.concurrent.{Future, Await, ExecutionContext}
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
@@ -108,7 +108,7 @@ class ItemServiceWired(
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = {
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Any] = {
     dao.update(id, dbo, createNewVersion)
     itemIndexService.reindex(id)
   }
@@ -186,7 +186,7 @@ class ItemServiceWired(
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
-    saveUsingDbo(id, update, false)
+    Await.result(saveUsingDbo(id, update, false), Duration(20, SECONDS))
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
