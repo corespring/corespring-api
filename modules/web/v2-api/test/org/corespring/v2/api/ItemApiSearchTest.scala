@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.services.item._
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models._
 import org.corespring.v2.errors.Errors.invalidToken
@@ -35,6 +36,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
 
     val indexService = mock[ItemIndexService]
     indexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
+    indexService.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
 
     lazy val api = new ItemApi {
       implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
@@ -45,6 +47,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
       def itemService = ???
       def itemAuth = ???
       def scoreService = ???
+      def getSummaryData = ???
     }
   }
 

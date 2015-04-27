@@ -262,19 +262,19 @@
         <table class="item-list table content-sort table-striped" style="margin: 0 auto; margin-top:20px; width:95%;">
             <thead>
             <tr>
-                <th width="105" sort-column-header field="preview"></th>
+                <th width="150"></th>
                 <th sort-column-header field="title" width="200">Title</th>
                 <th class="description-column" sort-column-header field="description" width="300">Description</th>
-                <th width="200" sort-column-header field="primarySubject">Subject</th>
+                <th width="100" sort-column-header field="primarySubject">Subject</th>
                 <th width="100" sort-column-header field="gradeLevel">Grade</th>
                 <th width="100" sort-column-header field="itemType">Item Type</th>
-                <th width="200">Standard(s)</th>
-                <th width="100" sort-column-header field="contributor">Source</th>
+                <th width="150">Standard(s)</th>
+                <th width="80" sort-column-header field="contributor">Source</th>
                 <th width="70">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="item in items" style="cursor: pointer;">
+            <tr id="row-{{item.id}}" ng-repeat="item in items" style="cursor: pointer;">
                 <td class="buttons-align-right">
                   <button ng-click="edit(item)" ng-show="!item.readOnly" class="btn btn-default btn-edit btn-sm"><i class="fa fa-pencil"></i> edit</button>
                   <a class="btn btn-default btn-preview btn-sm" ng-click="launchCatalogView()"><i class="fa fa-eye"></i> Preview</a>

@@ -14,7 +14,7 @@ class ItemIndexSearchResultTest extends Specification {
     val collectionId = new ObjectId().toString
     val contributor = "CoreSpring"
     val published = true
-    val dotNotation = "RL.4.3"
+    val standards = Map("RL.4.3" -> "Describe in depth a character, setting, or event in a story or drama, drawing on specific details in the text (e.g., a character’s thoughts, words, or actions).")
     object primarySubject {
       val category = "Algebra"
       val subject = "Mathematics"
@@ -23,22 +23,23 @@ class ItemIndexSearchResultTest extends Specification {
     val title = "This is the title"
     val description = "This is the description"
     val apiVersion = 1
+    val itemTypes = Seq("corespring-multiple-choice", "corespring-feedback")
 
     val searchResult = ItemIndexSearchResult(
       total = total,
       hits = Seq(ItemIndexHit(
         id = id,
-        collectionId = collectionId,
+        collectionId = Some(collectionId),
         contributor = Some(contributor),
         published = published,
-        standards = Seq(dotNotation),
+        standards = standards,
         subject = Some(s"${primarySubject.category}: ${primarySubject.subject}"),
         gradeLevels = gradeLevels,
         title = Some(title),
         description = Some(description),
-        apiVersion = Some(apiVersion)
-        )
-      )
+        apiVersion = Some(apiVersion),
+        itemTypes = itemTypes
+      ))
     )
 
     "reads" should {
@@ -55,9 +56,7 @@ class ItemIndexSearchResultTest extends Specification {
                 "contributor": "$contributor"
               },
               "published" : $published,
-              "standards" : [{
-                "dotNotation" : "$dotNotation"
-              }],
+              "standards" : [${standards.map{case (dotNotation, standard) => Json.obj("dotNotation" -> dotNotation, "standard" -> standard)}.mkString("\",\"")}],
               "taskInfo" : {
                 "subjects" : {
                   "primary" : {
@@ -67,6 +66,7 @@ class ItemIndexSearchResultTest extends Specification {
                 },
                 "gradeLevel" : ["${gradeLevels.mkString("\",\"")}"],
                 "title" : "$title",
+                "itemTypes": ["${itemTypes.mkString("\",\"")}"],
                 "description": "$description"
               }
             }
@@ -98,13 +98,15 @@ class ItemIndexSearchResultTest extends Specification {
           "hits" : [{
             "id" : "$id",
             "collectionId" : "$collectionId",
+            "contributor": "$contributor",
             "published" : $published,
-            "standards" : ["$dotNotation"],
+            "standards" : ${Json.toJson(standards).toString},
             "subject" : "${primarySubject.category}: ${primarySubject.subject}",
             "gradeLevels" : ["${gradeLevels.mkString("\",\"")}"],
             "title" : "$title",
             "description" : "$description",
-            "apiVersion" : $apiVersion
+            "apiVersion" : $apiVersion,
+            "itemTypes" : ["${itemTypes.mkString("\",\"")}"]
           }]
         }""")
       }

@@ -5,10 +5,11 @@ import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
+import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
-import org.corespring.platform.core.services.item.{ ItemVersioningDao, ItemServiceWired }
+import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired}
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -19,17 +20,29 @@ import play.api.Play
 import play.api.libs.json.Json
 import se.radley.plugin.salat.SalatPlugin
 
+import scala.concurrent._
+import scalaz.Success
+
 class ItemServiceImplTest extends BaseTest with Mockito {
 
   val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
-  val service = new ItemServiceWired(s3, DefaultItemSession, dao)
+  val itemIndexService = {
+    import ExecutionContext.Implicits.global
+    val m = mock[ItemIndexService]
+    m.search(any[ItemIndexQuery]) returns Future { Success(ItemIndexSearchResult.empty) }
+    m.reindex(any[VersionedId[ObjectId]]) returns Future { Success("") }
+    m
+  }
+
+
+  val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
   "save" should {
 
     def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): Result = {
       val mockS3: CorespringS3Service = new MockS3Service
-      val s = new ItemServiceWired(mockS3, DefaultItemSession, ItemVersioningDao)
+      val s = new ItemServiceWired(mockS3, DefaultItemSession, ItemVersioningDao, itemIndexService)
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id, "data", name))
       val resource = Resource(name = "data", files = Seq(file))

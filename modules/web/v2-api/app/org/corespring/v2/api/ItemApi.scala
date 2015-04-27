@@ -90,7 +90,6 @@ trait ItemApi extends V2Api with JsonUtil {
 
     implicit class Accessible(collections: Seq[ContentCollRef]) {
       private val readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
-
       def accessible = collections.filter(readable)
     }
 

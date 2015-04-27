@@ -30,19 +30,26 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
 
   private val contentIndex = ElasticSearchClient(elasticSearchUrl).index("content")
 
-  val authHeader = "Authorization" -> {
-    val Array(username, password) = elasticSearchUrl.getUserInfo.split(":")
-    s"Basic ${new String(encodeBase64(s"$username:$password".getBytes))}"
+  private val authHeader = Option(elasticSearchUrl.getUserInfo).map(_.split(":")) match {
+    case Some(Array(username, password)) =>
+      Some("Authorization" -> s"Basic ${new String(encodeBase64(s"$username:$password".getBytes))}")
+    case _ => None
   }
 
-  val baseUrl = s"${elasticSearchUrl.getProtocol}://${elasticSearchUrl.getHost}"
+  val baseUrl = s"${elasticSearchUrl.getProtocol}://${elasticSearchUrl.getHost}${
+    if (elasticSearchUrl.getPort == -1) "" else s":${elasticSearchUrl.getPort}"}"
+
+  private def authed(route: String) = {
+    val holder = WS.url(s"$baseUrl$route")
+    authHeader.map(header => holder.withHeaders(header)).getOrElse(holder)
+  }
 
   def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
-      WS.url(baseUrl + "/content/_search").withHeaders(authHeader)
+      authed("/content/_search")
         .post(Json.toJson(query))
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
@@ -57,7 +64,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
     try {
       implicit val AggregationWrites = ItemIndexAggregation.Writes
       val agg = ItemIndexAggregation(field = field)
-      WS.url(baseUrl + "/content/_search").withHeaders(authHeader)
+      authed("/content/_search")
         .post(Json.toJson(agg))
         .map(result => {
           Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]

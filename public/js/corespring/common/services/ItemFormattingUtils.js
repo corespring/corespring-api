@@ -138,17 +138,16 @@ angular.module('corespring-utils')
        * @param standards
        * @return label string
        */
-      buildStandardLabel: function(standards) {
+      buildStandardLabel: function(standards, n) {
+        n = n || 8;
         if (standards == null || _.keys(standards).length == 0) {
           return "";
         }
 
-        var dotNotation = _.chain(standards).keys().take(8).value();
-        if (_.keys(standards).length > 8) {
-          dotNotation.push("+" + (_.keys(standards).length - 8) + " more...");
-        }
-
-        return dotNotation;
+        var dotNotation = _.chain(standards).keys().take(n).value();
+        return (_.keys(standards).length > n) ?
+          dotNotation.join(', ') + " +" + (_.keys(standards).length - n) + " more..." :
+          dotNotation.join(', ');
       },
 
 
