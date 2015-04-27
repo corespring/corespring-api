@@ -1,7 +1,6 @@
 package org.corespring.platform.core.models.item.index
 
 import org.corespring.platform.core.models.JsonUtil
-import org.corespring.v2.log.V2LoggerFactory
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
