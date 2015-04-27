@@ -1,10 +1,12 @@
 package org.corespring.platform.core.models.item.index
 
 import org.corespring.platform.core.models.JsonUtil
+import org.corespring.v2.log.V2LoggerFactory
+import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
 case class ItemIndexHit(id: String,
-                        collectionId: String,
+                        collectionId: Option[String],
                         contributor: Option[String],
                         published: Boolean,
                         standards: Map[String, String],
@@ -17,7 +19,10 @@ case class ItemIndexHit(id: String,
 
 object ItemIndexHit {
 
+
   object Format extends Format[ItemIndexHit] with JsonUtil {
+
+    lazy val logger = LoggerFactory.getLogger("ItemIndexHit#Format")
 
     private def subjectify(json: JsObject) = {
       def emptyOption(string: String): Option[String] = string match {
@@ -32,20 +37,27 @@ object ItemIndexHit {
       }
     }
 
-    def reads(json: JsValue) = JsSuccess(ItemIndexHit(
-      id = (json \ "_id").as[String],
-      collectionId = (json \ "_source" \ "collectionId").as[String],
-      contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
-      published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
-      standards = (json \ "_source" \ "standards").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-        .map(s => (s \ "dotNotation").as[String] -> (s \ "standard").as[String]).toMap,
-      subject = (json \ "_source" \ "taskInfo" \ "subjects" \ "primary").asOpt[JsObject].map(subjectify),
-      gradeLevels = (json \ "_source" \ "taskInfo" \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
-      title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
-      description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
-      apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int],
-      itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)
-    ))
+    def reads(json: JsValue) = try {
+      JsSuccess(ItemIndexHit(
+        id = (json \ "_id").as[String],
+        collectionId = (json \ "_source" \ "collectionId").asOpt[String],
+        contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
+        published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
+        standards = (json \ "_source" \ "standards").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
+          .map(s => (s \ "dotNotation").as[String] -> (s \ "standard").as[String]).toMap,
+        subject = (json \ "_source" \ "taskInfo" \ "subjects" \ "primary").asOpt[JsObject].map(subjectify),
+        gradeLevels = (json \ "_source" \ "taskInfo" \ "gradeLevel").asOpt[Seq[String]].getOrElse(Seq.empty),
+        title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
+        description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
+        apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int],
+        itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)
+      ))
+    } catch {
+      case exception: Exception => {
+        logger.error(s"Error parsing ${json \ "_id"}")
+        JsError(s"Error parsing ${json \ "_id"}")
+      }
+    }
 
     def writes(indexItemHit: ItemIndexHit) = {
       import indexItemHit._
