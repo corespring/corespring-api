@@ -12,7 +12,7 @@
       <li style="line-height: 38px; color:#fff">
           <span class="save-message"><span class="hidden" ng-class="{hidden: !isSaveDone}">All changes have been saved</span></span>
       </li>
-      <li style="line-height: 38px;padding-right: 10px"><button class="btn btn-primary" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
+      <li style="line-height: 38px;padding-right: 10px"><button class="btn btn-primary" ng-disabled="!hasChanges" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
       <li style="line-height: 38px;" class="dropdown" id="menu2">
         <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu2">
           Select an action

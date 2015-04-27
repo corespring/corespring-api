@@ -44,6 +44,7 @@ function EditDraftController(
   };
 
   $scope.itemId = $routeParams.itemId;
+  $scope.hasChanges = false;
 
   $scope.saveBackToItem = function(){
   	if($scope.draftIsConflicted){
@@ -55,6 +56,7 @@ function EditDraftController(
   	} else {
   		commit(false);
   	}
+    $scope.hasChanges = false;
   };
 
   function commit(force, done) {
@@ -162,6 +164,13 @@ function EditDraftController(
     $scope.devEditorVisible = false;
     $scope.v2Editor = normalEditor;
   };
+
+  var channel = new msgr.Channel(window, $('.edit-container .item-iframe-container iframe')[0].contentWindow);
+  channel.on('itemChanged', function(data, done){
+    $scope.$apply(function() {
+      $scope.hasChanges = true;
+    });
+  });
 
   $scope.loadDraftItem();
 }
