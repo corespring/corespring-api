@@ -108,7 +108,10 @@ class ItemServiceWired(
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = dao.update(id, dbo, createNewVersion)
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = {
+    dao.update(id, dbo, createNewVersion)
+    itemIndexService.reindex(id)
+  }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
@@ -121,10 +124,7 @@ class ItemServiceWired(
       case Left(_) => logger.error("Cannot index a failure")
       case Right(id) => {
         import ExecutionContext.Implicits.global
-        itemIndexService.reindex(id).map(_ match {
-          case Failure(error) => logger.error(s"Item indexing failed: ${error.getMessage}")
-          case Success(message) => logger.info(s"Item indexing succeeded: $message")
-        })
+        itemIndexService.reindex(id)
       }
     }
 

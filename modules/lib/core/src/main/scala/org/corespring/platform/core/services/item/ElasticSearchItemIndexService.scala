@@ -7,6 +7,7 @@ import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.Base64._
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
+import org.corespring.common.log.Logging
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.elasticsearch._
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -24,9 +25,11 @@ import scalaz._
  */
 class ElasticSearchItemIndexService(elasticSearchUrl: URL)
                                    (implicit ec: ExecutionContext, application: play.api.Application)
-    extends ItemIndexService with AuthenticatedUrl {
+    extends ItemIndexService with AuthenticatedUrl with Logging {
 
   import Base64._
+
+  override def loggerName = "org.corespring.platform.core.services.item.ElasticSearchItemIndexService"
 
   val components = new ComponentMap(application)
   implicit val url = elasticSearchUrl
@@ -64,7 +67,16 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
     }
   }
 
-  def reindex(id: VersionedId[ObjectId]) = Indexer.reindex(id)
+  def reindex(id: VersionedId[ObjectId]) = Indexer.reindex(id).map(_ match {
+    case Failure(error) => {
+      logger.error(s"Item indexing failed: ${error.getMessage}")
+      Failure(error)
+    }
+    case Success(message) => {
+      logger.info(s"Item indexing succeeded: $message")
+      Success(message)
+    }
+  })
 
   lazy val componentTypes: Future[Validation[Error, Map[String, String]]] =
     distinct("taskInfo.itemTypes").map(result => result.map(itemTypes => itemTypes.map(itemType =>
