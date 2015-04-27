@@ -7,18 +7,8 @@
       loadContributors();
       var defaultsFactory = new com.corespring.model.Defaults();
       $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider('gradeLevels');
-      $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('itemTypes');
-      $scope.flatItemTypeDataProvided = _.map(_.flatten(_.pluck($scope.itemTypeDataProvider, 'label')), function(e) {
-        return {
-          key: e,
-          label: e
-        };
-      });
-
-      $scope.flatItemTypeDataProvided.push({
-        key: 'Other',
-        label: 'Other'
-      });
+      $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('v2ItemTypes');
+      $scope.flatItemTypeDataProvided = $scope.itemTypeDataProvider;
 
       $scope.statuses = [
         { label: 'Setup', key: 'setup' }, 
@@ -28,7 +18,7 @@
         { label: 'Exact Match', key: 'exactMatch' }];
       
       $scope.publishStatuses = [
-        { label: 'Published', key: 'published' }, 
+        { label: 'Live', key: 'published' }, 
         { label: 'Draft', key: 'draft' } ];
     }
 
@@ -68,9 +58,9 @@
 
     $scope.getContributorSelectedTitle = function(items) {
       if (!items || items.length === 0) {
-        return 'None Selected';
+        return '';
       }
-      return items.length + ' Selected';
+      return '('+items.length + ')';
     };
 
     $scope.getCollectionTitle = function(c) {
@@ -87,20 +77,21 @@
 
     $scope.getCollectionSelectedTitle = function(items) {
       if (!items || items.length === 0) {
-        return 'None Selected';
+        return '';
       }
-      return items.length + ' selected';
+      return '('+items.length + ')';
     };
 
     $scope.getSelectedTitle = function(items) {
       if (!items || items.length === 0) {
-        return 'None Selected';
+        return '';
       }
-      var out = _.pluck(items, 'key').map(function(key) {
-        var numericKey = parseInt(key);
-        return isNaN(numericKey) ? key : numericKey;
-      });
-      return out.join(', ');
+      // var out = _.pluck(items, 'key').map(function(key) {
+      //   var numericKey = parseInt(key);
+      //   return isNaN(numericKey) ? key : numericKey;
+      // });
+      // return out.join(', ');
+      return '('+items.length+')';
     };
 
     init();

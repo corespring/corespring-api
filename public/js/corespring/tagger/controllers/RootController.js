@@ -1,4 +1,4 @@
-function RootController($scope, $rootScope, ItemService, SearchService, CollectionManager) {
+function RootController($scope, $rootScope, ItemService, V2SearchService, CollectionManager) {
   "use strict";
   $scope.uiState = {
     showCollectionsPane: false
@@ -56,7 +56,7 @@ function RootController($scope, $rootScope, ItemService, SearchService, Collecti
           $rootScope.searchParams.notSelectedItemTypes.push(e);
       });
     }
-    SearchService.search($rootScope.searchParams, function(res) {
+    V2SearchService.search($rootScope.searchParams, function(res) {
       $rootScope.items = applyPermissions(res);
       setTimeout(function() {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -65,9 +65,9 @@ function RootController($scope, $rootScope, ItemService, SearchService, Collecti
   };
 
   $scope.loadMore = function() {
-    SearchService.loadMore(function() {
+    V2SearchService.loadMore(function() {
       // re-bind the scope collection to the services model after result comes back
-      $rootScope.items = applyPermissions(SearchService.itemDataCollection);
+      $rootScope.items = applyPermissions(V2SearchService.itemDataCollection);
       //Trigger MathJax
       setTimeout(function() {
         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
@@ -94,4 +94,4 @@ function RootController($scope, $rootScope, ItemService, SearchService, Collecti
   }
 }
 
-RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'SearchService','CollectionManager'];
+RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'V2SearchService','CollectionManager'];

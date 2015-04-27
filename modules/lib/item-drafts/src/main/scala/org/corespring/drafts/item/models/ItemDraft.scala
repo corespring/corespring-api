@@ -12,8 +12,7 @@ object ItemDraft {
       DraftId.fromIdAndUser(item.id, user),
       user,
       ItemSrc(item),
-      ItemSrc(item),
-      false)
+      ItemSrc(item))
   }
 }
 
@@ -33,7 +32,6 @@ case class ItemDraft(
   val user: OrgAndUser,
   val parent: ItemSrc,
   val change: ItemSrc,
-  val hasConflict: Boolean,
   val created: DateTime = DateTime.now(DateTimeZone.UTC),
   val expires: DateTime = DateTime.now(DateTimeZone.UTC).plusDays(1))
   extends UserDraft[DraftId, VersionedId[ObjectId], Item, OrgAndUser] {
@@ -44,3 +42,5 @@ case class ItemDraft(
   override def mkChange(d: Item): ItemDraft = this.copy(change = change.copy(data = d), created = this.created, expires = this.expires)
 
 }
+
+case class Conflict(draft: ItemDraft, item: Item)

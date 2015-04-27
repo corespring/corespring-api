@@ -10,6 +10,7 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.corespring.elasticsearch.ContentDenormalizer
 import org.corespring.platform.core.files.CloneFileResult
 import org.corespring.platform.core.files.ItemFiles
 import org.corespring.platform.core.models.ContentCollection
@@ -20,8 +21,11 @@ import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, D
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
+import play.api.libs.json.Json
 import play.api.{ Play, Application, PlayException }
 import scala.Some
+import scala.concurrent.duration._
+import scala.concurrent.{Future, Await, ExecutionContext}
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
@@ -29,7 +33,8 @@ import se.radley.plugin.salat.SalatPlugin
 class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
-  val dao: SalatVersioningDao[Item])
+  val dao: SalatVersioningDao[Item],
+  itemIndexService: ItemIndexService)
   extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
@@ -103,7 +108,10 @@ class ItemServiceWired(
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) = dao.update(id, dbo, createNewVersion)
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Validation[Error, String]] = {
+    dao.update(id, dbo, createNewVersion)
+    itemIndexService.reindex(id)
+  }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
@@ -112,9 +120,15 @@ class ItemServiceWired(
   override def save(item: Item, createNewVersion: Boolean = false): Either[String, VersionedId[ObjectId]] = {
 
     val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    savedVid match {
+      case Left(_) => logger.error("Cannot index a failure")
+      case Right(id) => {
+        import ExecutionContext.Implicits.global
+        itemIndexService.reindex(id)
+      }
+    }
 
     if (createNewVersion) {
-
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(newItem)
       result match {
@@ -172,7 +186,8 @@ class ItemServiceWired(
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
-    saveUsingDbo(id, update, false)
+    val result: Future[Validation[Error, String]] = saveUsingDbo(id, update, false)
+    Await.result(result, Duration(20, SECONDS))
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
@@ -216,5 +231,6 @@ object ItemVersioningDao extends SalatVersioningDao[Item] {
 object ItemServiceWired extends ItemServiceWired(
   CorespringS3ServiceExtended,
   DefaultItemSession,
-  ItemVersioningDao)
+  ItemVersioningDao,
+  ElasticSearchItemIndexService)
 

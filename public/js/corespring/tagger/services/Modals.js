@@ -13,6 +13,12 @@ angular.module('tagger.services')
     },
     'delete' : {
       show: false
+    },
+    saveConflictedDraft: {
+    	show: false
+    },
+    commitFailedDueToConflict: {
+      show: false
     }
   };
 
@@ -28,6 +34,14 @@ angular.module('tagger.services')
 
     this['delete'] = function(done){
       showModal('delete', done);
+    };
+
+    this.saveConflictedDraft = function(done){
+    	showModal('saveConflictedDraft', done);
+    };
+
+    this.commitFailedDueToConflict = function(done){
+    	showModal('commitFailedDueToConflict', done);
     };
 
     function showModal(name, done){

@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.PlaySingleton
@@ -62,6 +62,8 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
+
+      override def itemIndexService: ItemIndexService = ???
 
       override def getSummaryData: (Item, Option[String]) => JsValue = (i, s) => Json.obj()
     }

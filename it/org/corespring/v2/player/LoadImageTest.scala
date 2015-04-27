@@ -75,5 +75,15 @@ class LoadImageTest extends IntegrationSpecification {
         failure("Can't load asset")
       }
     }
+
+    import org.corespring.container.client.controllers.apps.routes.Player
+
+    "work when imagePath is encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup%20py.png") {
+      val call = Player.getFile(sessionId.toString, "pup%20py.png")
+      val r = makeRequest(call)
+      route(r)(writeable).map { r =>
+        status(r) === OK
+      }.getOrElse(failure("Can't load asset"))
+    }
   }
 }

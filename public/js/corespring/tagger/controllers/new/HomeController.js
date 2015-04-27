@@ -48,7 +48,7 @@
         item.clone(
           function success(newItem){
             $location.url('/old/edit/' + newItem.id );
-          }, 
+          },
           function error(err){
             alert('cloneItem:', JSON.stringify(err));
           }
@@ -59,7 +59,7 @@
         $scope.v1.itemToPublish = item;
         $scope.v1.showConfirmPublishModal = true;
       };
-      
+
       this.publishConfirmed = function(){
         $scope.v1.showConfirmPublishModal = false;
 
@@ -69,7 +69,7 @@
           }
           $scope.v1.itemToPublish.published = result.published;
           $scope.v1.itemToPublish = null;
-        }, 
+        },
         function(err){
           alert(err);
         });
@@ -89,77 +89,39 @@
         });
       }
 
-      function goToEditDraft(draftId){
-        $location.url('/edit/draft/' + draftId);
-      }
-
-      function makeADraft(itemId, onSuccess){
-        ItemDraftService.createUserDraft(itemId, 
-          function(draft){
-            $scope.orgDrafts.push(draft);
-            onSuccess(draft.id);
-          }, 
-          function error(err){
-            alert('error making a draft' + JSON.stringify(err));
-          }
-        );
+      function goToEditDraft(itemId){
+        $location.url('/edit/draft/' + itemId);
       }
 
       this.edit = function(item){
-        Modals.edit(function(cancelled){
-          
-          if(cancelled){
-            return;
-          }
-
-          var draft = _.find($scope.orgDrafts, function(d){
-            return d.itemId === item.id;
+        if(item.published){
+          Modals.edit(function(cancelled){
+            if(cancelled){
+              return;
+            }
+            goToEditDraft(item.id);
           });
-
-          if(draft){
-            goToEditDraft(draft.id);
-          } else {
-            makeADraft(item.id, goToEditDraft); 
-          }
-        });
-      };
-
-      this.publish = function(item){
-
-        var draft = _.find($scope.orgDrafts, function(d){
-          return d.itemId == item.id;
-        });
-
-        if(!draft){
-          Logger.warn('can\'t find draft for item: item.id, going to just publish the item');
-          /**
-           * Not sure if this is the correct behaviour - will check w/ gwen/whitney
-           */
-          item.publish(
-            function(){
-              $scope.search();
-            }, 
-            function(err){
-              Logger.error(err);
-            }
-          );
         } else {
-          ItemDraftService.publish(draft.id, 
-            function(result){
-              $scope.search();
-            }, 
-            function(err){
-              Logger.error(err);
-            }
-          );
+          goToEditDraft(item.id);
         }
       };
 
+      this.publish = function(item){
+        item.publish(
+          function(){
+            $scope.search();
+          },
+          function(err){
+            Logger.error(err);
+          }
+        );
+      };
+
       this.cloneItem = function(item){
-        V2ItemService.clone({id: item.id}, 
+        V2ItemService.clone({id: item.id},
           function success(newItem){
-            makeADraft(newItem.id, goToEditDraft);
-          }, 
+            goToEditDraft(newItem.id);
+          },
           function error(err){
             alert('cloneItem:', JSON.stringify(err));
           }
@@ -175,7 +137,7 @@
     };
 
     function route(action, item){
-      if(item.format.apiVersion === 1){
+      if (item.apiVersion === 1) {
         $scope.v1[action](item);
       } else {
         $scope.v2[action](item);
@@ -185,7 +147,7 @@
     $scope.edit = function(item){
       route('edit', item);
     };
-    
+
     $scope.publish = function(item){
       Modals.publish(function(cancelled){
         if(!cancelled){
@@ -193,34 +155,33 @@
         }
       });
     };
-    
+
     $scope.cloneItem = function(item){
       route('cloneItem', item);
     };
-    
+
     $scope.deleteItem = function(item) {
       Modals['delete'](function(cancelled){
         if(!cancelled){
-          ItemService.remove({ id: item.id },
-            function(result) {
-              $scope.search();
+          ItemDraftService.deleteByItemId(
+            item.id, 
+            function draftsDeleted(result){
+              ItemService.remove(
+                { id: item.id },
+                function(result) {
+                  Logger.debug('item removed');
+                  $timeout($scope.search, 1000);
+                },
+                function error(err){
+                  Logger.error(err);
+                }
+              );
+            }, 
+            function error(err){
+              Logger.error(err);
             });
         }
       });
-    };
-
-    $scope.deleteDraft = function(draft){
-      ItemDraftService.deleteDraft(draft.id, 
-        function(result){
-          console.log('deleting draft, successful');
-          $scope.orgDrafts = _.reject($scope.orgDrafts, function(d){
-            return d.id === draft.id;
-          });
-        }, 
-        function(err){
-          console.warn('Error deleting draft');
-        }
-      );
     };
 
     function openPreview(id) {

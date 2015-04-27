@@ -5,7 +5,8 @@ import org.joda.time.DateTime
 
 sealed abstract class DraftError(val msg: String)
 sealed abstract class CommitError(override val msg: String) extends DraftError(msg)
-sealed abstract class UserCant[U](requester: U, owner: U, action: String) extends DraftError(s"User: $requester, can't commit a draft owned by: $owner")
+sealed abstract class UserCant[U](user: U, owner: U, action: String) extends DraftError(s"User: $user, can't commit a draft owned by: $owner")
+abstract class DraftIsOutOfDate[ID, VID, SRC_DATA](d: Draft[ID, VID, SRC_DATA], src: Src[VID, SRC_DATA]) extends DraftError("The src has changed since the draft was created.")
 
 case class LoadDraftFailed(val draftId: String) extends DraftError(s"Can't load draft with id: $draftId")
 case class SaveDataFailed(override val msg: String) extends DraftError(msg)
@@ -46,11 +47,11 @@ case class CreateDraftFailed(id: String) extends DraftError(s"Create draft: $id 
 
 case class CopyAssetsFailed(from: String, to: String) extends DraftError(s"An error occurred copying assets: $from -> $to")
 case class DeleteAssetsFailed(path: String) extends DraftError(s"An error occurred deleting assets: $path")
+case class NothingToCommit[ID](id: ID) extends DraftError(s"There's nothing to commit for draft: ${id.toString}")
+case class UserCantCommit[U](user: U, owner: U) extends UserCant[U](user, owner, "commit")
+case class UserCantSave[U](user: U, owner: U) extends UserCant[U](user, owner, "save")
+case class UserCantCreate[U, VID](user: U, id: VID) extends DraftError(s"User $user can't create from id $id")
+case class UserCantLoad[U, ID](user: U, id: ID) extends DraftError(s"User $user can't load draft with id $id")
+case class UserCantRemove[U, ID](user: U, id: ID) extends DraftError(s"User $user can't remove draft with id $id")
+case class UserCantDeleteMultipleDrafts[U, ID](user: U, itemId: ID) extends DraftError(s"User $user can't remove multiple drafts for itemId: $itemId")
 
-case class UserCantCommit[U](requester: U, owner: U) extends UserCant[U](requester, owner, "commit")
-case class UserCantSave[U](requester: U, owner: U) extends UserCant[U](requester, owner, "save")
-case class UserCantCreate[U, VID](requester: U, id: VID) extends DraftError(s"User $requester can't create from id $id")
-case class UserCantLoad[U, ID](requester: U, id: ID) extends DraftError(s"User $requester can't load draft with id $id")
-case class UserCantRemove[U, ID](requester: U, id: ID) extends DraftError(s"User $requester can't remove draft with id $id")
-
-case class DraftIsOutOfDate[ID, VID, SRC_DATA](d: Draft[ID, VID, SRC_DATA], src: Src[VID, SRC_DATA]) extends DraftError("The src has changed since the draft was created.")

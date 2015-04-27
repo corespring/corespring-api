@@ -54,8 +54,9 @@ describe('item-edit-buttons', function(){
     }); 
 
   });
-  
-  describe('ownsDraft', function(){
+
+  //ownsDraft & draftStatus are nowhere to be found in the code base
+  xdescribe('ownsDraft', function(){
 
     var scope, directiveScope;
 

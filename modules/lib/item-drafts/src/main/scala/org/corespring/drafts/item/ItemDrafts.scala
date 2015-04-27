@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.{ Src, Drafts }
+import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -13,12 +13,14 @@ import org.joda.time.DateTime
 import play.api.Logger
 
 import scalaz.Scalaz._
-import scalaz.{ ValidationNel, Failure, Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
+case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
+
 trait ItemDrafts
-  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit] {
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
@@ -34,13 +36,29 @@ trait ItemDrafts
 
   /** Check that the user may create the draft for the given src id */
   protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean
+  protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
-  def remove(requester: OrgAndUser)(id: DraftId) = {
+  def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, ObjectId] = {
+    logger.debug(s"function=removeByItemId, itemId=$itemId")
+    for {
+      _ <- if (userCanDeleteDrafts(VersionedId(itemId, None), user))
+        Success(true)
+      else
+        Failure(UserCantDeleteMultipleDrafts(user, itemId))
+      _ <- if (draftService.removeByItemId(itemId))
+        Success(true)
+      else
+        Failure(GeneralError(s"error removing by item id: $itemId"))
+      _ <- assets.deleteDraftsByItemId(itemId)
+    } yield itemId
+  }
+
+  def remove(user: OrgAndUser)(id: DraftId) = {
     logger.debug(s"function=remove, id=$id")
     for {
-      _ <- if (owns(requester)(id)) Success(true) else Failure(UserCantRemove(requester, id))
+      _ <- if (owns(user)(id)) Success(true) else Failure(UserCantRemove(user, id))
       _ <- draftService.remove(id) match {
         case true => Success()
         case false => Failure(DeleteDraftFailed(id))
@@ -53,15 +71,6 @@ trait ItemDrafts
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId).toSeq
 
-  def publish(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, VersionedId[ObjectId]] = for {
-    d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
-    commit <- commit(user)(d)
-    publishResult <- if (itemService.publish(commit.srcId)) Success(true) else Failure(PublishItemError(d.parent.id))
-    deleteResult <- removeNonConflictingDraftsForOrg(draftId.itemId, user.org.id)
-  } yield {
-    commit.srcId
-  }
-
   def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
     if (draftService.owns(user, draftId)) {
       draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toString))
@@ -70,21 +79,12 @@ trait ItemDrafts
     }
   }
 
-  def cloneDraft(requester: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
-    d <- load(requester)(draftId)
-    itemId <- Success(VersionedId(ObjectId.get))
-    vid <- itemService.save(d.parent.data.copy(id = itemId, published = false)).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
-    newDraft <- create(vid, requester)
+  def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
+    d <- load(user)(draftId)
+    cloned <- Success(d.change.data.cloneItem)
+    vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    newDraft <- create(vid, user)
   } yield DraftCloneResult(vid, newDraft.id)
-
-  protected def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Validation[DraftError, ObjectId] = {
-    def v(v: Validation[DraftError, Unit]): ValidationNel[DraftError, Unit] = v.toValidationNel
-    val out = for {
-      ids <- Success(draftService.removeNonConflictingDraftsForOrg(itemId, orgId))
-      deleteComplete <- assets.deleteDrafts(ids: _*).toList.traverseU(v)
-    } yield ids
-    out.bimap[DraftError, ObjectId](errs => RemoveDraftFailed(errs.list), _ => itemId)
-  }
 
   /**
    * Creates a draft for the target data.
@@ -105,22 +105,54 @@ trait ItemDrafts
     } yield draft
   }
 
-  /** load a draft for the src <VID> for that user, if not found create it */
-  override def loadOrCreate(requester: OrgAndUser)(id: DraftId): Validation[DraftError, ItemDraft] = {
+  def conflict(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, Option[Conflict]] = {
+    for {
+      d <- draftService.load(draftId).toSuccess(LoadDraftFailed(draftId.toIdString))
+      i <- itemService.getOrCreateUnpublishedVersion(d.parent.id).toSuccess(CantFindLatestSrc(d.parent.id))
+    } yield {
+      if (d.parent.data == i) {
+        logger.debug(s"function=conflict, the parent matches the item - no conflicts found")
+        None
+      } else {
+        Some(Conflict(d, i))
+      }
+    }
+  }
+
+  /** load a draft for the src <VID> for that user if not conflicted, if not found create it */
+  override def loadOrCreate(user: OrgAndUser)(id: DraftId, ignoreConflict: Boolean = false): Validation[DraftError, ItemDraft] = {
     val draft: Option[ItemDraft] = draftService.load(id)
 
-    def updateIfNotConflicted(d: ItemDraft): ItemDraft = if (d.hasConflict) d else {
+    def failIfConflicted(d: ItemDraft): Validation[DraftError, ItemDraft] = {
       itemService.getOrCreateUnpublishedVersion(d.parent.id).map { i =>
-        val update = d.copy(parent = ItemSrc(i), change = ItemSrc(i))
-        draftService.save(update)
-        update
-      }.getOrElse(throw new RuntimeException(s"Error getting unpublished item: ${d.parent.id}"))
+        logger.debug(s"function=failIfConflicted, ignoreConflict=$ignoreConflict, hasSrcChanged(parent, latest)=${hasSrcChanged(d.parent.data, i)}")
+        if (!hasSrcChanged(d.parent.data, i) || ignoreConflict) {
+          Success(d)
+        } else {
+          Failure(draftIsOutOfDate(d, ItemSrc(i)))
+        }
+      }.getOrElse(Failure(GeneralError("can't find unpublished version")))
     }
 
-    val updated: Option[ItemDraft] = draft.map(updateIfNotConflicted)
-
-    updated.map(d => Success(d)).getOrElse(create(VersionedId(id.itemId), requester))
+    draft.map { d =>
+      //If the draft hasn't any local changes
+      if (!hasSrcChanged(d.parent.data, d.change.data)) {
+        create(VersionedId(id.itemId), user)
+      } else {
+        failIfConflicted(d)
+      }
+    }.getOrElse(create(VersionedId(id.itemId), user))
   }
+
+  override def hasSrcChanged(a: Item, b: Item) = {
+    val taskInfo = a.taskInfo != b.taskInfo
+    val playerDef = a.playerDefinition != b.playerDefinition
+    val supportingMaterials = a.supportingMaterials != b.supportingMaterials
+    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials")
+    taskInfo || playerDef || supportingMaterials
+  }
+
+  def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
 
   private def noVersion(i: Item) = i.copy(id = i.id.copy(version = None))
 
@@ -128,14 +160,22 @@ trait ItemDrafts
     commitService.save(c).failed(SaveCommitFailed)
   }
 
-  override def save(requester: OrgAndUser)(d: ItemDraft): Validation[DraftError, DraftId] = {
-    if (draftService.owns(requester, d.id)) {
+  override def save(user: OrgAndUser)(d: ItemDraft): Validation[DraftError, DraftId] = {
+    if (draftService.owns(user, d.id)) {
       draftService.save(d)
         .failed(e => SaveDataFailed(e.getErrorMessage))
         .map(_ => d.id)
     } else {
-      Failure(UserCantSave(requester, d.user))
+      Failure(UserCantSave(user, d.user))
     }
+  }
+
+  override protected def copySrcToDraft(src: Item, draft: ItemDraft): Validation[DraftError, ItemDraft] = {
+    val update = draft.copy(parent = ItemSrc(src), change = ItemSrc(src))
+    for {
+      _ <- draftService.save(update).failed(e => SaveDataFailed(e.getErrorMessage))
+      _ <- assets.copyItemToDraft(src.id, draft.id)
+    } yield update
   }
 
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
@@ -144,6 +184,9 @@ trait ItemDrafts
       commit <- Success(ItemCommit(d.id, d.user, d.change.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
+      // we also need to reset the draft so that subsequent checks will load
+      _ <- Success(logger.debug(s"reset the draft parent"))
+      _ <- draftService.save(d.copy(parent = d.change)).failed(SaveDraftFailed(d.id.toIdString))
     } yield commit
   }
 
@@ -165,9 +208,8 @@ trait ItemDrafts
     }
   }
 
-  override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item] = {
-    val update = d.copy(hasConflict = true)
-    draftService.save(update)
-    DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](update, src)
+  override def draftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]): ItemDraftIsOutOfDate = {
+    ItemDraftIsOutOfDate(d, src)
   }
+
 }

@@ -14,11 +14,9 @@ describe('tagger.HomeController', function () {
   itemDraftService,
   v2ItemService;
 
-  beforeEach(function () {
-    cmsService = {
-      getDraftsForOrg: jasmine.createSpy('getDraftsForOrg')
-    };
+  beforeEach(module('tagger.services'));
 
+  beforeEach(function () {
     location = {
       url: jasmine.createSpy('url')
     };
@@ -28,6 +26,7 @@ describe('tagger.HomeController', function () {
     };
 
     itemDraftService = {
+      getDraftsForOrg: jasmine.createSpy('getDraftsForOrg'),
       createUserDraft: jasmine.createSpy('createUserDraft').andCallFake(function(id, success,error){
         success({id: 'd3'});
       }),
@@ -90,18 +89,6 @@ describe('tagger.HomeController', function () {
         scope.orgDrafts = [{id: 'd1', itemId: '1'}];
       });
 
-      it('sets the location to the draft', function(){
-        scope.v2.edit({id: '1'});
-        scope.v2.editConfirmed();
-        expect(location.url).toHaveBeenCalledWith('/edit/draft/d1');
-      });
-      
-      it('sets the location to the draft', function(){
-        scope.v2.edit({id: '2'});
-        scope.v2.editConfirmed();
-        expect(itemDraftService.createUserDraft).toHaveBeenCalled();
-        expect(location.url).toHaveBeenCalledWith('/edit/draft/d3');
-      });
     });
 
     describe('publish', function(){
@@ -115,18 +102,18 @@ describe('tagger.HomeController', function () {
         scope.publish(item);
       });
       
-      it('sets the publish flag', function(){
-        expect(scope.showPublishNotification).toBe(true);
-      });
+      // it('sets the publish flag', function(){
+      //   expect(scope.showPublishNotification).toBe(true);
+      // });
       
-      it('sets the item to be published', function(){
-        expect(scope.itemToPublish).toEqual(item);
-      }); 
+      // it('sets the item to be published', function(){
+      //   expect(scope.itemToPublish).toEqual(item);
+      // }); 
 
-      it('calls the underlying publish', function(){
-        scope.publishConfirmed();
-        expect(itemDraftService.publish).toHaveBeenCalled();
-      });
+      // it('calls the underlying publish', function(){
+      //   scope.publishConfirmed();
+      //   expect(itemDraftService.publish).toHaveBeenCalled();
+      // });
     });
 
     describe('clone', function(){
@@ -145,7 +132,7 @@ describe('tagger.HomeController', function () {
         scope.v2.cloneItem({});
 
         expect(v2ItemService.clone).toHaveBeenCalled();
-        expect(itemDraftService.createUserDraft).toHaveBeenCalled();
+        expect(location.url).toHaveBeenCalledWith('/edit/draft/2');
       });
     });
 
@@ -155,18 +142,18 @@ describe('tagger.HomeController', function () {
         scope.deleteItem({});
       });
 
-      it('sets delete flag', function(){
-        scope.showConfirmDestroyModal = true;
-      });
+      // it('sets delete flag', function(){
+      //   scope.showConfirmDestroyModal = true;
+      // });
 
-      it('sets delete item to delete', function(){
-        expect(scope.itemToDelete).toEqual({});
-      });
+      // it('sets delete item to delete', function(){
+      //   expect(scope.itemToDelete).toEqual({});
+      // });
 
-      it('calls ItemService.remove', function(){
-        scope.deleteConfirmed();
-        expect(itemService.remove).toHaveBeenCalled();
-      });
+      // it('calls ItemService.remove', function(){
+      //   scope.deleteConfirmed();
+      //   expect(itemService.remove).toHaveBeenCalled();
+      // });
     });
   });
 

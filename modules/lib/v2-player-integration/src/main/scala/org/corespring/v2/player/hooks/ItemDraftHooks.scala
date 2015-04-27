@@ -40,11 +40,12 @@ trait ItemDraftHooks
 
   private lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
 
+  //TODO: Why do we load the draft twice? Once in DraftEditorHooks and once here
   override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate _)
+      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, ignoreConflict = true))
       draft <- Success(draftAndIdentity._1)
-      json <- Success(transform(draft.parent.data))
+      json <- Success(transform(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
       Json.obj("item" -> json)
@@ -60,6 +61,19 @@ trait ItemDraftHooks
   override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     logger.debug(s"saveSupportingMaterials itemId=$itemId")
     update(itemId, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
+  }
+  override def saveCustomScoring(draftId: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = {
+
+    def updateCustomScoring(item: ModelItem, json: JsValue): ModelItem = {
+      val updatedDefinition = item.playerDefinition.map { pd =>
+        new PlayerDefinition(pd.files, pd.xhtml, pd.components, pd.summaryFeedback, Some(customScoring))
+      }.getOrElse {
+        PlayerDefinition(Seq.empty, "", Json.obj(), "", Some(customScoring))
+      }
+      item.copy(playerDefinition = Some(updatedDefinition))
+    }
+
+    update(draftId, Json.obj("customScoring" -> customScoring), updateCustomScoring)
   }
 
   override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
@@ -80,20 +94,20 @@ trait ItemDraftHooks
     }
   }
 
-  private def loadDraftAndIdentity(id: String, loadFn: OrgAndUser => DraftId => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
+  private def loadDraftAndIdentity(id: String, loadFn: (OrgAndUser, DraftId) => Validation[DraftError, ItemDraft])(implicit rh: RequestHeader): Validation[V2Error, (ItemDraft, OrgAndUser)] = for {
     identity <- getOrgAndUser(rh)
     draftId <- mkDraftId(identity, id).v2Error
-    draft <- loadFn(identity)(draftId).v2Error
+    draft <- loadFn(identity, draftId).v2Error
   } yield {
     (draft, identity)
   }
 
-  private def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
+  protected def update(draftId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     logger.debug(s"update draftId=$draftId")
     for {
-      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load _)
+      draftAndIdentity <- loadDraftAndIdentity(draftId, backend.load(_)(_))
       draft <- Success(draftAndIdentity._1)
-      item <- Success(draft.parent.data)
+      item <- Success(draft.change.data)
       updatedItem <- Success(updateFn(item, json))
       update <- Success(draft.mkChange(updatedItem))
       saved <- backend.save(draftAndIdentity._2)(update).v2Error
@@ -150,4 +164,5 @@ trait ItemDraftHooks
 
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
   }
+
 }

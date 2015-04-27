@@ -48,7 +48,7 @@ trait Commit[VID, USER] {
 /**
  * Operations you can perform on drafts
  */
-trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER]] {
+trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Commit[VID, USER], OOD <: DraftIsOutOfDate[ID, VID, SRC]] {
 
   import scalaz.Validation
 
@@ -63,18 +63,23 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
    */
   def getLatestSrc(d: UD): Option[Src[VID, SRC]]
 
-  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): DraftIsOutOfDate[ID, VID, SRC]
+  def draftIsOutOfDate(d: UD, src: Src[VID, SRC]): OOD
+
+  def hasSrcChanged(a: SRC, b: SRC): Boolean
 
   /**
    * Commit a draft back to the data store.
    */
   final def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
-    if (d.user != requester) {
+
+    if (!hasSrcChanged(d.parent.data, d.change.data)) {
+      Failure(NothingToCommit(d.id))
+    } else if (d.user != requester) {
       Failure(UserCantCommit(requester, d.user))
     } else {
       for {
         latest <- getLatestSrc(d).toSuccess(CantFindLatestSrc(d.id))
-        result <- if (latest != d.parent && !force) {
+        result <- if (hasSrcChanged(d.parent.data, latest.data) && !force) {
           Failure(draftIsOutOfDate(d, latest))
         } else {
           copyDraftToSrc(d)
@@ -84,11 +89,11 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
   }
 
   protected def copyDraftToSrc(d: UD): Validation[DraftError, CMT]
+  protected def copySrcToDraft(src: SRC, draft: UD): Validation[DraftError, UD]
 
   /** load a draft for the src <VID> for that user*/
-  def loadOrCreate(requester: USER)(id: ID): Validation[DraftError, UD]
+  def loadOrCreate(requester: USER)(id: ID, ignoreConflicts: Boolean = false): Validation[DraftError, UD]
 
   /** save a draft */
   def save(requester: USER)(d: UD): Validation[DraftError, ID]
 }
-

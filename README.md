@@ -23,6 +23,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
 
 * Install mongodb
 * Install [play 2.1.3](http://www.playframework.com/download)
+* Install elasticsearch
 * For running tests install phantomjs
 
 ### SBT Configuration
@@ -75,6 +76,14 @@ These values essentially run the app in development mode, by using the local db
 and reseeding the data.
 
 When deploying the application to heroku we override some of these variables using env vars.
+
+If you want the search API to work locally, you must run
+
+    sbt index
+    
+before running the application. Note that there is a bug where the sbt task will not terminate after indexing is 
+complete, so watch for the message and kill the process manually. Work is currently in progress to streamline indexing.
+
 
 ### IntelliJ Configuration
 

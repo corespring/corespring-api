@@ -41,8 +41,6 @@ trait ItemDraftService {
     })
   }
 
-  def hasConflict(id: DraftId): Option[Boolean] = load(id).map { d => d.hasConflict }
-
   def owns(ou: OrgAndUser, id: DraftId) = {
     val orgMatches = ou.org.id == id.orgId
     val userMatches = ou.user.map(_.userName == id.name)
@@ -50,8 +48,14 @@ trait ItemDraftService {
   }
 
   def remove(id: DraftId): Boolean = {
-    val result = collection.remove(MongoDBObject("_id" -> idToDbo(id)))
+    val result = collection.remove(idToDbo(id))
     result.getN == 1
+  }
+
+  def removeByItemId(itemId: ObjectId): Boolean = {
+    val query = MongoDBObject("_id.itemId" -> itemId)
+    val result = collection.remove(query)
+    result.getLastError.ok
   }
 
   def remove(d: ItemDraft): Boolean = remove(d.id)

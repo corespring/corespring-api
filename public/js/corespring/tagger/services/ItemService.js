@@ -81,7 +81,7 @@ angular.module('tagger.services')
 
         this.clone = function( params, onSuccess, onError) {
             var url = "/api/v2/items/:id/clone".replace(":id", params.id);
-            
+
             $http.post(url, {})
                 .success(onSuccess)
                 .error(onError);
@@ -99,26 +99,38 @@ angular.module('tagger.services')
     function ItemDraftService(){
 
       this.publish = function(id, onSuccess, onError) {
-        var url = '/api/v2/items/drafts/' + id + '/publish';
-
-        $http.put(url)
-          .success(onSuccess)
-          .error(onError);
+        throw new Error('publish on drafts not supported');
       };
-      
+
       this.clone = function(id, onSuccess, onError){
         var url = '/api/v2/items/drafts/' + id + '/clone';
-        
+
         $http.put(url)
           .success(onSuccess)
           .error(onError);
       };
 
       this.get = function(params, onSuccess, onError){
-        
+
         var url = '/api/v2/items/drafts/' + params.id;
 
+       	if(params.ignoreConflict) {
+        	url += '?ignoreConflicts=true';
+       	}
+
         $http.get(url)
+          .success(onSuccess)
+          .error(onError);
+      };
+
+      this.deleteDraft = function(id, onSuccess, onError, all){
+        var url = '/api/v2/items/drafts/' + id;
+
+        if(all){
+          url += '?all=true';
+        }
+
+        $http['delete'](url)
           .success(onSuccess)
           .error(onError);
       };
@@ -130,21 +142,25 @@ angular.module('tagger.services')
           .error(onError);
       };
 
-      this.deleteDraft = function(id, onSuccess, onError){
-        var url = '/api/v2/items/drafts/' + id;
-
-        $http['delete'](url)
-          .success(onSuccess)
-          .error(onError);
+      this.deleteByItemId = function(id, onSuccess, onError){
+        this.deleteDraft(id, onSuccess, onError, true);
       };
 
-      this.commit = function(id, onSuccess, onError){
+      this.commit = function(id, force, onSuccess, onError){
+
+      	force = force === true;
+
       	var url = '/api/v2/items/drafts/' + id + '/commit';
+
+      	if(force){
+      		url += '?force=true';
+      	}
+
       	$http.put(url)
       	  .success(onSuccess)
       	  .error(onError);
       };
-      
+
       this.createUserDraft = function(itemId, onSuccess, onError){
         var listUrl = '/api/v2/items/' + itemId + '/drafts';
         var createUrl = '/api/v2/items/' + itemId + '/draft';
@@ -169,16 +185,16 @@ angular.module('tagger.services')
   }]);
 
 angular.module('tagger.services')
-    .factory('ItemService', [ 
-      '$resource', 
-      'ServiceLookup', 
-      '$http', 
+    .factory('ItemService', [
+      '$resource',
+      'ServiceLookup',
+      '$http',
       'V2ItemService',
       'ItemDraftService',
         function (
-          $resource, 
-          ServiceLookup, 
-          $http, 
+          $resource,
+          ServiceLookup,
+          $http,
           V2ItemService,
           ItemDraftService) {
 
@@ -194,28 +210,17 @@ angular.module('tagger.services')
 
     ItemService.prototype.saveNewVersion = function(onSuccess, onError){
       var url = "/api/v2/items/:id/save-new-version".replace(":id", this.id);
-      var successCallback = function(data){
-          onSuccess(data);
-      };
-
       $http.put(url, {})
-          .success(successCallback)
-          .error(onError);
-
+        .success(onSuccess)
+        .error(onError);
     };
 
     ItemService.prototype.publish = function(onSuccess, onError, id){
-
         id = id || this.id;
         var url = "/api/v2/items/:id/publish".replace(":id", id);
-        var successCallback = function(data){
-            onSuccess(data);
-        };
-
         $http.put(url, {})
-            .success(successCallback)
-            .error(onError);
-
+          .success(onSuccess)
+          .error(onError);
     };
 
     ItemService.prototype.clone = function( onSuccess, onError) {

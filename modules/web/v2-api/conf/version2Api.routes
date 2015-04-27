@@ -1,11 +1,12 @@
 GET     /items/:itemId/drafts              @org.corespring.v2.api.drafts.item.ItemDrafts.listByItem(itemId:String)
 POST    /items/:itemId/draft               @org.corespring.v2.api.drafts.item.ItemDrafts.create(itemId:String)
-PUT     /items/drafts/:draftId/commit      @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:String)
-PUT     /items/drafts/:draftId/publish     @org.corespring.v2.api.drafts.item.ItemDrafts.publish(draftId:String)
+PUT     /items/drafts/:draftId/commit      @org.corespring.v2.api.drafts.item.ItemDrafts.commit(draftId:String, force: Option[Boolean] ?= None)
+#PUT     /items/drafts/:draftId/publish     @org.corespring.v2.api.drafts.item.ItemDrafts.publish(draftId:String)
 PUT     /items/drafts/:draftId/clone       @org.corespring.v2.api.drafts.item.ItemDrafts.cloneDraft(draftId:String)
-GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:String)
+PUT     /items/drafts/:draftId/conflict    @org.corespring.v2.api.drafts.item.ItemDrafts.conflict(draftId:String)
+GET     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.get(draftId:String, ignoreConflicts: Option[Boolean] ?= None)
 PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.save(draftId:String)
-DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:String)
+DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:String, all: Option[Boolean] ?= None)
 GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
 
 GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
@@ -34,6 +35,8 @@ GET  /items/:itemId                        @org.corespring.v2.api.ItemApi.get(it
 DELETE /items/:itemId                      @org.corespring.v2.api.ItemApi.delete(itemId:String)
 
 POST /items                                @org.corespring.v2.api.ItemApi.create()
+
+GET  /items                                @org.corespring.v2.api.ItemApi.search(query: Option[String] ?= None)
 
 POST /items/:itemId/clone                  @org.corespring.v2.api.ItemApi.cloneItem(itemId)
 

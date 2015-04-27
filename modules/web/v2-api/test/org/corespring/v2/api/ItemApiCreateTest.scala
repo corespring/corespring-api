@@ -4,7 +4,8 @@ import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.PlaySingleton
@@ -21,7 +22,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent._
 import scalaz.{ Failure, Success, Validation }
 
 class ItemApiCreateTest extends Specification with Mockito with MockFactory {
@@ -56,6 +57,12 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
       override def itemAuth: ItemAuth[OrgAndOpts] = {
         val m = mock[ItemAuth[OrgAndOpts]]
         m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
+        m
+      }
+
+      override def itemIndexService = {
+        val m = mock[ItemIndexService]
+        m.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
         m
       }
 

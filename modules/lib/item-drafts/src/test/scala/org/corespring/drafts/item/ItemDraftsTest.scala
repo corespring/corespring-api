@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -83,16 +83,25 @@ class ItemDraftsTest extends Specification with Mockito {
 
     /** Check that the user may create the draft for the given src id */
     override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
+    override protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = true
 
     val draftService: ItemDraftService = mockDraftService
 
     val assets: ItemDraftAssets = mockAssets
 
     val commitService: CommitService = mockCommitService
+
   }
 
   def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
-  def mkDraft(u: OrgAndUser, i: Item = item) = ItemDraft(i, u)
+  def mkItemWithXhtml(xhtml: String) = item.copy(playerDefinition = Some(PlayerDefinition(xhtml)))
+  def mkDraft(u: OrgAndUser, parent: Item = item, change: Item = item) = {
+    ItemDraft(
+      DraftId.fromIdAndUser(parent.id, u),
+      u,
+      ItemSrc(parent),
+      ItemSrc(change))
+  }
   val gwensDraft = mkDraft(gwen)
   val oid = DraftId.fromIdAndUser(item.id, ed)
   def TestError(name: String = "test error") = GeneralError(name)
@@ -125,61 +134,6 @@ class ItemDraftsTest extends Specification with Mockito {
       "succeed" in new __(true, true, true) {
         remove(ed)(oid) must_== Success(oid)
       }
-    }
-
-    "publish" should {
-
-      class __(
-        load: Boolean,
-        val latestSrc: Option[Item],
-        itemPublish: Boolean,
-        removeDrafts: Boolean) extends Scope with MockItemDrafts {
-
-        val draft = mkDraft(ed, item)
-
-        mockDraftService.load(any[DraftId]) returns {
-          if (load) Some(draft) else None
-        }
-
-        mockItemService.findOneById(any[VersionedId[ObjectId]]) returns latestSrc
-        mockItemService.publish(any[VersionedId[ObjectId]]) returns itemPublish
-
-        mockDraftService.removeNonConflictingDraftsForOrg(any[ObjectId], any[ObjectId]) returns {
-          Seq.empty
-        }
-
-        mockAssets.deleteDrafts(any[DraftId]) returns {
-          Seq(if (removeDrafts) Success(Unit) else Failure(TestError("delete-drafts")))
-        }
-      }
-
-      "fail if load draft failed" in new __(false, None, false, false) {
-        publish(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
-      }
-
-      "fail if loading latest src fails" in new __(true, None, false, false) {
-        publish(ed)(oid) must_== Failure(CantFindLatestSrc(oid))
-      }
-
-      "fail if loading latest src doesnt match draft" in
-        new __(true, Some(item.cloneItem), true, false) {
-          publish(ed)(oid) must_== Failure(DraftIsOutOfDate(draft, ItemSrc(latestSrc.get)))
-        }
-
-      "fail if itemService.publish failed" in
-        new __(true, Some(item), false, false) {
-          publish(ed)(oid) must_== Failure(PublishItemError(item.id))
-        }
-
-      "fail if removeNonConflictingDrafts failed" in
-        new __(true, Some(item), true, false) {
-          publish(ed)(oid) must_== Failure(RemoveDraftFailed(List(TestError("delete-drafts"))))
-        }
-
-      "succeed" in
-        new __(true, Some(item), true, true) {
-          publish(ed)(oid) must_== Success(item.id)
-        }
     }
 
     "load" should {
@@ -283,9 +237,9 @@ class ItemDraftsTest extends Specification with Mockito {
     "loadOrCreate" should {
 
       class __(
-        load: Option[ItemDraft] = None,
+        val load: Option[ItemDraft] = None,
         val getUnpublishedVersion: Option[Item] = None,
-        createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
+        val createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
         extends Scope
         with MockItemDrafts {
         mockDraftService.load(any[DraftId]) returns load
@@ -297,25 +251,68 @@ class ItemDraftsTest extends Specification with Mockito {
         loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
       }
 
-      "throw an exception if it can't load unpublished item" in new __(Some(mkDraft(ed, item))) {
-        loadOrCreate(ed)(oid) must throwA[RuntimeException]
-      }
-
-      "not update the item if is has a conflict" in new __(
-        Some(mkDraft(ed, item).copy(hasConflict = true)),
+      "fail if the draft.parent is out of date and the draft.parent != draft.change" in new __(
+        Some(mkDraft(ed, item, item.copy(playerDefinition = Some(PlayerDefinition("Change!"))))),
         Some(item.cloneItem)) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.parent.data must_== item
-          case Failure(e) => failure("should have been successful")
+          case Success(draft) => failure("should have failed")
+          case Failure(ItemDraftIsOutOfDate(d, i)) => {
+            d must_== load.get
+            i must_== ItemSrc(getUnpublishedVersion.get)
+          }
+          case _ => failure("should have been an out of date error")
         }
       }
 
-      "update the item if is has a conflict" in new __(
-        Some(mkDraft(ed, item).copy(hasConflict = false)),
-        Some(item.cloneItem)) {
+      "return a new item if the draft isn't found" in new __(
+        None,
+        None,
+        Success(mkDraft(ed, item))) {
         loadOrCreate(ed)(oid) match {
-          case Success(draft) => draft.parent.data must_== getUnpublishedVersion.get
-          case Failure(e) => failure("should have been successful")
+          case Success(draft) => draft must_== createResult.toOption.get
+          case Failure(ItemDraftIsOutOfDate(d, i)) => failure("should have been successful")
+          case _ => failure("should have been an out of date error")
+        }
+      }
+
+      "create a new draft from the item if draft isn't found" in new __(
+        None,
+        Some(item),
+        Success(mkDraft(ed, mkItemWithXhtml("created")))) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
+        }
+      }
+
+      "create a new draft from the item if the loaded draft doesn't have changes" in new __(
+        Some(mkDraft(ed, item)),
+        Some(item),
+        Success(mkDraft(ed, mkItemWithXhtml("created")))) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
+        }
+      }
+
+      "return the draft if found and has local changes" in new __(
+        Some(mkDraft(ed, item, mkItemWithXhtml("change"))),
+        Some(item)) {
+        loadOrCreate(ed)(oid) match {
+          case Success(draft) => draft must_== load.get
+          case Failure(e) => {
+            println("error --->")
+            println(e)
+            failure("should have been successful")
+          }
         }
       }
     }

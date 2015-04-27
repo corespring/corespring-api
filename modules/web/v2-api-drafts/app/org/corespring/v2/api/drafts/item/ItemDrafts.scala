@@ -1,11 +1,10 @@
 package org.corespring.v2.api.drafts.item
 
-import org.bson.types.ObjectId
-import org.corespring.drafts.errors.DraftError
+import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ DraftCloneResultJson, CommitJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ Action, Controller, RequestHeader, SimpleResult }
@@ -26,7 +25,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
 
   import scala.language.implicitConversions
 
-  implicit def validationToResult(in: Validation[DraftApiError, JsValue]): SimpleResult = {
+  implicit def validationToResult(in: Validation[DraftApiResult, JsValue]): SimpleResult = {
     in match {
       case Failure(e) => Status(e.statusCode)(e.json)
       case Success(json) => Ok(json)
@@ -61,25 +60,23 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
-  def commit(id: String) = draftsAction(id) { (user, draftId) =>
+  private def toApiResult(e: DraftError): DraftApiResult = e match {
+    case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data)
+    case NothingToCommit(id) => nothingToCommit(id.toString)
+    case _ => generalDraftApiError(e.msg)
+  }
+
+  def commit(id: String, force: Option[Boolean] = None) = draftsAction(id) { (user, draftId, _) =>
     for {
-      d <- drafts.load(user)(draftId).leftMap { e => generalDraftApiError(e.msg) }
-      commit <- drafts.commit(user)(d).leftMap { e => generalDraftApiError(e.msg) }
+      d <- drafts.load(user)(draftId).leftMap(toApiResult)
+      commit <- drafts.commit(user)(d, force.getOrElse(false)).leftMap(toApiResult)
     } yield CommitJson(commit)
   }
 
-  def cloneDraft(id: String) = draftsAction(id) { (user, draftId) =>
+  def cloneDraft(id: String) = draftsAction(id) { (user, draftId, _) =>
     drafts.cloneDraft(user)(draftId).bimap(
       e => generalDraftApiError(e.msg),
       result => DraftCloneResultJson(result))
-  }
-
-  def publish(id: String) = draftsAction(id) { (user, draftId) =>
-    for {
-      vid <- drafts.publish(user)(draftId).leftMap(e => generalDraftApiError(e.msg))
-    } yield {
-      Json.obj("itemId" -> vid.toString)
-    }
   }
 
   /**
@@ -87,8 +84,10 @@ trait ItemDrafts extends Controller with MakeDraftId {
    * as its only really useful in the context of the editor/dev editor
    * Check w/ ev on what to return here
    */
-  def get(id: String) = draftsAction(id) { (user, draftId) =>
-    drafts.loadOrCreate(user)(draftId).map(d => ItemDraftJson.withFullItem(d)) //.toSuccess(cantLoadDraft(draftId)).map(ItemDraftJson.simple)
+  def get(id: String, ignoreConflicts: Option[Boolean] = None) = draftsAction(id) { (user, draftId, rh) =>
+    drafts.loadOrCreate(user)(draftId, ignoreConflicts.getOrElse(false)).bimap(
+      toApiResult,
+      d => ItemDraftJson.withFullItem(d))
   }
 
   private implicit def draftErrorToDraftApiError[A](v: Validation[DraftError, A]): Validation[DraftApiError, A] = {
@@ -101,11 +100,19 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
-  def delete(id: String) = draftsAction(id) { (user, draftId) =>
-    drafts.remove(user)(draftId)
-      .bimap(
-        e => generalDraftApiError(e.msg),
-        _ => Json.obj("id" -> draftId.toString))
+  def delete(id: String, all: Option[Boolean]) = draftsAction(id) { (user, draftId, _) =>
+
+    if (all.getOrElse(false)) {
+      drafts.removeByItemId(user)(draftId.itemId).bimap(
+        toApiResult,
+        itemId => Json.obj("itemId" -> itemId.toString,
+          "id" -> draftId.toIdString))
+    } else {
+      drafts.remove(user)(draftId)
+        .bimap(
+          e => generalDraftApiError(e.msg),
+          _ => Json.obj("id" -> draftId.toIdString))
+    }
   }
 
   def getDraftsForOrg = Action.async { request =>
@@ -117,12 +124,19 @@ trait ItemDrafts extends Controller with MakeDraftId {
     }
   }
 
-  private def draftsAction(id: String)(fn: (OrgAndUser, DraftId) => Validation[DraftApiError, JsValue]) = Action.async { implicit request =>
+  def conflict(id: String) = draftsAction(id) { (user, draftId, _) =>
+    drafts.conflict(user)(draftId)
+      .bimap(
+        e => generalDraftApiError(e.msg),
+        c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
+  }
+
+  private def draftsAction(id: String)(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) = Action.async { implicit request =>
     Future {
       for {
         user <- toOrgAndUser(request)
         draftId <- mkDraftId(user, id).leftMap { e => generalDraftApiError(e.msg) }
-        result <- fn(user, draftId)
+        result <- fn(user, draftId, request)
       } yield {
         result
       }

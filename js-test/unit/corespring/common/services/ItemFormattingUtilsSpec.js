@@ -29,13 +29,13 @@ describe('common.ItemFormattingUtils', function () {
 
       expect(
         scope.createGradeLevelString(["01","KG","Other"]) )
-      .toEqual( "KG,01,Other");
+      .toEqual( "KG, 01, Other");
     });
 
     it("generates a copyright image url ", function(){
       var item = {
         copyrightOwner: "New York State Education Department"
-      }
+      };
       expect(
         scope.getCopyrightUrl(item) )
       .toEqual( "/assets/images/copyright/nysed.png");
@@ -113,24 +113,32 @@ describe('common.ItemFormattingUtils', function () {
 
       expect(scope.buildStandardLabel([])).toBe("");
 
-      var s = [{ dotNotation: "dotNotation"} ];
+      var dotNotation = "K.1.2.3";
+      var standards = {};
+      standards[dotNotation] = "This is K123";
 
-      expect(scope.buildStandardLabel(s)).toBe(s[0].dotNotation);
-      s.push( { dotNotation: "dotNotation" } );
-      expect(scope.buildStandardLabel(s)).toBe(s[0].dotNotation + " plus 1 more");
+      expect(scope.buildStandardLabel(standards, 1)).toBe(dotNotation);
+      standards['K.1.2.4'] = "This is K1234";
+      expect(scope.buildStandardLabel(standards, 1)).toBe(dotNotation + " +1 more...");
     });
 
     it("builds a standards tooltip", function(){
 
       expect(scope.buildStandardTooltip([])).toBe("<span></span>");
 
-      var s = [
-      { standard: "s", dotNotation: "dn"}
-      ];
+      var standard = "This is the standard";
+      var dotNotation = "K.1.2.3";
+      var standards = {};
+      standards[dotNotation] = standard;
 
-      expect(scope.buildStandardTooltip(s)).toBe("<span>s</span>");
-      s.push({ standard: "a b c d e f g", dotNotation: "dn2"});
-      expect(scope.buildStandardTooltip(s)).toBe("<span>dn: s, dn2: a b c d e f...</span>");
+      expect(scope.buildStandardTooltip(standards)).toBe("<span>" + standard + "</span>");
+
+      var anotherStandard = "This is another standard";
+      var anotherDotNotation = "K.1.2.4";
+      standards[anotherDotNotation] = anotherStandard;
+
+      expect(scope.buildStandardTooltip(standards)).toBe(
+          "<span>" + dotNotation + ": " + standard + ", " + anotherDotNotation + ": " + anotherStandard + "</span>");
     });
 
     it('should get short subject label', function(){
@@ -154,9 +162,9 @@ describe('common.ItemFormattingUtils', function () {
 
     it('should show item type', function(){
        var out = scope.showItemType({ itemType : "Other", itemTypeOther: "Blah"});
-       expect(out).toBe("Other: Blah");
+       expect(out).toBeUndefined();
 
-       expect(scope.showItemType({itemType: "B"}) ).toBe("B");
+       expect(scope.showItemType({itemType: "B"}) ).toBe(undefined);
     });
 
     it('should show item type abbreviated', function(){
