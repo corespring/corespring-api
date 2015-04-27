@@ -36,7 +36,8 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
     case _ => None
   }
 
-  val baseUrl = s"${elasticSearchUrl.getProtocol}://${elasticSearchUrl.getHost}"
+  val baseUrl = s"${elasticSearchUrl.getProtocol}://${elasticSearchUrl.getHost}${
+    if (elasticSearchUrl.getPort == -1) "" else s":${elasticSearchUrl.getPort}"}"
 
   private def authed(route: String) = {
     val holder = WS.url(s"$baseUrl$route")
