@@ -168,17 +168,23 @@
     $scope.showDevEditor = function () {
       $scope.devEditorVisible = true;
       $scope.v2Editor = devEditor;
+      if ($scope.channel) {
+        $scope.channel.remove();
+      }
     };
 
     $scope.showEditor = function () {
       $scope.devEditorVisible = false;
       $scope.v2Editor = normalEditor;
+      if ($scope.channel) {
+        $scope.channel.remove();
+      }
     };
 
     var iframe = $('.edit-container .item-iframe-container iframe');
     iframe.bind('load', function() {
-      var channel = new msgr.Channel(window, iframe[0].contentWindow);
-      channel.on('itemChanged', function (data, done) {
+      $scope.channel = new msgr.Channel(window, iframe[0].contentWindow);
+      $scope.channel.on('itemChanged', function (data, done) {
         $scope.$apply(function () {
           $scope.hasChanges = true;
         });
