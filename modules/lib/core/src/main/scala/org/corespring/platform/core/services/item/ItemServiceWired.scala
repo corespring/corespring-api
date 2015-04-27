@@ -108,7 +108,7 @@ class ItemServiceWired(
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Any] = {
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Validation[Error, String]] = {
     dao.update(id, dbo, createNewVersion)
     itemIndexService.reindex(id)
   }
@@ -186,7 +186,8 @@ class ItemServiceWired(
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
-    Await.result(saveUsingDbo(id, update, false), Duration(20, SECONDS))
+    val result: Future[Validation[Error, String]] = saveUsingDbo(id, update, false)
+    Await.result(result, Duration(20, SECONDS))
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
