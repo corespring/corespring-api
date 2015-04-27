@@ -132,7 +132,7 @@ describe('tagger.HomeController', function () {
         scope.v2.cloneItem({});
 
         expect(v2ItemService.clone).toHaveBeenCalled();
-        expect(itemDraftService.createUserDraft).toHaveBeenCalled();
+        expect(location.url).toHaveBeenCalledWith('/edit/draft/2');
       });
     });
 

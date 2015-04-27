@@ -170,7 +170,7 @@
                 { id: item.id },
                 function(result) {
                   Logger.debug('item removed');
-                  $scope.search();
+                  $timeout($scope.search, 1000);
                 },
                 function error(err){
                   Logger.error(err);
