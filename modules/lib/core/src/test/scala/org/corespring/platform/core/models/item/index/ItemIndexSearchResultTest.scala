@@ -29,7 +29,7 @@ class ItemIndexSearchResultTest extends Specification {
       total = total,
       hits = Seq(ItemIndexHit(
         id = id,
-        collectionId = collectionId,
+        collectionId = Some(collectionId),
         contributor = Some(contributor),
         published = published,
         standards = standards,

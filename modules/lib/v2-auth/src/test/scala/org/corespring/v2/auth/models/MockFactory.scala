@@ -13,7 +13,7 @@ trait MockFactory extends Mockito {
     val m = mock[Organization]
     m.id returns ObjectId.get
     m.name returns "mock org"
-    m.contentcolls returns collections.map(ContentCollRef(_))
+    m.contentcolls returns collections.map(ContentCollRef(_, enabled = true))
     m
   }
 
