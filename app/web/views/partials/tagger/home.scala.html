@@ -298,9 +298,7 @@
                        ui-options="{placement: 'right', title: buildStandardTooltip(item.standards)}"
                        class="standards-list"
                        >
-                       <span ng-repeat="standard in buildStandardLabel(item.standards)">
-                        {{standard}}<span class="list-comma">,</span>
-                       </span>
+                       <span>{{buildStandardLabel(item.standards)}}</span>
                      </a>
                 </td>
                 <td>{{getAuthorAbbreviation(item.contributor)}}</td>
