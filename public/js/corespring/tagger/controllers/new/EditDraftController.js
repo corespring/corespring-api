@@ -181,14 +181,16 @@
       }
     };
 
+    $scope.onItemChanged = function (data, done) {
+      $scope.$apply(function () {
+        $scope.hasChanges = true;
+      });
+    };
+
     var iframe = $('.edit-container .item-iframe-container iframe');
     iframe.bind('load', function() {
       $scope.channel = new msgr.Channel(window, iframe[0].contentWindow);
-      $scope.channel.on('itemChanged', function (data, done) {
-        $scope.$apply(function () {
-          $scope.hasChanges = true;
-        });
-      });
+      $scope.channel.on('itemChanged', $scope.onItemChanged);
     });
 
     $scope.loadDraftItem();
