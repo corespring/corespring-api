@@ -145,7 +145,6 @@ angular.module('corespring-utils')
         }
 
         var dotNotation = _.chain(standards).keys().take(n).value();
-        console.log(dotNotation.join(', '));
         return (_.keys(standards).length > n) ?
           dotNotation.join(', ') + " +" + (_.keys(standards).length - n) + " more..." :
           dotNotation.join(', ');
