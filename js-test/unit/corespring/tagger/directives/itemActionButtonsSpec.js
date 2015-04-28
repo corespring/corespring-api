@@ -19,7 +19,7 @@ describe('item-action-buttons', function(){
   }
 
   function mkDirective(s){
-    var out = compile(angular.element(
+    var out = compile(
       ['<item-action-button',
       '  item="item"',
       '  publish="publish"',
@@ -27,7 +27,7 @@ describe('item-action-buttons', function(){
       '  delete-item="deleteItem"',
       '>',
       '</item-action-button>'
-    ].join('')))(s);
+    ].join(''))(s);
     out.scope().$digest();
     return out;
   }
