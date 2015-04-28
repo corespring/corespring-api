@@ -1,5 +1,8 @@
 (function(root) {
 
+  root.tagger = root.tagger || {};
+  root.tagger.HomeController = HomeController;
+
   HomeController.$inject = [
     '$http',
     '$location',
@@ -260,6 +263,4 @@
     }
   }
 
-  root.tagger = root.tagger || {};
-  root.tagger.HomeController = HomeController;
 })(this);
