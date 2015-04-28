@@ -147,7 +147,7 @@
     };
 
     function route(action, item){
-      if (item.apiVersion === 1) {
+      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
         $scope.v1[action](item);
       } else {
         $scope.v2[action](item);
@@ -175,19 +175,19 @@
         if(!cancelled){
           ItemDraftService.deleteByItemId(
             item.id, 
-            function draftsDeleted(result){
+            function draftDeleteByItemIdSuccess(result){
               ItemService.remove(
                 { id: item.id },
-                function(result) {
+                function itemRemoveSuccess(result) {
                   Logger.debug('item removed');
                   $timeout($scope.search, 1000);
                 },
-                function error(err){
+                function itemRemoveError(err){
                   Logger.error(err);
                 }
               );
             }, 
-            function error(err){
+            function draftDeleteByItemIdError(err){
               Logger.error(err);
             });
         }

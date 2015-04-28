@@ -8,10 +8,20 @@ describe('tagger.controllers.new.HomeController', function() {
     this.remove = jasmine.createSpy('remove');
   }
 
+  function MockModals() {
+    this.publish = jasmine.createSpy('publish').andCallFake(function(cb) {
+      cb(false);
+    });
+    this.delete = jasmine.createSpy('publish').andCallFake(function(cb) {
+      cb(false);
+    });
+  }
+
   var cmsService,
     itemService,
     location,
     itemDraftService,
+    modals,
     v2ItemService;
 
   beforeEach(module('tagger.services'));
@@ -26,18 +36,24 @@ describe('tagger.controllers.new.HomeController', function() {
     };
 
     itemDraftService = {
-      getDraftsForOrg: jasmine.createSpy('getDraftsForOrg'),
       createUserDraft: jasmine.createSpy('createUserDraft').andCallFake(function(id, success, error) {
         success({
           id: 'd3'
         });
       }),
+      deleteByItemId: jasmine.createSpy('deleteByItemId').andCallFake(function(id, success, error) {
+        success()
+      }),
+      getDraftsForOrg: jasmine.createSpy('getDraftsForOrg'),
       publish: jasmine.createSpy('publish').andCallFake(function(id, success) {
         success({});
       })
     };
 
     itemService = new MockItemService();
+
+    modals = new MockModals();
+
     module(function($provide) {
       $provide.value('$timeout', function(fn) {
         fn();
@@ -50,6 +66,8 @@ describe('tagger.controllers.new.HomeController', function() {
         userName: 'ed',
         org: '111'
       });
+      $provide.value('Modals', modals);
+
     }, 'corespring-utils');
   });
 
@@ -59,7 +77,6 @@ describe('tagger.controllers.new.HomeController', function() {
 
   beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
     scope = $rootScope.$new();
-    scope.search = function() {};
 
     ctrl = $controller(tagger.HomeController, {
       $scope: scope,
@@ -67,8 +84,8 @@ describe('tagger.controllers.new.HomeController', function() {
     });
   }));
 
-  describe("inits", function() {
-    it("is inited correctly", function() {
+  describe("init", function() {
+    it("is initialised correctly", function() {
       expect(ctrl).not.toBeNull();
     });
   });
@@ -112,33 +129,39 @@ describe('tagger.controllers.new.HomeController', function() {
 
       var item;
 
-
       beforeEach(function() {
         item = {
           id: 'a',
-          format: {
-            apiVersion: 2
-          }
+          apiVersion: 2
         };
         scope.orgDrafts = [{
           id: 'da',
           itemId: 'a'
         }];
-        scope.publish(item);
       });
 
-      // it('sets the publish flag', function(){
-      //   expect(scope.showPublishNotification).toBe(true);
-      // });
+      it('calls the underlying v2 publish if apiVersion is anything but 1', function() {
+        item.apiVersion = 99;
+        spyOn(scope.v2, 'publish');
+        scope.publish(item);
+        expect(scope.v2.publish).toHaveBeenCalled();
+      });
 
-      // it('sets the item to be published', function(){
-      //   expect(scope.itemToPublish).toEqual(item);
-      // });
+      it('calls the underlying v1 publish if apiVersion is 1', function() {
+        item.apiVersion = 1;
+        spyOn(scope.v1, 'publish');
+        scope.publish(item);
+        expect(scope.v1.publish).toHaveBeenCalled();
+      });
 
-      // it('calls the underlying publish', function(){
-      //   scope.publishConfirmed();
-      //   expect(itemDraftService.publish).toHaveBeenCalled();
-      // });
+      it('calls the underlying v1 publish if format.apiVersion is 1', function() {
+        item.format = {
+          apiVersion: 1
+        };
+        spyOn(scope.v1, 'publish');
+        scope.publish(item);
+        expect(scope.v1.publish).toHaveBeenCalled();
+      });
     });
 
     describe('clone', function() {
@@ -169,21 +192,18 @@ describe('tagger.controllers.new.HomeController', function() {
     describe('delete item', function() {
 
       beforeEach(function() {
-        scope.deleteItem({});
+        scope.deleteItem({
+          id: 123
+        });
       });
 
-      // it('sets delete flag', function(){
-      //   scope.showConfirmDestroyModal = true;
-      // });
+      it('calls draftItemService.deleteByItemId', function() {
+        expect(itemDraftService.deleteByItemId).toHaveBeenCalled();
+      });
 
-      // it('sets delete item to delete', function(){
-      //   expect(scope.itemToDelete).toEqual({});
-      // });
-
-      // it('calls ItemService.remove', function(){
-      //   scope.deleteConfirmed();
-      //   expect(itemService.remove).toHaveBeenCalled();
-      // });
+      it('calls itemService.remove', function() {
+        expect(itemService.remove).toHaveBeenCalledWith({id:123}, jasmine.any(Function), jasmine.any(Function));
+      });
     });
   });
 
@@ -206,7 +226,9 @@ describe('tagger.controllers.new.HomeController', function() {
             clone: jasmine.createSpy('clone')
           };
           newItem.clone.andCallFake(function(success) {
-            success({id:obj.id + "-clone"});
+            success({
+              id: obj.id + "-clone"
+            });
           });
           success(newItem);
         });
@@ -256,14 +278,14 @@ describe('tagger.controllers.new.HomeController', function() {
       it("sets showConfirmPublishModal to true", function() {
         expect(scope.v1.showConfirmPublishModal).toBe(true);
       });
-      describe('publishConfirmed', function(){
-        beforeEach(function(){
+      describe('publishConfirmed', function() {
+        beforeEach(function() {
           scope.v1.publishConfirmed();
         });
-        it("calls itemToPublish.publish", function(){
+        it("calls itemToPublish.publish", function() {
           expect(newItem.publish).toHaveBeenCalled();
         });
-        it("sets itemToPublish.published", function(){
+        it("sets itemToPublish.published", function() {
           expect(newItem.published).toBe(true);
         });
         it("sets itemToPublish to null", function() {
@@ -273,14 +295,14 @@ describe('tagger.controllers.new.HomeController', function() {
           expect(scope.v1.showConfirmPublishModal).toBe(false);
         });
       });
-      describe('publishCancelled', function(){
-        beforeEach(function(){
+      describe('publishCancelled', function() {
+        beforeEach(function() {
           scope.v1.publishCancelled();
         });
-        it("doesn't call itemToPublish.publish", function(){
+        it("doesn't call itemToPublish.publish", function() {
           expect(newItem.publish).not.toHaveBeenCalled();
         });
-        it("does not set itemToPublish.published", function(){
+        it("does not set itemToPublish.published", function() {
           expect(newItem.published).toBeFalsy();
         });
         it("sets itemToPublish to null", function() {
@@ -292,50 +314,5 @@ describe('tagger.controllers.new.HomeController', function() {
       });
     });
   });
-
-
-
-
-  /*
-   it("Search should invoke search service", function () {
-   MockSearchService.search = jasmine.createSpy("Search").andCallFake(function (params, handler) {
-   handler(["item"]);
-   });
-   scope.search();
-   expect(MockSearchService.search).toHaveBeenCalled();
-   expect(scope.items).toEqual(["item"]);
-   });*/
-
-  /*
-
-   describe("getSelectedTitle", function(){
-
-   it("should not remove 0 from 10", function () {
-   var result = scope.getSelectedTitle([{key:"10"}]);
-   expect(result).toEqual("10");
-   });
-
-   it("should remove leading 0", function () {
-   var result = scope.getSelectedTitle([{key:"02"}]);
-   expect(result).toEqual("2");
-   });
-
-   it("should remove multiple leading 0", function () {
-   var result = scope.getSelectedTitle([{key:"0002"}]);
-   expect(result).toEqual("2");
-   });
-
-   it("should remove leading 0 in multiple items", function () {
-   var result = scope.getSelectedTitle([{key:"02"},{key:"03"}]);
-   expect(result).toEqual("2, 3");
-   });
-
-
-   it("should leave non numeric values alone", function () {
-   var result = scope.getSelectedTitle([{key:"abc"}]);
-   expect(result).toEqual("abc");
-   });
-
-   }); */
 
 });
