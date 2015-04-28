@@ -1,17 +1,34 @@
 (function(root) {
 
-  function HomeController($scope,
-    $timeout,
-    $rootScope,
+  HomeController.$inject = [
+    '$http',
+    '$location',
+    '$rootScope',
+    '$scope',
+    '$timeout',
+    'ItemDraftService',
+    'ItemFormattingUtils',
+    'ItemService',
+    'Logger',
+    'Modals',
+    'UserInfo',
+    'V2ItemService'
+  ];
+
+  function HomeController(
     $http,
     $location,
-    ItemService,
-    ItemFormattingUtils,
-    Logger,
-    UserInfo,
+    $rootScope,
+    $scope,
+    $timeout,
     ItemDraftService,
-    V2ItemService,
-    Modals) {
+    ItemFormattingUtils,
+    ItemService,
+    Logger,
+    Modals,
+    UserInfo,
+    V2ItemService
+  ) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -19,94 +36,138 @@
     $http.defaults.headers.get = ($http.defaults.headers.get || {});
     $http.defaults.headers.get['Content-Type'] = 'application/json';
 
+    $rootScope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+
     $scope.$root.mode = "home";
 
-    $rootScope.searchParams = $rootScope.searchParams ? $rootScope.searchParams : ItemService.createWorkflowObject();
+    $scope.v2 = new V2();
+    $scope.v1 = new V1();
+
+    $scope.cloneItem = cloneItem;
+    $scope.deleteItem = deleteItem;
+    $scope.edit = edit;
+    $scope.hidePopup = hidePopup;
+    $scope.launchCatalogView = launchCatalogView;
+    $scope.onItemLoad = onItemLoad;
+    $scope.publish = publish;
+
     $rootScope.$broadcast('onListViewOpened');
 
-    var init = function() {
+    init();
+
+    //---------------------------------------------------
+
+    function init() {
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
       loadDraftsForOrg();
-    };
+    }
 
-    function loadDraftsForOrg(){
-      ItemDraftService.getDraftsForOrg(function(drafts){
+    function loadDraftsForOrg() {
+      ItemDraftService.getDraftsForOrg(function(drafts) {
         $scope.orgDrafts = drafts;
-      }, function error(err){
+      }, function error(err) {
         console.warn('error: getDraftsForOrg', err);
       });
     }
 
-    function V1(){
+    function edit(item) {
+      route('edit', item);
+    }
 
-      this.edit = function(item){
-        $location.url('/old/edit/' + item.id );
+    function publish(item) {
+      Modals.publish(function(cancelled) {
+        if (!cancelled) {
+          route('publish', item);
+        }
+      });
+    }
+
+    function cloneItem(item) {
+      route('cloneItem', item);
+    }
+
+    function route(action, item) {
+      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
+        $scope.v1[action](item);
+      } else {
+        $scope.v2[action](item);
+      }
+    }
+
+    function V1() {
+
+      this.edit = function(item) {
+        $location.url('/old/edit/' + item.id);
       };
 
-      this.cloneItem = function(item){
+      this.cloneItem = function(item) {
         //The item passed in is not coming from the v1 ItemService
         //and therefore doesn't have the clone method. ItemService.get
         //does that for us.
-        ItemService.get({id: item.id}, function(itemData){
+        ItemService.get({
+          id: item.id
+        }, function(itemData) {
           itemData.clone(
-            function success(newItem){
-              $location.url('/old/edit/' + newItem.id );
+            function success(newItem) {
+              $location.url('/old/edit/' + newItem.id);
             },
-            function error(err){
+            function error(err) {
               alert('cloneItem:', JSON.stringify(err));
             }
           );
         });
       };
 
-      this.publish = function(item){
+      this.publish = function(item) {
         //The item passed in is not coming from the v1 ItemService
         //and therefore doesn't have the clone method. ItemService.get
         //does that for us.
-        ItemService.get({id: item.id}, function(itemData){
+        ItemService.get({
+          id: item.id
+        }, function(itemData) {
           $scope.v1.itemToPublish = itemData;
           $scope.v1.showConfirmPublishModal = true;
         });
       };
 
-      this.publishConfirmed = function(){
+      this.publishConfirmed = function() {
         $scope.v1.showConfirmPublishModal = false;
 
-        $scope.v1.itemToPublish.publish(function(result){
-          if(!result.published){
-            alert('Error publishing');
-          }
-          $scope.v1.itemToPublish.published = result.published;
-          $scope.v1.itemToPublish = null;
-        },
-        function(err){
-          alert(err);
-        });
+        $scope.v1.itemToPublish.publish(function(result) {
+            if (!result.published) {
+              alert('Error publishing');
+            }
+            $scope.v1.itemToPublish.published = result.published;
+            $scope.v1.itemToPublish = null;
+          },
+          function(err) {
+            alert(err);
+          });
       };
 
-      this.publishCancelled  = function(){
+      this.publishCancelled = function() {
         $scope.v1.itemToPublish = null;
         $scope.v1.showConfirmPublishModal = false;
       };
     }
 
-    function V2(){
+    function V2() {
 
-      function getItem(id){
-        return _.find($scope.items, function(i){
+      function getItem(id) {
+        return _.find($scope.items, function(i) {
           return i.id === id;
         });
       }
 
-      function goToEditDraft(itemId){
+      function goToEditDraft(itemId) {
         $location.url('/edit/draft/' + itemId);
       }
 
-      this.edit = function(item){
-        if(item.published){
-          Modals.edit(function(cancelled){
-            if(cancelled){
+      this.edit = function(item) {
+        if (item.published) {
+          Modals.edit(function(cancelled) {
+            if (cancelled) {
               return;
             }
             goToEditDraft(item.id);
@@ -116,83 +177,59 @@
         }
       };
 
-      this.publish = function(item){
+      this.publish = function(item) {
         item.publish(
-          function(){
+          function() {
             $scope.search();
           },
-          function(err){
+          function(err) {
             Logger.error(err);
           }
         );
       };
 
-      this.cloneItem = function(item){
-        V2ItemService.clone({id: item.id},
-          function success(newItem){
+      this.cloneItem = function(item) {
+        V2ItemService.clone({
+            id: item.id
+          },
+          function success(newItem) {
             goToEditDraft(newItem.id);
           },
-          function error(err){
+          function error(err) {
             alert('cloneItem:', JSON.stringify(err));
           }
         );
       };
     }
 
-    $scope.v2 = new V2();
-    $scope.v1 = new V1();
-
-    $scope.launchCatalogView = function(){
-      openPreview(this.item.id);
-    };
-
-    function route(action, item){
-      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
-        $scope.v1[action](item);
-      } else {
-        $scope.v2[action](item);
-      }
-    }
-
-    $scope.edit = function(item){
-      route('edit', item);
-    };
-
-    $scope.publish = function(item){
-      Modals.publish(function(cancelled){
-        if(!cancelled){
-          route('publish', item);
-        }
-      });
-    };
-
-    $scope.cloneItem = function(item){
-      route('cloneItem', item);
-    };
-
-    $scope.deleteItem = function(item) {
-      Modals['delete'](function(cancelled){
-        if(!cancelled){
+    function deleteItem(item) {
+      Modals['delete'](function(cancelled) {
+        if (!cancelled) {
           ItemDraftService.deleteByItemId(
-            item.id, 
-            function draftDeleteByItemIdSuccess(result){
-              ItemService.remove(
-                { id: item.id },
+            item.id,
+            function draftDeleteByItemIdSuccess(result) {
+              ItemService.remove({
+                  id: item.id
+                },
                 function itemRemoveSuccess(result) {
                   Logger.debug('item removed');
                   $timeout($scope.search, 1000);
                 },
-                function itemRemoveError(err){
+                function itemRemoveError(err) {
                   Logger.error(err);
                 }
               );
-            }, 
-            function draftDeleteByItemIdError(err){
+            },
+            function draftDeleteByItemIdError(err) {
               Logger.error(err);
             });
         }
       });
-    };
+    }
+
+    function launchCatalogView() {
+      openPreview(this.item.id);
+    }
 
     function openPreview(id) {
       $timeout(function() {
@@ -202,44 +239,26 @@
         $('#preloader').show();
         $('#player').hide();
       }, 50);
+
       $timeout(function() {
         $('.window-overlay').scrollTop(0);
       }, 100);
     }
 
-
     /**
      * Handlers for the profile player
      */
-
-    $scope.hidePopup = function() {
+    function hidePopup() {
       $scope.showPopup = false;
       $scope.previewingId = "";
       $scope.popupBg = "";
-    };
+    }
 
-    $scope.onItemLoad = function() {
+    function onItemLoad() {
       $('#preloader').hide();
       $('#player').show();
-    };
-
-
-    init();
+    }
   }
-
-  HomeController.$inject = ['$scope',
-    '$timeout',
-    '$rootScope',
-    '$http',
-    '$location',
-    'ItemService',
-    'ItemFormattingUtils',
-    'Logger',
-    'UserInfo',
-    'ItemDraftService',
-    'V2ItemService',
-    'Modals'
-  ];
 
   root.tagger = root.tagger || {};
   root.tagger.HomeController = HomeController;
