@@ -20,7 +20,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def sessionCount(item: Item): Long
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Validation[Error, String]]
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false)
 
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject]
 

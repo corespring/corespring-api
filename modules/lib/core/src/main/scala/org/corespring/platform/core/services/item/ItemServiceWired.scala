@@ -50,12 +50,22 @@ class ItemServiceWired(
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
+  /**
+   * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is
+   * needed so that the client can be assured that when they re-query the index after update that the changes will be
+   * available in search results.
+   */
+  private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
+    Await.result(itemIndexService.reindex(id), Duration(20, SECONDS))
+  }
+
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
     result match {
       case Success(updatedItem) => {
         dao.save(updatedItem, false)
+        syncronousReindex(updatedItem.id)
         Some(updatedItem)
       }
       case Failure(files) => {
@@ -92,7 +102,10 @@ class ItemServiceWired(
           logger.error(s"function=saveNewUnpublishedVersion error=$e")
           None
         },
-        vid => Some(vid))
+        vid => {
+          syncronousReindex(vid)
+          Some(vid)
+        })
     }
   }
 
@@ -108,9 +121,9 @@ class ItemServiceWired(
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Future[Validation[Error, String]] = {
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) {
     dao.update(id, dbo, createNewVersion)
-    itemIndexService.reindex(id)
+    syncronousReindex(id)
   }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
@@ -186,8 +199,7 @@ class ItemServiceWired(
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
-    val result: Future[Validation[Error, String]] = saveUsingDbo(id, update, false)
-    Await.result(result, Duration(20, SECONDS))
+    saveUsingDbo(id, update, false)
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
