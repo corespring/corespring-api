@@ -45,19 +45,29 @@
       };
 
       this.cloneItem = function(item){
-        item.clone(
-          function success(newItem){
-            $location.url('/old/edit/' + newItem.id );
-          },
-          function error(err){
-            alert('cloneItem:', JSON.stringify(err));
-          }
-        );
+        //The item passed in is not coming from the v1 ItemService
+        //and therefore doesn't have the clone method. ItemService.get
+        //does that for us.
+        ItemService.get({id: item.id}, function(itemData){
+          itemData.clone(
+            function success(newItem){
+              $location.url('/old/edit/' + newItem.id );
+            },
+            function error(err){
+              alert('cloneItem:', JSON.stringify(err));
+            }
+          );
+        });
       };
 
       this.publish = function(item){
-        $scope.v1.itemToPublish = item;
-        $scope.v1.showConfirmPublishModal = true;
+        //The item passed in is not coming from the v1 ItemService
+        //and therefore doesn't have the clone method. ItemService.get
+        //does that for us.
+        ItemService.get({id: item.id}, function(itemData){
+          $scope.v1.itemToPublish = itemData;
+          $scope.v1.showConfirmPublishModal = true;
+        });
       };
 
       this.publishConfirmed = function(){
