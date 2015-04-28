@@ -530,8 +530,9 @@
     .nav{
         margin-bottom: 0px;
     }
+
     .nav > li > a{
-        padding-top: 4px;
+        // padding-top: 4px;
     }
 
     .container{
@@ -710,32 +711,22 @@ body{
 }
 
 
-
+.nav-pills > .active > a, 
+.nav-pills > .active > a:hover{
+    background: none;
+    text-decoration: underline;
+}
 
 .nav-pills > li > a {
-    padding: 0px;
-    padding-top: @cs-pills-padding;
-    padding-left: @cs-pills-padding;
-    padding-right: @cs-pills-padding;
-    padding-bottom: @cs-pills-padding;
-    margin: 6px;
-    margin-top: @cs-pills-padding * 0.2;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
     border-radius: 5px;
     color: @cs-pills-color;
 }
 
 .nav-pills > li > a:hover{
-    color: @cs-pills-color;
-    background-color: @cs-pills-bg-color;
+    background: none;
+    text-decoration: underline;
 }
 
-.nav-pills > .active > a,
-.nav-pills > .active > a:hover {
-    color: #ffffff;
-    background-color: @cs-pills-bg-color;
-}
 
 .icon-preview{
     background-image: url('/assets/images/preview2.png');

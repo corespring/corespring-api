@@ -1,9 +1,12 @@
 angular.module('tagger.directives')
-  .directive('itemActionButton', [function () {
+  .directive('itemActionButton', ['$log', function ($log) {
+
+    $log.log('itemActionButton loaded into angular');
 
     return {
       restrict: 'AE',
       replace: true,
+      link: link,
       template: template(),
       scope: {
         item: '=',
@@ -12,6 +15,9 @@ angular.module('tagger.directives')
         deleteItem: '&'
       }
     };
+
+    function link(scope, elem, attr){
+    }
 
     function template() {
       return [
