@@ -71,6 +71,14 @@ describe('tagger.controllers.new.EditDraftController', function() {
   describe("init", function() {
     it("is initialised correctly", function() {
       expect(ctrl).not.toBeNull();
+      expect(scope.hasChanges).toBe(false);
+    });
+  });
+
+  describe("hasChanges", function() {
+    it('flag gets set when itemChanged event occurs', function () {
+      scope.onItemChanged();
+      expect(scope.hasChanges).toBe(true);
     });
   });
 

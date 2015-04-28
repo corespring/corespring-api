@@ -53,6 +53,7 @@
     };
 
     $scope.itemId = $routeParams.itemId;
+    $scope.hasChanges = false;
 
     $scope.saveBackToItem = function() {
       if ($scope.draftIsConflicted) {
@@ -64,6 +65,7 @@
       } else {
         commit(false);
       }
+      $scope.hasChanges = false;
     };
 
     function commit(force, done) {
@@ -165,16 +167,33 @@
     $scope.showDevEditor = function() {
       $scope.devEditorVisible = true;
       $scope.v2Editor = devEditor;
+      if ($scope.channel) {
+        $scope.channel.remove();
+      }
     };
 
     $scope.showEditor = function() {
       $scope.devEditorVisible = false;
       $scope.v2Editor = normalEditor;
+      if ($scope.channel) {
+        $scope.channel.remove();
+      }
     };
+
+    $scope.onItemChanged = function(data, done) {
+      $scope.$apply(function() {
+        $scope.hasChanges = true;
+      });
+    };
+
+    var iframe = $('.edit-container .item-iframe-container iframe');
+    iframe.bind('load', function() {
+      $scope.channel = new msgr.Channel(window, iframe[0].contentWindow);
+      $scope.channel.on('itemChanged', $scope.onItemChanged);
+    });
 
     $scope.loadDraftItem();
   }
-
   EditDraftController.$inject = [
   '$scope',
   '$location',
