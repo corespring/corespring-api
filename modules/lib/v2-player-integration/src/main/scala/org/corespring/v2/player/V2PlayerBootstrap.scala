@@ -148,35 +148,22 @@ class V2PlayerBootstrap(
   }
 
   override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
-
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       val s3Path = S3Paths.itemFile(id, path)
       playS3.download(bucket, s3Path)
     }
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
-
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
-
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-    override def loadFile(sessionId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
 
-      import Scalaz._
-
-      val out: Validation[V2Error, SimpleResult] = for {
-        identity <- identifier(request)
-        s <- sessionAuth.loadForRead(sessionId)(identity)
-        itemId <- (s._1 \ "itemId").asOpt[String].toSuccess(generalError("no item id for session"))
-        start <- Success(itemId.split(":").mkString("/"))
-      } yield playS3.download(bucket, S3Paths.itemFile(itemId, path))
-
-      out.fold[SimpleResult]((e: V2Error) => {
-        Results.Status(e.statusCode)(e.json)
-      }, r => r)
+    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      val s3Path = S3Paths.itemFile(id, path)
+      playS3.download(bucket, s3Path)
     }
   }
 
