@@ -14,7 +14,7 @@ import play.api.test.FakeRequest
 
 import scalaz.{ Failure, Success }
 
-class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
+class QueryStringIdentityTest extends Specification with Mockito {
 
   val org = {
     val m = mock[Organization]
@@ -22,8 +22,10 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     m
   }
 
-  val identifier = new PlayerTokenInQueryStringIdentity {
+  val identifier = new QueryStringIdentity {
     override def clientIdToOrg(apiClientId: String): Option[Organization] = Some(org)
+
+    override def getQueryString(rh: RequestHeader) = rh.queryString
 
     override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = Some(encrypted)
 
@@ -37,10 +39,10 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
 
   "building identity" should {
 
-    import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
+    import _root_.org.corespring.v2.auth.identifiers.QueryStringIdentity.Keys._
 
     s"return a bad param name error" in {
-      identifier.headerToOrgAndMaybeUser(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", PlayerTokenInQueryStringIdentity.Keys.apiClient))
+      identifier.headerToOrgAndMaybeUser(FakeRequest("GET", "?apiClientId=blah")) must_== Failure(invalidQueryStringParameter("apiClientId", QueryStringIdentity.Keys.apiClient))
     }
 
     "return no apiClientAndPlayerToken error" in {
@@ -77,7 +79,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
     }
 
     "return success with no warnings" in {
-      import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
+      import _root_.org.corespring.v2.auth.identifiers.QueryStringIdentity.Keys._
       val jsonSettings = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
       val request = FakeRequest("GET", s"""?$apiClient=1&$playerToken=${jsonSettings}""")
       val result = identifier.apply(request)

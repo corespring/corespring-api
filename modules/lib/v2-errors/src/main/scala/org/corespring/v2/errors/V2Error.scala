@@ -43,6 +43,8 @@ private[v2] object Errors {
 
   case class noApiClientAndPlayerTokenInQueryString(rh: RequestHeader) extends identificationFailed(rh, "No 'apiClient' and 'playerToken' in queryString")
 
+  case class noApiClientAndPlayerTokenInReferer(rh: RequestHeader) extends identificationFailed(rh, "No 'apiClient' and 'playerToken' in referer")
+
   case class noToken(rh: RequestHeader) extends identificationFailed(rh, "No access token")
 
   case class noUserSession(rh: RequestHeader) extends identificationFailed(rh, "No user session")
