@@ -34,7 +34,7 @@ angular.module('tagger.directives')
         '    <ul class="dropdown-menu dropdown-menu-actions">',
         '      <li>',
         '        <button class="btn btn-sm" ng-click="cloneItem(item)">',
-        '          <i class="fa fa-plus-circle"></i>&nbsp;clone',
+        '          <i class="fa fa-copy"></i>&nbsp;clone',
         '        </button>',
         '      </li>',
         '      <li ng-show="!item.published">',
