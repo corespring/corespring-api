@@ -21,7 +21,7 @@ object Partials extends BaseApi {
   def viewItem = Action { Ok(web.views.html.partials.viewItem()) }
   def redirect(url: String) = Action {
     if(Play.current.mode == Mode.Dev){
-      Ok(Html("""Your seeing this because you are running in dev mode. In prod mod this will redirect to the public site. <a href="/web">To Web</a>"""))
+      Redirect("/login")
     } else {
       MovedPermanently(url)
     }
