@@ -45,10 +45,10 @@ class LoadImageTest extends IntegrationSpecification {
       val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
 
       ItemServiceWired.collection.update(
-        MongoDBObject("_id._id" -> item.id.id, "_id.version" -> itemId.version.getOrElse(0)),
+        MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
         MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
 
-      val reItem = ItemServiceWired.findOneById(item.id)
+      val reItem = ItemServiceWired.findOneById(itemId)
       logger.debug(s"Saved item in mongo as: ${reItem}")
 
       logger.debug(s"Uploading image...: ${file.getPath} -> $key")
@@ -71,7 +71,8 @@ class LoadImageTest extends IntegrationSpecification {
 
       import org.corespring.container.client.controllers.apps.routes.Player
 
-      val call = Player.getFile(sessionId.toString, "puppy.png")
+      logger.debug(s" in 'work' itemId $itemId")
+      val call = Player.getFile(itemId.toString, "puppy.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
@@ -83,7 +84,8 @@ class LoadImageTest extends IntegrationSpecification {
     import org.corespring.container.client.controllers.apps.routes.Player
 
     "work when imagePath is encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup%20py.png") {
-      val call = Player.getFile(sessionId.toString, "pup%20py.png")
+      logger.debug(s" in 'work when imagePath is encoded' itemId $itemId")
+      val call = Player.getFile(itemId.toString, "pup%20py.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
