@@ -29,6 +29,8 @@ trait ItemDraftAssets {
  */
 object S3Paths {
 
+  lazy val logger = Logger("org.corespring.drafts.item.S3Paths")
+
   def itemFolder(id: VersionedId[ObjectId]) = itemFromStringId(id.toString)
 
   def itemFile(id: String, path: String): String = s"${itemFromStringId(id)}/data/$path"
@@ -38,8 +40,12 @@ object S3Paths {
   }
 
   def itemFromStringId(id: String): String = {
-    require(id.contains(":"), s"version must be defined: $id")
-    id.replace(":", "/")
+    if(id.contains(":")){
+      id.replace(":", "/")
+    } else {
+      logger.warn(s"version must be defined: $id, appending default version: 0")
+      id + "/0"
+    }
   }
 
   def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-$itemId"
