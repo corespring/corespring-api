@@ -150,8 +150,8 @@ class V2PlayerBootstrap(
   override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(id, path)
+    def loadFile(itemId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      val s3Path = S3Paths.itemFile(itemId, path)
       playS3.download(bucket, s3Path)
     }
   }
@@ -161,8 +161,8 @@ class V2PlayerBootstrap(
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(id, path)
+    def loadFile(itemId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      val s3Path = S3Paths.itemFile(itemId, path)
       playS3.download(bucket, s3Path)
     }
   }
