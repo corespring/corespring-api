@@ -31,6 +31,10 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.{ Configuration, Mode => PlayMode, Play }
+import scalaz._
+import scalaz.Scalaz._
+import org.corespring.v2.errors.Errors.noItemIdInSession
+
 
 import scala.concurrent.ExecutionContext
 import scalaz.{ Scalaz, Success, Failure, Validation }
@@ -150,9 +154,13 @@ class V2PlayerBootstrap(
   override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    def loadFile(itemId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(itemId, path)
-      playS3.download(bucket, s3Path)
+    override def loadFile(sessionId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      val out = for {
+        identity <- identifier(request)
+        itemId <- itemAuth.loadForRead(sessionId)(identity).map(_.id.toString)
+      } yield playS3.download(bucket, S3Paths.itemFile(itemId, path))
+      import Results.NotFound
+      out.getOrElse(NotFound(""))
     }
   }
 
@@ -160,10 +168,14 @@ class V2PlayerBootstrap(
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-
-    def loadFile(itemId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(itemId, path)
-      playS3.download(bucket, s3Path)
+    override def loadFile(sessionId: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      val out = for {
+        identity <- identifier(request)
+        session <- sessionAuth.loadForRead(sessionId)(identity)
+        itemId <- (session._1 \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
+      } yield playS3.download(bucket, S3Paths.itemFile(itemId, path))
+      import Results.NotFound
+      out.getOrElse(NotFound(""))
     }
   }
 

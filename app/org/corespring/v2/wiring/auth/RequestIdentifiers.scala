@@ -10,7 +10,7 @@ import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import play.api.mvc._
-import play.api.{ Play, Mode => PlayMode }
+import play.api.{Mode => PlayMode, LoggerLike, Play}
 
 import scalaz.Success
 
@@ -47,41 +47,52 @@ class RequestIdentifiers(
     override def orgService: OrgService = RequestIdentifiers.this.orgService
   }
 
-  lazy val clientIdAndPlayerTokenQueryString = new PlayerTokenInQueryStringIdentity {
 
+  private def encryptionEnabled(r: RequestHeader, getQueryString: (RequestHeader, String) => Option[String]): Boolean = {
+    val m = Play.current.mode
+    val acceptsFlag = m == PlayMode.Dev || m == PlayMode.Test || isDevToolsEnabled
+
+    val enabled = if (acceptsFlag) {
+      val disable = getQueryString(r, "skipDecryption").map(v => true).getOrElse(false)
+      !disable
+    } else true
+    enabled
+  }
+
+  private def decrypt(encrypted: String, orgId: ObjectId,
+                      header: RequestHeader, getQueryString: (RequestHeader, String) => Option[String]): Option[String] =
+    if (!encryptionEnabled(header, getQueryString)) {
+      Some(encrypted)
+    } else {
+      orgEncryptionService.decrypt(orgId, encrypted)
+    }
+
+  private def clientIdToOrg(logger: LoggerLike, apiClientId: String): Option[Organization] = {
+    logger.trace(s"client to orgId -> $apiClientId")
+    for {
+      client <- ApiClient.findByKey(apiClientId)
+      org <- orgService.org(client.orgId)
+    } yield org
+  }
+
+  val clientIdAndPlayerTokenQueryString = new PlayerTokenInQueryStringIdentity {
     override def orgService: OrgService = RequestIdentifiers.this.orgService
+    override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader) =
+      RequestIdentifiers.this.decrypt(encrypted, orgId, header, this.getQueryString)
+    override def clientIdToOrg(apiClientId: String) = RequestIdentifiers.this.clientIdToOrg(this.logger, apiClientId)
+  }
 
-    /** for a given apiClient return the org Id */
-    override def clientIdToOrg(apiClientId: String): Option[Organization] = {
-      logger.trace(s"client to orgId -> $apiClientId")
-      for {
-        client <- ApiClient.findByKey(apiClientId)
-        org <- orgService.org(client.orgId)
-      } yield org
-    }
-
-    private def encryptionEnabled(r: RequestHeader): Boolean = {
-      val m = Play.current.mode
-      val acceptsFlag = m == PlayMode.Dev || m == PlayMode.Test || isDevToolsEnabled
-
-      val enabled = if (acceptsFlag) {
-        val disable = r.getQueryString("skipDecryption").map(v => true).getOrElse(false)
-        !disable
-      } else true
-      enabled
-    }
-
-    override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] =
-      if (!encryptionEnabled(header)) {
-        Some(encrypted)
-      } else {
-        orgEncryptionService.decrypt(orgId, encrypted)
-      }
+  val clientIdAndPlayerTokenReferer = new PlayerTokenInRefererIdentity {
+    override def orgService: OrgService = RequestIdentifiers.this.orgService
+    override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader) =
+      RequestIdentifiers.this.decrypt(encrypted, orgId, header, this.getQueryString)
+    override def clientIdToOrg(apiClientId: String) = RequestIdentifiers.this.clientIdToOrg(this.logger, apiClientId)
   }
 
   lazy val allIdentifiers: RequestIdentity[OrgAndOpts] = new WithRequestIdentitySequence[OrgAndOpts] {
     override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
       clientIdAndPlayerTokenQueryString,
+      clientIdAndPlayerTokenReferer,
       token,
       userSession)
   }
