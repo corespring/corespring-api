@@ -43,6 +43,8 @@ object S3Paths {
     if(id.contains(":")){
       id.replace(":", "/")
     } else {
+      //TODO It is not clear if we should expect that some ids don't have
+      //a version or if that is a problem of the calling code
       logger.warn(s"version must be defined: $id, appending default version: 0")
       id + "/0"
     }
