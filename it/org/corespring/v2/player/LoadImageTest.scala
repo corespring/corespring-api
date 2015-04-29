@@ -33,6 +33,7 @@ class LoadImageTest extends IntegrationSpecification {
       super.before
 
       logger.debug(s"sessionId: $sessionId")
+
       val file = new File(imagePath)
       require(file.exists)
 
@@ -44,8 +45,11 @@ class LoadImageTest extends IntegrationSpecification {
       val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
 
       ItemServiceWired.collection.update(
-        MongoDBObject("_id._id" -> item.id.id),
+        MongoDBObject("_id._id" -> item.id.id, "_id.version" -> itemId.version.getOrElse(0)),
         MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
+
+      val reItem = ItemServiceWired.findOneById(item.id)
+      logger.debug(s"Saved item in mongo as: ${reItem}")
 
       logger.debug(s"Uploading image...: ${file.getPath} -> $key")
       val upload: Upload = tm.upload(bucketName, key, file)
