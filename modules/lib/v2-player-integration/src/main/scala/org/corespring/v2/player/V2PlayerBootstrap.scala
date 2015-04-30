@@ -153,6 +153,10 @@ class V2PlayerBootstrap(
     override def userService: UserService = UserServiceWired
   }
 
+  /**
+   * NOTE: This should only be a temporary solution--we should run a migration that either sets all of our AWS keys to
+   * be URI encoded or not URI encoded.
+   */
   def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
     val s3Path = S3Paths.itemFile(itemId, path)
     try {
