@@ -6,7 +6,7 @@
         <i class="icon-white icon-backward"></i> back to search results
         </a></span>
       </li>
-      <li><button class="btn btn-primary save-btn" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
+      <li><button class="btn btn-primary save-btn" ng-disabled="!hasChanges" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
       <li>
           <span class="save-message"><span class="hidden" ng-class="{hidden: !isSaveDone}">All changes have been saved</span></span>
       </li>
