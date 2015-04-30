@@ -33,7 +33,7 @@
 
         mk('/home', '/web/views/partials/tagger/home', tagger.HomeController);
         mk('/edit/draft/:itemId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
-        mk('/edit/:itemId', '/web/views/partials/tagger/editItem', tagger.ItemController, false);
+        mk('/edit/:itemId', '/web/partials/editItem', ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);
         /* jshint ignore:start */
         mk('/old/edit/:itemId', '/web/partials/editItem', ItemController, false);
