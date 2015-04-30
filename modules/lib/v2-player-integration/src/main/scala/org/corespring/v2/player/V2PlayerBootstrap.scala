@@ -159,10 +159,10 @@ class V2PlayerBootstrap(
    */
   private def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
     val s3Path = S3Paths.itemFile(itemId, path)
-    try {
-     playS3.download(bucket, URIUtil.decode(s3Path))
-    } catch {
-      case e: AmazonClientException => playS3.download(bucket, s3Path)
+    val result = playS3.download(bucket, URIUtil.decode(s3Path))
+    result.header.status / 100 match {
+      case 2 => result
+      case _ => playS3.download(bucket, s3Path)
     }
   }
 
