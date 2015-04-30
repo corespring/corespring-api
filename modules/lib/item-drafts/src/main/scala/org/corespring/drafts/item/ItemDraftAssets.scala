@@ -29,25 +29,22 @@ trait ItemDraftAssets {
  */
 object S3Paths {
 
-  lazy val logger = Logger("org.corespring.drafts.item.S3Paths")
+  lazy val logger = Logger(S3Paths.getClass)
 
-  def itemFolder(id: VersionedId[ObjectId]) = itemFromStringId(id.toString)
+  def itemFolder(id: VersionedId[ObjectId]) = itemIdToPath(id)
 
-  def itemFile(itemId: String, path: String): String = s"${itemFromStringId(itemId)}/data/$path"
+  def itemFile(id: VersionedId[ObjectId], path: String): String = s"${itemIdToPath(id)}/data/$path"
 
-  def itemSupportingMaterialFile(id: String, supportingMaterial: String, path: String): String = {
-    s"${itemFromStringId(id)}/supporting-materials/$supportingMaterial/$path"
+  def itemSupportingMaterialFile(id: VersionedId[ObjectId], supportingMaterial: String, path: String): String = {
+    s"${itemIdToPath(id)}/supporting-materials/$supportingMaterial/$path"
   }
 
-  def itemFromStringId(id: String): String = {
-    if(id.contains(":")){
-      id.replace(":", "/")
-    } else {
-      //TODO It is not clear if we should expect that some ids don't have
-      //a version or if that is a problem of the calling code
-      logger.warn(s"version must be defined: $id, appending default version: 0")
-      id + "/0"
+  def itemIdToPath(id: VersionedId[ObjectId]): String = {
+    val v = id.version.getOrElse {
+      logger.warn(s"version is not defined: $id, appending default version: 0")
+      0
     }
+    s"${id.id}/$v"
   }
 
   def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-$itemId"
