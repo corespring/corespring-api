@@ -2,6 +2,7 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import com.amazonaws.AmazonClientException
 import com.amazonaws.auth.policy.Principal.Services
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
@@ -34,6 +35,7 @@ import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.{ Configuration, Mode => PlayMode, Play }
+import org.apache.commons.httpclient.util.URIUtil
 
 import scala.concurrent.ExecutionContext
 import scalaz.{ Scalaz, Success, Failure, Validation }
@@ -151,27 +153,33 @@ class V2PlayerBootstrap(
     override def userService: UserService = UserServiceWired
   }
 
+  /**
+   * NOTE: This should only be a temporary solution--we should run a migration that either sets all of our AWS keys to
+   * be URI encoded or not URI encoded.
+   */
+  private def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
+    val s3Path = S3Paths.itemFile(itemId, path)
+    try {
+     playS3.download(bucket, URIUtil.decode(s3Path))
+    } catch {
+      case e: AmazonClientException => playS3.download(bucket, s3Path)
+    }
+  }
+
   override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      VersionedId(id).map { vid =>
-        val s3Path = S3Paths.itemFile(vid, path)
-        playS3.download(bucket, s3Path)
-      }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
-    }
+    def loadFile(id: String, path: String)(request: Request[AnyContent]) =
+      VersionedId(id).map(getAssetFromItemId(_, path)).getOrElse(BadRequest(s"Invalid versioned id: $id"))
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      getItemIdForSessionId(id).map { itemId =>
-        val s3Path = S3Paths.itemFile(itemId, path)
-        playS3.download(bucket, s3Path)
-      }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
-    }
+    def loadFile(id: String, path: String)(request: Request[AnyContent]) =
+      getItemIdForSessionId(id).map(getAssetFromItemId(_, path))
+        .getOrElse(NotFound(s"Can't find an item id for session: $id"))
   }
 
   override def editorHooks: ContainerEditorHooks = new apiHooks.DraftEditorHooks with WithDefaults {

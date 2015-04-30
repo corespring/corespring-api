@@ -28,6 +28,7 @@ object Dependencies {
     .exclude("junit", "junit")
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
+  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
@@ -67,6 +68,7 @@ object Dependencies {
     closureCompiler,
     commonsIo,
     commonsLang,
+    httpClient,
     componentLoader,
     componentModel,
     containerClientWeb,
