@@ -5,6 +5,7 @@ import java.io.File
 import com.amazonaws.auth.policy.Principal.Services
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client._
 import org.corespring.container.client.controllers.ComponentSets
@@ -16,6 +17,7 @@ import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefini
 import org.corespring.platform.core.models.{ Standard, Subject }
 import org.corespring.platform.core.services._
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
@@ -46,7 +48,8 @@ class V2PlayerBootstrap(
   playS3: S3Service,
   bucket: String,
   itemDrafts: ItemDrafts,
-  orgService: OrgService)
+  orgService: OrgService,
+  getItemIdForSessionId: String => Option[VersionedId[ObjectId]])
 
   extends org.corespring.container.client.integration.DefaultIntegration {
 
@@ -160,10 +163,12 @@ class V2PlayerBootstrap(
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-
     def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(id, path)
-      playS3.download(bucket, s3Path)
+      import play.api.mvc.Results._
+      getItemIdForSessionId(id).map { itemId =>
+        val s3Path = S3Paths.itemFile(itemId.toString, path)
+        playS3.download(bucket, s3Path)
+      }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
     }
   }
 

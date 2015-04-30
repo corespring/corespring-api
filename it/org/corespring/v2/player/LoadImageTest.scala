@@ -24,7 +24,7 @@ class LoadImageTest extends IntegrationSpecification {
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
-    lazy val sessionId = V2SessionHelper.create(itemId, V2SessionHelper.v2ItemSessionsPreview)
+    lazy val sessionId = V2SessionHelper.create(itemId, V2SessionHelper.v2ItemSessions)
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
@@ -72,7 +72,7 @@ class LoadImageTest extends IntegrationSpecification {
       import org.corespring.container.client.controllers.apps.routes.Player
 
       logger.debug(s" in 'work' itemId $itemId")
-      val call = Player.getFile(itemId.toString, "puppy.png")
+      val call = Player.getFile(sessionId.toString, "puppy.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK
@@ -85,7 +85,7 @@ class LoadImageTest extends IntegrationSpecification {
 
     "work when imagePath is encoded" in new AddImageAndItem("it/org/corespring/v2/player/load-image/pup%20py.png") {
       logger.debug(s" in 'work when imagePath is encoded' itemId $itemId")
-      val call = Player.getFile(itemId.toString, "pup%20py.png")
+      val call = Player.getFile(sessionId.toString, "pup%20py.png")
       val r = makeRequest(call)
       route(r)(writeable).map { r =>
         status(r) === OK

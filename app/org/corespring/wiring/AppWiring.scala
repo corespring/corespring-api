@@ -1,5 +1,7 @@
 package org.corespring.wiring
 
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
@@ -122,6 +124,30 @@ object AppWiring {
     }
   }.getOrElse(Configuration.empty)
 
+  private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
+    def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
+      val vidString = dbo.get("itemId").asInstanceOf[String]
+      VersionedId(vidString)
+    }
+
+    val itemIdOnly = MongoDBObject("itemId" -> 1)
+
+    try {
+      val oid = new ObjectId(sessionId)
+      val maybeDbo = services.mainSessionService.collection
+        .findOneByID(oid, itemIdOnly)
+        .orElse {
+          services.previewSessionService.collection.findOneByID(oid, itemIdOnly)
+        }
+      maybeDbo.map { toVid }.flatten
+    } catch {
+      case e: Throwable => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
   private lazy val v2PlayerBootstrap = new V2PlayerBootstrap(
     componentLoader.all,
     containerConfig,
@@ -133,7 +159,8 @@ object AppWiring {
     playS3,
     bucket,
     services.draftsBackend,
-    services.orgService)
+    services.orgService,
+    getItemIdForSessionId)
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++
     v2ApiBootstrap.controllers ++
