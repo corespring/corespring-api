@@ -158,9 +158,9 @@ object Build extends sbt.Build {
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "DEBUG",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
+    MongoDbSeederPlugin.logLevel := "DEBUG",
+    testUri := "mongodb://localhost/api",
+    testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -224,7 +224,8 @@ object Build extends sbt.Build {
       componentModel,
       scalaz,
       mongoJsonService,
-      playS3)).dependsOn(
+      playS3,
+      httpClient)).dependsOn(
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
@@ -369,9 +370,9 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "INFO",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
+    MongoDbSeederPlugin.logLevel := "INFO",
+    testUri := "mongodb://localhost/api",
+    testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
