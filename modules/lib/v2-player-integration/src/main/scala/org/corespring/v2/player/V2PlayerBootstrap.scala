@@ -32,6 +32,7 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
 import play.api.mvc._
+import play.api.mvc.Results._
 import play.api.{ Configuration, Mode => PlayMode, Play }
 
 import scala.concurrent.ExecutionContext
@@ -154,8 +155,10 @@ class V2PlayerBootstrap(
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
     def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      val s3Path = S3Paths.itemFile(id, path)
-      playS3.download(bucket, s3Path)
+      VersionedId(id).map { vid =>
+        val s3Path = S3Paths.itemFile(vid, path)
+        playS3.download(bucket, s3Path)
+      }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
     }
   }
 
@@ -164,9 +167,8 @@ class V2PlayerBootstrap(
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
     def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      import play.api.mvc.Results._
       getItemIdForSessionId(id).map { itemId =>
-        val s3Path = S3Paths.itemFile(itemId.toString, path)
+        val s3Path = S3Paths.itemFile(itemId, path)
         playS3.download(bucket, s3Path)
       }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
     }
