@@ -157,7 +157,7 @@ class V2PlayerBootstrap(
    * NOTE: This should only be a temporary solution--we should run a migration that either sets all of our AWS keys to
    * be URI encoded or not URI encoded.
    */
-  def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
+  private def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
     val s3Path = S3Paths.itemFile(itemId, path)
     try {
      playS3.download(bucket, URIUtil.decode(s3Path))
