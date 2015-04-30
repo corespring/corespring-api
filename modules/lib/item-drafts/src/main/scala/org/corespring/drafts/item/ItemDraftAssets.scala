@@ -33,7 +33,7 @@ object S3Paths {
 
   def itemFolder(id: VersionedId[ObjectId]) = itemFromStringId(id.toString)
 
-  def itemFile(id: String, path: String): String = s"${itemFromStringId(id)}/data/$path"
+  def itemFile(itemId: String, path: String): String = s"${itemFromStringId(itemId)}/data/$path"
 
   def itemSupportingMaterialFile(id: String, supportingMaterial: String, path: String): String = {
     s"${itemFromStringId(id)}/supporting-materials/$supportingMaterial/$path"

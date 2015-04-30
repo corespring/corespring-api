@@ -160,7 +160,6 @@ class V2PlayerBootstrap(
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-
     def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       val s3Path = S3Paths.itemFile(id, path)
       playS3.download(bucket, s3Path)
