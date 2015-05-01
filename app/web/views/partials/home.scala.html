@@ -127,8 +127,8 @@
         </div>
         <div class="footer">
             Organization ID: <input type="text" id="sharedOrgIdInput" ui-keypress="{13:'shareCollection(sharedOrgId, activeCollection)'}" placeholder="enter org id..." ng-model="sharedOrgId">
-            <button class="btn btn-mini btn-success" ng-click="shareCollection(sharedOrgId, activeCollection)">share</button>
-            <button class="btn btn-mini btn-primary" ng-click="viewState = 'org'">cancel</button>
+            <button class="btn btn-primary" ng-click="shareCollection(sharedOrgId, activeCollection)">share</button>
+            <button class="btn btn-default" ng-click="viewState = 'org'">cancel</button>
         </div>
         <div class="alert" ng-class="alertClass">{{alertMessage}}</div>
     </div>
