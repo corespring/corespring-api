@@ -146,22 +146,6 @@ describe('tagger.controllers.new.HomeController', function() {
         scope.publish(item);
         expect(modals.publish).toHaveBeenCalled();
       });
-
-      /*it('calls the underlying v1 publish if apiVersion is 1', function() {
-        item.apiVersion = 1;
-        spyOn(scope.v1, 'publish');
-        scope.publish(item);
-        expect(scope.v1.publish).toHaveBeenCalled();
-      });
-
-      it('calls the underlying v1 publish if format.apiVersion is 1', function() {
-        item.format = {
-          apiVersion: 1
-        };
-        spyOn(scope.v1, 'publish');
-        scope.publish(item);
-        expect(scope.v1.publish).toHaveBeenCalled();
-      });*/
     });
 
     describe('clone', function() {
