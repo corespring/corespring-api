@@ -127,7 +127,9 @@ object AppWiring {
   private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
     def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
       val vidString = dbo.get("itemId").asInstanceOf[String]
-      VersionedId(vidString)
+      val vid = VersionedId(vidString)
+      require(vid.map{ _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
+      vid
     }
 
     val itemIdOnly = MongoDBObject("itemId" -> 1)

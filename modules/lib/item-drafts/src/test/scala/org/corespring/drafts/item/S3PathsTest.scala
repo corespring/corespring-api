@@ -17,7 +17,7 @@ class S3PathsTest extends Specification {
       }
 
       "append default version 0 if no version in id" in {
-        S3Paths.itemIdToPath(VersionedId(oid, None)) === s"$oid/0"
+        S3Paths.itemIdToPath(VersionedId(oid, None)) must throwA[RuntimeException]
       }
     }
   }

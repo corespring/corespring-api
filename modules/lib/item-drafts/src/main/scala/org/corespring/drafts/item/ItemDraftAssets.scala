@@ -35,14 +35,13 @@ object S3Paths {
 
   def itemFile(id: VersionedId[ObjectId], path: String): String = s"${itemIdToPath(id)}/data/$path"
 
-  def itemSupportingMaterialFile(id: VersionedId[ObjectId], supportingMaterial: String, path: String): String = {
-    s"${itemIdToPath(id)}/supporting-materials/$supportingMaterial/$path"
+  def itemSupportingMaterialFile(id: VersionedId[ObjectId], path: String): String = {
+    s"${itemIdToPath(id)}/materials/$path"
   }
 
   def itemIdToPath(id: VersionedId[ObjectId]): String = {
     val v = id.version.getOrElse {
-      logger.warn(s"version is not defined: $id, appending default version: 0")
-      0
+      throw new RuntimeException(s"Version must be defined for an itemId: $id")
     }
     s"${id.id}/$v"
   }
@@ -53,8 +52,8 @@ object S3Paths {
 
   def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 
-  def draftSupportingMaterialFile(id: DraftId, supportingMaterial: String, path: String): String = {
-    s"${draftFolder(id)}/supporting-materials/$supportingMaterial/$path"
+  def draftSupportingMaterialFile(id: DraftId,  path: String): String = {
+    s"${draftFolder(id)}/supporting-materials/$path"
   }
 }
 

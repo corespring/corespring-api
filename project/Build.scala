@@ -91,6 +91,7 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(
       salatPlay,
       corespringCommonUtils,
+      httpClient,
       salatVersioningDao,
       specs2 % "test",
       playS3,

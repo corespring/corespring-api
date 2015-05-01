@@ -142,25 +142,9 @@ describe('tagger.controllers.new.HomeController', function() {
 
       it('calls the underlying v2 publish if apiVersion is anything but 1', function() {
         item.apiVersion = 99;
-        spyOn(scope.v2, 'publish');
+        //spyOn(modals, 'publish');
         scope.publish(item);
-        expect(scope.v2.publish).toHaveBeenCalled();
-      });
-
-      it('calls the underlying v1 publish if apiVersion is 1', function() {
-        item.apiVersion = 1;
-        spyOn(scope.v1, 'publish');
-        scope.publish(item);
-        expect(scope.v1.publish).toHaveBeenCalled();
-      });
-
-      it('calls the underlying v1 publish if format.apiVersion is 1', function() {
-        item.format = {
-          apiVersion: 1
-        };
-        spyOn(scope.v1, 'publish');
-        scope.publish(item);
-        expect(scope.v1.publish).toHaveBeenCalled();
+        expect(modals.publish).toHaveBeenCalled();
       });
     });
 
@@ -213,7 +197,7 @@ describe('tagger.controllers.new.HomeController', function() {
         scope.v1.edit({
           id: '123'
         });
-        expect(location.url).toHaveBeenCalledWith('/old/edit/123')
+        expect(location.url).toHaveBeenCalledWith('/old/edit/123');
       });
     });
     describe('cloneItem', function() {
@@ -245,72 +229,6 @@ describe('tagger.controllers.new.HomeController', function() {
       });
       it("launches the old editor with the clone", function() {
         expect(location.url).toHaveBeenCalledWith('/old/edit/123-clone');
-      });
-    });
-
-    describe('publish', function() {
-      var newItem;
-
-      beforeEach(function() {
-        itemService.get.andCallFake(function(obj, success) {
-          newItem = {
-            id: obj.id,
-            format: {
-              apiVersion: 1
-            },
-            publish: jasmine.createSpy('publish')
-          };
-          newItem.publish.andCallFake(function(success) {
-            success({
-              published: true
-            });
-          });
-
-          success(newItem);
-        });
-        scope.v1.publish({
-          id: 123
-        });
-      });
-      it("sets itemToPublish", function() {
-        expect(scope.v1.itemToPublish.id).toEqual(123);
-      });
-      it("sets showConfirmPublishModal to true", function() {
-        expect(scope.v1.showConfirmPublishModal).toBe(true);
-      });
-      describe('publishConfirmed', function() {
-        beforeEach(function() {
-          scope.v1.publishConfirmed();
-        });
-        it("calls itemToPublish.publish", function() {
-          expect(newItem.publish).toHaveBeenCalled();
-        });
-        it("sets itemToPublish.published", function() {
-          expect(newItem.published).toBe(true);
-        });
-        it("sets itemToPublish to null", function() {
-          expect(scope.v1.itemToPublish).toBe(null);
-        });
-        it("sets showConfirmPublishModal to false", function() {
-          expect(scope.v1.showConfirmPublishModal).toBe(false);
-        });
-      });
-      describe('publishCancelled', function() {
-        beforeEach(function() {
-          scope.v1.publishCancelled();
-        });
-        it("doesn't call itemToPublish.publish", function() {
-          expect(newItem.publish).not.toHaveBeenCalled();
-        });
-        it("does not set itemToPublish.published", function() {
-          expect(newItem.published).toBeFalsy();
-        });
-        it("sets itemToPublish to null", function() {
-          expect(scope.v1.itemToPublish).toBe(null);
-        });
-        it("sets showConfirmPublishModal to false", function() {
-          expect(scope.v1.showConfirmPublishModal).toBe(false);
-        });
       });
     });
   });
