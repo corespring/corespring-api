@@ -87,6 +87,7 @@ class ItemServiceWired(
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
     val result = collection.update(vidToDbo(id), update, false)
+    syncronousReindex(id)
     result.getLastError.ok
   }
 
