@@ -11,6 +11,7 @@ class ItemIndexSearchResultTest extends Specification {
 
     val total = 100
     val id = new ObjectId().toString
+    val version = 2
     val collectionId = new ObjectId().toString
     val contributor = "CoreSpring"
     val published = true
@@ -28,7 +29,7 @@ class ItemIndexSearchResultTest extends Specification {
     val searchResult = ItemIndexSearchResult(
       total = total,
       hits = Seq(ItemIndexHit(
-        id = id,
+        id = s"$id:$version",
         collectionId = Some(collectionId),
         contributor = Some(contributor),
         published = published,
@@ -68,7 +69,8 @@ class ItemIndexSearchResultTest extends Specification {
                 "title" : "$title",
                 "itemTypes": ["${itemTypes.mkString("\",\"")}"],
                 "description": "$description"
-              }
+              },
+              "version" : $version
             }
           }]
         }
@@ -96,7 +98,7 @@ class ItemIndexSearchResultTest extends Specification {
         result === Json.parse(s"""{
           "total" : $total,
           "hits" : [{
-            "id" : "$id",
+            "id" : "$id:$version",
             "collectionId" : "$collectionId",
             "contributor": "$contributor",
             "published" : $published,

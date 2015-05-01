@@ -23,6 +23,7 @@
     $location,
     $routeParams,
     $timeout,
+    $window,
     ItemDraftService,
     ItemService,
     Logger,
@@ -48,22 +49,47 @@
       id: $routeParams.itemId
     });
 
+    $scope.navigationHooks.beforeUnload = function(callback) {
+      $($window).unbind('beforeunload');
+      if (!$scope.hasChanges) {
+        callback();
+      } else {
+        Modals.confirmSave(function(cancelled) {
+          if (!cancelled) {
+            $scope.saveBackToItem(callback);
+          } else {
+            callback();
+          }
+        });
+      }
+    };
+
     $scope.backToCollections = function() {
-      $location.path("/home").search('');
+      if ($scope.hasChanges) {
+        $scope.showUnsavedChangesModal = true;
+        Modals.confirmSave(function(cancelled) {
+          if (!cancelled) {
+            $scope.saveBackToItem();
+          }
+          $location.path("/home").search('');
+        });
+      } else {
+        $location.path("/home").search('');
+      }
     };
 
     $scope.itemId = $routeParams.itemId;
     $scope.hasChanges = false;
 
-    $scope.saveBackToItem = function() {
+    $scope.saveBackToItem = function(done) {
       if ($scope.draftIsConflicted) {
         Modals.saveConflictedDraft(function(cancelled) {
           if (!cancelled) {
-            commit(true);
+            commit(true, done);
           }
         });
       } else {
-        commit(false);
+        commit(false, done);
       }
       $scope.hasChanges = false;
     };
@@ -180,7 +206,7 @@
       }
     };
 
-    $scope.onItemChanged = function(data, done) {
+    $scope.onItemChanged = function() {
       $scope.$apply(function() {
         $scope.hasChanges = true;
       });
@@ -192,6 +218,13 @@
       $scope.channel.on('itemChanged', $scope.onItemChanged);
     });
 
+    if (!$scope.hasBoundBeforeUnload) {
+      $($window).bind('beforeunload', function() {
+        return $scope.hasChanges ? "There are updates to this item that have not been saved. Are you sure you want to leave?" : undefined;
+      });
+      $scope.hasBoundBeforeUnload = true;
+    }
+
     $scope.loadDraftItem();
   }
   EditDraftController.$inject = [
@@ -199,6 +232,7 @@
   '$location',
   '$routeParams',
   '$timeout',
+  '$window',
   'ItemDraftService',
   'ItemService',
   'Logger',
