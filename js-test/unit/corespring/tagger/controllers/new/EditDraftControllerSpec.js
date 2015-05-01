@@ -9,6 +9,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
     location,
     routeParams,
     scope,
+    rootScope,
     v2ItemService;
 
   function MockItemService() {
@@ -37,6 +38,9 @@ describe('tagger.controllers.new.EditDraftController', function() {
       }),
       publish: jasmine.createSpy('publish').andCallFake(function(id, success) {
         success({});
+      }),
+      commit: jasmine.createSpy('commit').andCallFake(function(id, force, success) {
+        success({});
       })
     };
 
@@ -59,12 +63,13 @@ describe('tagger.controllers.new.EditDraftController', function() {
   });
 
   beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
+    rootScope = $rootScope;
     scope = $rootScope.$new();
     scope.search = function() {};
-
+    scope.navigationHooks = {};
     ctrl = $controller(tagger.EditDraftController, {
       $scope: scope,
-      Logger: {}
+      Logger: {info: function() {}}
     });
   }));
 
@@ -79,6 +84,31 @@ describe('tagger.controllers.new.EditDraftController', function() {
     it('flag gets set when itemChanged event occurs', function () {
       scope.onItemChanged();
       expect(scope.hasChanges).toBe(true);
+    });
+  });
+
+  describe("before unload hook (local)", function() {
+    it('calls callback when there are no changes', function() {
+      scope.hasChanges = false;
+      var o = {callback: jasmine.createSpy('spy')};
+      scope.navigationHooks.beforeUnload(o.callback);
+      expect(o.callback).toHaveBeenCalled();
+    });
+
+    it('doesnt call callback immediatelly when there are changes', function() {
+      scope.hasChanges = true;
+      var o = {callback: jasmine.createSpy('spy')};
+      scope.navigationHooks.beforeUnload(o.callback);
+      expect(o.callback).not.toHaveBeenCalled();
+    });
+
+    it('calls callback after saving item when there are changes', function() {
+      scope.hasChanges = true;
+      var o = {callback: jasmine.createSpy('spy')};
+      scope.navigationHooks.beforeUnload(o.callback);
+      expect(o.callback).not.toHaveBeenCalled();
+      rootScope.modals['confirmSave'].done();
+      expect(o.callback).toHaveBeenCalled();
     });
   });
 

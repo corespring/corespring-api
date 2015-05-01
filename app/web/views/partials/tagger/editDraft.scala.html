@@ -6,7 +6,7 @@
         <i class="icon-white icon-backward"></i> back to search results
         </a></span>
       </li>
-      <li><button class="btn btn-primary save-btn" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
+      <li><button class="btn btn-primary save-btn" ng-disabled="!hasChanges"  ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
       <li>
           <span class="save-message"><span class="hidden" ng-class="{hidden: !isSaveDone}">All changes have been saved</span></span>
       </li>
@@ -47,7 +47,9 @@
   	  <div class="alert alert-warning" role="alert">If you continue, you can save but you'll overwrite the changes that have been made.</div>
   	</div>
   </div>
+
   <div class="item-iframe-container" ng-show="!showConflictError">
      <iframe frameborder="0" ng-src="{{v2Editor}}"></iframe>
   </div>
 </div>
+
