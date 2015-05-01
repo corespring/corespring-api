@@ -54,6 +54,13 @@
     $scope.onItemLoad = onItemLoad;
     $scope.publish = publish;
 
+    // Delay in milliseconds for search after item update
+    var searchDelay = 1000;
+
+    $scope.delayedSearch = function() {
+      $timeout($scope.search, searchDelay);
+    };
+
     $rootScope.$broadcast('onListViewOpened');
 
     init();
@@ -78,10 +85,25 @@
       route('edit', item);
     }
 
-    function publish(item) {
+    function publish(item, callback) {
       Modals.publish(function(cancelled) {
         if (!cancelled) {
-          route('publish', item);
+          ItemService.get({
+            id: item.id
+          }, function(itemData) {
+            itemData.publish(
+              function success(item) {
+                $scope.delayedSearch();
+                callback = callback || function() {};
+                callback();
+              },
+              function error(err) {
+                alert('Error publishing'); //would be nice if we did something more useful with error messages.
+              },
+              itemData.id
+            );
+
+          });
         }
       });
     }
@@ -123,12 +145,7 @@
       };
 
       this.publish = function(item) {
-        //The item passed in is not coming from the v1 ItemService
-        //and therefore doesn't have the clone method. ItemService.get
-        //does that for us.
-        ItemService.get({
-          id: item.id
-        }, function(itemData) {
+        publish(item, function() {
           $scope.v1.itemToPublish = itemData;
           $scope.v1.showConfirmPublishModal = true;
         });
@@ -181,14 +198,7 @@
       };
 
       this.publish = function(item) {
-        item.publish(
-          function() {
-            $scope.search();
-          },
-          function(err) {
-            Logger.error(err);
-          }
-        );
+        publish(item);
       };
 
       this.cloneItem = function(item) {
@@ -216,7 +226,7 @@
                 },
                 function itemRemoveSuccess(result) {
                   Logger.debug('item removed');
-                  $timeout($scope.search, 1000);
+                  $scope.delayedSearch();
                 },
                 function itemRemoveError(err) {
                   Logger.error(err);
