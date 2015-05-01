@@ -9,6 +9,16 @@ function MainNavController(
 
   "use strict";
 
+  $scope.navigateToRoot = function(root) {
+    if (_.isFunction($scope.navigationHooks.beforeUnload)) {
+      $scope.navigationHooks.beforeUnload(function() {
+        window.location.href = root;
+      });
+    } else {
+      window.location.href = root;
+    }
+  };
+
   $scope.$on('onSearchCountComplete', function (event, count) {
     $rootScope.resultCount = count;
   });

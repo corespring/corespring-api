@@ -10,6 +10,9 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     }
   });
 
+  $scope.navigationHooks = {
+  };
+
   $scope.$on("error", function(event, errorSubType, data){
     $scope.showErrorBox = true;
     $scope.errorSubType = errorSubType;
