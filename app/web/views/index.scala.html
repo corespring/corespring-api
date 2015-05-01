@@ -127,6 +127,18 @@ userOrg: org.corespring.platform.core.models.Organization )
   <button ng-click="modals.saveConflictedDraft.done()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
 </div>
 
+<div ui-modal ng-model="modals.confirmSave.show" style="padding: 20px">
+  <h2>Save Changes</h2>
+  <br/>
+  <p>There are updates to this item that have not been saved. Would you like to save these changes before leaving?</p>
+  <div>
+    <a ng-click="modals.confirmSave.done()">Yes. Save my changes.</a>
+  </div>
+  <div>
+    <a ng-click="modals.confirmSave.done(true)">No. I do not want to save the changes.</a>
+  </div>
+</div>
+
 <div ui-modal ng-model="modals.commitFailedDueToConflict.show" style="padding: 20px">
   <h2>Save Failed</h2>
   <br/>

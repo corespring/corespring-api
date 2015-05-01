@@ -17,6 +17,9 @@ angular.module('tagger.services')
     saveConflictedDraft: {
     	show: false
     },
+    confirmSave: {
+    	show: false
+    },
     commitFailedDueToConflict: {
       show: false
     }
@@ -38,6 +41,10 @@ angular.module('tagger.services')
 
     this.saveConflictedDraft = function(done){
     	showModal('saveConflictedDraft', done);
+    };
+
+    this.confirmSave = function(done){
+    	showModal('confirmSave', done);
     };
 
     this.commitFailedDueToConflict = function(done){
