@@ -96,17 +96,13 @@ class ItemServiceWired(
    * @return the VersionedId[ObjectId] of the new item
    */
   override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
-    dao.get(id).flatMap { item =>
-      dao.save(item.copy(published = false), true).fold(
-        e => {
-          logger.error(s"function=saveNewUnpublishedVersion error=$e")
-          None
-        },
-        vid => {
-          syncronousReindex(vid)
-          Some(vid)
-        })
-    }
+    dao.get(id).map { item =>
+      val update = item.copy(published = false)
+      save(update, true) match {
+        case Left(_) => None
+        case Right(id) => Some(id)
+      }
+    }.flatten
   }
 
   def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt

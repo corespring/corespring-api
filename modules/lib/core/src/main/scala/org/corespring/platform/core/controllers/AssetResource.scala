@@ -15,6 +15,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{ Success, Failure }
+import org.apache.commons.httpclient.util.URIUtil
 
 object AssetResource {
   object Errors {
@@ -68,7 +69,9 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
   private def getFile(itemId: String, resourceName: String, filename: Option[String] = None): Action[AnyContent] =
     {
       import VersionedIdImplicits.Binders._
-      val decodedFilename = filename.map(java.net.URI.create(_).getPath)
+      val decodedFilename = filename.map{ n =>
+        URIUtil.decode(n, "utf-8")
+      }
       val out = for {
         oid <- stringToVersionedId(itemId).toSuccess(Errors.invalidObjectId)
         item <- itemService.findOneById(oid).toSuccess(Errors.cantFindItem)

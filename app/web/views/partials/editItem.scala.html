@@ -166,7 +166,7 @@
 
                 <ul>
                     <li ng-class="{true:'active', false:''}[f == selectedFile]" ng-repeat="f in resource.files">
-                        <i class="icon-home" ng-show="f.default"></i>
+                        <i class="icon-home" ng-show="f.isMain"></i>
                         <a ng-click="showFile(f)">{{f.name}}</a>
 
                             <span class="dropdown" ng-show="canShowFileDropdown(f)">

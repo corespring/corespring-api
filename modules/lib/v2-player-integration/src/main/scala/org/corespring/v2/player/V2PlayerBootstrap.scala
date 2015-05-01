@@ -157,29 +157,44 @@ class V2PlayerBootstrap(
    * NOTE: This should only be a temporary solution--we should run a migration that either sets all of our AWS keys to
    * be URI encoded or not URI encoded.
    */
-  private def getAssetFromItemId(itemId: VersionedId[ObjectId], path: String): SimpleResult = {
-    val s3Path = S3Paths.itemFile(itemId, path)
+  private def getAssetFromItemId(s3Path: String): SimpleResult = {
     val result = playS3.download(bucket, URIUtil.decode(s3Path))
-    result.header.status / 100 match {
-      case 2 => result
-      case _ => playS3.download(bucket, s3Path)
+    val isOk = result.header.status / 100 == 2
+    if(isOk) result else playS3.download(bucket, s3Path)
+  }
+
+  private def versionedIdFromString(itemService:ItemService, id:String) : Option[VersionedId[ObjectId]] = {
+    VersionedId(id).map { vid =>
+      val version = vid.version.getOrElse(itemService.currentVersion(vid))
+      VersionedId(vid.id, Some(version))
     }
   }
 
   override def catalogHooks: CatalogHooks = new apiHooks.CatalogHooks with WithDefaults {
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]) =
-      VersionedId(id).map(getAssetFromItemId(_, path)).getOrElse(BadRequest(s"Invalid versioned id: $id"))
+    override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
+      versionedIdFromString(itemService, id).map { vid =>
+        getAssetFromItemId(S3Paths.itemFile(vid, path))
+      }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
+
+    override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+      versionedIdFromString(itemService, id).map{ vid =>
+        val version = vid.version.getOrElse(itemService.currentVersion(vid))
+        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(VersionedId(vid.id, Some(version)), path))
+      }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
+    }
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
-    def loadFile(id: String, path: String)(request: Request[AnyContent]) =
-      getItemIdForSessionId(id).map(getAssetFromItemId(_, path))
-        .getOrElse(NotFound(s"Can't find an item id for session: $id"))
+    override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
+      getItemIdForSessionId(id).map{ vid =>
+        require(vid.version.isDefined, s"The version must be defined: $vid")
+        getAssetFromItemId(S3Paths.itemFile(vid, path))
+      }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
   }
 
   override def editorHooks: ContainerEditorHooks = new apiHooks.DraftEditorHooks with WithDefaults {
