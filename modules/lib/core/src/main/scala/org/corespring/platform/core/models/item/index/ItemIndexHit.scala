@@ -18,7 +18,6 @@ case class ItemIndexHit(id: String,
 
 object ItemIndexHit {
 
-
   object Format extends Format[ItemIndexHit] with JsonUtil {
 
     lazy val logger = LoggerFactory.getLogger("ItemIndexHit#Format")
@@ -38,7 +37,10 @@ object ItemIndexHit {
 
     def reads(json: JsValue) = try {
       JsSuccess(ItemIndexHit(
-        id = (json \ "_id").as[String],
+        id = s"${(json \ "_id").as[String]}${(json \ "_source" \ "version").asOpt[Int] match {
+          case Some(version) => s":$version"
+          case _ => ""
+        }}",
         collectionId = (json \ "_source" \ "collectionId").asOpt[String],
         contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
         published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
