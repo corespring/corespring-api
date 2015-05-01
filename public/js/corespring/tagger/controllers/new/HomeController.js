@@ -94,8 +94,9 @@
             itemData.publish(
               function success(item) {
                 $scope.delayedSearch();
-                callback = callback || function() {};
-                callback();
+                if(_.isFunction(callback) ) {
+                  callback();
+                }
               },
               function error(err) {
                 alert('Error publishing'); //would be nice if we did something more useful with error messages.

@@ -73,8 +73,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.resource = newValue;
 
     var defaultFile = _.find($scope.resource.files, function (f) {
-      return f["default"] === true;
+      return f.isMain;
     });
+    
     $scope.showFile(defaultFile);
   });
 
