@@ -78,6 +78,8 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
     }
   })
 
+  def refresh() = contentIndex.refresh()
+
   lazy val componentTypes: Future[Validation[Error, Map[String, String]]] =
     distinct("taskInfo.itemTypes").map(result => result.map(itemTypes => itemTypes.map(itemType =>
       components.componentMap.get(itemType).map(t => t.nonEmpty match {

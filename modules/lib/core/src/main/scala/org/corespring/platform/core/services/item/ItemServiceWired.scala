@@ -34,7 +34,7 @@ class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item],
-  itemIndexService: ItemIndexService)
+  itemIndexService: ItemIndexService)(implicit executionContext: ExecutionContext)
   extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
@@ -56,7 +56,14 @@ class ItemServiceWired(
    * available in search results.
    */
   private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-    Await.result(itemIndexService.reindex(id), Duration(20, SECONDS))
+    Await.result(itemIndexService.reindex(id).flatMap(result => {
+      result match {
+        case Success(anything) => itemIndexService.refresh()
+        case Failure(error) => Future {
+          Failure(error)
+        }
+      }
+    }), Duration(20, SECONDS))
   }
 
   override def clone(item: Item): Option[Item] = {
@@ -241,5 +248,5 @@ object ItemServiceWired extends ItemServiceWired(
   CorespringS3ServiceExtended,
   DefaultItemSession,
   ItemVersioningDao,
-  ElasticSearchItemIndexService)
+  ElasticSearchItemIndexService)(ExecutionContext.global)
 
