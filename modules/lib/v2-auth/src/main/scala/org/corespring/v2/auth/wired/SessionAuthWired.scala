@@ -10,6 +10,7 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
@@ -101,11 +102,15 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
   })
 
   override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
-    val withIdentityData = addIdentityToSession(session, identity)
+    val withIdentityData = dateCreated ++ addIdentityToSession(session, identity)
     sessionService.create(withIdentityData).toSuccess(errorSaving)
   }
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): Session = {
+  private def dateCreated: JsObject = Json.obj(
+    "dateCreated" -> Json.obj(
+      "$date" -> DateTime.now(DateTimeZone.UTC)))
+
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
   }
 

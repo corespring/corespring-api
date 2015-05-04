@@ -84,6 +84,23 @@ class LoadPlayerTest
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
+    "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
+      status(createSessionResult) === SEE_OTHER
+      val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
+      val sessionId = V2SessionHelper.findSessionForItemId(itemId, "v2.itemSessions_preview")
+      val session = V2SessionHelper.findSession(sessionId.toString, "v2.itemSessions_preview")
+      println(com.mongodb.util.JSON.serialize(session))
+      session.get("dateCreated") must_!= null
+
+      val call = org.corespring.container.client.controllers.resources.routes.Session.loadItemAndSession(sessionId.toString)
+
+      route(makeRequest(call))(writeable).map { result =>
+        val json = contentAsJson(result)
+        println(s" -> ${Json.stringify(json)}")
+        (json \ "session" \ "dateCreated" \ "$date").asOpt[String] must beSome[String]
+      }.getOrElse(failure("should have been successful"))
+    }
+
     "create session for access token" in new token_CreateSession() {
       status(createSessionResult) === SEE_OTHER
       val mockResult = getMockResult(itemId, "v2.itemSessions")

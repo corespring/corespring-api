@@ -3,12 +3,13 @@ package org.corespring.v2.player.hooks
 import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -20,16 +21,9 @@ import play.api.test.{ WithApplication, FakeRequest }
 
 import scalaz.{ Failure, Success, Validation }
 
-class PlayerHooksTest extends Specification with Mockito {
+class PlayerHooksTest extends Specification with Mockito with MockFactory {
 
-  def mockOrg = {
-    val m = mock[Organization]
-    m.id returns ObjectId.get
-    m.name returns "mock org"
-    m
-  }
-
-  lazy val orgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
+  lazy val orgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
 
   case class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
     loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))
@@ -59,7 +53,7 @@ class PlayerHooksTest extends Specification with Mockito {
     }
   }
 
-  "player hooks" should {
+  "PlayerHooks" should {
 
     import scala.concurrent._
     import scala.concurrent.duration._

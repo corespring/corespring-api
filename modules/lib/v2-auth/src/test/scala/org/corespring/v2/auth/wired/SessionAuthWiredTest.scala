@@ -162,7 +162,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val saveFn = auth.saveSessionFunction(optsIn)
         saveFn.toOption.map(fn => fn("1", Json.obj()))
         val identityJson = IdentityJson(optsIn)
-        (identityJson \ "apiClientId").asOpt[String] === None
+        (identityJson \ "apiClientId").asOpt[String] must beNone
         there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
       }
     }
@@ -171,7 +171,17 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       "add the identity data to the session data" in new authScope() {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.create(Json.obj())(optsIn)
-        there was one(auth.mainSessionService).create(Json.obj("identity" -> IdentityJson(optsIn)))
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "identity").as[JsObject] must_== IdentityJson(optsIn)
+      }
+
+      "add dateCreated to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.create(Json.obj())(optsIn)
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
       }
     }
   }

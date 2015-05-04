@@ -1,13 +1,12 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError, sessionDoesNotContainResponses }
+import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
