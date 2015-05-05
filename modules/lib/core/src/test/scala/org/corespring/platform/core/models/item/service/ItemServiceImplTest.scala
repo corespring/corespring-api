@@ -25,6 +25,8 @@ import scalaz.Success
 
 class ItemServiceImplTest extends BaseTest with Mockito {
 
+  import ExecutionContext.Implicits.global
+
   val s3: CorespringS3Service = mock[CorespringS3Service]
   val dao: SalatVersioningDao[Item] = mock[SalatVersioningDao[Item]]
   val itemIndexService = {
