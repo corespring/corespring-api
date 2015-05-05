@@ -51,11 +51,16 @@ trait ItemDrafts extends Controller with MakeDraftId {
       (json \ "expires").asOpt[String].map { DateTime.parse }
     }
 
+    def mkDraftName(fallback: String): String = request.body.asJson.flatMap { json =>
+      (json \ "name").asOpt[String]
+    }.getOrElse(fallback)
+
     Future {
       for {
         user <- toOrgAndUser(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        draft <- drafts.create(vid, user, expires).leftMap { e => generalDraftApiError(e.msg) }
+        draftName <- Success(mkDraftName(user.user.map(_.userName).getOrElse("unknown_user")))
+        draft <- drafts.create(DraftId(vid.id, draftName, user.org.id), user, expires).leftMap { e => generalDraftApiError(e.msg) }
       } yield ItemDraftJson.simple(draft)
     }
   }

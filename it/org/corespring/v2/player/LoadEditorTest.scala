@@ -59,6 +59,7 @@ class LoadEditorTest
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
+    override def draftName = user.userName
     override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
 
     override def organization: Organization = Organization.findOneById(user.org.orgId).get
