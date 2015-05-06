@@ -287,11 +287,13 @@ package object scopes {
       override implicit def context: Context = mongoContext.context
     }
 
-    def draftName = scala.util.Random.alphanumeric.take(12).mkString
+    lazy val draftName = scala.util.Random.alphanumeric.take(12).mkString
+    lazy val draftId = DraftId(itemId.id, draftName, organization.id)
 
     lazy val result = {
 
-      val draftId = itemDraftHelper.create(DraftId(itemId.id, draftName, organization.id), itemId, organization)
+      val createdId = itemDraftHelper.create(draftId, itemId, organization)
+      require(createdId == draftId)
       val call = getCall(draftId)
       implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
       val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
@@ -335,27 +337,27 @@ package object scopes {
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-    def makeRequest(call: Call): Request[AnyContent]
+    def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent]
   }
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
     def requestBody: AnyContent = AnyContentAsEmpty
 
-    override def makeRequest(call: Call): Request[AnyContent] = {
-      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), requestBody)
+    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), body)
     }
   }
 
   trait PlainRequestBuilder extends RequestBuilder {
-    override def makeRequest(call: Call): Request[AnyContent] = FakeRequest(call.method, call.url)
+    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = FakeRequest(call.method, call.url)
   }
 
   trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
 
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
-    override def makeRequest(call: Call): Request[AnyContent] = {
+    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
     }
   }
@@ -368,10 +370,10 @@ package object scopes {
 
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call): Request[AnyContent] = {
+    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
-      FakeRequest(call.method, finalUrl, FakeHeaders(), requestBody)
+      FakeRequest(call.method, finalUrl, FakeHeaders(), body)
     }
   }
 
