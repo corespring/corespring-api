@@ -4,12 +4,14 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
 import com.novus.salat.dao._
+import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.{ ItemSearch, Searchable }
+import org.corespring.platform.core.services.ContentCollectionService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
@@ -37,7 +39,14 @@ case class ContentCollection(
   lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
-object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
+object ContentCollection extends ContentCollectionImpl
+
+trait ContentCollectionImpl
+  extends ModelCompanion[ContentCollection, ObjectId]
+  with Searchable
+  with ContentCollectionService
+  with ClassLogging {
+
   val name = "name"
   val isPublic = "isPublic"
   val ownerOrgId = "ownerOrgId"
@@ -141,6 +150,11 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     } else {
       out
     }
+  }
+
+  override def getCollections(orgId: ObjectId, p: Permission): Either[CorespringInternalError, Seq[ContentCollection]] = {
+    val collectionIds = ContentCollection.getCollectionIds(orgId, p, false);
+    Right(ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
   }
 
   def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
