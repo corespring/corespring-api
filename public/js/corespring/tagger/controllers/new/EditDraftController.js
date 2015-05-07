@@ -29,6 +29,7 @@
     Logger,
     Modals) {
 
+
     $scope.devEditorVisible = false;
 
     var normalEditor = [
@@ -64,9 +65,12 @@
       }
     };
 
+    $scope.$on('$routeChangeStart', function() {
+      $($window).unbind('beforeunload');
+    });
+
     $scope.backToCollections = function() {
       if ($scope.hasChanges) {
-        $scope.showUnsavedChangesModal = true;
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
             $scope.saveBackToItem();
