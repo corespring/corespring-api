@@ -9,7 +9,8 @@
     @org.corespring.web.common.views.html.head.coreJs()
     @org.corespring.web.common.views.html.head.mathMl()
     <!-- TODO: move to 2.1.1 -->
-    @org.corespring.web.common.views.html.head.bootstrap("2.0.3")
+    <!-- DONE:  moved to 3.3.4 -->
+    @org.corespring.web.common.views.html.head.bootstrap("3.3.4")
     @org.corespring.web.common.views.html.head.angular()
     @org.corespring.web.common.views.html.head.select2()
     <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
@@ -17,16 +18,6 @@
 </head>
 
 <body>
-
-<div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-        <div class="container">
-            <a class="brand" href="/"> <img src="/assets/images/cs-white-logo-11px.png" alt="Corespring Content Tagger"/></a>
-        </div>
-    </div>
-</div>
-
-
 <!--main contents area starts here -->
 <div class="main-wrap">
     @content

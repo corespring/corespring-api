@@ -13,21 +13,21 @@ import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
 import play.api.libs.json.{ JsObject, Json }
-import play.api.mvc.{ AnyContentAsJson, AnyContent, Call }
+import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
 
   "ItemSessionApi" should {
 
+    def mkCompoundError(rh: RequestHeader) = compoundError("Failed to identify an Organization from the request",
+      Seq(noToken(rh), noApiClientAndPlayerTokenInQueryString(rh), noUserSession(rh)),
+      UNAUTHORIZED)
+
     "when loading a session" should {
 
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
-
-        val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
-          UNAUTHORIZED)
-
+        val e = mkCompoundError(req)
         contentAsJson(result) === e.json
         status(result) === e.statusCode
       }
@@ -47,9 +47,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
-          UNAUTHORIZED)
+        val e = mkCompoundError(req)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }
@@ -99,22 +97,24 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
     "when calling load score" should {
 
-      s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+      s"1: return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef()))
+        //Note: We have to remove the qti or else the ItemTransformer will overrwrite the v2 data
+        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
         val resultJson = Json.parse(resultString)
         ItemServiceWired.save(update)
+        println(s"playerDefinition: ${update.playerDefinition}")
         V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
         contentAsJson(result) === resultJson
       }
 
-      s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+      s"2: return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef()))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""
         val resultJson = Json.parse(resultString)
         ItemServiceWired.save(update)
@@ -140,7 +140,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
@@ -167,7 +167,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
@@ -181,7 +181,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}, "summary":{"numcorrect" : 0, "score" : 0}}"""
         val resultJson = Json.parse(resultString)

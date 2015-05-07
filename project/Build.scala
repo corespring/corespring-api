@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import play.Project._
 import MongoDbSeederPlugin._
+import ElasticsearchIndexerPlugin._
 
 object Build extends sbt.Build {
 
@@ -90,6 +91,7 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(
       salatPlay,
       corespringCommonUtils,
+      httpClient,
       salatVersioningDao,
       specs2 % "test",
       playS3,
@@ -98,8 +100,11 @@ object Build extends sbt.Build {
       assetsLoader,
       mockito,
       sprayCaching,
+      componentLoader,
       playTest % "test",
-      scalaFaker))
+      scalaFaker,
+      elasticsearchPlayWS,
+      jsoup))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
 
   val playerLib = builders.lib("player-lib")
@@ -136,6 +141,15 @@ object Build extends sbt.Build {
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
+  val drafts = builders.lib("drafts").settings(
+    libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert, scalaz))
+
+  val itemDrafts = builders.lib("item-drafts")
+    .settings(
+      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test"))
+    .dependsOn(core, drafts)
+    .aggregate(core, drafts)
+
   /** Qti -> v2 transformers */
   val qtiToV2 = builders.lib("qti-to-v2").settings(
     libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
@@ -145,9 +159,9 @@ object Build extends sbt.Build {
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "DEBUG",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
+    MongoDbSeederPlugin.logLevel := "DEBUG",
+    testUri := "mongodb://localhost/api",
+    testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -160,7 +174,7 @@ object Build extends sbt.Build {
    */
   val v2Auth = builders.lib("v2-auth").settings(
     libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2)
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -171,6 +185,8 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
 
+  val draftsApi = builders.web("v2-api-drafts").dependsOn(itemDrafts, testLib % "test->test")
+
   val v2Api = builders.web("v2-api")
     .settings(
       libraryDependencies ++= Seq(
@@ -179,7 +195,12 @@ object Build extends sbt.Build {
         salatVersioningDao,
         componentModel),
       routesImport ++= customImports)
-    .dependsOn(v2Auth % "test->test;compile->compile", qtiToV2, core % "test->test;compile->compile")
+    .dependsOn(
+      v2Auth % "test->test;compile->compile",
+      qtiToV2,
+      v1Api,
+      core % "test->test;compile->compile",
+      draftsApi)
 
   object TemplateImports {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
@@ -204,7 +225,16 @@ object Build extends sbt.Build {
       componentModel,
       scalaz,
       mongoJsonService,
-      playS3)).dependsOn(qtiToV2, v2Auth, core % "test->test;compile->compile", playerLib, devTools)
+      playS3,
+      httpClient)).dependsOn(
+      qtiToV2,
+      testLib,
+      v2Auth % "test->test;compile->compile",
+      core % "test->test;compile->compile",
+      playerLib,
+      devTools,
+      itemDrafts)
+    .dependsOn(v2Api)
 
   val ltiWeb = builders.web("lti-web").settings(
     templatesImport ++= TemplateImports.Ids,
@@ -249,6 +279,20 @@ object Build extends sbt.Build {
     testOnly in IntegrationTest := {
       (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
     })
+
+  def safeIndex(s: TaskStreams): Unit = {
+    lazy val isRemoteIndexingAllowed = System.getProperty("allow.remote.indexing", "false") == "true"
+    val mongoUri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api")
+    val elasticSearchUri = getEnv("BONSAI_URL").getOrElse("http://localhost:9200")
+    if (isRemoteIndexingAllowed || elasticSearchUri.contains("localhost") || elasticSearchUri.contains("127.0.0.1")) {
+      ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
+      s.log.info(s"[safeIndex] Indexing $elasticSearchUri complete")
+    } else {
+      s.log.error(
+        s"[safeIndex] - Not allowed to index to a remote elasticsearch. Add -Dallow.remote.indexing=true to override.")
+    }
+    ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
+  }
 
   def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
@@ -310,9 +354,13 @@ object Build extends sbt.Build {
       seedSampleData.value)
   }
 
+  val index = TaskKey[Unit]("index")
+  val indexTask = index <<= (streams) map safeIndex
+
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
+      (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       libraryDependencies ++= Dependencies.all,
@@ -323,9 +371,9 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "INFO",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
+    MongoDbSeederPlugin.logLevel := "INFO",
+    testUri := "mongodb://localhost/api",
+    testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
@@ -339,6 +387,7 @@ object Build extends sbt.Build {
     .settings(seedStaticDataTask)
     .settings(seedDevTask)
     .settings(seedProdTask)
+    .settings(indexTask)
     .dependsOn(scormWeb,
       reports,
       public,
@@ -355,7 +404,8 @@ object Build extends sbt.Build {
       apiTracking,
       clientLogging % "compile->compile;test->test",
       qtiToV2,
-      itemImport)
+      itemImport,
+      itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
       scormWeb,
       reports,
@@ -374,6 +424,7 @@ object Build extends sbt.Build {
       v2Auth,
       clientLogging,
       qtiToV2,
-      itemImport)
+      itemImport,
+      itemDrafts)
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

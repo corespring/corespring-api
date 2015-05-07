@@ -68,7 +68,7 @@ corespringDirectivesModule.directive("resultPager", function () {
         } else if (index == -1) {
           $scope.pagerText = null;
         } else {
-          $scope.pagerText = (index + 1) + " of " + totalNoOfItems;
+          $scope.pagerText = totalNoOfItems;
         }
       };
 

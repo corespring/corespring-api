@@ -30,7 +30,7 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
       val userId = request.user.identityId
       val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
       Organization.findOneById(user.org.orgId) match {
-        case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, request.user.fullName, userOrg))
+        case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, user, userOrg))
           .withSession(
             sumSession(request.session, playerCookies(userId.userId, userId.providerId, RenderOptions.ANYTHING) :+ activeModeCookie(RequestedAccess.Mode.Preview): _*))
         case None => InternalServerError("could not find organization of user")

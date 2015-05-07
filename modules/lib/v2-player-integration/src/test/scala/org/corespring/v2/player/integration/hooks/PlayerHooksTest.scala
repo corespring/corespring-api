@@ -15,7 +15,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.RequestHeader
+import play.api.mvc.{ SimpleResult, AnyContent, Request, RequestHeader }
 import play.api.test.{ WithApplication, FakeRequest }
 
 import scalaz.{ Failure, Success, Validation }
@@ -54,6 +54,8 @@ class PlayerHooksTest extends Specification with Mockito {
       }
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
+
+      override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = ???
     }
   }
 
@@ -65,7 +67,7 @@ class PlayerHooksTest extends Specification with Mockito {
     val cantLoadSessionError = cantLoadSession("bad session")
     "loadItem" should {
       "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
-        val future = hooks.loadItem("sessionId")(FakeRequest("", ""))
+        val future = hooks.load("sessionId")(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         either === Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)
       }

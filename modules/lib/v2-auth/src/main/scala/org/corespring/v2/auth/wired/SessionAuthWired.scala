@@ -44,7 +44,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     mainSessionService
   }
 
-  def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean]
+  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
 
@@ -73,7 +73,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
       for {
         itemId <- (session \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
         item <- itemAuth.loadForRead(itemId)
-        hasPerms <- hasPermissions(item.id.toString, sessionId, identity.opts)
+        hasPerms <- hasPermissions(item.id.toString, Some(sessionId), identity.opts)
       } yield item
     }
 
@@ -109,5 +109,5 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
   }
 
-  private def rmIdentityFromSession(s:Session) = s.asInstanceOf[JsObject] - "identity"
+  private def rmIdentityFromSession(s: Session) = s.asInstanceOf[JsObject] - "identity"
 }

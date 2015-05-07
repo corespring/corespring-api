@@ -5,13 +5,21 @@ DECLARATIONS=`find ../public/js/corespring -type f \( -name services.js -o -name
 
 ##We are ignoring the print related directives here
 #be sure to add app files first before others so main variable declarations come first
+DECL_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/_declaration.js'`
 APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/'`
-OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js'| grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/' | grep -v 'corespring-error-player.js' | grep -v 'Logger.js'`
+OTHER_APP_JS_SRC_FILES=`find ../public/js/corespring -type f -path '**/*.js' ! -iname 'app.js' | grep -v '_declaration.js' | grep -v '/printing/' | grep -v '/aggregate/' | grep -v '/instructor/' | grep -v 'corespring-error-player.js' | grep -v 'Logger.js'`
 TEST_LIB_FILES="./lib/jasmine-jquery.js"
 FRONTLOAD_SPEC_FILES=`find ./unit -type f -path '**/*-priority-1.js'`
 SPEC_FILES=`find ./unit \( -type f -path '**/*.js' -and -not -name '*priority*' \)`
 
-cat ${DECLARATIONS} ${APP_JS_SRC_FILES} ../public/js/corespring/qti/services/qtiServices.js ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
+#echo DECLARATIONS $DECLARATIONS
+#echo DECL_JS_SRC_FILES $DECL_JS_SRC_FILES
+#echo APP_JS_SRC_FILES $APP_JS_SRC_FILES
+#echo OTHER_APP_JS_SRC_FILES $OTHER_APP_JS_SRC_FILES
+
+
+
+cat ${DECLARATIONS} ${DECL_JS_SRC_FILES} ${APP_JS_SRC_FILES} ../public/js/corespring/qti/services/qtiServices.js ${OTHER_APP_JS_SRC_FILES} ${TEST_LIB_FILES} > all_corespring.js
 cat ${FRONTLOAD_SPEC_FILES} ${SPEC_FILES} > all_specs.js
 
 # sanity check to make sure phantomjs exists in the PATH

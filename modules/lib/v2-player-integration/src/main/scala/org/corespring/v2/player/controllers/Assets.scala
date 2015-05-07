@@ -5,9 +5,10 @@ import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{BaseFile, Resource, StoredFile}
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.log.V2LoggerFactory
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -19,10 +20,14 @@ trait Assets extends ContainerAssets {
   private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
 
+  lazy val logger = V2LoggerFactory.getLogger(classOf[Assets])
+
   lazy val playS3 = new ConcreteS3Service(key, secret)
 
   def sessionService: MongoService
+
   def previewSessionService: MongoService
+
   def itemService: ItemService
 
   import scalaz.Scalaz._
@@ -30,29 +35,30 @@ trait Assets extends ContainerAssets {
 
   def loadAsset(itemId: String, resourceName: String, file: String)(request: Request[AnyContent]): SimpleResult = {
 
-    lazy val decodedFilename = java.net.URI.create(file).getPath
-    lazy val encodedFilename = UriEncoding.encodePathSegment(file, "utf-8")
+    logger.debug(s"loadAsset: itemId: $itemId -> file: $file")
 
-    logger.debug(s"loadAsset: itemId: $itemId, file: $file, decodedFilename: $decodedFilename, encoded: $encodedFilename resourceName: $resourceName")
-
-    val storedFile : Validation[V2Error, StoredFile] = for {
+    def compareToFile(resource: BaseFile) = {
+      //The filenames of the images uploaded in the visual editor are encoded.
+      //Some elder images in the db are not encoded.
+      //This comparison covers both
+      resource.name == file ||
+        resource.name == java.net.URI.create(file).getPath
+    }
+    val storedFile: Validation[V2Error, StoredFile] = for {
       id <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- itemService.findOneById(id).toSuccess(cantFindItemWithId(id))
       dr <- getResource(item, resourceName).toSuccess(generalError("Can't find resource"))
       (isItemDataResource, resource) = dr
-      file <- resource.files.find((f:BaseFile) =>
-        f.name == file || f.name == decodedFilename || f.name == encodedFilename
-      ).toSuccess(generalError(s"Can't find file with name $file"))
+      file <- resource.files.find(compareToFile).toSuccess(generalError(s"Can't find file with name $file"))
     } yield file.asInstanceOf[StoredFile]
-
 
     storedFile match {
       case Success(sf) => {
-        logger.debug(s"loadAsset: itemId: $itemId -> file: $file -- storageKey -> ${sf.storageKey}")
+        logger.debug(s"loadAsset: itemId: $itemId, file: $file, storageKey: ${sf.storageKey}")
         playS3.download(bucket, sf.storageKey, Some(request.headers))
       }
       case Failure(e) => {
-        logger.warn(s"can't load file: $e")
+        logger.warn(s"can't load file: $file Error: $e")
         NotFound(e.message)
       }
     }

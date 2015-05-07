@@ -5,30 +5,36 @@
 @import securesocial.core.providers.UsernamePasswordProvider.UsernamePassword
 
 @main("Login") {
-    <div class="container" style="width: 960px;">
-        <div class="well" style="position: relative; top: 100px; width:500px;">
+    <div class="container-fluid">
+        <div  style="position: relative; top: 100px;">
+            <p class="text-center">
+                <a href="/"><img src="/assets/images/logo2015.png" alt="Corespring"/></a>
 
-            <h3>Login</h3>
-            <br/>
-            @errorMsg.map { msg =>
-            <div class="alert alert-error">
-                @Messages(msg)
+            </p>
+            <div class="well col-md-4 col-md-offset-4">
+               
+                <h4>Login</h4>
+                @errorMsg.map { msg =>
+                <div class="alert alert-danger">
+                    @Messages(msg)
+                </div>
+                }
+
+                @request.flash.get("success").map { msg =>
+                <div class="alert alert-info">
+                    @msg
+                </div>
+                }
+
+                @request.flash.get("error").map { msg =>
+                <div class="alert alert-danger">
+                    @msg
+                </div>
+                }
+
+                @developer.views.html.provider("userpass", Some(loginForm))
+
             </div>
-            }
-
-            @request.flash.get("success").map { msg =>
-            <div class="alert alert-info">
-                @msg
-            </div>
-            }
-
-            @request.flash.get("error").map { msg =>
-            <div class="alert alert-error">
-                @msg
-            </div>
-            }
-
-            @developer.views.html.provider("userpass", Some(loginForm))
 
         </div>
     </div>
