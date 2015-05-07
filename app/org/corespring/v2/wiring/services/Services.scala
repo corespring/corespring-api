@@ -36,7 +36,7 @@ import securesocial.core.{ Identity, SecureSocial }
 import scalaz.{ Failure, Success, Validation }
 
 class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client,
-               bucket: String) extends V2ApiServices {
+  bucket: String) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
@@ -64,19 +64,21 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
     override def commitService: CommitService = Services.this.itemCommitService
 
-    override protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = {
-      hasWriteAccess(id, user)
+    override protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = {
+      hasWriteAccess(itemId, user)
     }
 
-    override protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean = {
-      hasWriteAccess(id, user)
+    override protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = {
+      hasWriteAccess(itemId, user)
     }
 
-    private def hasWriteAccess(id: VersionedId[ObjectId], user: OrgAndUser) = {
-      itemService.collection.findOne(MongoDBObject("_id._id" -> id.id), MongoDBObject("collectionId" -> 1)).map { dbo =>
+    private def hasWriteAccess(itemId: ObjectId, user: OrgAndUser) = {
+      itemService.collection.findOne(MongoDBObject("_id._id" -> itemId), MongoDBObject("collectionId" -> 1)).map { dbo =>
         try {
           val collectionId = dbo.get("collectionId").asInstanceOf[String]
-          Organization.canAccessCollection(user.org.id, new ObjectId(collectionId), Permission.Write)
+          val canAccess = Organization.canAccessCollection(user.org.id, new ObjectId(collectionId), Permission.Write)
+          logger.debug(s"function=hasWriteAcces, canAccess=$canAccess")
+          canAccess
         } catch {
           case t: Throwable => false
         }

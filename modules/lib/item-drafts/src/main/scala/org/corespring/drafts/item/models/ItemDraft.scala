@@ -7,18 +7,12 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.{ DateTimeZone, DateTime }
 
 object ItemDraft {
-  def apply(item: Item, user: OrgAndUser): ItemDraft = {
+  def apply(id: DraftId, item: Item, user: OrgAndUser): ItemDraft = {
     ItemDraft(
-      DraftId.fromIdAndUser(item.id, user),
+      id,
       user,
       ItemSrc(item),
       ItemSrc(item))
-  }
-}
-
-object DraftId {
-  def fromIdAndUser(id: VersionedId[ObjectId], ou: OrgAndUser): DraftId = {
-    DraftId(id.id, ou.user.map { _.userName }.getOrElse("unknown_user"), ou.org.id)
   }
 }
 

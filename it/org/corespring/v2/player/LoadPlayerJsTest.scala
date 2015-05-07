@@ -7,7 +7,7 @@ import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
-import play.api.mvc.{ Request, AnyContent, Call, SimpleResult }
+import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.{ GlobalSettings, Play }
 
@@ -61,7 +61,7 @@ class LoadPlayerJsTest extends IntegrationSpecification {
 
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call): Request[AnyContent] = {
+    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.options}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl)
