@@ -162,6 +162,7 @@ object AppWiring {
     bucket,
     services.draftsBackend,
     services.orgService,
+    services.colService,
     getItemIdForSessionId)
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++

@@ -5,14 +5,14 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.drafts.item.models.{ OrgAndUser }
+import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAssets }
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ContentCollection, Organization}
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item._
@@ -24,7 +24,7 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.services.{ContentCollectionService, OrgService, TokenService}
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -96,14 +96,27 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def currentUser(request: RequestHeader): Option[Identity] = SecureSocial.currentUser(request)
   }
 
-  /** A wrapper around organization */
+  /** A wrapper around ContentCollection */
+  lazy val colService = new ContentCollectionService {
+
+    override def getCollections(o: Organization, p: Permission) = {
+      ContentCollection.getCollections(o.id, p) match {
+        case Right(coll) => coll
+        case Left(e) => Seq.empty
+      }
+    }
+  }
+
+    /** A wrapper around organization */
   lazy val orgService = new OrgService {
+
     override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
       Organization.getDefaultCollection(oid) match {
         case Right(coll) => Some(coll.id)
         case Left(e) => None
       }
     }
+
     override def defaultCollection(o: Organization): Option[ObjectId] = {
       defaultCollection(o.id)
     }
