@@ -65,8 +65,15 @@
       }
     };
 
+    $scope.confirmSaveBeforeLeaving = function() {
+      return $window.confirm('There are updates to this item that have not been saved. Would you like to save them before you leave?');
+    };
+
     $scope.$on('$routeChangeStart', function() {
       $($window).unbind('beforeunload');
+      if ($scope.hasChanges && $scope.confirmSaveBeforeLeaving()) {
+        $scope.saveBackToItem();
+      }
     });
 
     $scope.backToCollections = function() {
@@ -75,6 +82,7 @@
           if (!cancelled) {
             $scope.saveBackToItem();
           }
+          $scope.hasChanges = false;
           $location.path("/home").search('');
         });
       } else {
