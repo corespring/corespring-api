@@ -14,7 +14,7 @@ import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
 import org.corespring.platform.core.models.{ContentCollection, Organization}
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.models.item.{ItemType, PlayerDefinition}
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -45,6 +45,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
   override val sessionService: MongoService = mainSessionService
 
   override val itemService: ItemService with ItemPublishingService = ItemServiceWired
+
+  override val itemType: ItemType = ItemType
 
   override val itemIndexService: ItemIndexService = ElasticSearchItemIndexService
 

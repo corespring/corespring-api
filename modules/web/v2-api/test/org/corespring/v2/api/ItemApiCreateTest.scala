@@ -47,6 +47,8 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
         Json.toJson(item)
       }
 
+      override def itemType: ItemType = mock[ItemType]
+
       override def itemService: ItemService = {
         val m = mock[ItemService]
         val out = if (insertFails) None else Some(VersionedId(ObjectId.get))

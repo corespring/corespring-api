@@ -43,6 +43,8 @@ class ItemApiGetTest extends Specification with Mockito with MockFactory {
         m
       }
 
+      override def itemType: ItemType = mock[ItemType]
+
       override def getSummaryData: (Item, Option[String]) => JsValue = transformItemToJson
 
       def transformItemToJson(item: Item, detail: Option[String] = None): JsValue = {

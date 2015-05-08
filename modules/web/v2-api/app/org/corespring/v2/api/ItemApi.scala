@@ -17,7 +17,7 @@ import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent._
 
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ItemType, Item}
 import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
@@ -32,6 +32,7 @@ trait ItemApi extends V2Api with JsonUtil {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
+  def itemType: ItemType
   def itemIndexService: ItemIndexService
   def scoreService: ScoreService
 
@@ -124,6 +125,8 @@ trait ItemApi extends V2Api with JsonUtil {
       }
     }
   }
+
+  def getItemTypes() = Action { Ok(Json.prettyPrint(itemType.all)) }
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._

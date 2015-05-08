@@ -53,6 +53,8 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
         m
       }
 
+      override def itemType: ItemType = mock[ItemType]
+
       override def itemAuth: ItemAuth[OrgAndOpts] = {
         val m = mock[ItemAuth[OrgAndOpts]]
         m.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
