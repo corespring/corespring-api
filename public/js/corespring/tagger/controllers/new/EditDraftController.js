@@ -29,6 +29,7 @@
     Logger,
     Modals) {
 
+
     $scope.devEditorVisible = false;
 
     var normalEditor = [
@@ -64,13 +65,24 @@
       }
     };
 
+    $scope.confirmSaveBeforeLeaving = function() {
+      return $window.confirm('There are updates to this item that have not been saved. Would you like to save them before you leave?');
+    };
+
+    $scope.$on('$routeChangeStart', function() {
+      $($window).unbind('beforeunload');
+      if ($scope.hasChanges && $scope.confirmSaveBeforeLeaving()) {
+        $scope.saveBackToItem();
+      }
+    });
+
     $scope.backToCollections = function() {
       if ($scope.hasChanges) {
-        $scope.showUnsavedChangesModal = true;
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
             $scope.saveBackToItem();
           }
+          $scope.hasChanges = false;
           $location.path("/home").search('');
         });
       } else {
