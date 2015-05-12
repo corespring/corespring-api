@@ -40,8 +40,8 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
     val req = FakeRequest("", "")
 
     val itemId = VersionedId(ObjectId.get, Some(0))
-    val draftId = DraftId.fromIdAndUser(itemId, user)
-    val mockItemDraft = ItemDraft(Item(id = VersionedId(ObjectId.get, Some(1))), user)
+    val draftId = DraftId(itemId.id, user.user.map(_.userName).getOrElse("test_user"), user.org.id)
+    val mockItemDraft = ItemDraft(draftId, Item(id = VersionedId(ObjectId.get, Some(1))), user)
 
     "list" should {
 
@@ -71,7 +71,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
         createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
         loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load"))) extends Scope with TestController {
         override def identifyUser(rh: RequestHeader) = user
-        mockDrafts.create(any[VersionedId[ObjectId]], any[OrgAndUser], any[Option[DateTime]]) returns createResult
+        mockDrafts.create(any[DraftId], any[OrgAndUser], any[Option[DateTime]]) returns createResult
         mockDrafts.load(any[OrgAndUser])(any[DraftId]) returns loadResult
       }
 
@@ -89,7 +89,8 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
       "returns ok" in new scp(Some(user),
         Success(
           ItemDraft(
-            Item(id = VersionedId(ObjectId.get, Some(1))), user))) {
+            DraftId(itemId.id, "?", orgId = ObjectId.get),
+            Item(id = itemId), user))) {
         val result = create(itemId.toString)(req)
         status(result) === OK
       }
@@ -135,7 +136,7 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
         extends Scope
         with TestController {
         override def identifyUser(rh: RequestHeader) = user
-        mockDrafts.loadOrCreate(any[OrgAndUser])(any[DraftId]).returns(loadResult)
+        mockDrafts.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]).returns(loadResult)
       }
 
       "fail if no user is found" in new scp {
@@ -167,15 +168,15 @@ class ItemDraftsTest extends Specification with PlaySpecification with Mockito {
       }
 
       "fail if no user is found" in new scp {
-        contentAsJson(delete(draftId.toIdString)(req)) === AuthenticationFailed.json
+        contentAsJson(delete(draftId.toIdString, None)(req)) === AuthenticationFailed.json
       }
 
       "fail if delete fails" in new scp(Some(user)) {
-        contentAsJson(delete(draftId.toIdString)(req)) === generalDraftApiError(DeleteDraftFailed(draftId).msg).json
+        contentAsJson(delete(draftId.toIdString, None)(req)) === generalDraftApiError(DeleteDraftFailed(draftId).msg).json
       }
 
       s"return $OK" in new scp(Some(user), Success(draftId)) {
-        status(delete(draftId.toIdString)(req)) === OK
+        status(delete(draftId.toIdString, None)(req)) === OK
       }
     }
 
