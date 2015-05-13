@@ -150,8 +150,9 @@ trait ItemDrafts
     val taskInfo = a.taskInfo != b.taskInfo
     val playerDef = a.playerDefinition != b.playerDefinition
     val supportingMaterials = a.supportingMaterials != b.supportingMaterials
-    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials")
-    taskInfo || playerDef || supportingMaterials
+    val collectionId = a.collectionId != b.collectionId;
+    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
+    taskInfo || playerDef || supportingMaterials || collectionId
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
