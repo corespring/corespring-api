@@ -89,7 +89,11 @@ trait ItemDraftHooks
   }
 
   override def saveCollectionId(itemId: String, collectionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("collectionId" -> collectionId))
+    def updateCollectionId(item: ModelItem, json: JsValue): ModelItem = {
+      item.copy(collectionId = Some(collectionId))
+    }
+
+    update(itemId, Json.obj("collectionId" -> collectionId), updateCollectionId)
   }
 
   private implicit class MkV2Error[A](v: Validation[DraftError, A]) {
