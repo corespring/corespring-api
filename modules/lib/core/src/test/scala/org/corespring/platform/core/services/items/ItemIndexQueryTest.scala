@@ -77,7 +77,7 @@ class ItemIndexQueryTest extends Specification {
         val json = Json.toJson(query)
 
         "not include query" in {
-          (json \ "query" \ "filtered" \ "query") must beAnInstanceOf[JsUndefined]
+          (json \ "query") must beAnInstanceOf[JsUndefined]
         }
       }
 
@@ -86,8 +86,8 @@ class ItemIndexQueryTest extends Specification {
         val query = ItemIndexQuery(text = Some(text))
         val json = Json.toJson(query)
 
-        "include query as simple_query_string" in {
-          (json \ "query" \ "filtered" \ "query" \ "simple_query_string" \ "query") must be equalTo (JsString(text))
+        "include query as multi_match query parameter" in {
+          (json \ "query" \ "multi_match" \ "query") must be equalTo (JsString(text))
         }
       }
     }
@@ -203,7 +203,7 @@ class ItemIndexQueryTest extends Specification {
   private implicit class WithFilterOptions(json: JsValue) {
 
     private def getFilter(filter: String): Option[JsObject] = {
-      val filters = (json \ "query" \ "filtered" \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
+      val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
       Seq("term", "terms").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
