@@ -129,32 +129,30 @@ object ItemIndexQuery {
       partialObj(
         "from" -> Some(JsNumber(offset)),
         "size" -> Some(JsNumber(count)),
-        "query" -> Some(Json.obj(
-          "filtered" -> partialObj(
-            "query" -> (query.text match {
-              case Some("") => None
-              case Some(text) => Some(Json.obj(
-                "simple_query_string" -> Json.obj(
-                  "query" -> text
-                )
-              ))
-              case _ => None
-            }),
-            "filter" -> Some(Json.obj(
-              "bool" -> Json.obj("must" -> {
-                // need an explicit val, because Scala can't infer this type
-                val t: Seq[JsObject] = Seq(
-                  terms("contributorDetails.contributor", contributors),
-                  terms("collectionId", collections),
-                  terms("taskInfo.itemTypes", itemTypes),
-                  terms("taskInfo.gradeLevel", gradeLevels),
-                  term("published", published),
-                  terms("workflow", workflows , Some("and"))
-                ).flatten
-                t
-              })
-            ))
-          )
+        "query" -> (query.text match {
+          case Some("") => None
+          case Some(text) => Some(Json.obj(
+            "multi_match" -> Json.obj(
+              "query" -> text,
+              "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
+              "type" -> "phrase"
+            )
+          ))
+          case _ => None
+        }),
+        "filter" -> Some(Json.obj(
+          "bool" -> Json.obj("must" -> {
+            // need an explicit val, because Scala can't infer this type
+            val t: Seq[JsObject] = Seq(
+              terms("contributorDetails.contributor", contributors),
+              terms("collectionId", collections),
+              terms("taskInfo.itemTypes", itemTypes),
+              terms("taskInfo.gradeLevel", gradeLevels),
+              term("published", published),
+              terms("workflow", workflows , Some("and"))
+            ).flatten
+            t
+          })
         )),
         "sort" -> (query.sort.nonEmpty match {
           case true => Some(JsArray(query.sort.map(Json.toJson(_))))
