@@ -138,6 +138,38 @@ package object scopes {
     }
   }
 
+  object ImageUploader {
+
+    lazy val logger = Logger("v2player.test.ImageUploader")
+
+    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val tm: TransferManager = new TransferManager(credentials)
+    lazy val client = new AmazonS3Client(credentials)
+    lazy val bucketName = AppConfig.assetsBucket
+
+    def uploadImage(itemId: VersionedId[ObjectId], imagePath: String) = {
+      val file = new File(imagePath)
+      require(file.exists)
+
+      val name = grizzled.file.util.basename(file.getCanonicalPath)
+      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/${name}"
+      val sf = StoredFile(name = name, contentType = "image/png", storageKey = key)
+      val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
+
+      ItemServiceWired.collection.update(
+        MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
+        MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
+
+      val reItem = ItemServiceWired.findOneById(itemId)
+      logger.debug(s"Saved item in mongo as: ${reItem}")
+
+      logger.debug(s"Uploading image...: ${file.getPath} -> $key")
+      val upload: Upload = tm.upload(bucketName, key, file)
+      upload.waitForUploadResult()
+      itemId
+    }
+  }
+
   class AddImageAndItem(imagePath: String)
     extends userAndItem
     with SessionRequestBuilder
@@ -156,29 +188,8 @@ package object scopes {
       import org.corespring.platform.core.models.mongoContext._
 
       super.before
-
       logger.debug(s"sessionId: $sessionId")
-
-      val file = new File(imagePath)
-      require(file.exists)
-
-      val item = ItemServiceWired.findOneById(itemId).get
-      val name = grizzled.file.util.basename(file.getCanonicalPath)
-      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/${name}"
-
-      val sf = StoredFile(name = name, contentType = "image/png", storageKey = key)
-      val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
-
-      ItemServiceWired.collection.update(
-        MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
-        MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
-
-      val reItem = ItemServiceWired.findOneById(itemId)
-      logger.debug(s"Saved item in mongo as: ${reItem}")
-
-      logger.debug(s"Uploading image...: ${file.getPath} -> $key")
-      val upload: Upload = tm.upload(bucketName, key, file)
-      upload.waitForUploadResult()
+      ImageUploader.uploadImage(itemId, imagePath)
     }
 
     override def after: Any = {

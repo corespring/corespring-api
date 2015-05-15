@@ -6,7 +6,7 @@ import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
 import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition, Item}
+import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -169,7 +169,8 @@ class ItemDraftsTest extends Specification with Mockito {
       class __(
         loadResult: Validation[DraftError, ItemDraft] = Failure(TestError("load")),
         createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
-        saveSuccess: Boolean = false) extends Scope with MockItemDrafts {
+        saveSuccess: Boolean = false,
+        copyAssets: Validation[DraftError, VersionedId[ObjectId]] = Success(item.id)) extends Scope with MockItemDrafts {
 
         override def load(user: OrgAndUser)(id: DraftId) = loadResult
         override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime]) = createResult
@@ -190,6 +191,10 @@ class ItemDraftsTest extends Specification with Mockito {
 
       "fail if create fails" in new __(Success(mkDraft(ed, item)), saveSuccess = true) {
         cloneDraft(ed)(oid) must_== Failure(TestError("create"))
+      }
+
+      "fail if copyAssets fails" in new __(Success(mkDraft(ed, item)), Success(mkDraft(ed, item)), true, Failure(TestError("copyAssets"))) {
+        cloneDraft(ed)(oid) must_== Failure(TestError("copyAssets"))
       }
 
       "succeed" in new __(Success(mkDraft(ed, item)), Success(mkDraft(ed, item)), true) {
@@ -367,7 +372,7 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return true if supportingMaterials has changed" in new __ {
-        val item2 = item1.copy(supportingMaterials = Seq(Resource(name="test", files=Seq.empty)))
+        val item2 = item1.copy(supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)))
         hasSrcChanged(item1, item2) must_== true
       }
     }

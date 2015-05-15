@@ -4,6 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
+import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors.{ NothingToCommit, DraftIsOutOfDate }
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models._
@@ -13,7 +14,7 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.player.scopes.userAndItem
+import org.corespring.v2.player.scopes.{ ImageUploader, AddImageAndItem, userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
@@ -241,6 +242,14 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
           case Success(Some(c)) => success
           case _ => failure("should have been successful")
         }
+      }
+    }
+
+    "clone" should {
+      "copy the assets over to the new draft" in new orgAndUserAndItem {
+        ImageUploader.uploadImage(itemId, "it/org/corespring/v2/player/load-image/pup%20py.png")
+        val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
+        drafts.cloneDraft(orgAndUser)(draftId)
       }
     }
 
