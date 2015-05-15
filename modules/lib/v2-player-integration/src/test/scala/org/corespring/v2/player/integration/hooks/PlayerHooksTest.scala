@@ -89,6 +89,12 @@ class PlayerHooksTest extends Specification with Mockito with MockFactory {
 
       class createSessionScope extends defaultScope {}
 
+      "fail if it can't find org and opts" in pending
+      "fail if can create fails" in pending
+      "fail if it's an invalid versioned id" in pending
+      "fail if itemTransformer fails to load the item" in pending
+      "fail if create session fails" in pending
+
       "return the session and item" in new createSessionScope() {
         val versionedId = s"${ObjectId.get.toString}:0"
         val future = createSessionForItem(ObjectId.get.toString)(FakeRequest("", ""))
