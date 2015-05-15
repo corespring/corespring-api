@@ -4,59 +4,70 @@ import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.SessionAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.cantLoadSession
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ SimpleResult, AnyContent, Request, RequestHeader }
+import play.api.mvc._
 import play.api.test.{ WithApplication, FakeRequest }
 
 import scalaz.{ Failure, Success, Validation }
 
-class PlayerHooksTest extends Specification with Mockito {
+class PlayerHooksTest extends Specification with Mockito with MockFactory {
 
-  def mockOrg = {
-    val m = mock[Organization]
-    m.id returns ObjectId.get
-    m.name returns "mock org"
-    m
+  PlaySingleton.start()
+
+  lazy val orgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
+
+  class defaultScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts))
+    extends Scope
+    with PlayerHooks {
+
+    val mockItemService = mock[ItemService]
+    val mockItemTransformer = {
+      val m = mock[ItemTransformer]
+      m.loadItemAndUpdateV2(any[VersionedId[ObjectId]]) answers { (vid) =>
+        Some(Item(id = vid.asInstanceOf[VersionedId[ObjectId]], playerDefinition = Some(PlayerDefinition("hi"))))
+      }
+      m
+    }
+    val mockAuth = {
+      val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
+      m.canCreate(any[String])(any[OrgAndOpts]) returns Success(true)
+      m.create(any[JsValue])(any[OrgAndOpts]) answers { (obj, m) =>
+        val sessionJson = obj.asInstanceOf[Array[Any]](0).asInstanceOf[JsValue]
+        val idString = (sessionJson \ "_id" \ "$oid").as[String]
+        println(s"idString: $idString")
+        Success(new ObjectId(idString))
+      }
+      m
+    }
+
+    override def itemService: ItemService = mockItemService
+
+    override def itemTransformer: ItemTransformer = mockItemTransformer
+
+    override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = mockAuth
+
+    override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = Results.Ok("")
+
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
   }
 
-  lazy val orgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
-
-  case class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
+  class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
     loadForReadResult: Validation[V2Error, (JsValue, PlayerDefinition)] = Success(Json.obj() -> PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))
-    extends WithApplication with Scope {
+    extends defaultScope(orgAndOptsResult) {
 
-    val hooks = new PlayerHooks {
-
-      override def itemService: ItemService = {
-        val m = mock[ItemService]
-        m
-      }
-
-      override def itemTransformer: ItemTransformer = {
-        val m = mock[ItemTransformer]
-        m
-      }
-
-      override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
-        val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
-        m.loadForRead(any[String])(any[OrgAndOpts]) returns loadForReadResult
-        m
-      }
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
-
-      override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = ???
-    }
+    mockAuth.loadForRead(any[String])(any[OrgAndOpts]) returns loadForReadResult
   }
 
   "player hooks" should {
@@ -65,19 +76,27 @@ class PlayerHooksTest extends Specification with Mockito {
     import scala.concurrent.duration._
 
     val cantLoadSessionError = cantLoadSession("bad session")
-    "loadItem" should {
+
+    "loadSessionAndItem" should {
       "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
-        val future = hooks.load("sessionId")(FakeRequest("", ""))
+        val future = loadSessionAndItem("sessionId")(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         either === Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)
       }
     }
 
-    "loadSessionAndItem" should {
-      "pass back the status code" in new hooksScope(loadForReadResult = Failure(cantLoadSessionError)) {
-        val future = hooks.loadSessionAndItem("sessionId")(FakeRequest("", ""))
+    "createSessionForItem" should {
+
+      class createSessionScope extends defaultScope {}
+
+      "return the session and item" in new createSessionScope() {
+        val versionedId = s"${ObjectId.get.toString}:0"
+        val future = createSessionForItem(ObjectId.get.toString)(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
-        either === Left(cantLoadSessionError.statusCode -> cantLoadSessionError.message)
+        val (session, item) = either.right.get
+        (session \ "id").asOpt[String] must beSome[String]
+        (session \ "_id" \ "$oid").asOpt[String] must beSome[String]
+        (item \ "xhtml").asOpt[String] must_== Some("hi")
       }
     }
   }
