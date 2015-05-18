@@ -8,6 +8,7 @@ import org.corespring.platform.core.services.BaseFindAndSaveService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.auth.ItemAccess
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
@@ -26,42 +27,32 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
   val defaultPermFailure = generalError("Perm failure")
   val defaultOrgAndOptsFailure = generalError("Org and opts failure")
 
-  implicit val identity: OrgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
+  implicit val identity: OrgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.UserSession, None)
 
   case class authContext(
     item: Option[Item] = None,
     org: Option[Organization] = None,
-    perms: Validation[V2Error, Boolean] = Failure(defaultPermFailure),
-    canAccess: Boolean = false) extends Scope {
+    grantResult: Validation[V2Error, Boolean] = Failure(defaultPermFailure)) extends Scope {
 
     val itemAuth = new ItemAuthWired {
 
-      val itemServiceMock: ItemService = {
+      lazy val itemTransformer: ItemTransformer = {
+        val m = mock[ItemTransformer]
+        m.updateV2Json(any[Item]).answers(i => i.asInstanceOf[Item])
+        m
+      }
+
+      lazy val access: ItemAccess = {
+        val m = mock[ItemAccess]
+        m.grant(any[OrgAndOpts], any[Permission], any[Item]) returns grantResult
+        m
+      }
+
+      lazy val itemService = {
         val m = mock[ItemService]
         m.findOneById(any[VersionedId[ObjectId]]) returns item
         m
       }
-
-      override def itemTransformer = new ItemTransformer {
-        override def configuration: Configuration = ???
-        override def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = itemServiceMock
-        override def findCollection(id: ObjectId): Option[ContentCollection] = ???
-      }
-
-      override def itemService = itemServiceMock
-
-      override def orgService: OrganizationService = {
-        val m = mock[OrganizationService]
-        m.findOneById(any[ObjectId]) returns org
-        m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
-        m.canAccessCollection(any[Organization], any[ObjectId], any[Permission]) returns canAccess
-        m
-      }
-
-      override def hasPermissions(itemId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
-        perms
-      }
-
     }
   }
 
@@ -78,26 +69,9 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
         itemAuth.loadForRead(vid.toString) must_== Failure(cantFindItemWithId(vid))
       }
 
-      "fail if org can't access collection" in new authContext(
-        item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization])) {
-        val vid = VersionedId(ObjectId.get, None)
-        val identity = mockOrgAndOpts()
-        itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
-      }
-
-      "fail if org can't access collection" in new authContext(
-        item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization])) {
-        val vid = VersionedId(ObjectId.get, None)
-        val identity = mockOrgAndOpts()
-        itemAuth.loadForRead(vid.toString)(identity) must_== Failure(orgCantAccessCollection(identity.org.id, item.get.collectionId.get, Permission.Read.name))
-      }
-
       "fail if there is a permission error" in new authContext(
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
-        org = Some(mock[Organization]),
-        canAccess = true) {
+        org = Some(mock[Organization])) {
         val vid = VersionedId(ObjectId.get, None)
         val identity = mockOrgAndOpts()
         itemAuth.loadForRead(vid.toString)(identity) must_== Failure(defaultPermFailure)
@@ -106,8 +80,7 @@ class ItemAuthWiredTest extends Specification with Mockito with MockFactory {
       "succeed" in new authContext(
         item = Some(Item(collectionId = Some(ObjectId.get.toString))),
         org = Some(mock[Organization]),
-        perms = Success(true),
-        canAccess = true) {
+        grantResult = Success(true)) {
         val vid = VersionedId(ObjectId.get, None)
         val identity = mockOrgAndOpts(AuthMode.UserSession)
         itemAuth.loadForRead(vid.toString)(identity) must_== Success(item.get)

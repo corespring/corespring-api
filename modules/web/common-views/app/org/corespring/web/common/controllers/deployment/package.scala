@@ -20,7 +20,8 @@ package object deployment {
     val publicAssets = "corespring-public-assets"
     if (isProd) {
       val envName = Defaults.envName("")
-      Seq(publicAssets, envName, branch).filterNot(_.isEmpty).mkString("-").toLowerCase
+      val bucketCompliantBranchName = branch.replaceAll("/", "-")
+      Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
     } else {
       "corespring-dev-tmp-assets"
     }

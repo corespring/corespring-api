@@ -1,9 +1,9 @@
+/* global _ */
 'use strict';
 
 describe('ItemController should', function () {
 
-
-  var routeParams, scope, ctrl, $httpBackend, location, http;
+  var routeParams, rootScope, scope, ctrl, $httpBackend, location, http;
 
   beforeEach(function () {
     module(function ($provide) {
@@ -22,7 +22,8 @@ describe('ItemController should', function () {
       {method: 'GET', url: "/api/v1/collections", response: {}},
       {method: 'GET', url: "/api/v1/items", response: {}},
       {method: 'GET', url: "/api/v1/items/:itemId", response: {id: "itemId",version: {rev:1}}},
-      {method: 'GET', url: "/assets/web/standards_tree.json", response: {}}
+      {method: 'GET', url: "/assets/web/standards_tree.json", response: {}},
+      {method: 'GET', url: "/api/v1/field_values/domain", response: {}}
     ];
 
     for (var i = 0; i < urls.length; i++) {
@@ -35,6 +36,7 @@ describe('ItemController should', function () {
   beforeEach(inject(function (_$httpBackend_, $rootScope, $controller, $location, $http) {
     $httpBackend = _$httpBackend_;
     prepareBackend($httpBackend);
+    rootScope = $rootScope;
     scope = $rootScope.$new();
     routeParams = {};
     location = $location;
@@ -147,6 +149,59 @@ describe('ItemController should', function () {
     scope.increment();
     $httpBackend.flush();
     expect(location.path()).toEqual('/edit/itemId2');
+  });
+
+  describe('addDomain', function() {
+    var newDomain = {name : 'new domain!'};
+
+    describe('is not in itemData.domains', function() {
+      beforeEach(function() {
+        scope.itemData = {
+          domains: [],
+          standardDomains: []
+        };
+        scope.addDomain(newDomain);
+        scope.$digest();
+      });
+
+      it('is added to itemData.domains', function() {
+        expect(scope.itemData.domains.indexOf(newDomain.name)).not.toBe(-1);
+      });
+    });
+
+    describe('it is in itemData.domains', function() {
+      var domainsBefore;
+      beforeEach(function() {
+        scope.itemData = {
+          domains: [newDomain.name],
+          standardDomains: []
+        };
+        domainsBefore = _.clone(scope.itemData.domains);
+        scope.addDomain(newDomain);
+        scope.$digest();
+      });
+
+      it('does not change itemData.domains', function() {
+        expect(scope.itemData.domains).toEqual(domainsBefore);
+      });
+    });
+
+  });
+
+  describe('removeDomain', function() {
+    var removeMe = {name: 'remove this domain!'};
+    beforeEach(function() {
+      scope.itemData = {
+        domains: [removeMe.name],
+        standardDomains: []
+      };
+      scope.removeDomain(removeMe.name);
+      scope.$digest();
+    });
+
+    it('removes domain from itemData.domains', function() {
+      expect(scope.itemData.domains.indexOf(removeMe.name)).toEqual(-1);
+    });
   });
 
 });

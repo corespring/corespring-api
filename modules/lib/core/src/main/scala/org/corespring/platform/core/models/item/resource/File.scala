@@ -65,7 +65,7 @@ object BaseFile extends JsonUtil {
 
       val name = (json \ "name").asOpt[String].getOrElse("unknown")
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
-      val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
+      val isMain = (json \ "isMain").asOpt[Boolean].getOrElse(false)
 
       import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes._
 
@@ -84,7 +84,7 @@ object BaseFile extends JsonUtil {
   def toJson(f: BaseFile): JsObject = Json.obj(
     "name" -> JsString(f.name),
     "contentType" -> JsString(f.contentType),
-    "default" -> JsBoolean(f.isMain))
+    "isMain" -> JsBoolean(f.isMain))
 }
 
 /*

@@ -4,11 +4,28 @@ import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
 import org.corespring.qtiToV2.kds.CssSandboxer
-import org.corespring.qtiToV2.kds.interactions.TableTransformer
 import play.api.libs.json._
 
 import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+
+/**
+ * ***** DO NOT CHANGE THE PUBLIC METHODS EXPOSED BY THIS OBJECT ******
+ *                                                                     *
+ *     This object is being overwritten in the kds-qti-converter       *
+ *     branch for KDS-specific transformations. If you alter the       *
+ *     way this object interacts with other code, it becomes           *
+ *     EXTREMELY difficult and time consuming to support KDS. This     *
+ *     will be fixed in the near future, but for the time being        *
+ *     PLEASE DO NOT alter the public-facing methods.                  *
+ *                                                                     *
+ *     Yes, this is terrible. This will be fixed soon, as the v2       *
+ *     transformation code will be moved into a separate jar and       *
+ *     imported by cs-api and kds-processor. For more info see         *
+ *     https://github.com/corespring/kds-processor#next-steps          *
+ *                                                                     *
+ * *********************************************************************
+ */
 
 trait QtiTransformer extends XMLNamespaceClearer {
 

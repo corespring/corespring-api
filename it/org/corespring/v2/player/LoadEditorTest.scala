@@ -1,7 +1,9 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
+import org.corespring.platform.core.models.Organization
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
@@ -45,22 +47,36 @@ class LoadEditorTest
       status(result) === OK
     }
 
-    //TODO: Add test with encryption running..
+    "once the editor is loaded allow subsequent saves" in new clientIdAndPlayerToken_editItemLoader(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
+      //inspect the lazy val to trigger the load
+      status(result) === OK
+      val call = org.corespring.container.client.controllers.resources.routes.ItemDraft.saveSubset(draftId.toIdString, "xhtml")
+      val r = makeRequest(call, AnyContentAsJson(Json.obj("xhtml" -> "hi")))
+      route(r.asInstanceOf[Request[AnyContentAsJson]])(writeableOf_AnyContentAsJson).map { result =>
+        println(contentAsString(result))
+        status(result) === OK
+      }
+    }
   }
 
-  class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
+  class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemDraftLoader {
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
   }
 
-  class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
+  class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemDraftLoader {
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
   }
 
-  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemLoader with SecureSocialHelpers {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
+  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
+    override lazy val draftName = user.userName
+    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
+
+    override def organization: Organization = Organization.findOneById(user.org.orgId).get
   }
 
-  class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemLoader {
-    override def getCall(itemId: VersionedId[ObjectId]): Call = Editor.load(itemId.toString)
+  class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {
+    override def getCall(draftId: DraftId): Call = {
+      Editor.load(draftId.toIdString)
+    }
   }
 }

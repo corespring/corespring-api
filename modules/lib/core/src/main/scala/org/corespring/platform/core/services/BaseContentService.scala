@@ -11,7 +11,7 @@ import com.novus.salat.dao.SalatMongoCursor
 
 trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
 
-  def save(i: ContentType, createNewVersion: Boolean = false)
+  def save(i: ContentType, createNewVersion: Boolean = false): Either[String, ID]
 
   def findOneById(id: ID): Option[ContentType]
 }
@@ -19,8 +19,6 @@ trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
 trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSaveService[ContentType, ID] {
 
   def clone(content: ContentType): Option[ContentType]
-
-  def currentVersion(id: ID): Option[Int] = throw new RuntimeException("to be implemented?")
 
   def count(query: DBObject, fields: Option[String] = None): Int
 

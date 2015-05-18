@@ -2,6 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.{Domain, Standard}
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
@@ -41,17 +42,17 @@ case class Item(
   }
 
   /** We're going to update this with a flag **/
-  def createdByApiVersion: Int =
-    data match {
-      case Some(data) => {
-        data.files.find(file => (file.isMain, file.name) match {
-          case (true, Item.QtiResource.QtiXml) => true
-          case _ => false
-        }).map(_ => 1).getOrElse(2)
-      }
-      case _ => 2
-    }
+  def createdByApiVersion: Int = (hasQti, hasPlayerDefinition) match {
+    case (true, _) => 1
+    case (false, true) => 2
+    case (false, false) => -1
+  }
 
+  def hasPlayerDefinition = playerDefinition.isDefined
+
+  def hasQti: Boolean = this.data.map { d =>
+    d.files.exists(f => f.isMain && f.name == Item.QtiResource.QtiXml)
+  }.getOrElse(false)
 
 }
 

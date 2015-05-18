@@ -11,7 +11,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
 
     $scope.canCreateNewResource = function () {
         if ($scope.newResourceName == "Other" && !$scope.newResourceOtherName) {
-            return false;
+          return false;
         }
 
         if (!$scope) {
@@ -20,11 +20,11 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
 
         var nameToCheck = $scope.newResourceName == "Other" ? $scope.newResourceOtherName : $scope.newResourceName;
 
-        var alreadyUsed = _.find($scope.supportingMaterials, function (f) {
-            return f.name == nameToCheck
+        var resourceWithName = _.find($scope.supportingMaterials, function (f) {
+            return f.name === nameToCheck;
         });
 
-        return alreadyUsed == null;
+        return !resourceWithName;
     };
 
     /**
@@ -36,7 +36,7 @@ function SupportingMaterialsController($scope, $rootScope, $routeParams, $timeou
 
         function defaultFile(resource) {
             return _.find(resource.files, function (f) {
-                return f['default'] == true;
+                return f.isMain === true;
             });
         }
 

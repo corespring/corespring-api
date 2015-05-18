@@ -238,13 +238,8 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
                   processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
                 }
                 item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                itemTransformer.updateV2Json(item) match {
-                  case Some(updatedItem) => {
-                    Ok(toJson(processedUpdate))
-                  }
-                  case None => InternalServerError(s"Could not update item $itemId")
-                }
-
+                val updatedItem = itemTransformer.updateV2Json(item)
+                Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
             }

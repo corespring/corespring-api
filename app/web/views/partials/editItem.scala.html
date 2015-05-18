@@ -34,53 +34,71 @@
 </div>
 
 <div class="sub-nav sub-nav-lower">
-    <div class="container" style="width: 940px;">
-        <a ng-click="backToCollections()" class="back-to-collections" >
-          <i class="icon-white icon-backward"></i>
-        </a>
-        <div class="row">
-            <ul class="span6 nav nav-pills">
-                <li ng-class="{true:'active', false:''}[currentPanel=='content']">
-                    <a
-                            href="javascript:void(1)"
-                            ng-click="changePanel('content')">Interaction</a>
-                </li>
-                <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
-                    <a
-                            href="javascript:void(1)"
-                            ng-click="changePanel('metadata')">Profile</a></li>
-
-                <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
-                    <a href="javascript:void(1)"
-                       ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
-                </li>
-
-                <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
-                    <a href="javascript:void(1)"
-                       ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
-                </li>
-            </ul>
-
-            <div class="pull-right">
-                <label style="padding-top:5px; padding-right:5px;">Status: {{itemStatus}}</label>
-                <label style="padding-top:5px; padding-right:5px;" ng-show="!isPublished"><a href="" style="color: white;" ng-click="publish()">Publish...</a></label>
-                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">, version:{{itemVersion}}</label>
-                <label style="padding-top:5px; padding-right:5px;" ng-show="isPublished">{{sessionCount}}</label>
-                <button class="btn btn-primary"
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <span><a ng-click="backToCollections()">
+                  <i class="icon-white icon-backward"></i> back to search results 
+                </a></span>
+            </li>
+            <li>
+                <button class="btn btn-primary save-btn"
                         ng-model="isSaving"
                         loading-button
                         data-loading-text="Saving..."
-                        ng-click="save()">Save
+                        ng-click="save()"><i class="fa fa-save"></i> Save
                 </button>
-                <button class="btn btn-success"
-                    ng-click="clone()"><i class="icon-plus-sign"></i>&nbsp;Clone</button>
+            </li>
+            <li ng-class="{true:'active', false:''}[currentPanel=='content']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('content')">Interaction</a>
+            </li>
+            <li ng-class="{true:'active', false:''}[currentPanel=='metadata']">
+                <a
+                        href="javascript:void(1)"
+                        ng-click="changePanel('metadata')">Profile</a></li>
+
+            <li ng-class="{true:'active', false:''}[currentPanel=='supportingMaterials']">
+                <a href="javascript:void(1)"
+                   ng-click="changePanel('supportingMaterials')">Supporting Materials</a>
+            </li>
+
+            <li ng-class="{true:'active', false:''}[currentPanel=='orgMetadata']" ng-repeat="m in itemMetadata">
+                <a href="javascript:void(1)"
+                   ng-click="changeToOrgMetadata(m.metadataKey)">{{m.editorLabel}}</a>
+            </li>
+
+            <li>
+                <span ng-show="isPublished">version:{{itemVersion}} </span>
+            </li>
+            <li>
+                <span ng-show="isPublished">{{sessionCount}}</span>
+            </li>
+
+            <li class="pull-right">
+                <div class="dropdown" id="menu-actions">
+                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu-actions">
+                    Select an action
+                    <b class="caret"></b>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-actions">
+                        <li> <button class="btn btn-default btn-sm"
+                        ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;Clone</button>
+                        
+                        </li>
+                        <li><button ng-show="!isPublished" class="btn btn-info btn-sm" href="" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;Publish</button></li>
+                    </ul>
+                </div>
                 <i id="togglePreviewButton" class="icon-preview" ng-class="previewClassName"
-                               style="cursor: pointer"
-                               ng-click="togglePreview()"
-                               title="toggle preview"
-                               ng-show="mode == 'edit'"></i>
-            </div>
-        </div>
+                style="margin-top:-5px; cursor: pointer"
+                ng-click="togglePreview()"
+                title="toggle preview"
+                ng-show="mode == 'edit'"></i>
+                Status: {{itemStatus}}
+            </li>
+
+        </ul>
     </div>
 </div>
 
@@ -148,7 +166,7 @@
 
                 <ul>
                     <li ng-class="{true:'active', false:''}[f == selectedFile]" ng-repeat="f in resource.files">
-                        <i class="icon-home" ng-show="f.default"></i>
+                        <i class="icon-home" ng-show="f.isMain"></i>
                         <a ng-click="showFile(f)">{{f.name}}</a>
 
                             <span class="dropdown" ng-show="canShowFileDropdown(f)">
@@ -219,13 +237,13 @@
     <div class="preview" ng-class="previewClassName" data-version="2">
         <div class="inner">
             <div class="well">
-                <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank" ng-show="isV2()">Preview</a>
+                <a ng-click="launchV2Preview()" class="btn preview-btn" target="_blank" ng-show="isV2()"><i class="fa fa-eye"></i> Preview</a>
                 @if(isRoot) {
                     <a href="#" target="_blank" ng-href="{{devUrl()}}" class="btn dev-btn">Dev Edit</a>
                 }
                 <div ui-modal ng-model='showV2Preview' class="catalog-preview" >
                    <div class="catalog-preview-content">
-                     <button ng-click="showV2Preview=false" class="button btn-sm btn btn-success close-btn">Close</button>
+                    <div class="modal-header"><span class="close close-window-button" ng-click="showV2Preview=false">&times;</span><h4 class="modal-title">Question Information</h4></div>
                      <iframe src="{{v2CatalogUrl}}" frameborder="0"></iframe>
                    </div>
                 </div>

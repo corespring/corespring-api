@@ -1,10 +1,11 @@
 package org.corespring.platform.core.controllers.auth
 
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ Organization, User }
+import org.corespring.platform.core.models.{ContentCollection, Organization, User}
 import play.api.libs.json.{ JsObject, JsString, Json, _ }
 import play.api.mvc._
 import securesocial.core.SecureSocial
@@ -31,6 +32,8 @@ trait BaseApi
   with SecureSocial
   with TokenReader
   with PackageLogging {
+
+  val withoutArchive = MongoDBObject("collectionId" -> MongoDBObject("$ne" -> ContentCollection.archiveCollId.toString))
 
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
     getToken[ApiError](request, ApiError.InvalidToken, ApiError.MissingCredentials)

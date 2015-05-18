@@ -33,7 +33,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       hasPerms: Validation[V2Error, Boolean] = Success(true)) extends Scope {
       val auth = new SessionAuthWired {
 
-        private def serviceMock(key:String) = {
+        private def serviceMock(key: String) = {
           val m = mock[MongoService]
           m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
           m.create(any[JsValue]) returns Some(ObjectId.get)
@@ -53,15 +53,13 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
           m
         }
 
-        override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+        override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
           hasPerms
         }
 
         override def itemTransformer: ItemTransformer = {
           val m = mock[ItemTransformer]
-
           m.createPlayerDefinition(any[Item]) returns playerDefinition.get
-
           m
         }
       }
@@ -115,7 +113,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
     }
 
-    def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, m, clientId)
+    def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, m, clientId)
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")
@@ -159,7 +157,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         there was one(auth.mainSessionService).save("1", Json.obj("identity" -> IdentityJson(optsIn)))
       }
 
-      "add the identity but not the apiClient id" in new authScope(){
+      "add the identity but not the apiClient id" in new authScope() {
         val optsIn = opts(AuthMode.AccessToken)
         val saveFn = auth.saveSessionFunction(optsIn)
         saveFn.toOption.map(fn => fn("1", Json.obj()))

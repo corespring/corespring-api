@@ -46,7 +46,7 @@ describe('ResourceEditor should', function () {
         $httpBackend = _$httpBackend_;
         prepareBackend($httpBackend);
         scope = $rootScope.$new();
-
+        scope.saveSelectedFileFinished = jasmine.createSpy('saveSelectedFileFinished');
         try {
             ctrl = $controller(ResourceEditor, {$scope:scope});
         } catch (e) {
@@ -78,7 +78,7 @@ describe('ResourceEditor should', function () {
     it('handle enterEditor', inject(function ($rootScope) {
         expect(scope.resourceToEdit).toBe(undefined);
         var resource = { name:"testResource", files:[
-            { name:"testFile", contentType:"xml", content:"<root/>", default:true}
+            { name:"testFile", contentType:"xml", content:"<root/>", isMain:true}
         ]};
 
         broadcastEnterEditor($rootScope, resource);
@@ -91,7 +91,7 @@ describe('ResourceEditor should', function () {
 
     it('rename file', inject(function ($rootScope) {
         var resource = { name:"testResource", files:[
-            { name:"testFile.xml", contentType:"xml", content:"<root/>", default:true}
+            { name:"testFile.xml", contentType:"xml", content:"<root/>", isMain:true}
         ]};
 
         broadcastEnterEditor($rootScope, resource);
@@ -108,23 +108,23 @@ describe('ResourceEditor should', function () {
 
     it('make default', inject(function ($rootScope) {
         var resource = { name:"testResource", files:[
-            { name:"testFile.xml", contentType:"xml", content:"<root/>", default:true},
-            { name:"file2.xml", contentType:"xml", content:"<root/>", default:false}
+            { name:"testFile.xml", contentType:"xml", content:"<root/>", isMain:true},
+            { name:"file2.xml", contentType:"xml", content:"<root/>", isMain:false}
         ]};
 
         broadcastEnterEditor($rootScope, resource);
 
         expect(scope.selectedFile.name).toEqual("testFile.xml");
         scope.makeDefault(resource.files[1]);
-        expect(resource.files[0].default).toEqual(false);
-        expect(resource.files[1].default).toEqual(true);
+        expect(resource.files[0].isMain).toEqual(false);
+        expect(resource.files[1].isMain).toEqual(true);
     }));
 
 
     it('create new virtual file', inject(function ($rootScope) {
         var resource = { name:"testResource", files:[
-            { name:"testFile.xml", contentType:"xml", content:"<root/>", default:true},
-            { name:"file2.xml", contentType:"xml", content:"<root/>", default:false}
+            { name:"testFile.xml", contentType:"xml", content:"<root/>", isMain:true},
+            { name:"file2.xml", contentType:"xml", content:"<root/>", isMain:false}
         ]};
 
         broadcastEnterEditor($rootScope, resource);
@@ -137,7 +137,7 @@ describe('ResourceEditor should', function () {
 
     it('removing file needs confirmation', inject(function ($rootScope) {
         var resource = { name:"testResource", files:[
-            { name:"testFile.xml", contentType:"xml", content:"<root/>", default:true}
+            { name:"testFile.xml", contentType:"xml", content:"<root/>", isMain:true}
         ]};
         broadcastEnterEditor($rootScope, resource);
         scope.removeFile(scope.selectedFile);
@@ -154,7 +154,7 @@ describe('ResourceEditor should', function () {
      */
     it('removes content prop from non text based files', inject(function($rootScope){
         var resource = { name:"testResource", files:[
-            { name:"testFile.jpg", contentType:"image/jpg", content:"", default:true}
+            { name:"testFile.jpg", contentType:"image/jpg", content:"", isMain:true}
         ]};
         broadcastEnterEditor($rootScope, resource);
         scope.update(scope.selectedFile);

@@ -1,6 +1,23 @@
-function MainNavController($scope, $rootScope, $location, SearchService) {
+
+function MainNavController(
+	$scope,
+	$rootScope,
+	$location,
+  V2SearchService,
+	V2ItemService,
+	ItemDraftService) {
 
   "use strict";
+
+  $scope.navigateToRoot = function(root) {
+    if (_.isFunction($scope.navigationHooks.beforeUnload)) {
+      $scope.navigationHooks.beforeUnload(function() {
+        window.location.href = root;
+      });
+    } else {
+      window.location.href = root;
+    }
+  };
 
   $scope.$on('onSearchCountComplete', function (event, count) {
     $rootScope.resultCount = count;
@@ -11,8 +28,8 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   };
 
   $scope.loadMore = function (index, onLoaded) {
-    SearchService.loadMore(function () {
-      $rootScope.items = SearchService.itemDataCollection;
+    V2SearchService.loadMore(function() {
+      $rootScope.items = V2SearchService.itemDataCollection;
       if (onLoaded) {
         onLoaded();
       }
@@ -30,6 +47,21 @@ function MainNavController($scope, $rootScope, $location, SearchService) {
   $scope.$on('createNewItem', function (evt) {
     $rootScope.items = [];
   });
+
+  $scope.createItem = function(){
+     V2ItemService.create({}, function onCreated(itemData) {
+     	$location.url('/edit/draft/' + itemData.id);
+    }, function onError(e) {
+        alert("Error creating item: " + e.data.message);
+      }
+    );
+  };
 }
 
-MainNavController.$inject = ['$scope', '$rootScope', '$location', 'SearchService'];
+MainNavController.$inject = [
+  '$scope',
+  '$rootScope',
+  '$location',
+  'V2SearchService',
+  'V2ItemService',
+  'ItemDraftService' ];
