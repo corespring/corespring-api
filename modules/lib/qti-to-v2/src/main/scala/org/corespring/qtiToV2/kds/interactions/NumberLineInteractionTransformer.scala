@@ -27,7 +27,7 @@ object NumberLineInteractionTransformer extends InteractionTransformer {
           "domain" -> Seq((node \ "@lowerBound").text.toDouble, (node \ "@upperBound").text.toDouble),
           "initialType" -> "PF",
           "snapPerTick" -> 1,
-          "showMinorTicks" -> true,
+          "showMinorTicks" -> JsBoolean((node \ "@displayMinorTickMarks").text == "true"),
           "exhibitOnly" -> false,
           "maxNumberOfPoints" -> correctResponses(qti).length,
           "tickFrequency" -> (((node \ "@upperBound").text.toDouble - (node \ "@lowerBound").text.toDouble)/(node \ "@step").text.toDouble),

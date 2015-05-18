@@ -2,8 +2,17 @@ package org.corespring.qtiToV2.kds.interactions
 
 import org.specs2.mutable.Specification
 import play.api.libs.json._
+import scala.xml._
 
 class NumberLineInteractionTransformerTest extends Specification {
+
+  implicit class ElemWithAttributeHelper(elem: Elem) {
+    def %%(attributes: Map[String, Option[String]]): Elem =
+      elem % attributes
+        .filter{ case(key, value) => value.nonEmpty }
+        .map{ case(key, value) => key -> value.get }.toMap
+        .foldLeft[MetaData](Null) { case(acc, (key, value)) => Attribute(None, key, Text(value), acc) }
+  }
 
   "NumberLineInteractionTransformer" should {
 
@@ -17,7 +26,8 @@ class NumberLineInteractionTransformerTest extends Specification {
     def qti(identifier: String = identifier,
             lowerBound: Int = lowerBound, upperBound: Int = upperBound, step: Double = step,
             hatchMarks: Map[String, (Double, Boolean)] = hatchMarks,
-            correctResponses: Seq[Double] = correctResponses) =
+            correctResponses: Seq[Double] = correctResponses,
+            displayMinorTickMarks: Option[Boolean] = None) =
       <assessmentItem>
         <responseDeclaration identifier={identifier}>
           <correctResponse>
@@ -25,10 +35,12 @@ class NumberLineInteractionTransformerTest extends Specification {
           </correctResponse>
         </responseDeclaration>
         <itemBody>
-          <numberLineInteraction responseIdentifier={identifier} lowerBound={lowerBound.toString}
-                                 upperBound={upperBound.toString} step={step.toString} titleAbove="false">
+          { <numberLineInteraction>
             {hatchMarks.map{ case(label, (value, isVisible)) => <hatchMark value={value.toString} label={label} isVisibleLabel={if (isVisible) "1" else "0"} /> } }
-          </numberLineInteraction>
+          </numberLineInteraction> %%
+          Map("responseIdentifier" -> Some(identifier), "lowerBound" -> Some(lowerBound.toString),
+            "upperBound" -> Some(upperBound.toString), "step" -> Some(step.toString), "titleAbove" -> Some("false"),
+            "displayMinorTickMarks" -> displayMinorTickMarks.map(_.toString)) }
           </itemBody>
         </assessmentItem>
 
@@ -60,6 +72,24 @@ class NumberLineInteractionTransformerTest extends Specification {
       (result \ "model" \ "config" \ "ticks").as[Seq[JsObject]]
         .map(tick => (tick \ "value").as[Double] -> (tick \ "label").as[String])
         .toMap must be equalTo hatchMarks.map{ case (k, (v, visible)) => v -> (if (visible) k.toString else "")}.toMap
+    }
+
+    "showMinorTicks" should {
+
+      "be false by default" in {
+        (result \ "model" \ "config" \ "showMinorTicks").as[Boolean] must beFalse
+      }
+
+      "when <numberLineInteraction displayMinorTickMarks='true'/>" should {
+        val result = NumberLineInteractionTransformer.interactionJs(qti(displayMinorTickMarks = Some(true)))
+          .headOption.getOrElse(throw new Exception("There was an error translating QTI"))._2
+
+        "be true" in {
+          (result \ "model" \ "config" \ "showMinorTicks").as[Boolean] must beTrue
+        }
+
+      }
+
     }
 
   }
