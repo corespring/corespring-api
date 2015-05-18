@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.kds
 
 import org.corespring.qtiToV2.{QtiTransformer => SuperQtiTransformer}
 import org.corespring.qtiToV2.interactions._
-import org.corespring.qtiToV2.kds.interactions.{ChoiceInteractionTransformer => KDSChoiceInteractionTransformer, _}
+import org.corespring.qtiToV2.kds.interactions.{ChoiceInteractionTransformer => KDSChoiceInteractionTransformer, TextEntryInteractionTransformer => KDSTextEntryInteractionTransformer, _}
 import play.api.libs.json._
 
 import scala.xml.{Node, Elem}
@@ -29,7 +29,7 @@ object QtiTransformer extends SuperQtiTransformer with ProcessingTransformer {
     FeedbackBlockTransformer(qti),
     NumberedLinesTransformer(qti),
     FocusTaskInteractionTransformer,
-    TextEntryInteractionTransformer(qti),
+    KDSTextEntryInteractionTransformer(qti),
     LineInteractionTransformer,
     OrderInteractionTransformer,
     PointInteractionTransformer,
@@ -42,6 +42,6 @@ object QtiTransformer extends SuperQtiTransformer with ProcessingTransformer {
   def statefulTransformers = Seq(
     FeedbackBlockTransformer,
     NumberedLinesTransformer,
-    TextEntryInteractionTransformer)
+    KDSTextEntryInteractionTransformer)
 
 }
