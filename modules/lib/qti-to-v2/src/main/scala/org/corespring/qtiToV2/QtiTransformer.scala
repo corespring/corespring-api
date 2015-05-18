@@ -8,9 +8,11 @@ import play.api.libs.json._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.xml.{Elem, Node}
 
-object QtiTransformer extends XMLNamespaceClearer {
+trait QtiTransformer extends XMLNamespaceClearer {
 
   val scoringTransformer = new CustomScoringTransformer
+  def interactionTransformers(qti: Elem): Seq[InteractionTransformer]
+  def statefulTransformers: Seq[Transformer]
 
   object ItemBodyTransformer extends RewriteRule with XMLNamespaceClearer{
 
@@ -26,26 +28,7 @@ object QtiTransformer extends XMLNamespaceClearer {
 
   def transform(qti: Elem): JsValue = {
 
-    val transformers = Seq(
-      ChoiceInteractionTransformer,
-      DragAndDropInteractionTransformer,
-      FeedbackBlockTransformer(qti),
-      NumberedLinesTransformer(qti),
-      FocusTaskInteractionTransformer,
-      TextEntryInteractionTransformer(qti),
-      LineInteractionTransformer,
-      OrderInteractionTransformer,
-      PointInteractionTransformer,
-      SelectTextInteractionTransformer,
-      ExtendedTextInteractionTransformer,
-      FoldableInteractionTransformer,
-      CoverflowInteractionTransformer,
-      CorespringTabTransformer )
-
-    val statefulTransformers: Seq[Transformer] = Seq(
-      FeedbackBlockTransformer,
-      NumberedLinesTransformer,
-      TextEntryInteractionTransformer)
+    val transformers = interactionTransformers(qti)
 
     /** Need to pre-process Latex so that it is available for all JSON and XML transformations **/
     val texProcessedQti = new RuleTransformer(FontTransformer).transform(new RuleTransformer(TexTransformer).transform(qti))
@@ -71,5 +54,30 @@ object QtiTransformer extends XMLNamespaceClearer {
       "xhtml" -> divRoot.toString,
       "components" -> components) ++ customScoring
   }
+
+}
+
+object QtiTransformer extends QtiTransformer {
+
+  def interactionTransformers(qti: Elem) = Seq(
+    ChoiceInteractionTransformer,
+    DragAndDropInteractionTransformer,
+    FeedbackBlockTransformer(qti),
+    NumberedLinesTransformer(qti),
+    FocusTaskInteractionTransformer,
+    TextEntryInteractionTransformer(qti),
+    LineInteractionTransformer,
+    OrderInteractionTransformer,
+    PointInteractionTransformer,
+    SelectTextInteractionTransformer,
+    ExtendedTextInteractionTransformer,
+    FoldableInteractionTransformer,
+    CoverflowInteractionTransformer,
+    CorespringTabTransformer)
+
+  def statefulTransformers = Seq(
+    FeedbackBlockTransformer,
+    NumberedLinesTransformer,
+    TextEntryInteractionTransformer)
 
 }
