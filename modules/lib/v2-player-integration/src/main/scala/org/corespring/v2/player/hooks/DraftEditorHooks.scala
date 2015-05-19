@@ -1,7 +1,5 @@
 package org.corespring.v2.player.hooks
 
-import com.mongodb.casbah.commons.MongoDBObject
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
@@ -26,7 +24,6 @@ trait DraftEditorHooks
 
   import play.api.http.Status._
 
-  import scalaz.Scalaz._
   import scalaz._
 
   private lazy val logger = V2LoggerFactory.getLogger(classOf[DraftEditorHooks])
@@ -47,7 +44,7 @@ trait DraftEditorHooks
     _ <- Success(logger.trace(s"function=loadDraft id=$id"))
     identity <- getOrgAndUser(header)
     draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-    //Note: for now we ignor conflicts
+    //Note: for now we ignore conflicts
     d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap { e => generalError(e.msg) }
   } yield d
 
