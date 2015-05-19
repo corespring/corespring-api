@@ -3,6 +3,7 @@ package org.corespring.v2.player
 import org.bson.types.ObjectId
 import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
+import org.corespring.container.client.controllers.apps.ComponentScriptInfo
 import org.corespring.container.client.hooks.PlayerHooks
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.processing.PlayerItemPreProcessor
@@ -17,7 +18,7 @@ import play.api.Mode.Mode
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 import play.api.test.FakeRequest
-import play.api.{ Mode, GlobalSettings, Play }
+import play.api.{ Configuration, Mode, GlobalSettings, Play }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -35,7 +36,7 @@ class LoadPlayerTest
     override def hooks: PlayerHooks = new PlayerHooks {
 
       override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
-        Right((Json.obj(), Json.obj()))
+        Right((Json.obj("id" -> sessionId), Json.obj()))
       }
 
       override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = ???
@@ -49,13 +50,20 @@ class LoadPlayerTest
 
     override def components: Seq[Component] = Seq.empty
 
-    override def itemPreProcessor: PlayerItemPreProcessor = ???
+    override def itemPreProcessor: PlayerItemPreProcessor = {
+      val m = mock[PlayerItemPreProcessor]
+      m.preProcessItemForPlayer(any[JsValue]) answers { in => in.asInstanceOf[JsValue] }
+    }
 
     override def mode: Mode = Mode.Test
 
-    override def playerConfig: V2PlayerConfig = ???
+    override def playerConfig: V2PlayerConfig = V2PlayerConfig(Configuration.empty)
 
     override def versionInfo: JsObject = Json.obj()
+
+    override protected def buildJs(scriptInfo: ComponentScriptInfo, extras: Seq[String])(implicit rh: RequestHeader): Seq[String] = Seq.empty
+
+    override protected def buildCss(scriptInfo: ComponentScriptInfo)(implicit rh: RequestHeader): Seq[String] = Seq.empty
   }
 
   def getMockResult(itemId: VersionedId[ObjectId], collection: String) = {
@@ -78,14 +86,14 @@ class LoadPlayerTest
     }
 
     "create session for logged in user" in new user_CreateSession() {
-      status(createSessionResult) === SEE_OTHER
+      status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
     "create session for access token" in new token_CreateSession() {
-      status(createSessionResult) === SEE_OTHER
+      status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, "v2.itemSessions")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
@@ -102,7 +110,7 @@ class LoadPlayerTest
       }
 
     "create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
-      status(createSessionResult) === SEE_OTHER
+      status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, "v2.itemSessions")
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
