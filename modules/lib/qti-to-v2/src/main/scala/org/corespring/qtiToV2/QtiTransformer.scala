@@ -6,7 +6,7 @@ import org.corespring.qtiToV2.interactions._
 import play.api.libs.json._
 
 import scala.xml._
-import scala.xml.transform.RuleTransformer
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 /**
  * ***** DO NOT CHANGE THE PUBLIC METHODS EXPOSED BY THIS OBJECT ******
@@ -36,6 +36,18 @@ trait QtiTransformer extends XMLNamespaceClearer {
 
   val scoringTransformer = new CustomScoringTransformer
 
+  object ItemBodyTransformer extends RewriteRule with XMLNamespaceClearer{
+
+    override def transform(node: Node): Seq[Node] = {
+      node match {
+        case elem: Elem if elem.label == "itemBody" => {
+          <div class="item-body">{elem.child}</div>
+        }
+        case _ => node
+      }
+    }
+  }
+
   def interactionTransformers(qti: Elem): Seq[InteractionTransformer]
   def statefulTransformers: Seq[Transformer]
 
@@ -59,11 +71,13 @@ trait QtiTransformer extends XMLNamespaceClearer {
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
 
     val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
-    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "item-body").head.withClass("itemBody")))(
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
       (html, transformer) => transformer.transform(html).head)
 
+    val divRoot = new RuleTransformer(ItemBodyTransformer).transform(html).head
+
     Json.obj(
-      "xhtml" -> html.toString,
+      "xhtml" -> divRoot.toString,
       "components" -> components) ++ customScoring(qti, components)
   }
 
