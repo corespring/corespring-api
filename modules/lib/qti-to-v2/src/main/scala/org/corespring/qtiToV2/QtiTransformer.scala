@@ -27,6 +27,13 @@ import scala.xml.transform.RuleTransformer
  */
 trait QtiTransformer extends XMLNamespaceClearer {
 
+  implicit class NodeWithClass(node: Node) {
+    def withClass(classString: String) = node match {
+      case node: Elem => node.copy(child = node.child, label = "div") % Attribute(None, "class", Text(classString), Null)
+      case _ => throw new Exception("Cannot add class to non-Elem node.")
+    }
+  }
+
   val scoringTransformer = new CustomScoringTransformer
 
   def interactionTransformers(qti: Elem): Seq[InteractionTransformer]
@@ -52,7 +59,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
 
     val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
-    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head.withClass("itemBody qti")))(
       (html, transformer) => transformer.transform(html).head)
 
     Json.obj(
