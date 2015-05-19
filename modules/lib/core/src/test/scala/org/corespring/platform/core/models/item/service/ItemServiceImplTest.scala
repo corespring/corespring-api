@@ -9,7 +9,7 @@ import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
-import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired}
+import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -37,7 +37,6 @@ class ItemServiceImplTest extends BaseTest with Mockito {
     m
   }
 
-
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
   "save" should {
@@ -45,8 +44,8 @@ class ItemServiceImplTest extends BaseTest with Mockito {
     def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): Result = {
       val mockS3: CorespringS3Service = new MockS3Service
       val s = new ItemServiceWired(mockS3, DefaultItemSession, ItemVersioningDao, itemIndexService)
-      val id = VersionedId(ObjectId.get)
-      val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id, "data", name))
+      val id = VersionedId(ObjectId.get, Some(0))
+      val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id.id, id.version.get, "data", name))
       val resource = Resource(name = "data", files = Seq(file))
       val item = Item(id = id, data = Some(resource), taskInfo = Some(TaskInfo(title = Some("original title"))))
       val latestId = s.insert(item)

@@ -29,7 +29,7 @@ trait DraftEditorHooks
   import scalaz.Scalaz._
   import scalaz._
 
-  private lazy val logger = V2LoggerFactory.getLogger("DraftEditorHooks")
+  private lazy val logger = V2LoggerFactory.getLogger(classOf[DraftEditorHooks])
 
   def transform: Item => JsValue
 
@@ -109,24 +109,7 @@ trait DraftEditorHooks
     def addFileToData(draft: ItemDraft, key: String) = {
       val filename = grizzled.file.util.basename(key)
       val newFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
-      import org.corespring.platform.core.models.mongoContext.context
-
-      draft.parent.data.data.map { d =>
-        val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
-        backend.collection.update(
-          MongoDBObject("_id._id" -> draft.id),
-          MongoDBObject("$addToSet" -> MongoDBObject("src.data.data.files" -> dbo)),
-          false)
-      }.getOrElse {
-
-        val resource = Resource(None, "data", files = Seq(newFile))
-        val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
-
-        backend.collection.update(
-          MongoDBObject("_id._id" -> draft.id),
-          MongoDBObject("$set" -> MongoDBObject("src.data.data" -> resourceDbo)),
-          false)
-      }
+      backend.addFileToChangeSet(draft, newFile)
     }
 
     playS3.s3ObjectAndData[ItemDraft](bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>

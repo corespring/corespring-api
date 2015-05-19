@@ -138,7 +138,32 @@ package object scopes {
     }
   }
 
+  object ImageUtils {
+
+    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val client = new AmazonS3Client(credentials)
+    lazy val bucket = AppConfig.assetsBucket
+
+    def exists(path: String): Boolean = {
+      try {
+        val o = client.getObject(bucket, path)
+        println(o.getKey)
+        true
+      } catch {
+        case _: Throwable => false
+      }
+    }
+
+    def list(path: String): Seq[String] = {
+      import scala.collection.JavaConversions._
+      val l = client.listObjects(bucket, path)
+      l.getObjectSummaries.map { s => s.getKey }
+    }
+  }
+
   object ImageUploader {
+
+    import mongoContext.context
 
     lazy val logger = Logger("v2player.test.ImageUploader")
 

@@ -52,8 +52,9 @@
     <logger name="org.corespring.api.tracking" level="INFO"/>
     -->
     <logger name="com.mongodb" level="TRACE"/>
-    <logger name="org.corespring.platform.core.files" level="TRACE"/>
-    <logger name="org.corespring.v2" level="INFO"/>
+    <logger name="org.corespring.platform.core.services" level="TRACE"/>
+    <logger name="org.corespring.drafts" level="TRACE"/>
+    <logger name="org.corespring.v2" level="TRACE"/>
     <logger name="org.corespring.qtiToV2.ItemTransformer" level="TRACE"/>
     <logger name="SalatVersioningDao" level="WARN"/>
     <logger name="v2player.test" level="TRACE"/>

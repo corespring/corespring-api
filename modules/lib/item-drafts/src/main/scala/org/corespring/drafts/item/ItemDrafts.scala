@@ -1,5 +1,6 @@
 package org.corespring.drafts.item
 
+import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
@@ -7,6 +8,7 @@ import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -96,6 +98,7 @@ trait ItemDrafts
     def mkDraft(id: DraftId, src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
       require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
       val draft = ItemDraft(draftId, src, user)
+      logger.trace(s"copy item assets to draft ${src.id} -> ${draft.id}")
       assets.copyItemToDraft(src.id, draft.id).map { _ => draft }
     }
 
@@ -216,4 +219,29 @@ trait ItemDrafts
     ItemDraftIsOutOfDate(d, src)
   }
 
+  def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
+
+    import org.corespring.drafts.item.services.ItemDraftDbUtils.idToDbo
+    import org.corespring.platform.core.models.mongoContext.context
+
+    val query = idToDbo(draft.id)
+
+    val update = draft.change.data.data.map { d =>
+      val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+      MongoDBObject("$addToSet" -> MongoDBObject("change.data.data.files" -> dbo))
+    }.getOrElse {
+      val resource = Resource(None, "data", files = Seq(f))
+      val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
+      MongoDBObject("$set" -> MongoDBObject("change.data.data" -> resourceDbo))
+    }
+
+    val count = draftService.collection.count(query)
+    logger.trace(s"function=addFileToChangeSet, count=$count")
+
+    val result = draftService.collection.update(query, update, false)
+
+    logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
+    result.getN == 1
+  }
 }

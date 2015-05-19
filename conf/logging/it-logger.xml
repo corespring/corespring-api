@@ -14,6 +14,7 @@
 
     <logger name="application" level="OFF"/>
     <logger name="org.corespring.test" level="TRACE"/>
+    <logger name="org.corespring.drafts" level="TRACE"/>
     <logger name="it" level="TRACE"/>
     <logger name="v2player" level="TRACE"/>
     <logger name="org.corespring.player.accessControl.cookies" level="TRACE"/>

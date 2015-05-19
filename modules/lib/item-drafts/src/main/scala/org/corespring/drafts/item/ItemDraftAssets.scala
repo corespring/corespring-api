@@ -52,7 +52,7 @@ object S3Paths {
 
   def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 
-  def draftSupportingMaterialFile(id: DraftId,  path: String): String = {
+  def draftSupportingMaterialFile(id: DraftId, path: String): String = {
     s"${draftFolder(id)}/supporting-materials/$path"
   }
 }
@@ -60,7 +60,7 @@ object S3Paths {
 trait S3ItemDraftAssets extends ItemDraftAssets {
   def s3: AmazonS3Client
 
-  lazy val logger = Logger(classOf[S3ItemDraftAssets])
+  lazy val logger = Logger(classOf[S3ItemDraftAssets].getName)
 
   def bucket: String
 
@@ -78,6 +78,7 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
   override def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId] = {
     val from = S3Paths.itemFolder(itemId)
     val to = S3Paths.draftFolder(draftId)
+    logger.trace(s"copyItemToDraft: itemId=$itemId, draftId=$draftId")
     cp[DraftId](from, to, draftId)
   }
 

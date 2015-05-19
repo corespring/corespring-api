@@ -179,6 +179,8 @@ class ItemDraftsTest extends Specification with Mockito {
         mockItemService.save(any[Item], any[Boolean]) returns {
           if (saveSuccess) Right(itemId) else Left("Err")
         }
+
+        mockAssets.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]) returns copyAssets
       }
 
       "fail if load fails" in new __() {
