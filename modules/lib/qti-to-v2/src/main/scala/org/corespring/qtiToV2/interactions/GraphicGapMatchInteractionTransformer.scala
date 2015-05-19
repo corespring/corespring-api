@@ -47,7 +47,6 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
       def hotspots = {
         def coords(s:String) = {
-          val zero = 0.asInstanceOf[Float]
           val coordsArray = s.split(',').map(s => safeFloat(s))
           Json.obj(
             "left" -> coordsArray(0),
