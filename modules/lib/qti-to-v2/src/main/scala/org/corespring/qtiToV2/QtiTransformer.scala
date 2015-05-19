@@ -59,7 +59,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
       (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
 
     val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
-    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head.withClass("itemBody qti")))(
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head.withClass("itemBody")))(
       (html, transformer) => transformer.transform(html).head)
 
     Json.obj(
