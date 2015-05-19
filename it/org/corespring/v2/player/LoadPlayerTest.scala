@@ -34,15 +34,15 @@ class LoadPlayerTest
 
     override def hooks: PlayerHooks = new PlayerHooks {
 
-      override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
-        Right(sessionId)
+      override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
+        Right((Json.obj(), Json.obj()))
       }
 
       override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = ???
-
-      override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = ???
+      override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = ???
 
       override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
+
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]
