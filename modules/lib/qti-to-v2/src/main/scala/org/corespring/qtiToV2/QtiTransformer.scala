@@ -5,7 +5,7 @@ import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
 import play.api.libs.json._
 
-import scala.xml.{Node, Elem}
+import scala.xml._
 import scala.xml.transform.RuleTransformer
 
 /**
