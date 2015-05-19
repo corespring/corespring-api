@@ -132,10 +132,17 @@ object ItemIndexQuery {
         "query" -> (query.text match {
           case Some("") => None
           case Some(text) => Some(Json.obj(
-            "multi_match" -> Json.obj(
-              "query" -> text,
-              "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
-              "type" -> "phrase"
+            "bool" -> Json.obj(
+              "should" -> Json.arr(
+                Json.obj("multi_match" -> Json.obj(
+                  "query" -> text,
+                  "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
+                  "type" -> "phrase"
+                )),
+                Json.obj("ids" -> Json.obj(
+                  "values" -> Json.arr(text)
+                ))
+              )
             )
           ))
           case _ => None
