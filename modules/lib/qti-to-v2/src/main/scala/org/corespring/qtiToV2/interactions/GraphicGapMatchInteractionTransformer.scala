@@ -6,6 +6,22 @@ import scala.xml._
 
 object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
+  private def safeInt(s: String): Int = {
+    try {
+      s.toInt
+    } catch {
+      case e: Exception => 0
+    }
+  }
+
+  private def safeFloat(s: String): Float = {
+    try {
+      s.toFloat
+    } catch {
+      case e: Exception => 0
+    }
+  }
+
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node match {
@@ -33,7 +49,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
       def hotspots = {
         def coords(s:String) = {
-          val coordsArray = s.split(',').map(_.toFloat)
+          val coordsArray = s.split(',').map(safeFloat)
           Json.obj(
             "left" -> coordsArray(0),
             "top" -> coordsArray(1),
@@ -53,9 +69,9 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
       def choices = JsArray(((node \\ "gapImg").toSeq).map { n =>
         Json.obj(
           "id" -> (n \ "@identifier").text.trim,
-          "label" -> s"<img src='${cutPathPrefix((n \ "object" \ "@data").mkString)}' />",
-          "matchMax" -> (n \ "@matchMax").text.trim,
-          "matchMin" -> (n \ "@matchMin").text.trim
+          "label" -> s"<img src='${cutPathPrefix((n \ "object" \ "@data").mkString)}' width='${(n \ "object" \ "@width").mkString}' height='${(n \ "object" \ "@height").mkString}' />",
+          "matchMax" -> safeInt((n \ "@matchMax").text.trim),
+          "matchMin" -> safeInt((n \ "@matchMin").text.trim)
         )
       })
 
@@ -63,14 +79,23 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
         "componentType" -> "corespring-graphic-gap-match",
         "model" -> Json.obj(
           "config" -> Json.obj(
-            "shuffle" -> (node \ "@shuffle").text,
-            "backgroundImage" -> JsString(cutPathPrefix((node \ "object" \ "@data").mkString)),
-            "showHotspots" -> JsString("show")
+            "shuffle" -> JsBoolean(false),
+            "choiceAreaPosition" -> JsString("top"),
+            "backgroundImage" -> Json.obj(
+              "path" -> JsString(cutPathPrefix((node \ "object" \ "@data").mkString)),
+              "width" -> JsNumber(safeInt((node \ "object" \ "@width").mkString)),
+              "height" -> JsNumber(safeInt((node \ "object" \ "@height").mkString))
+            ),
+            "showHotspots" -> JsBoolean(false)
           ),
           "hotspots" -> hotspots,
           "choices" -> choices
         ),
-        "feedback" -> feedback(node, qti),
+        "feedback" -> Json.obj(
+          "correctFeedbackType" -> "default",
+          "partialFeedbackType" -> "default",
+          "incorrectFeedbackType" -> "default"
+        ),
         "correctResponse" -> correctResponses.map { cr =>
           val idHotspotRegex = """([^\s]*) ([^\s]*)""".r
           cr.asOpt[String] match {
