@@ -6,21 +6,19 @@ import scala.xml._
 
 object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
-  private def safeInt(s: String): Int = {
-    try {
-      s.toInt
-    } catch {
-      case e: Exception => 0
-    }
+  private def safeParse[A](block: => A): Option[A] = try {
+    Some(block)
+  } catch {
+    case n: NumberFormatException => None
   }
 
-  private def safeFloat(s: String): Float = {
-    try {
-      s.toFloat
-    } catch {
-      case e: Exception => 0
-    }
-  }
+  def safeInt(string: String): Int = safeParse[Int] {
+    string.toInt
+  }.getOrElse(0)
+
+  def safeFloat(string: String): Float = safeParse[Float] {
+    string.toFloat
+  }.getOrElse(0)
 
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
@@ -49,7 +47,8 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
       def hotspots = {
         def coords(s:String) = {
-          val coordsArray = s.split(',').map(safeFloat)
+          val zero = 0.asInstanceOf[Float]
+          val coordsArray = s.split(',').map(s => safeFloat(s))
           Json.obj(
             "left" -> coordsArray(0),
             "top" -> coordsArray(1),
