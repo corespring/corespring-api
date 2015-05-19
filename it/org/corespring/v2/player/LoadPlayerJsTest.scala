@@ -21,22 +21,18 @@ class LoadPlayerJsTest extends IntegrationSpecification {
     "load player js with client id + playerToken query string sets session" in
       new queryString_loadJs(anythingJson) {
         status(playerJsResult) === OK
-        val js = contentAsString(playerJsResult)
-        js.contains(s"apiClient = '${apiClient.clientId}'") === true
       }
 
     """load player js with client id + playerToken
       query string sets session""" in new queryString_loadJs(
       Json.stringify(Json.toJson(new PlayerAccessSettings(itemId = "*", secure = true)))) {
       status(playerJsResult) === OK
-      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'") === true
     }
 
     """load player js returns a warning when you load using 'options'""" in
       new queryStringWithOptions_loadJs(anythingJson) {
         status(playerJsResult) === OK
         val js = contentAsString(playerJsResult)
-        js.contains(s"apiClient = '${apiClient.clientId}'") === true
         val warning = deprecatedQueryStringParameter(PlayerTokenInQueryStringIdentity.Keys.options, PlayerTokenInQueryStringIdentity.Keys.playerToken)
         js.contains(warning.code) === true
         js.contains(warning.message) === true
