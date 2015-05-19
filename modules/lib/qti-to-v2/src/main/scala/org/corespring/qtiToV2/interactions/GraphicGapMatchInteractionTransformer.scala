@@ -1,24 +1,11 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.platform.core.utils.NumberParsers
 import play.api.libs.json._
 
 import scala.xml._
 
-object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
-
-  private def safeParse[A](block: => A): Option[A] = try {
-    Some(block)
-  } catch {
-    case n: NumberFormatException => None
-  }
-
-  def safeInt(string: String): Int = safeParse[Int] {
-    string.toInt
-  }.getOrElse(0)
-
-  def safeFloat(string: String): Float = safeParse[Float] {
-    string.toFloat
-  }.getOrElse(0)
+object GraphicGapMatchInteractionTransformer extends InteractionTransformer with NumberParsers {
 
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
@@ -47,7 +34,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
 
       def hotspots = {
         def coords(s:String) = {
-          val coordsArray = s.split(',').map(s => safeFloat(s))
+          val coordsArray = s.split(',').map(s => floatValueOrZero(s))
           Json.obj(
             "left" -> coordsArray(0),
             "top" -> coordsArray(1),
@@ -68,8 +55,8 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
         Json.obj(
           "id" -> (n \ "@identifier").text.trim,
           "label" -> s"<img src='${cutPathPrefix((n \ "object" \ "@data").mkString)}' width='${(n \ "object" \ "@width").mkString}' height='${(n \ "object" \ "@height").mkString}' />",
-          "matchMax" -> safeInt((n \ "@matchMax").text.trim),
-          "matchMin" -> safeInt((n \ "@matchMin").text.trim)
+          "matchMax" -> intValueOrZero((n \ "@matchMax").text.trim),
+          "matchMin" -> intValueOrZero((n \ "@matchMin").text.trim)
         )
       })
 
@@ -81,8 +68,8 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer {
             "choiceAreaPosition" -> JsString("top"),
             "backgroundImage" -> Json.obj(
               "path" -> JsString(cutPathPrefix((node \ "object" \ "@data").mkString)),
-              "width" -> JsNumber(safeInt((node \ "object" \ "@width").mkString)),
-              "height" -> JsNumber(safeInt((node \ "object" \ "@height").mkString))
+              "width" -> JsNumber(intValueOrZero((node \ "object" \ "@width").mkString)),
+              "height" -> JsNumber(intValueOrZero((node \ "object" \ "@height").mkString))
             ),
             "showHotspots" -> JsBoolean(false)
           ),
