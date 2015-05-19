@@ -60,7 +60,10 @@ class PlayerHooksTest extends Specification with Mockito with MockFactory {
 
     override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = Results.Ok("")
 
+    override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = Results.Ok("")
+
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
+
   }
 
   class hooksScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),

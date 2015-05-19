@@ -59,11 +59,11 @@ class V2PlayerBootstrap(
 
   lazy val logger = V2LoggerFactory.getLogger("V2PlayerBootstrap")
 
-  override def resolveDomain(path: String) = resolveDomainPaths(path)
-
   override def versionInfo: JsObject = VersionInfo(configuration)
 
   def ec: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
+
+  override def resolveDomain(path: String) = resolveDomainPaths(path)
 
   override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
 
