@@ -71,6 +71,13 @@ class ItemIndexQueryTest extends Specification {
   "ElasticSearchWrites" should {
     implicit val ElasticSearchWrites = ItemIndexQuery.ElasticSearchWrites
 
+    def shouldClause(json: JsValue, name: String) = (json \ "query" \ "bool" \ "should").as[Seq[JsObject]]
+      .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
+      .getOrElse(JsUndefined(s"Could not find $name clause"))
+
+    def multiMatch(json: JsValue): JsValue = shouldClause(json, "multi_match")
+    def ids(json: JsValue): JsValue = shouldClause(json, "ids")
+
     "text" should {
       "blank" should {
         val query = ItemIndexQuery(text = None)
@@ -86,9 +93,31 @@ class ItemIndexQueryTest extends Specification {
         val query = ItemIndexQuery(text = Some(text))
         val json = Json.toJson(query)
 
-        "include query as multi_match query parameter" in {
-          (json \ "query" \ "multi_match" \ "query") must be equalTo (JsString(text))
+        "multi_match" should {
+
+          "include query as query parameter" in {
+            (multiMatch(json) \ "query").as[String] must be equalTo(text)
+          }
+
+          "query on title field" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("taskInfo.title")
+          }
+
+          "query on description field" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("taskInfo.description")
+          }
+
+          "query on content" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("content")
+          }
+
         }
+
+        "include ids querying" in {
+          (ids(json)) must haveClass[JsObject]
+          (ids(json) \ "values").as[Seq[String]].headOption must be equalTo(Some(text))
+        }
+
       }
     }
 
