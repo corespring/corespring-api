@@ -9,10 +9,6 @@ import scalaz.{ Failure, Success, Validation }
 
 case class CloneResourceResult(files: Seq[CloneFileResult])
 
-/*case class CloneFileResult(file: StoredFile, s3Key:Option[String], throwable: Option[Throwable]) {
-  def successful = throwable.isEmpty
-}*/
-
 trait CloneFileResult {
   def file: StoredFile
   def successful: Boolean
