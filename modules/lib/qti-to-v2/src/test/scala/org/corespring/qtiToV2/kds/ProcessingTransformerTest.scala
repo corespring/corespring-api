@@ -51,18 +51,18 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       (qti \\ "responseProcessing").headOption.getOrElse(throw new Exception("Does not have response processing"))
         .child.find(_.label == "match").getOrElse("Does not have match node").asInstanceOf[Node]
 
-    "translate equivalence of variable to single correct value" in {
+    "translate equivalence of variable to isCorrect for single values" in {
       val node = qti()
       val matchNode = matcher(node)
-      _match(matchNode)(node) must be equalTo(s"""_.isEmpty(_.xor($responseId, ["${correctResponses.head}"]))""")
+      _match(matchNode)(node) must be equalTo(s"""isCorrect('$responseId')""")
     }
 
-    "translate equivalence of variable to multiple correct values" in {
+    "translate equivalence of variable to isCorrect for multiple values" in {
       val correctResponses = Seq("a", "b")
       val node = qti(correctResponses = correctResponses)
       val matchNode = matcher(node)
 
-      _match(matchNode)(node) must be equalTo(s"""_.isEmpty(_.xor($responseId, ["${correctResponses.mkString("\", \"")}"]))""")
+      _match(matchNode)(node) must be equalTo(s"""isCorrect('$responseId')""")
     }
 
   }
@@ -92,7 +92,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   }
 
-  "and" should {
+  "or" should {
 
     def node(expressions: Seq[Node]) = <or>{expressions}</or>
 
@@ -130,6 +130,21 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "return X > Y" in {
       gt(node) must be equalTo values.mkString(" > ")
     }
+  }
+
+  "isNull" should {
+    val value = "RESPONSE1"
+    val node = <isNull><variable identifier={value}/></isNull>
+
+    "return value == undefined" in {
+      isNull(node) must be equalTo s"$value == undefined"
+    }
+
+    "throw exception if more than one child node" in {
+      val badNode = <isNull><variable identifier={value}/><variable identifier="bad!"/></isNull>
+      isNull(badNode) must throwAn[Exception]
+    }
+
   }
 
   "setOutcomeValue" should {
@@ -185,7 +200,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate into if statement" in {
       val responseIfNodeVal = responseIfNode()
       val qtiNode = qti(responseIfNode = responseIfNodeVal)
-      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if (_.isEmpty(_.xor($responseId, ["${correctResponses.head}"]))) { $identifier = "$value"; }"""
+      responseIf(responseIfNodeVal)(qtiNode) must be equalTo s"""if (isCorrect('$responseId')) { $identifier = "$value"; }"""
     }
 
   }
@@ -238,7 +253,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
       "translate into conditional statement" in {
         responseCondition(responseConditionVal)(qti()) must be equalTo
-          """if ((_.isEmpty(_.xor(RESPONSE1, ["ONE"]))) && (_.isEmpty(_.xor(RESPONSE2, ["TWO"])))) { SCORE = 2; } else if (_.isEmpty(_.xor(RESPONSE1, ["ONE"]))) { SCORE = 1; }"""
+          """if ((isCorrect('RESPONSE1')) && (isCorrect('RESPONSE2'))) { SCORE = 2; } else if (isCorrect('RESPONSE1')) { SCORE = 1; }"""
       }
   }
 
