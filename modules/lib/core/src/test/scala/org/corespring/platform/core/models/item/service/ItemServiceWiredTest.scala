@@ -4,11 +4,13 @@ import com.mongodb.DBObject
 import com.mongodb.casbah.MongoDB
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
+import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.assets.CorespringS3Service
+import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
+import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession, ItemSession }
 import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -16,6 +18,7 @@ import org.corespring.test.BaseTest
 import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
+import org.specs2.specification.Scope
 import play.api.Play
 import play.api.libs.json.Json
 import se.radley.plugin.salat.SalatPlugin
@@ -23,7 +26,7 @@ import se.radley.plugin.salat.SalatPlugin
 import scala.concurrent._
 import scalaz.Success
 
-class ItemServiceImplTest extends BaseTest with Mockito {
+class ItemServiceWiredTest extends BaseTest with Mockito {
 
   import ExecutionContext.Implicits.global
 
@@ -75,6 +78,54 @@ class ItemServiceImplTest extends BaseTest with Mockito {
 
     "update the version if no failure occurred when cloning stored files" in {
       assertSaveWithStoredFile("good.png", true)
+    }
+
+    class serviceScope(val item: Item) extends Scope {
+
+      val mockS3 = {
+        val m = mock[CorespringS3Service]
+        m.delete(any[String], any[String]) returns mock[DeleteResponse]
+        m
+      }
+
+      val mockSession = mock[ItemSessionCompanion]
+      val mockDao = {
+        val m = mock[SalatVersioningDao[Item]]
+        m.save(any[Item], any[Boolean]) returns Right(VersionedId(ObjectId.get, Some(0)))
+        m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
+        m
+      }
+      val mockIndex = mock[ItemIndexService]
+      val service = new ItemServiceWired(mockS3, mockSession, mockDao, mockIndex)
+    }
+
+    val itemWithFiles: Item = {
+      Item(
+        data = Some(
+          Resource(
+            name = "data",
+            files = Seq(
+              StoredFile("good.png", "image/png", false, "key/good.png"),
+              StoredFile("bad.png", "image/png", false, "key/bad.png")))))
+    }
+
+    "call s3.deleteFile for successful copies if another copy failed" in new serviceScope(itemWithFiles) {
+
+      mockS3.copyFile(any[String], any[String], any[String]) answers { (args, mock) =>
+        val arr = args.asInstanceOf[Array[Any]]
+        val from = arr(1).asInstanceOf[String]
+        val to = arr(2).asInstanceOf[String]
+
+        if (from.contains("bad")) {
+          throw new RuntimeException("error")
+        } else {
+          Unit
+        }
+      }
+
+      service.save(item, true)
+      val expectedKey = StoredFile.storageKey(item.id.id, item.id.version.get, "data", "good.png")
+      there was one(mockS3).delete(AppConfig.assetsBucket, expectedKey)
     }
   }
 

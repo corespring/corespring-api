@@ -84,6 +84,7 @@ trait ItemFiles {
       }
 
       logger.debug("[ItemFiles] clone file: " + from + " --> " + to)
+      println("[ItemFiles] clone file: " + from + " --> " + to)
       s3service.copyFile(bucket, fromKey, toKey)
       file.storageKey = toKey
       CloneFileSuccess(file, toKey)
