@@ -9,7 +9,11 @@ trait V2JavascriptWrapper {
       |  function isCorrect(key) {
       |    return (outcomes && outcomes[key]) ? (outcomes[key].correctness === 'correct' || outcomes[key].correctness === 'all_correct') : false;
       |  }
-      |  
+      |
+      |  function mapResponse(key) {
+      |    return (outcomes && outcomes[key]) ? (outcomes[key].correctNum) : undefined;
+      |  }
+      |
       |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'].answers;").mkString("\n|  ")}
       |
       |  ${js.vars.map{ case (name, value) => s"var $name = $value;"}.mkString("\n|  ")}

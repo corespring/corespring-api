@@ -65,7 +65,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
         "model" -> Json.obj(
           "config" -> Json.obj(
             "shuffle" -> JsBoolean(false),
-            "choiceAreaPosition" -> JsString("top"),
+            "choiceAreaPosition" -> JsString("left"),
             "backgroundImage" -> Json.obj(
               "path" -> JsString(cutPathPrefix((node \ "object" \ "@data").mkString)),
               "width" -> JsNumber(intValueOrZero((node \ "object" \ "@width").mkString)),

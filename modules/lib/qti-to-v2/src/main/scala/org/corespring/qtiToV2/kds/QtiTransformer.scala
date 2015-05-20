@@ -25,6 +25,7 @@ object QtiTransformer extends SuperQtiTransformer with ProcessingTransformer {
     ElementTransformer,
     MatchInteractionTransformer,
     NumberLineInteractionTransformer,
+    GraphicGapMatchInteractionTransformer,
     DragAndDropInteractionTransformer,
     FeedbackBlockTransformer(qti),
     NumberedLinesTransformer(qti),
