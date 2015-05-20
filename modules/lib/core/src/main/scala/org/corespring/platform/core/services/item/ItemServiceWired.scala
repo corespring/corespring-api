@@ -11,8 +11,7 @@ import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.elasticsearch.ContentDenormalizer
-import org.corespring.platform.core.files.CloneFileResult
-import org.corespring.platform.core.files.ItemFiles
+import org.corespring.platform.core.files.{ CloneFileFailure, CloneFileSuccess, CloneFileResult, ItemFiles }
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
@@ -79,9 +78,10 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
-        files.foreach { f =>
-          f.throwable.map { e => e.printStackTrace }
-        }
+        files.foreach({
+          case CloneFileFailure(f, err) => err.printStackTrace
+          case _ => Unit
+        })
         None
       }
     }
@@ -157,7 +157,12 @@ class ItemServiceWired(
         }
         case Failure(files) => {
           dao.revertToVersion(item.id)
-          files.foreach(r => if (r.successful) { s3service.delete(bucket, r.file.storageKey) })
+          files.foreach {
+            case CloneFileSuccess(f, key) => {
+              s3service.delete(bucket, key)
+            }
+            case _ => Unit
+          }
           Left("Cloning of files failed")
         }
       }

@@ -1,12 +1,12 @@
 package org.corespring.drafts.item
 
-import com.mongodb.casbah.MongoCollection
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.{ WriteConcern, CommandResult, WriteResult }
+import com.mongodb.casbah.{ Imports, MongoCollection }
+import com.mongodb.casbah.Imports._
+import com.mongodb.{ DBCollection, WriteConcern, CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
@@ -378,23 +378,20 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "addFileToChangeSet" should {
 
-      class __(n: Int = 1) extends Scope with MockItemDrafts {
-        import com.mongodb.casbah.Imports._
+      class FakeCollection(n: Int) extends MongoCollection(mock[DBCollection]) {
 
-        val mockCollection = {
-          val m = mock[MongoCollection]
-          m.update(
-            any[MongoDBObject],
-            any[MongoDBObject],
-            any[Boolean],
-            any[Boolean],
-            any[WriteConcern])(
-              any[MongoDBObject => DBObject],
-              any[MongoDBObject => DBObject], any[DBEncoder]) returns {
-                mock[WriteResult].getN returns n
-              }
-          m
+        var queryObj: BasicDBObject = null
+        var updateObj: BasicDBObject = null
+
+        override def update[A, B](q: A, o: B, upsert: Boolean, multi: Boolean, concern: WriteConcern)(implicit queryView: (A) => Imports.DBObject, objView: (B) => Imports.DBObject, encoder: Imports.DBEncoder): WriteResult = {
+          queryObj = q.asInstanceOf[BasicDBObject]
+          updateObj = o.asInstanceOf[BasicDBObject]
+          mock[WriteResult].getN returns n
         }
+      }
+
+      class __(n: Int = 1) extends Scope with MockItemDrafts {
+        val mockCollection = new FakeCollection(n)
         mockDraftService.collection returns mockCollection
       }
 
@@ -403,21 +400,15 @@ class ItemDraftsTest extends Specification with Mockito {
       "update the document in the db" in new __ {
 
         running(FakeApplication()) {
-          import com.mongodb.casbah.Imports._
-
-          val captor = capture[MongoDBObject]
+          import org.corespring.platform.core.models.mongoContext.context
           val draft = mkDraft(ed, item)
           val file = StoredFile("test.png", "image/png", false)
           addFileToChangeSet(draft, file)
-
-          implicit def captureToDbo(d: ArgumentCapture[MongoDBObject]): DBObject = {
-            d.value.asDBObject
-          }
-
-          there was one(mockCollection).update(captor, any[MongoDBObject], any[Boolean], any[Boolean], any[WriteConcern])(
-            any[ArgumentCapture[MongoDBObject] => DBObject],
-            any[MongoDBObject => DBObject], any[DBEncoder])
-
+          val expectedQuery = ItemDraftDbUtils.idToDbo(draft.id)
+          mockCollection.queryObj === expectedQuery
+          val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+          val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+          mockCollection.updateObj === expectedUpdate
         }
       }
     }

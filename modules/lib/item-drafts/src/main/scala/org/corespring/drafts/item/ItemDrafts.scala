@@ -227,7 +227,7 @@ trait ItemDrafts
     val query = idToDbo(draft.id)
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
-    val result = draftService.collection.update(query, update, false)
+    val result = draftService.collection.update(query, update, false, false)
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
     result.getN == 1
