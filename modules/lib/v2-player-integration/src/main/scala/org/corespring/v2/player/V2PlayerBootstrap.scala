@@ -43,7 +43,7 @@ import scalaz.{ Scalaz, Success, Failure, Validation }
 class V2PlayerBootstrap(
   val components: Seq[Component],
   val configuration: Configuration,
-  val resolveDomainPaths: String => String,
+  resolveDomainPaths: String => String,
   itemTransformer: ItemTransformer,
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
@@ -187,8 +187,7 @@ class V2PlayerBootstrap(
 
     override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       versionedIdFromString(itemService, id).map { vid =>
-        val version = vid.version.getOrElse(itemService.currentVersion(vid))
-        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(VersionedId(vid.id, Some(version)), path))
+        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(vid, path))
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
     }
   }
@@ -196,6 +195,12 @@ class V2PlayerBootstrap(
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
+
+    override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
+      versionedIdFromString(itemService, itemId).map { vid =>
+        getAssetFromItemId(S3Paths.itemFile(vid, file))
+      }.getOrElse(BadRequest(s"Invalid versioned id: $itemId"))
+    }
 
     override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
       getItemIdForSessionId(id).map { vid =>

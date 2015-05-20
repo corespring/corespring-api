@@ -38,6 +38,18 @@ trait QtiTransformer extends XMLNamespaceClearer {
 
   val scoringTransformer = new CustomScoringTransformer
 
+  object ItemBodyTransformer extends RewriteRule with XMLNamespaceClearer{
+
+    override def transform(node: Node): Seq[Node] = {
+      node match {
+        case elem: Elem if elem.label == "itemBody" => {
+          <div class="item-body">{elem.child}</div>
+        }
+        case _ => node
+      }
+    }
+  }
+
   def interactionTransformers(qti: Elem): Seq[InteractionTransformer]
   def statefulTransformers: Seq[Transformer]
 
