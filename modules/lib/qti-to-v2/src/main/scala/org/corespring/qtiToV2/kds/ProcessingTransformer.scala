@@ -186,7 +186,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   protected def or(node: Node)(implicit qti: Node) = binaryOp(node, "||")
 
   private def postFixOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
-    case child if (child.length == 1) => s"expression(child.head) $op"
+    case child if (child.length == 1) => s"${expression(child.head)} $op"
   }
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
