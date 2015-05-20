@@ -151,7 +151,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
   protected def gte(node: Node)(implicit qti: Node) = binaryOp(node, ">=")
   protected def lt(node: Node)(implicit qti: Node) = binaryOp(node, "<")
   protected def lte(node: Node)(implicit qti: Node) = binaryOp(node, "<=")
-  protected def isNull(node: Node)(implicit qti: Node) = postFixOp(node, " == undefined")
+  protected def isNull(node: Node)(implicit qti: Node) = postFixOp(node, "== undefined")
 
   protected def correct(node: Node)(implicit qti: Node) = {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
@@ -187,6 +187,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private def postFixOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {
     case child if (child.length == 1) => s"${expression(child.head)} $op"
+    case _ => throw new Exception(s"$op expression must only be used for a single expression")
   }
 
   private def binaryOp(node: Node, op: String)(implicit qti: Node): String = node.withoutEmptyChildren match {

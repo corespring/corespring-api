@@ -74,7 +74,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   }
 
-  "and" should {
+  "or" should {
 
     def node(expressions: Seq[Node]) = <or>{expressions}</or>
 
@@ -112,6 +112,21 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "return X > Y" in {
       gt(node) must be equalTo values.mkString(" > ")
     }
+  }
+
+  "isNull" should {
+    val value = "RESPONSE1"
+    val node = <isNull><variable identifier={value}/></isNull>
+
+    "return value == undefined" in {
+      isNull(node) must be equalTo s"$value == undefined"
+    }
+
+    "throw exception if more than one child node" in {
+      val badNode = <isNull><variable identifier={value}/><variable identifier="bad!"/></isNull>
+      isNull(badNode) must throwAn[Exception]
+    }
+
   }
 
   "setOutcomeValue" should {
