@@ -20,7 +20,7 @@ trait ManifestFilter {
     17 -> "Matching Tables"
   )
 
-  val ImportableItemTypeIds = Seq(8,11,13,15,16,17)
+  val ImportableItemTypeIds = Seq(8,10,11,13,15,16,17)
 
   /**
    * KDS manifest files are ~200mb, and we're only interested in a few hundred results. This method uses Scala's XML
