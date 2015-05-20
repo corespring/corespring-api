@@ -15,12 +15,14 @@ trait EntityEscaper {
 
   import EntityEscaper._
 
+  private val entityRegex = "&#([0-9]*);".r
+
   /**
    * Replace all entity characters (e.g., "&radic;" or "&#945;") with nodes matching their unicode values, (e.g.,
    * <entity value='8730'/> or <entity value='945'/>).
    */
   def escapeEntities(xml: String): String =
-    entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
+    entityRegex.replaceAllIn(entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
       ((string: String) => dontEncode.contains(entity.char) match {
         case true => string
         case _ => string.replaceAllLiterally(entity.char.toString, entity.toXmlString)
@@ -28,7 +30,7 @@ trait EntityEscaper {
         case Some(name) => string.replaceAllLiterally(s"&${name};", entity.toXmlString)
         case _ => string
       }).apply(acc.replaceAllLiterally(s"&#${entity.unicode.toString};", entity.toXmlString)))
-    }
+    }, """<entity value="$1"/>""")
 
   def unescapeEntities(xml: String) = (new RuleTransformer(new RewriteRule {
     override def transform(node: Node) = node.label match {
