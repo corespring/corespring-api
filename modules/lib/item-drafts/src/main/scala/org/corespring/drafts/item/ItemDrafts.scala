@@ -225,21 +225,9 @@ trait ItemDrafts
     import org.corespring.platform.core.models.mongoContext.context
 
     val query = idToDbo(draft.id)
-
-    val update = draft.change.data.data.map { d =>
-      val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
-      MongoDBObject("$addToSet" -> MongoDBObject("change.data.data.files" -> dbo))
-    }.getOrElse {
-      val resource = Resource(None, "data", files = Seq(f))
-      val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
-      MongoDBObject("$set" -> MongoDBObject("change.data.data" -> resourceDbo))
-    }
-
-    val count = draftService.collection.count(query)
-    logger.trace(s"function=addFileToChangeSet, count=$count")
-
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false)
-
     logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
     result.getN == 1
