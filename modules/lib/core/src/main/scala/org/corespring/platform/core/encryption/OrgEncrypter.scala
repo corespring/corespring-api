@@ -5,7 +5,6 @@ import org.corespring.common.encryption.Crypto
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.auth.ApiClient
 import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
 import spray.caching.Cache
 
 import scala.concurrent.{ Future, Await }
@@ -31,29 +30,11 @@ class OrgEncrypter(encrypter: Crypto) extends OrgEncryptionService {
   }
 
   override def decrypt(orgId: ObjectId, s: String): Option[String] = ApiClient.findOneByOrgId(orgId).map {
-    client => {
+    client =>
       logger.debug(s"[OrgEncrypter] decrypt: $s with secret: ${client.clientSecret}")
       val out = encrypter.decrypt(s, client.clientSecret)
       logger.trace(s"[OrgEncrypter] result: $out")
-      allowAnySession(out)
-    }
+      out
   }
-
-  /**
-   * TODO - Remove as soon as possible.
-   *
-   * This method will allow any session id regardless of the options that are passed into it.
-   */
-  private def allowAnySession(string: String): String = try {
-    (Json.parse(string) match {
-      case options: JsObject => options.deepMerge(Json.obj(
-        "sessionId" -> "*"
-      )).toString
-      case _ => string
-    }).toString
-  } catch {
-    case e: Exception => string
-  }
-
 }
 
