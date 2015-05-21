@@ -49,6 +49,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
       <associableHotspot coords="198,96,373,145" identifier="HS-6032" matchMax="1" shape="rect"/>
       <associableHotspot coords="197,169,372,218" identifier="HS-6033" matchMax="1" shape="rect"/>
       <associableHotspot coords="196,280,371,329" identifier="HS-6034" matchMax="1" shape="rect"/>
+      <associableHotspot coords="155,2,105,11,84,18,60,27" identifier="HS-6035" matchMax="1" shape="poly"/>
     </graphicGapMatchInteraction>
   """)
 
@@ -100,7 +101,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
         "matchMin" -> 0)
 
       val hotspots = (q1 \ "model" \ "hotspots").as[Seq[JsObject]]
-      ((q1 \ "model" \ "hotspots") \\ "id").map(_.as[String]) === Seq("HS-6031", "HS-6032", "HS-6033", "HS-6034")
+      ((q1 \ "model" \ "hotspots") \\ "id").map(_.as[String]) === Seq("HS-6031", "HS-6032", "HS-6033", "HS-6034", "HS-6035")
       hotspots(0) === Json.obj("id" -> "HS-6031",
         "shape" -> "rect",
         "coords" -> Json.obj(
@@ -108,6 +109,17 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
           "top" -> 30.0,
           "width" -> 175.0,
           "height" -> 49.0
+        )
+      )
+
+      hotspots(4) === Json.obj("id" -> "HS-6035",
+        "shape" -> "poly",
+        "coords" -> JsArray(Seq(
+          Json.obj("x" -> 155.0, "y" -> 2.0),
+          Json.obj("x" -> 105.0, "y" -> 11.0),
+          Json.obj("x" -> 84.0, "y" -> 18.0),
+          Json.obj("x" -> 60.0, "y" -> 27.0)
+        )
         )
       )
 

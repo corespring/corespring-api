@@ -33,20 +33,28 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
       }
 
       def hotspots = {
-        def coords(s:String) = {
+        def coords(shape:String, s:String) = {
           val coordsArray = s.split(',').map(s => floatValueOrZero(s))
-          Json.obj(
-            "left" -> coordsArray(0),
-            "top" -> coordsArray(1),
-            "width" -> (coordsArray(2) - coordsArray(0)),
-            "height" -> (coordsArray(3) - coordsArray(1))
-          )
+          shape match {
+            case "rect" => Json.obj(
+              "left" -> coordsArray(0),
+              "top" -> coordsArray(1),
+              "width" -> Math.abs(coordsArray(2) - coordsArray(0)),
+              "height" -> Math.abs(coordsArray(3) - coordsArray(1))
+            )
+            case "poly" =>
+              def xCoords = coordsArray.zipWithIndex.collect { case (x,i) if i % 2 == 0 => x }
+              def yCoords = coordsArray.zipWithIndex.collect { case (x,i) if i % 2 == 1 => x }
+              def coordPairs = xCoords.zip(yCoords)
+              JsArray(coordPairs.map(p => Json.obj("x"->p._1, "y"->p._2)))
+          }
         }
         JsArray(((node \\ "associableHotspot").toSeq).map { n =>
+          val shape = (n \ "@shape").text.trim
           Json.obj(
             "id" -> (n \ "@identifier").text.trim,
-            "shape" -> (n \ "@shape").text.trim,
-            "coords" -> coords((n \ "@coords").text.trim)
+            "shape" -> shape,
+            "coords" -> coords(shape, (n \ "@coords").text.trim)
           )
         })
       }
