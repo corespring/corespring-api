@@ -54,5 +54,7 @@ GET  /collections/:collectionId            @org.corespring.v2.api.V1CollectionAp
 
 GET  /collections                          @org.corespring.v2.api.V1CollectionApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
+GET  /item-types                           @org.corespring.v2.api.ItemApi.getItemTypes()
+
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 

@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ItemType, Item}
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -52,6 +52,8 @@ class ItemApiTest extends Specification with Mockito with MockFactory with PlayS
             m.clone(any[Item]) returns (if(itemServiceClones) item else None)
             m
           }
+
+          override def itemType: ItemType = ???
 
           override def itemIndexService: ItemIndexService = {
             val m = mock[ItemIndexService]

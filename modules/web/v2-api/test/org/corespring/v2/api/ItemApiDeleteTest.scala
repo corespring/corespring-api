@@ -47,6 +47,8 @@ class ItemApiDeleteTest extends Specification with Mockito with MockFactory {
 
       override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
 
+      override def itemType: ItemType = mock[ItemType]
+
       override def getSummaryData: (Item, Option[String]) => JsValue = transformItemToJson
 
       private def transformItemToJson(item: Item, detail: Option[String]): JsValue = {

@@ -7,7 +7,7 @@ import org.corespring.drafts.item.models.{OrgAndUser, SimpleOrg, SimpleUser}
 import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
-import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
+import org.corespring.platform.core.models.item.{ItemType, Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -34,6 +34,7 @@ trait V2ApiServices {
   def orgService: OrgService
   def sessionService: MongoService
   def itemService: ItemService
+  def itemType: ItemType
   def itemIndexService: ItemIndexService
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
@@ -67,6 +68,8 @@ class V2ApiBootstrap(
     override implicit def ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     override def itemAuth: ItemAuth[OrgAndOpts] = services.itemAuth
+
+    override def itemType: ItemType = ItemType
 
     override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = {
       val collection = services.orgService.defaultCollection(identity.org).map(_.toString()).toSuccess(noDefaultCollection(identity.org.id))
