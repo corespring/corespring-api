@@ -8,6 +8,24 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   implicit val emptyNode = <noOp/>
 
+  "containerSize" should {
+    val node = <containerSize>
+      <variable identifier="RESPONSE1"/>
+    </containerSize>
+
+    "should transform to id.length" in {
+      containerSize(node) === "RESPONSE1.length"
+    }
+  }
+
+  "mapResonse" should {
+    val node = <mapResponse identifier="RESPONSE1" />
+
+    "should transform to mapResponse('id')" in {
+      mapResponse(node) === "mapResponse('RESPONSE1')"
+    }
+  }
+
   "_match" should {
 
     val responseId = "RESPONSE1"

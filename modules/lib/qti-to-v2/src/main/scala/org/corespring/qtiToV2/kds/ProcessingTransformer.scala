@@ -122,6 +122,8 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     case "variable" => (node \ "@identifier").text
     case "correct" => correct(node)
     case "baseValue" => baseValue(node)
+    case "mapResponse" => mapResponse(node)
+    case "containerSize" => containerSize(node)
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
   }
 
@@ -177,6 +179,10 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
       case _ => node.text
     }
   }
+
+  protected def containerSize(node: Node) = s"${(node \ "variable" \ "@identifier").text}.length"
+
+  protected def mapResponse(node: Node) = s"mapResponse('${(node \ "@identifier").text}')"
 
   protected def sum(node: Node)(implicit qti: Node) = node.withoutEmptyChildren.map(expression(_).mkString).mkString(" + ")
 
