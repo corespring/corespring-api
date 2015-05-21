@@ -72,10 +72,10 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
         "componentType" -> "corespring-graphic-gap-match",
         "model" -> Json.obj(
           "config" -> Json.obj(
-            "shuffle" -> JsBoolean(false),
-            "choiceAreaPosition" -> JsString("left"),
+            "shuffle" -> false,
+            "choiceAreaPosition" -> "left",
             "backgroundImage" -> Json.obj(
-              "path" -> JsString(cutPathPrefix((node \ "object" \ "@data").mkString)),
+              "path" -> cutPathPrefix((node \ "object" \ "@data").mkString),
               "width" -> JsNumber(intValueOrZero((node \ "object" \ "@width").mkString)),
               "height" -> JsNumber(intValueOrZero((node \ "object" \ "@height").mkString))
             ),
