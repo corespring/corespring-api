@@ -54,8 +54,8 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
   }
 
   private def model(implicit node: Node) = {
+    val hasDecimal = "(\\d+)\\.(\\d+)".r
     def propertyNumber(string: String): JsNumber = {
-      val hasDecimal = "(\\d+)\\.(\\d+)".r
       val isZero = "0+".r
       string match {
         case hasDecimal(one, decimal) => decimal match {
@@ -65,14 +65,26 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
         case _ => JsNumber(string.toInt)
       }
     }
+
+    def largest(one: Option[String], two: Option[String]): Option[String] = {
+      ((one, two) match {
+        case (Some(a), None) => Some(a)
+        case (None, Some(b)) => Some(b)
+        case (Some(a), Some(b)) => a.toFloat.abs.compare(b.toFloat.abs) match {
+          case x: Int if x > 0 => Some(a)
+          case _ => Some(b)
+        }
+      }).map(_.replaceAll("-", ""))
+    }
+
     Json.obj(
       "config" -> partialObj(
         "domainLabel" -> property("xAxisTitle").map(JsString(_)),
         "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
         "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
         "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
-        "domain" -> property("xAxisMaxValue").map(propertyNumber),
-        "range" -> property("yAxisMaxValue").map(propertyNumber),
+        "domain" -> largest(property("xAxisMinValue"), property("xAxisMaxValue")).map(propertyNumber),
+        "range" -> largest(property("yAxisMinValue"), property("yAxisMaxValue")).map(propertyNumber),
         "scale" -> property("xAxisStepValue").map(propertyNumber),
         "tickLabelFrequency" -> property("xAxisLabelPattern").map(propertyNumber),
         "showCoordinates" -> Some(JsBoolean(false)),
