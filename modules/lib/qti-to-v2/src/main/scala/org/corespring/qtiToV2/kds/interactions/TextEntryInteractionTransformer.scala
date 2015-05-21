@@ -14,6 +14,18 @@ class TextEntryInteractionTransformer(qti: Node) extends InteractionTransformer 
         "feedback" -> Json.obj(
           "correctFeedbackType" -> "default",
           "incorrectFeedbackType" -> "default"
+        ),
+        "correctResponses" -> Json.obj(
+          "feedback" -> Json.obj(
+            "type" -> "default",
+            "value" -> "Correct!"
+          )
+        ),
+        "incorrectResponses" -> Json.obj(
+          "feedback" -> Json.obj(
+            "type" -> "default",
+            "value" -> "Good try, but the correct answer is <random selection from correct answers>."
+          )
         )
       ))}.toMap
 
