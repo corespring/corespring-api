@@ -98,7 +98,7 @@ trait ItemDrafts
     def mkDraft(id: DraftId, src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
       require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
       val draft = ItemDraft(draftId, src, user)
-      logger.trace(s"copy item assets to draft ${src.id} -> ${draft.id}")
+      logger.trace(s"function=mkDraft, itemId=${src.id}, draftId=${draft.id}, copy item assets to draft")
       assets.copyItemToDraft(src.id, draft.id).map { _ => draft }
     }
 

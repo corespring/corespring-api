@@ -1,5 +1,6 @@
 package org.corespring.drafts
 
+import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
@@ -10,10 +11,11 @@ import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.models.{ Conflict => ItemConflict }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.player.scopes.userAndItem
+import org.corespring.v2.player.scopes.{ ImageUtils, ImageUploader, userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
@@ -55,22 +57,10 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
 
       override val commitService: CommitService = ItemDraftsTest.this.commitService
 
-      val assets = {
-        val m = mock[ItemDraftAssets]
-        m.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]) answers { (obj, mock) =>
-          {
-            val arr = obj.asInstanceOf[Array[Any]]
-            Success(arr(1).asInstanceOf[VersionedId[ObjectId]])
-          }
-        }
-        m.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) answers { (obj, mock) =>
-          {
-            val arr = obj.asInstanceOf[Array[Any]]
-            Success(arr(1).asInstanceOf[DraftId])
-          }
-        }
-        m.deleteDraft(any[DraftId]) answers { oid => Success(oid.asInstanceOf[ObjectId]) }
-        m
+      val assets = new S3ItemDraftAssets {
+        override def bucket: String = ImageUtils.bucket
+
+        override def s3: AmazonS3Client = ImageUtils.client
       }
 
       /** Check that the user may create the draft for the given src id */
@@ -241,6 +231,33 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
           case Success(Some(c)) => success
           case _ => failure("should have been successful")
         }
+      }
+    }
+
+    "clone" should {
+      "copy the assets over to the new draft" in new orgAndUserAndItem {
+        ImageUploader.uploadImage(itemId, "it/org/corespring/v2/player/load-image/puppy.png")
+        val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
+        val draft = drafts.loadOrCreate(orgAndUser)(draftId)
+        ImageUtils.exists(S3Paths.draftFile(draftId, "puppy.png")) must_== true
+        drafts.cloneDraft(orgAndUser)(draftId) match {
+          case Success(r) => {
+            ImageUtils.exists(S3Paths.draftFile(r.draftId, "puppy.png")) must_== true
+          }
+          case Failure(e) => failure("clone should have been successful")
+        }
+      }
+    }
+
+    "addFileToChangeSet" should {
+      "add the file info to the ItemDraft.change" in new orgAndUserAndItem {
+        val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
+        val draft = drafts.loadOrCreate(orgAndUser)(draftId)
+        val file = StoredFile("test.png", "image/png", false)
+        drafts.addFileToChangeSet(draft.toOption.get, file)
+        drafts.draftService.load(draftId).map { dbDraft =>
+          dbDraft.change.data.playerDefinition.map(_.files.find(_.name == "test.png").headOption).flatten must_== Some(file)
+        }.getOrElse(failure("should have loaded the draft"))
       }
     }
 
