@@ -1,18 +1,22 @@
 package org.corespring.drafts.item
 
-import com.mongodb.{ CommandResult, WriteResult }
+import com.mongodb.casbah.{ Imports, MongoCollection }
+import com.mongodb.casbah.Imports._
+import com.mongodb.{ DBCollection, WriteConcern, CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition, Item}
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
+import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
+import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
+import org.specs2.mock.mockito.ArgumentCapture
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import play.api.test.FakeApplication
 
 import scalaz.{ Validation, Success, Failure }
 
@@ -367,9 +371,48 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return true if supportingMaterials has changed" in new __ {
-        val item2 = item1.copy(supportingMaterials = Seq(Resource(name="test", files=Seq.empty)))
+        val item2 = item1.copy(supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)))
         hasSrcChanged(item1, item2) must_== true
       }
     }
+
+    "addFileToChangeSet" should {
+
+      class FakeCollection(n: Int) extends MongoCollection(mock[DBCollection]) {
+
+        var queryObj: BasicDBObject = null
+        var updateObj: BasicDBObject = null
+
+        override def update[A, B](q: A, o: B, upsert: Boolean, multi: Boolean, concern: WriteConcern)(implicit queryView: (A) => Imports.DBObject, objView: (B) => Imports.DBObject, encoder: Imports.DBEncoder): WriteResult = {
+          queryObj = q.asInstanceOf[BasicDBObject]
+          updateObj = o.asInstanceOf[BasicDBObject]
+          mock[WriteResult].getN returns n
+        }
+      }
+
+      class __(n: Int = 1) extends Scope with MockItemDrafts {
+        val mockCollection = new FakeCollection(n)
+        mockDraftService.collection returns mockCollection
+      }
+
+      import play.api.test.Helpers.running
+
+      "update the document in the db" in new __ {
+
+        running(FakeApplication()) {
+          import org.corespring.platform.core.models.mongoContext.context
+          val draft = mkDraft(ed, item)
+          val file = StoredFile("test.png", "image/png", false)
+          addFileToChangeSet(draft, file)
+          val expectedQuery = ItemDraftDbUtils.idToDbo(draft.id)
+          mockCollection.queryObj === expectedQuery
+          val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+          val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+          mockCollection.updateObj === expectedUpdate
+        }
+      }
+    }
+
   }
+
 }

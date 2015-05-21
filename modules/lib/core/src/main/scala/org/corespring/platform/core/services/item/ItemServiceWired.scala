@@ -11,8 +11,7 @@ import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.elasticsearch.ContentDenormalizer
-import org.corespring.platform.core.files.CloneFileResult
-import org.corespring.platform.core.files.ItemFiles
+import org.corespring.platform.core.files.{ CloneFileFailure, CloneFileSuccess, CloneFileResult, ItemFiles }
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
 import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
@@ -22,10 +21,10 @@ import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import play.api.{ Play, Application, PlayException }
+import play.api.{ Logger, Play, Application, PlayException }
 import scala.Some
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Await, ExecutionContext}
+import scala.concurrent.{ Future, Await, ExecutionContext }
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
@@ -35,12 +34,14 @@ class ItemServiceWired(
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item],
   itemIndexService: ItemIndexService)(implicit executionContext: ExecutionContext)
-  extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
+  extends ItemService with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
   import org.corespring.platform.core.models.mongoContext.context
 
   RegisterJodaTimeConversionHelpers()
+
+  override protected val logger = Logger(classOf[ItemServiceWired])
 
   val FieldValuesVersion = "0.0.1"
 
@@ -68,7 +69,8 @@ class ItemServiceWired(
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
-    val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
+    val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(item, itemClone)
+    logger.debug(s"clone itemId=${item.id} result=$result")
     result match {
       case Success(updatedItem) => {
         dao.save(updatedItem, false)
@@ -76,9 +78,10 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
-        files.foreach { f =>
-          f.throwable.map { e => e.printStackTrace }
-        }
+        files.foreach({
+          case CloneFileFailure(f, err) => err.printStackTrace
+          case _ => Unit
+        })
         None
       }
     }
@@ -147,14 +150,19 @@ class ItemServiceWired(
 
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
-      val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(newItem)
+      val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(item, newItem)
       result match {
         case Success(updatedItem) => {
           dao.save(updatedItem, false)
         }
         case Failure(files) => {
           dao.revertToVersion(item.id)
-          files.foreach(r => if (r.successful) { s3service.delete(bucket, r.file.storageKey) })
+          files.foreach {
+            case CloneFileSuccess(f, key) => {
+              s3service.delete(bucket, key)
+            }
+            case _ => Unit
+          }
           Left("Cloning of files failed")
         }
       }
