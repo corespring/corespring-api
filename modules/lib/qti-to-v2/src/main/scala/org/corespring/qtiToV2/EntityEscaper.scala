@@ -22,7 +22,7 @@ trait EntityEscaper {
    * <entity value='8730'/> or <entity value='945'/>).
    */
   def escapeEntities(xml: String): String =
-    entityRegex.replaceAllIn(entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
+    escapeAll(entities.foldLeft(encodeSafeEntities("""(?s)<!\[CDATA\[(.*?)\]\]>""".r.replaceAllIn(xml, "$1"))){ case(acc, entity) =>
       ((string: String) => dontEncode.contains(entity.char) match {
         case true => string
         case _ => string.replaceAllLiterally(entity.char.toString, entity.toXmlString)
@@ -30,14 +30,10 @@ trait EntityEscaper {
         case Some(name) => string.replaceAllLiterally(s"&${name};", entity.toXmlString)
         case _ => string
       }).apply(acc.replaceAllLiterally(s"&#${entity.unicode.toString};", entity.toXmlString)))
-    }, """<entity value="$1"/>""")
+    })
 
-  def unescapeEntities(xml: String) = (new RuleTransformer(new RewriteRule {
-    override def transform(node: Node) = node.label match {
-      case "entity" => Unparsed(s"&#${(node \ "@value").text};")
-      case _ => node
-    }
-  }).transform(XML.loadString(s"<entity-escaper>$xml</entity-escaper>")).head.child.map(TagCleaner.clean)).mkString
+  def unescapeEntities(xml: String) = unescapeAll(
+    XML.loadString(s"<entity-escaper>$xml</entity-escaper>").head.child.map(TagCleaner.clean).mkString)
 
   def encodeSafeEntities(xml: String): String =
     safe.foldLeft(xml){ case (acc, entity) => {
@@ -51,10 +47,18 @@ trait EntityEscaper {
 
 object EntityEscaper {
 
+  private val internalStartTag = "!!!csentity!!!"
+  private val internalEndTag = "!!!csendentity!!!"
+  private val internalEntityRegex = s"$internalStartTag(.*?)$internalEndTag".r
+  private val entityRegex = "&#([0-9]*);".r
+
+  def escapeAll(string: String) = entityRegex.replaceAllIn(string, s"$internalStartTag$$1$internalEndTag")
+  def unescapeAll(string: String) = internalEntityRegex.replaceAllIn(string, "&#$1;")
+
   val dontEncode = Seq('"', '&', '\'', '<', '>', '-') ++ 65.to(90).map(_.toChar)
 
   case class Entity(name: Option[String], char: Char, unicode: Int) {
-    def toXmlString = s"""<entity value="${this.unicode.toString}"/>"""
+    def toXmlString = s"""!!!csentity!!!${this.unicode.toString}!!!csendentity!!!"""
   }
 
   /**

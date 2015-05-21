@@ -12,13 +12,13 @@ class EntityEscaperTest extends Specification with EntityEscaper {
 
     "convert decimal &#<int>; values to entity nodes" in {
       entities.map(entity => {
-        escapeEntities(s"""&${entity.name};""") must be equalTo(s"""<entity value="${entity.unicode}"/>""")
+        escapeEntities(s"""&${entity.name};""") must be equalTo(s"!!!csentity!!!${entity.unicode}!!!csendentity!!!")
       })
     }
 
     "convert &<string>; values to entity nodes" in {
       entities.map(entity => {
-        escapeEntities(s"""&#${entity.unicode};""") must be equalTo(s"""<entity value="${entity.unicode}"/>""")
+        escapeEntities(s"""&#${entity.unicode};""") must be equalTo(s"!!!csentity!!!${entity.unicode}!!!csendentity!!!")
       })
     }
 
@@ -28,7 +28,7 @@ class EntityEscaperTest extends Specification with EntityEscaper {
 
     "convert entity nodes to decimal values" in {
       entities.map(entity => {
-        unescapeEntities(s"""<entity value="${entity.unicode}"/>""") must be equalTo(s"&#${entity.unicode};")
+        unescapeEntities(s"!!!csentity!!!${entity.unicode}!!!csentdentity!!!") must be equalTo(s"&#${entity.unicode};")
       })
     }
 

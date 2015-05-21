@@ -2,12 +2,17 @@ package org.corespring.qtiToV2
 
 import play.api.libs.json.{JsString, JsArray, JsObject, JsValue}
 
+import scala.xml.SAXParseException
+
 trait HtmlProcessor extends EntityEscaper {
 
   def preprocessHtml(html: String) = try {
     escapeEntities(Windows1252EntityTransformer.transform(html))
   } catch {
-    case e: Exception => html
+    case e: SAXParseException => {
+      System.err.println(e.getMessage)
+      html
+    }
   }
 
   def postprocessHtml(html: String) = unescapeEntities(html)
@@ -20,7 +25,10 @@ trait HtmlProcessor extends EntityEscaper {
       case _ => jsValue
     }
   } catch {
-    case e: Exception => jsValue
+    case e: SAXParseException => {
+      System.err.println(e.getMessage)
+      jsValue
+    }
   }
 
 }
