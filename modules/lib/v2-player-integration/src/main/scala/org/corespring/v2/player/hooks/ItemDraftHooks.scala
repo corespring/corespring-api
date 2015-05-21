@@ -88,6 +88,14 @@ trait ItemDraftHooks
     savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
   }
 
+  override def saveCollectionId(itemId: String, collectionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    def updateCollectionId(item: ModelItem, json: JsValue): ModelItem = {
+      item.copy(collectionId = Some(collectionId))
+    }
+
+    update(itemId, Json.obj("collectionId" -> collectionId), updateCollectionId)
+  }
+
   private implicit class MkV2Error[A](v: Validation[DraftError, A]) {
     def v2Error: Validation[V2Error, A] = {
       v.leftMap { e => generalError(e.msg) }
@@ -152,6 +160,8 @@ trait ItemDraftHooks
       }
     }
 
+    def randomDraftName = scala.util.Random.alphanumeric.take(12).mkString
+
     val result: Validation[V2Error, (String, String)] = for {
       identity <- getOrgAndUser(h)
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
@@ -159,7 +169,7 @@ trait ItemDraftHooks
         case Left(m) => Failure(generalError(m))
         case Right(vid) => Success(vid)
       }
-      draft <- backend.create(vid, identity).v2Error
+      draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
     } yield (vid.toString, draft.id.toString)
 
     result.leftMap { e => (e.statusCode -> e.message) }.toEither
