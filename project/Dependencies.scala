@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.37.0-SNAPSHOT"
+  val containerVersion = "0.39.0-SNAPSHOT"
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
@@ -58,7 +58,7 @@ object Dependencies {
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
-  val elasticsearchPlayWS = "org.corespring" %% "elasticsearch-play-ws" % "0.0.9-PLAY22"
+  val elasticsearchPlayWS = "org.corespring" %% "elasticsearch-play-ws" % "0.0.10-PLAY22"
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   val all = Seq(

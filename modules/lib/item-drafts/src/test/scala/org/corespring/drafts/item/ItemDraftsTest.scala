@@ -5,7 +5,8 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition, Item}
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -317,6 +318,7 @@ class ItemDraftsTest extends Specification with Mockito {
           }
         }
       }
+
     }
 
     "save" should {
@@ -336,6 +338,37 @@ class ItemDraftsTest extends Specification with Mockito {
 
       "succeed" in new __(true, true) {
         save(ed)(mkDraft(ed, item)) must_== Success(oid)
+      }
+    }
+
+    "hasSrcChanged" should {
+      class __() extends Scope with MockItemDrafts {
+        val item1 = Item(id = itemId)
+      }
+
+      "return false if item has not changed" in new __ {
+        val item2 = item1.copy()
+        hasSrcChanged(item1, item2) must_== false
+      }
+
+      "return true if collectionId has changed" in new __ {
+        val item2 = item1.copy(collectionId = Some("1234"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if taskInfo has changed" in new __ {
+        val item2 = item1.copy(taskInfo = Some(TaskInfo()))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if playerDefinition has changed" in new __ {
+        val item2 = item1.copy(playerDefinition = Some(PlayerDefinition("")))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if supportingMaterials has changed" in new __ {
+        val item2 = item1.copy(supportingMaterials = Seq(Resource(name="test", files=Seq.empty)))
+        hasSrcChanged(item1, item2) must_== true
       }
     }
   }

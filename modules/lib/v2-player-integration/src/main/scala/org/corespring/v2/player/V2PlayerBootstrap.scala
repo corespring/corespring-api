@@ -23,7 +23,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.services.{ContentCollectionService, OrgService}
+import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -43,7 +43,7 @@ import scalaz.{ Scalaz, Success, Failure, Validation }
 class V2PlayerBootstrap(
   val components: Seq[Component],
   val configuration: Configuration,
-  val resolveDomain: String => String,
+  resolveDomainPaths: String => String,
   itemTransformer: ItemTransformer,
   identifier: RequestIdentity[OrgAndOpts],
   itemAuth: ItemAuth[OrgAndOpts],
@@ -62,6 +62,8 @@ class V2PlayerBootstrap(
   override def versionInfo: JsObject = VersionInfo(configuration)
 
   def ec: ExecutionContext = Akka.system.dispatchers.lookup("akka.actor.item-session-api")
+
+  override def resolveDomain(path: String) = resolveDomainPaths(path)
 
   override def componentSets: ComponentSets = new CompressedAndMinifiedComponentSets {
 
@@ -165,10 +167,10 @@ class V2PlayerBootstrap(
   private def getAssetFromItemId(s3Path: String): SimpleResult = {
     val result = playS3.download(bucket, URIUtil.decode(s3Path))
     val isOk = result.header.status / 100 == 2
-    if(isOk) result else playS3.download(bucket, s3Path)
+    if (isOk) result else playS3.download(bucket, s3Path)
   }
 
-  private def versionedIdFromString(itemService:ItemService, id:String) : Option[VersionedId[ObjectId]] = {
+  private def versionedIdFromString(itemService: ItemService, id: String): Option[VersionedId[ObjectId]] = {
     VersionedId(id).map { vid =>
       val version = vid.version.getOrElse(itemService.currentVersion(vid))
       VersionedId(vid.id, Some(version))
@@ -184,9 +186,8 @@ class V2PlayerBootstrap(
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
 
     override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      versionedIdFromString(itemService, id).map{ vid =>
-        val version = vid.version.getOrElse(itemService.currentVersion(vid))
-        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(VersionedId(vid.id, Some(version)), path))
+      versionedIdFromString(itemService, id).map { vid =>
+        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(vid, path))
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
     }
   }
@@ -195,8 +196,14 @@ class V2PlayerBootstrap(
     override def itemTransformer = V2PlayerBootstrap.this.itemTransformer
     override def auth: SessionAuth[OrgAndOpts, PlayerDefinition] = V2PlayerBootstrap.this.sessionAuth
 
+    override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = {
+      versionedIdFromString(itemService, itemId).map { vid =>
+        getAssetFromItemId(S3Paths.itemFile(vid, file))
+      }.getOrElse(BadRequest(s"Invalid versioned id: $itemId"))
+    }
+
     override def loadFile(id: String, path: String)(request: Request[AnyContent]) =
-      getItemIdForSessionId(id).map{ vid =>
+      getItemIdForSessionId(id).map { vid =>
         require(vid.version.isDefined, s"The version must be defined: $vid")
         getAssetFromItemId(S3Paths.itemFile(vid, path))
       }.getOrElse(NotFound(s"Can't find an item id for session: $id"))
