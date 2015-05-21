@@ -1,5 +1,6 @@
 package org.corespring.v2.auth
 
+import org.corespring.common.config.AppConfig
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.permissionNotGranted
@@ -9,7 +10,7 @@ import play.api.libs.json.Json
 
 import scalaz.{ Success, Failure, Validation }
 
-object AccessSettingsWildcardCheck {
+class AccessSettingsWildcardCheck(appConfig: AppConfig) {
 
   private lazy val logger = V2LoggerFactory.getLogger("AccessSettingsWildcardCheck")
 
@@ -24,22 +25,26 @@ object AccessSettingsWildcardCheck {
         .mkString(", "))
   }
 
-  def allow(itemId: String, sessionId: Option[String], mode: Mode, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+  def allow(itemId: String, sessionId: Option[String], mode: Mode, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = appConfig.allowAllSessions match {
+    case true => Success(true)
+    case _ => {
+      logger.warn("Note: Mode is not being checked at the moment - we need to see if it still applies in v2. see: https://thesib.atlassian.net/browse/CA-1743")
 
-    logger.warn("Note: Mode is not being checked at the moment - we need to see if it still applies in v2. see: https://thesib.atlassian.net/browse/CA-1743")
-
-    val result = (settings.allowItemId(itemId)
-      &&
-      sessionId.map(settings.allowSessionId(_)).getOrElse(true)) match {
+      val result = (settings.allowItemId(itemId)
+        &&
+        sessionId.map(settings.allowSessionId(_)).getOrElse(true)) match {
         case true => Success(true)
         case false => {
           logger.trace(s"player options: $settings")
           logger.trace(s"itemId? $itemId -> ${settings.allowItemId(itemId)}")
-          sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}") }
+          sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}")}
           logger.trace(s"allowMode? $mode -> ${settings.allowMode(mode)}")
           Failure(AccessSettingsWildcardCheck.notGrantedError(itemId, sessionId, settings))
         }
       }
-    result
+      result
+    }
   }
 }
+
+object AccessSettingsWildcardCheck extends AccessSettingsWildcardCheck(AppConfig)
