@@ -105,6 +105,15 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     sessionService.create(withIdentityData).toSuccess(errorSaving)
   }
 
+  override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
+    for {
+      original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      copy <- previewSessionService.create(original).toSuccess(cantLoadSession(sessionId))
+    } yield {
+      copy
+    }
+  }
+
   private def addIdentityToSession(session: Session, identity: OrgAndOpts): Session = {
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
   }

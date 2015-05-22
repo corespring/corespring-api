@@ -1,13 +1,15 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.encryption.{EncryptionSuccess, OrgEncrypter}
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError, sessionDoesNotContainResponses }
+import org.corespring.v2.errors.Errors.{noOrgIdAndOptions, errorSaving, generalError, sessionDoesNotContainResponses}
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
@@ -136,6 +138,46 @@ trait ItemSessionApi extends V2Api {
       } yield score
 
       validationToResult[JsValue](j => Ok(j))(out)
+    }
+  }
+
+  def review(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    val encrypter = new OrgEncrypter(AESCrypto)
+    val options = Json.obj(
+      "sessionId" -> "*",
+      "itemId" -> "*",
+      "mode" -> "gather"
+    )
+
+    val apiClientId = "505c4eb7e4b04aa483da6e18"
+
+    val result = for {
+      identity <- getOrgAndOptions(request)
+      options <- encrypter.encrypt(identity.org.id, options.toString).toSuccess(noOrgIdAndOptions(request))
+    } yield { options }
+
+    Future {
+      result match {
+        case Success(result) => result match {
+          case success: EncryptionSuccess => {
+            Ok(org.corespring.web.common.views.html.sessionReview(sessionId, success.data, apiClientId))
+          }
+          case _ => BadRequest("Oops!")
+        }
+        case Failure(bunk) => BadRequest(bunk.toString)
+      }
+    }
+
+  }
+
+  def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    Future {
+      val out: Validation[V2Error, ObjectId] = for {
+        identity <- getOrgAndOptions(request)
+        session <- sessionAuth.cloneIntoPreview(sessionId)(identity)
+      } yield session
+
+      validationToResult[ObjectId](j => Created(Json.obj("id" -> j.toString)))(out)
     }
   }
 
