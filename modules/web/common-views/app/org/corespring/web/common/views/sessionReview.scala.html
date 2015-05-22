@@ -1,13 +1,23 @@
+@(sessionId: String, playerAccessToken: String, apiClientId: String)
 <html>
   <head>
     <script src="//code.jquery.com/jquery-1.11.3.js"></script>
+    <script type='text/javascript' src='http://platform.corespring.org/v2/player/player.js?playerToken=@playerAccessToken&apiClient=@apiClientId'></script>
     <script type="text/javascript">
-      $(function() {
-        window.alert('coolio');
+      $.post('/api/v2/sessions/@sessionId/clone').done(function(result) {
+        var options = {
+          mode: "gather",
+          sessionId: result.id,
+          width: '100%'
+        };
+
+        new org.corespring.players.ItemPlayer('#session-player', options, function(error) {
+          console.log(error);
+        });
       });
     </script>
   </head>
   <body>
-    Test great!
+    <div id="session-player"/>
   </body>
 </html>
