@@ -1,5 +1,6 @@
 package org.corespring.v2.player.hooks
 
+import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
@@ -59,12 +60,19 @@ trait ItemHooks
 
   private def updateDb[A](id: String, dbKey: String, data: A, returnKey: Option[String] = None)(implicit h: RequestHeader, w: Writes[A]): Either[(Int, String), JsValue] = {
 
-    val dbo = MongoDBObject(dbKey -> data)
+    def update(vid: VersionedId[ObjectId], dbo: DBObject) = {
+      val result = itemService.collection.update(MongoDBObject("_id._id" -> vid.id), MongoDBObject("$set" -> dbo), false, false)
+      logger.debug(s"no of documents update: ${result.getN.toString}")
+      require(result.getN == 1)
+    }
+    import com.mongodb.util.JSON
+    val dbo = MongoDBObject(dbKey -> JSON.parse(Json.stringify((Json.toJson(data)))))
+
     for {
       identity <- getOrgAndOptions(h)
       vid <- VersionedId(id).toSuccess(cantParseItemId(id))
       canWrite <- auth.canWrite(id)(identity)
-      _ <- if (canWrite) Success(itemService.saveUsingDbo(vid, dbo)) else Failure(generalError(s"Can't save to item $id"))
+      _ <- if (canWrite) Success(update(vid, dbo)) else Failure(generalError(s"Can't save to item $id"))
     } yield {
       val outKey = returnKey.getOrElse(dbKey)
       JsObject(Seq(outKey -> w.writes(data)))

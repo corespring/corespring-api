@@ -49,7 +49,7 @@ trait ItemDraftHooks
       json <- Success(transform(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
-      Json.obj("item" -> json)
+      json
     }
   }
 
