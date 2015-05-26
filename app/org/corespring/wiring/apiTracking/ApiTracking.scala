@@ -32,15 +32,15 @@ class ApiTracking(tokenService: TokenService, apiClientService: ApiClientService
   }
 
   def isLoggable(path: String): Boolean = {
-    val v2PlayerRegex = org.corespring.container.client.controllers.apps.routes.Player.load(".*").url.r
     import org.corespring.container.client.controllers.apps.routes._
-    val isV2Player = v2PlayerRegex.findFirstIn(path).isDefined
-    val isV2Editor = Seq(
+    val matchesPaths = Seq(
+      Player.load(".*"),
+      Player.createSessionForItem(".*"),
       DraftEditor.load(".*"),
       DraftDevEditor.load(".*"),
       ItemEditor.load(".*"),
       ItemDevEditor.load(".*")).map(_.url.r).exists { r => r.findFirstIn(path).isDefined }
-    logRequests && (path.contains("api") || isV2Player || isV2Editor)
+    logRequests && (path.contains("api") || matchesPaths)
   }
 
   def handleRequest(r: RequestHeader): Unit = {

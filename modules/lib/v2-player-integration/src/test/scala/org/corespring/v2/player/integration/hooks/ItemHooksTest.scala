@@ -6,6 +6,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.ItemAuth
@@ -73,6 +74,10 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
       }
 
       override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
+
+      def mockItemService = mock[ItemService]
+
+      override def itemService: ItemService = mockItemService
     }
   }
 
@@ -104,7 +109,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers {
 
     extends baseContext[(Int, String), String](authResult = authResult) {
 
-    override def f: Future[Either[(Int, String), String]] = hooks.create(json)(header)
+    override def f: Future[Either[(Int, String), String]] = hooks.createItem(json)(header)
   }
 
   "load" should {

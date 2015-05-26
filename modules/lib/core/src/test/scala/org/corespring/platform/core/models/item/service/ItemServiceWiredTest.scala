@@ -1,7 +1,8 @@
 package org.corespring.platform.core.models.item.service
 
-import com.mongodb.DBObject
-import com.mongodb.casbah.MongoDB
+import com.mongodb.casbah.Imports._
+import com.mongodb.{ WriteResult, WriteConcern, DBCollection, DBObject }
+import com.mongodb.casbah.{ Imports, MongoCollection, MongoDB }
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.models.DeleteResponse
@@ -42,6 +43,50 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
 
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
+  class FakeCollection(n: Int) extends MongoCollection(mock[DBCollection]) {
+
+    var queryObj: BasicDBObject = null
+    var updateObj: BasicDBObject = null
+
+    override def update[A, B](q: A, o: B, upsert: Boolean, multi: Boolean, concern: WriteConcern)(implicit queryView: (A) => Imports.DBObject, objView: (B) => Imports.DBObject, encoder: Imports.DBEncoder): WriteResult = {
+      queryObj = q.asInstanceOf[BasicDBObject]
+      updateObj = o.asInstanceOf[BasicDBObject]
+      mock[WriteResult].getN returns n
+    }
+  }
+
+  class serviceScope(val item: Item) extends Scope {
+
+    val mockS3 = {
+      val m = mock[CorespringS3Service]
+      m.delete(any[String], any[String]) returns mock[DeleteResponse]
+      m
+    }
+
+    val mockCollection = new FakeCollection(1)
+
+    val mockSession = mock[ItemSessionCompanion]
+    val mockDao = {
+      val m = mock[SalatVersioningDao[Item]]
+      m.save(any[Item], any[Boolean]) returns Right(VersionedId(ObjectId.get, Some(0)))
+      m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
+      m.currentCollection returns mockCollection
+      m
+    }
+    val mockIndex = mock[ItemIndexService]
+    val service = new ItemServiceWired(mockS3, mockSession, mockDao, mockIndex)
+  }
+
+  val itemWithFiles: Item = {
+    Item(
+      data = Some(
+        Resource(
+          name = "data",
+          files = Seq(
+            StoredFile("good.png", "image/png", false, "key/good.png"),
+            StoredFile("bad.png", "image/png", false, "key/bad.png")))))
+  }
+
   "save" should {
 
     def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): Result = {
@@ -78,35 +123,6 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
 
     "update the version if no failure occurred when cloning stored files" in {
       assertSaveWithStoredFile("good.png", true)
-    }
-
-    class serviceScope(val item: Item) extends Scope {
-
-      val mockS3 = {
-        val m = mock[CorespringS3Service]
-        m.delete(any[String], any[String]) returns mock[DeleteResponse]
-        m
-      }
-
-      val mockSession = mock[ItemSessionCompanion]
-      val mockDao = {
-        val m = mock[SalatVersioningDao[Item]]
-        m.save(any[Item], any[Boolean]) returns Right(VersionedId(ObjectId.get, Some(0)))
-        m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
-        m
-      }
-      val mockIndex = mock[ItemIndexService]
-      val service = new ItemServiceWired(mockS3, mockSession, mockDao, mockIndex)
-    }
-
-    val itemWithFiles: Item = {
-      Item(
-        data = Some(
-          Resource(
-            name = "data",
-            files = Seq(
-              StoredFile("good.png", "image/png", false, "key/good.png"),
-              StoredFile("bad.png", "image/png", false, "key/bad.png")))))
     }
 
     "call s3.deleteFile for successful copies if another copy failed" in new serviceScope(itemWithFiles) {
@@ -159,6 +175,21 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       service.v2SessionCount(item.id) === 1
       db("v2.itemSessions").remove(MongoDBObject("itemId" -> item.id.toString))
       service.v2SessionCount(item.id) === 0
+    }
+  }
+
+  "addFileToPlayerDefinition" should {
+    "call collection.update with the correct operation and query" in new serviceScope(Item()) {
+
+      import org.corespring.platform.core.models.mongoContext.context
+
+      val file = StoredFile("name.png", "image/png", false)
+      service.addFileToPlayerDefinition(item, file)
+      val expectedQuery = MongoDBObject("_id._id" -> item.id.id)
+      mockCollection.queryObj === expectedQuery
+      val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+      val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> fileDbo))
+      mockCollection.updateObj === expectedUpdate
     }
   }
 }
