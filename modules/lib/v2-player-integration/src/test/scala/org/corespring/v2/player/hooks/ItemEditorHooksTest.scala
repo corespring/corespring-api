@@ -20,7 +20,6 @@ import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.Play
 import play.api.libs.iteratee.{ Input, Step, Iteratee }
 import play.api.libs.json.{ Json, JsValue }
 import play.api.mvc._
@@ -195,7 +194,6 @@ class ItemEditorHooksTest extends Specification with Mockito with MockFactory wi
       val i: Iteratee[Array[Byte], Either[SimpleResult, Future[UploadResult]]] = bp(r)
       val result: Either[SimpleResult, Future[UploadResult]] = waitFor(i.run)
       val uploadResult = waitFor(result.right.get)
-      println(uploadResult)
       val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
       there was one(mockItemService).addFileToPlayerDefinition(mockItem, file)
     }
