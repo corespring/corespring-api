@@ -16,6 +16,7 @@ import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexSer
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
+import org.corespring.test.fakes.Fakes
 import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
@@ -43,18 +44,6 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
 
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
-  class FakeCollection(n: Int) extends MongoCollection(mock[DBCollection]) {
-
-    var queryObj: BasicDBObject = null
-    var updateObj: BasicDBObject = null
-
-    override def update[A, B](q: A, o: B, upsert: Boolean, multi: Boolean, concern: WriteConcern)(implicit queryView: (A) => Imports.DBObject, objView: (B) => Imports.DBObject, encoder: Imports.DBEncoder): WriteResult = {
-      queryObj = q.asInstanceOf[BasicDBObject]
-      updateObj = o.asInstanceOf[BasicDBObject]
-      mock[WriteResult].getN returns n
-    }
-  }
-
   class serviceScope(val item: Item) extends Scope {
 
     val mockS3 = {
@@ -63,7 +52,7 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       m
     }
 
-    val mockCollection = new FakeCollection(1)
+    val mockCollection = new Fakes.MongoCollection(1)
 
     val mockSession = mock[ItemSessionCompanion]
     val mockDao = {

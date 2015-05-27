@@ -12,6 +12,7 @@ import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
+import org.corespring.test.fakes.Fakes
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, PlayerAccessSettings, OrgAndOpts }
@@ -172,17 +173,6 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
     val orgAndOptsForSpec = mockOrgAndOpts(AuthMode.AccessToken)
 
-    class FakeCollection(n: Int) extends MongoCollection(mock[DBCollection]) {
-      var queryObj: BasicDBObject = null
-      var updateObj: BasicDBObject = null
-
-      override def update[A, B](q: A, o: B, upsert: Boolean, multi: Boolean, concern: WriteConcern)(implicit queryView: (A) => Imports.DBObject, objView: (B) => Imports.DBObject, encoder: Imports.DBEncoder): WriteResult = {
-        queryObj = q.asInstanceOf[BasicDBObject]
-        updateObj = o.asInstanceOf[BasicDBObject]
-        mock[WriteResult].getN returns n
-      }
-    }
-
     class baseScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
       extends Scope
       with ItemHooks {
@@ -194,7 +184,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
         o
       }
 
-      lazy val fakeCollection = new FakeCollection(1)
+      lazy val fakeCollection = new Fakes.MongoCollection(1)
 
       lazy val mockItemService = {
         val m = mock[ItemService]
