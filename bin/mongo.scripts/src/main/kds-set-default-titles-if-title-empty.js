@@ -6,6 +6,8 @@
 //the db, the credentials and the script are set in the parameters to mongo like so
 //$ mongo ds035160-a0.mongolab.com:35160/corespring-staging -u corespring -p xxxxxxxx kds-set-default-titles-if-title-empty.js
 
+//see comments at the bottom if you want to run this
+
 /* global db */
 
 function KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate, appendAuto) {
@@ -143,9 +145,9 @@ function KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate, appendAuto) {
 
 //uncomment in mongo shell to run the script
 /*
-var doUpdate;   //set to true, if you want to write updates to the db
-var appendAuto; //set to true, to mark updated values with #auto#. Auto-updated values can be updated multiple times.
-var processor = new KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate=false, appendAuto=true);
-processor.main();
-*/
-
+ var doUpdate;   //set to true, if you want to write updates to the db
+ var appendAuto; //set to true, to mark updated values with #auto#. Auto-updated values can be updated multiple times.
+                 //remove the #auto# markers by setting appendAuto to false, once you are happy with the changes
+ var processor = new KdsSetDefaultTitlesIfTitleEmpty(db, doUpdate=false, appendAuto=true);
+ processor.main();
+ */
