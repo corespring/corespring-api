@@ -33,14 +33,14 @@
     $scope.devEditorVisible = false;
 
     var normalEditor = [
-      '/v2/player/editor/',
+      '/v2/player/draft/editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
     ].join('');
 
     var devEditor = [
-      '/v2/player/dev-editor/',
+      '/v2/player/draft/dev-editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
