@@ -131,14 +131,14 @@ class ItemTest extends BaseTest {
 
     "parse subjects with primary and related" in {
       val dbSubject = Subject.findOne(new BasicDBObject())
-      val subject = core.models.item.Subjects(primary = Some(dbSubject.get.id), related = Some(dbSubject.get.id))
+      val subject = core.models.item.Subjects(primary = Some(dbSubject.get.id), related = Seq(dbSubject.get.id))
 
       //The json that is submittted to be read is different from the db json
       val jsonToRead = JsObject(
         Seq(
           Keys.id -> JsString(new ObjectId().toString),
           Keys.primarySubject -> JsString(subject.primary.get.toString),
-          Keys.relatedSubject -> JsString(subject.related.get.toString)))
+          Keys.relatedSubject -> JsString(subject.related(0).toString)))
 
       val parsed = jsonToRead.as[Item]
 

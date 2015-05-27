@@ -58,6 +58,13 @@ trait ItemToSummaryData {
       case _ => None
     }
 
+    def subjectsToJson(subjects: Seq[ObjectId]): Option[JsArray] = Some(JsArray(
+      subjects.map(id => Subject.findOneById(id) match {
+        case Some(subj) => Json.toJson(subj)
+        case _ => throw new RuntimeException("Can't find subject with id: " + id)
+      }))
+    )
+
     val primaryJson: Option[JsObject] = for {
       info <- item.taskInfo
       subjects <- info.subjects
@@ -67,7 +74,7 @@ trait ItemToSummaryData {
     val relatedJson: Option[JsObject] = for {
       info <- item.taskInfo
       subjects <- info.subjects
-      json <- subjectToJson(subjects.related)
+      json <- subjectsToJson(subjects.related)
     } yield Json.obj("relatedSubject" -> json)
 
     primaryJson.getOrElse(Json.obj()) ++ relatedJson.getOrElse(Json.obj())
