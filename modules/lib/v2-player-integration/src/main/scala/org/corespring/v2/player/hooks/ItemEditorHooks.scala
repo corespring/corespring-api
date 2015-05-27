@@ -105,8 +105,8 @@ trait ItemEditorHooks
 
     playS3.s3ObjectAndData[Item](bucket, i => S3Paths.itemFile(i.id, path))(loadItemPredicate).map { f =>
       f.map { tuple =>
-        val (s3Object, draft) = tuple
-        addFileToData(draft, s3Object.getKey)
+        val (s3Object, item) = tuple
+        addFileToData(item, s3Object.getKey)
         UploadResult(s3Object.getKey)
       }
     }
