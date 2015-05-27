@@ -96,7 +96,7 @@ trait ItemHooks
   }
 
   override def saveComponents(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
-    updateDb[JsValue](id, "playerDefinition.supportingMaterials", json, Some("supportingMaterials"))
+    updateDb[JsValue](id, "playerDefinition.components", json, Some("components"))
   }
 
   override def saveSummaryFeedback(id: String, feedback: String)(implicit h: RequestHeader): R[JsValue] = Future {
