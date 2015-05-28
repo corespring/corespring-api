@@ -55,7 +55,7 @@ object Subjects extends ValueGetter {
 
       try {
         val primarySubjectObjectId = (json \ primarySubject).asOpt[String].map(new ObjectId(_))
-        val relatedSubjectObjectIds = (json \ relatedSubject).as[Seq[String]].map(new ObjectId(_))
+        val relatedSubjectObjectIds = (json \ relatedSubject).asOpt[Seq[String]].getOrElse(Seq()).map(new ObjectId(_))
         val subject = Subjects(primarySubjectObjectId, relatedSubjectObjectIds)
         JsSuccess(subject)
       } catch {
