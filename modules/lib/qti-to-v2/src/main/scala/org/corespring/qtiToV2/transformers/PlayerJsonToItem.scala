@@ -69,12 +69,15 @@ object PlayerJsonToItem {
         title = (infoJson \ "title").asOpt[String].orElse(info.title))
     }
 
-  def subjects(taskInfoJson: JsValue): Option[Subjects] =
+  def subjects(taskInfoJson: JsValue): Option[Subjects] = {
     (taskInfoJson \ "subjects").asOpt[JsValue].map { subjects =>
       Subjects(
         primary = (subjects \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
-        related = (subjects \ "related" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)))
+        related = (subjects \ "related" \\ "id").map(_.as[String]).filter(ObjectId.isValid(_)).map(new ObjectId(_))
+      )
+
     }
+  }
 
   def contributorDetails(profileJson: JsValue): Option[ContributorDetails] =
     (profileJson \ "contributorDetails").asOpt[JsValue].map { details =>
