@@ -1,6 +1,9 @@
 /*
-   Some items appear to have components data but no related entry in the xhtml. This makes the outcome processor fail.
-   The script finds these items, and removes the components that do not have an entry in xhtml.
+   Some items appear to have components-data but no related entry in the xhtml. This makes the
+   outcome processor fail.
+
+   The script finds these items, and removes the component-data, which do not have a related
+   entry in xhtml.
 
    Ed: The error is happening because the item components model has a component definition with
    id of: 'graphTest', but the session on which it's trying to generate an outcome doesn't have
@@ -10,7 +13,7 @@
    to create an outcome from, and return an empty object instead
 */
 
-function RemoveStaleComponents(doUpdate){
+function RemoveStaleComponents(contentCollection, doUpdate){
 
   this.main = main;
 
@@ -27,7 +30,7 @@ function RemoveStaleComponents(doUpdate){
       }
       var updatedComponents = copyExistingComps(item.playerDefinition.components, existingComps);
       if(doUpdate) {
-        db.content.update(
+        contentCollection.update(
           {_id: item._id},
           {$set: {"playerDefinition.components":updatedComponents}}
         );
@@ -59,7 +62,7 @@ function RemoveStaleComponents(doUpdate){
    * @returns {*}
    */
   function getItems(){
-    return db.content.find({"_id._id": {$in: [
+    return contentCollection.find({"_id._id": {$in: [
       ObjectId("54cbdedbe4b02b2108ad0618"),
       ObjectId("54cbd8ade4b0efb5ed20f2d0"),
       ObjectId("545e3874e4b02ad5cbabb765"),
@@ -107,4 +110,6 @@ function RemoveStaleComponents(doUpdate){
   }
 }
 
-new RemoveStaleComponents(true).main();
+//
+var doUpdate = false; //set to true to write updates back to db
+new RemoveStaleComponents(db.versioned_content, doUpdate).main();
