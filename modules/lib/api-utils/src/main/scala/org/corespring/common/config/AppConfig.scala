@@ -11,7 +11,7 @@ class AppConfig(config: Configuration) {
   protected object Key extends Enumeration {
     type Key = Value
     val DEMO_ORG_ID, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, AMAZON_ACCESS_SECRET, AMAZON_ACCESS_KEY, AMAZON_ASSETS_BUCKET,
-        ELASTIC_SEARCH_URL = Value
+        ELASTIC_SEARCH_URL, ALLOW_ALL_SESSIONS = Value
   }
 
   private implicit def keyToString(k: Key.Key): String = k.toString
@@ -24,6 +24,7 @@ class AppConfig(config: Configuration) {
   lazy val v2playerOrgIds: Seq[ObjectId] = config.getString(Key.V2_PLAYER_ORG_IDS)
     .map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
   lazy val elasticSearchUrl: URL = new URL(config.getString(Key.ELASTIC_SEARCH_URL).getOrElse("?"))
+  lazy val allowAllSessions: Boolean = config.getBoolean(Key.ALLOW_ALL_SESSIONS).getOrElse(false)
 }
 
 object AppConfig extends AppConfig(play.api.Play.current.configuration)

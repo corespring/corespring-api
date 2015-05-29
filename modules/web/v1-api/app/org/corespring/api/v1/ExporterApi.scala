@@ -5,7 +5,7 @@ import org.corespring.common.encryption.{ AESCrypto, Crypto }
 import org.corespring.common.url.BaseUrl
 import org.corespring.lti.export.CCExporter
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionSuccess, OrgEncrypter }
+import org.corespring.platform.core.encryption.{ApiClientEncrypter, EncryptionFailure, EncryptionSuccess}
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.{ Content, Item }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
@@ -28,9 +28,9 @@ class ExporterApi(encrypter: Crypto, service: ItemService) extends BaseApi {
     request =>
 
       logger.debug("Encrypt for org: " + request.ctx.org.map(_.name).getOrElse("??"))
-      val orgEncrypter = new OrgEncrypter(encrypter)
+      val apiClientEncrypter = new ApiClientEncrypter(encrypter)
       val options: RenderOptions = RenderOptions.ANYTHING
-      val maybeResult = orgEncrypter.encrypt(request.ctx.organization, Json.toJson(options).toString())
+      val maybeResult = apiClientEncrypter.encryptByOrg(request.ctx.organization, Json.toJson(options).toString())
 
       maybeResult match {
         case Some(EncryptionSuccess(clientId, data, _)) => {

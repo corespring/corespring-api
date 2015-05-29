@@ -68,7 +68,8 @@ object AppWiring {
     services.secureSocialService,
     services.orgService,
     services.tokenService,
-    services.orgEncryptionService,
+    services.apiClientEncryptionService,
+
     Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
 
   /**
