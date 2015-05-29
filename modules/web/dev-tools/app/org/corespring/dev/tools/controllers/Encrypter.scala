@@ -18,7 +18,7 @@ object Encrypter extends Controller {
 
   def encrypt(orgId: String) = DevToolsAction { request =>
 
-    val encrypter = new OrgEncrypter(AESCrypto)
+    val encrypter = OrgEncrypter(AESCrypto)
 
     if (ApiClient.findOneByOrgId(new ObjectId(orgId)).isEmpty) {
       println("need to create an api client for org")

@@ -21,9 +21,14 @@ class OrgEncrypter(apiClientEncryptionService: ApiClientEncryptionService) exten
   override def encrypt(orgId: ObjectId, s: String): Option[EncryptionResult] =
     ApiClient.findOneByOrgId(orgId).map(apiClientEncryptionService.encrypt(_, s)).flatten
 
-  /** This is unsafe **/
+  @deprecated("Please use apiClientId with ApiClientEncrypter, as this may not find the correct api client")
   override def decrypt(orgId: ObjectId, s: String): Option[String] =
     ApiClient.findOneByOrgId(orgId).map(apiClientEncryptionService.decrypt(_, s)).flatten
 
 }
 
+object OrgEncrypter {
+
+  def apply(encrypter: Crypto) = new OrgEncrypter(new ApiClientEncrypter(encrypter))
+
+}

@@ -11,7 +11,7 @@ import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAsse
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.{ OrgEncrypter, OrgEncryptionService }
+import org.corespring.platform.core.encryption.{ApiClientEncrypter, ApiClientEncryptionService, OrgEncrypter, OrgEncryptionService}
 import org.corespring.platform.core.models.{ContentCollection, Organization}
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.PlayerDefinition
@@ -124,8 +124,10 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
   }
 
+  lazy val apiClientEncryptionService: ApiClientEncryptionService = new ApiClientEncrypter(AESCrypto)
+
   lazy val orgEncryptionService: OrgEncryptionService = {
-    val basicEncrypter = new OrgEncrypter(AESCrypto)
+    val basicEncrypter = new OrgEncrypter(apiClientEncryptionService)
 
     if (cacheConfig.getBoolean("OrgEncryptionService.enabled").getOrElse(false)) {
       logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")

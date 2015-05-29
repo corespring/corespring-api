@@ -91,7 +91,7 @@ class V2ApiBootstrap(
   }
 
   lazy val playerTokenService = new PlayerTokenService {
-    override def encrypter: OrgEncrypter = new OrgEncrypter(AESCrypto)
+    override def encrypter: OrgEncrypter = OrgEncrypter(AESCrypto)
   }
 
   lazy val playerTokenApi = new PlayerTokenApi {
