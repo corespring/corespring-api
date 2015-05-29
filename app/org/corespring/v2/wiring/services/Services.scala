@@ -11,7 +11,7 @@ import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAsse
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.{ApiClientEncrypter, ApiClientEncryptionService, OrgEncrypter, OrgEncryptionService}
+import org.corespring.platform.core.encryption.{ApiClientEncrypter, ApiClientEncryptionService}
 import org.corespring.platform.core.models.{ContentCollection, Organization}
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.PlayerDefinition
@@ -21,7 +21,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.V2ApiServices
 import org.corespring.v2.auth._
-import org.corespring.v2.auth.encryption.CachingOrgEncryptionService
+import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
 import org.corespring.v2.auth.services.{ContentCollectionService, OrgService, TokenService}
@@ -124,18 +124,16 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def org(id: ObjectId): Option[Organization] = Organization.findOneById(id)
   }
 
-  lazy val apiClientEncryptionService: ApiClientEncryptionService = new ApiClientEncrypter(AESCrypto)
+  lazy val apiClientEncryptionService: ApiClientEncryptionService = {
+    val basicEncrypter = new ApiClientEncrypter(AESCrypto)
 
-  lazy val orgEncryptionService: OrgEncryptionService = {
-    val basicEncrypter = new OrgEncrypter(apiClientEncryptionService)
-
-    if (cacheConfig.getBoolean("OrgEncryptionService.enabled").getOrElse(false)) {
-      logger.debug(s"orgEncryptionService - using cached OrgEncryptionService")
+    if (cacheConfig.getBoolean("ApiClientEncryptionService.enabled").getOrElse(false)) {
+      logger.debug(s"orgEncryptionService - using cached ApiClientEncryptionService")
       import scala.concurrent.duration._
-      val ttl = cacheConfig.getInt("OrgEncryptionService.ttl-in-minutes").getOrElse(10)
-      new CachingOrgEncryptionService(basicEncrypter, ttl.minutes)
+      val ttl = cacheConfig.getInt("ApiClientEncryptionService.ttl-in-minutes").getOrElse(10)
+      new CachingApiClientEncryptionService(basicEncrypter, ttl.minutes)
     } else {
-      logger.debug(s"orgEncryptionService - using non caching OrgEncryptionService")
+      logger.debug(s"apiClientEncryptionService - using non caching ApiClientEncryptionService")
       basicEncrypter
     }
   }

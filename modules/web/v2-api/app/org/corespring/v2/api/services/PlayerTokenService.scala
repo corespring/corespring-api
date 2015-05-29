@@ -1,7 +1,7 @@
 package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption.{ EncryptionResult, EncryptionSuccess, EncryptionFailure, OrgEncrypter }
+import org.corespring.platform.core.encryption._
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ encryptionFailed, missingRequiredField }
 import org.corespring.v2.errors.{ V2Error, Field }
@@ -17,11 +17,12 @@ trait PlayerTokenService {
 
   private lazy val logger = V2LoggerFactory.getLogger("PlayerTokenService")
 
-  def encrypter: OrgEncrypter
+  def encrypter: ApiClientEncrypter
 
   def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
     accessSettings <- toAccessSettings(json)
-    encryptionResult <- encrypter.encrypt(orgId, Json.stringify(Json.toJson(accessSettings))).toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
+    encryptionResult <- encrypter.encryptByOrg(orgId, Json.stringify(Json.toJson(accessSettings)))
+      .toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
     clientIdAndToken <- encryptionToValidation(encryptionResult)
   } yield {
     CreateTokenResult(clientIdAndToken._1, clientIdAndToken._2, Json.toJson(accessSettings))
@@ -40,7 +41,8 @@ trait PlayerTokenService {
     }
   }
 
-  private def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
+  private def toAccessSettings(json: JsValue):
+      Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
     case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
     case JsSuccess(o, _) => Success(o)
   }

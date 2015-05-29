@@ -21,11 +21,12 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
 
   def encryptOptions = ApiAction {
     request =>
-      val orgEncrypter = OrgEncrypter(encrypter)
+      val apiClientEncrypter = new ApiClientEncrypter(encrypter)
       val result: Validation[String, EncryptionResult] = for {
         json <- request.body.asJson.toSuccess("No json in the request body")
         validJson <- if (validJson(json)) Success(json) else Failure("Not valid json")
-        encryptionResult <- orgEncrypter.encrypt(request.ctx.organization, validJson.toString()).toSuccess("No encryption created")
+        encryptionResult <- apiClientEncrypter.encryptByOrg(request.ctx.organization, validJson.toString())
+            .toSuccess("No encryption created")
       } yield {
         encryptionResult
       }

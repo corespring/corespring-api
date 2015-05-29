@@ -1,5 +1,6 @@
 package org.corespring.platform.core.encryption
 
+import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
 import org.corespring.platform.core.models.auth.ApiClient
 import play.api.Logger
@@ -10,6 +11,9 @@ trait ApiClientEncryptionService {
 
   def decrypt(apiClientId: String, s: String): Option[String]
   def decrypt(apiCilent: ApiClient, s: String): Option[String]
+
+  def encryptByOrg(orgId: ObjectId, s: String): Option[EncryptionResult]
+
 }
 
 class ApiClientEncrypter(encrypter: Crypto) extends ApiClientEncryptionService {
@@ -46,5 +50,11 @@ class ApiClientEncrypter(encrypter: Crypto) extends ApiClientEncryptionService {
       }
     }
   }
+
+  /**
+   * We should stop using this method. It is dangerous because there is no guarantee of what API client will be used.
+   */
+  override def encryptByOrg(orgId: ObjectId, s: String) = randomApiClientForOrg(orgId).map(encrypt(_, s)).flatten
+  private def randomApiClientForOrg(orgId: ObjectId) = ApiClient.findOneByOrgId(orgId)
 
 }
