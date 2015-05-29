@@ -6,7 +6,7 @@ import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.models.{OrgAndUser, SimpleOrg, SimpleUser}
 import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{OrgEncrypter, OrgEncryptionService}
+import org.corespring.platform.core.encryption.{ApiClientEncryptionService, ApiClientEncrypter}
 import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -38,7 +38,7 @@ trait V2ApiServices {
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def tokenService: TokenService
-  def orgEncryptionService: OrgEncryptionService
+  def apiClientEncryptionService: ApiClientEncryptionService
   def draftsBackend: ItemDrafts
   def itemCommitService: CommitService
 }
@@ -91,7 +91,7 @@ class V2ApiBootstrap(
   }
 
   lazy val playerTokenService = new PlayerTokenService {
-    override def encrypter: OrgEncrypter = new OrgEncrypter(AESCrypto)
+    override def encrypter: ApiClientEncrypter = new ApiClientEncrypter(AESCrypto)
   }
 
   lazy val playerTokenApi = new PlayerTokenApi {
@@ -129,7 +129,7 @@ class V2ApiBootstrap(
 
     override def tokenService: TokenService = services.tokenService
 
-    override def orgEncryptionService: OrgEncryptionService = services.orgEncryptionService
+    override def apiClientEncryptionService: ApiClientEncryptionService = services.apiClientEncryptionService
   }
 
 

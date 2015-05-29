@@ -2,7 +2,7 @@ package org.corespring.v2.wiring.auth
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.OrgEncryptionService
+import org.corespring.platform.core.encryption.ApiClientEncryptionService
 import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.services._
@@ -24,7 +24,7 @@ class RequestIdentifiers(
   secureSocialService: SecureSocialService,
   orgService: OrgService,
   tokenService: TokenService,
-  orgEncryptionService: OrgEncryptionService,
+  apiClientEncryptionService: ApiClientEncryptionService,
   isDevToolsEnabled: Boolean = false) {
 
   lazy val userSession = new UserSessionOrgIdentity[OrgAndOpts] {
@@ -71,11 +71,11 @@ class RequestIdentifiers(
       enabled
     }
 
-    override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] =
+    override def decrypt(encrypted: String, apiClient: String, header: RequestHeader): Option[String] =
       if (!encryptionEnabled(header)) {
         Some(encrypted)
       } else {
-        orgEncryptionService.decrypt(orgId, encrypted)
+        apiClientEncryptionService.decrypt(apiClient, encrypted)
       }
   }
 
