@@ -112,4 +112,5 @@ function RemoveStaleComponents(contentCollection, doUpdate){
 
 //
 var doUpdate = false; //set to true to write updates back to db
+//new RemoveStaleComponents(db.content, doUpdate).main();
 new RemoveStaleComponents(db.versioned_content, doUpdate).main();
