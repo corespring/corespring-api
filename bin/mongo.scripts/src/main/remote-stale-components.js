@@ -1,6 +1,13 @@
 /*
    Some items appear to have components data but no related entry in the xhtml. This makes the outcome processor fail.
    The script finds these items, and removes the components that do not have an entry in xhtml.
+
+   Ed: The error is happening because the item components model has a component definition with
+   id of: 'graphTest', but the session on which it's trying to generate an outcome doesn't have
+   an answer for 'graphTest'
+   https://gist.github.com/edeustace/b9d76a2df03d7a596de4
+   So - we'll need to update the outcome processor to skip components that don't have an answer
+   to create an outcome from, and return an empty object instead
 */
 
 function RemoveStaleComponents(doUpdate){
