@@ -55,6 +55,6 @@ class ApiClientEncrypter(encrypter: Crypto) extends ApiClientEncryptionService {
    * We should stop using this method. It is dangerous because there is no guarantee of what API client will be used.
    */
   override def encryptByOrg(orgId: ObjectId, s: String) = randomApiClientForOrg(orgId).map(encrypt(_, s)).flatten
-  private def randomApiClientForOrg(orgId: ObjectId) = ApiClient.findOneByOrgId(orgId)
+  protected def randomApiClientForOrg(orgId: ObjectId) = ApiClient.findOneByOrgId(orgId)
 
 }
