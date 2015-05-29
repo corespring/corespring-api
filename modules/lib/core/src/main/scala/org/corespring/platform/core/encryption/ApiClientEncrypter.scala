@@ -14,7 +14,7 @@ trait ApiClientEncryptionService {
 
 class ApiClientEncrypter(encrypter: Crypto) extends ApiClientEncryptionService {
 
-  private val logger = Logger(classOf[ApiClientEncrypter])
+  val logger = Logger(classOf[ApiClientEncrypter])
 
   override def encrypt(apiClientId: String, s: String): Option[EncryptionResult] =
     ApiClient.findByKey(apiClientId).map(encrypt(_, s)).flatten
@@ -34,9 +34,17 @@ class ApiClientEncrypter(encrypter: Crypto) extends ApiClientEncryptionService {
 
   override def decrypt(apiCilent: ApiClient, s: String): Option[String] = {
     logger.debug(s"[ApiClientEncrypter] decrypt: $s with secret: ${apiCilent.clientSecret}")
-    val out = encrypter.decrypt(s, apiCilent.clientSecret)
-    logger.trace(s"[ApiClientEncrypter] result: $out")
-    Some(out)
+    try {
+      val out = encrypter.decrypt(s, apiCilent.clientSecret)
+      logger.trace(s"[ApiClientEncrypter] result: $out")
+      Some(out)
+    } catch {
+      case e: Exception => {
+        val message: String = e.getMessage()
+        logger.error(message)
+        None
+      }
+    }
   }
 
 }
