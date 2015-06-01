@@ -1,13 +1,18 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
+import org.corespring.platform.core.encryption.{EncryptionResult, EncryptionSuccess, ApiClientEncrypter}
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError, sessionDoesNotContainResponses }
+import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
@@ -22,8 +27,8 @@ trait ItemSessionApi extends V2Api {
   private lazy val logger = V2LoggerFactory.getLogger("ItemSessionApi")
 
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
-
   def scoreService: ScoreService
+  def orgService: OrgService
 
   /**
    * A session has been created for an item with the given item id.
@@ -137,6 +142,55 @@ trait ItemSessionApi extends V2Api {
 
       validationToResult[JsValue](j => Ok(j))(out)
     }
+  }
+
+  def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    val options = Json.obj(
+      "sessionId" -> "*",
+      "itemId" -> "*",
+      "mode" -> "gather",
+      "expires" -> 0,
+      "secure" -> false
+    )
+
+    val encrypter = new ApiClientEncrypter(AESCrypto)
+
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgAndOptions(request)
+        sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
+        apiClient <- ApiClient.findOneByOrgId(identity.org.id).toSuccess(noOrgIdAndOptions(request))
+        options <- encrypter.encrypt(apiClient, options.toString).toSuccess(noOrgIdAndOptions(request))
+        session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
+          .map{ case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
+      } yield session
+
+      validationToResult[JsValue](Created(_))(out)
+    }
+  }
+
+
+  private def withOrg(jsValue: JsValue) = jsValue match {
+    case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
+      .map(orgId => orgService.org(new ObjectId(orgId))).flatten match {
+        case Some(org) => jsObject ++ Json.obj("organization" -> org.name)
+        case _ => jsValue
+      }
+    case _ =>jsValue
+  }
+
+  private def withOptions(jsValue: JsValue, result: EncryptionResult) = result match {
+    case success: EncryptionSuccess => jsValue match {
+      case jsObject: JsObject => jsObject ++
+        Json.obj("options" -> success.data)
+      case _ => jsValue
+    }
+    case _ => jsValue
+  }
+
+  private def withApiClient(jsValue: JsValue, apiClient: ApiClient) = jsValue match {
+    case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
+    case _ => jsValue
   }
 
 }
