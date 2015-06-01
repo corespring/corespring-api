@@ -30,7 +30,7 @@ class PlayerTokenApiTest extends IntegrationSpecification {
       val jsonResult = PlayerAccessSettings.permissiveRead(Json.obj("expires" -> 0))
       val settings = Json.stringify(Json.toJson(jsonResult.asOpt.get))
       val code = (json \ "playerToken").as[String]
-      val decrypted = encrypter.decrypt(orgId, code)
+      val decrypted = encrypter.decrypt(apiClient, code)
       decrypted === Some(settings)
     }
 
