@@ -39,7 +39,7 @@ class AccessSettingsWildcardCheck(appConfig: AppConfig) {
           logger.trace(s"itemId? $itemId -> ${settings.allowItemId(itemId)}")
           sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}")}
           logger.trace(s"allowMode? $mode -> ${settings.allowMode(mode)}")
-          Failure(AccessSettingsWildcardCheck.notGrantedError(itemId, sessionId, settings))
+          Failure(notGrantedError(itemId, sessionId, settings))
         }
       }
       result
