@@ -128,7 +128,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     val basicEncrypter = new ApiClientEncrypter(AESCrypto)
 
     if (cacheConfig.getBoolean("ApiClientEncryptionService.enabled").getOrElse(false)) {
-      logger.debug(s"orgEncryptionService - using cached ApiClientEncryptionService")
+      logger.debug(s"apiClientEncryptionService - using cached ApiClientEncryptionService")
       import scala.concurrent.duration._
       val ttl = cacheConfig.getInt("ApiClientEncryptionService.ttl-in-minutes").getOrElse(10)
       new CachingApiClientEncryptionService(basicEncrypter, ttl.minutes)
