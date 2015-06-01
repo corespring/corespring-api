@@ -31,6 +31,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
     }
 
     encrypter.encrypt(data, apiClient.clientSecret).returns(encryptedData)
+    encrypter.encrypt(data, randomApiClient.clientSecret).returns(encryptedData)
     encrypter.decrypt(encryptedData, apiClient.clientSecret).returns(data)
     encrypter.decrypt(encryptedData, badClient.clientSecret).throws(new RuntimeException(errorMessage))
   }
