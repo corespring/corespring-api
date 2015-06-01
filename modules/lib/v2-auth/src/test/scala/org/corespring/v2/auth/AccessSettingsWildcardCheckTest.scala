@@ -10,13 +10,13 @@ import scalaz.{ Failure, Success }
 
 class AccessSettingsWildcardCheckTest extends Specification with Mockito {
 
-  import AccessSettingsWildcardCheck.notGrantedError
-
   val config = mock[Configuration]
   config.getString(anyString, any) returns Some("test")
   config.getBoolean(anyString) returns Some(false)
+
   val appConfig = new AppConfig(config)
   val check = new AccessSettingsWildcardCheck(appConfig)
+
   val allow = check.allow _
   val notGrantedError = check.notGrantedError _
 
