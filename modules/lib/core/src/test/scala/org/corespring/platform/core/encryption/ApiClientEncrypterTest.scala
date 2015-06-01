@@ -86,7 +86,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
 
     "call apiClientEncrypter.encrypt with random api client secret" in new WithEncrypter {
       apiClientEncrypter.encryptByOrg(orgId, data)
-      there was one(apiClientEncrypter).encrypt(encryptedData, randomApiClient.clientSecret)
+      there was one(encrypter).encrypt(data, randomApiClient.clientSecret)
     }
 
   }
