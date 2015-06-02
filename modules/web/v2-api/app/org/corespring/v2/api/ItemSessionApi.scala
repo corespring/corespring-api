@@ -144,6 +144,12 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
+  /**
+   * Clones a session into the preview session so that it may be used for troubleshooting purposes. This API call may
+   * only be called by an organization which has access to the session, and returns an api client, encrypted options,
+   * the owner organization name, and a cloned session id. These returned parameters allow for a fully-executable clone
+   * of the original session.
+   */
   def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
     val encrypter = new ApiClientEncrypter(AESCrypto)
 
