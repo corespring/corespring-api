@@ -198,7 +198,6 @@ object Build extends sbt.Build {
     .dependsOn(
       v2Auth % "test->test;compile->compile",
       qtiToV2,
-      commonViews,
       v1Api,
       core % "test->test;compile->compile",
       draftsApi)
