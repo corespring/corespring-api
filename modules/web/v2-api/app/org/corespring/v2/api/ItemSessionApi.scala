@@ -145,14 +145,6 @@ trait ItemSessionApi extends V2Api {
   }
 
   def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-    val options = Json.obj(
-      "sessionId" -> "*",
-      "itemId" -> "*",
-      "mode" -> "gather",
-      "expires" -> 0,
-      "secure" -> false
-    )
-
     val encrypter = new ApiClientEncrypter(AESCrypto)
 
     Future {
@@ -160,7 +152,7 @@ trait ItemSessionApi extends V2Api {
         identity <- getOrgAndOptions(request)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
         apiClient <- ApiClient.findOneByOrgId(identity.org.id).toSuccess(noOrgIdAndOptions(request))
-        options <- encrypter.encrypt(apiClient, options.toString).toSuccess(noOrgIdAndOptions(request))
+        options <- encrypter.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map{ case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
       } yield session
@@ -192,5 +184,17 @@ trait ItemSessionApi extends V2Api {
     case jsObject: JsObject => jsObject ++ Json.obj("apiClient" -> apiClient.clientId.toString)
     case _ => jsValue
   }
+
+}
+
+object ItemSessionApi {
+
+  val clonedSessionOptions = Json.obj(
+    "sessionId" -> "*",
+    "itemId" -> "*",
+    "mode" -> "gather",
+    "expires" -> 0,
+    "secure" -> false
+  )
 
 }
