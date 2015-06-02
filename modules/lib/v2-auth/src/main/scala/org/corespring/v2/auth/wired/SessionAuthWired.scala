@@ -65,7 +65,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     } yield {
       /** if the session contains the data - we need to trim it so it doesn't reach the client */
       val cleanedSession = withIdentity match {
-        case true => json.as[JsObject] - "item"
+        case true => json.as[JsObject]
         case _ => json.as[JsObject] - "item" - "identity"
       }
       (cleanedSession, playerDef)

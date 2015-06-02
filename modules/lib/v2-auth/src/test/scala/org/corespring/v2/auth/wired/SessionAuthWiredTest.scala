@@ -174,6 +174,25 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         there was one(auth.mainSessionService).create(Json.obj("identity" -> IdentityJson(optsIn)))
       }
     }
+
+    "loadWithIdentity" should {
+      val identity = Json.obj("this" -> "is", "my" -> "identity")
+
+      "provides identity in response" in new authScope(session = Some(
+        Json.obj("item" -> Json.obj(
+          "xhtml" -> "<h1>Hello World</h1>",
+          "identity" -> identity
+          ),
+          "components" -> Json.obj()))) {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.loadWithIdentity("")(optsIn) match {
+          case Success((result, _)) => (result \ "item" \ "identity") must be equalTo(identity)
+          case _ => failure("nope nope")
+        }
+      }
+    }
+
   }
+
 
 }

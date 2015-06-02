@@ -6,6 +6,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
+import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors.{ errorSaving, generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -54,6 +55,8 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
         m
       }
+
+      override def orgService: OrgService = ???
     }
   }
 
