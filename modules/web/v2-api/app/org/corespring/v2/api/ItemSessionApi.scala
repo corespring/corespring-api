@@ -157,7 +157,7 @@ trait ItemSessionApi extends V2Api {
       val out: Validation[V2Error, JsValue] = for {
         identity <- getOrgAndOptions(request)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
-        apiClient <- ApiClient.findOneByOrgId(identity.org.id).toSuccess(noOrgIdAndOptions(request))
+        apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
         options <- encrypter.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map{ case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
@@ -167,6 +167,7 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
+  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
 
   private def withOrg(jsValue: JsValue) = jsValue match {
     case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
