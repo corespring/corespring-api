@@ -109,7 +109,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        Some((contentAsJson(result) \ "apiClient").as[String]) must be equalTo(apiClient.map(_.clientId.toString))
+        Option((contentAsJson(result) \ "apiClient").as[String]) must be equalTo(apiClient.map(_.clientId.toString))
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(
