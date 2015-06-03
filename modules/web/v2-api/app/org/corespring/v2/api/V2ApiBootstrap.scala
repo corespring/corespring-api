@@ -9,6 +9,7 @@ import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ItemType, Item, PlayerDefinition}
 import org.corespring.platform.core.encryption.{ApiClientEncryptionService, ApiClientEncrypter}
 import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
+import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.services.{PlayerTokenService, _}
@@ -91,6 +92,8 @@ class V2ApiBootstrap(
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = services.sessionAuth
 
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
+
+    override def orgService: OrgService = services.orgService
   }
 
   lazy val playerTokenService = new PlayerTokenService {

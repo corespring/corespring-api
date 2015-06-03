@@ -10,6 +10,7 @@ DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.It
 GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
 
 GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+POST /sessions/:sessionId/clone            @org.corespring.v2.api.ItemSessionApi.cloneSession(sessionId: String)
 
 ## Check a score
 ## Load the score based on the saved response

@@ -23,9 +23,14 @@ object V2SessionHelper {
     }.getOrElse(throw new RuntimeException("Error loading salat plugin"))
   }
 
-  def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
+  def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions, orgId: Option[ObjectId] = None): ObjectId = {
     val oid = ObjectId.get
-    db(name).insert(idQuery(oid) ++ MongoDBObject("itemId" -> itemId.toString))
+    val baseSession = idQuery(oid) ++ MongoDBObject("itemId" -> itemId.toString)
+    val session = orgId match {
+      case Some(orgId) => baseSession ++ MongoDBObject("identity" -> MongoDBObject("orgId" -> orgId.toString))
+      case _ => baseSession
+    }
+    db(name).insert(session)
     oid
   }
 

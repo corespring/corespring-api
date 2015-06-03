@@ -50,16 +50,24 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   override def loadForWrite(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
 
-  private def load(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = {
+  override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId, withIdentity = true)
+
+  private def load(sessionId: String, withIdentity: Boolean = false)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = {
 
     logger.debug(s"[load] $sessionId")
 
     val out = for {
-      json <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      json <- (sessionService.load(sessionId) match {
+        case Some(session) => Some(session)
+        case _ => previewSessionService.load(sessionId)
+      }).toSuccess(cantLoadSession(sessionId))
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield {
       /** if the session contains the data - we need to trim it so it doesn't reach the client */
-      val cleanedSession = json.as[JsObject] - "item" - "identity"
+      val cleanedSession = withIdentity match {
+        case true => json.as[JsObject] - "item"
+        case _ => json.as[JsObject] - "item" - "identity"
+      }
       (cleanedSession, playerDef)
     }
 
@@ -103,6 +111,15 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
   override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
     val withIdentityData = addIdentityToSession(session, identity)
     sessionService.create(withIdentityData).toSuccess(errorSaving)
+  }
+
+  override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
+    for {
+      original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      copy <- previewSessionService.create(original).toSuccess(cantLoadSession(sessionId))
+    } yield {
+      copy
+    }
   }
 
   private def addIdentityToSession(session: Session, identity: OrgAndOpts): Session = {
