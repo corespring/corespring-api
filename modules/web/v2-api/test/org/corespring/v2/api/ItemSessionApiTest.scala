@@ -118,8 +118,10 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         val encrypter = new ApiClientEncrypter(AESCrypto)
 
-        encrypter.decrypt(apiClient, (contentAsJson(result) \ "options").as[String]) must be equalTo(
-          Some(ItemSessionApi.clonedSessionOptions.toString))
+        encrypter.decrypt(
+          apiClient.getOrElse(throw new Exception("No apiClient provided")),
+          (contentAsJson(result) \ "options").as[String]
+        ) must be equalTo(Some(ItemSessionApi.clonedSessionOptions.toString))
       }
 
     }
