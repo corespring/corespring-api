@@ -23,10 +23,10 @@ class PlayerJsonToItemTest extends Specification {
               "id" -> "4ffb535f6bb41e469c0bf2a8",
               "text" -> "Performing Arts"
             ),
-            "related" -> Json.obj(
+            "related" -> Json.arr(Json.obj(
               "id" -> "4ffb535f6bb41e469c0bf2a9",
               "text" -> "AP Music Theory,Visual Arts"
-            )
+            ))
           ),
           "itemType" -> "Type"
         ),
@@ -73,7 +73,7 @@ class PlayerJsonToItemTest extends Specification {
         info.itemType === Some("Type")
         info.gradeLevel === Seq("01", "03")
         info.subjects.get.primary === Some(new ObjectId("4ffb535f6bb41e469c0bf2a8"))
-        info.subjects.get.related === Some(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
+        info.subjects.get.related === Seq(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
       }.getOrElse(failure("No updated info"))
 
       update.reviewsPassed === List("RP1", "RP2")

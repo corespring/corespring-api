@@ -3,7 +3,7 @@ package org.corespring.dev.tools.controllers
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.controllers.auth.OAuthProvider
-import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionSuccess, OrgEncrypter }
+import org.corespring.platform.core.encryption._
 import org.corespring.platform.core.models.auth.ApiClient
 import play.api.libs.json.Json
 import play.api.mvc.Controller
@@ -18,7 +18,7 @@ object Encrypter extends Controller {
 
   def encrypt(orgId: String) = DevToolsAction { request =>
 
-    val encrypter = new OrgEncrypter(AESCrypto)
+    val encrypter = new ApiClientEncrypter(AESCrypto)
 
     if (ApiClient.findOneByOrgId(new ObjectId(orgId)).isEmpty) {
       println("need to create an api client for org")
@@ -29,7 +29,7 @@ object Encrypter extends Controller {
 
     val result = for {
       json <- request.body.asJson
-      result <- encrypter.encrypt(new ObjectId(orgId), Json.stringify(json))
+      result <- encrypter.encryptByOrg(new ObjectId(orgId), Json.stringify(json))
     } yield result
 
     result.map {
