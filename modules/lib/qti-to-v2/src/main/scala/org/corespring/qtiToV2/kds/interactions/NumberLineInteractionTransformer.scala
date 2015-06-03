@@ -1,11 +1,16 @@
 package org.corespring.qtiToV2.kds.interactions
 
+import org.corespring.platform.core.utils.NumberParsers
 import org.corespring.qtiToV2.interactions.InteractionTransformer
 import play.api.libs.json._
 
 import scala.xml.Node
 
-object NumberLineInteractionTransformer extends InteractionTransformer {
+object NumberLineInteractionTransformer extends InteractionTransformer with NumberParsers {
+
+  object Defaults {
+    val SnapPerTick = 1
+  }
 
   override def transform(node: Node) = node match {
     case node: Node if (node.label == "numberLineInteraction") =>
@@ -30,6 +35,7 @@ object NumberLineInteractionTransformer extends InteractionTransformer {
           "showMinorTicks" -> JsBoolean((node \ "@displayMinorTickMarks").text == "true"),
           "exhibitOnly" -> false,
           "maxNumberOfPoints" -> correctResponses(qti).length,
+          "snapPerTick" -> JsNumber(parseInt((node \ "@minorTickMarkFreq").text).getOrElse(Defaults.SnapPerTick)),
           "tickFrequency" -> (((node \ "@upperBound").text.toDouble - (node \ "@lowerBound").text.toDouble)/(node \ "@step").text.toDouble),
           "availableTypes" -> Json.obj("PF" -> true),
           "initialElements" -> Json.arr(),
