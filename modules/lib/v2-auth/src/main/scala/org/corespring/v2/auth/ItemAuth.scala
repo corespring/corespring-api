@@ -18,6 +18,8 @@ trait Auth[D, IDENTITY, UID] {
 
 trait ItemAuth[A] extends Auth[Item, A, VersionedId[ObjectId]] {
   def canCreateInCollection(collectionId: String)(identity: A): Validation[V2Error, Boolean]
+  def canWrite(id: String)(implicit identity: A): Validation[V2Error, Boolean]
+  def delete(id: String)(implicit identity: A): Validation[V2Error, VersionedId[ObjectId]]
 }
 
 object SessionAuth {

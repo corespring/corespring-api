@@ -9,20 +9,16 @@ import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.corespring.elasticsearch.ContentDenormalizer
 import org.corespring.platform.core.files.{ CloneFileFailure, CloneFileSuccess, CloneFileResult, ItemFiles }
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.platform.core.models.item.resource.{ StoredFile, CDataHandler, VirtualFile, Resource }
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
-import play.api.libs.json.Json
 import play.api.{ Logger, Play, Application, PlayException }
-import scala.Some
 import scala.concurrent.duration._
 import scala.concurrent.{ Future, Await, ExecutionContext }
 import scala.xml.Elem
@@ -134,6 +130,20 @@ class ItemServiceWired(
   }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
+
+  override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = {
+    import org.corespring.platform.core.models.mongoContext.context
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
+    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, false, false)
+    logger.trace(s"function=addFileToPlayerDefinition, itemId=${item.id}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${item.id} must have been updated")
+    if (result.getN != 1) {
+      Failure(s"Wrong number of documents updated for ${item.id}")
+    } else {
+      Success(result.getN == 1)
+    }
+  }
 
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state

@@ -19,7 +19,7 @@ class LoadEditorTest
   extends IntegrationSpecification
   with IntegrationHelpers {
 
-  import org.corespring.container.client.controllers.apps.routes.Editor
+  import org.corespring.container.client.controllers.apps.routes.DraftEditor
 
   override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
 
@@ -60,23 +60,23 @@ class LoadEditorTest
   }
 
   class unknownUser_editItemLoader extends orgWithAccessTokenAndItem with PlainRequestBuilder with itemDraftLoader {
-    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
+    override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 
   class token_editItemLoader extends orgWithAccessTokenAndItem with TokenRequestBuilder with itemDraftLoader {
-    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
+    override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 
   class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
     override lazy val draftName = user.userName
-    override def getCall(draftId: DraftId): Call = Editor.load(draftId.toIdString)
+    override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
 
     override def organization: Organization = Organization.findOneById(user.org.orgId).get
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {
     override def getCall(draftId: DraftId): Call = {
-      Editor.load(draftId.toIdString)
+      DraftEditor.load(draftId.toIdString)
     }
   }
 }
