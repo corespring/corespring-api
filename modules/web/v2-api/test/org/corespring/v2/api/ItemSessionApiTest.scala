@@ -27,13 +27,13 @@ import scalaz.{ Failure, Success, Validation }
 class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
   class apiScope(
-    canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-    maybeSessionId: Option[ObjectId] = None,
-    sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
-    scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
-    clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
-    apiClient: Option[ApiClient] = None) extends Scope {
+      val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
+      val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+      val maybeSessionId: Option[ObjectId] = None,
+      val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
+      val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
+      val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
+      val apiClient: Option[ApiClient] = None) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
       override def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClient
@@ -89,7 +89,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       val request = FakeRequest("","")
 
       "return 401" in new apiScope(clonedSession = Success(new ObjectId()),
-          orgAndOpts = Failure(noOrgIdAndOptions(request))) {
+        orgAndOpts = Failure(noOrgIdAndOptions(request))) {
         val result = api.cloneSession(sessionId)(request)
         status(result) must be equalTo(UNAUTHORIZED)
       }
@@ -101,20 +101,20 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       val apiClient = ApiClient(mockOrg().id, new ObjectId(), "secret")
 
       "return 201" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
-          sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         status(result) must be equalTo(CREATED)
       }
 
       "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
-          sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         (contentAsJson(result) \ "apiClient").as[String] must be equalTo(apiClient.clientId.toString)
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(
-          clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
-          sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
         val encrypter = new ApiClientEncrypter(AESCrypto)
 
