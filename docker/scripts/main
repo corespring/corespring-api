@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+puts "!!!"
+puts " -- starting mongo"
+`mongod --fork --dbpath /var/lib/mongodb/ --smallfiles --logpath /var/log/mongodb.log --logappend`
+
+puts " -- start elasticsearch"
+`service elasticsearch start`
+
+puts " -- give elasticsearch some time to boot up"
+sleep 10 
+
+
+Dir.chdir('/opt/cs-api-docker-util')
+
+puts " -- seed db + index elasticsearch"
+`java -jar run.jar`
+
+puts "-- pinging elasticsearch..."
+`curl -s http://localhost:9200/content/_search?pretty=1`
+
+puts "-- boot fake s3"
+# Spawn a new process and run the rake command
+pid = Process.spawn("fakes3 -r /opt/fake-s3-root -p 4567", 
+  :out => "/dev/null", 
+  :err => "/dev/null")
+# Detach the spawned process
+Process.detach pid
+
+Dir.chdir('/opt')
+
+puts Dir.pwd
+
+puts "-- boot play app..."
+
+path = Dir["**/bin/corespring"][0]
+  
+if path != nil
+  puts "Found run script: #{path}"
+  play_pid = Process.spawn(path)
+  Process.wait(play_pid)
+else 
+  puts "Can't find script to run"
+end
+
