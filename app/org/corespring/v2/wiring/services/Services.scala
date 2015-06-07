@@ -1,6 +1,6 @@
 package org.corespring.v2.wiring.services
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
@@ -11,10 +11,10 @@ import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAsse
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
-import org.corespring.platform.core.encryption.{ApiClientEncrypter, ApiClientEncryptionService}
-import org.corespring.platform.core.models.{ContentCollection, Organization}
+import org.corespring.platform.core.encryption.{ ApiClientEncrypter, ApiClientEncryptionService }
+import org.corespring.platform.core.models.{ ContentCollection, Organization }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
-import org.corespring.platform.core.models.item.{ItemType, PlayerDefinition}
+import org.corespring.platform.core.models.item.{ ItemType, PlayerDefinition }
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -24,7 +24,7 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.services.{ContentCollectionService, OrgService, TokenService}
+import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService, TokenService }
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -35,7 +35,10 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Failure, Success, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client,
+class Services(cacheConfig: Configuration,
+  db: MongoDB,
+  itemTransformer: ItemTransformer,
+  s3: AmazonS3,
   bucket: String) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
@@ -60,7 +63,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def assets: ItemDraftAssets = new S3ItemDraftAssets {
       override def bucket: String = Services.this.bucket
 
-      override def s3: AmazonS3Client = Services.this.s3
+      override def s3: AmazonS3 = Services.this.s3
 
     }
 
@@ -109,7 +112,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     }
   }
 
-    /** A wrapper around organization */
+  /** A wrapper around organization */
   lazy val orgService = new OrgService {
 
     override def defaultCollection(oid: ObjectId): Option[ObjectId] = {

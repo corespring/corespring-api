@@ -9,7 +9,8 @@ hooks
 .idea*
 hooks
 deployment
-target/universal/stage
+docker/cs-api-docker-utils/target/streams
+docker/cs-api-docker-utils/target/resolution-cache
 regression-tests
 prototype
 logs

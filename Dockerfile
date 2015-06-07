@@ -21,7 +21,7 @@ RUN apt-get update && \
 ### fakes3
 RUN gem install fakes3
 RUN mkdir /opt/fake-s3-root
-ENV CONTAINER_FAKE_S3_ENDPOINT="http://localhost:4567"
+ENV ENV_AMAZON_ENDPOINT="http://localhost:4567"
 
 # elasticsearch
 RUN wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -29,6 +29,9 @@ RUN echo "deb http://packages.elastic.co/elasticsearch/1.5/debian stable main" |
 RUN apt-get update && sudo apt-get install elasticsearch
 # boot at start up
 RUN update-rc.d elasticsearch defaults 95 10
+
+# Prevent elasticsearch calling `ulimit`.
+RUN sed -i 's/MAX_OPEN_FILES=/# MAX_OPEN_FILES=/g' /etc/init.d/elasticsearch
 
 #ivy 2
 ADD docker/.ivy2/.credentials /root/.ivy2/.credentials
@@ -43,13 +46,15 @@ ADD conf/qti-templates /opt/cs-api-docker-util/conf/qti-templates
 ADD corespring-components/components /opt/components
 ENV CONTAINER_COMPONENTS_PATH="/opt/components"
 
+ENV DEPLOY_ASSET_LOADER_JS=false
+
 RUN mkdir /data
 ADD docker/scripts/main /data/main 
 RUN chmod +x /data/main
 
 EXPOSE 9000
 
-ADD target/universal/*.tgz /opt/
+ADD target/universal/stage/ /opt/corespring-api
 
 CMD ["/data/main" ] 
 
