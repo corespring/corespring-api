@@ -172,7 +172,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
       scope.showEditor();
       expect(scope.v2Editor).toMatch("[?&]bypass-iframe-launch-mechanism=true");
     });
-  })
+  });
 
 
 
