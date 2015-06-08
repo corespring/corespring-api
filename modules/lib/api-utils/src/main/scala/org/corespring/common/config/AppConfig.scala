@@ -10,8 +10,7 @@ class AppConfig(config: Configuration) {
 
   protected object Key extends Enumeration {
     type Key = Value
-    val DEMO_ORG_ID, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, AMAZON_ACCESS_SECRET, AMAZON_ACCESS_KEY, AMAZON_ASSETS_BUCKET,
-        ELASTIC_SEARCH_URL, ALLOW_ALL_SESSIONS = Value
+    val DEMO_ORG_ID, ROOT_ORG_ID, V2_PLAYER_ORG_IDS, AMAZON_ACCESS_SECRET, AMAZON_ACCESS_KEY, AMAZON_ASSETS_BUCKET, ELASTIC_SEARCH_URL, ALLOW_ALL_SESSIONS = Value
   }
 
   private implicit def keyToString(k: Key.Key): String = k.toString

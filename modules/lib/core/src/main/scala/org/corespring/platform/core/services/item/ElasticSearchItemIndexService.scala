@@ -23,9 +23,8 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(elasticSearchUrl: URL)
-                                   (implicit ec: ExecutionContext, application: play.api.Application)
-    extends ItemIndexService with AuthenticatedUrl with Logging {
+class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: ExecutionContext, application: play.api.Application)
+  extends ItemIndexService with AuthenticatedUrl with Logging {
 
   import Base64._
 
@@ -60,7 +59,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
         .post(Json.toJson(agg))
         .map(result => {
           Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]
-            .map(obj  => (obj \ "key").as[String]))
+            .map(obj => (obj \ "key").as[String]))
         })
     } catch {
       case e: Exception => future { Failure(new Error(e.getMessage)) }
@@ -85,8 +84,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
       components.componentMap.get(itemType).map(t => t.nonEmpty match {
         case true => Some(t -> itemType)
         case _ => None
-      }).flatten
-    ).flatten.toMap))
+      }).flatten).flatten.toMap))
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
@@ -97,7 +95,6 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
       new ContentDenormalizer(play.api.Play.current.configuration
         .getConfig("mongodb").map(_.getConfig("default")).flatten.map(_.getString("uri")).flatten
         .getOrElse(throw new Exception("Cannot connect to MongoDB without URI")))
-
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
       contentDenormalizer.withCollection("content", collection => {
@@ -113,8 +110,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)
 
 }
 
-object ElasticSearchItemIndexService extends
-    ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)(ExecutionContext.Implicits.global, play.api.Play.current)
+object ElasticSearchItemIndexService extends ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)(ExecutionContext.Implicits.global, play.api.Play.current)
 
 trait AuthenticatedUrl {
 

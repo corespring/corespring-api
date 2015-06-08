@@ -62,8 +62,7 @@ trait ItemToSummaryData {
       subjects.map(id => Subject.findOneById(id) match {
         case Some(subj) => Json.toJson(subj)
         case _ => throw new RuntimeException("Can't find subject with id: " + id)
-      }))
-    )
+      })))
 
     val primaryJson: Option[JsObject] = for {
       info <- item.taskInfo

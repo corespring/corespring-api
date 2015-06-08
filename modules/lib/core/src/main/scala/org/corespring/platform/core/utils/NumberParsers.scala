@@ -11,7 +11,7 @@ trait NumberParsers {
   def parseInt(string: String) = safeParse[Int] { string.toInt }
   def parseFloat(string: String) = safeParse[Float] { string.toFloat }
 
-  def intValueOrZero(string: String):Int = safeParse[Int] { string.toInt }.getOrElse(0)
-  def floatValueOrZero(string: String):Float = safeParse[Float] { string.toFloat }.getOrElse(0)
+  def intValueOrZero(string: String): Int = safeParse[Int] { string.toInt }.getOrElse(0)
+  def floatValueOrZero(string: String): Float = safeParse[Float] { string.toFloat }.getOrElse(0)
 
 }

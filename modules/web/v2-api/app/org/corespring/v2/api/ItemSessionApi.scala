@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{EncryptionResult, EncryptionSuccess, ApiClientEncrypter}
+import org.corespring.platform.core.encryption.{ EncryptionResult, EncryptionSuccess, ApiClientEncrypter }
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -11,6 +11,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -160,7 +161,7 @@ trait ItemSessionApi extends V2Api {
         apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
         options <- encrypter.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
-          .map{ case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
+          .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
       } yield session
 
       validationToResult[JsValue](Created(_))(out)
@@ -175,7 +176,7 @@ trait ItemSessionApi extends V2Api {
         case Some(org) => jsObject ++ Json.obj("organization" -> org.name)
         case _ => jsValue
       }
-    case _ =>jsValue
+    case _ => jsValue
   }
 
   private def withOptions(jsValue: JsValue, result: EncryptionResult) = result match {
@@ -201,7 +202,6 @@ object ItemSessionApi {
     "itemId" -> "*",
     "mode" -> "gather",
     "expires" -> 0,
-    "secure" -> false
-  )
+    "secure" -> false)
 
 }

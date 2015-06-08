@@ -2,7 +2,7 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile}
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
 import play.api.libs.json._
 
 object PlayerJsonToItem {
@@ -49,7 +49,7 @@ object PlayerJsonToItem {
    * @return
    */
   def standards(profileJson: JsValue): Option[Seq[String]] =
-    (profileJson\ "standards") match {
+    (profileJson \ "standards") match {
       case undefined: JsUndefined => None
       case array: JsArray => Some(array.as[List[JsObject]].map { standard: JsObject =>
         (standard \ "dotNotation").as[String]
@@ -73,8 +73,7 @@ object PlayerJsonToItem {
     (taskInfoJson \ "subjects").asOpt[JsValue].map { subjects =>
       Subjects(
         primary = (subjects \ "primary" \ "id").asOpt[String].filter(ObjectId.isValid(_)).map(new ObjectId(_)),
-        related = (subjects \ "related" \\ "id").map(_.as[String]).filter(ObjectId.isValid(_)).map(new ObjectId(_))
-      )
+        related = (subjects \ "related" \\ "id").map(_.as[String]).filter(ObjectId.isValid(_)).map(new ObjectId(_)))
 
     }
   }

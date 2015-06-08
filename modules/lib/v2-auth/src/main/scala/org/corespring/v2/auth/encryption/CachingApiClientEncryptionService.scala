@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.encryption
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption.{ApiClientEncryptionService, EncryptionResult}
+import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, EncryptionResult }
 import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.v2.log.V2LoggerFactory
 import spray.caching.Cache
@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class CachingApiClientEncryptionService(underlying: ApiClientEncryptionService, timeToLive: Duration)
-    extends ApiClientEncryptionService {
+  extends ApiClientEncryptionService {
 
   private val logger = V2LoggerFactory.getLogger("CachingApiClientEncryptionService")
 
