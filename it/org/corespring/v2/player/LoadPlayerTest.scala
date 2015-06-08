@@ -93,7 +93,7 @@ class LoadPlayerTest
     }
 
     "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
-      status(createSessionResult) === SEE_OTHER
+      status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
       val sessionId = V2SessionHelper.findSessionForItemId(itemId, "v2.itemSessions_preview")
       val session = V2SessionHelper.findSession(sessionId.toString, "v2.itemSessions_preview")
