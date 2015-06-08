@@ -112,6 +112,38 @@ describe('tagger.controllers.new.EditDraftController', function() {
     });
   });
 
+  describe("saving item on route change", function() {
+    it('asks for save confirmation if there are unsaved changes', function() {
+      spyOn(scope, 'confirmSaveBeforeLeaving');
+      scope.hasChanges = true;
+      scope.$emit('$routeChangeStart');
+      expect(scope.confirmSaveBeforeLeaving).toHaveBeenCalled();
+    });
+
+    it('doesnt ask for save confirmation if there are no unsaved changes', function() {
+      spyOn(scope, 'confirmSaveBeforeLeaving');
+      scope.hasChanges = false;
+      scope.$emit('$routeChangeStart');
+      expect(scope.confirmSaveBeforeLeaving).not.toHaveBeenCalled();
+    });
+
+    it('saves item before leaving if confirmed', function() {
+      spyOn(scope, 'confirmSaveBeforeLeaving').andReturn(true);
+      spyOn(scope, 'saveBackToItem');
+      scope.hasChanges = true;
+      scope.$emit('$routeChangeStart');
+      expect(scope.saveBackToItem).toHaveBeenCalled();
+    });
+
+    it('doesnt save item before leaving if not confirmed', function() {
+      spyOn(scope, 'confirmSaveBeforeLeaving').andReturn(false);
+      spyOn(scope, 'saveBackToItem');
+      scope.hasChanges = true;
+      scope.$emit('$routeChangeStart');
+      expect(scope.saveBackToItem).not.toHaveBeenCalled();
+    });
+  });
+
   describe("showDevEditor", function() {
     it('sets devEditorVisible to true', function(){
       scope.showDevEditor();
@@ -119,7 +151,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
     });
     it('sets v2Editor to url for dev editor', function(){
       scope.showDevEditor();
-      expect(scope.v2Editor).toMatch("^/v2/player/dev-editor/123/index.html");
+      expect(scope.v2Editor).toMatch("^/v2/player/draft/dev-editor/123/index.html");
     });
     it('appends bypass-iframe-launch-mechanism=true', function(){
       scope.showDevEditor();
@@ -134,7 +166,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
     });
     it('sets v2Editor to url for dev editor', function(){
       scope.showEditor();
-      expect(scope.v2Editor).toMatch("^/v2/player/editor/123/index.html");
+      expect(scope.v2Editor).toMatch("^/v2/player/draft/editor/123/index.html");
     });
     it('appends bypass-iframe-launch-mechanism=true', function(){
       scope.showEditor();

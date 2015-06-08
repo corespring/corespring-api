@@ -1,7 +1,5 @@
 package org.corespring.v2.player.hooks
 
-import com.mongodb.casbah.commons.MongoDBObject
-import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
@@ -26,10 +24,9 @@ trait DraftEditorHooks
 
   import play.api.http.Status._
 
-  import scalaz.Scalaz._
   import scalaz._
 
-  private lazy val logger = V2LoggerFactory.getLogger("DraftEditorHooks")
+  private lazy val logger = V2LoggerFactory.getLogger(classOf[DraftEditorHooks])
 
   def transform: Item => JsValue
 
@@ -47,7 +44,7 @@ trait DraftEditorHooks
     _ <- Success(logger.trace(s"function=loadDraft id=$id"))
     identity <- getOrgAndUser(header)
     draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-    //Note: for now we ignor conflicts
+    //Note: for now we ignore conflicts
     d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap { e => generalError(e.msg) }
   } yield d
 
@@ -109,24 +106,7 @@ trait DraftEditorHooks
     def addFileToData(draft: ItemDraft, key: String) = {
       val filename = grizzled.file.util.basename(key)
       val newFile = StoredFile(path, BaseFile.getContentType(filename), false, filename)
-      import org.corespring.platform.core.models.mongoContext.context
-
-      draft.parent.data.data.map { d =>
-        val dbo = com.novus.salat.grater[StoredFile].asDBObject(newFile)
-        backend.collection.update(
-          MongoDBObject("_id._id" -> draft.id),
-          MongoDBObject("$addToSet" -> MongoDBObject("src.data.data.files" -> dbo)),
-          false)
-      }.getOrElse {
-
-        val resource = Resource(None, "data", files = Seq(newFile))
-        val resourceDbo = com.novus.salat.grater[Resource].asDBObject(resource)
-
-        backend.collection.update(
-          MongoDBObject("_id._id" -> draft.id),
-          MongoDBObject("$set" -> MongoDBObject("src.data.data" -> resourceDbo)),
-          false)
-      }
+      backend.addFileToChangeSet(draft, newFile)
     }
 
     playS3.s3ObjectAndData[ItemDraft](bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>

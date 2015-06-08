@@ -55,7 +55,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
   /**
    * Creates a draft for the target data.
    */
-  def create(id: VID, user: USER, expires: Option[DateTime] = None): Validation[DraftError, UD]
+  def create(id: ID, user: USER, expires: Option[DateTime] = None): Validation[DraftError, UD]
 
   /**
    * Check that the draft src matches the latest src,
@@ -70,7 +70,7 @@ trait Drafts[ID, VID, SRC, USER, UD <: UserDraft[ID, VID, SRC, USER], CMT <: Com
   /**
    * Commit a draft back to the data store.
    */
-  final def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
+  def commit(requester: USER)(d: UD, force: Boolean = false): Validation[DraftError, CMT] = {
 
     if (!hasSrcChanged(d.parent.data, d.change.data)) {
       Failure(NothingToCommit(d.id))

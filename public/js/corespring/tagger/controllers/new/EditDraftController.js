@@ -29,17 +29,18 @@
     Logger,
     Modals) {
 
+
     $scope.devEditorVisible = false;
 
     var normalEditor = [
-      '/v2/player/editor/',
+      '/v2/player/draft/editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
     ].join('');
 
     var devEditor = [
-      '/v2/player/dev-editor/',
+      '/v2/player/draft/dev-editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
@@ -64,13 +65,24 @@
       }
     };
 
+    $scope.confirmSaveBeforeLeaving = function() {
+      return $window.confirm('There are updates to this item that have not been saved. Would you like to save them before you leave?');
+    };
+
+    $scope.$on('$routeChangeStart', function() {
+      $($window).unbind('beforeunload');
+      if ($scope.hasChanges && $scope.confirmSaveBeforeLeaving()) {
+        $scope.saveBackToItem();
+      }
+    });
+
     $scope.backToCollections = function() {
       if ($scope.hasChanges) {
-        $scope.showUnsavedChangesModal = true;
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
             $scope.saveBackToItem();
           }
+          $scope.hasChanges = false;
           $location.path("/home").search('');
         });
       } else {

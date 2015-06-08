@@ -1,7 +1,7 @@
 package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{AdditionalCopyright, Copyright, Item}
+import org.corespring.platform.core.models.item.{ AdditionalCopyright, Copyright, Item }
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
@@ -21,15 +21,11 @@ class PlayerJsonToItemTest extends Specification {
           "subjects" -> Json.obj(
             "primary" -> Json.obj(
               "id" -> "4ffb535f6bb41e469c0bf2a8",
-              "text" -> "Performing Arts"
-            ),
-            "related" -> Json.obj(
+              "text" -> "Performing Arts"),
+            "related" -> Json.arr(Json.obj(
               "id" -> "4ffb535f6bb41e469c0bf2a9",
-              "text" -> "AP Music Theory,Visual Arts"
-            )
-          ),
-          "itemType" -> "Type"
-        ),
+              "text" -> "AP Music Theory,Visual Arts"))),
+          "itemType" -> "Type"),
         "reviewsPassed" -> Json.arr("RP1", "RP2"),
         "reviewsPassedOther" -> "RPO",
         "priorGradeLevel" -> Json.arr("PGL1", "PGL2"),
@@ -52,16 +48,11 @@ class PlayerJsonToItemTest extends Specification {
               "year" -> "YE",
               "licenseType" -> "LT",
               "mediaType" -> "MT",
-              "sourceUrl" -> "SU"
-            )
-          )
-        ),
+              "sourceUrl" -> "SU"))),
         "otherAlignments" -> Json.obj(
           "bloomsTaxonomy" -> "BT",
           "keySkills" -> Json.arr("KS1", "KS2"),
-          "depthOfKnowledge" -> "DOK"
-        )
-      )
+          "depthOfKnowledge" -> "DOK"))
 
       val item = Item()
       val update = PlayerJsonToItem.profile(item, json)
@@ -73,7 +64,7 @@ class PlayerJsonToItemTest extends Specification {
         info.itemType === Some("Type")
         info.gradeLevel === Seq("01", "03")
         info.subjects.get.primary === Some(new ObjectId("4ffb535f6bb41e469c0bf2a8"))
-        info.subjects.get.related === Some(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
+        info.subjects.get.related === Seq(new ObjectId("4ffb535f6bb41e469c0bf2a9"))
       }.getOrElse(failure("No updated info"))
 
       update.reviewsPassed === List("RP1", "RP2")

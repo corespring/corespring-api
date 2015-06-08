@@ -68,7 +68,8 @@ object AppWiring {
     services.secureSocialService,
     services.orgService,
     services.tokenService,
-    services.orgEncryptionService,
+    services.apiClientEncryptionService,
+
     Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
 
   /**
@@ -128,7 +129,7 @@ object AppWiring {
     def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
       val vidString = dbo.get("itemId").asInstanceOf[String]
       val vid = VersionedId(vidString)
-      require(vid.map{ _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
+      require(vid.map { _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
       vid
     }
 
@@ -162,6 +163,7 @@ object AppWiring {
     bucket,
     services.draftsBackend,
     services.orgService,
+    services.colService,
     getItemIdForSessionId)
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++

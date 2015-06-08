@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
-import org.corespring.container.client.hooks.{ ItemDraftHooks => ContainerItemDraftHooks }
+import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
@@ -28,7 +28,8 @@ trait DraftHelper {
 }
 
 trait ItemDraftHooks
-  extends ContainerItemDraftHooks
+  extends containerHooks.CoreItemHooks
+  with containerHooks.DraftHooks
   with LoadOrgAndOptions
   with DraftHelper
   with MakeDraftId {
@@ -48,7 +49,7 @@ trait ItemDraftHooks
       json <- Success(transform(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
-      Json.obj("item" -> json)
+      json
     }
   }
 
@@ -86,6 +87,14 @@ trait ItemDraftHooks
 
   override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
+  }
+
+  override def saveCollectionId(itemId: String, collectionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
+    def updateCollectionId(item: ModelItem, json: JsValue): ModelItem = {
+      item.copy(collectionId = Some(collectionId))
+    }
+
+    update(itemId, Json.obj("collectionId" -> collectionId), updateCollectionId)
   }
 
   private implicit class MkV2Error[A](v: Validation[DraftError, A]) {
@@ -152,6 +161,8 @@ trait ItemDraftHooks
       }
     }
 
+    def randomDraftName = scala.util.Random.alphanumeric.take(12).mkString
+
     val result: Validation[V2Error, (String, String)] = for {
       identity <- getOrgAndUser(h)
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
@@ -159,7 +170,7 @@ trait ItemDraftHooks
         case Left(m) => Failure(generalError(m))
         case Right(vid) => Success(vid)
       }
-      draft <- backend.create(vid, identity).v2Error
+      draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
     } yield (vid.toString, draft.id.toString)
 
     result.leftMap { e => (e.statusCode -> e.message) }.toEither

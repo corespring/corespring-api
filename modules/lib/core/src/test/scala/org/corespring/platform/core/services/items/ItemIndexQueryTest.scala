@@ -12,15 +12,15 @@ class ItemIndexQueryTest extends Specification {
 
     "read from ItemIndexQuery.Defaults" in {
       val default = ItemIndexQuery()
-      default.offset must be equalTo(Defaults.offset)
-      default.count must be equalTo(Defaults.count)
-      default.text must be equalTo(Defaults.text)
-      default.contributors must be equalTo(Defaults.contributors)
-      default.collections must be equalTo(Defaults.collections)
-      default.itemTypes must be equalTo(Defaults.itemTypes)
-      default.gradeLevels must be equalTo(Defaults.gradeLevels)
-      default.published must be equalTo(Defaults.published)
-      default.workflows must be equalTo(Defaults.workflows)
+      default.offset must be equalTo (Defaults.offset)
+      default.count must be equalTo (Defaults.count)
+      default.text must be equalTo (Defaults.text)
+      default.contributors must be equalTo (Defaults.contributors)
+      default.collections must be equalTo (Defaults.collections)
+      default.itemTypes must be equalTo (Defaults.itemTypes)
+      default.gradeLevels must be equalTo (Defaults.gradeLevels)
+      default.published must be equalTo (Defaults.published)
+      default.workflows must be equalTo (Defaults.workflows)
     }
   }
 
@@ -53,15 +53,15 @@ class ItemIndexQueryTest extends Specification {
       val query = Json.fromJson[ItemIndexQuery](Json.parse(apiJson)).getOrElse(throw new Exception("Couldn't parse JSON"))
 
       "set fields on ItemIndexQuery" in {
-        query.offset must be equalTo(offset)
-        query.count must be equalTo(count)
-        query.text must be equalTo(Some(text))
-        query.contributors must be equalTo(contributors)
-        query.collections must be equalTo(collections)
-        query.itemTypes must be equalTo(itemTypes)
-        query.gradeLevels must be equalTo(gradeLevels)
-        query.published must be equalTo(Some(published))
-        query.workflows must be equalTo(workflows)
+        query.offset must be equalTo (offset)
+        query.count must be equalTo (count)
+        query.text must be equalTo (Some(text))
+        query.contributors must be equalTo (contributors)
+        query.collections must be equalTo (collections)
+        query.itemTypes must be equalTo (itemTypes)
+        query.gradeLevels must be equalTo (gradeLevels)
+        query.published must be equalTo (Some(published))
+        query.workflows must be equalTo (workflows)
       }
 
     }
@@ -71,13 +71,20 @@ class ItemIndexQueryTest extends Specification {
   "ElasticSearchWrites" should {
     implicit val ElasticSearchWrites = ItemIndexQuery.ElasticSearchWrites
 
+    def shouldClause(json: JsValue, name: String) = (json \ "query" \ "bool" \ "should").as[Seq[JsObject]]
+      .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
+      .getOrElse(JsUndefined(s"Could not find $name clause"))
+
+    def multiMatch(json: JsValue): JsValue = shouldClause(json, "multi_match")
+    def ids(json: JsValue): JsValue = shouldClause(json, "ids")
+
     "text" should {
       "blank" should {
         val query = ItemIndexQuery(text = None)
         val json = Json.toJson(query)
 
         "not include query" in {
-          (json \ "query" \ "filtered" \ "query") must beAnInstanceOf[JsUndefined]
+          (json \ "query") must beAnInstanceOf[JsUndefined]
         }
       }
 
@@ -86,9 +93,31 @@ class ItemIndexQueryTest extends Specification {
         val query = ItemIndexQuery(text = Some(text))
         val json = Json.toJson(query)
 
-        "include query as simple_query_string" in {
-          (json \ "query" \ "filtered" \ "query" \ "simple_query_string" \ "query") must be equalTo (JsString(text))
+        "multi_match" should {
+
+          "include query as query parameter" in {
+            (multiMatch(json) \ "query").as[String] must be equalTo (text)
+          }
+
+          "query on title field" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("taskInfo.title")
+          }
+
+          "query on description field" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("taskInfo.description")
+          }
+
+          "query on content" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("content")
+          }
+
         }
+
+        "include ids querying" in {
+          (ids(json)) must haveClass[JsObject]
+          (ids(json) \ "values").as[Seq[String]].headOption must be equalTo (Some(text))
+        }
+
       }
     }
 
@@ -203,7 +232,7 @@ class ItemIndexQueryTest extends Specification {
   private implicit class WithFilterOptions(json: JsValue) {
 
     private def getFilter(filter: String): Option[JsObject] = {
-      val filters = (json \ "query" \ "filtered" \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
+      val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
       Seq("term", "terms").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
@@ -212,8 +241,7 @@ class ItemIndexQueryTest extends Specification {
 
     def hasFilter(filter: String) = getFilter(filter).nonEmpty
 
-    private def hasFilter[T](filter: String, value: T, filterName: String, execution: Option[String])
-                            (implicit reads: Reads[T]) = {
+    private def hasFilter[T](filter: String, value: T, filterName: String, execution: Option[String])(implicit reads: Reads[T]) = {
       val f = getFilter(filter).get
       val matchesValue = (f \ filterName \ filter).as[T] == value
       execution match {

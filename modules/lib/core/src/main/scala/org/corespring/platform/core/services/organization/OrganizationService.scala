@@ -28,5 +28,4 @@ trait OrganizationService {
 
   def getDefaultCollection(orgId: ObjectId): Either[CorespringInternalError, ContentCollection]
 
-
 }

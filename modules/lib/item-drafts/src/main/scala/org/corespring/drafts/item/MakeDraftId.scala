@@ -9,7 +9,7 @@ import scalaz.Scalaz._
 
 trait MakeDraftId {
 
-  //if itemId - the return itemid, user, orgId
+  /** if itemId - the return itemid, user, orgId */
   def mkDraftId(user: OrgAndUser, id: String): Validation[DraftError, DraftId] = {
 
     val (itemId, name) = {

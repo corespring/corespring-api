@@ -1,5 +1,6 @@
 package org.corespring.drafts.item
 
+import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
@@ -7,11 +8,11 @@ import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
 import play.api.Logger
-
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -35,15 +36,15 @@ trait ItemDrafts
   def collection = draftService.collection
 
   /** Check that the user may create the draft for the given src id */
-  protected def userCanCreateDraft(id: VersionedId[ObjectId], user: OrgAndUser): Boolean
-  protected def userCanDeleteDrafts(id: VersionedId[ObjectId], user: OrgAndUser): Boolean
+  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean
+  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
   def removeByItemId(user: OrgAndUser)(itemId: ObjectId): Validation[DraftError, ObjectId] = {
     logger.debug(s"function=removeByItemId, itemId=$itemId")
     for {
-      _ <- if (userCanDeleteDrafts(VersionedId(itemId, None), user))
+      _ <- if (userCanDeleteDrafts(itemId, user))
         Success(true)
       else
         Failure(UserCantDeleteMultipleDrafts(user, itemId))
@@ -83,24 +84,29 @@ trait ItemDrafts
     d <- load(user)(draftId)
     cloned <- Success(d.change.data.cloneItem)
     vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
-    newDraft <- create(vid, user)
+    _ <- assets.copyDraftToItem(draftId, vid)
+    newDraft <- create(draftId, user)
   } yield DraftCloneResult(vid, newDraft.id)
 
   /**
    * Creates a draft for the target data.
    */
-  override def create(id: VersionedId[ObjectId], user: OrgAndUser, expires: Option[DateTime]): Validation[DraftError, ItemDraft] = {
+  override def create(draftId: DraftId, user: OrgAndUser, expires: Option[DateTime]): Validation[DraftError, ItemDraft] = {
 
-    def mkDraft(srcId: VersionedId[ObjectId], src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
+    logger.debug(s"function=create, draftId=$draftId, user=$user, expires=$expires")
+
+    def mkDraft(id: DraftId, src: Item, user: OrgAndUser): Validation[DraftError, ItemDraft] = {
       require(src.published == false, s"You can only create an ItemDraft from an unpublished item: ${src.id}")
-      val draft = ItemDraft(src, user)
+      val draft = ItemDraft(draftId, src, user)
+      logger.trace(s"function=mkDraft, itemId=${src.id}, draftId=${draft.id}, copy item assets to draft")
       assets.copyItemToDraft(src.id, draft.id).map { _ => draft }
     }
 
     for {
-      canCreate <- if (userCanCreateDraft(id, user)) Success(true) else Failure(UserCantCreate(user, id))
-      unpublishedItem <- itemService.getOrCreateUnpublishedVersion(id).toSuccess(GetUnpublishedItemError(id))
-      draft <- mkDraft(id, unpublishedItem, user)
+      canCreate <- if (userCanCreateDraft(draftId.itemId, user)) Success(true) else Failure(UserCantCreate(user, draftId.itemId))
+      unpublishedItem <- itemService.getOrCreateUnpublishedVersion(
+        new VersionedId[ObjectId](draftId.itemId, None)).toSuccess(GetUnpublishedItemError(draftId.itemId))
+      draft <- mkDraft(draftId, unpublishedItem, user)
       saved <- save(user)(draft)
     } yield draft
   }
@@ -137,19 +143,20 @@ trait ItemDrafts
     draft.map { d =>
       //If the draft hasn't any local changes
       if (!hasSrcChanged(d.parent.data, d.change.data)) {
-        create(VersionedId(id.itemId), user)
+        create(id, user)
       } else {
         failIfConflicted(d)
       }
-    }.getOrElse(create(VersionedId(id.itemId), user))
+    }.getOrElse(create(id, user))
   }
 
   override def hasSrcChanged(a: Item, b: Item) = {
     val taskInfo = a.taskInfo != b.taskInfo
     val playerDef = a.playerDefinition != b.playerDefinition
     val supportingMaterials = a.supportingMaterials != b.supportingMaterials
-    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials")
-    taskInfo || playerDef || supportingMaterials
+    val collectionId = a.collectionId != b.collectionId;
+    logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
+    taskInfo || playerDef || supportingMaterials || collectionId
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
@@ -212,4 +219,17 @@ trait ItemDrafts
     ItemDraftIsOutOfDate(d, src)
   }
 
+  def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
+
+    import org.corespring.drafts.item.services.ItemDraftDbUtils.idToDbo
+    import org.corespring.platform.core.models.mongoContext.context
+
+    val query = idToDbo(draft.id)
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
+    val result = draftService.collection.update(query, update, false, false)
+    logger.trace(s"function=addFileToChangeSet, draftId=${draft.id}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${draft.id} must have been updated")
+    result.getN == 1
+  }
 }

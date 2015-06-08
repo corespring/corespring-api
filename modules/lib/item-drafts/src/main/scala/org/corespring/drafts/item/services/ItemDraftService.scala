@@ -7,7 +7,29 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.{ DraftId, ItemDraft, OrgAndUser }
 import org.corespring.platform.data.mongo.models.VersionedId
 
+object ItemDraftDbUtils {
+  import com.novus.salat.grater
+  import org.corespring.platform.core.models.mongoContext.context
+  import scala.language.implicitConversions
+
+  def idToDbo(draftId: DraftId): DBObject = {
+    val id = grater[DraftId].asDBObject(draftId)
+    MongoDBObject("_id" -> id)
+  }
+
+  implicit def toDbo(dbo: ItemDraft): DBObject = {
+    grater[ItemDraft].asDBObject(dbo)
+  }
+
+  implicit def toDraft(dbo: DBObject): ItemDraft = {
+    grater[ItemDraft].asObject(new MongoDBObject(dbo))
+  }
+
+}
+
 trait ItemDraftService {
+
+  import ItemDraftDbUtils._
 
   protected val userOrgId: String = "_id.user.org._id"
 
@@ -17,14 +39,6 @@ trait ItemDraftService {
   import org.corespring.platform.core.models.mongoContext.context
 
   import scala.language.implicitConversions
-
-  private implicit def toDbo(dbo: ItemDraft): DBObject = {
-    grater[ItemDraft].asDBObject(dbo)
-  }
-
-  private implicit def toDraft(dbo: DBObject): ItemDraft = {
-    grater[ItemDraft].asObject(new MongoDBObject(dbo))
-  }
 
   def save(d: ItemDraft): WriteResult = {
     collection.save(d)

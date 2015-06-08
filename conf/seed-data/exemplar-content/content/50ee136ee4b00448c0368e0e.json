@@ -40,7 +40,7 @@
     "RL.4.1"
   ],
   "data": {
-    "name": "qtiItem",
+    "name": "data",
     "files": [
       {
         "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",

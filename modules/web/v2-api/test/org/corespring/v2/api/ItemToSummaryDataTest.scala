@@ -31,7 +31,7 @@ class ItemToSummaryDataTest extends Specification with Mockito {
         title = Some("Title"),
         subjects = Some(new Subjects(
           primary = Some(new ObjectId("4ffb535f6bb41e469c0bf2aa")), //AP Art History
-          related = Some(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
+          related = Seq(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
           )),
         gradeLevel = Seq("GradeLevel1", "GradeLevel2"),
         itemType = Some("ItemType"))),
@@ -50,7 +50,7 @@ class ItemToSummaryDataTest extends Specification with Mockito {
       (json \ "author").asOpt[String] === Some("Author")
       (json \ "title").asOpt[String] === Some("Title")
       (json \ "primarySubject" \ "subject").asOpt[String] === Some("AP Art History")
-      (json \ "relatedSubject" \ "subject").asOpt[String] === Some("AP English Literature")
+      (json \ "relatedSubject" \\ "subject").map(_.as[String]) === Seq("AP English Literature")
       (json \ "gradeLevel").as[Seq[String]] === Seq("GradeLevel1", "GradeLevel2")
       (json \ "itemType").asOpt[String] === Some("ItemType")
       val standards: Seq[JsValue] = (json \ "standards").as[Seq[JsValue]]

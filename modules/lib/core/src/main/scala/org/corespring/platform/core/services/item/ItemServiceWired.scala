@@ -9,23 +9,18 @@ import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.corespring.elasticsearch.ContentDenormalizer
-import org.corespring.platform.core.files.CloneFileResult
-import org.corespring.platform.core.files.ItemFiles
+import org.corespring.platform.core.files.{ CloneFileFailure, CloneFileSuccess, CloneFileResult, ItemFiles }
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, VirtualFile, Resource }
+import org.corespring.platform.core.models.item.resource.{ StoredFile, CDataHandler, VirtualFile, Resource }
 import org.corespring.platform.core.models.item.{ Item, FieldValue }
 import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
-import play.api.libs.json.Json
-import play.api.{ Play, Application, PlayException }
-import scala.Some
+import play.api.{ Logger, Play, Application, PlayException }
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Await, ExecutionContext}
+import scala.concurrent.{ Future, Await, ExecutionContext }
 import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
@@ -34,13 +29,15 @@ class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val dao: SalatVersioningDao[Item],
-  itemIndexService: ItemIndexService)
-  extends ItemService with PackageLogging with ItemFiles with ItemPublishingService {
+  itemIndexService: ItemIndexService)(implicit executionContext: ExecutionContext)
+  extends ItemService with ItemFiles with ItemPublishingService {
 
   import com.mongodb.casbah.commons.conversions.scala._
   import org.corespring.platform.core.models.mongoContext.context
 
   RegisterJodaTimeConversionHelpers()
+
+  override protected val logger = Logger(classOf[ItemServiceWired])
 
   val FieldValuesVersion = "0.0.1"
 
@@ -56,12 +53,20 @@ class ItemServiceWired(
    * available in search results.
    */
   private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-    Await.result(itemIndexService.reindex(id), Duration(20, SECONDS))
+    Await.result(itemIndexService.reindex(id).flatMap(result => {
+      result match {
+        case Success(anything) => itemIndexService.refresh()
+        case Failure(error) => Future {
+          Failure(error)
+        }
+      }
+    }), Duration(20, SECONDS))
   }
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
-    val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(itemClone)
+    val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(item, itemClone)
+    logger.debug(s"clone itemId=${item.id} result=$result")
     result match {
       case Success(updatedItem) => {
         dao.save(updatedItem, false)
@@ -69,9 +74,10 @@ class ItemServiceWired(
         Some(updatedItem)
       }
       case Failure(files) => {
-        files.foreach { f =>
-          f.throwable.map { e => e.printStackTrace }
-        }
+        files.foreach({
+          case CloneFileFailure(f, err) => err.printStackTrace
+          case _ => Unit
+        })
         None
       }
     }
@@ -125,6 +131,20 @@ class ItemServiceWired(
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
+  override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = {
+    import org.corespring.platform.core.models.mongoContext.context
+    val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
+    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, false, false)
+    logger.trace(s"function=addFileToPlayerDefinition, itemId=${item.id}, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: ${item.id} must have been updated")
+    if (result.getN != 1) {
+      Failure(s"Wrong number of documents updated for ${item.id}")
+    } else {
+      Success(result.getN == 1)
+    }
+  }
+
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   override def save(item: Item, createNewVersion: Boolean = false): Either[String, VersionedId[ObjectId]] = {
@@ -140,14 +160,19 @@ class ItemServiceWired(
 
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
-      val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(newItem)
+      val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(item, newItem)
       result match {
         case Success(updatedItem) => {
           dao.save(updatedItem, false)
         }
         case Failure(files) => {
           dao.revertToVersion(item.id)
-          files.foreach(r => if (r.successful) { s3service.delete(bucket, r.file.storageKey) })
+          files.foreach {
+            case CloneFileSuccess(f, key) => {
+              s3service.delete(bucket, key)
+            }
+            case _ => Unit
+          }
           Left("Cloning of files failed")
         }
       }
@@ -241,5 +266,5 @@ object ItemServiceWired extends ItemServiceWired(
   CorespringS3ServiceExtended,
   DefaultItemSession,
   ItemVersioningDao,
-  ElasticSearchItemIndexService)
+  ElasticSearchItemIndexService)(ExecutionContext.global)
 

@@ -3,15 +3,15 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{Resource, VirtualFile}
+import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.{CollectionHelper, ItemHelper}
-import org.corespring.v2.player.scopes.{orgWithAccessToken, orgWithAccessTokenAndItem}
+import org.corespring.test.helpers.models.{ CollectionHelper, ItemHelper }
+import org.corespring.v2.player.scopes.{ orgWithAccessToken, orgWithAccessTokenAndItem }
 import play.api.http.Writeable
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ItemApiGetTest extends IntegrationSpecification {
 
@@ -40,8 +40,8 @@ class ItemApiGetTest extends IntegrationSpecification {
             title = Some("Title"),
             subjects = Some(new Subjects(
               primary = Some(new ObjectId("4ffb535f6bb41e469c0bf2aa")), //AP Art History
-              related = Some(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
-            )),
+              related = Seq(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
+              )),
             gradeLevel = Seq("GradeLevel1", "GradeLevel2"),
             itemType = Some("ItemType"))),
           standards = Seq("RL.1.5", "RI.5.8"),
@@ -102,7 +102,7 @@ class ItemApiGetTest extends IntegrationSpecification {
           (jsonResult \ "author").asOpt[String] === Some("Author")
           (jsonResult \ "title").asOpt[String] === Some("Title")
           (jsonResult \ "primarySubject" \ "subject").asOpt[String] === Some("AP Art History")
-          (jsonResult \ "relatedSubject" \ "subject").asOpt[String] === Some("AP English Literature")
+          (jsonResult \ "relatedSubject" \\ "subject").map(_.as[String]) === Seq("AP English Literature")
           (jsonResult \ "gradeLevel").as[Seq[String]] === Seq("GradeLevel1", "GradeLevel2")
           (jsonResult \ "itemType").asOpt[String] === Some("ItemType")
           val standards: Seq[JsValue] = (jsonResult \ "standards").as[Seq[JsValue]]

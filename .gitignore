@@ -18,3 +18,4 @@ mongo-migrator.log
 *.iml
 atlassian-*
 .ensime*
+.run-*
