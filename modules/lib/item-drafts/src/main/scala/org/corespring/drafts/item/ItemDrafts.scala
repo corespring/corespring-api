@@ -154,9 +154,20 @@ trait ItemDrafts
     val taskInfo = a.taskInfo != b.taskInfo
     val playerDef = a.playerDefinition != b.playerDefinition
     val supportingMaterials = a.supportingMaterials != b.supportingMaterials
-    val collectionId = a.collectionId != b.collectionId;
+    val collectionId = a.collectionId != b.collectionId
+    val standards = a.standards != b.standards
+    val reviewsPassed = a.reviewsPassed != b.reviewsPassed
+    val reviewsPassedOther = a.reviewsPassedOther != b.reviewsPassedOther
+    val otherAlignments = a.otherAlignments != b.otherAlignments
+    val contributorDetails = a.contributorDetails != b.contributorDetails
+    val priorUse = a.priorUse != b.priorUse
+    val priorUseOther = a.priorUseOther != b.priorUseOther
+    val priorGradeLevels = a.priorGradeLevels != b.priorGradeLevels
+
     logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
-    taskInfo || playerDef || supportingMaterials || collectionId
+    Seq(taskInfo, playerDef, supportingMaterials, collectionId, standards,
+      reviewsPassed, reviewsPassedOther, otherAlignments, contributorDetails,
+      priorUse, priorUseOther, priorGradeLevels).reduce(_ || _)
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)
