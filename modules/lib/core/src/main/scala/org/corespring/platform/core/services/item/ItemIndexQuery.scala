@@ -15,7 +15,8 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
                           gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
                           published: Option[Boolean] = ItemIndexQuery.Defaults.published,
                           workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
-                          sort: Seq[Sort] = ItemIndexQuery.Defaults.sort)
+                          sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
+                          metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata)
 
 case class Sort(field: String, direction: Option[String])
 
@@ -70,28 +71,49 @@ object ItemIndexQuery {
     val published = None
     val workflows = Seq.empty[String]
     val sort = Seq.empty[Sort]
+    val metadata = Map.empty[String, String]
+  }
+
+  object Fields {
+    val offset = "offset"
+    val count = "count"
+    val text = "text"
+    val contributors = "contributors"
+    val collections = "collections"
+    val itemTypes = "itemTypes"
+    val gradeLevels = "gradeLevels"
+    val published = "published"
+    val workflows = "workflows"
+    val sort = "sort"
+    val all = Set(offset, count, text, contributors, collections, itemTypes, gradeLevels, published, workflows, sort)
   }
 
   /**
    * Reads JSON in the format provided by requests to the search API.
    */
   object ApiReads extends Reads[ItemIndexQuery] {
+    import Fields._
     implicit val SortReads = Sort.Reads
 
     override def reads(json: JsValue): JsResult[ItemIndexQuery] = JsSuccess(
       ItemIndexQuery(
-        offset = (json \ "offset").asOpt[Int].getOrElse(Defaults.offset),
-        count = (json \ "count").asOpt[Int].getOrElse(Defaults.count),
-        text = (json \ "text").asOpt[String],
-        contributors = (json \ "contributors").asOpt[Seq[String]].getOrElse(Defaults.contributors),
-        collections = (json \ "collections").asOpt[Seq[String]].getOrElse(Defaults.collections),
-        itemTypes = (json \ "itemTypes").asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
-        gradeLevels = (json \ "gradeLevels").asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
-        published = (json \ "published").asOpt[Boolean],
-        workflows = (json \ "workflows").asOpt[Seq[String]].getOrElse(Defaults.workflows),
-        sort = (json \ "sort").asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
+        offset = (json \ offset).asOpt[Int].getOrElse(Defaults.offset),
+        count = (json \ count).asOpt[Int].getOrElse(Defaults.count),
+        text = (json \ text).asOpt[String],
+        contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
+        collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
+        itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
+        gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
+        published = (json \ published).asOpt[Boolean],
+        workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows),
+        sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
           .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
-          .getOrElse(Defaults.sort)
+          .getOrElse(Defaults.sort),
+        metadata = (json match {
+          case jsObject: JsObject =>
+            (jsObject.keys diff all).map(key => (jsObject \ key).asOpt[String].map(value => key -> value)).flatten.toMap
+          case _ => Map.empty[String, String]
+        })
       )
     )
   }
@@ -122,29 +144,51 @@ object ItemIndexQuery {
         named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
 
 
+    private def must(metadata: Map[String, String]): Option[JsObject] = {
+      metadata.nonEmpty match {
+        case true => Some(Json.obj("must" -> metadata.map{ case(key, value) => {
+          Json.obj("nested" -> Json.obj(
+            "path" -> "metadata",
+            "query" -> Json.obj(
+              "bool" -> Json.obj(
+                "must" -> Json.arr(
+                  Json.obj("match" -> Json.obj("metadata.key" -> key)),
+                  Json.obj("match" -> Json.obj("metadata.value" -> value))
+                )
+              )
+            )
+          ))
+        }}))
+        case _ => None
+      }
+    }
+
+    private def should(text: Option[String]): Option[JsObject] = text match {
+      case Some("") => None
+      case Some(text) => Some(Json.obj("should" -> Json.arr(
+        Json.obj("multi_match" -> Json.obj(
+          "query" -> text,
+          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
+          "type" -> "phrase"
+        )),
+        Json.obj("ids" -> Json.obj(
+          "values" -> Json.arr(text)
+        ))
+      )))
+      case _ => None
+    }
+
     def writes(query: ItemIndexQuery): JsValue = {
       import query._
       implicit val SortWrites = Sort.ElasticSearchWrites
 
+      val clauses = Seq(must(metadata), should(text)).flatten.foldLeft(Json.obj()){ case (obj, acc) => acc ++ obj }
+
       partialObj(
         "from" -> Some(JsNumber(offset)),
         "size" -> Some(JsNumber(count)),
-        "query" -> (query.text match {
-          case Some("") => None
-          case Some(text) => Some(Json.obj(
-            "bool" -> Json.obj(
-              "should" -> Json.arr(
-                Json.obj("multi_match" -> Json.obj(
-                  "query" -> text,
-                  "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
-                  "type" -> "phrase"
-                )),
-                Json.obj("ids" -> Json.obj(
-                  "values" -> Json.arr(text)
-                ))
-              )
-            )
-          ))
+        "query" -> (clauses.keys.nonEmpty match {
+          case true => Some(Json.obj("bool" -> clauses))
           case _ => None
         }),
         "filter" -> Some(Json.obj(
@@ -167,7 +211,6 @@ object ItemIndexQuery {
         })
       )
     }
-
   }
 
 }
