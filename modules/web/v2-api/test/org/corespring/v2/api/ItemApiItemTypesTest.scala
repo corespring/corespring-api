@@ -14,8 +14,7 @@ class ItemApiItemTypesTest extends Specification with Mockito {
   import ExecutionContext.Implicits.global
 
   val itemTypes = Map(
-    "corespring-multiple-choice" -> "Multiple Choice"
-  )
+    "corespring-multiple-choice" -> "Multiple Choice")
 
   val mockItemIndexService: ItemIndexService = {
     val service = mock[ItemIndexService]
@@ -28,7 +27,7 @@ class ItemApiItemTypesTest extends Specification with Mockito {
   "all" should {
 
     "return item types from ItemIndexService" in {
-      itemType.all must be equalTo(JsArray(itemTypes.map{ case(value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq))
+      itemType.all must be equalTo (JsArray(itemTypes.map { case (value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq))
     }
 
   }

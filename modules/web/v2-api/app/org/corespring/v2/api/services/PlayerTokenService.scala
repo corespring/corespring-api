@@ -41,8 +41,7 @@ trait PlayerTokenService {
     }
   }
 
-  private def toAccessSettings(json: JsValue):
-      Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
+  private def toAccessSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.permissiveRead(json) match {
     case JsError(_) => Failure(missingRequiredField(Field("expires", "number")))
     case JsSuccess(o, _) => Success(o)
   }

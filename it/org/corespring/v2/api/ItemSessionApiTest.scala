@@ -201,22 +201,20 @@ class ItemSessionApiTest extends IntegrationSpecification {
   "cloneSession" should {
 
     "return apiClient" in new cloneSession {
-      (contentAsJson(result) \ "apiClient").as[String] must be equalTo(
+      (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
         ApiClient.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
     }
 
     "return encrypted options, decryptable by provided apiClient" in new cloneSession {
       val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
       val encrypter = new ApiClientEncrypter(AESCrypto)
-      encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo(
+      encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
         Some(ItemSessionApi.clonedSessionOptions.toString))
     }
 
     "return organization name" in new cloneSession {
-      (contentAsJson(result) \ "organization").as[String] must be equalTo(organization.name)
+      (contentAsJson(result) \ "organization").as[String] must be equalTo (organization.name)
     }
-
-
 
   }
 

@@ -138,7 +138,7 @@ class ItemTest extends BaseTest {
         Seq(
           Keys.id -> JsString(new ObjectId().toString),
           Keys.primarySubject -> JsString(subject.primary.get.toString),
-          Keys.relatedSubject -> JsArray(subject.related.map(s=>JsString(s.toString)))))
+          Keys.relatedSubject -> JsArray(subject.related.map(s => JsString(s.toString)))))
 
       val parsed = jsonToRead.as[Item]
 

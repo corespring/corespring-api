@@ -33,15 +33,15 @@ class AccessSettingsWildcardCheck(appConfig: AppConfig) {
       val result = (settings.allowItemId(itemId)
         &&
         sessionId.map(settings.allowSessionId(_)).getOrElse(true)) match {
-        case true => Success(true)
-        case false => {
-          logger.trace(s"player options: $settings")
-          logger.trace(s"itemId? $itemId -> ${settings.allowItemId(itemId)}")
-          sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}")}
-          logger.trace(s"allowMode? $mode -> ${settings.allowMode(mode)}")
-          Failure(notGrantedError(itemId, sessionId, settings))
+          case true => Success(true)
+          case false => {
+            logger.trace(s"player options: $settings")
+            logger.trace(s"itemId? $itemId -> ${settings.allowItemId(itemId)}")
+            sessionId.foreach { sid => logger.trace(s"sessionId? $sid -> ${settings.allowSessionId(sid)}") }
+            logger.trace(s"allowMode? $mode -> ${settings.allowMode(mode)}")
+            Failure(notGrantedError(itemId, sessionId, settings))
+          }
         }
-      }
       result
     }
   }

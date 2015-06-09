@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.encryption
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption.{EncryptionSuccess, ApiClientEncryptionService}
+import org.corespring.platform.core.encryption.{ EncryptionSuccess, ApiClientEncryptionService }
 import org.corespring.platform.core.models.auth.ApiClient
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -32,7 +32,7 @@ class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
 
       "delegate to underlying encrypter" in new CachedEncryptionService {
         val result = cachedEncryptionService.encrypt(apiClient.clientId.toString, data)
-        result must be equalTo(Some(encryptionSuccess))
+        result must be equalTo (Some(encryptionSuccess))
         there was one(apiClientEncryptionService).encrypt(apiClient.clientId.toString, data)
       }
 
@@ -42,7 +42,7 @@ class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
 
       "delegate to underlying encrypter" in new CachedEncryptionService {
         val result = cachedEncryptionService.encrypt(apiClient, data)
-        result must be equalTo(Some(encryptionSuccess))
+        result must be equalTo (Some(encryptionSuccess))
         there was one(apiClientEncryptionService).encrypt(apiClient, data)
       }
 
@@ -54,12 +54,11 @@ class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
 
     "delegate to underlying encrypter" in new CachedEncryptionService {
       val result = cachedEncryptionService.encryptByOrg(orgId, data)
-      result must be equalTo(Some(encryptionSuccess))
+      result must be equalTo (Some(encryptionSuccess))
       there was one(apiClientEncryptionService).encryptByOrg(orgId, data)
     }
 
   }
-
 
   "decrypt" should {
 

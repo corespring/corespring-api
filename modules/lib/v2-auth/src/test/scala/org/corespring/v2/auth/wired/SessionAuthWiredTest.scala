@@ -163,7 +163,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val saveFn = auth.saveSessionFunction(optsIn)
         saveFn.toOption.map(fn => fn("1", Json.obj()))
         val identityJson = IdentityJson(optsIn)
-        (identityJson \ "apiClientId").asOpt[String] === None
+        (identityJson \ "apiClientId").asOpt[String] must beNone
         there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
       }
     }
@@ -172,7 +172,17 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       "add the identity data to the session data" in new authScope() {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.create(Json.obj())(optsIn)
-        there was one(auth.mainSessionService).create(Json.obj("identity" -> IdentityJson(optsIn)))
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "identity").as[JsObject] must_== IdentityJson(optsIn)
+      }
+
+      "add dateCreated to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.create(Json.obj())(optsIn)
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
       }
     }
 
@@ -181,13 +191,12 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "provides identity in response" in new authScope(session = Some(
         Json.obj("item" -> Json.obj(
-          "xhtml" -> "<h1>Hello World</h1>"
-          ),
+          "xhtml" -> "<h1>Hello World</h1>"),
           "identity" -> identity,
           "components" -> Json.obj()))) {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.loadWithIdentity("")(optsIn) match {
-          case Success((result, _)) => (result \ "identity") must be equalTo(identity)
+          case Success((result, _)) => (result \ "identity") must be equalTo (identity)
           case _ => failure("nope nope")
         }
       }
@@ -207,12 +216,11 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
 
       "return id of saved session" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
-        auth.cloneIntoPreview("")(optsIn) must be equalTo(Success(savedId))
+        auth.cloneIntoPreview("")(optsIn) must be equalTo (Success(savedId))
       }
 
     }
 
   }
-
 
 }
