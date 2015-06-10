@@ -71,11 +71,16 @@ class ItemIndexQueryTest extends Specification {
   "ElasticSearchWrites" should {
     implicit val ElasticSearchWrites = ItemIndexQuery.ElasticSearchWrites
 
-    def shouldClause(json: JsValue, name: String) = (json \ "query" \ "bool" \ "should").as[Seq[JsObject]]
-      .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
-      .getOrElse(JsUndefined(s"Could not find $name clause"))
+    def shouldClause(json: JsValue, name: String) = clause(json, name, "should")
+    def mustClause(json: JsValue, name: String) = clause(json, name, "must")
+
+    def clause(json: JsValue, name: String, clauseName: String) =
+      (json \ "query" \ "bool" \ clauseName).as[Seq[JsObject]]
+        .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
+        .getOrElse(JsUndefined(s"Could not find $name clause"))
 
     def multiMatch(json: JsValue): JsValue = shouldClause(json, "multi_match")
+    def nested(json: JsValue): JsValue = mustClause(json, "nested")
     def ids(json: JsValue): JsValue = shouldClause(json, "ids")
 
     "text" should {
@@ -120,6 +125,24 @@ class ItemIndexQueryTest extends Specification {
 
       }
     }
+
+    "metadata" should {
+      val metadata = Map("kds.scoringType" -> "PARCC")
+      val query = ItemIndexQuery(metadata = metadata)
+      val json = Json.toJson(query)
+
+      "include nested metadata query" in {
+        (nested(json) \ "path").as[String] must be equalTo("metadata")
+      }
+
+      "matches on metadata.key and metadata.value" in {
+        val mustClauses = (nested(json) \ "query" \ "bool" \ "must").as[Seq[JsObject]]
+        mustClauses.find(c => (c \ "match").as[JsObject].keys.contains("metadata.key")) must not beEmpty;
+        mustClauses.find(c => (c \ "match").as[JsObject].keys.contains("metadata.value")) must not beEmpty
+      }
+
+    }
+
 
     "contributors" should {
 
