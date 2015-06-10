@@ -35,7 +35,7 @@ object NumberLineInteractionTransformer extends InteractionTransformer with Numb
           "showMinorTicks" -> JsBoolean((node \ "@displayMinorTickMarks").text == "true"),
           "exhibitOnly" -> false,
           "maxNumberOfPoints" -> correctResponses(qti).length,
-          "snapPerTick" -> JsNumber(parseInt((node \ "@minorTickMarkFreq").text).getOrElse(Defaults.SnapPerTick)),
+          "snapPerTick" -> parseInt((node \ "@minorTickMarkFreq").text).getOrElse(Defaults.SnapPerTick).asInstanceOf[Int],
           "tickFrequency" -> (((node \ "@upperBound").text.toDouble - (node \ "@lowerBound").text.toDouble)/(node \ "@step").text.toDouble),
           "availableTypes" -> Json.obj("PF" -> true),
           "initialElements" -> Json.arr(),
