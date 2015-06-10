@@ -9,6 +9,10 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
 
   val MaximumImageWidth = 430
 
+  object Defaults {
+    val choiceAreaPosition = "left"
+  }
+
   private def mapValueToRealImageSize(imageWidth: Int, value: Float): Float = {
     if (imageWidth > MaximumImageWidth) {
       MaximumImageWidth * value / imageWidth
@@ -22,7 +26,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
     node match {
       case elem: Elem if elem.label == "graphicGapMatchInteraction" =>
         elem.child.filter(_.label != "simpleChoice").map(n => n.label match {
-          case "prompt" => <p class="prompt">{n.child}</p>
+          case "prompt" => <p class="prompt">{ n.child }</p>
           case _ => n
         }) ++ <corespring-graphic-gap-match id={ identifier }></corespring-graphic-gap-match>
       case _ => node
@@ -30,11 +34,11 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
   }
 
   override def interactionJs(qti: Node) = (qti \\ "graphicGapMatchInteraction")
-    .map( node => {
+    .map(node => {
 
       val componentId = (node \ "@responseIdentifier").text.trim
 
-      def cutPathPrefix(path:String) = path.substring(path.lastIndexOf('/') + 1)
+      def cutPathPrefix(path: String) = path.substring(path.lastIndexOf('/') + 1)
 
       def correctResponses: Seq[JsString] = {
         val values: Seq[Node] = (responseDeclaration(node, qti) \\ "value").toSeq
@@ -43,23 +47,22 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
       }
 
       def imageWidth = intValueOrZero((node \ "object" \ "@width").mkString)
-      def mapValue(value:Float):Float = mapValueToRealImageSize(imageWidth, value)
+      def mapValue(value: Float): Float = mapValueToRealImageSize(imageWidth, value)
 
       def hotspots = {
-        def coords(shape:String, s:String) = {
+        def coords(shape: String, s: String) = {
           val coordsArray = s.split(',').map(s => floatValueOrZero(s))
           shape match {
             case "rect" => Json.obj(
               "left" -> mapValue(coordsArray(0)),
               "top" -> coordsArray(1),
               "width" -> mapValue(Math.abs(coordsArray(2) - coordsArray(0))),
-              "height" -> Math.abs(coordsArray(3) - coordsArray(1))
-            )
+              "height" -> Math.abs(coordsArray(3) - coordsArray(1)))
             case "poly" =>
-              def xCoords = coordsArray.zipWithIndex.collect { case (x,i) if i % 2 == 0 => x }
-              def yCoords = coordsArray.zipWithIndex.collect { case (x,i) if i % 2 == 1 => x }
+              def xCoords = coordsArray.zipWithIndex.collect { case (x, i) if i % 2 == 0 => x }
+              def yCoords = coordsArray.zipWithIndex.collect { case (x, i) if i % 2 == 1 => x }
               def coordPairs = xCoords.zip(yCoords)
-              JsArray(coordPairs.map(p => Json.obj("x"->mapValue(p._1), "y"->p._2)))
+              JsArray(coordPairs.map(p => Json.obj("x" -> mapValue(p._1), "y" -> p._2)))
           }
         }
         JsArray(((node \\ "associableHotspot").toSeq).map { n =>
@@ -67,8 +70,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
           Json.obj(
             "id" -> (n \ "@identifier").text.trim,
             "shape" -> shape,
-            "coords" -> coords(shape, (n \ "@coords").text.trim)
-          )
+            "coords" -> coords(shape, (n \ "@coords").text.trim))
         })
       }
 
@@ -78,8 +80,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
           "id" -> (n \ "@identifier").text.trim,
           "label" -> s"<img src='${cutPathPrefix((n \ "object" \ "@data").mkString)}' width='${imgWidth}' height='${(n \ "object" \ "@height").mkString}' />",
           "matchMax" -> intValueOrZero((n \ "@matchMax").text.trim),
-          "matchMin" -> intValueOrZero((n \ "@matchMin").text.trim)
-        )
+          "matchMin" -> intValueOrZero((n \ "@matchMin").text.trim))
       })
 
       val bgImgWidth = mapValue(intValueOrZero((node \ "object" \ "@width").mkString.replaceAll("[^0-9]", "")))
@@ -88,34 +89,30 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
         "model" -> Json.obj(
           "config" -> Json.obj(
             "shuffle" -> false,
-            "choiceAreaPosition" -> "left",
+            "choiceAreaPosition" -> ((node \\ "choiceAreaPosition").text match {
+              case "" => Defaults.choiceAreaPosition
+              case choiceAreaPosition => choiceAreaPosition
+            }),
             "backgroundImage" -> Json.obj(
               "path" -> cutPathPrefix((node \ "object" \ "@data").mkString),
               "width" -> JsNumber(BigDecimal(bgImgWidth)),
-              "height" -> JsNumber(intValueOrZero((node \ "object" \ "@height").mkString))
-            ),
-            "showHotspots" -> JsBoolean(false)
-          ),
+              "height" -> JsNumber(intValueOrZero((node \ "object" \ "@height").mkString))),
+            "showHotspots" -> JsBoolean(false)),
           "hotspots" -> hotspots,
-          "choices" -> choices
-        ),
+          "choices" -> choices),
         "feedback" -> Json.obj(
           "correctFeedbackType" -> "default",
           "partialFeedbackType" -> "default",
-          "incorrectFeedbackType" -> "default"
-        ),
+          "incorrectFeedbackType" -> "default"),
         "correctResponse" -> correctResponses.map { cr =>
           val idHotspotRegex = """([^\s]*) ([^\s]*)""".r
           cr.asOpt[String] match {
             case Some(idHotspotRegex(id, hotspot)) => Json.obj(
               "id" -> id,
-              "hotspot" -> hotspot
-            )
+              "hotspot" -> hotspot)
             case _ => Json.obj()
           }
-        }
-
-      )
+        })
 
       componentId -> json
 
