@@ -39,9 +39,9 @@ ADD docker/.ivy2/.credentials /root/.ivy2/.credentials
 # docker sbt util (so we can run mongo-db-seeder + indexer)
 ADD docker/cs-api-docker-util/target/scala-2.10/cs-api-docker-util-assembly-*.jar /opt/cs-api-docker-util/run.jar
 RUN chmod +x /opt/cs-api-docker-util/run.jar
-ADD conf/seed-data /opt/cs-api-docker-util/conf/seed-data
-ADD conf/qti /opt/cs-api-docker-util/conf/qti
-ADD conf/qti-templates /opt/cs-api-docker-util/conf/qti-templates
+ADD target/universal/stage/conf/seed-data /opt/cs-api-docker-util/conf/seed-data
+ADD target/universal/stage/conf/qti /opt/cs-api-docker-util/conf/qti
+ADD target/universal/stage/conf/qti-templates /opt/cs-api-docker-util/conf/qti-templates
 
 ADD corespring-components/components /opt/components
 ENV CONTAINER_COMPONENTS_PATH="/opt/components"
