@@ -1,7 +1,15 @@
+lib
+system.properties
 modules
+bin
+aws.sh
+aws.zip
+setenv.sh
+Procfile
 node_modules
 **/node_modules
 app
+js-test-runner
 bower_components
 hooks
 .git
