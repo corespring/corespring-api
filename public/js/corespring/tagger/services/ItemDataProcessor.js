@@ -73,7 +73,7 @@ com.corespring.model.ItemDataProcessor = function () {
     processedData.gradeLevel = this.buildDtoKeyArray(itemData.$gradeLevelDataProvider);
     processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
     processedData.primarySubject = this.convertEmbeddedToOid(itemData.primarySubject);
-    processedData.relatedSubject = this.convertEmbeddedToOid(itemData.relatedSubject);
+    processedData.relatedSubject = [this.convertEmbeddedToOid(itemData.relatedSubject[0])];
     processedData.standards = _.map(itemData.standards, function(s){ return s.dotNotation; } );
     processedData.costForResource = parseInt(itemData.costForResource);
     angular.extend(dto, itemData, processedData);
@@ -137,6 +137,7 @@ com.corespring.model.ItemDataProcessor = function () {
       item.workflow = this.createWorkflowObject();
     }
 
+    item.relatedSubject = item.relatedSubject || [];
 
     function getKey(o){ return o.key }
 
