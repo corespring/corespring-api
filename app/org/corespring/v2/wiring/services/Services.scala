@@ -1,6 +1,6 @@
 package org.corespring.v2.wiring.services
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
@@ -35,7 +35,10 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Failure, Success, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client,
+class Services(cacheConfig: Configuration,
+  db: MongoDB,
+  itemTransformer: ItemTransformer,
+  s3: AmazonS3,
   bucket: String) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
@@ -60,7 +63,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def assets: ItemDraftAssets = new S3ItemDraftAssets {
       override def bucket: String = Services.this.bucket
 
-      override def s3: AmazonS3Client = Services.this.s3
+      override def s3: AmazonS3 = Services.this.s3
 
     }
 
