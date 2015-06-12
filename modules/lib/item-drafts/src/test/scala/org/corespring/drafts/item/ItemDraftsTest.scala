@@ -8,7 +8,7 @@ import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
-import org.corespring.platform.core.models.item.{ TaskInfo, PlayerDefinition, Item }
+import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.fakes.Fakes
@@ -347,7 +347,7 @@ class ItemDraftsTest extends Specification with Mockito {
     }
 
     "hasSrcChanged" should {
-      class __() extends Scope with MockItemDrafts {
+      class __ extends Scope with MockItemDrafts {
         val item1 = Item(id = itemId)
       }
 
@@ -373,6 +373,46 @@ class ItemDraftsTest extends Specification with Mockito {
 
       "return true if supportingMaterials has changed" in new __ {
         val item2 = item1.copy(supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if standards has changed" in new __ {
+        val item2 = item1.copy(standards = Seq("std1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if reviewsPassed has changed" in new __ {
+        val item2 = item1.copy(reviewsPassed = Seq("rp1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if reviewsPassedOther has changed" in new __ {
+        val item2 = item1.copy(reviewsPassedOther = Some("rpo1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if otherAlignments has changed" in new __ {
+        val item2 = item1.copy(otherAlignments = Some(Alignments()))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if contributorDetails has changed" in new __ {
+        val item2 = item1.copy(contributorDetails = Some(ContributorDetails()))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorUse has changed" in new __ {
+        val item2 = item1.copy(priorUse = Some(""))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorUseOther has changed" in new __ {
+        val item2 = item1.copy(priorUseOther = Some(""))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorGradeLevels has changed" in new __ {
+        val item2 = item1.copy(priorGradeLevels = Seq(""))
         hasSrcChanged(item1, item2) must_== true
       }
     }

@@ -3,14 +3,13 @@ package org.corespring.web.common.views.helpers
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.{ItemType, FieldValue}
+import org.corespring.platform.core.models.item.{ ItemType, FieldValue }
 import org.corespring.platform.core.services.item._
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
 import scala.concurrent.Await
-
 
 class Defaults(itemIndexService: ItemIndexService) {
 

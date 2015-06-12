@@ -4,26 +4,26 @@ import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 import scala.xml.transform.RuleTransformer
-import scala.xml.{Elem, Node, NodeSeq, XML}
+import scala.xml.{ Elem, Node, NodeSeq, XML }
 
 class GraphicGapMatchInteractionTransformerTest extends Specification {
 
   def qti(rd: Elem, body: Elem): Node =
     <assessmentItem>
       <correctResponseFeedback>Default Correct</correctResponseFeedback>
-      <incorrectResponseFeedback>Default Incorrect</incorrectResponseFeedback>{rd}<itemBody>
-      {body}
-    </itemBody>
+      <incorrectResponseFeedback>Default Incorrect</incorrectResponseFeedback>{ rd }<itemBody>
+                                                                                      { body }
+                                                                                    </itemBody>
     </assessmentItem>
 
   def responseDeclaration(correctResponse: Elem) =
     <responseDeclaration identifier="Q_01" cardinality="multiple" baseType="directedPair">
-      {correctResponse}
+      { correctResponse }
     </responseDeclaration>
 
   def prompt = "ITEM <b>PROMPT</b>"
 
-  def graphicGapMatchInteraction = XML.loadString( s"""
+  def graphicGapMatchInteraction = XML.loadString(s"""
     <graphicGapMatchInteraction responseIdentifier="Q_01">
       <prompt>$prompt</prompt>
       <object data="../images/ROGJOH370_Rocket_stem_01_o_b288978462.png" height="343" type="image/png" width="379"/>
@@ -55,22 +55,22 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
 
   val interaction = qti(
     responseDeclaration(<correctResponse>
-      <value>GI-6026 HS-6031</value>
-      <value>GI-6025 HS-6032</value>
-      <value>GI-6027 HS-6033</value>
-      <value>GI-6029 HS-6034</value>
-    </correctResponse>),
+                          <value>GI-6026 HS-6031</value>
+                          <value>GI-6025 HS-6032</value>
+                          <value>GI-6027 HS-6033</value>
+                          <value>GI-6029 HS-6034</value>
+                        </correctResponse>),
     graphicGapMatchInteraction)
 
   val interactionWithMappedValues = qti(
     responseDeclaration(<correctResponse>
-      <mapping lowerBound="0" upperBound="6" defaultValue="0">
-        <mapEntry mapKey="GI-6026 HS-6031" mappedValue="1"/>
-        <mapEntry mapKey="GI-6025 HS-6032" mappedValue="1"/>
-        <mapEntry mapKey="GI-6027 HS-6033" mappedValue="1"/>
-        <mapEntry mapKey="GI-6029 HS-6034" mappedValue="1"/>
-      </mapping>
-    </correctResponse>),
+                          <mapping lowerBound="0" upperBound="6" defaultValue="0">
+                            <mapEntry mapKey="GI-6026 HS-6031" mappedValue="1"/>
+                            <mapEntry mapKey="GI-6025 HS-6032" mappedValue="1"/>
+                            <mapEntry mapKey="GI-6027 HS-6033" mappedValue="1"/>
+                            <mapEntry mapKey="GI-6029 HS-6034" mappedValue="1"/>
+                          </mapping>
+                        </correctResponse>),
     graphicGapMatchInteraction)
 
   "GraphicGapMatchInteractionTransformer" should {
@@ -86,8 +86,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
       (q1 \ "model" \ "config" \ "backgroundImage").as[JsObject] === Json.obj(
         "path" -> "ROGJOH370_Rocket_stem_01_o_b288978462.png",
         "width" -> 379,
-        "height" -> 343
-      )
+        "height" -> 343)
 
       val choices = (q1 \ "model" \ "choices").as[Seq[JsObject]]
       choices.length === 6
@@ -109,9 +108,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
           "left" -> 197.0,
           "top" -> 30.0,
           "width" -> 175.0,
-          "height" -> 49.0
-        )
-      )
+          "height" -> 49.0))
 
       hotspots(4) === Json.obj("id" -> "HS-6035",
         "shape" -> "poly",
@@ -119,17 +116,13 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
           Json.obj("x" -> 155.0, "y" -> 2.0),
           Json.obj("x" -> 105.0, "y" -> 11.0),
           Json.obj("x" -> 84.0, "y" -> 18.0),
-          Json.obj("x" -> 60.0, "y" -> 27.0)
-        )
-        )
-      )
+          Json.obj("x" -> 60.0, "y" -> 27.0))))
 
       val correctResponse = (q1 \ "correctResponse").as[Seq[JsObject]]
       correctResponse === Seq(Json.obj("id" -> "GI-6026", "hotspot" -> "HS-6031"),
         Json.obj("id" -> "GI-6025", "hotspot" -> "HS-6032"),
         Json.obj("id" -> "GI-6027", "hotspot" -> "HS-6033"),
-        Json.obj("id" -> "GI-6029", "hotspot" -> "HS-6034")
-      )
+        Json.obj("id" -> "GI-6029", "hotspot" -> "HS-6034"))
     }
 
     "transform interaction with mapped correct response" in {
@@ -141,8 +134,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
       correctResponse === Seq(Json.obj("id" -> "GI-6026", "hotspot" -> "HS-6031"),
         Json.obj("id" -> "GI-6025", "hotspot" -> "HS-6032"),
         Json.obj("id" -> "GI-6027", "hotspot" -> "HS-6033"),
-        Json.obj("id" -> "GI-6029", "hotspot" -> "HS-6034")
-      )
+        Json.obj("id" -> "GI-6029", "hotspot" -> "HS-6034"))
 
     }
   }

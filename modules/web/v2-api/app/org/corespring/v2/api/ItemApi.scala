@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.{ContentCollRef, JsonUtil}
+import org.corespring.platform.core.models.{ ContentCollRef, JsonUtil }
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.drafts.item.models.ItemDraft
@@ -17,8 +17,8 @@ import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent._
 
-import org.corespring.platform.core.models.item.{ItemType, Item}
-import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
+import org.corespring.platform.core.models.item.{ ItemType, Item }
+import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -232,7 +232,6 @@ trait ItemApi extends V2Api with JsonUtil {
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
-
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 

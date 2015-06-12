@@ -1,9 +1,8 @@
 package org.corespring.platform.core.utils
 
-import org.specs2.mutable.{Specification}
+import org.specs2.mutable.{ Specification }
 
-class NumberParsersTest extends Specification
-{
+class NumberParsersTest extends Specification {
   val numberParser = new NumberParsers {}
 
   "number parser" should {

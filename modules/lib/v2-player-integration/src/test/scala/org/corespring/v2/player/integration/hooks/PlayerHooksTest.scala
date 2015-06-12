@@ -3,6 +3,7 @@ package org.corespring.v2.player.hooks
 import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
@@ -24,9 +25,9 @@ import scalaz.{ Failure, Success, Validation }
 
 class PlayerHooksTest extends Specification with Mockito with MockFactory {
 
-  PlaySingleton.start()
-
   lazy val orgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
+
+  PlaySingleton.start()
 
   class defaultScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts))
     extends Scope
@@ -73,7 +74,7 @@ class PlayerHooksTest extends Specification with Mockito with MockFactory {
     mockAuth.loadForRead(any[String])(any[OrgAndOpts]) returns loadForReadResult
   }
 
-  "player hooks" should {
+  "PlayerHooks" should {
 
     import scala.concurrent._
     import scala.concurrent.duration._

@@ -27,13 +27,13 @@ import scalaz.{ Failure, Success, Validation }
 class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
   class apiScope(
-      val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
-      val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-      val maybeSessionId: Option[ObjectId] = None,
-      val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
-      val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
-      val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
-      val apiClient: Option[ApiClient] = None) extends Scope {
+    val canCreate: Validation[V2Error, Boolean] = Failure(generalError("no")),
+    val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    val maybeSessionId: Option[ObjectId] = None,
+    val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
+    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
+    val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
+    val apiClient: Option[ApiClient] = None) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
       override def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClient
@@ -77,8 +77,8 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       val missingSessionId = new ObjectId().toString
 
       "return 404" in new apiScope(clonedSession = Failure(cantLoadSession(missingSessionId))) {
-        val result = api.cloneSession(missingSessionId)(FakeRequest("",""))
-        status(result) must be equalTo(NOT_FOUND)
+        val result = api.cloneSession(missingSessionId)(FakeRequest("", ""))
+        status(result) must be equalTo (NOT_FOUND)
       }
 
     }
@@ -86,12 +86,12 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     "without authentication" should {
 
       val sessionId = new ObjectId().toString
-      val request = FakeRequest("","")
+      val request = FakeRequest("", "")
 
       "return 401" in new apiScope(clonedSession = Success(new ObjectId()),
         orgAndOpts = Failure(noOrgIdAndOptions(request))) {
         val result = api.cloneSession(sessionId)(request)
-        status(result) must be equalTo(UNAUTHORIZED)
+        status(result) must be equalTo (UNAUTHORIZED)
       }
 
     }
@@ -103,13 +103,13 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       "return 201" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        status(result) must be equalTo(CREATED)
+        status(result) must be equalTo (CREATED)
       }
 
       "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-        Option((contentAsJson(result) \ "apiClient").as[String]) must be equalTo(apiClient.map(_.clientId.toString))
+        Option((contentAsJson(result) \ "apiClient").as[String]) must be equalTo (apiClient.map(_.clientId.toString))
       }
 
       "return cloned session options decryptable by apiClient" in new apiScope(
@@ -120,8 +120,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
         encrypter.decrypt(
           apiClient.getOrElse(throw new Exception("No apiClient provided")),
-          (contentAsJson(result) \ "options").as[String]
-        ) must be equalTo(Some(ItemSessionApi.clonedSessionOptions.toString))
+          (contentAsJson(result) \ "options").as[String]) must be equalTo (Some(ItemSessionApi.clonedSessionOptions.toString))
       }
 
     }

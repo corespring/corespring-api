@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.encryption.{ApiClientEncrypter, EncryptionSuccess}
+import org.corespring.platform.core.encryption.{ ApiClientEncrypter, EncryptionSuccess }
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.missingRequiredField
 import org.corespring.v2.errors.Field

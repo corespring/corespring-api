@@ -32,7 +32,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
     FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   case class searchApiScope(orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-                            searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends Scope {
+    searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends Scope {
     import ExecutionContext.Implicits.global
 
     val indexService = mock[ItemIndexService]
