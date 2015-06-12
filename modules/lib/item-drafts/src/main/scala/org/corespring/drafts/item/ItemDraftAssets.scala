@@ -64,7 +64,7 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
 
   def bucket: String
 
-  def utils = new AssetUtils(s3, bucket)
+  def utils = new AssetUtils(s3.asInstanceOf[AmazonS3Client], bucket)
 
   private def cp[A](from: String, to: String, id: A): Validation[DraftError, A] = {
     logger.debug(s"function=cp from=$from to=$to id=$id")
