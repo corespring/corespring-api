@@ -19,3 +19,4 @@ mongo-migrator.log
 atlassian-*
 .ensime*
 .run-*
+aws.zip
