@@ -89,22 +89,24 @@ object Build extends sbt.Build {
   /** Core data model */
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
-      salatPlay,
-      corespringCommonUtils,
-      httpClient,
-      salatVersioningDao,
-      specs2 % "test",
-      playS3,
-      playFramework,
-      securesocial,
       assetsLoader,
-      mockito,
-      sprayCaching,
+      awscala,
       componentLoader,
-      playTest % "test",
-      scalaFaker,
+      corespringCommonUtils,
       elasticsearchPlayWS,
-      jsoup))
+      httpClient,
+      jsoup,
+      mockito,
+      playFramework,
+      playS3,
+      playTest % "test",
+      salatPlay,
+      salatVersioningDao,
+      scalaFaker,
+      securesocial,
+      specs2 % "test",
+      sprayCaching
+    ))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
 
   val playerLib = builders.lib("player-lib")

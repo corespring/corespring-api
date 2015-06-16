@@ -76,14 +76,17 @@ class LoadPlayerTest
 
   "when I load the player with orgId and options" should {
 
+
     "fail to create session for unknown user" in new unknownIdentity_CreateSession() {
       status(createSessionResult) === UNAUTHORIZED
     }
+
 
     def locationNoQueryParams(of: Future[SimpleResult]): String = {
       headers(of).get(LOCATION).map(l =>
         if (l.indexOf("?") == -1) l else l.split("\\?")(0)).getOrElse(throw new RuntimeException("no location in header"))
     }
+
 
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === CREATED
@@ -92,20 +95,21 @@ class LoadPlayerTest
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
+
     "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
       status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
       val sessionId = V2SessionHelper.findSessionForItemId(itemId, "v2.itemSessions_preview")
-      val session = V2SessionHelper.findSession(sessionId.toString, "v2.itemSessions_preview")
-      println(com.mongodb.util.JSON.serialize(session))
-      session.get("dateCreated") must_!= null
+      val session = V2SessionHelper.findSession(sessionId.toString, "v2.itemSessions_preview").get
+      println(session)
+      (session \ "dateCreated") must_!= null
 
       val call = org.corespring.container.client.controllers.resources.routes.Session.loadItemAndSession(sessionId.toString)
 
       route(makeRequest(call))(writeable).map { result =>
         val json = contentAsJson(result)
         println(s" -> ${Json.stringify(json)}")
-        (json \ "session" \ "dateCreated" \ "$date").asOpt[String] must beSome[String]
+        (json \ "session" \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
       }.getOrElse(failure("should have been successful"))
     }
 

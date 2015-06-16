@@ -24,8 +24,8 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService, TokenService }
-import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
+import org.corespring.v2.auth.services.{SessionService, ContentCollectionService, OrgService, TokenService}
+import org.corespring.v2.auth.wired.{DynamoSessionService, MongoSessionService, ItemAuthWired, SessionAuthWired}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -40,9 +40,10 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
-  lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+  //lazy val mainSessionService: SessionService = new MongoSessionService(db("v2.itemSessions"))
+  lazy val mainSessionService: SessionService = new DynamoSessionService("v2.itemSessions")
 
-  override val sessionService: MongoService = mainSessionService
+  override val sessionService: SessionService = mainSessionService
 
   override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
@@ -88,7 +89,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     }
   }
 
-  lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
+  //lazy val previewSessionService: SessionService = new MongoSessionService(db("v2.itemSessions_preview"))
+  lazy val previewSessionService: SessionService = new DynamoSessionService("v2.itemSessions_preview")
 
   lazy val itemCommitService: CommitService = new CommitService {
     override def collection: MongoCollection = db("drafts.item_commits")
@@ -192,12 +194,12 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = new SessionAuthWired {
     override def itemAuth: ItemAuth[OrgAndOpts] = Services.this.itemAuth
 
-    override def mainSessionService: MongoService = Services.this.mainSessionService
+    override def mainSessionService: SessionService = Services.this.mainSessionService
 
     override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] =
       AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
 
-    override def previewSessionService: MongoService = Services.this.previewSessionService
+    override def previewSessionService: SessionService = Services.this.previewSessionService
 
     override def itemTransformer: ItemTransformer = Services.this.itemTransformer
   }

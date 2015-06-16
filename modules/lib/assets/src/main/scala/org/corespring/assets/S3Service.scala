@@ -21,8 +21,8 @@ trait CorespringS3Service extends S3Service {
   def getClient: AmazonS3
 }
 
-class CorespringS3ServiceExtended(key: String, secret: String)
-  extends ConcreteS3Service(key: String, secret: String)
+class CorespringS3ServiceExtended(client:AmazonS3)
+  extends ConcreteS3Service(client:AmazonS3)
   with CorespringS3Service {
 
   def getClient = client
@@ -37,4 +37,6 @@ class CorespringS3ServiceExtended(key: String, secret: String)
   }
 }
 
-object CorespringS3ServiceExtended extends CorespringS3ServiceExtended(AppConfig.amazonKey, AppConfig.amazonSecret)
+object CorespringS3ServiceExtended
+  extends CorespringS3ServiceExtended(
+    S3Service.mkClient(AppConfig.amazonKey, AppConfig.amazonSecret))

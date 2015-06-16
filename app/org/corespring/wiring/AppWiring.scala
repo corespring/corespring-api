@@ -4,7 +4,7 @@ import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.amazon.s3.{S3Service, ConcreteS3Service}
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
@@ -21,6 +21,7 @@ import org.corespring.web.common.views.helpers.Defaults
 import org.corespring.wiring.apiTracking.ApiTracking
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
+import play.api.libs.json.JsValue
 import play.api.mvc.{ Controller, Action, AnyContent }
 import play.api.{ Configuration, Logger, Mode, Play }
 
@@ -37,7 +38,8 @@ object AppWiring {
   private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
 
-  lazy val playS3 = new ConcreteS3Service(key, secret)
+  lazy val playS3Client = S3Service.mkClient(key, secret)
+  lazy val playS3 = new ConcreteS3Service(playS3Client)
 
   private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
@@ -61,7 +63,7 @@ object AppWiring {
     Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
     Db.salatDb(),
     ItemTransformWiring.itemTransformer,
-    playS3.client,
+    playS3Client,
     bucket)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
@@ -126,8 +128,9 @@ object AppWiring {
   }.getOrElse(Configuration.empty)
 
   private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
-    def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
-      val vidString = dbo.get("itemId").asInstanceOf[String]
+
+    def toVid(json: JsValue): Option[VersionedId[ObjectId]] = {
+      val vidString = (json \ "itemId").as[String]
       val vid = VersionedId(vidString)
       require(vid.map { _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
       vid
@@ -136,11 +139,10 @@ object AppWiring {
     val itemIdOnly = MongoDBObject("itemId" -> 1)
 
     try {
-      val oid = new ObjectId(sessionId)
-      val maybeDbo = services.mainSessionService.collection
-        .findOneByID(oid, itemIdOnly)
+      val maybeDbo = services.mainSessionService
+        .load(sessionId)
         .orElse {
-          services.previewSessionService.collection.findOneByID(oid, itemIdOnly)
+          services.previewSessionService.load(sessionId)
         }
       maybeDbo.map { toVid }.flatten
     } catch {

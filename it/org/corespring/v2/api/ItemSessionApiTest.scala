@@ -15,7 +15,7 @@ import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json.{JsNumber, JsString, JsObject, Json}
 import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiTest extends IntegrationSpecification {
@@ -73,11 +73,11 @@ class ItemSessionApiTest extends IntegrationSpecification {
         val e = noOrgIdAndOptions(req)
         (contentAsJson(result) \ "id").asOpt[String].isDefined === true
         val sessionId = ((contentAsJson(result) \ "id")).as[String]
-        val dbo = models.V2SessionHelper.findSession(sessionId)
-        val identity = dbo.get("identity").asInstanceOf[DBObject]
-        identity.get("orgId") === orgId.toString
-        identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.id
-        identity.get("apiClient") === apiClient.clientId.toString
+        val dbo = models.V2SessionHelper.findSession(sessionId).get
+        val identity = (dbo \ "identity")
+        (identity \ "orgId") === JsString(orgId.toString)
+        (identity \ "authMode") === JsNumber(AuthMode.ClientIdAndPlayerToken.id)
+        (identity \ "apiClient") === JsString(apiClient.clientId.toString)
       }
     }
 

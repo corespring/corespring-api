@@ -7,6 +7,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
+import org.corespring.v2.auth.services.SessionService
 import org.corespring.v2.errors.Errors.{ cantLoadSession, generalError, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -35,7 +36,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       val auth = new SessionAuthWired {
 
         private def serviceMock(key: String) = {
-          val m = mock[MongoService]
+          val m = mock[SessionService]
           m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
           m.create(any[JsValue]) returns Some(savedId)
           m.save(anyString, any[JsValue]) returns {
@@ -44,8 +45,8 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
           m
         }
 
-        val previewSessionService: MongoService = serviceMock("preview")
-        val mainSessionService: MongoService = serviceMock("main")
+        val previewSessionService: SessionService = serviceMock("preview")
+        val mainSessionService: SessionService = serviceMock("main")
 
         override def itemAuth: ItemAuth[OrgAndOpts] = {
           val m = mock[ItemAuth[OrgAndOpts]]
