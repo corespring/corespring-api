@@ -17,7 +17,6 @@ object Dependencies {
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
   val aws = "com.amazonaws" % "aws-java-sdk" % "1.10.0"
-  val awscala = "com.github.seratch" %% "awscala" % "0.5.2"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
@@ -67,7 +66,6 @@ object Dependencies {
     amapClient,
     assetsLoader,
     aws,
-    awscala,
     closureCompiler,
     commonsIo,
     commonsLang,

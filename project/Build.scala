@@ -90,7 +90,6 @@ object Build extends sbt.Build {
   val core = builders.lib("core").settings(
     libraryDependencies ++= Seq(
       assetsLoader,
-      awscala,
       componentLoader,
       corespringCommonUtils,
       elasticsearchPlayWS,
