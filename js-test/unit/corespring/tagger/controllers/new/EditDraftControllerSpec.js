@@ -151,7 +151,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
     });
     it('sets v2Editor to url for dev editor', function(){
       scope.showDevEditor();
-      expect(scope.v2Editor).toMatch("^/v2/player/dev-editor/123/index.html");
+      expect(scope.v2Editor).toMatch("^/v2/player/draft/dev-editor/123/index.html");
     });
     it('appends bypass-iframe-launch-mechanism=true', function(){
       scope.showDevEditor();
@@ -166,13 +166,13 @@ describe('tagger.controllers.new.EditDraftController', function() {
     });
     it('sets v2Editor to url for dev editor', function(){
       scope.showEditor();
-      expect(scope.v2Editor).toMatch("^/v2/player/editor/123/index.html");
+      expect(scope.v2Editor).toMatch("^/v2/player/draft/editor/123/index.html");
     });
     it('appends bypass-iframe-launch-mechanism=true', function(){
       scope.showEditor();
       expect(scope.v2Editor).toMatch("[?&]bypass-iframe-launch-mechanism=true");
     });
-  })
+  });
 
 
 

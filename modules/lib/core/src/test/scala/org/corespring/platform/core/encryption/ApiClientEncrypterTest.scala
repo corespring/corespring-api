@@ -31,6 +31,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
     }
 
     encrypter.encrypt(data, apiClient.clientSecret).returns(encryptedData)
+    encrypter.encrypt(data, randomApiClient.clientSecret).returns(encryptedData)
     encrypter.decrypt(encryptedData, apiClient.clientSecret).returns(data)
     encrypter.decrypt(encryptedData, badClient.clientSecret).throws(new RuntimeException(errorMessage))
   }
@@ -54,7 +55,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
         val encryptResult = apiClientEncrypter.encrypt(apiClient, data)
           .getOrElse(throw new Exception("Expected encrypt to return Some[EncryptionResult], but got None"))
         encryptResult match {
-          case success: EncryptionSuccess => success.clientId must be equalTo(apiClient.clientId.toString)
+          case success: EncryptionSuccess => success.clientId must be equalTo (apiClient.clientId.toString)
           case _ => failure("Encryption failed")
         }
       }
@@ -63,7 +64,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
         val encryptResult = apiClientEncrypter.encrypt(apiClient, data)
           .getOrElse(throw new Exception("Expected encrypt to return Some[EncryptionResult], but got None"))
         encryptResult match {
-          case success: EncryptionSuccess => success.data must be equalTo(encryptedData)
+          case success: EncryptionSuccess => success.data must be equalTo (encryptedData)
           case _ => failure("Encryption failed")
         }
       }
@@ -72,7 +73,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
         val encryptResult = apiClientEncrypter.encrypt(apiClient, data)
           .getOrElse(throw new Exception("Expected encrypt to return Some[EncryptionResult], but got None"))
         encryptResult match {
-          case success: EncryptionSuccess => success.requested must be equalTo(Some(data))
+          case success: EncryptionSuccess => success.requested must be equalTo (Some(data))
           case _ => failure("Encryption failed")
         }
       }
@@ -83,9 +84,9 @@ class ApiClientEncrypterTest extends Specification with Mockito {
 
   "encryptByOrg" should {
 
-    "call apiClientEncrypter.encrypt with random api client secret" in new WithEncrypter {
+    "call encrypter.encrypt with random api client secret" in new WithEncrypter {
       apiClientEncrypter.encryptByOrg(orgId, data)
-      there was one(apiClientEncrypter).encrypt(encryptedData, randomApiClient.clientSecret)
+      there was one(encrypter).encrypt(data, randomApiClient.clientSecret)
     }
 
   }
@@ -100,7 +101,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
     "result" should {
 
       "be decrypted data" in new WithEncrypter {
-        apiClientEncrypter.decrypt(apiClient, encryptedData) must be equalTo(Some(data))
+        apiClientEncrypter.decrypt(apiClient, encryptedData) must be equalTo (Some(data))
       }
 
     }
@@ -108,7 +109,7 @@ class ApiClientEncrypterTest extends Specification with Mockito {
     "with invalid data" should {
 
       "return None" in new WithEncrypter {
-        apiClientEncrypter.decrypt(badClient, encryptedData) must be equalTo(None)
+        apiClientEncrypter.decrypt(badClient, encryptedData) must be equalTo (None)
       }
 
     }

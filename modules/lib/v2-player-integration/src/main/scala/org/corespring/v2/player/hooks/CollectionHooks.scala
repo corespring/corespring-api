@@ -2,9 +2,9 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks }
-import org.corespring.platform.core.models.{Organization, ContentCollection}
+import org.corespring.platform.core.models.{ Organization, ContentCollection }
 import org.corespring.platform.core.models.auth.Permission
-import org.corespring.v2.auth.services.{ContentCollectionService, OrgService}
+import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService }
 import org.corespring.v2.auth.{ LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
@@ -45,8 +45,7 @@ trait CollectionHooks extends ContainerCollectionHooks with LoadOrgAndOptions {
   private def findWritableCollections(org: Organization): Validation[V2Error, Seq[ContentCollection]] = {
     try {
       Success(colService.getCollections(org, Permission.Write).toSeq)
-    }
-    catch {
+    } catch {
       case e: Throwable => Failure(generalError("Error finding collections"))
     }
   }

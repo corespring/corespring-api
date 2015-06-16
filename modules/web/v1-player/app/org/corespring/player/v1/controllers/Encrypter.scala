@@ -26,7 +26,7 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
         json <- request.body.asJson.toSuccess("No json in the request body")
         validJson <- if (validJson(json)) Success(json) else Failure("Not valid json")
         encryptionResult <- apiClientEncrypter.encryptByOrg(request.ctx.organization, validJson.toString())
-            .toSuccess("No encryption created")
+          .toSuccess("No encryption created")
       } yield {
         encryptionResult
       }

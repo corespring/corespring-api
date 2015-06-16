@@ -30,13 +30,14 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       playerDefinition: Option[PlayerDefinition] = None,
       itemLoadForRead: Boolean = true,
       itemLoadForWrite: Boolean = true,
-      hasPerms: Validation[V2Error, Boolean] = Success(true)) extends Scope {
+      hasPerms: Validation[V2Error, Boolean] = Success(true),
+      savedId: ObjectId = new ObjectId()) extends Scope {
       val auth = new SessionAuthWired {
 
         private def serviceMock(key: String) = {
           val m = mock[MongoService]
           m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
-          m.create(any[JsValue]) returns Some(ObjectId.get)
+          m.create(any[JsValue]) returns Some(savedId)
           m.save(anyString, any[JsValue]) returns {
             Some(Json.obj())
           }
@@ -162,7 +163,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val saveFn = auth.saveSessionFunction(optsIn)
         saveFn.toOption.map(fn => fn("1", Json.obj()))
         val identityJson = IdentityJson(optsIn)
-        (identityJson \ "apiClientId").asOpt[String] === None
+        (identityJson \ "apiClientId").asOpt[String] must beNone
         there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
       }
     }
@@ -171,9 +172,55 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       "add the identity data to the session data" in new authScope() {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.create(Json.obj())(optsIn)
-        there was one(auth.mainSessionService).create(Json.obj("identity" -> IdentityJson(optsIn)))
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "identity").as[JsObject] must_== IdentityJson(optsIn)
+      }
+
+      "add dateCreated to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.create(Json.obj())(optsIn)
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
       }
     }
+
+    "loadWithIdentity" should {
+      val identity = Json.obj("this" -> "is", "my" -> "identity")
+
+      "provides identity in response" in new authScope(session = Some(
+        Json.obj("item" -> Json.obj(
+          "xhtml" -> "<h1>Hello World</h1>"),
+          "identity" -> identity,
+          "components" -> Json.obj()))) {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.loadWithIdentity("")(optsIn) match {
+          case Success((result, _)) => (result \ "identity") must be equalTo (identity)
+          case _ => failure("nope nope")
+        }
+      }
+    }
+
+    "cloneIntoPreview" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "load from main service" in new authScope(session = Some(Json.obj())) {
+        auth.cloneIntoPreview("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "save into preview service" in new authScope(session = Some(Json.obj())) {
+        auth.cloneIntoPreview("")(optsIn)
+        there was one(auth.previewSessionService).create(any[JsObject])
+      }
+
+      "return id of saved session" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.cloneIntoPreview("")(optsIn) must be equalTo (Success(savedId))
+      }
+
+    }
+
   }
 
 }

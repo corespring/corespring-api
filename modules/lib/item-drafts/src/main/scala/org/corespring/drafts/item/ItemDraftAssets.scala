@@ -1,6 +1,6 @@
 package org.corespring.drafts.item
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import org.bson.types.ObjectId
 import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors._
@@ -52,19 +52,19 @@ object S3Paths {
 
   def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
 
-  def draftSupportingMaterialFile(id: DraftId,  path: String): String = {
+  def draftSupportingMaterialFile(id: DraftId, path: String): String = {
     s"${draftFolder(id)}/supporting-materials/$path"
   }
 }
 
 trait S3ItemDraftAssets extends ItemDraftAssets {
-  def s3: AmazonS3Client
+  def s3: AmazonS3
 
   lazy val logger = Logger(classOf[S3ItemDraftAssets])
 
   def bucket: String
 
-  def utils = new AssetUtils(s3, bucket)
+  def utils = new AssetUtils(s3.asInstanceOf[AmazonS3Client], bucket)
 
   private def cp[A](from: String, to: String, id: A): Validation[DraftError, A] = {
     logger.debug(s"function=cp from=$from to=$to id=$id")

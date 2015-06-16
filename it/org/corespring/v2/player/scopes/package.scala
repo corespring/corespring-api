@@ -73,7 +73,7 @@ package object scopes {
   }
 
   trait orgWithAccessTokenItemAndSession extends orgWithAccessTokenAndItem with HasSessionId {
-    val sessionId = V2SessionHelper.create(itemId)
+    val sessionId = V2SessionHelper.create(itemId, orgId = Some(orgId))
 
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")

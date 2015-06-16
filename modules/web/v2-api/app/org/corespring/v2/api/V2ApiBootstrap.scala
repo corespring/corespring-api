@@ -3,23 +3,24 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.models.{OrgAndUser, SimpleOrg, SimpleUser}
+import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{ApiClientEncryptionService, ApiClientEncrypter}
-import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
-import org.corespring.platform.core.services.item.{ItemIndexService, ItemService}
+import org.corespring.platform.core.models.item.{ ItemType, Item, PlayerDefinition }
+import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, ApiClientEncrypter }
+import org.corespring.platform.core.services.item.{ ItemIndexService, ItemService }
+import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.api.services.{PlayerTokenService, _}
+import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
-import org.corespring.v2.auth.models.{IdentityJson, OrgAndOpts}
-import org.corespring.v2.auth.services.{OrgService, TokenService}
+import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.libs.concurrent.Akka
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
@@ -34,6 +35,7 @@ trait V2ApiServices {
   def orgService: OrgService
   def sessionService: MongoService
   def itemService: ItemService
+  def itemType: ItemType
   def itemIndexService: ItemIndexService
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
@@ -68,6 +70,8 @@ class V2ApiBootstrap(
 
     override def itemAuth: ItemAuth[OrgAndOpts] = services.itemAuth
 
+    override def itemType: ItemType = ItemType
+
     override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = {
       val collection = services.orgService.defaultCollection(identity.org).map(_.toString()).toSuccess(noDefaultCollection(identity.org.id))
       collection.toOption
@@ -88,6 +92,8 @@ class V2ApiBootstrap(
     override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = services.sessionAuth
 
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
+
+    override def orgService: OrgService = services.orgService
   }
 
   lazy val playerTokenService = new PlayerTokenService {
@@ -132,8 +138,7 @@ class V2ApiBootstrap(
     override def apiClientEncryptionService: ApiClientEncryptionService = services.apiClientEncryptionService
   }
 
-
-  import org.corespring.v2.api.drafts.item.{ItemDrafts => ItemDraftsController}
+  import org.corespring.v2.api.drafts.item.{ ItemDrafts => ItemDraftsController }
 
   lazy val itemDrafts = new ItemDraftsController {
 

@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
-import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
+import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.PlaySingleton
@@ -46,6 +46,8 @@ class ItemApiCreateTest extends Specification with Mockito with MockFactory {
       private def transformItemToJson(item: Item, detail: Option[String]): JsValue = {
         Json.toJson(item)
       }
+
+      override def itemType: ItemType = mock[ItemType]
 
       override def itemService: ItemService = {
         val m = mock[ItemService]
