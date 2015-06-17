@@ -2,7 +2,6 @@ package org.corespring.v2.player.customScoring
 
 import java.io.File
 
-import common.db.Db
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
@@ -13,8 +12,8 @@ import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWire
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
-import org.corespring.v2.auth.wired.DynamoSessionService
 import org.corespring.v2.player.scopes.orgWithAccessToken
+import org.corespring.wiring.SessionDbServiceFactory
 import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.AnyContentAsJson
@@ -74,7 +73,7 @@ class CustomScoringTest extends IntegrationSpecification {
     def base = s"../../../qtiToV2/customScoring/$rootPath"
 
 
-    lazy val sessionService = new DynamoSessionService("v2.itemSessions")
+    lazy val sessionService = SessionDbServiceFactory.create("v2.itemSessions")
 
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired

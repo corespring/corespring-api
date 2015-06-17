@@ -15,7 +15,7 @@ import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes._
 import org.specs2.mock.Mockito
 import play.api.Mode.Mode
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json._
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.{ Configuration, Mode, GlobalSettings, Play }
@@ -109,7 +109,12 @@ class LoadPlayerTest
       route(makeRequest(call))(writeable).map { result =>
         val json = contentAsJson(result)
         println(s" -> ${Json.stringify(json)}")
-        (json \ "session" \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
+        (json \ "session" \ "dateCreated" \ "$date") match {
+          case s:JsString => s.as[String].toString must_!= ""
+          case n:JsNumber => n.as[Long].toString must_!= ""
+          case _ => failure("Expected date to be string or number")
+        }
+
       }.getOrElse(failure("should have been successful"))
     }
 

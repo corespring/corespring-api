@@ -1,6 +1,5 @@
 package org.corespring.wiring
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
@@ -64,7 +63,8 @@ object AppWiring {
     Db.salatDb(),
     ItemTransformWiring.itemTransformer,
     playS3Client,
-    bucket)
+    bucket,
+    SessionDbServiceFactory)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
     services.secureSocialService,

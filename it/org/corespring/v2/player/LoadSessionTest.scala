@@ -14,13 +14,16 @@ class LoadSessionTest extends IntegrationSpecification {
 
   "when I load a session" should {
 
+
     "fail for unknown user" in new unknownIdentity_loadSession() {
       status(result) ==== UNAUTHORIZED
     }
 
+
     "work for logged in user" in new user_loadSession() {
       status(result) ==== OK
     }
+
 
     "work for token" in new token_loadSession() {
       status(result) ==== OK
@@ -38,6 +41,7 @@ class LoadSessionTest extends IntegrationSpecification {
     "work for client id and options" in new clientId_loadSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(result) ==== OK
     }
+
 
   }
 

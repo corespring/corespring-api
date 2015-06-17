@@ -14,13 +14,19 @@ import play.api.libs.json.{JsObject, Json, JsValue}
 import se.radley.plugin.salat.SalatPlugin
 import com.mongodb.casbah.Imports._
 
-object V2SessionHelper extends V2DynamoSessionHelper {
-}
-
-class V2DynamoSessionHelper {
-
+trait V2SessionHelper {
   val v2ItemSessions = "v2.itemSessions"
   val v2ItemSessionsPreview = "v2.itemSessions_preview"
+
+  def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions, orgId: Option[ObjectId] = None): ObjectId
+  def update(sessionId: ObjectId, json: JsValue, name: String = v2ItemSessions): Unit
+  def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId
+  def findSession(id: String, name: String = v2ItemSessions): Option[JsObject]
+  def delete(sessionId: ObjectId, name: String = v2ItemSessions): Unit
+
+}
+
+class V2DynamoSessionHelper extends V2SessionHelper{
 
   import scala.language.implicitConversions
 
@@ -99,10 +105,7 @@ class V2DynamoSessionHelper {
   private def idQuery(id: ObjectId) = Json.obj("id" -> id.toString)
 }
 
-class V2MongoSessionHelper {
-
-  val v2ItemSessions = "v2.itemSessions"
-  val v2ItemSessionsPreview = "v2.itemSessions_preview"
+class V2MongoSessionHelper extends V2SessionHelper{
 
   import scala.language.implicitConversions
 
@@ -134,13 +137,13 @@ class V2MongoSessionHelper {
   def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId = {
     db(name).findOne(MongoDBObject("itemId" -> vid.toString()))
       .map(o => o.get("_id").asInstanceOf[ObjectId])
-      .getOrElse(throw new RuntimeException(s"Can't find sesssion for item id: $vid"))
+      .getOrElse(throw new RuntimeException(s"Can't find session for item id: $vid"))
   }
 
-  def findSession(id: String, name: String = v2ItemSessions): DBObject = {
-    db(name).findOne(idQuery(id)).getOrElse {
-      throw new RuntimeException(s"Can't find session with id: $id")
-    }
+  def findSession(id: String, name: String = v2ItemSessions): Option[JsObject] = {
+    db(name).findOne(idQuery(id))
+      .map(o => Some(Json.parse(o.toString).as[JsObject]))
+      .getOrElse(throw new RuntimeException(s"Can't find session with id: $id"))
   }
 
   def delete(sessionId: ObjectId, name: String = v2ItemSessions): Unit = {
@@ -149,3 +152,7 @@ class V2MongoSessionHelper {
 
   private def idQuery(id: ObjectId) = MongoDBObject("_id" -> id)
 }
+
+object V2SessionHelper extends V2DynamoSessionHelper {
+}
+

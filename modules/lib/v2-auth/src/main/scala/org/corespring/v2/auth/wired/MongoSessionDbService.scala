@@ -3,10 +3,10 @@ package org.corespring.v2.auth.wired
 import com.mongodb.casbah.MongoCollection
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.v2.auth.services.SessionService
+import org.corespring.v2.auth.services.SessionDbService
 import play.api.libs.json.JsValue
 
-class MongoSessionService(collection:MongoCollection) extends SessionService {
+class MongoSessionDbService(collection:MongoCollection) extends SessionDbService {
 
   val impl = new MongoService(collection)
 

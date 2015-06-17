@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 
 import play.api.libs.json.JsValue
 
-trait SessionService {
+trait SessionDbService {
 
   def create(data: JsValue): Option[ObjectId]
   def load(id: String): Option[JsValue]

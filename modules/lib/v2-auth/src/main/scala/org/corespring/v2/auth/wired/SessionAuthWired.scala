@@ -6,7 +6,7 @@ import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.auth.services.SessionService
+import org.corespring.v2.auth.services.SessionDbService
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
@@ -29,16 +29,16 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
    * The main session service holds 'real' item sessions
    * @return
    */
-  def mainSessionService: SessionService
+  def mainSessionService: SessionDbService
 
   /**
    * The preview session service holds 'preview' sessions -
    * This service is used when the identity -> AuthMode == UserSession
    * @return
    */
-  def previewSessionService: SessionService
+  def previewSessionService: SessionDbService
 
-  private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
+  private def sessionService(implicit identity: OrgAndOpts): SessionDbService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
     previewSessionService
   } else {
