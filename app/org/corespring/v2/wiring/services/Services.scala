@@ -27,7 +27,7 @@ import org.corespring.v2.auth.wired._
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.wiring.SessionDbServiceFactory
+import org.corespring.wiring.sessionDb.SessionDbServiceFactory
 import play.api.Configuration
 import play.api.mvc.RequestHeader
 import securesocial.core.{ Identity, SecureSocial }

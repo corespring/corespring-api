@@ -1,16 +1,14 @@
 package org.corespring.test.helpers.models
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.document.spec.{ScanSpec, QuerySpec}
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap
-import com.amazonaws.services.dynamodbv2.document.{Item, DynamoDB}
-import com.amazonaws.services.dynamodbv2.model.{QueryRequest,Condition,AttributeValue}
+import com.amazonaws.services.dynamodbv2.document.{ Item, DynamoDB }
+import com.amazonaws.services.dynamodbv2.model.{ QueryRequest, AttributeValue }
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
-import play.api.libs.json.{JsObject, Json, JsValue}
+import play.api.libs.json.{ JsObject, Json, JsValue }
 import se.radley.plugin.salat.SalatPlugin
 import com.mongodb.casbah.Imports._
 
@@ -26,18 +24,23 @@ trait V2SessionHelper {
 
 }
 
-class V2DynamoSessionHelper extends V2SessionHelper{
+class V2DynamoSessionHelper extends V2SessionHelper {
 
   import scala.language.implicitConversions
 
   private implicit def strToObjectId(id: String) = new ObjectId(id)
 
-  lazy val dbClient = new AmazonDynamoDBClient(new ProfileCredentialsProvider {
-    val configuration = Play.current.configuration
-
-    def getAWSAccessKeyId: String = configuration.getString("amazon.s3.key").getOrElse("")
-    def getAWSSecretKey: String = configuration.getString("amazon.s3.secret").getOrElse("")
-  })
+  lazy val dbClient = {
+    val client = new AmazonDynamoDBClient(new ProfileCredentialsProvider {
+      val configuration = Play.current.configuration
+      def getAWSAccessKeyId: String = AppConfig.amazonKey
+      def getAWSSecretKey: String = AppConfig.amazonSecret
+    })
+    if(AppConfig.dynamoDbUseLocal){
+      client.setEndpoint(AppConfig.dynamoDbLocalUrl)
+    }
+    client
+  }
 
   lazy val db = new DynamoDB(dbClient)
 
@@ -57,14 +60,13 @@ class V2DynamoSessionHelper extends V2SessionHelper{
 
   def update(sessionId: ObjectId, json: JsValue, name: String = v2ItemSessions): Unit = {
     findSession(sessionId.toString, name) match {
-      case js:Option[JsObject] =>
+      case js: Option[JsObject] =>
         val newJson = js.get ++ json.as[JsObject]
         val itemId = (newJson \ "itemId").as[String]
-        db.getTable(name).putItem( new Item()
+        db.getTable(name).putItem(new Item()
           .withPrimaryKey("id", sessionId.toString)
           .withString("itemId", itemId)
-          .withJSON("json", newJson.toString)
-        )
+          .withJSON("json", newJson.toString))
     }
   }
 
@@ -83,8 +85,8 @@ class V2DynamoSessionHelper extends V2SessionHelper{
 
     val res = dbClient.query(req).getItems()
 
-    if(res.size() == 0) {
-      throw new RuntimeException(s"Can't find sesssion for item id: $vid in table: $name")
+    if (res.size() == 0) {
+      throw new RuntimeException(s"Can't find session for item id: $vid in table: $name")
     }
 
     val item = res.get(0)
@@ -93,7 +95,7 @@ class V2DynamoSessionHelper extends V2SessionHelper{
 
   def findSession(id: String, name: String = v2ItemSessions): Option[JsObject] = {
     db.getTable(name).getItem("id", id) match {
-      case item:Item => Some(Json.parse(item.getJSON("json").toString).as[JsObject])
+      case item: Item => Some(Json.parse(item.getJSON("json").toString).as[JsObject])
       case _ => None
     }
   }
@@ -105,7 +107,7 @@ class V2DynamoSessionHelper extends V2SessionHelper{
   private def idQuery(id: ObjectId) = Json.obj("id" -> id.toString)
 }
 
-class V2MongoSessionHelper extends V2SessionHelper{
+class V2MongoSessionHelper extends V2SessionHelper {
 
   import scala.language.implicitConversions
 

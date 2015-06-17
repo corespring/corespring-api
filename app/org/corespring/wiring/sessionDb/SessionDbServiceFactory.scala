@@ -1,25 +1,17 @@
-package org.corespring.wiring
+package org.corespring.wiring.sessionDb
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import common.db.Db
-import org.corespring.common.config.AppConfig
 import org.corespring.v2.auth.services.SessionDbService
-import org.corespring.v2.auth.wired. {
-  MongoSessionDbService, DynamoSessionDbService
-}
+import org.corespring.v2.auth.wired.{DynamoSessionDbService, MongoSessionDbService}
 
 trait SessionDbServiceFactory {
-  def create(tableName:String):SessionDbService
+  def create(tableName: String): SessionDbService
 }
 
 class DynamoSessionDbServiceFactory extends SessionDbServiceFactory {
 
-  lazy val dynamoDB = new DynamoDB(new AmazonDynamoDBClient(new ProfileCredentialsProvider {
-    def getAWSAccessKeyId: String = AppConfig.amazonKey
-    def getAWSSecretKey: String = AppConfig.amazonSecret
-  }))
+  lazy val dynamoDB = new DynamoDB(Db.dynamoDbClient)
 
   def create(tableName: String): SessionDbService = {
     new DynamoSessionDbService(dynamoDB.getTable(tableName))

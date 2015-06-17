@@ -136,6 +136,12 @@ https://corespring.signin.aws.amazon.com/console
 
 Ask evan for a user account.
 
+#### DynamoDb 
+
+We use DynamoDb for the sessionDbService 
+
+https://corespring.signin.aws.amazon.com/console
+Ask evan for a user account.
 
 ### Dev Tools
 
