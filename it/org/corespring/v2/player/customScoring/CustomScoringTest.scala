@@ -13,7 +13,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
 import org.corespring.v2.player.scopes.orgWithAccessToken
-import org.corespring.wiring.sessionDb.SessionDbServiceFactory
+import org.corespring.wiring.sessiondb.SessionDbServiceFactory
 import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.AnyContentAsJson

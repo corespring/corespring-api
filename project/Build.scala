@@ -170,12 +170,17 @@ object Build extends sbt.Build {
    */
   val v2Errors = builders.lib("v2-errors").settings(
     libraryDependencies ++= Seq(scalaz)).dependsOn(core)
+
+  val v2SessionDb = builders.lib("v2-session-db").settings(
+    libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
+
   /**
    * All authentication code for v2 api + player/editor
    */
   val v2Auth = builders.lib("v2-auth").settings(
     libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts, v2SessionDb)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -198,6 +203,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports)
     .dependsOn(
       v2Auth % "test->test;compile->compile",
+      v2SessionDb % "test->test;compile->compile",
       qtiToV2,
       v1Api,
       core % "test->test;compile->compile",
@@ -402,6 +408,7 @@ object Build extends sbt.Build {
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
       v2Api,
+      v2SessionDb,
       apiTracking,
       clientLogging % "compile->compile;test->test",
       qtiToV2,
@@ -423,6 +430,7 @@ object Build extends sbt.Build {
       v2Api,
       apiTracking,
       v2Auth,
+      v2SessionDb,
       clientLogging,
       qtiToV2,
       itemImport,

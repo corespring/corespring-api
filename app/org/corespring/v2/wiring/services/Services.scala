@@ -22,12 +22,12 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.services.{SessionDbService, ContentCollectionService, OrgService, TokenService}
+import org.corespring.v2.auth.services.{ContentCollectionService, OrgService, TokenService}
 import org.corespring.v2.auth.wired._
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.wiring.sessionDb.SessionDbServiceFactory
+import org.corespring.v2.sessiondb.{SessionDbService, SessionDbServiceFactory}
 import play.api.Configuration
 import play.api.mvc.RequestHeader
 import securesocial.core.{ Identity, SecureSocial }

@@ -1,9 +1,9 @@
-package org.corespring.v2.auth.wired
+package org.corespring.v2.sessiondb.mongo
 
 import com.mongodb.casbah.MongoCollection
+import org.corespring.v2.sessiondb.SessionDbService
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.v2.auth.services.SessionDbService
 import play.api.libs.json.JsValue
 
 class MongoSessionDbService(collection:MongoCollection) extends SessionDbService {

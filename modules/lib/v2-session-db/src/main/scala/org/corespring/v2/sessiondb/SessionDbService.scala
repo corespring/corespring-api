@@ -1,7 +1,6 @@
-package org.corespring.v2.auth.services
+package org.corespring.v2.sessiondb
 
 import org.bson.types.ObjectId
-
 import play.api.libs.json.JsValue
 
 trait SessionDbService {

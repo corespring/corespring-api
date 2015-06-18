@@ -1,12 +1,9 @@
-package org.corespring.v2.auth.wired
+package org.corespring.v2.sessiondb.dynamo
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.document.{Table, DynamoDB, Item}
+import com.amazonaws.services.dynamodbv2.document.{Item, Table}
+import org.corespring.v2.sessiondb.SessionDbService
 import org.bson.types.ObjectId
-import org.corespring.v2.auth.services.SessionDbService
-import play.api.Play
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{Json, JsValue}
 
 
 /**

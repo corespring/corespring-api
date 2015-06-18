@@ -1,14 +1,9 @@
-package org.corespring.wiring.sessionDb
+package org.corespring.v2.sessiondb.dynamo
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model._
-import common.db.Db
-import org.corespring.common.config.AppConfig
-import play.api.Logger
 
-class SessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
-
-  private val logger = Logger("org.corespring.AppWiring")
+class DynamoSessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
 
   def createTable(tableName: String, readCapacityUnits: Long = 1L, writeCapacityUnits: Long = 1L) = {
 
@@ -49,12 +44,3 @@ class SessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
 
 }
 
-object SessionDbTableHelper extends SessionDbTableHelper(Db.dynamoDbClient) {
-
-  def init(implicit app: play.api.Application) = if (AppConfig.dynamoDbUseLocal && AppConfig.dynamoDbLocalInit) {
-    logger.info("Begin creating sessionDb tables")
-    SessionDbTableHelper.createTable("v2.itemSessions")
-    SessionDbTableHelper.createTable("v2.itemSessions_preview")
-    logger.info("SessionDb tables created")
-  }
-}
