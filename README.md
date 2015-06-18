@@ -132,7 +132,7 @@ There are some useful utilities for working with the s3 assets:
 * [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
 * [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
 
-https://corespring.signin.aws.amazon.com/console
+[aws console](https://corespring.signin.aws.amazon.com/console)
 
 Ask evan for a user account.
 
@@ -140,8 +140,14 @@ Ask evan for a user account.
 
 We use DynamoDb for the sessionDbService 
 
-https://corespring.signin.aws.amazon.com/console
+[aws console](https://corespring.signin.aws.amazon.com/console)
 Ask evan for a user account.
+
+For development you can run a local instance. 
+You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
+
+In application.conf you can find some configuration properties for it.   
+
 
 ### Dev Tools
 
