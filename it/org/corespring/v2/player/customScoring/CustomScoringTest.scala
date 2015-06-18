@@ -4,6 +4,7 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
+import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
@@ -73,7 +74,7 @@ class CustomScoringTest extends IntegrationSpecification {
     def base = s"../../../qtiToV2/customScoring/$rootPath"
 
 
-    lazy val sessionService = SessionDbServiceFactory.create("v2.itemSessions")
+    lazy val sessionService = SessionDbServiceFactory.create(SessionDbConfig.sessionTable)
 
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired

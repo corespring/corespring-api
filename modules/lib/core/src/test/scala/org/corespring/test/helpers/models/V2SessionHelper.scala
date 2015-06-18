@@ -5,7 +5,8 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.{ Item, DynamoDB }
 import com.amazonaws.services.dynamodbv2.model.{ QueryRequest, AttributeValue }
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
+import org.corespring.common.config.{SessionDbConfig, AppConfig}
+import org.corespring.platform.core.models.itemSession.SessionData
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
 import play.api.libs.json.{ JsObject, Json, JsValue }
@@ -13,14 +14,15 @@ import se.radley.plugin.salat.SalatPlugin
 import com.mongodb.casbah.Imports._
 
 trait V2SessionHelper {
-  val v2ItemSessions = "v2.itemSessions"
-  val v2ItemSessionsPreview = "v2.itemSessions_preview"
 
-  def create(itemId: VersionedId[ObjectId], name: String = v2ItemSessions, orgId: Option[ObjectId] = None): ObjectId
-  def update(sessionId: ObjectId, json: JsValue, name: String = v2ItemSessions): Unit
-  def findSessionForItemId(vid: VersionedId[ObjectId], name: String = v2ItemSessions): ObjectId
-  def findSession(id: String, name: String = v2ItemSessions): Option[JsObject]
-  def delete(sessionId: ObjectId, name: String = v2ItemSessions): Unit
+  val v2ItemSessions = SessionDbConfig.sessionTable
+  val v2ItemSessionsPreview = SessionDbConfig.previewSessionTable
+
+  def create(itemId: VersionedId[ObjectId], name: String, orgId: Option[ObjectId] = None): ObjectId
+  def update(sessionId: ObjectId, json: JsValue, name: String): Unit
+  def findSessionForItemId(vid: VersionedId[ObjectId], name: String): ObjectId
+  def findSession(id: String, name: String): Option[JsObject]
+  def delete(sessionId: ObjectId, name: String): Unit
 
 }
 

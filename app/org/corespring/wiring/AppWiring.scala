@@ -7,6 +7,7 @@ import org.corespring.amazon.s3.{S3Service, ConcreteS3Service}
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.dev.tools.DevTools
 import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.BasicScoreService
@@ -72,8 +73,8 @@ object AppWiring {
     services.orgService,
     services.tokenService,
     services.apiClientEncryptionService,
-
-    Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
+    DevTools.enabled
+  )
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.

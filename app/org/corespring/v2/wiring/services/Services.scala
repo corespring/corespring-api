@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
+import org.corespring.common.config.{SessionDbConfig, AppConfig}
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
@@ -39,7 +40,8 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
-  lazy val mainSessionService: SessionDbService = sessionDbServiceFactory.create("v2.itemSessions")
+  lazy val mainSessionService: SessionDbService = sessionDbServiceFactory.create(SessionDbConfig.sessionTable)
+  lazy val previewSessionService: SessionDbService = sessionDbServiceFactory.create(SessionDbConfig.previewSessionTable)
 
   override val sessionService: SessionDbService = mainSessionService
 
@@ -86,8 +88,6 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
       }.getOrElse(false)
     }
   }
-
-  lazy val previewSessionService: SessionDbService = sessionDbServiceFactory.create("v2.itemSessions_preview")
 
   lazy val itemCommitService: CommitService = new CommitService {
     override def collection: MongoCollection = db("drafts.item_commits")

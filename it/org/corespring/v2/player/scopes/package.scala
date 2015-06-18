@@ -8,7 +8,7 @@ import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
+import org.corespring.common.config.{SessionDbConfig, AppConfig}
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
@@ -288,7 +288,7 @@ package object scopes {
   }
 
   trait userWithItemAndSession extends userAndItem with HasItemId with HasSessionId {
-    def collection = "v2.itemSessions"
+    def collection = SessionDbConfig.sessionTable
     val sessionId = V2SessionHelper.create(itemId, collection)
     override def after: Any = {
       super.after

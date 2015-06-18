@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.V2SessionHelper
@@ -61,7 +62,7 @@ class LoadSessionTest extends IntegrationSpecification {
   class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder {}
 
   class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {
-    override def collection = "v2.itemSessions_preview"
+    override def collection = SessionDbConfig.previewSessionTable
   }
 
   class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {}

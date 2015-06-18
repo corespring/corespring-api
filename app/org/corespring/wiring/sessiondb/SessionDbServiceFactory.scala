@@ -17,5 +17,5 @@ class MongoSessionDbServiceFactoryImpl extends MongoSessionDbServiceFactory {
 }
 
 object SessionDbServiceFactory extends DynamoSessionDbServiceFactoryImpl {
-
+  //Note: If you change the db engine, you also have to change it in V2SessionHelper
 }

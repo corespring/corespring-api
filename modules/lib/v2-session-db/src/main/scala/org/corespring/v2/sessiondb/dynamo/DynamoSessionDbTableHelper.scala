@@ -2,6 +2,7 @@ package org.corespring.v2.sessiondb.dynamo
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.model._
+import scala.util.control.Exception
 
 class DynamoSessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
 
@@ -34,13 +35,23 @@ class DynamoSessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
         .withReadCapacityUnits(readCapacityUnits)
         .withWriteCapacityUnits(writeCapacityUnits))
 
-    dynamoDbClient.deleteTable(tableName)
+    if (tableExists(tableName)) {
+      deleteTable(tableName)
+    }
     dynamoDbClient.createTable(request)
   }
 
-  def deleteTable(tableName: String) = {
-    dynamoDbClient.deleteTable(tableName)
-  }
+  def deleteTable(tableName: String): Boolean =
+    Exception.failAsValue[Boolean](classOf[ResourceNotFoundException])(false) {
+      dynamoDbClient.deleteTable(tableName)
+      true
+    }
+
+  def tableExists(tableName: String): Boolean =
+    Exception.failAsValue[Boolean](classOf[ResourceNotFoundException])(false) {
+      dynamoDbClient.describeTable(tableName)
+      true
+    }
 
 }
 

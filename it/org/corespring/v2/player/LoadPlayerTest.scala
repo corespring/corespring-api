@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.common.config.SessionDbConfig
 import org.corespring.container.client.V2PlayerConfig
 import org.corespring.container.client.component.ComponentUrls
 import org.corespring.container.client.controllers.apps.ComponentScriptInfo
@@ -90,7 +91,7 @@ class LoadPlayerTest
 
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
+      val mockResult = getMockResult(itemId, SessionDbConfig.previewSessionTable)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
@@ -98,9 +99,9 @@ class LoadPlayerTest
 
     "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, "v2.itemSessions_preview")
-      val sessionId = V2SessionHelper.findSessionForItemId(itemId, "v2.itemSessions_preview")
-      val session = V2SessionHelper.findSession(sessionId.toString, "v2.itemSessions_preview").get
+      val mockResult = getMockResult(itemId, SessionDbConfig.previewSessionTable)
+      val sessionId = V2SessionHelper.findSessionForItemId(itemId, SessionDbConfig.previewSessionTable)
+      val session = V2SessionHelper.findSession(sessionId.toString, SessionDbConfig.previewSessionTable).get
       println(session)
       (session \ "dateCreated") must_!= null
 
@@ -120,7 +121,7 @@ class LoadPlayerTest
 
     "create session for access token" in new token_CreateSession() {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, "v2.itemSessions")
+      val mockResult = getMockResult(itemId, SessionDbConfig.sessionTable)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
@@ -137,7 +138,7 @@ class LoadPlayerTest
 
     "create session for client id + options query string" in new clientIdAndToken_queryString_CreateSession(Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
       status(createSessionResult) === CREATED
-      val mockResult = getMockResult(itemId, "v2.itemSessions")
+      val mockResult = getMockResult(itemId, SessionDbConfig.sessionTable)
       logger.debug(s"createSession result: ${headers(createSessionResult)}")
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
