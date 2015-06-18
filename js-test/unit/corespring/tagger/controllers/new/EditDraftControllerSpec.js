@@ -133,6 +133,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect( itemDraftService.deleteDraft)
         .not.toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
     });
+    
     it('calls discardDraft if modal.cancelled == true', function(){
       scope.hasChanges = true;
       scope.backToCollections();

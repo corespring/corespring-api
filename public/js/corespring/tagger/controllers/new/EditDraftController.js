@@ -68,9 +68,9 @@
 
     $scope.discardDraft = function(){
       ItemDraftService.deleteDraft($scope.itemId, function(data){
-        console.log('draft ' + $scope.itemId + ' deleted');
+        Logger.log('draft ' + $scope.itemId + ' deleted');
       }, function(err){
-        console.warn('draft ' + $scope.itemId + ' not deleted');
+        Logger.warn('draft ' + $scope.itemId + ' not deleted');
       });
     };
 
