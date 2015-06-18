@@ -59,10 +59,19 @@
           if (!cancelled) {
             $scope.saveBackToItem(callback);
           } else {
+            $scope.discardDraft();
             callback();
           }
         });
       }
+    };
+
+    $scope.discardDraft = function(){
+      ItemDraftService.deleteDraft($scope.itemId, function(data){
+        console.log('draft ' + $scope.itemId + ' deleted');
+      }, function(err){
+        console.warn('draft ' + $scope.itemId + ' not deleted');
+      });
     };
 
     $scope.confirmSaveBeforeLeaving = function() {
@@ -81,6 +90,8 @@
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
             $scope.saveBackToItem();
+          } else {
+            $scope.discardDraft();
           }
           $scope.hasChanges = false;
           $location.path("/home").search('');

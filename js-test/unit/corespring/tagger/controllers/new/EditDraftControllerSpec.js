@@ -21,7 +21,10 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
   beforeEach(function() {
     location = {
-      url: jasmine.createSpy('url')
+      url: jasmine.createSpy('url'),
+      path: jasmine.createSpy('path').andReturn({
+        search: function(){} 
+      })
     };
 
     v2ItemService = {
@@ -41,7 +44,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
       }),
       commit: jasmine.createSpy('commit').andCallFake(function(id, force, success) {
         success({});
-      })
+      }),
+      deleteDraft : jasmine.createSpy('deleteDraft')
     };
 
     routeParams = {itemId:123};
@@ -95,7 +99,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect(o.callback).toHaveBeenCalled();
     });
 
-    it('doesnt call callback immediatelly when there are changes', function() {
+    it('doesnt call callback immediately when there are changes', function() {
       scope.hasChanges = true;
       var o = {callback: jasmine.createSpy('spy')};
       scope.navigationHooks.beforeUnload(o.callback);
@@ -107,8 +111,34 @@ describe('tagger.controllers.new.EditDraftController', function() {
       var o = {callback: jasmine.createSpy('spy')};
       scope.navigationHooks.beforeUnload(o.callback);
       expect(o.callback).not.toHaveBeenCalled();
-      rootScope.modals['confirmSave'].done();
+      rootScope.modals.confirmSave.done();
       expect(o.callback).toHaveBeenCalled();
+    });
+
+    it('calls discardDraft if modal.cancelled == true', function(){
+      scope.hasChanges = true;
+      scope.navigationHooks.beforeUnload(function(){});
+      rootScope.modals.confirmSave.done(true);
+      expect( itemDraftService.deleteDraft)
+        .toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
+    });
+  });
+
+  describe('backToCollections', function(){
+    
+    it('does not call discardDraft if modal.cancelled == true', function(){
+      scope.hasChanges = true;
+      scope.backToCollections();
+      rootScope.modals.confirmSave.done();
+      expect( itemDraftService.deleteDraft)
+        .not.toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
+    });
+    it('calls discardDraft if modal.cancelled == true', function(){
+      scope.hasChanges = true;
+      scope.backToCollections();
+      rootScope.modals.confirmSave.done(true);
+      expect( itemDraftService.deleteDraft)
+        .toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
     });
   });
 
