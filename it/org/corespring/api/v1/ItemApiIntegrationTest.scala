@@ -8,7 +8,7 @@ import play.api.test.{ PlaySpecification, FakeRequest }
 import play.api.mvc.Results
 import org.specs2.specification.{ Step, Fragments }
 
-class ItemApiTest //extends IntegrationSpecification {
+class ItemApiIntegrationTest //extends IntegrationSpecification {
   extends PlaySpecification with Results with ServerSpec {
 
   sequential

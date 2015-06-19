@@ -10,7 +10,7 @@ import se.radley.plugin.salat.SalatPlugin
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ItemApiSessionCountTest extends IntegrationSpecification {
+class ItemApiSessionCountIntegrationTest extends IntegrationSpecification {
 
   trait withV2Session extends orgWithAccessTokenAndItem {
 
