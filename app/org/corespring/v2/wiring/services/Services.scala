@@ -1,6 +1,6 @@
 package org.corespring.v2.wiring.services
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
@@ -23,8 +23,8 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.services.caching.CachingTokenService
-import org.corespring.v2.auth.services.{ContentCollectionService, OrgService, TokenService}
-import org.corespring.v2.auth.wired._
+import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService, TokenService }
+import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -35,8 +35,12 @@ import securesocial.core.{ Identity, SecureSocial }
 
 import scalaz.{ Failure, Success, Validation }
 
-class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTransformer, s3: AmazonS3Client,
-  bucket: String, sessionDbServiceFactory: SessionDbServiceFactory) extends V2ApiServices {
+class Services(cacheConfig: Configuration,
+  db: MongoDB,
+  itemTransformer: ItemTransformer,
+  s3: AmazonS3,
+  bucket: String,
+  sessionDbServiceFactory: SessionDbServiceFactory ) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
@@ -61,7 +65,7 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def assets: ItemDraftAssets = new S3ItemDraftAssets {
       override def bucket: String = Services.this.bucket
 
-      override def s3: AmazonS3Client = Services.this.s3
+      override def s3: AmazonS3 = Services.this.s3
 
     }
 
@@ -192,11 +196,10 @@ class Services(cacheConfig: Configuration, db: MongoDB, itemTransformer: ItemTra
     override def itemAuth: ItemAuth[OrgAndOpts] = Services.this.itemAuth
 
     override def mainSessionService: SessionDbService = Services.this.mainSessionService
-
+    override def previewSessionService: SessionDbService = Services.this.previewSessionService
+    
     override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] =
       AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
-
-    override def previewSessionService: SessionDbService = Services.this.previewSessionService
 
     override def itemTransformer: ItemTransformer = Services.this.itemTransformer
   }

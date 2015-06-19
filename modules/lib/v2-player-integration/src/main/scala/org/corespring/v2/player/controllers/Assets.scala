@@ -1,6 +1,7 @@
 package org.corespring.v2.player.controllers
 
-import org.corespring.amazon.s3.{S3Service, ConcreteS3Service}
+import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
 import org.corespring.mongo.json.services.MongoService
@@ -22,7 +23,7 @@ trait Assets extends ContainerAssets {
 
   lazy val logger = V2LoggerFactory.getLogger(classOf[Assets])
 
-  lazy val playS3 = new ConcreteS3Service(S3Service.mkClient(key, secret))
+  lazy val playS3 = CorespringS3ServiceExtended
 
   def sessionService: MongoService
 

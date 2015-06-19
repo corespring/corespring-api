@@ -5,6 +5,7 @@ import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{S3Service, ConcreteS3Service}
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
+import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.dev.tools.DevTools
@@ -35,12 +36,9 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
-  private lazy val key = AppConfig.amazonKey
-  private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
 
-  lazy val playS3Client = S3Service.mkClient(key, secret)
-  lazy val playS3 = new ConcreteS3Service(playS3Client)
+  lazy val playS3 = CorespringS3ServiceExtended
 
   private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
@@ -64,7 +62,7 @@ object AppWiring {
     Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
     Db.salatDb(),
     ItemTransformWiring.itemTransformer,
-    playS3Client,
+    playS3.client,
     bucket,
     SessionDbServiceFactory)
 

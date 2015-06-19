@@ -14,6 +14,7 @@ class AppConfig(config: Configuration) {
         AMAZON_ACCESS_KEY,
         AMAZON_ACCESS_SECRET,
         AMAZON_ASSETS_BUCKET,
+        AMAZON_ENDPOINT,
         DEMO_ORG_ID,
         DYNAMO_DB_LOCAL_INIT,
         DYNAMO_DB_LOCAL_URL,
@@ -29,6 +30,7 @@ class AppConfig(config: Configuration) {
   lazy val allowAllSessions: Boolean = config.getBoolean(Key.ALLOW_ALL_SESSIONS).getOrElse(false)
   lazy val amazonKey: String = config.getString(Key.AMAZON_ACCESS_KEY).getOrElse("?")
   lazy val amazonSecret: String = config.getString(Key.AMAZON_ACCESS_SECRET).getOrElse("?")
+  lazy val amazonEndpoint: Option[String] = config.getString(Key.AMAZON_ENDPOINT)
   lazy val assetsBucket: String = config.getString(Key.AMAZON_ASSETS_BUCKET).getOrElse("?")
   lazy val demoOrgId: ObjectId = config.getString(Key.DEMO_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
   lazy val dynamoDbLocalInit:Boolean = config.getBoolean(Key.DYNAMO_DB_LOCAL_INIT).getOrElse(false)

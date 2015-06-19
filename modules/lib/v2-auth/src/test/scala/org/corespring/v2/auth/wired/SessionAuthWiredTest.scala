@@ -7,9 +7,9 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
-import org.corespring.v2.auth.services.SessionDbService
 import org.corespring.v2.errors.Errors.{ cantLoadSession, generalError, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionDbService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
