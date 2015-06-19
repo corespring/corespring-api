@@ -23,7 +23,7 @@ import play.api.{ Configuration, Mode, GlobalSettings, Play }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class LoadPlayerTest
+class LoadPlayerIntegrationTest
   extends IntegrationSpecification with Mockito {
 
   import org.corespring.container.client.controllers.apps.Player

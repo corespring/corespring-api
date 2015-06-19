@@ -6,7 +6,7 @@ import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
 import play.api.test.FakeRequest
 
-class ItemSessionApiUpdateV2JsonTest extends IntegrationSpecification {
+class ItemSessionApiUpdateV2JsonIntegrationTest extends IntegrationSpecification {
 
   class orgWithTokenAndTwoItems extends orgWithAccessTokenAndItem {
 

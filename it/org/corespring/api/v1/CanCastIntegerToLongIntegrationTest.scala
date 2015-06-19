@@ -9,7 +9,7 @@ import play.api.Play
 import play.api.libs.json.Json
 import se.radley.plugin.salat.SalatPlugin
 
-class CanCastIntegerToLongTest extends IntegrationSpecification {
+class CanCastIntegerToLongIntegrationTest extends IntegrationSpecification {
 
   private trait withAppContext extends After {
     val itemId = ObjectId.get

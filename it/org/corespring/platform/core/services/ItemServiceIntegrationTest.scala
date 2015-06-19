@@ -5,7 +5,7 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.v2.player.scopes.{AddImageAndItem}
 
-class ItemServiceTest extends IntegrationSpecification {
+class ItemServiceIntegrationTest extends IntegrationSpecification {
 
   "ItemService" should {
     "saveNewUnpublishedVersion" should {

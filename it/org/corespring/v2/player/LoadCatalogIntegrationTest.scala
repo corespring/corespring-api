@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
 
-class LoadCatalogTest
+class LoadCatalogIntegrationTest
   extends IntegrationSpecification
   with IntegrationHelpers {
 

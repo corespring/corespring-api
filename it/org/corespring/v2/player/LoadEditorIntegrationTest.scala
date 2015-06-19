@@ -15,7 +15,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.FakeRequest
 
-class LoadEditorTest
+class LoadEditorIntegrationTest
   extends IntegrationSpecification
   with IntegrationHelpers {
 

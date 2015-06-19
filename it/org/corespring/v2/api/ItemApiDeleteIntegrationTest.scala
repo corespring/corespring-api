@@ -14,7 +14,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
 import play.api.test.{FakeHeaders, FakeRequest}
 
-class ItemApiDeleteTest extends IntegrationSpecification {
+class ItemApiDeleteIntegrationTest extends IntegrationSpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
 

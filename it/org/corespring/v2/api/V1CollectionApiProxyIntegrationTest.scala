@@ -7,15 +7,15 @@ import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
 import play.api.mvc.Call
 
-class V1ItemApiProxyTest extends IntegrationSpecification {
-  val Routes = org.corespring.v2.api.routes.V1ItemApiProxy
+class V1CollectionApiProxyIntegrationTest extends IntegrationSpecification {
+  val Routes = org.corespring.v2.api.routes.V1CollectionApiProxy
 
-  "V2 - V1ItemApiProxy" should {
+  "V2 - V1CollectionApiProxy" should {
 
-    "get" should {
+    "getCollection" should {
 
       s"return $OK" in new withItem {
-        override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.get(itemId)
+        override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.getCollection(collectionId)
 
         status(result) === OK
       }
@@ -25,15 +25,6 @@ class V1ItemApiProxyTest extends IntegrationSpecification {
 
       s"return $OK" in new withItem {
         override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.list()
-
-        status(result) === OK
-      }
-    }
-
-    "listWithColl" should {
-
-      s"return $OK" in new withItem {
-        override def getCall(itemId: VersionedId[ObjectId]): Call = Routes.listWithColl(collectionId)
 
         status(result) === OK
       }

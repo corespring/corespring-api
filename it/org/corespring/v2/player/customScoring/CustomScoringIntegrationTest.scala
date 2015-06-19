@@ -22,7 +22,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scala.xml.Node
 
-class CustomScoringTest extends IntegrationSpecification {
+class CustomScoringIntegrationTest extends IntegrationSpecification {
 
   "Old qti js is transformed and " should {
 

@@ -13,7 +13,7 @@ import play.api.{ GlobalSettings, Play }
 
 import scala.concurrent.Future
 
-class LoadPlayerJsTest extends IntegrationSpecification {
+class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
 
   val anythingJson = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
   "launch player js" should {

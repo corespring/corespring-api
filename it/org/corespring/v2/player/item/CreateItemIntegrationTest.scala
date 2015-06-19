@@ -14,7 +14,7 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Cookie
 import play.api.test.FakeRequest
 
-class CreateItemTest extends IntegrationSpecification with SecureSocialHelpers {
+class CreateItemIntegrationTest extends IntegrationSpecification with SecureSocialHelpers {
 
   "calling create item" should {
 

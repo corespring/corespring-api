@@ -7,7 +7,7 @@ import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.test.{ PlaySpecification, FakeRequest }
 
-class ItemApiCloneTest extends IntegrationSpecification with PlaySpecification {
+class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
 

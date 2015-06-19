@@ -3,7 +3,7 @@ package org.corespring.v2.player
 import org.corespring.it.IntegrationSpecification
 import org.corespring.v2.player.scopes.AddImageAndItem
 
-class LoadImageTest extends IntegrationSpecification {
+class LoadImageIntegrationTest extends IntegrationSpecification {
 
   "load image" should {
 

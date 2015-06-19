@@ -10,7 +10,7 @@ import play.api.{ GlobalSettings, Play }
 
 import scala.concurrent.Future
 
-class DataQueryTest extends IntegrationSpecification {
+class DataQueryIntegrationTest extends IntegrationSpecification {
 
   class listScope extends Scope {
     protected def global: GlobalSettings = Play.current.global

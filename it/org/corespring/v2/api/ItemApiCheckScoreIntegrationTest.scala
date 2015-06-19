@@ -8,7 +8,7 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
 
-class ItemApiCheckScoreTest extends IntegrationSpecification {
+class ItemApiCheckScoreIntegrationTest extends IntegrationSpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
 

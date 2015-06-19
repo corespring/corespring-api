@@ -11,7 +11,7 @@ import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
 
-class LoadSessionTest extends IntegrationSpecification {
+class LoadSessionIntegrationTest extends IntegrationSpecification {
 
   "when I load a session" should {
 

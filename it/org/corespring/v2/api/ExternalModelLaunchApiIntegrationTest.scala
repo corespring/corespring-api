@@ -8,7 +8,7 @@ import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
 
-class ExternalModelLaunchApiTest extends IntegrationSpecification {
+class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
 
   trait launchExternalAndLoadPlayer extends orgWithAccessToken {
 

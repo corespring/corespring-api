@@ -9,7 +9,7 @@ import org.corespring.v2.player.scopes._
 import play.api.libs.json.{JsNumber, JsString, JsObject, Json}
 import play.api.mvc.{AnyContentAsJson, Request}
 
-class SaveSessionTest extends IntegrationSpecification {
+class SaveSessionIntegrationTest extends IntegrationSpecification {
 
   "saving a session" should {
 

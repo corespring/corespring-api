@@ -5,7 +5,7 @@ import org.corespring.v2.player.scopes.AddSupportingMaterialImageAndItem
 import org.corespring.container.client.controllers.apps.routes.Catalog
 import play.api.test.FakeRequest
 
-class LoadCatalogAssetTest extends IntegrationSpecification {
+class LoadCatalogAssetIntegrationTest extends IntegrationSpecification {
 
 
   "Load catalog asset" should {

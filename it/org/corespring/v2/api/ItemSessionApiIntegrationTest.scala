@@ -18,7 +18,7 @@ import org.specs2.specification.BeforeAfter
 import play.api.libs.json.{JsNumber, JsString, JsObject, Json}
 import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
 
-class ItemSessionApiTest extends IntegrationSpecification {
+class ItemSessionApiIntegrationTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
 
   "ItemSessionApi" should {

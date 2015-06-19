@@ -11,7 +11,7 @@ import play.api.libs.json.{ JsNull, JsValue, Json }
 import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
 import play.api.test.{ FakeHeaders, FakeRequest }
 
-class PlayerTokenApiTest extends IntegrationSpecification {
+class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
 
   val encrypter = new ApiClientEncrypter(AESCrypto)
 

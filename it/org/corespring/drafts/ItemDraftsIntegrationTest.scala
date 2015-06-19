@@ -22,7 +22,7 @@ import play.api.Play
 
 import scalaz.{ Failure, Success }
 
-class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mockito {
+class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExample with Mockito {
 
   sequential
 
@@ -53,9 +53,9 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
     lazy val drafts = new ItemDrafts {
       override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
-      override val draftService: ItemDraftService = ItemDraftsTest.this.draftService
+      override val draftService: ItemDraftService = ItemDraftsIntegrationTest.this.draftService
 
-      override val commitService: CommitService = ItemDraftsTest.this.commitService
+      override val commitService: CommitService = ItemDraftsIntegrationTest.this.commitService
 
       val assets = new S3ItemDraftAssets {
         override def bucket: String = ImageUtils.bucket

@@ -9,7 +9,7 @@ import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.BeforeAfter
 
-class AllItemVersionTransformerTest extends IntegrationSpecification {
+class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification {
 
   trait WithItem extends BeforeAfter {
     lazy val oid = ObjectId.get
