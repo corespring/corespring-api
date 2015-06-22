@@ -1,5 +1,7 @@
 package org.corespring.drafts
 
+import java.util.concurrent.TimeUnit
+
 import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
@@ -7,19 +9,23 @@ import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.{ NothingToCommit, DraftIsOutOfDate }
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.models.{ Conflict => ItemConflict }
+import org.corespring.drafts.item.models.{ Conflict => ItemConflict, _ }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.player.scopes.{ ImageUtils, ImageUploader, userAndItem }
+import org.corespring.v2.player.scopes.{ orgWithAccessTokenAndItem, ImageUtils, ImageUploader, userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
+import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsJson
+import play.api.test.{ FakeHeaders, FakeRequest }
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scalaz.{ Failure, Success }
 
 class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mockito {
@@ -258,6 +264,18 @@ class ItemDraftsTest extends IntegrationSpecification with BeforeExample with Mo
         drafts.draftService.load(draftId).map { dbDraft =>
           dbDraft.change.data.playerDefinition.map(_.files.find(_.name == "test.png").headOption).flatten must_== Some(file)
         }.getOrElse(failure("should have loaded the draft"))
+      }
+    }
+
+    "listForOrg" should {
+
+      "list drafts" in new orgAndUserAndItem {
+        val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
+        drafts.loadOrCreate(orgAndUser)(draftId)
+        val secondDraftId = DraftId(itemId.id, "other-draft", orgAndUser.org.id)
+        drafts.loadOrCreate(orgAndUser.copy(user = None))(secondDraftId)
+        println(s"orgId: ${orgAndUser.org.id}")
+        drafts.listForOrg(orgAndUser.org.id).length === 2
       }
     }
 

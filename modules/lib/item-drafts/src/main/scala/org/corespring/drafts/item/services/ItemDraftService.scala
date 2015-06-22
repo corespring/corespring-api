@@ -31,7 +31,10 @@ trait ItemDraftService {
 
   import ItemDraftDbUtils._
 
-  protected val userOrgId: String = "_id.user.org._id"
+  private object IdKeys {
+    val orgId: String = "_id.orgId"
+    val itemId: String = "_id.itemId"
+  }
 
   def collection: MongoCollection
 
@@ -67,7 +70,7 @@ trait ItemDraftService {
   }
 
   def removeByItemId(itemId: ObjectId): Boolean = {
-    val query = MongoDBObject("_id.itemId" -> itemId)
+    val query = MongoDBObject(IdKeys.itemId -> itemId)
     val result = collection.remove(query)
     result.getLastError.ok
   }
@@ -75,31 +78,15 @@ trait ItemDraftService {
   def remove(d: ItemDraft): Boolean = remove(d.id)
 
   def listByOrgAndVid(orgId: ObjectId, vid: VersionedId[ObjectId]) = {
-    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> vid.id)
+    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> vid.id)
     collection.find(query).map(toDraft)
   }
 
-  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(userOrgId -> orgId)).toSeq.map(toDraft)
+  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(IdKeys.orgId -> orgId)).toSeq.map(toDraft)
 
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
-    val query = MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId.id)
+    val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id)
     collection.find(query).map(toDraft)
-  }
-
-  def removeNonConflictingDraftsForOrg(itemId: ObjectId, orgId: ObjectId): Seq[DraftId] = {
-    val query = MongoDBObject("_id" -> MongoDBObject("itemId" -> itemId, "user.org._id" -> orgId, "hasConflict" -> false))
-
-    val ids = collection.find(query, MongoDBObject()).toSeq.map { dbo =>
-      val id = dbo.get("_id").asInstanceOf[DBObject]
-      grater[DraftId].asObject(new MongoDBObject(id))
-    }
-
-    val result = collection.remove(query)
-    if (ids.length == result.getN) {
-      ids
-    } else {
-      throw new RuntimeException("Error deleting all items")
-    }
   }
 
 }
