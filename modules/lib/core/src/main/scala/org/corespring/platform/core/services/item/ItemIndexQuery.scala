@@ -16,7 +16,8 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
                           published: Option[Boolean] = ItemIndexQuery.Defaults.published,
                           workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
                           sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
-                          metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata)
+                          metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
+                          requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth )
 
 case class Sort(field: String, direction: Option[String])
 
@@ -63,6 +64,7 @@ object ItemIndexQuery {
   object Defaults {
     val offset = 0
     val count = 50
+    val requiredPlayerWidth = None
     val text = None
     val contributors = Seq.empty[String]
     val collections = Seq.empty[String]
@@ -84,6 +86,7 @@ object ItemIndexQuery {
     val gradeLevels = "gradeLevels"
     val published = "published"
     val workflows = "workflows"
+    val requiredPlayerWidth = "requiredPlayerWidth"
     val sort = "sort"
     val all = Set(offset, count, text, contributors, collections, itemTypes, gradeLevels, published, workflows, sort)
   }
@@ -106,6 +109,7 @@ object ItemIndexQuery {
         gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
         published = (json \ published).asOpt[Boolean],
         workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows),
+        requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
         sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
           .getOrElse(throw new Exception(s"Could not parse sort object ${(json \ "sort")}"))))
           .getOrElse(Defaults.sort),
@@ -125,6 +129,7 @@ object ItemIndexQuery {
 
     private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)
                         (implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
+
     private def term[A](field: String, values: Option[A])
                        (implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
       filter("term", field, values, execution)
@@ -142,6 +147,21 @@ object ItemIndexQuery {
                          (implicit writes: Writes[A]): Option[JsObject] =
       value.map(v => partialObj(
         named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
+
+    private def range[A <: Int](field: String, gte: Option[A] = None, gt: Option[A] = None, lte: Option[A] = None, lt: Option[A] = None)
+                        (implicit writes: Writes[A]): Option[JsObject] =
+      if ((gte ++ gt ++ lte ++ lt).isEmpty) None
+      else
+        Some(Json.obj(
+          "range" -> Json.obj(
+            field -> partialObj(
+              "gte" -> gte.map(JsNumber(_)),
+              "gt" -> gt.map(JsNumber(_)),
+              "lte" -> lte.map(JsNumber(_)),
+              "lt" -> lt.map(JsNumber(_))
+            )
+          )
+        ))
 
 
     private def must(metadata: Map[String, String]): Option[JsObject] = {
@@ -200,7 +220,8 @@ object ItemIndexQuery {
               terms("taskInfo.itemTypes", itemTypes),
               terms("taskInfo.gradeLevel", gradeLevels),
               term("published", published),
-              terms("workflow", workflows , Some("and"))
+              terms("workflow", workflows , Some("and")),
+              range("minimumWidth", lte = requiredPlayerWidth)
             ).flatten
             t
           })

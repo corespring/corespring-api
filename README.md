@@ -187,3 +187,28 @@ https://devcenter.heroku.com/articles/newrelic#add-on-installation
 RUM (Real User Monitoring) features are not enabled as yet.
 
 https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timing-java#manual_instrumentation
+
+
+### Docker deployment
+
+To test feature branches in isolation, we have defined a `Dockerfile` that allows cs-api to be run in a sandboxed environment.
+
+If you want to run this docker image or deploy it using [docker-deployer](github.com/corespring/docker-deployer), you'll need to build the following project once: 
+
+```shell
+    cd docker/cs-api-docker-util
+    sbt assembly
+```
+
+To create and run a docker image: 
+
+````shell
+    docker build -t="corespring-api" .
+    docker run -p 9000:9000 -t="corespring-api" #run main script
+```
+
+To deploy with docker-deployer:
+
+```shell
+    docker-deployer deploy --deploy-name $NAME 
+```

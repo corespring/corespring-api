@@ -21,6 +21,7 @@ class ItemIndexQueryTest extends Specification {
       default.gradeLevels must be equalTo (Defaults.gradeLevels)
       default.published must be equalTo (Defaults.published)
       default.workflows must be equalTo (Defaults.workflows)
+      default.requiredPlayerWidth must be equalTo (Defaults.requiredPlayerWidth)
     }
   }
 
@@ -29,6 +30,7 @@ class ItemIndexQueryTest extends Specification {
 
     val offset = 10
     val count = 10
+    val requiredPlayerWidth = 500
     val text = "hey this is some text for the query"
     val contributors = Seq("these", "are", "contributors")
     val collections = (1 to 5).map(f => new ObjectId().toString)
@@ -46,6 +48,7 @@ class ItemIndexQueryTest extends Specification {
       "itemTypes": ["${itemTypes.mkString("\",\"")}"],
       "gradeLevels": ["${gradeLevels.mkString("\",\"")}"],
       "published" : $published,
+      "requiredPlayerWidth" : $requiredPlayerWidth,
       "workflows" : ["${workflows.mkString("\",\"")}"]
     }"""
 
@@ -62,6 +65,7 @@ class ItemIndexQueryTest extends Specification {
         query.gradeLevels must be equalTo (gradeLevels)
         query.published must be equalTo (Some(published))
         query.workflows must be equalTo (workflows)
+        query.requiredPlayerWidth must be equalTo (Some(requiredPlayerWidth))
       }
 
     }
@@ -232,6 +236,22 @@ class ItemIndexQueryTest extends Specification {
 
     }
 
+    "requiredPlayerWidth" should {
+      "empty" should {
+        "not be included in filter" in {
+          Json.toJson(ItemIndexQuery(requiredPlayerWidth = None)).hasFilter("requiredPlayerWidth") must beFalse
+        }
+      }
+
+      "nonEmpty" should {
+        "be included as range filter" in {
+          val requiredPlayerWidth = 500
+          Json.toJson(ItemIndexQuery(requiredPlayerWidth = Some(requiredPlayerWidth)))
+          .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
+        }
+      }
+    }
+
     "workflows" should {
 
       "empty" should {
@@ -256,7 +276,7 @@ class ItemIndexQueryTest extends Specification {
 
     private def getFilter(filter: String): Option[JsObject] = {
       val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-      Seq("term", "terms").map(key => (filters.find(f => (f \ key \ filter) match {
+      Seq("term", "terms","range").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
       }))).flatten.headOption
@@ -275,8 +295,17 @@ class ItemIndexQueryTest extends Specification {
 
     def hasTermsFilter[T](filter: String, value: T, execution: Option[String] = None)(implicit reads: Reads[T]) =
       hasFilter[T](filter, value, "terms", execution)
+
     def hasTermFilter[T](filter: String, value: T, execution: Option[String] = None)(implicit reads: Reads[T]) =
       hasFilter[T](filter, value, "term", execution)
+
+    def hasRangeFilter(filter: String, lte: Option[Int] = None, lt: Option[Int] = None, gte: Option[Int] = None, gt: Option[Int] = None) = {
+      val f = getFilter(filter).get
+      (f \ "range" \ filter \ "lte").asOpt[Int] == lte
+      (f \ "range" \ filter \ "lt").asOpt[Int] == lt
+      (f \ "range" \ filter \ "gte").asOpt[Int] == gte
+      (f \ "range" \ filter \ "gt").asOpt[Int] == gt
+    }
 
   }
 
