@@ -12,7 +12,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
 
   val routes = org.corespring.v2.api.drafts.item.routes.ItemDrafts
 
-  "ItemApi" should {
+  "ItemDrafts" should {
     "commit" should {
 
       trait commitWithContentType extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
@@ -26,7 +26,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
 
       }
 
-      "work when content-type-header is xml (ss AC-201)" in new commitWithContentType {
+      "work when content-type-header is xml (see AC-201)" in new commitWithContentType {
         override val contentType:String = "text/xml"
 
         result.map { r =>
