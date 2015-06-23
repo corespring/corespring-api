@@ -26,7 +26,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
 
       }
 
-      "work when content-type-header is xml (see AC-201)" in new commitWithContentType {
+      "not fail when content-type-header is xml (see AC-201)" in new commitWithContentType {
         override val contentType:String = "text/xml"
 
         result.map { r =>
