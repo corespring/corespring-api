@@ -396,6 +396,10 @@ package object scopes {
     override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
     }
+
+    def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType:String = "application/json"): Request[AnyContent] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withHeaders(("Content-Type", contentType))
+    }
   }
 
   trait IdAndPlayerTokenRequestBuilder extends RequestBuilder { self: clientIdAndPlayerToken =>
