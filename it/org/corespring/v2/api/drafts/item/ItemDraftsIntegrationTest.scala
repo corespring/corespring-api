@@ -26,7 +26,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
 
       }
 
-      "not try to parse body as xml when when content-type-header is xml (see AC-201)" in new commitWithContentType {
+      "not try to parse body as xml and fail bc body is empty, when content-type-header is xml (see AC-201)" in new commitWithContentType {
         override val contentType:String = "text/xml"
 
         result.map { r =>
