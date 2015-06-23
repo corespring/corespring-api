@@ -33,9 +33,6 @@ RUN update-rc.d elasticsearch defaults 95 10
 # Prevent elasticsearch calling `ulimit`.
 RUN sed -i 's/MAX_OPEN_FILES=/# MAX_OPEN_FILES=/g' /etc/init.d/elasticsearch
 
-#ivy 2
-ADD docker/.ivy2/.credentials /root/.ivy2/.credentials
-
 # docker sbt util (so we can run mongo-db-seeder + indexer)
 ADD docker/cs-api-docker-util/target/scala-2.10/cs-api-docker-util-assembly-*.jar /opt/cs-api-docker-util/run.jar
 RUN chmod +x /opt/cs-api-docker-util/run.jar
