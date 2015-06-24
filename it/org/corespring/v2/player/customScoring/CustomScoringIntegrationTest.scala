@@ -14,7 +14,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
 import org.corespring.v2.player.scopes.orgWithAccessToken
-import org.corespring.wiring.sessiondb.SessionDbServiceFactory
+import org.corespring.wiring.sessiondb.SessionDbServiceFactoryImpl
 import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.AnyContentAsJson
@@ -74,7 +74,7 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
     def base = s"../../../qtiToV2/customScoring/$rootPath"
 
 
-    lazy val sessionService = SessionDbServiceFactory.create(SessionDbConfig.sessionTable)
+    lazy val sessionService = SessionDbServiceFactoryImpl.create(SessionDbConfig.sessionTable)
 
     lazy val transformer = new ItemTransformer {
       override def itemService: ItemService = ItemServiceWired

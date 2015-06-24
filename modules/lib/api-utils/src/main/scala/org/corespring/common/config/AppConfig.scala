@@ -16,6 +16,7 @@ class AppConfig(config: Configuration) {
         AMAZON_ASSETS_BUCKET,
         AMAZON_ENDPOINT,
         DEMO_ORG_ID,
+        DYNAMO_DB_ACTIVATE,
         DYNAMO_DB_LOCAL_INIT,
         DYNAMO_DB_LOCAL_URL,
         DYNAMO_DB_USE_LOCAL,
@@ -33,6 +34,7 @@ class AppConfig(config: Configuration) {
   lazy val amazonEndpoint: Option[String] = config.getString(Key.AMAZON_ENDPOINT)
   lazy val assetsBucket: String = config.getString(Key.AMAZON_ASSETS_BUCKET).getOrElse("?")
   lazy val demoOrgId: ObjectId = config.getString(Key.DEMO_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
+  lazy val dynamoDbActivate:Boolean = config.getBoolean(Key.DYNAMO_DB_ACTIVATE).getOrElse(false)
   lazy val dynamoDbLocalInit:Boolean = config.getBoolean(Key.DYNAMO_DB_LOCAL_INIT).getOrElse(false)
   lazy val dynamoDbLocalUrl:String = config.getString(Key.DYNAMO_DB_LOCAL_URL).getOrElse("?")
   lazy val dynamoDbUseLocal:Boolean = config.getBoolean(Key.DYNAMO_DB_USE_LOCAL).getOrElse(false)
