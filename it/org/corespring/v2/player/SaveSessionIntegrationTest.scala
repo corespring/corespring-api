@@ -32,7 +32,7 @@ class SaveSessionIntegrationTest extends IntegrationSpecification {
       val identity = (sessionDbo \"identity")
       (identity \ "orgId") === JsString(orgId.toString)
       (identity \ "authMode") === JsNumber(AuthMode.ClientIdAndPlayerToken.id)
-      //(identity \ "apiClient") === JsString(apiClient.clientId.toString)
+      (identity \ "apiClient") === JsString(apiClient.clientId.toString)
     }
 
   }
