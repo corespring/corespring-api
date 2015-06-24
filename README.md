@@ -143,10 +143,10 @@ We use DynamoDb for the sessionDbService
 [aws console](https://corespring.signin.aws.amazon.com/console)
 Ask evan for a user account.
 
-For development you can run a local instance. 
+For development you should run a local instance. 
 You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
 
-In application.conf you can find some configuration properties for it.   
+Check application.conf for dynamo configuration properties.    
 
 
 ### Dev Tools
@@ -207,7 +207,7 @@ To create and run a docker image with default Dockerfile:
     docker run -p 9000:9000 -t="corespring-api" #run main script
 ```
 
-To create and run a docker image with custom Dockerfile named DockerfileWithDynamo 
+To create and run a docker image with custom docker file named DockerfileWithDynamo 
 
 ````shell
     docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
