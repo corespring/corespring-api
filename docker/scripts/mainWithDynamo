@@ -36,9 +36,12 @@ pid = Process.spawn("fakes3 -r /opt/fake-s3-root -p 4567",
 # Detach the spawned process
 Process.detach pid
 
+puts "-- boot local dynamo db"
+
+run("mkdir -p /var/log/dynamo")
+
 # Spawn a new process for dynamo db
-Dir.chdir('/opt/dynamo')
-dynamo_pid = Process.spawn("java -Djava.library.path=./DynamoDBLocal_lib -jar ./DynamoDBLocal.jar -port=8000 -sharedDb",
+dynamo_pid = Process.spawn("java -Djava.library.path=/opt/dynamo/DynamoDBLocal_lib -jar /opt/dynamo/DynamoDBLocal.jar -port 8000 -sharedDb -dbPath /var/lib/dynamodb",
   :out => "/var/log/dynamo/out.log",
   :err => "/var/log/dynamo/err.log")
 # Detach the spawned process

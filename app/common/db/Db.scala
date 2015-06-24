@@ -1,6 +1,6 @@
 package common.db
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.mongodb.casbah.MongoDB
 import org.corespring.common.config.AppConfig
@@ -16,11 +16,10 @@ object Db {
       "registered.", "You need to register the plugin with \"500:se.radley.plugin.salat.SalatPlugin\" in conf/play.plugins"))
   }
 
-  def dynamoDbClient():AmazonDynamoDBClient = {
-    val client = new AmazonDynamoDBClient(new ProfileCredentialsProvider {
-      def getAWSAccessKeyId: String = AppConfig.amazonKey
-      def getAWSSecretKey: String = AppConfig.amazonSecret
-    })
+  def dynamoDbClient(): AmazonDynamoDBClient = {
+
+    val client = new AmazonDynamoDBClient(new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret))
+
     if (AppConfig.dynamoDbUseLocal) {
       client.setEndpoint(AppConfig.dynamoDbLocalUrl)
     }

@@ -24,7 +24,10 @@ RUN mkdir /opt/fake-s3-root
 ENV ENV_AMAZON_ENDPOINT=http://localhost:4567
 
 # dynamo db
-RUN mkdir /opt/dynamo
+# Create the MongoDB data directory
+RUN mkdir -p /var/lib/dynamodb
+# Create installation dir
+RUN mkdir -p /opt/dynamo
 RUN wget -qO - http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz | tar -zxvC /opt/dynamo
 RUN chmod +x /opt/dynamo/DynamoDBLocal.jar
 
@@ -60,13 +63,13 @@ ENV CONTAINER_COMPONENTS_PATH=/opt/components
 
 ENV DEPLOY_ASSET_LOADER_JS=false
 
-RUN mkdir /data
-ADD docker/scripts/mainWithDynamo /data/mainWithDynamo
-RUN chmod +x /data/mainWithDynamo
-
 EXPOSE 9000
 
 ADD target/universal/stage/ /opt/corespring-api
+
+RUN mkdir -p /data
+ADD docker/scripts/mainWithDynamo /data/mainWithDynamo
+RUN chmod +x /data/mainWithDynamo
 
 CMD ["/data/mainWithDynamo" ]
 
