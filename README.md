@@ -200,11 +200,18 @@ If you want to run this docker image or deploy it using [docker-deployer](github
     sbt assembly
 ```
 
-To create and run a docker image: 
+To create and run a docker image with default Dockerfile: 
 
 ````shell
     docker build -t="corespring-api" .
     docker run -p 9000:9000 -t="corespring-api" #run main script
+```
+
+To create and run a docker image with custom Dockerfile named DockerfileWithDynamo 
+
+````shell
+    docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
+    docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
 ```
 
 To deploy with docker-deployer:
