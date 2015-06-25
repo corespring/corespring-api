@@ -136,12 +136,12 @@ There are some useful utilities for working with the s3 assets:
 
 Ask evan for a user account.
 
-#### DynamoDb 
+#### Amazon DynamoDb (experimental) 
 
-We use DynamoDb for the sessionDbService 
+You can use DynamoDb for the sessionDbService 
 
 [aws console](https://corespring.signin.aws.amazon.com/console)
-Ask evan for a user account.
+Ask evan for a user account or use an account from passpack 
 
 For development you should run a local instance. 
 You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
