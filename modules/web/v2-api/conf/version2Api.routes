@@ -63,4 +63,5 @@ GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCac
 
 # Metadata
 
-GET  /item/:itemId/metadata                @org.corespring.v2.api.MetadataApi.get(itemId: VersionedId[ObjectId])
+GET  /metadataSets                         @org.corespring.v2.api.MetadataApi.get
+GET  /item/:itemId/metadata                @org.corespring.v2.api.MetadataApi.getByItemId(itemId: VersionedId[ObjectId])
