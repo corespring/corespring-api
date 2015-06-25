@@ -1,5 +1,8 @@
 FROM phusion/baseimage:0.9.16
 
+# set env name to an arbitrary string
+ENV ENV_NAME=ac-190
+
 RUN apt-get update && \
  apt-get upgrade -y && \
  apt-get install -y \
@@ -31,11 +34,11 @@ RUN mkdir -p /opt/dynamo
 RUN wget -qO - http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz | tar -zxvC /opt/dynamo
 RUN chmod +x /opt/dynamo/DynamoDBLocal.jar
 
-## cs api environment variables for dynamo
+## environment variables for dynamo
 ## Use dynamo instead of mongo for session db
 ENV ENV_DYNAMO_DB_ACTIVATE=true
 ## Use local dynamodb (instead of amazon)
-ENV ENV_DYNAMO_DB_USE_LOCAL=true
+ENV ENV_DYNAMO_DB_USE_LOCAL=false
 ## the port of the local dynamo db
 ENV ENV_DYNAMO_DB_LOCAL_PORT=8000
 ## do you want the local db to be cleared?
