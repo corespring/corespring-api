@@ -42,16 +42,23 @@ class DynamoSessionDbTableHelper(dynamoDbClient: AmazonDynamoDBClient) {
   }
 
   def deleteTable(tableName: String): Boolean =
-    Exception.failAsValue[Boolean](classOf[ResourceNotFoundException])(false) {
+    catchResourceNotFoundException(() => {
       dynamoDbClient.deleteTable(tableName)
       true
-    }
+    })
 
   def tableExists(tableName: String): Boolean =
-    Exception.failAsValue[Boolean](classOf[ResourceNotFoundException])(false) {
+    catchResourceNotFoundException(() => {
       dynamoDbClient.describeTable(tableName)
       true
+    })
+
+  def catchResourceNotFoundException(fn: () => Boolean): Boolean = {
+    Exception.failAsValue[Boolean](classOf[ResourceNotFoundException])(false) {
+      fn()
+      true
     }
+  }
 
 }
 

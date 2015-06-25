@@ -3,7 +3,7 @@ package org.corespring.wiring
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.{S3Service, ConcreteS3Service}
+import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
@@ -22,7 +22,7 @@ import org.corespring.web.common.views.helpers.Defaults
 import org.corespring.wiring.apiTracking.ApiTracking
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
-import org.corespring.wiring.sessiondb.SessionDbServiceFactoryImpl
+import org.corespring.wiring.sessiondb.SessionServiceFactoryImpl
 import play.api.libs.json.JsValue
 import play.api.mvc.{ Controller, Action, AnyContent }
 import play.api.{ Configuration, Logger, Mode, Play }
@@ -34,7 +34,7 @@ object AppWiring {
 
   import play.api.Play.current
 
-  private val logger = Logger("org.corespring.AppWiring")
+  private val logger = Logger("org.corespring.wiring.AppWiring")
 
   private lazy val bucket = AppConfig.assetsBucket
 
@@ -64,15 +64,14 @@ object AppWiring {
     ItemTransformWiring.itemTransformer,
     playS3.client,
     bucket,
-    SessionDbServiceFactoryImpl)
+    SessionServiceFactoryImpl)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
     services.secureSocialService,
     services.orgService,
     services.tokenService,
     services.apiClientEncryptionService,
-    DevTools.enabled
-  )
+    DevTools.enabled)
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.

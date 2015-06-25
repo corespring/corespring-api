@@ -4,7 +4,7 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
-import org.corespring.common.config.{SessionDbConfig, AppConfig}
+import org.corespring.common.config.{ SessionDbConfig, AppConfig }
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
@@ -28,7 +28,7 @@ import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.v2.sessiondb.{SessionDbService, SessionDbServiceFactory}
+import org.corespring.v2.sessiondb.{ SessionService, SessionServiceFactory }
 import play.api.Configuration
 import play.api.mvc.RequestHeader
 import securesocial.core.{ Identity, SecureSocial }
@@ -40,14 +40,14 @@ class Services(cacheConfig: Configuration,
   itemTransformer: ItemTransformer,
   s3: AmazonS3,
   bucket: String,
-  sessionDbServiceFactory: SessionDbServiceFactory ) extends V2ApiServices {
+  sessionDbServiceFactory: SessionServiceFactory) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
-  lazy val mainSessionService: SessionDbService = sessionDbServiceFactory.create(SessionDbConfig.sessionTable)
-  lazy val previewSessionService: SessionDbService = sessionDbServiceFactory.create(SessionDbConfig.previewSessionTable)
+  lazy val mainSessionService: SessionService = sessionDbServiceFactory.create(SessionDbConfig.sessionTable)
+  lazy val previewSessionService: SessionService = sessionDbServiceFactory.create(SessionDbConfig.previewSessionTable)
 
-  override val sessionService: SessionDbService = mainSessionService
+  override val sessionService: SessionService = mainSessionService
 
   override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
@@ -195,9 +195,9 @@ class Services(cacheConfig: Configuration,
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = new SessionAuthWired {
     override def itemAuth: ItemAuth[OrgAndOpts] = Services.this.itemAuth
 
-    override def mainSessionService: SessionDbService = Services.this.mainSessionService
-    override def previewSessionService: SessionDbService = Services.this.previewSessionService
-    
+    override def mainSessionService: SessionService = Services.this.mainSessionService
+    override def previewSessionService: SessionService = Services.this.previewSessionService
+
     override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] =
       AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
 

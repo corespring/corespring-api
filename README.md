@@ -138,15 +138,17 @@ Ask evan for a user account.
 
 #### Amazon DynamoDb (experimental) 
 
-You can use DynamoDb for the sessionDbService 
-
-[aws console](https://corespring.signin.aws.amazon.com/console)
-Ask evan for a user account or use an account from passpack 
+By default we are using MongoDb for session storage. So normally you don't have to worry about this. 
+As a new feature we are currently trying out Amazon's DynamoDb for the sessionDbService. If you want to play 
+with it or do some work in this area, you can enable it in application.conf       
 
 For development you should run a local instance. 
 You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
 
-Check application.conf for dynamo configuration properties.    
+Check application.conf for dynamo configuration properties.
+    
+[aws console](https://corespring.signin.aws.amazon.com/console)
+Ask evan for a user account or use an account from passpack 
 
 
 ### Dev Tools

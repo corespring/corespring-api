@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import org.bson.types.ObjectId
+import org.corespring.common.aws.AwsUtil
 import org.corespring.common.config.{SessionDbConfig, AppConfig}
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
@@ -140,7 +141,7 @@ package object scopes {
 
   object ImageUtils {
 
-    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val client = new AmazonS3Client(credentials)
     lazy val bucket = AppConfig.assetsBucket
 
@@ -167,7 +168,7 @@ package object scopes {
 
     lazy val logger = Logger("v2player.test.ImageUploader")
 
-    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
     lazy val bucketName = AppConfig.assetsBucket
@@ -202,7 +203,7 @@ package object scopes {
     with S3Helper {
 
     lazy val logger = Logger("v2player.test")
-    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
@@ -236,7 +237,7 @@ package object scopes {
     with S3Helper {
 
     lazy val logger = Logger("v2player.test")
-    lazy val credentials: AWSCredentials = new BasicAWSCredentials(AppConfig.amazonKey, AppConfig.amazonSecret)
+    lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 

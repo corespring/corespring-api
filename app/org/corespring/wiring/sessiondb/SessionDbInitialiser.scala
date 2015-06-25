@@ -1,24 +1,17 @@
 package org.corespring.wiring.sessiondb
 
 import common.db.Db
+import org.corespring.common.log.ClassLogging
 import org.corespring.v2.sessiondb.dynamo.DynamoSessionDbTableHelper
 import org.corespring.common.config.{ DynamoSessionDbNames, AppConfig }
 import play.api.Logger
 
-object SessionDbInitialiser {
-
-  private val logger = Logger("org.corespring.AppWiring")
+object SessionDbInitialiser extends ClassLogging {
 
   def init(implicit app: play.api.Application) = {
     if (AppConfig.dynamoDbActivate) {
       new DynamoDbInitialiser().run()
-    } else {
-      initMongoDb()
     }
-  }
-
-  private def initMongoDb() = {
-    //nothing to do
   }
 
   private class DynamoDbInitialiser {

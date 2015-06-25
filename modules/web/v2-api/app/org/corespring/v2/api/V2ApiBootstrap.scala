@@ -17,7 +17,7 @@ import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
 import org.corespring.v2.auth.services.{OrgService, TokenService}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.sessiondb.SessionDbService
+import org.corespring.v2.sessiondb.SessionService
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
@@ -32,7 +32,7 @@ import scalaz.Validation
 
 trait V2ApiServices {
   def orgService: OrgService
-  def sessionService: SessionDbService
+  def sessionService: SessionService
   def itemService: ItemService
   def itemType: ItemType
   def itemIndexService: ItemIndexService

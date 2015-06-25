@@ -72,7 +72,7 @@ object Build extends sbt.Build {
 
   val apiUtils = builders.lib("api-utils")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
+      libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
       Keys.fork in Test := forkInTests)
 
   /** Any shared test helpers in here */

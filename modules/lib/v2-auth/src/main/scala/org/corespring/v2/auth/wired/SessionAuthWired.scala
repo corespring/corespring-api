@@ -9,7 +9,7 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.v2.sessiondb.SessionDbService
+import org.corespring.v2.sessiondb.SessionService
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
@@ -28,16 +28,16 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
    * The main session service holds 'real' item sessions
    * @return
    */
-  def mainSessionService: SessionDbService
+  def mainSessionService: SessionService
 
   /**
    * The preview session service holds 'preview' sessions -
    * This service is used when the identity -> AuthMode == UserSession
    * @return
    */
-  def previewSessionService: SessionDbService
+  def previewSessionService: SessionService
 
-  private def sessionService(implicit identity: OrgAndOpts): SessionDbService = if (identity.authMode == AuthMode.UserSession) {
+  private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
     previewSessionService
   } else {

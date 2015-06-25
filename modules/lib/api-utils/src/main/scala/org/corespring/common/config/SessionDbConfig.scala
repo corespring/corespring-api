@@ -19,11 +19,10 @@ class DynamoSessionDbNames extends SessionDbNames {
   def previewSessionTable = prefix + "v2.itemSessions_preview"
 }
 
-
 object SessionDbConfig extends SessionDbNames {
 
-  val names = {
-    if(AppConfig.dynamoDbActivate){
+  private val names = {
+    if (AppConfig.dynamoDbActivate) {
       new DynamoSessionDbNames
     } else {
       new MongoSessionDbNames

@@ -77,17 +77,14 @@ class LoadPlayerIntegrationTest
 
   "when I load the player with orgId and options" should {
 
-
     "fail to create session for unknown user" in new unknownIdentity_CreateSession() {
       status(createSessionResult) === UNAUTHORIZED
     }
-
 
     def locationNoQueryParams(of: Future[SimpleResult]): String = {
       headers(of).get(LOCATION).map(l =>
         if (l.indexOf("?") == -1) l else l.split("\\?")(0)).getOrElse(throw new RuntimeException("no location in header"))
     }
-
 
     "create session for logged in user" in new user_CreateSession() {
       status(createSessionResult) === CREATED
@@ -96,14 +93,12 @@ class LoadPlayerIntegrationTest
       locationNoQueryParams(createSessionResult) === locationNoQueryParams(mockResult)
     }
 
-
     "create session adds dateCreated field to the db document, and returns it in the session json" in new user_CreateSession() {
       status(createSessionResult) === CREATED
       val mockResult = getMockResult(itemId, SessionDbConfig.previewSessionTable)
       val sessionId = V2SessionHelper.findSessionForItemId(itemId, SessionDbConfig.previewSessionTable)
       val session = V2SessionHelper.findSession(sessionId.toString, SessionDbConfig.previewSessionTable).get
-      println(session)
-      (session \ "dateCreated") must_!= null
+      (session \ "dateCreated") must not be equalTo(null)
 
       val call = org.corespring.container.client.controllers.resources.routes.Session.loadItemAndSession(sessionId.toString)
 
@@ -111,8 +106,8 @@ class LoadPlayerIntegrationTest
         val json = contentAsJson(result)
         println(s" -> ${Json.stringify(json)}")
         (json \ "session" \ "dateCreated" \ "$date") match {
-          case s:JsString => s.as[String].toString must_!= ""
-          case n:JsNumber => n.as[Long].toString must_!= ""
+          case s: JsString => s.as[String].toString must not be equalTo("")
+          case n: JsNumber => n.as[Long].toString must not be equalTo("")
           case _ => failure("Expected date to be string or number")
         }
 
