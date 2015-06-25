@@ -16,6 +16,7 @@ import org.corespring.platform.core.models.{ ContentCollection, Organization }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.{ ItemType, PlayerDefinition }
 import org.corespring.platform.core.services.item._
+import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataService, MetadataSetServiceImpl, MetadataServiceImpl }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -52,6 +53,14 @@ class Services(cacheConfig: Configuration,
   override val itemType: ItemType = ItemType
 
   override val itemIndexService: ItemIndexService = ElasticSearchItemIndexService
+
+  override val metadataService: MetadataService = new MetadataServiceImpl with ItemServiceClient {
+    def itemService: ItemService = ItemServiceWired
+  }
+
+  override val metadataSetService: MetadataSetService = new MetadataSetServiceImpl {
+    def orgService: OrganizationService = Organization
+  }
 
   override def draftsBackend: ItemDrafts = new ItemDrafts {
     override def itemService = Services.this.itemService

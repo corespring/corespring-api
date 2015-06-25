@@ -61,3 +61,6 @@ GET  /item-types                           @org.corespring.v2.api.ItemApi.getIte
 
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 
+# Metadata
+
+GET  /item/:itemId/metadata                @org.corespring.v2.api.MetadataApi.get(itemId: VersionedId[ObjectId])
