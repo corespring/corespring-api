@@ -11,7 +11,7 @@ object AwsUtil {
   def dynamoDbClient() = {
     val client = new AmazonDynamoDBClient(credentials())
     if (AppConfig.dynamoDbUseLocal) {
-      client.setEndpoint(s"localhost:${AppConfig.dynamoDbLocalPort}")
+      client.setEndpoint(s"http://localhost:${AppConfig.dynamoDbLocalPort}")
     }
     client
   }
