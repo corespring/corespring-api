@@ -114,6 +114,20 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     sessionService.create(withIdentityData).toSuccess(errorSaving)
   }
 
+  override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    reopenedSession <- sessionService.load(sessionId).map(reopenSession(_)).toSuccess(cantLoadSession(sessionId))
+    savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
+  } yield {
+    savedReopened
+  }
+
+  override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    completedSession <- sessionService.load(sessionId).map(completeSession(_)).toSuccess(cantLoadSession(sessionId))
+    savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
+  } yield {
+    savedCompleted
+  }
+
   override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
     for {
       original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
@@ -127,9 +141,10 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     "dateCreated" -> Json.obj(
       "$date" -> DateTime.now(DateTimeZone.UTC)))
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject =
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
-  }
+  private def reopenSession(session: JsValue): JsObject = session.as[JsObject] - "finished" ++ Json.obj("attempts" -> 0)
+  private def completeSession(session: JsValue): JsObject = session.as[JsObject] ++ Json.obj("isComplete" -> true)
 
   private def rmIdentityFromSession(s: Session) = s.asInstanceOf[JsObject] - "identity"
 }

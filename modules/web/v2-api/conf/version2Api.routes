@@ -9,8 +9,10 @@ PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.It
 DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:String, all: Option[Boolean] ?= None)
 GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
 
-GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
-POST /sessions/:sessionId/clone            @org.corespring.v2.api.ItemSessionApi.cloneSession(sessionId: String)
+GET     /sessions/:sessionId               @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+POST    /sessions/:sessionId/clone         @org.corespring.v2.api.ItemSessionApi.cloneSession(sessionId: String)
+PUT     /sessions/:sessionId/reopen        @org.corespring.v2.api.ItemSessionApi.reopen(sessionId: String)
+PUT     /sessions/:sessionId/complete      @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
 
 ## Check a score
 ## Load the score based on the saved response
