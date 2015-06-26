@@ -61,7 +61,17 @@ GET  /item-types                           @org.corespring.v2.api.ItemApi.getIte
 
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 
+
 # Metadata
 
-GET  /metadataSets                         @org.corespring.v2.api.MetadataApi.get
-GET  /item/:itemId/metadata                @org.corespring.v2.api.MetadataApi.getByItemId(itemId: VersionedId[ObjectId])
+GET     /metadata-sets                      @org.corespring.v2.api.MetadataApi.get
+
+GET     /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.getById(metadataSetId: ObjectId)
+
+GET     /item/:itemId/metadata              @org.corespring.v2.api.MetadataApi.getByItemId(itemId: VersionedId[ObjectId])
+
+POST    /metadata-sets                      @org.corespring.v2.api.MetadataApi.create()
+
+PUT     /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.update(metadataSetId: ObjectId)
+
+DELETE  /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.delete(metadataSetId: ObjectId)

@@ -89,6 +89,8 @@ private[v2] object Errors {
 
   case class cantFindOrgWithId(orgId: ObjectId) extends cantFindById("org", orgId.toString)
 
+  case class cantFindMetadataSetWithId(metadataSetId: ObjectId) extends cantFindById("metadataSet", metadataSetId.toString)
+
   abstract class cantFindById(name: String, id: String) extends V2Error(s"Can't find $name with id $id", NOT_FOUND)
 
   case class invalidPval(pval: Long, collectionId: String, orgId: ObjectId) extends V2Error(s"Unknown pval: $pval for collection $collectionId in org: $orgId")
