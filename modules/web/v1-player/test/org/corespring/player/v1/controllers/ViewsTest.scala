@@ -1,5 +1,6 @@
 package org.corespring.player.v1.controllers
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.assessment.basic.{ Answer, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
@@ -66,6 +67,9 @@ class ViewsTest extends Specification with Mockito {
     def remove(q: Assessment) {}
     def update(q: Assessment) {}
     def findByAuthor(authorId: String): List[Assessment] = ???
+    def findByIds(ids: List[Imports.ObjectId], organizationId: Imports.ObjectId): List[Assessment] = ???
+    def findByAuthor(authorId: String, organizationId: Imports.ObjectId): List[Assessment] = ???
+    def findOneById(id: Imports.ObjectId, organizationId: Imports.ObjectId): Option[Assessment] = ???
   }
 
   val views = new Views(new TestBuilder, mockService, assessmentService)

@@ -91,8 +91,6 @@ PUT     /assessments/:assessmentId/add-answer           @org.corespring.v2.api.A
 
 PUT     /assessments/:assessmentId/add-participants     @org.corespring.v2.api.AssessmentApi.addParticipants(assessmentId: ObjectId)
 
-GET     /assessments/:assessmentId/aggregate            @org.corespring.v2.api.AssessmentApi.aggregate(assessmentId: ObjectId, item_id: Option[VersionedId[ObjectId]] ?= None)
-
 
 # Assessment Templates
 

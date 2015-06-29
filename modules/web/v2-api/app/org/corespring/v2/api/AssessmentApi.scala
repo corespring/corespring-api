@@ -32,7 +32,7 @@ trait AssessmentApi extends V2Api {
 
   def getByIds(assessmentIds: String) = withIdentity { (identity, _) =>
     val ids = assessmentIds.split(",").map(id => new ObjectId(id.trim)).toList
-    val assessments = assessmentService.findByIds(ids)
+    val assessments = assessmentService.findByIds(ids, identity.org.id)
     ids.length match {
       case 1 => assessments.length match {
         case 1 => Ok(Json.prettyPrint(toJson(assessments.head)))
@@ -49,22 +49,17 @@ trait AssessmentApi extends V2Api {
     }
   }
 
-  def update(assessmentId: ObjectId) = withIdentity { (identity, request) =>
-    assessmentService.findOneById(assessmentId, identity.org.id) match {
-      case Some(assessment) => {
-        val json = getAssessmentJson(identity, request)
-        Json.fromJson[Assessment](json) match {
-          case JsSuccess(jsonAssessment, _) => {
-            val newAssessment = assessment.merge(jsonAssessment)
-            assessmentService.update(newAssessment)
-            Ok(Json.prettyPrint(toJson(newAssessment)))
-          }
-          case _ => incorrectJsonFormat(json).toResult
-        }
+  def update(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, identity, request) =>
+    val json = getAssessmentJson(identity, request)
+    Json.fromJson[Assessment](json) match {
+      case JsSuccess(jsonAssessment, _) => {
+        val newAssessment = assessment.merge(jsonAssessment)
+        assessmentService.update(newAssessment)
+        Ok(Json.prettyPrint(toJson(newAssessment)))
       }
-      case _ => cantFindAssessmentWithId(assessmentId).toResult
+      case _ => incorrectJsonFormat(json).toResult
     }
-  }
+  })
 
   def delete(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, _, _) =>
     assessmentService.remove(assessment)
@@ -97,7 +92,6 @@ trait AssessmentApi extends V2Api {
           }) match {
             case Some(json) => Json.fromJson[Answer](json) match {
               case JsSuccess(answer, _) => {
-                println(answer)
                 assessmentService.addAnswer(assessmentId, id, answer) match {
                   case Some(updatedAssessment) => Ok(Json.prettyPrint(Json.toJson(updatedAssessment)))
                   case _ => BadRequest("Oops")
