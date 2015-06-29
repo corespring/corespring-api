@@ -22,9 +22,6 @@ trait MetadataApi extends V2Api {
   implicit private def seqToJsValue(l: Seq[MetadataSet]): JsValue = JsArray(l.map(toJson(_)))
   implicit private def metadataToJsValue(m: MetadataSet): JsValue = toJson(m)
 
-  private def v2ErrorToSimpleResult(error: V2Error): SimpleResult =
-    Status(error.statusCode)(Json.prettyPrint(error.json))
-
   def getByItemId(itemId: VersionedId[ObjectId]) = withIdentity { (identity, _) =>
     val sets = metadataSetService.list(identity.org.id)
     val metadata = metadataService.get(itemId, sets.map(_.metadataKey))
@@ -40,10 +37,10 @@ trait MetadataApi extends V2Api {
     val json = request.body.asJson.getOrElse(Json.obj())
     json.asOpt[MetadataSet] match {
       case Some(metadataSet) => metadataSetService.create(identity.org.id, metadataSet) match {
-        case Left(error) => v2ErrorToSimpleResult(errorSaving(error))
+        case Left(error) => errorSaving(error).toResult
         case Right(set) => Ok(Json.prettyPrint(set))
       }
-      case _ => v2ErrorToSimpleResult(incorrectJsonFormat(json))
+      case _ => incorrectJsonFormat(json).toResult
     }
   }
 
@@ -51,17 +48,17 @@ trait MetadataApi extends V2Api {
     val json = request.body.asJson.getOrElse(Json.obj())
     json.asOpt[MetadataSet] match {
       case Some(metadataSet) => metadataSetService.update(metadataSet) match {
-        case Left(error) => v2ErrorToSimpleResult(errorSaving(error))
+        case Left(error) => errorSaving(error).toResult
         case Right(set) => Ok(Json.prettyPrint(set))
       }
-      case _ => v2ErrorToSimpleResult(incorrectJsonFormat(json))
+      case _ => incorrectJsonFormat(json).toResult
     }
   }
 
   def getById(metadataSetId: ObjectId) = withIdentity { (identity, _) =>
     metadataSetService.findOneById(metadataSetId) match {
       case Some(metadataSet) => Ok(Json.prettyPrint(metadataSet))
-      case _ => v2ErrorToSimpleResult(cantFindMetadataSetWithId(metadataSetId))
+      case _ => cantFindMetadataSetWithId(metadataSetId).toResult
     }
   }
 
@@ -69,20 +66,10 @@ trait MetadataApi extends V2Api {
     metadataSetService.findOneById(metadataSetId) match {
       case Some(metadataSet) => metadataSetService.delete(identity.org.id, metadataSetId) match {
         case None => Ok(Json.prettyPrint(metadataSet))
-        case _ => v2ErrorToSimpleResult(cantFindMetadataSetWithId(metadataSetId))
+        case _ => cantFindMetadataSetWithId(metadataSetId).toResult
       }
-      case _ => v2ErrorToSimpleResult(cantFindMetadataSetWithId(metadataSetId))
+      case _ => cantFindMetadataSetWithId(metadataSetId).toResult
     }
   }
-
-  private def withIdentity(block: (OrgAndOpts, Request[AnyContent]) => SimpleResult) =
-    Action.async { implicit request =>
-      Future {
-        getOrgAndOptions(request) match {
-          case Success(identity) => block(identity, request)
-          case _ => v2ErrorToSimpleResult(noToken(request))
-        }
-      }
-    }
 
 }

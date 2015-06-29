@@ -91,6 +91,14 @@ private[v2] object Errors {
 
   case class cantFindMetadataSetWithId(metadataSetId: ObjectId) extends cantFindById("metadataSet", metadataSetId.toString)
 
+  case class cantFindAssessmentWithId(assessmentId: ObjectId) extends cantFindById("assessment", assessmentId.toString)
+
+  case class addAnswerRequiresId(assessmentId: ObjectId) extends V2Error(s"Cannot add an answer to assessment $assessmentId without id")
+
+  case class aggregateRequiresItemId(assessmentId: ObjectId) extends V2Error(s"Aggregate for $assessmentId requires item_id in query string")
+
+  case class cantFindAssessmentTemplateWithId(assessmentTemplateId: ObjectId) extends cantFindById("assessmentTemplate", assessmentTemplateId.toString)
+
   abstract class cantFindById(name: String, id: String) extends V2Error(s"Can't find $name with id $id", NOT_FOUND)
 
   case class invalidPval(pval: Long, collectionId: String, orgId: ObjectId) extends V2Error(s"Unknown pval: $pval for collection $collectionId in org: $orgId")

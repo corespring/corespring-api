@@ -75,3 +75,31 @@ POST    /metadata-sets                      @org.corespring.v2.api.MetadataApi.c
 PUT     /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.update(metadataSetId: ObjectId)
 
 DELETE  /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.delete(metadataSetId: ObjectId)
+
+
+# Assessments
+
+GET     /assessments                                    @org.corespring.v2.api.AssessmentApi.get(author_id: Option[String] ?= None)
+
+GET     /assessments/:assessmentIds                     @org.corespring.v2.api.AssessmentApi.getByIds(assessmentIds: String)
+
+PUT     /assessments/:assessmentId                      @org.corespring.v2.api.AssessmentApi.update(assessmentId: ObjectId)
+
+POST    /assessments                                    @org.corespring.v2.api.AssessmentApi.create()
+
+PUT     /assessments/:assessmentId/add-answer           @org.corespring.v2.api.AssessmentApi.addAnswer(assessmentId: ObjectId, external_id: Option[String] ?= None)
+
+PUT     /assessments/:assessmentId/add-participants     @org.corespring.v2.api.AssessmentApi.addParticipants(assessmentId: ObjectId)
+
+GET     /assessments/:assessmentId/aggregate            @org.corespring.v2.api.AssessmentApi.aggregate(assessmentId: ObjectId, item_id: Option[VersionedId[ObjectId]] ?= None)
+
+
+# Assessment Templates
+
+GET     /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.get
+
+GET     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.AssessmentTemplateApi.getById(assessmentTemplateId: ObjectId)
+
+POST    /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.create()
+
+PUT     /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.update(assessmentTemplateId: ObjectId)

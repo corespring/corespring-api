@@ -26,7 +26,7 @@ object MetadataSet {
   object Defaults {
     val isPublic = false
     val schema = Seq()
-    val id = new ObjectId()
+    def id = new ObjectId()
   }
 
   import org.corespring.platform.core.models.json._
