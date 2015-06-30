@@ -77,14 +77,16 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
   }
 
   override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
-    reopenedSession <- sessionService.load(sessionId).map(_.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0)).toSuccess(cantLoadSession(sessionId))
+    reopenedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0)).toSuccess(cantLoadSession(sessionId))
     savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
   } yield {
     savedReopened
   }
 
   override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
-    completedSession <- sessionService.load(sessionId).map(_.as[JsObject] ++ Json.obj("isComplete" -> true)).toSuccess(cantLoadSession(sessionId))
+    completedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> true)).toSuccess(cantLoadSession(sessionId))
     savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
   } yield {
     savedCompleted
