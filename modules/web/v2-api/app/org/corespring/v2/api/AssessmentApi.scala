@@ -94,7 +94,7 @@ trait AssessmentApi extends V2Api {
               case JsSuccess(answer, _) => {
                 assessmentService.addAnswer(assessmentId, id, answer) match {
                   case Some(updatedAssessment) => Ok(Json.prettyPrint(Json.toJson(updatedAssessment)))
-                  case _ => BadRequest("Oops")
+                  case _ => incorrectJsonFormat(json).toResult
                 }
               }
               case _ => incorrectJsonFormat(json).toResult

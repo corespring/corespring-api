@@ -1,8 +1,9 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.Assessment
+import org.corespring.platform.core.models.assessment.basic.{Answer, Participant, Assessment}
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
+import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors.invalidToken
 import org.corespring.v2.errors.V2Error
@@ -19,12 +20,16 @@ import scalaz.{ Failure, Success, Validation }
 
 class AssessmentApiTest extends Specification with MockFactory {
 
+  PlaySingleton.start()
+
   case class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
     id: Option[ObjectId] = None,
     ids: List[ObjectId] = List.empty[ObjectId],
-    authorId: Option[String] = None) extends Scope {
+    authorId: Option[String] = None,
+    participants: Seq[String] = Seq.empty[String]) extends Scope {
     val orgId = orgAndOpts.map(_.org.id)
-    def assessmentFor(id: ObjectId) = new Assessment(id = id, orgId = orgId)
+    def assessmentFor(id: ObjectId) =
+      new Assessment(id = id, orgId = orgId, participants = participants.map(id => Participant(Seq(), id)))
     val assessments = ids.map(id => assessmentFor(id))
     val allIds = (id match {
       case Some(id) => ids :+ id
@@ -49,6 +54,30 @@ class AssessmentApiTest extends Specification with MockFactory {
         }
         case _ => {}
       }
+      m.addParticipants(any[ObjectId], any[Seq[String]]) answers { (args, _) => {
+        val argArray = args.asInstanceOf[Array[Object]]
+        val id = argArray(0).asInstanceOf[ObjectId]
+        val ids = argArray(1).asInstanceOf[Seq[String]]
+        val assessment = assessmentFor(id)
+        Some(assessment.copy(participants = assessment.participants ++ ids.map(id => Participant(Seq(), id))))
+      }}
+      m.addAnswer(any[ObjectId], any[String], any[Answer]) answers { (args, _) => {
+        val argArray = args.asInstanceOf[Array[Object]]
+        val answer = argArray(2).asInstanceOf[Answer]
+
+        def processParticipants(externalUid: String)(p: Participant): Participant = {
+          if (p.externalUid == externalUid && !p.answers.exists(_.itemId == answer.itemId)) {
+            p.copy(answers = p.answers :+ answer)
+          } else {
+            p
+          }
+        }
+
+        val assessmentId = argArray(0).asInstanceOf[ObjectId]
+        val externalUid = argArray(1).asInstanceOf[String]
+        val assessment = assessmentFor(assessmentId)
+        Some(assessment.copy(participants = assessment.participants.map(processParticipants(externalUid))))
+      }}
       m
     }
     val assessmentApi = new AssessmentApi {
@@ -237,23 +266,63 @@ class AssessmentApiTest extends Specification with MockFactory {
   "addParticipants" should {
 
     val assessmentId = new ObjectId()
-    val participants = Seq("these", "are", "participant", "ids")
+    val participantIds = Seq("these", "are", "participant", "ids")
     val participantsJson = Json.obj(
-      "ids" -> participants)
+      "ids" -> participantIds)
 
     "without identity" should {
       "return 401" in new apiScope(orgAndOpts = None, id = Some(assessmentId)) {
-        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo (UNAUTHORIZED)
+        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo(UNAUTHORIZED)
       }
     }
 
-    //    "with identity" should {
-    //
-    //      "return 200" in new apiScope(id = Some(assessmentId)) {
-    //        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo(OK)
-    //      }
-    //
-    //    }
+    "with identity" should {
+
+      "return 200" in new apiScope(id = Some(assessmentId)) {
+        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo(OK)
+      }
+
+      "return assessment json containing participants with ids" in new apiScope(id = Some(assessmentId)) {
+        val json = contentAsJson(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson)))
+        (json \ "participants").as[Seq[JsObject]].map(j => (j \ "externalUid").as[String]) must be equalTo(participantIds)
+      }
+
+    }
+
+  }
+
+  "addAnswer" should {
+
+    val assessmentId = new ObjectId()
+    val participantId = new ObjectId().toString
+    val participantIds = Seq(participantId)
+    val answerItemId =  s"${new ObjectId()}:0"
+    val answerSessionId = new ObjectId().toString
+    val answerJson = Json.obj(
+      "itemId" -> answerItemId,
+      "sessionId" -> answerSessionId
+    )
+
+    "without identity" should {
+      "return 401" in new apiScope(orgAndOpts = None, id = Some(assessmentId), participants = participantIds) {
+        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson))) must be equalTo(UNAUTHORIZED)
+      }
+    }
+
+    "with identity" should {
+
+      "return 200" in new apiScope(id = Some(assessmentId), participants = participantIds) {
+        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson))) must be equalTo(OK)
+      }
+
+      "return assessment json with provided answer in specified participant" in new apiScope(id = Some(assessmentId), participants = participantIds) {
+        val json = contentAsJson(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson)))
+        (json \ "participants").as[Seq[JsObject]]
+          .find(obj => (obj \ "externalUid").asOpt[String] == Some(participantId) && (obj \ "answers").as[Seq[JsObject]]
+              .find(answer => (answer \ "itemId").asOpt[String] == Some(answerItemId) && (answer \ "sessionId").asOpt[String] == Some(answerSessionId)).nonEmpty) must not beEmpty
+      }
+
+    }
 
   }
 
