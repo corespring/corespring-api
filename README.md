@@ -22,7 +22,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install [play 2.1.3](http://www.playframework.com/download)
+* Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
 * Install elasticsearch
 * For running tests install phantomjs
 
