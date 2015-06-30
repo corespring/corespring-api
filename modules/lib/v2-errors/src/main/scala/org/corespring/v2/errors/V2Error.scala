@@ -83,6 +83,8 @@ private[v2] object Errors {
 
   case class noItemIdInSession(id: String) extends V2Error(s"no item id in session: $id")
 
+  case object cantReopenSecureSession extends V2Error(s"secure mode: can't reopen secure session")
+
   case class cantParseItemId(id: String) extends V2Error(s"Can't parse itemId: $id")
 
   case class cantFindItemWithId(vid: VersionedId[ObjectId]) extends cantFindById("item", vid.toString())

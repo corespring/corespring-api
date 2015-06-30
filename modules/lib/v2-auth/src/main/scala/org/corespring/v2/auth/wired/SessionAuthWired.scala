@@ -7,14 +7,14 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
-import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
+import org.corespring.v2.errors.Errors.{ cantReopenSecureSession, cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
-import scalaz.{ Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
@@ -75,6 +75,30 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     logger.trace(s"loadFor sessionId: $sessionId - result successful")
     out
   }
+
+  override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    session <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+    reopenedSession <- reopenSession(session)
+    savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
+  } yield {
+    savedReopened
+  }
+
+  override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    completedSession <- sessionService.load(sessionId).map(completeSession(_)).toSuccess(cantLoadSession(sessionId))
+    savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
+  } yield {
+    savedCompleted
+  }
+
+  private def isSecure(session: JsValue) = true
+
+  private def reopenSession(session: JsValue): Validation[V2Error, JsObject] = isSecure(session) match {
+    case true => Failure(cantReopenSecureSession)
+    case _ => Success(session.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0))
+  }
+
+  private def completeSession(session: JsValue): JsObject = session.as[JsObject] ++ Json.obj("isComplete" -> true)
 
   private def loadPlayerDefinition(sessionId: String, session: JsValue)(implicit identity: OrgAndOpts): Validation[V2Error, PlayerDefinition] = {
 

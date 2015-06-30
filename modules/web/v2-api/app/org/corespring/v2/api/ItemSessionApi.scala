@@ -145,6 +145,26 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
+  def reopen(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgAndOptions(request)
+        session <- sessionAuth.reopen(sessionId)(identity)
+      } yield session
+      validationToResult[JsValue](Ok(_))(out)
+    }
+  }
+
+  def complete(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
+    Future {
+      val out: Validation[V2Error, JsValue] = for {
+        identity <- getOrgAndOptions(request)
+        session <- sessionAuth.complete(sessionId)(identity)
+      } yield session
+      validationToResult[JsValue](Ok(_))(out)
+    }
+  }
+
   /**
    * Clones a session into the preview session so that it may be used for troubleshooting purposes. This API call may
    * only be called by an organization which has access to the session, and returns an api client, encrypted options,

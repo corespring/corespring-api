@@ -34,5 +34,7 @@ trait SessionAuth[IDENTITY, CONTENT] {
   def saveSessionFunction(implicit identity: IDENTITY): Validation[V2Error, (String, Session) => Option[Session]]
   def create(session: Session)(implicit identity: IDENTITY): Validation[V2Error, ObjectId]
   def cloneIntoPreview(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, ObjectId]
+  def reopen(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, Session]
+  def complete(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, Session]
 }
 
