@@ -77,28 +77,18 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
   }
 
   override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
-    session <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
-    reopenedSession <- reopenSession(session)
+    reopenedSession <- sessionService.load(sessionId).map(_.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0)).toSuccess(cantLoadSession(sessionId))
     savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
   } yield {
     savedReopened
   }
 
   override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
-    completedSession <- sessionService.load(sessionId).map(completeSession(_)).toSuccess(cantLoadSession(sessionId))
+    completedSession <- sessionService.load(sessionId).map(_.as[JsObject] ++ Json.obj("isComplete" -> true)).toSuccess(cantLoadSession(sessionId))
     savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
   } yield {
     savedCompleted
   }
-
-  private def isSecure(session: JsValue) = true
-
-  private def reopenSession(session: JsValue): Validation[V2Error, JsObject] = isSecure(session) match {
-    case true => Failure(cantReopenSecureSession)
-    case _ => Success(session.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0))
-  }
-
-  private def completeSession(session: JsValue): JsObject = session.as[JsObject] ++ Json.obj("isComplete" -> true)
 
   private def loadPlayerDefinition(sessionId: String, session: JsValue)(implicit identity: OrgAndOpts): Validation[V2Error, PlayerDefinition] = {
 
