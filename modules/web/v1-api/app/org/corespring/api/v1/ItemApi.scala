@@ -7,7 +7,7 @@ import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
-import org.corespring.common.log.{ClassLogging, PackageLogging}
+import org.corespring.common.log.{ ClassLogging, PackageLogging }
 import org.corespring.platform.core.controllers.auth.ApiRequest
 import org.corespring.platform.core.models._
 import org.corespring.platform.core.models.auth.Permission
@@ -33,7 +33,7 @@ import scalaz.{ Failure, Success, _ }
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.Writes) with ClassLogging {
+  extends ContentApi[Item](service)(ItemView.Writes) with ClassLogging with JsonUtil {
 
   import org.corespring.platform.core.models.item.Item.Keys._
   import org.corespring.platform.core.models.mongoContext.context
@@ -41,7 +41,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   val itemTransformer = new ItemTransformer {
     override def itemService: ItemService = service
     override def configuration: Configuration = Play.current.configuration
-    override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
+    override def findCollection(id: ObjectId) = ContentCollection.findOneById(id)
   }
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
@@ -398,7 +398,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
           } catch {
             case _: Throwable => false
           }
-      })
+        })
 
     Ok(Json.prettyPrint(partialObj(
       "success" -> (success.nonEmpty match {
@@ -408,8 +408,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       "failure" -> (failure.nonEmpty match {
         case true => Some(JsArray(failure.map(id => JsString(id.toString)).toIterator.toSeq))
         case false => None
-      })
-    )))
+      }))))
   }
 
 }
