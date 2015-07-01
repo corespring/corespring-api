@@ -1,9 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
-import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.services.OrgService
-import org.corespring.v2.errors.Errors.{ cantFindOrgWithId, noDefaultCollection }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.mvc.RequestHeader
@@ -21,23 +19,26 @@ trait RequestIdentity[B] {
 trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   def orgService: OrgService
 
-  /** get either a V2Error or the org id from the request header */
-  def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization]
+  /** get either a V2Error or the org from the request header */
+  def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])]
+
+  /** get the apiClient if available */
+  def headerToApiClientId(rh: RequestHeader): Option[String]
 
   /** convert the header, org and defaultCollection into the expected output type B */
-  def data(rh: RequestHeader, org: Organization): B
+  def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, B]
 
   lazy val logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")
 
   def apply(rh: RequestHeader): Validation[V2Error, B] = {
 
     logger.trace(s"apply: ${rh.path}")
-    import scalaz.Scalaz._
 
     for {
-      org <- headerToOrg(rh)
+      orgAndUser <- headerToOrgAndMaybeUser(rh)
+      result <- data(rh, orgAndUser._1, headerToApiClientId(rh), orgAndUser._2)
     } yield {
-      data(rh, org)
+      result
     }
   }
 }

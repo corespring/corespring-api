@@ -82,7 +82,9 @@ angular.module('corespring-utils')
         if (!map[key]) return;
         return  "/assets/images/copyright/" + map[key];
       },
-
+      publishStatus: function (isPublished) {
+        return isPublished ? "Published" : "Draft";
+      },
       getPrimarySubjectLabel: function (primarySubject) {
         if (!primarySubject) {
           return "";
@@ -127,7 +129,7 @@ angular.module('corespring-utils')
           out.push(gradeLevels[x]);
         }
         out.sort(sortGradeLevels);
-        return out.join(",");
+        return out.join(", ");
       },
 
 
@@ -136,51 +138,107 @@ angular.module('corespring-utils')
        * @param standards
        * @return label string
        */
-      buildStandardLabel: function (standards) {
-        if (standards == null || standards.length == 0) {
+      buildStandardLabel: function(standards, n) {
+        n = n || 8;
+        if (standards == null || _.keys(standards).length == 0) {
           return "";
         }
 
-        var out = standards[0].dotNotation;
-
-        if (standards.length == 1) {
-          return out;
-        }
-
-        return out + " plus " + (standards.length - 1) + " more";
+        var dotNotation = _.chain(standards).keys().take(n).value();
+        return (_.keys(standards).length > n) ?
+          dotNotation.join(', ') + " +" + (_.keys(standards).length - n) + " more..." :
+          dotNotation.join(', ');
       },
 
 
-      buildStandardTooltip: function (standards) {
+      buildStandardTooltip: function(standards) {
         if (!standards) {
           return "";
         }
-        var out = [];
-
-        if (standards.length == 1 && standards[0].standard) {
-          return "<span>" + standards[0].standard + "</span>";
+        if (_.keys(standards).length == 1) {
+          return "<span>" + _.values(standards)[0] + "</span>";
+        } else {
+          return "<span>" + (_.chain(standards).map(function (standard, dotNotation) {
+            var wordArray = standard.split(/\W+/);
+            var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
+            return dotNotation + ": " + standardLabel;
+          }).filter(function (standard) {
+            return !_.isEmpty(standard);
+          }).value().join(", ")) + "</span>";
         }
-
-        for (var i = 0; i < standards.length; i++) {
-
-          if (!standards[i] || !standards[i].standard) {
-            return "";
-          }
-          var wordArray = standards[i].standard.split(/\W+/);
-
-          var standardLabel = wordArray.length > 6 ? wordArray.splice(0, 6).join(" ") + "..." : wordArray.join(" ");
-          out.push(standards[i].dotNotation + ": " + standardLabel);
-        }
-
-        return "<span>" + out.join(", ") + "</span>";
       },
 
-      showItemType: function (item) {
-
-        if (item.itemType != "Other") {
-          return item.itemType;
+      buildTitleEllipsis: function (titles) {
+        if (!titles) {
+          return "";
         }
-        return item.itemType + ": " + item.itemTypeOther;
+
+        if (titles) {
+          if(titles.length > 50){
+            var titleCut = titles.substr(0, 50);
+            return titleCut + "...";
+          } else {
+            return titles;
+          }
+        }
+
+      },
+
+      buildTitleTooltip: function (titles) {
+        if (!titles) {
+          return "";
+        }
+        if (titles) {
+          if(titles.length > 50){
+            return titles;
+          } else {
+            return "";
+          }
+        }
+
+      },
+      buildDescriptionEllipsis: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+        if (descriptions) {
+          if(descriptions.length > 100){
+            var descriptionCut = descriptions.substr(0, 100);
+            return descriptionCut + "...";
+          } else {
+            return descriptions;
+          }
+        }
+      },
+
+      buildDescriptionTooltip: function(descriptions){
+        if (!descriptions) {
+          return "";
+        }
+
+        if (descriptions) {
+          if(descriptions.length > 100){
+            return descriptions;
+          } else {
+            return "";
+          }
+        }
+      },
+
+      showItemType: function(item) {
+        if (!window.fieldValues || !window.fieldValues.v2ItemTypes) {
+          return undefined;
+        }
+        return _.chain(item.itemTypes)
+          .map(function(itemType) {
+            var v2ItemType = _.find(window.fieldValues.v2ItemTypes, function(v2ItemType) {
+              return v2ItemType.key === itemType;
+            });
+            return v2ItemType ? v2ItemType.value : undefined;
+          })
+          .filter(function(v) {
+            return !_.isUndefined(v);
+          }).value().join(", ");
       },
 
       showItemTypeAbbreviated: function (item) {

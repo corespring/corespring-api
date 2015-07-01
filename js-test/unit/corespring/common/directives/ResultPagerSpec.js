@@ -51,11 +51,11 @@ describe('corespring-directives', function () {
 
       addItems(1);
 
-      expect(rootScope.pagerText).toBe("1 of 1");
+      expect(rootScope.pagerText).toBe(1);
 
       addItems(3);
 
-      expect(rootScope.pagerText).toBe("1 of 3");
+      expect(rootScope.pagerText).toBe(3);
 
       rootScope.$apply(function () {
         rootScope.currentItem = null;
@@ -67,7 +67,7 @@ describe('corespring-directives', function () {
         rootScope.currentItem = {id: 2};
       });
 
-      expect(rootScope.pagerText).toBe("3 of 3");
+      expect(rootScope.pagerText).toBe(3);
 
     });
 
@@ -117,7 +117,7 @@ describe('corespring-directives', function () {
 
     });
 
-    it('if there are no more items it shoudl call load more', function () {
+    it('if there are no more items it should call load more', function () {
 
       addItems(3);
 
@@ -131,7 +131,6 @@ describe('corespring-directives', function () {
       rootScope.loadMore = function (index, callback) {
         addItems(6);
         console.log("rootScope.items: " + rootScope.items);
-        //rootScope.count = rootScope.items.length;
         loadMoreIndex = index;
         callback();
       };

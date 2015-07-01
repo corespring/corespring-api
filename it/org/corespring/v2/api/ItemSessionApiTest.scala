@@ -1,31 +1,36 @@
 package org.corespring.v2.api
 
+import com.mongodb.DBObject
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.core.encryption.ApiClientEncrypter
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.helpers.models
 import org.corespring.test.helpers.models.{ ItemHelper, V2SessionHelper }
-import org.corespring.v2.auth.models.PlayerAccessSettings
+import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{ AnyContentAsJson, AnyContent, Call }
+import play.api.libs.json.{ JsObject, Json }
+import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiTest extends IntegrationSpecification {
   val Routes = org.corespring.v2.api.routes.ItemSessionApi
 
   "ItemSessionApi" should {
 
+    def mkCompoundError(rh: RequestHeader) = compoundError("Failed to identify an Organization from the request",
+      Seq(noToken(rh), noApiClientAndPlayerTokenInQueryString(rh), noUserSession(rh)),
+      UNAUTHORIZED)
+
     "when loading a session" should {
 
       s"return $UNAUTHORIZED for unknown user" in new unknownUser_getSession {
-
-        val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
-          UNAUTHORIZED)
-
+        val e = mkCompoundError(req)
         contentAsJson(result) === e.json
         status(result) === e.statusCode
       }
@@ -45,9 +50,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
     "when creating a session" should {
 
       s"return $BAD_REQUEST for unknown user" in new unknownUser_createSession {
-        val e = compoundError("Failed to identify an Organization from the request",
-          Seq(noToken(req), noApiClientAndPlayerTokenInQueryString(req)),
-          UNAUTHORIZED)
+        val e = mkCompoundError(req)
         status(result) === e.statusCode
         contentAsJson(result) === e.json
       }
@@ -65,6 +68,17 @@ class ItemSessionApiTest extends IntegrationSpecification {
         status(result) === OK
       }
 
+      s"adds identity data to the session" in new clientIdAndPlayerToken_createSession(
+        Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))) {
+        val e = noOrgIdAndOptions(req)
+        (contentAsJson(result) \ "id").asOpt[String].isDefined === true
+        val sessionId = ((contentAsJson(result) \ "id")).as[String]
+        val dbo = models.V2SessionHelper.findSession(sessionId)
+        val identity = dbo.get("identity").asInstanceOf[DBObject]
+        identity.get("orgId") === orgId.toString
+        identity.get("authMode") === AuthMode.ClientIdAndPlayerToken.id
+        identity.get("apiClient") === apiClient.clientId.toString
+      }
     }
 
     def playerDef(customScoring: Option[String] = None) = PlayerDefinition(
@@ -86,22 +100,24 @@ class ItemSessionApiTest extends IntegrationSpecification {
 
     "when calling load score" should {
 
-      s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+      s"1: return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef()))
+        //Note: We have to remove the qti or else the ItemTransformer will overrwrite the v2 data
+        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":1.0,"percentage":100.0},"components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}}"""
         val resultJson = Json.parse(resultString)
         ItemServiceWired.save(update)
+        println(s"playerDefinition: ${update.playerDefinition}")
         V2SessionHelper.update(sessionId, Json.obj("itemId" -> itemId.toString, "components" -> Json.obj(
           "1" -> Json.obj("answers" -> Json.arr("carrot")))))
         status(result) === OK
         contentAsJson(result) === resultJson
       }
 
-      s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
+      s"2: return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef()))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef()))
         val resultString = s"""{"summary":{"maxPoints":1,"points":0.0,"percentage":0.0},"components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}}"""
         val resultJson = Json.parse(resultString)
         ItemServiceWired.save(update)
@@ -127,7 +143,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
@@ -154,7 +170,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 100% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":1.0,"weightedScore":1.0}}, "summary":{"numcorrect" : 1, "score" : 1.0}}"""
         val resultJson = Json.parse(resultString)
@@ -168,7 +184,7 @@ class ItemSessionApiTest extends IntegrationSpecification {
       s"return $OK and 0% - for multiple choice" in new token_loadScore(AnyContentAsJson(Json.obj())) {
 
         val item = ItemServiceWired.findOneById(itemId).get
-        val update = item.copy(playerDefinition = Some(playerDef(Some(customScoring))))
+        val update = item.copy(data = None, playerDefinition = Some(playerDef(Some(customScoring))))
         val resultString =
           s"""{ "components":{"1":{"weight":1,"score":0.0,"weightedScore":0.0}}, "summary":{"numcorrect" : 0, "score" : 0}}"""
         val resultJson = Json.parse(resultString)
@@ -180,6 +196,30 @@ class ItemSessionApiTest extends IntegrationSpecification {
       }
 
     }
+  }
+
+  "cloneSession" should {
+
+    "return apiClient" in new cloneSession {
+      (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
+        ApiClient.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
+    }
+
+    "return encrypted options, decryptable by provided apiClient" in new cloneSession {
+      val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
+      val encrypter = new ApiClientEncrypter(AESCrypto)
+      encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
+        Some(ItemSessionApi.clonedSessionOptions.toString))
+    }
+
+    "return organization name" in new cloneSession {
+      (contentAsJson(result) \ "organization").as[String] must be equalTo (organization.name)
+    }
+
+  }
+
+  class cloneSession extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
+    override def getCall(sessionId: ObjectId): Call = Routes.cloneSession(sessionId.toString)
   }
 
   class unknownUser_getSession extends sessionLoader with orgWithAccessTokenItemAndSession with PlainRequestBuilder {

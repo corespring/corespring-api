@@ -40,7 +40,7 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
       string.replaceAll("<[/]*correct>","")
 
     def removeBlockLevelElements(fromText: String) = {
-      val validTags = List("correct","b","i","u","strong","span","small","img","a","sub","sup")
+      val validTags = List("br", "p", "correct","b","i","u","strong","span","small","img","a","sub","sup")
       def isValid(tag:String) = {
         val strippedTag = new Regex("<[\\s/]*(\\S+)[^>]*?>","tag").findFirstMatchIn(tag) match {
           case Some(mm) => mm.group("tag")
@@ -53,7 +53,28 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
       })
     }
 
-    val text = removeBlockLevelElements(clearNamespace(node.child).mkString)
+
+    def fixLineBreaks(fromText: String) = {
+      val preProcess= s"<.*?>".r.replaceAllIn(fromText, { m =>
+        m.toString match {
+          case "<br>" => ""
+          case "</br>" => "<br/>"
+          case "<p>" => ""
+          case "</p>" => "<p/>"
+          case _ => m.toString
+        }
+      })
+      s"<.*?>".r.replaceAllIn(preProcess, { m =>
+        m.toString match {
+          case "<p/>" => "<p> </p>"
+          case "<br/>" => "<br> </br>"
+          case _ => m.toString
+        }
+      })
+    }
+
+    val lineBreaksFixedText = fixLineBreaks(clearNamespace(node.child).mkString)
+    val text = removeBlockLevelElements(lineBreaksFixedText)
     val choices = optForAttr[JsString]("selectionType") match {
       case Some(selection) if selection.equals(JsString("word")) => TextSplitter.words(text)
       case _ => TextSplitter.sentences(text)

@@ -22,7 +22,8 @@ For more information, please see our git commit hooks [documentation](hooks/READ
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install [play 2.1.3](http://www.playframework.com/download)
+* Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
+* Install elasticsearch
 * For running tests install phantomjs
 
 ### SBT Configuration
@@ -61,6 +62,13 @@ These tests are more expensive than the unit tests.
 
     play it:test
 
+
+
+To test a single example in a given test run:
+
+    it:test-only *ItemSessionApiTest* -- -ex "1: return 200 and 100% - for multiple choice"
+
+
 ### Application configuration
 
 The application will run without any configuration by using a set of default values.
@@ -68,6 +76,14 @@ These values essentially run the app in development mode, by using the local db
 and reseeding the data.
 
 When deploying the application to heroku we override some of these variables using env vars.
+
+If you want the search API to work locally, you must run
+
+    sbt index
+    
+before running the application. Note that there is a bug where the sbt task will not terminate after indexing is 
+complete, so watch for the message and kill the process manually. Work is currently in progress to streamline indexing.
+
 
 ### IntelliJ Configuration
 
@@ -159,3 +175,28 @@ https://devcenter.heroku.com/articles/newrelic#add-on-installation
 RUM (Real User Monitoring) features are not enabled as yet.
 
 https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timing-java#manual_instrumentation
+
+
+### Docker deployment
+
+To test feature branches in isolation, we have defined a `Dockerfile` that allows cs-api to be run in a sandboxed environment.
+
+If you want to run this docker image or deploy it using [docker-deployer](github.com/corespring/docker-deployer), you'll need to build the following project once: 
+
+```shell
+    cd docker/cs-api-docker-util
+    sbt assembly
+```
+
+To create and run a docker image: 
+
+````shell
+    docker build -t="corespring-api" .
+    docker run -p 9000:9000 -t="corespring-api" #run main script
+```
+
+To deploy with docker-deployer:
+
+```shell
+    docker-deployer deploy --deploy-name $NAME 
+```

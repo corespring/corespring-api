@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors.{ generalError, noToken, noDefaultCollection }
 import org.corespring.v2.errors.V2Error
@@ -13,7 +13,7 @@ import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
 import org.corespring.v2.errors.Errors._
 
-import scalaz.{ Failure, Success }
+import scalaz.{ Validation, Failure, Success }
 
 class TokenOrgIdentityTest extends Specification with Mockito {
 
@@ -47,7 +47,8 @@ class TokenOrgIdentityTest extends Specification with Mockito {
           m
         }
 
-        override def data(rh: RequestHeader, org: Organization): String = "Worked"
+        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, String] = Success("Worked")
+
       }
     }
 

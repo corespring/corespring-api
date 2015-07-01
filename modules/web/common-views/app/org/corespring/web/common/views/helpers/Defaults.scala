@@ -3,12 +3,15 @@ package org.corespring.web.common.views.helpers
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.platform.core.models.item.{ ItemType, FieldValue }
+import org.corespring.platform.core.services.item._
 import play.api.Play
 import play.api.Play.current
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json._
 
-object Defaults {
+import scala.concurrent.Await
+
+class Defaults(itemIndexService: ItemIndexService) {
 
   val propsFile = "/buildInfo.properties"
 
@@ -28,7 +31,10 @@ object Defaults {
       import org.corespring.platform.core.models.json._
       implicit val writes = Json.writes[FieldValue]
 
-      val json: JsValue = writes.writes(fv)
+      val json: JsValue = (writes.writes(fv) match {
+        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes))
+        case value: JsValue => value
+      })
       Json.stringify(json)
     }
     case _ => "{}"
@@ -57,4 +63,8 @@ object Defaults {
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
 
+  lazy val v2ItemTypes = ItemType.all
+
 }
+
+object Defaults extends Defaults(ElasticSearchItemIndexService)

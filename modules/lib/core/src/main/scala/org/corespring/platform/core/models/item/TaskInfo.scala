@@ -1,9 +1,11 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
+import org.corespring.platform.core.models._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+
 import scala.Some
 
 case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
@@ -12,11 +14,14 @@ case class TaskInfo(var extended: Map[String, BasicDBObject] = Map(),
   title: Option[String] = None,
   description: Option[String] = None,
   itemTypes: Map[String, Int] = Map.empty) {
+
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)
     copy(title = title.map(t => if (t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
   }
+
 }
+
 object TaskInfo extends ValueGetter {
 
   object Keys {
@@ -27,6 +32,7 @@ object TaskInfo extends ValueGetter {
     val itemTypes = "itemTypes"
     val subjects = "subjects"
     val extended = "extended"
+    val domains = "domains"
   }
 
   val gradeLevelSorter: (String, String) => Boolean = (a, b) => {
@@ -67,7 +73,9 @@ object TaskInfo extends ValueGetter {
       acc1 :+ (md._1 -> JsObject(md._2.toSeq.map(prop => prop._1 -> JsString(prop._2.toString))))
     }))
   }
+
   private def isValid(g: String) = fieldValues.gradeLevels.exists(_.key == g)
+
   private val getGradeLevel = Reads[Seq[String]]((json: JsValue) => {
     (json \ Keys.gradeLevel).asOpt[Seq[String]] match {
       case Some(grades) => if (grades.forall(isValid(_))) JsSuccess(grades)
@@ -75,12 +83,14 @@ object TaskInfo extends ValueGetter {
       case None => JsSuccess(Seq())
     }
   })
+
   private val getItemTypes = Reads[Map[String, Int]]((json: JsValue) => {
     (json \ Keys.itemTypes).asOpt[Map[String, Int]] match {
       case Some(itemTypes) => JsSuccess(itemTypes)
       case None => JsSuccess(Map())
     }
   })
+
   private val getExtended = Reads[Map[String, BasicDBObject]]((json: JsValue) => {
     (json \ Keys.extended) match {
       case JsObject(metadatas) => {
@@ -107,8 +117,10 @@ object TaskInfo extends ValueGetter {
       case _ => JsError(__ \ Keys.extended, ValidationError("incorrect format", "json for extended property was not a JSON object"))
     }
   })
+
   private val getSubjects = Reads[Option[Subjects]]((json: JsValue) =>
     Json.fromJson[Subjects](json).fold(_ => JsSuccess(None), valid => JsSuccess(Some(valid))))
+
   implicit val taskInfoReads: Reads[TaskInfo] = (
     getExtended and
     getSubjects and

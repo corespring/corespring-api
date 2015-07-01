@@ -1,11 +1,13 @@
 package org.corespring.v2.player.hooks
 
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.container.client.hooks.{ ItemHooks => ContainerItemHooks }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item => ModelItem }
+import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.{ hooks => containerHooks }
+import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.PlayerJsonToItem
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
@@ -18,11 +20,24 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
+object V2ErrorToTuple {
+  import scala.language.implicitConversions
+
+  implicit def v2ErrorToTuple[A](v: Validation[V2Error, A]): Either[(Int, String), A] = v.leftMap { e => (e.statusCode -> e.message) }.toEither
+}
+
+trait ItemHooks
+  extends containerHooks.CoreItemHooks
+  with containerHooks.CreateItemHook
+  with LoadOrgAndOptions {
+
+  import V2ErrorToTuple._
 
   def transform: ModelItem => JsValue
 
   def auth: ItemAuth[OrgAndOpts]
+
+  def itemService: ItemService
 
   lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
 
@@ -36,30 +51,63 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
     item.leftMap(e => e.statusCode -> e.message).toEither
   }
 
-  override def saveProfile(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    logger.debug(s"saveProfile itemId=$itemId")
-    def withKey(j: JsValue) = Json.obj("profile" -> j)
-    update(itemId, json, PlayerJsonToItem.profile).map { e => e.rightMap(withKey) }
+  override def delete(id: String)(implicit h: RequestHeader): R[JsValue] = Future {
+    for {
+      identity <- getOrgAndOptions(h)
+      vid <- auth.delete(id)(identity)
+    } yield Json.obj("id" -> vid.toString)
   }
 
-  override def saveSupportingMaterials(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    logger.debug(s"saveSupportingMaterials itemId=$itemId")
-    update(itemId, Json.obj("supportingMaterials" -> json), PlayerJsonToItem.supportingMaterials)
+  private def updateDb[A](id: String, dbKey: String, data: A, returnKey: Option[String] = None)(implicit h: RequestHeader, w: Writes[A]): Either[(Int, String), JsValue] = {
+
+    def update(vid: VersionedId[ObjectId], dbo: DBObject) = {
+      val result = itemService.collection.update(MongoDBObject("_id._id" -> vid.id), MongoDBObject("$set" -> dbo), false, false)
+      logger.debug(s"no of documents update: ${result.getN.toString}")
+      require(result.getN == 1)
+    }
+    import com.mongodb.util.JSON
+    val dbo = MongoDBObject(dbKey -> JSON.parse(Json.stringify((Json.toJson(data)))))
+
+    for {
+      identity <- getOrgAndOptions(h)
+      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      canWrite <- auth.canWrite(id)(identity)
+      _ <- if (canWrite) Success(update(vid, dbo)) else Failure(generalError(s"Can't save to item $id"))
+    } yield {
+      val outKey = returnKey.getOrElse(dbKey)
+      JsObject(Seq(outKey -> w.writes(data)))
+    }
   }
 
-  override def saveComponents(itemId: String, json: JsValue)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("components" -> json))
+  override def saveXhtml(id: String, xhtml: String)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[String](id, "playerDefinition.xhtml", xhtml, Some("xhtml"))
   }
 
-  override def saveXhtml(itemId: String, xhtml: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("xhtml" -> xhtml))
+  override def saveCollectionId(id: String, collectionId: String)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[String](id, "collectionId", collectionId)
   }
 
-  override def saveSummaryFeedback(itemId: String, feedback: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
-    savePartOfPlayerDef(itemId, Json.obj("summaryFeedback" -> feedback))
+  override def saveCustomScoring(id: String, customScoring: String)(implicit header: RequestHeader): R[JsValue] = Future {
+    updateDb[String](id, "playerDefinition.customScoring", customScoring, Some("customScoring"))
   }
 
-  override def create(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
+  override def saveSupportingMaterials(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[JsValue](id, "playerDefinition.supportingMaterials", json, Some("supportingMaterials"))
+  }
+
+  override def saveComponents(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[JsValue](id, "playerDefinition.components", json, Some("components"))
+  }
+
+  override def saveSummaryFeedback(id: String, feedback: String)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[String](id, "playerDefinition.summaryFeedback", feedback, Some("summaryFeedback"))
+  }
+
+  override def saveProfile(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
+    updateDb[JsValue](id, "playerDefinition.profile", json, Some("profile"))
+  }
+
+  override def createItem(maybeJson: Option[JsValue])(implicit header: RequestHeader): Future[Either[StatusMessage, String]] = Future {
 
     def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
@@ -84,46 +132,5 @@ trait ItemHooks extends ContainerItemHooks with LoadOrgAndOptions {
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
   }
-
-  private def loadItemAndIdentity(itemId: String)(implicit rh: RequestHeader): Validation[V2Error, (ModelItem, OrgAndOpts)] = for {
-    identity <- getOrgAndOptions(rh)
-    vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-    item <- auth.loadForWrite(itemId)(identity)
-    collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(vid))
-  } yield {
-    (item, identity)
-  }
-
-  private def update(itemId: String, json: JsValue, updateFn: (ModelItem, JsValue) => ModelItem)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-    logger.debug(s"saveProfile itemId=$itemId")
-
-    val out: Validation[V2Error, JsValue] = for {
-      itemAndIdentity <- loadItemAndIdentity(itemId)
-      item <- Success(itemAndIdentity._1)
-      identity <- Success(itemAndIdentity._2)
-      updatedItem <- Success(updateFn(item, json))
-    } yield {
-      auth.save(updatedItem, createNewVersion = false)(identity)
-      json
-    }
-
-    out.leftMap(e => e.statusCode -> e.message).toEither
-  }
-
-  private def baseDefinition(playerDef: Option[PlayerDefinition]): JsObject = Json.toJson(playerDef.getOrElse(new PlayerDefinition(Seq.empty, "", Json.obj(), "", None))).as[JsObject]
-
-  private def savePartOfPlayerDef(itemId: String, json: JsObject)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-    val out: Validation[V2Error, JsValue] = for {
-      itemAndIdentity <- loadItemAndIdentity(itemId)
-      item <- Success(itemAndIdentity._1)
-      identity <- Success(itemAndIdentity._2)
-      updatedItem <- Success(PlayerJsonToItem.playerDef(item, baseDefinition(item.playerDefinition) ++ json))
-    } yield {
-      auth.save(updatedItem, false)(identity)
-      json
-    }
-
-    out.leftMap(e => e.statusCode -> e.message).toEither
-  }
-
 }
+

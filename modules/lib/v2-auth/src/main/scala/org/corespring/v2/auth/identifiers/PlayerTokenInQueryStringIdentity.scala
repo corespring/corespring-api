@@ -1,17 +1,17 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.platform.core.models.{ User, Organization }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, invalidQueryStringParameter, noApiClientAndPlayerTokenInQueryString }
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.warnings.V2Warning
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.{ JsSuccess, JsValue, JsError, Json }
 import play.api.mvc.RequestHeader
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Scalaz, Failure, Success, Validation }
 
 object PlayerTokenInQueryStringIdentity {
 
@@ -28,10 +28,21 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "PlayerTokenInQueryStringIdentity")
 
-  override def data(rh: RequestHeader, org: Organization) = {
-    val (accessSettings, maybeWarning) = toAccessSettings(org.id, rh)
-    OrgAndOpts(org, accessSettings, AuthMode.ClientIdAndPlayerToken, maybeWarning.toSeq)
+  override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {
+    toAccessSettings(org.id, rh).map { tuple: (PlayerAccessSettings, Option[V2Warning]) =>
+      val (accessSettings, maybeWarning) = tuple
+      OrgAndOpts(
+        org,
+        accessSettings,
+        AuthMode.ClientIdAndPlayerToken,
+        apiClientId,
+        None,
+        maybeWarning.toSeq)
+    }
   }
+
+  /** get the apiClient if available */
+  override def headerToApiClientId(rh: RequestHeader): Option[String] = rh.getQueryString(Keys.apiClient)
 
   /** for a given apiClient return the org Id */
   def clientIdToOrg(apiClientId: String): Option[Organization]
@@ -56,7 +67,9 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     }
   }
 
-  override def headerToOrg(rh: RequestHeader): Validation[V2Error, Organization] = {
+  def apiClientId(rh: RequestHeader): Option[String] = rh.getQueryString(Keys.apiClient)
+
+  override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     logger.trace(s"function=headerToOrgId path=${rh.path}")
 
     if (rh.getQueryString("apiClientId").isDefined) {
@@ -73,33 +86,37 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
         logger.trace(s"function=headerToOrg org=${org.id} orgName=${org.name} ${Keys.apiClient}=$apiClientId")
         org
       }
-      out.map(Success(_)).getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
+      out.map(Success(_, None))
+        .getOrElse(Failure(noApiClientAndPlayerTokenInQueryString(rh)))
     }
   }
 
-  def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String]
+  def decrypt(encrypted: String, apiClientId: String, header: RequestHeader): Option[String]
 
   /** convert the orgId and header into PlayerOptions */
-  protected def toAccessSettings(orgId: ObjectId, rh: RequestHeader): (PlayerAccessSettings, Option[V2Warning]) = {
+  protected def toAccessSettings(orgId: ObjectId, rh: RequestHeader): Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = {
 
-    def toSettings(json: JsValue): Option[PlayerAccessSettings] = PlayerAccessSettings.format.reads(json) match {
+    def toSettings(json: JsValue): Validation[V2Error, PlayerAccessSettings] = PlayerAccessSettings.format.reads(json) match {
       case JsError(errs) => {
-        //TODO: Should we be returning a V2Error here?
         logger.warn(s"path=${rh.path} orgId=$orgId - Error parsing PlayerAccessSettings: ${errs.mkString(", ")}")
-        Some(PlayerAccessSettings.NOTHING)
+
+        Failure(incorrectJsonFormat(json, Some(JsError(errs))))
       }
-      case JsSuccess(s, _) => Some(s)
+      case JsSuccess(s, _) => Success(s)
     }
 
-    for {
-      tokenWithWarning <- playerToken(rh)
-      decrypted <- decrypt(tokenWithWarning._1, orgId, rh)
+    import Scalaz._
+
+    val result: Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = for {
+      tokenWithWarning <- playerToken(rh).toSuccess(generalError("can't create player token"))
+      apiClientId <- apiClientId(rh).toSuccess(noToken(rh))
+      decrypted <- decrypt(tokenWithWarning._1, apiClientId, rh).toSuccess(generalError("failed to decrypt"))
       json <- try {
-        Some(Json.parse(decrypted))
+        Success(Json.parse(decrypted))
       } catch {
         case _: Throwable => {
           logger.error(s"Error parsing decrypted options: $decrypted")
-          None
+          Failure(generalError("Failed to parse json"))
         }
       }
       playerOptions <- toSettings(json)
@@ -107,10 +124,8 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
       logger.trace(s"decrypted: $decrypted")
       (playerOptions -> tokenWithWarning._2)
     }
-  }.getOrElse {
-    logger.trace(s"queryString -> ${rh.queryString}")
-    logger.warn(s"restricting player option access for $orgId")
-    (PlayerAccessSettings.NOTHING -> None)
+
+    result
   }
 
 }

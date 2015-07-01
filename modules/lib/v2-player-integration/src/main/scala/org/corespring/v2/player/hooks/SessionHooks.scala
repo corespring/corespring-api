@@ -48,7 +48,7 @@ trait SessionHooks
     val out = for {
       identity <- getOrgAndOptions(header)
       models <- auth.loadForWrite(id)(identity)
-      saveFn <- auth.saveSession(identity)
+      saveFn <- auth.saveSessionFunction(identity)
     } yield {
       val (session, _) = models
       SaveSession(session, identity.opts.secure, isComplete(session), saveFn)

@@ -2,8 +2,10 @@ package org.corespring.v2.api
 
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.encryption.{ EncryptionSuccess, OrgEncrypter }
+import org.corespring.platform.core.encryption.{ ApiClientEncrypter, EncryptionSuccess }
 import org.corespring.v2.auth.models.PlayerAccessSettings
+import org.corespring.v2.errors.Errors.missingRequiredField
+import org.corespring.v2.errors.Field
 import org.corespring.v2.player.scopes.{ orgWithAccessToken }
 import play.api.libs.json.{ JsNull, JsValue, Json }
 import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
@@ -11,7 +13,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class PlayerTokenApiTest extends IntegrationSpecification {
 
-  val encrypter = new OrgEncrypter(AESCrypto)
+  val encrypter = new ApiClientEncrypter(AESCrypto)
 
   "PlayerTokenApi" should {
     s"$UNAUTHORIZED - create a player token" in new token_createPlayerToken {
@@ -28,9 +30,19 @@ class PlayerTokenApiTest extends IntegrationSpecification {
       val jsonResult = PlayerAccessSettings.permissiveRead(Json.obj("expires" -> 0))
       val settings = Json.stringify(Json.toJson(jsonResult.asOpt.get))
       val code = (json \ "playerToken").as[String]
-      val decrypted = encrypter.decrypt(orgId, code)
+      val decrypted = encrypter.decrypt(apiClient, code)
       decrypted === Some(settings)
     }
+
+    "return an error if the json can't be parsed as PlayerAccessSettings" in
+      new token_createPlayerToken {
+        override val jsonBody = Json.obj("itemId" -> "*")
+        override val url = s"${call.url}?access_token=$accessToken"
+        status(result) === BAD_REQUEST
+        val json = contentAsJson(result)
+        missingRequiredField(Field("expires", "number")).json === json
+      }
+
   }
 
   trait token_createPlayerToken extends orgWithAccessToken {

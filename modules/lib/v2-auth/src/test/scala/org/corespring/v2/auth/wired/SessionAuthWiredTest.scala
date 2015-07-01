@@ -2,34 +2,28 @@ package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.services.BaseFindAndSaveService
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.AuthMode.AuthMode
-import org.corespring.v2.auth.models.{MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings}
-import org.corespring.v2.errors.Errors.{ generalError, noItemIdInSession, cantLoadSession }
+import org.corespring.v2.auth.models._
+import org.corespring.v2.errors.Errors.{ cantLoadSession, generalError, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.Configuration
 import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.api.mvc.RequestHeader
-import play.api.test.FakeRequest
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
+class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
   val defaultItemFailure = generalError("no item")
 
   "SessionAuth" should {
 
-    implicit val rh: OrgAndOpts = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)
+    implicit val identity: OrgAndOpts = mockOrgAndOpts()
 
     case class authScope(
       session: Option[JsValue] = None,
@@ -37,20 +31,23 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
       itemLoadForRead: Boolean = true,
       itemLoadForWrite: Boolean = true,
       hasPerms: Validation[V2Error, Boolean] = Success(true),
-      orgAndOpts: Validation[V2Error, (ObjectId, PlayerAccessSettings, AuthMode)] = Success(ObjectId.get, PlayerAccessSettings.ANYTHING, AuthMode.UserSession)) extends Scope {
+      savedId: ObjectId = new ObjectId()) extends Scope {
       val auth = new SessionAuthWired {
 
-        override def previewSessionService: MongoService = {
+        private def serviceMock(key: String) = {
           val m = mock[MongoService]
-          m.load(anyString) returns session.map(s => Json.obj("service" -> "preview") ++ s.as[JsObject])
+          m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
+          m.create(any[JsValue]) returns Some(savedId)
+          m.save(anyString, any[JsValue]).answers { (args, value) =>
+            {
+              Some(args.asInstanceOf[Array[Object]](1).asInstanceOf[JsValue])
+            }
+          }
           m
         }
 
-        override def mainSessionService: MongoService = {
-          val m = mock[MongoService]
-          m.load(anyString) returns session.map(s => Json.obj("service" -> "main") ++ s.as[JsObject])
-          m
-        }
+        val previewSessionService: MongoService = serviceMock("preview")
+        val mainSessionService: MongoService = serviceMock("main")
 
         override def itemAuth: ItemAuth[OrgAndOpts] = {
           val m = mock[ItemAuth[OrgAndOpts]]
@@ -59,15 +56,13 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
           m
         }
 
-        override def hasPermissions(itemId: String, sessionId: String, settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+        override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
           hasPerms
         }
 
         override def itemTransformer: ItemTransformer = {
           val m = mock[ItemTransformer]
-
           m.createPlayerDefinition(any[Item]) returns playerDefinition.get
-
           m
         }
       }
@@ -121,7 +116,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
       }
     }
 
-    def opts(m: AuthMode) = OrgAndOpts(mockOrg, PlayerAccessSettings.ANYTHING, m)
+    def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, m, clientId)
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")
@@ -147,12 +142,129 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory{
       run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
 
-    "can load session for write if item is load for read only" in new authScope(
-      playerDefinition = Some(getEmptyPlayerDefinition),
-      session = Some(Json.obj("itemId" -> "itemId")),
-      itemLoadForWrite = false) {
-      val Success((rSession, rItem)) = auth.loadForWrite("?")
-      (rSession.as[JsObject] - "service", rItem) must_== (session.get, playerDefinition.get)
+    "when loading a session" should {
+      "can load write if item is read only" in new authScope(
+        playerDefinition = Some(getEmptyPlayerDefinition),
+        session = Some(Json.obj("itemId" -> "itemId")),
+        itemLoadForWrite = false) {
+        val Success((rSession, rItem)) = auth.loadForWrite("?")
+        (rSession.as[JsObject] - "service", rItem) must_== (session.get, playerDefinition.get)
+      }
+    }
+
+    "when saving" should {
+      "add the identity data to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        val saveFn = auth.saveSessionFunction(optsIn)
+        saveFn.toOption.map(fn => fn("1", Json.obj()))
+        there was one(auth.mainSessionService).save("1", Json.obj("identity" -> IdentityJson(optsIn)))
+      }
+
+      "add the identity but not the apiClient id" in new authScope() {
+        val optsIn = opts(AuthMode.AccessToken)
+        val saveFn = auth.saveSessionFunction(optsIn)
+        saveFn.toOption.map(fn => fn("1", Json.obj()))
+        val identityJson = IdentityJson(optsIn)
+        (identityJson \ "apiClientId").asOpt[String] must beNone
+        there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
+      }
+    }
+
+    "when creating" should {
+      "add the identity data to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.create(Json.obj())(optsIn)
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "identity").as[JsObject] must_== IdentityJson(optsIn)
+      }
+
+      "add dateCreated to the session data" in new authScope() {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.create(Json.obj())(optsIn)
+        val captor = capture[JsValue]
+        there was one(auth.mainSessionService).create(captor.capture)
+        (captor.value \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
+      }
+    }
+
+    "loadWithIdentity" should {
+      val identity = Json.obj("this" -> "is", "my" -> "identity")
+
+      "provides identity in response" in new authScope(session = Some(
+        Json.obj("item" -> Json.obj(
+          "xhtml" -> "<h1>Hello World</h1>"),
+          "identity" -> identity,
+          "components" -> Json.obj()))) {
+        val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+        auth.loadWithIdentity("")(optsIn) match {
+          case Success((result, _)) => (result \ "identity") must be equalTo (identity)
+          case _ => failure("nope nope")
+        }
+      }
+    }
+
+    "reopen" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "save into main service" in new authScope(session = Some(Json.obj())) {
+        auth.reopen("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "return session with 0 attempts" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.reopen("")(optsIn) match {
+          case Success(json) => (json \ "attempts").as[Int] must be equalTo (0)
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
+      "return session with isComplete false" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.reopen("")(optsIn) match {
+          case Success(json) => (json \ "isComplete").as[Boolean] must beFalse
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
+    }
+
+    "complete" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "save into main service" in new authScope(session = Some(Json.obj())) {
+        auth.complete("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "return session with isComplete true" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.complete("")(optsIn) match {
+          case Success(json) => {
+            println(Json.prettyPrint(json))
+            (json \ "isComplete").as[Boolean] must beTrue
+          }
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
+    }
+
+    "cloneIntoPreview" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "load from main service" in new authScope(session = Some(Json.obj())) {
+        auth.cloneIntoPreview("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "save into preview service" in new authScope(session = Some(Json.obj())) {
+        auth.cloneIntoPreview("")(optsIn)
+        there was one(auth.previewSessionService).create(any[JsObject])
+      }
+
+      "return id of saved session" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.cloneIntoPreview("")(optsIn) must be equalTo (Success(savedId))
+      }
+
     }
 
   }

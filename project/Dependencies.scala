@@ -5,7 +5,8 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.18.0-SNAPSHOT"
+  val containerVersion = "0.42.0-SNAPSHOT"
+
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
   val componentModel = "org.corespring" %% "component-model" % containerVersion
@@ -28,9 +29,12 @@ object Dependencies {
     .exclude("junit", "junit")
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
+  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
+  val jodaTime = "joda-time" % "joda-time" % "2.2"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playFramework = "com.typesafe.play" %% "play" % playVersion
@@ -38,23 +42,25 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "s3-play-plugin" % "0.3"
+  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.0.0"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.15.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.17.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
   val specs2 = "org.specs2" %% "specs2" % "2.1.1"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
-  val simplecsv = "net.thornydev.simplecsv" % "simplecsv" % "1.0"
+  val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.13-PLAY22").exclude("org.mongodb",  "mongo-java-driver")
+  val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   val all = Seq(
     amapClient,
@@ -63,6 +69,7 @@ object Dependencies {
     closureCompiler,
     commonsIo,
     commonsLang,
+    httpClient,
     componentLoader,
     componentModel,
     containerClientWeb,
@@ -92,7 +99,9 @@ object Dependencies {
     componentModel,
     newRelic,
     slf4j,
-    jsonValidator)
+    jsonValidator,
+    elasticsearchPlayWS,
+    jsoup)
 
   object Resolvers {
 
@@ -108,6 +117,7 @@ object Dependencies {
     val edeustaceReleases = "ed eustace" at "http://edeustace.com/repository/releases/"
     val edeustaceSnapshots = "ed eustace snapshots" at "http://edeustace.com/repository/snapshots/"
     val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
+    val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
     val all: Seq[Resolver] = Seq(
       sonatypeSnapshots,
@@ -120,7 +130,8 @@ object Dependencies {
       sbtPluginReleases,
       edeustaceReleases,
       edeustaceSnapshots,
-      justWrote)
+      justWrote,
+      ivyLocal)
   }
 
 }

@@ -4,12 +4,14 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
 import com.novus.salat.dao._
+import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.error.CorespringInternalError
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.{ ItemSearch, Searchable }
+import org.corespring.platform.core.services.ContentCollectionService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play
@@ -37,7 +39,14 @@ case class ContentCollection(
   lazy val itemCount: Int = ItemServiceWired.find(MongoDBObject("collectionId" -> id.toString)).count
 }
 
-object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] with Searchable with ClassLogging {
+object ContentCollection extends ContentCollectionImpl
+
+trait ContentCollectionImpl
+  extends ModelCompanion[ContentCollection, ObjectId]
+  with Searchable
+  with ContentCollectionService
+  with ClassLogging {
+
   val name = "name"
   val isPublic = "isPublic"
   val ownerOrgId = "ownerOrgId"
@@ -125,24 +134,29 @@ object ContentCollection extends ModelCompanion[ContentCollection, ObjectId] wit
     }
   }
 
+  def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
+
   def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
     val cursor = if (deep) Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId)) //find the tree of the given organization
-    var seqcollid: Seq[ContentCollRef] = cursor.foldRight[Seq[ContentCollRef]](Seq())((o, acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval & p.value) == p.value)) //filter the collections that don't have the given permission
-    cursor.close()
-    if (p == Permission.Read) {
-      seqcollid = (seqcollid ++ getPublicCollections.map(c => ContentCollRef(c.id))).distinct
+
+    def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
+      acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
-    seqcollid
+
+    val out = cursor.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
+
+    cursor.close()
+
+    if (p == Permission.Read) {
+      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, true))
+    } else {
+      out
+    }
   }
 
-  def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = {
-    val cursor = if (deep) Organization.find(MongoDBObject(Organization.path -> orgId)) else Organization.find(MongoDBObject("_id" -> orgId)) //find the tree of the given organization
-    var seqcollid: Seq[ObjectId] = cursor.foldRight[Seq[ObjectId]](Seq())((o, acc) => acc ++ o.contentcolls.filter(ccr => (ccr.pval & p.value) == p.value).map(_.collectionId)) //filter the collections that don't have the given permission
-    cursor.close()
-    if (p == Permission.Read) {
-      seqcollid = (seqcollid ++ getPublicCollections.map(_.id)).distinct
-    }
-    seqcollid
+  override def getCollections(orgId: ObjectId, p: Permission): Either[CorespringInternalError, Seq[ContentCollection]] = {
+    val collectionIds = ContentCollection.getCollectionIds(orgId, p, false);
+    Right(ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
   }
 
   def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq

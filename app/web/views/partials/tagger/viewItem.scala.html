@@ -1,0 +1,40 @@
+<div class="sub-nav sub-nav-lower">
+    <div class="container" style="width: 600px;">
+        <div class="row">
+
+            <ul class="span6 nav nav-pills">
+                <li
+                        ng-class="{true:'active', false:''}[currentPanel=='item']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('item')">Item</a>
+                </li>
+                <li
+                        ng-class="{true:'active', false:''}[currentPanel=='corespringData']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('corespringData')">Corespring Data</a>
+                </li>
+                <li ng-class="{true:'active', false:''}[currentPanel=='history']">
+                    <a
+                            href="javascript:void(1)"
+                            ng-click="changePanel('history')">History</a></li>
+
+            </ul>
+
+            <span class="pull-right">
+                <button class="btn btn-primary"
+                        ng-click="editItem()">Edit
+                </button>
+            </span>
+        </div>
+    </div>
+</div>
+<div class="item-content-container">
+    <div class="container">
+        <span ng-show="currentPanel == 'item'">@web.views.html.partials.common.itemTestPreview()</span>
+        <span ng-show="currentPanel == 'corespringData'">@org.corespring.web.common.views.html.viewItem.corespringData()</span>
+        <span ng-show="currentPanel == 'history'">@org.corespring.web.common.views.html.viewItem.history()</span>
+    </div>
+</div>
+

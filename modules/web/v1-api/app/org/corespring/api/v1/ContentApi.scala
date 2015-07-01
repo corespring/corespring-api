@@ -30,7 +30,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
   /** Subclasses must define the contentType of the Content in the database **/
   def contentType: String
 
-  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published)
+  val dbSummaryFields = Seq(collectionId, taskInfo, otherAlignments, standards, contributorDetails, published, "data", "playerDefinition")
 
   val jsonSummaryFields: Seq[String] = Seq("id",
     collectionId,
@@ -38,10 +38,12 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     TaskInfo.Keys.itemType,
     Alignments.Keys.keySkills,
     primarySubject,
+    TaskInfo.Keys.domains,
     relatedSubject,
     standards,
     author,
     TaskInfo.Keys.title,
+    "contentFormat",
     published)
 
   /**
@@ -55,7 +57,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     limit: Int,
     sort: Option[String]) = ApiAction {
     implicit request =>
-      val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+      val collections = ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read).map(_.collectionId)
 
       val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
       contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
@@ -133,8 +135,9 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
       logger.trace(s"fieldResult: $fieldResult")
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
-        logger.trace(s"Query: ${com.mongodb.util.JSON.serialize(query)}")
-        val cursor = service.find(query, fields.dbfields)
+        logger.debug(s"query=${com.mongodb.util.JSON.serialize(query)}")
+        logger.debug(s"fields=${fields.fieldsToReturn}")
+        val cursor = service.find(query, fields.fieldsToReturn)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)

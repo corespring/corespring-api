@@ -13,13 +13,12 @@ import org.slf4j.LoggerFactory
 /**
  * Model to contain the new v2 player model
  * Note: this is not a case class as we need to support custom serialization w/ salat
- * @param files
- * @param xhtml
- * @param components
- * @param summaryFeedback
  */
 
 object PlayerDefinition {
+
+  def apply(xhtml: String) = new PlayerDefinition(Seq.empty, xhtml, Json.obj(), "", None)
+
   def apply(
     files: Seq[BaseFile],
     xhtml: String,
@@ -120,23 +119,29 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
 
   override def deserialize(b: DBObject): PlayerDefinition = try {
 
-    logger.trace(s"deserialize: ${b}")
-
-    val json: JsValue = ToJsValue(b.get("components"))
     import com.mongodb.casbah.Implicits._
 
-    val l = b.get("files").asInstanceOf[BasicDBList]
-    val prepped: Seq[BaseFile] = l.toList.map {
-      dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
+    logger.trace(s"deserialize: ${b}")
+
+    val json: JsValue = if (b.get("components") == null) Json.obj() else ToJsValue(b.get("components"))
+
+    val files = if (b.get("files") == null || !b.get("files").isInstanceOf[BasicDBList]) {
+      Seq.empty
+    } else {
+      val list = b.get("files").asInstanceOf[BasicDBList]
+      list.toList.map {
+        dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
+      }
     }
 
-    val customScoring = if (b.get("customScoring") != null) Some(b.get("customScoring").asInstanceOf[String]) else None
-
+    val customScoring = if (b.get("customScoring") == null) None else Some(b.get("customScoring").asInstanceOf[String])
+    val summaryFeedback = if (b.get("summaryFeedback") == null) "" else b.get("summaryFeedback").asInstanceOf[String]
+    val xhtml = if (b.get("xhtml") == null) "" else b.get("xhtml").asInstanceOf[String]
     new PlayerDefinition(
-      prepped,
-      b.get("xhtml").asInstanceOf[String],
+      files,
+      xhtml,
       json,
-      b.get("summaryFeedback").asInstanceOf[String],
+      summaryFeedback,
       customScoring)
   } catch {
     case e: Throwable => {

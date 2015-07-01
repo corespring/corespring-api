@@ -73,8 +73,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.resource = newValue;
 
     var defaultFile = _.find($scope.resource.files, function (f) {
-      return f["default"] === true;
+      return f.isMain;
     });
+    
     $scope.showFile(defaultFile);
   });
 
@@ -229,14 +230,14 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       return;
     }
     var currentDefault = _.find($scope.resource.files, function (f) {
-      return f['default'] == true;
+      return f.isMain === true;
     });
 
     if (currentDefault == f) {
       return;
     }
-    currentDefault['default'] = false;
-    f['default'] = true;
+    currentDefault.isMain = false;
+    f.isMain = true;
     $scope.update(f);
   };
 

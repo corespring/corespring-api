@@ -10,6 +10,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.log.V2LoggerFactory
+import org.joda.time.{ DateTimeZone, DateTime }
 import play.api.http.Status._
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
@@ -28,23 +29,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
 
-  override def loadItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
-
-    logger.debug(s"sessionId=$sessionId function=loadItem")
-
-    val s = for {
-      identity <- getOrgAndOptions(header)
-      models <- auth.loadForRead(sessionId)(identity)
-    } yield models
-
-    s.leftMap(s => s.statusCode -> s.message).rightMap { (models) =>
-      val (_, playerDefinition) = models
-      val itemJson = Json.toJson(playerDefinition)
-      itemJson
-    }.toEither
-  }
-
-  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), String]] = Future {
+  override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
@@ -57,14 +42,16 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       identity <- getOrgAndOptions(header)
       canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
-      vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
+      vid <- VersionedId(itemId).map(id => id.version match {
+        case Some(version) => id
+        case None => id.copy(version = Some(itemService.currentVersion(id)))
+      }).toSuccess(cantParseItemId(itemId))
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
       json <- Success(createSessionJson(vid))
       sessionId <- auth.create(json)(identity)
-    } yield sessionId
+    } yield (Json.obj("id" -> sessionId.toString) ++ json, Json.toJson(item.playerDefinition))
 
     result
-      .rightMap(oid => oid.toString)
       .leftMap(s => UNAUTHORIZED -> s.message)
       .toEither
   }
@@ -87,7 +74,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
         "components" -> (v2Json \ "components").as[JsValue],
         "summaryFeedback" -> (v2Json \ "summaryFeedback").as[String])
 
-      (session, playerV2Json)
+      val withId: JsValue = Json.obj("id" -> sessionId) ++ session.as[JsObject]
+      (withId, playerV2Json)
     }.toEither
   }
 }

@@ -2,7 +2,7 @@ package org.corespring.player.v1.controllers
 
 import org.corespring.common.encryption.{ AESCrypto, Crypto }
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.encryption.{ EncryptionFailure, EncryptionResult, OrgEncrypter, EncryptionSuccess }
+import org.corespring.platform.core.encryption._
 import org.corespring.player.accessControl.models.RenderOptions
 import play.api.libs.json._
 import scalaz.Scalaz._
@@ -21,11 +21,12 @@ class Encrypter(encrypter: Crypto) extends BaseApi {
 
   def encryptOptions = ApiAction {
     request =>
-      val orgEncrypter = new OrgEncrypter(encrypter)
+      val apiClientEncrypter = new ApiClientEncrypter(encrypter)
       val result: Validation[String, EncryptionResult] = for {
         json <- request.body.asJson.toSuccess("No json in the request body")
         validJson <- if (validJson(json)) Success(json) else Failure("Not valid json")
-        encryptionResult <- orgEncrypter.encrypt(request.ctx.organization, validJson.toString()).toSuccess("No encryption created")
+        encryptionResult <- apiClientEncrypter.encryptByOrg(request.ctx.organization, validJson.toString())
+          .toSuccess("No encryption created")
       } yield {
         encryptionResult
       }

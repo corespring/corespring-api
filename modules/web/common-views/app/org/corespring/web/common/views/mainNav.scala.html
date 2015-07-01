@@ -1,19 +1,23 @@
 @(templates: List[_root_.org.corespring.platform.core.models.web.QtiTemplate] = Nil,  username : String = "", root : String = "/web" )
 <div class="navbar navbar-fixed-top" ng-controller="MainNavController">
     <div class="navbar-inner" style="padding-bottom: 0px; padding-top:0px;">
-        <div class="container">
-            <a class="brand" href="@root">
-                <img src="/assets/images/cs-white-logo-11px.png"
+        <div class="container-fluid">
+            <a class="pull-left" ng-click="navigateToRoot('@root')">
+                <img src="/assets/images/logo2015-small.png"
                                             alt="Corespring"/></a>
 
 
             @if( username != "" && username != null){
 
-                <span class="pull-right" style="padding-left: 10px; padding-top: 10px;">hi @username&nbsp;
-                    <a class="logout-icon" title="logout" href="/logout"><i class="icon-share icon-white"></i></a>
+                <div style="margin-left: 10px; float: left;">
+
+                <span class="nav">
+                    <a class="btn btn-large btn-info" ng-click="createItem()"><i class="fa fa-plus"></i> Create</a>
                 </span>
-                <ul id="resultPager"
-                  class="nav pull-right"
+
+                <ul 
+                  id="resultPager"
+                  class="nav"
                   result-pager
                   load-item="goToItem"
                   load-more="loadMore"
@@ -21,43 +25,20 @@
                   item-count="resultCount"
                   current-item="itemData"
                   >
-                    <li>
+                    <li style="padding-top: 11px;">
                         <div class="pager">
-                            <div ng-show="pagerText" class="muted pager-text">{{pagerText}}</div>
+                            <div ng-show="pagerText" class="muted pager-text">{{pagerText}} items</div>
                             <div class="progress progress-success progress-striped
                                  active pager-progress-bar" network-progress ng-show="isLoading">
                                 <div class="bar"></div>
                             </div>
                         </div>
                     </li>
-                    <li ng-show="editViewOpen">
-                        <a class="cs-icon-link" ng-show="pagerText" style="float:left;" ng-click="previous()" ><i class="icon-white icon-arrow-left"></i></a>
-                        <a class="cs-icon-link" ng-show="pagerText" style="float:left;" ng-click="next()" ><i class="icon-white icon-arrow-right"></i></a>
-                    </li>
                 </ul>
-                <span class="nav pull-right">
+            </div>
 
-
-                    <li class="dropdown">
-                        <a href="#"
-                        data-toggle="dropdown"
-                        class="dropdown-toggle">Create Item <b class="caret"></b></a>
-                        <ul style="z-index: 99999" class="dropdown-menu">
-                            @templates.groupBy(_.group).toSeq.sortWith(_._1.length > _._1.length).map { group =>
-                                <li>
-                                    @group._1
-                                    <ul>
-                                        @group._2.sortBy(_.position).map{ template =>
-                                            <li><a href="#/new/@template.code">@template.label</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                        </ul>
-                    </li>
-                </span>
-                <span class="nav pull-right" style="padding-top: 10px;">
-                    <a style="color: white;" ng-click="uiState.showCollectionsPane = !uiState.showCollectionsPane">Collections</a>
+                <span style="float:right; line-height: 38px;">hi, @username&nbsp;
+                    <a class="logout-icon" title="logout" href="/logout"><i class="fa fa-sign-out"></i></a>
                 </span>
             }
 

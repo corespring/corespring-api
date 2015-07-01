@@ -3,7 +3,8 @@ package org.corespring.v2.errors
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.api.libs.json.{ JsObject, Json, JsValue }
+import play.api.data.validation.ValidationError
+import play.api.libs.json._
 import play.api.mvc.RequestHeader
 import play.api.http.Status._
 
@@ -25,6 +26,8 @@ case class Field(name: String, fieldType: String)
 sealed abstract class identificationFailed(rh: RequestHeader, msg: String = "Failed to identify an organization for request") extends V2Error(s"${rh.path} - $msg", UNAUTHORIZED)
 
 private[v2] object Errors {
+
+  case class invalidObjectId(id: String, context: String) extends V2Error(s"Invalid object id: $id, context: $context")
 
   case class missingRequiredField(fields: Field*) extends V2Error(s"Missing the following required field(s): ${fields.map(f => s"${f.name} : ${f.fieldType}").mkString(", ")}")
 
@@ -92,7 +95,29 @@ private[v2] object Errors {
 
   case class errorSaving(msg: String = "Error Saving") extends V2Error(msg)
 
-  case class incorrectJsonFormat(badJson: JsValue) extends V2Error(s"Bad json format ${Json.stringify(badJson)}")
+  case class incorrectJsonFormat(badJson: JsValue, error: Option[JsError] = None) extends V2Error(s"Bad json format ${Json.stringify(badJson)}") {
+
+    implicit val pathWrites: Writes[JsPath] = new Writes[JsPath] {
+      override def writes(o: JsPath): JsValue = Json.obj("path" -> o.toJsonString)
+    }
+
+    implicit val errorWrites: Writes[ValidationError] = new Writes[ValidationError] {
+      override def writes(o: ValidationError): JsValue = Json.obj("message" -> o.message)
+    }
+
+    implicit val tupleWrites: Writes[(JsPath, Seq[ValidationError])] = new Writes[(JsPath, Seq[ValidationError])] {
+      override def writes(o: (JsPath, Seq[ValidationError])): JsValue = Json.obj("path" -> o._1.toString, "errors" -> Json.toJson(o._2))
+    }
+    override def json = {
+
+      val jsonErrors = error.map { e =>
+        Json.obj(
+          "json-errors" -> JsArray(
+            e.errors.map(e => Json.toJson(e))))
+      }.getOrElse(Json.obj())
+      super.json ++ jsonErrors
+    }
+  }
 
   case class orgDoesntReferToCollection(orgId: ObjectId, collectionId: String)
     extends V2Error(s"org $orgId doesn't refer to collection: $collectionId", UNAUTHORIZED)

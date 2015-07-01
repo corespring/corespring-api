@@ -7,7 +7,7 @@ import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.player.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
-import play.api.mvc.{ Request, AnyContent, Call, SimpleResult }
+import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.{ GlobalSettings, Play }
 
@@ -21,22 +21,18 @@ class LoadPlayerJsTest extends IntegrationSpecification {
     "load player js with client id + playerToken query string sets session" in
       new queryString_loadJs(anythingJson) {
         status(playerJsResult) === OK
-        val js = contentAsString(playerJsResult)
-        js.contains(s"apiClient = '${apiClient.clientId}'") === true
       }
 
     """load player js with client id + playerToken
       query string sets session""" in new queryString_loadJs(
       Json.stringify(Json.toJson(new PlayerAccessSettings(itemId = "*", secure = true)))) {
       status(playerJsResult) === OK
-      contentAsString(playerJsResult).contains(s"apiClient = '${apiClient.clientId}'") === true
     }
 
     """load player js returns a warning when you load using 'options'""" in
       new queryStringWithOptions_loadJs(anythingJson) {
         status(playerJsResult) === OK
         val js = contentAsString(playerJsResult)
-        js.contains(s"apiClient = '${apiClient.clientId}'") === true
         val warning = deprecatedQueryStringParameter(PlayerTokenInQueryStringIdentity.Keys.options, PlayerTokenInQueryStringIdentity.Keys.playerToken)
         js.contains(warning.code) === true
         js.contains(warning.message) === true
@@ -61,7 +57,7 @@ class LoadPlayerJsTest extends IntegrationSpecification {
 
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call): Request[AnyContent] = {
+    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.options}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl)

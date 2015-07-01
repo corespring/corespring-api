@@ -1,12 +1,15 @@
 package org.corespring.wiring
 
+import com.mongodb.DBObject
+import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
+import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
+import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
-import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.BasicScoreService
 import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, V2ApiBootstrap }
@@ -31,6 +34,10 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
+  private lazy val bucket = AppConfig.assetsBucket
+
+  lazy val playS3 = CorespringS3ServiceExtended
+
   private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
     override def get: (VersionedId[ObjectId], Option[String]) => Action[AnyContent] = ItemApi.get
@@ -52,27 +59,36 @@ object AppWiring {
   private lazy val services: Services = new Services(
     Play.current.configuration.getConfig("v2.auth.cache").getOrElse(Configuration.empty),
     Db.salatDb(),
-    ItemTransformWiring.itemTransformer)
+    ItemTransformWiring.itemTransformer,
+    playS3.client,
+    bucket)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
     services.secureSocialService,
     services.orgService,
     services.tokenService,
-    services.orgEncryptionService,
+    services.apiClientEncryptionService,
+
     Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
 
+  /**
+   * For v2 api - we move token to the top of the list as that is the most common form of authentication.
+   */
+  private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
+    override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
+      requestIdentifiers.token,
+      requestIdentifiers.clientIdAndPlayerTokenQueryString,
+      //Add user session in as the last resort
+      requestIdentifiers.userSession)
+  }
+
   private lazy val v2ApiBootstrap = new V2ApiBootstrap(
-    services.orgService,
-    services.mainSessionService,
-    services.itemAuth,
-    ItemServiceWired,
-    services.sessionAuth,
+    services,
     v2ApiRequestIdentity,
     Some((itemId: VersionedId[ObjectId]) => ItemTransformWiring.itemTransformerActor ! UpdateItem(itemId)),
     scoreService,
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url,
-    services.tokenService,
-    services.orgEncryptionService)
+    ItemTransformWiring.itemTransformer)
 
   private lazy val itemImportBootstrap = new ItemImportBootstrap(
     services.itemAuth,
@@ -83,12 +99,12 @@ object AppWiring {
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq
 
-    val showReleasedOnlyComponents: Boolean = containerConfig.getBoolean("components.showReleasedOnly")
+    val showNonReleasedComponents: Boolean = containerConfig.getBoolean("components.showNonReleasedComponents")
       .getOrElse {
-        Play.current.mode == Mode.Prod
+        Play.current.mode == Mode.Dev
       }
 
-    val out = new FileComponentLoader(path, showReleasedOnlyComponents)
+    val out = new FileComponentLoader(path, showNonReleasedComponents)
     out.reload
     out
   }
@@ -96,34 +112,58 @@ object AppWiring {
   private lazy val containerConfig = {
     for {
       container <- current.configuration.getConfig("container")
-      modeSpecific <- current.configuration.getConfig(s"container-${Play.current.mode.toString.toLowerCase}").orElse(Some(Configuration.empty))
+      modeSpecific <- current.configuration
+        .getConfig(s"container-${Play.current.mode.toString.toLowerCase}")
+        .orElse(Some(Configuration.empty))
     } yield {
-      val out = container ++ modeSpecific ++ current.configuration.getConfig("v2.auth").getOrElse(Configuration.empty)
+      val out = container ++ modeSpecific ++ current.configuration
+        .getConfig("v2.auth")
+        .getOrElse(Configuration.empty)
       logger.debug(s"Container config: \n${out.underlying.root.render}")
       out
     }
   }.getOrElse(Configuration.empty)
 
+  private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
+    def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
+      val vidString = dbo.get("itemId").asInstanceOf[String]
+      val vid = VersionedId(vidString)
+      require(vid.map { _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
+      vid
+    }
+
+    val itemIdOnly = MongoDBObject("itemId" -> 1)
+
+    try {
+      val oid = new ObjectId(sessionId)
+      val maybeDbo = services.mainSessionService.collection
+        .findOneByID(oid, itemIdOnly)
+        .orElse {
+          services.previewSessionService.collection.findOneByID(oid, itemIdOnly)
+        }
+      maybeDbo.map { toVid }.flatten
+    } catch {
+      case e: Throwable => {
+        e.printStackTrace()
+        None
+      }
+    }
+  }
+
   private lazy val v2PlayerBootstrap = new V2PlayerBootstrap(
     componentLoader.all,
     containerConfig,
-    services.mainSessionService,
-    services.previewSessionService,
+    new CDNResolver(containerConfig, Defaults.commitHashShort).resolveDomain _,
     ItemTransformWiring.itemTransformer,
-    services.secureSocialService,
     requestIdentifiers.allIdentifiers,
     services.itemAuth,
     services.sessionAuth,
-    new CDNResolver(containerConfig, Defaults.commitHashShort))
-
-  /**
-   * For v2 api - we move token to the top of the list as that is the most common form of authentication.
-   */
-  private lazy val v2ApiRequestIdentity = new WithRequestIdentitySequence[OrgAndOpts] {
-    override def identifiers: Seq[OrgRequestIdentity[OrgAndOpts]] = Seq(
-      requestIdentifiers.token,
-      requestIdentifiers.clientIdAndPlayerTokenQueryString)
-  }
+    playS3,
+    bucket,
+    services.draftsBackend,
+    services.orgService,
+    services.colService,
+    getItemIdForSessionId)
 
   def controllers: Seq[Controller] = v2PlayerBootstrap.controllers ++
     v2ApiBootstrap.controllers ++

@@ -18,3 +18,5 @@ mongo-migrator.log
 *.iml
 atlassian-*
 .ensime*
+.run-*
+aws.zip

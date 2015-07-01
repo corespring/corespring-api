@@ -65,7 +65,7 @@ object BaseFile extends JsonUtil {
 
       val name = (json \ "name").asOpt[String].getOrElse("unknown")
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
-      val isMain = (json \ "default").asOpt[Boolean].getOrElse(false)
+      val isMain = (json \ "isMain").asOpt[Boolean].getOrElse(false)
 
       import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes._
 
@@ -84,7 +84,7 @@ object BaseFile extends JsonUtil {
   def toJson(f: BaseFile): JsObject = Json.obj(
     "name" -> JsString(f.name),
     "contentType" -> JsString(f.contentType),
-    "default" -> JsBoolean(f.isMain))
+    "isMain" -> JsBoolean(f.isMain))
 }
 
 /*
@@ -111,20 +111,18 @@ case class StoredFile(override val name: String, override val contentType: Strin
 
 object StoredFile {
 
-  def storageKey(id: VersionedId[ObjectId], resource: Resource, filename: String): String = {
-    storageKey(id, resource.name, filename)
+  def storageKey(id: ObjectId, version: Long, resource: Resource, filename: String): String = {
+    storageKey(id, version, resource.name, filename)
   }
 
-  def storageKey(id: VersionedId[ObjectId], resourceName: String, filename: String): String = {
-    (Seq(id.id) ++ id.version ++ Seq(resourceName, filename)).mkString("/")
+  def storageKey(id: ObjectId, version: Long, resourceName: String, filename: String): String = {
+    (Seq(id, version.toString) ++ Seq(resourceName, filename)).mkString("/")
   }
 
   implicit object StoredFileWrites extends Writes[StoredFile] {
     def writes(f: StoredFile): JsValue = {
       BaseFile.toJson(f)
-      //"storageKey is for internal use only"
-      //++ JsObject(Seq("storageKey" -> JsString(f.storageKey)))
     }
   }
-
 }
+
