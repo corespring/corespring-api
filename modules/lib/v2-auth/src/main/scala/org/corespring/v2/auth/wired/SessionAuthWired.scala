@@ -10,10 +10,11 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
-import scalaz.{ Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
@@ -50,21 +51,45 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   override def loadForWrite(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
 
-  private def load(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = {
+  override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId, withIdentity = true)
+
+  private def load(sessionId: String, withIdentity: Boolean = false)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = {
 
     logger.debug(s"[load] $sessionId")
 
     val out = for {
-      json <- sessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      json <- (sessionService.load(sessionId) match {
+        case Some(session) => Some(session)
+        case _ => previewSessionService.load(sessionId)
+      }).toSuccess(cantLoadSession(sessionId))
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield {
       /** if the session contains the data - we need to trim it so it doesn't reach the client */
-      val cleanedSession = json.as[JsObject] - "item" - "identity"
+      val cleanedSession = withIdentity match {
+        case true => json.as[JsObject] - "item"
+        case _ => json.as[JsObject] - "item" - "identity"
+      }
       (cleanedSession, playerDef)
     }
 
     logger.trace(s"loadFor sessionId: $sessionId - result successful")
     out
+  }
+
+  override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    reopenedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0)).toSuccess(cantLoadSession(sessionId))
+    savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
+  } yield {
+    savedReopened
+  }
+
+  override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    completedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> true)).toSuccess(cantLoadSession(sessionId))
+    savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
+  } yield {
+    savedCompleted
   }
 
   private def loadPlayerDefinition(sessionId: String, session: JsValue)(implicit identity: OrgAndOpts): Validation[V2Error, PlayerDefinition] = {
@@ -101,11 +126,24 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
   })
 
   override def create(session: Session)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
-    val withIdentityData = addIdentityToSession(session, identity)
+    val withIdentityData = dateCreated ++ addIdentityToSession(session, identity)
     sessionService.create(withIdentityData).toSuccess(errorSaving)
   }
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): Session = {
+  override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
+    for {
+      original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      copy <- previewSessionService.create(original).toSuccess(cantLoadSession(sessionId))
+    } yield {
+      copy
+    }
+  }
+
+  private def dateCreated: JsObject = Json.obj(
+    "dateCreated" -> Json.obj(
+      "$date" -> DateTime.now(DateTimeZone.UTC)))
+
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
   }
 

@@ -6,6 +6,7 @@ import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
+import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
@@ -33,11 +34,9 @@ object AppWiring {
 
   private val logger = Logger("org.corespring.AppWiring")
 
-  private lazy val key = AppConfig.amazonKey
-  private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
 
-  lazy val playS3 = new ConcreteS3Service(key, secret)
+  lazy val playS3 = CorespringS3ServiceExtended
 
   private lazy val v1ItemApiProxy = new V1ItemApiProxy {
 
@@ -68,7 +67,8 @@ object AppWiring {
     services.secureSocialService,
     services.orgService,
     services.tokenService,
-    services.orgEncryptionService,
+    services.apiClientEncryptionService,
+
     Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
 
   /**
@@ -128,7 +128,7 @@ object AppWiring {
     def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
       val vidString = dbo.get("itemId").asInstanceOf[String]
       val vid = VersionedId(vidString)
-      require(vid.map{ _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
+      require(vid.map { _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
       vid
     }
 

@@ -7,7 +7,7 @@ import org.corespring.qtiToV2.kds.CssSandboxer
 import play.api.libs.json._
 
 import scala.xml._
-import scala.xml.transform.{RewriteRule, RuleTransformer}
+import scala.xml.transform.{ RewriteRule, RuleTransformer }
 
 /**
  * ***** DO NOT CHANGE THE PUBLIC METHODS EXPOSED BY THIS OBJECT ******
@@ -38,12 +38,12 @@ trait QtiTransformer extends XMLNamespaceClearer {
 
   val scoringTransformer = new CustomScoringTransformer
 
-  object ItemBodyTransformer extends RewriteRule with XMLNamespaceClearer{
+  object ItemBodyTransformer extends RewriteRule with XMLNamespaceClearer {
 
     override def transform(node: Node): Seq[Node] = {
       node match {
         case elem: Elem if elem.label == "itemBody" => {
-          <div class="item-body">{elem.child}</div>
+          <div class="item-body">{ elem.child }</div>
         }
         case _ => node
       }
@@ -107,6 +107,7 @@ object QtiTransformer extends QtiTransformer {
     TextEntryInteractionTransformer(qti),
     GraphicGapMatchInteractionTransformer,
     LineInteractionTransformer,
+    GraphicGapMatchInteractionTransformer,
     OrderInteractionTransformer,
     PointInteractionTransformer,
     SelectTextInteractionTransformer,

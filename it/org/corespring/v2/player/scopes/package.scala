@@ -73,7 +73,7 @@ package object scopes {
   }
 
   trait orgWithAccessTokenItemAndSession extends orgWithAccessTokenAndItem with HasSessionId {
-    val sessionId = V2SessionHelper.create(itemId)
+    val sessionId = V2SessionHelper.create(itemId, orgId = Some(orgId))
 
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")
@@ -395,6 +395,10 @@ package object scopes {
 
     override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
+    }
+
+    def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType:String = "application/json"): Request[AnyContent] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withHeaders(("Content-Type", contentType))
     }
   }
 

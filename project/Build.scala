@@ -148,7 +148,7 @@ object Build extends sbt.Build {
   val itemDrafts = builders.lib("item-drafts")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, specs2 % "test"))
-    .dependsOn(core, drafts)
+    .dependsOn(core, drafts, testLib)
     .aggregate(core, drafts)
 
   /** Qti -> v2 transformers */
@@ -160,9 +160,9 @@ object Build extends sbt.Build {
     templatesImport ++= TemplateImports.Ids,
     routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-    MongoDbSeederPlugin.logLevel := "DEBUG",
-    testUri := "mongodb://localhost/api",
-    testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
+      MongoDbSeederPlugin.logLevel := "DEBUG",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -370,9 +370,9 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-    MongoDbSeederPlugin.logLevel := "INFO",
-    testUri := "mongodb://localhost/api",
-    testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
+      MongoDbSeederPlugin.logLevel := "INFO",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)

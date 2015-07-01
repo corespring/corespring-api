@@ -2,7 +2,10 @@ package org.corespring.v2.api
 
 import com.mongodb.DBObject
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
+import org.corespring.platform.core.encryption.ApiClientEncrypter
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -193,6 +196,30 @@ class ItemSessionApiTest extends IntegrationSpecification {
       }
 
     }
+  }
+
+  "cloneSession" should {
+
+    "return apiClient" in new cloneSession {
+      (contentAsJson(result) \ "apiClient").as[String] must be equalTo (
+        ApiClient.findOneByOrgId(orgId).map(_.clientId).getOrElse(throw new Exception("Boop")).toString)
+    }
+
+    "return encrypted options, decryptable by provided apiClient" in new cloneSession {
+      val apiClientId = (contentAsJson(result) \ "apiClient").as[String]
+      val encrypter = new ApiClientEncrypter(AESCrypto)
+      encrypter.decrypt(apiClientId, (contentAsJson(result) \ "options").as[String]) must be equalTo (
+        Some(ItemSessionApi.clonedSessionOptions.toString))
+    }
+
+    "return organization name" in new cloneSession {
+      (contentAsJson(result) \ "organization").as[String] must be equalTo (organization.name)
+    }
+
+  }
+
+  class cloneSession extends BeforeAfter with sessionLoader with TokenRequestBuilder with orgWithAccessTokenItemAndSession {
+    override def getCall(sessionId: ObjectId): Call = Routes.cloneSession(sessionId.toString)
   }
 
   class unknownUser_getSession extends sessionLoader with orgWithAccessTokenItemAndSession with PlainRequestBuilder {

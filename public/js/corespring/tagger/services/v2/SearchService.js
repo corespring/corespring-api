@@ -24,6 +24,7 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
         itemTypes: _.map(params.itemType, function(itemType) {
           return itemType.key;
         }),
+        requiredPlayerWidth: params.requiredPlayerWidth,
         published: function() {
           function hasKey(key) {
             return _.find(params.publishStatuses, function(status) {

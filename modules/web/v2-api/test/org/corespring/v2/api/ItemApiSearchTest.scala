@@ -1,6 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.item.ItemType
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -31,7 +32,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
     FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   case class searchApiScope(orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-                            searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends Scope {
+    searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends Scope {
     import ExecutionContext.Implicits.global
 
     val indexService = mock[ItemIndexService]
@@ -43,6 +44,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
       def getOrgAndOptions(request: RequestHeader) = orgAndOpts
       def itemIndexService = indexService
       def defaultCollection(implicit identity: OrgAndOpts) = ???
+      def itemType: ItemType = ???
       def transform = ???
       def itemService = ???
       def itemAuth = ???

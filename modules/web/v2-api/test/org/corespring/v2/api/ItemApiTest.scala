@@ -1,29 +1,29 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.{ ItemType, Item }
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
-import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
+import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{AuthMode, MockFactory, OrgAndOpts}
-import org.corespring.v2.errors.Errors.{cantParseItemId, generalError}
+import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
+import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.JsValue
 import play.api.mvc.RequestHeader
-import play.api.test.{FakeRequest, PlaySpecification}
+import play.api.test.{ FakeRequest, PlaySpecification }
 
 import scala.concurrent._
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
-class ItemApiTest extends Specification with Mockito with MockFactory with PlaySpecification{
+class ItemApiTest extends Specification with Mockito with MockFactory with PlaySpecification {
 
   "ItemApi" should {
-    "when calling clone" should{
+    "when calling clone" should {
 
       lazy val orgAndOpts = mockOrgAndOpts(AuthMode.UserSession)
 
@@ -36,22 +36,22 @@ class ItemApiTest extends Specification with Mockito with MockFactory with PlayS
         m
       }
 
-      case class ItemApiCloneScope( vid : String = vid.toString,
-                                    id:Validation[V2Error,OrgAndOpts] = Success(orgAndOpts),
-                                    itemAuthLoadsItem : Boolean = true,
-                                    itemServiceClones : Boolean = true,
-                                    item : Option[Item] = Some(mockItem)
-                                    ) extends Scope{
-
+      case class ItemApiCloneScope(vid: String = vid.toString,
+        id: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
+        itemAuthLoadsItem: Boolean = true,
+        itemServiceClones: Boolean = true,
+        item: Option[Item] = Some(mockItem)) extends Scope {
 
         lazy val api = new ItemApi {
           override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
 
           override def itemService: ItemService = {
             val m = mock[ItemService]
-            m.clone(any[Item]) returns (if(itemServiceClones) item else None)
+            m.clone(any[Item]) returns (if (itemServiceClones) item else None)
             m
           }
+
+          override def itemType: ItemType = ???
 
           override def itemIndexService: ItemIndexService = {
             val m = mock[ItemIndexService]
@@ -91,16 +91,16 @@ class ItemApiTest extends Specification with Mockito with MockFactory with PlayS
 
       val testError = generalError("test error")
 
-      "fail if there's no identity" in new ItemApiCloneScope(id = Failure(testError)){
+      "fail if there's no identity" in new ItemApiCloneScope(id = Failure(testError)) {
         status(result) === testError.statusCode
       }
 
-      "fail if the item id is unparseable" in new ItemApiCloneScope(vid = "?"){
+      "fail if the item id is unparseable" in new ItemApiCloneScope(vid = "?") {
         status(result) === testError.statusCode
         (contentAsJson(result) \ "message").as[String] === cantParseItemId("?").message
       }
 
-      "fail if clone fails" in new ItemApiCloneScope(itemServiceClones = false){
+      "fail if clone fails" in new ItemApiCloneScope(itemServiceClones = false) {
         status(result) === testError.statusCode
         val json = contentAsJson(result)
         (json \ "message").as[String] must contain("Error cloning")

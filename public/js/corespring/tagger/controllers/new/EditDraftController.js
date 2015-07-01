@@ -33,14 +33,14 @@
     $scope.devEditorVisible = false;
 
     var normalEditor = [
-      '/v2/player/editor/',
+      '/v2/player/draft/editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
     ].join('');
 
     var devEditor = [
-      '/v2/player/dev-editor/',
+      '/v2/player/draft/dev-editor/',
       $routeParams.itemId,
       '/index.html',
       '?bypass-iframe-launch-mechanism=true'
@@ -59,10 +59,19 @@
           if (!cancelled) {
             $scope.saveBackToItem(callback);
           } else {
+            $scope.discardDraft();
             callback();
           }
         });
       }
+    };
+
+    $scope.discardDraft = function(){
+      ItemDraftService.deleteDraft($scope.itemId, function(data){
+        Logger.log('draft ' + $scope.itemId + ' deleted');
+      }, function(err){
+        Logger.warn('draft ' + $scope.itemId + ' not deleted');
+      });
     };
 
     $scope.confirmSaveBeforeLeaving = function() {
@@ -81,6 +90,8 @@
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
             $scope.saveBackToItem();
+          } else {
+            $scope.discardDraft();
           }
           $scope.hasChanges = false;
           $location.path("/home").search('');

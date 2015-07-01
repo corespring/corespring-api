@@ -67,6 +67,8 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     }
   }
 
+  def apiClientId(rh: RequestHeader): Option[String] = rh.getQueryString(Keys.apiClient)
+
   override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     logger.trace(s"function=headerToOrgId path=${rh.path}")
 
@@ -89,7 +91,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     }
   }
 
-  def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String]
+  def decrypt(encrypted: String, apiClientId: String, header: RequestHeader): Option[String]
 
   /** convert the orgId and header into PlayerOptions */
   protected def toAccessSettings(orgId: ObjectId, rh: RequestHeader): Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = {
@@ -107,7 +109,8 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
     val result: Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = for {
       tokenWithWarning <- playerToken(rh).toSuccess(generalError("can't create player token"))
-      decrypted <- decrypt(tokenWithWarning._1, orgId, rh).toSuccess(generalError("failed to decrypt"))
+      apiClientId <- apiClientId(rh).toSuccess(noToken(rh))
+      decrypted <- decrypt(tokenWithWarning._1, apiClientId, rh).toSuccess(generalError("failed to decrypt"))
       json <- try {
         Success(Json.parse(decrypted))
       } catch {

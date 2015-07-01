@@ -7,7 +7,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Action, Controller, RequestHeader, SimpleResult }
+import play.api.mvc._
 
 import scala.concurrent.Future
 import scalaz.{ Failure, Success, Validation }
@@ -71,7 +71,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
     case _ => generalDraftApiError(e.msg)
   }
 
-  def commit(id: String, force: Option[Boolean] = None) = draftsAction(id) { (user, draftId, _) =>
+  def commit(id: String, force: Option[Boolean] = None) = draftsAction(id, parse.empty) { (user, draftId, _) =>
     for {
       d <- drafts.load(user)(draftId).leftMap(toApiResult)
       commit <- drafts.commit(user)(d, force.getOrElse(false)).leftMap(toApiResult)
@@ -136,16 +136,17 @@ trait ItemDrafts extends Controller with MakeDraftId {
         c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
   }
 
-  private def draftsAction(id: String)(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) = Action.async { implicit request =>
-    Future {
-      for {
-        user <- toOrgAndUser(request)
-        draftId <- mkDraftId(user, id).leftMap { e => generalDraftApiError(e.msg) }
-        result <- fn(user, draftId, request)
-      } yield {
-        result
+  private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent )(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =
+    Action.async(parser) { implicit request =>
+      Future {
+        for {
+          user <- toOrgAndUser(request)
+          draftId <- mkDraftId(user, id).leftMap { e => generalDraftApiError(e.msg) }
+          result <- fn(user, draftId, request)
+        } yield {
+          result
+        }
       }
     }
-  }
 
 }

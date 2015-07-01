@@ -93,7 +93,7 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
       val componentsJson = GraphicGapMatchInteractionTransformer.interactionJs(interaction)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
-      (out \\ "p").head.child.mkString === prompt
+      (out \\ "p").head.child.mkString.trim === prompt
       (q1 \ "componentType").as[String] === "corespring-graphic-gap-match"
 
       (q1 \ "model" \ "config" \ "backgroundImage").as[JsObject] === Json.obj(

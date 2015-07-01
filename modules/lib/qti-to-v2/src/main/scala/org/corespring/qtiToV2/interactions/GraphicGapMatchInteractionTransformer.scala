@@ -23,10 +23,12 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
 
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
-    node.label match {
-      case "graphicGapMatchInteraction" =>
-        node.child.filter(_.label == "prompt").map(n => n.label match {
-          case "prompt" => <p class="prompt">{ n.child }</p>
+    node match {
+      case elem: Elem if elem.label == "graphicGapMatchInteraction" =>
+        elem.child.filter(_.label != "simpleChoice").map(n => n.label match {
+          case "prompt" => <p class="prompt">
+                             { n.child }
+                           </p>
           case _ => n
         }) ++ <corespring-graphic-gap-match id={ identifier }></corespring-graphic-gap-match>
       case _ => node
@@ -54,15 +56,15 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
           val coordsArray = s.split(',').map(s => floatValueOrZero(s))
           shape match {
             case "rect" => Json.obj(
-              "left" -> mapValue(coordsArray(0)),
+              "left" -> coordsArray(0),
               "top" -> coordsArray(1),
-              "width" -> mapValue(Math.abs(coordsArray(2) - coordsArray(0))),
+              "width" -> Math.abs(coordsArray(2) - coordsArray(0)),
               "height" -> Math.abs(coordsArray(3) - coordsArray(1)))
             case "poly" =>
               def xCoords = coordsArray.zipWithIndex.collect { case (x, i) if i % 2 == 0 => x }
               def yCoords = coordsArray.zipWithIndex.collect { case (x, i) if i % 2 == 1 => x }
               def coordPairs = xCoords.zip(yCoords)
-              JsArray(coordPairs.map(p => Json.obj("x" -> mapValue(p._1), "y" -> p._2)))
+              JsArray(coordPairs.map(p => Json.obj("x" -> p._1, "y" -> p._2)))
           }
         }
         JsArray(((node \\ "associableHotspot").toSeq).map { n =>
@@ -95,7 +97,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
             }).toLowerCase,
             "backgroundImage" -> Json.obj(
               "path" -> cutPathPrefix((node \ "object" \ "@data").mkString),
-              "width" -> JsNumber(BigDecimal(bgImgWidth)),
+              "width" -> JsNumber(intValueOrZero((node \ "object" \ "@width").mkString)),
               "height" -> JsNumber(intValueOrZero((node \ "object" \ "@height").mkString))),
             "showHotspots" -> JsBoolean(false)),
           "hotspots" -> hotspots,

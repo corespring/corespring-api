@@ -3,14 +3,13 @@ package org.corespring.web.common.views.helpers
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.platform.core.models.item.{ ItemType, FieldValue }
 import org.corespring.platform.core.services.item._
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
 import scala.concurrent.Await
-
 
 class Defaults(itemIndexService: ItemIndexService) {
 
@@ -64,11 +63,7 @@ class Defaults(itemIndexService: ItemIndexService) {
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
 
-  lazy val v2ItemTypes = JsArray({
-    import scala.concurrent.duration._
-    Await.result(itemIndexService.componentTypes, Duration(10, SECONDS))
-      .getOrElse(throw new Exception("Could not run aggregate query on ElasticSearch node"))
-  }.map{ case(value, key) => Json.obj("key" -> key, "value" -> value) }.toSeq)
+  lazy val v2ItemTypes = ItemType.all
 
 }
 

@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.39.0-SNAPSHOT"
+  val containerVersion = "0.42.0-SNAPSHOT"
 
   val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
   val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
@@ -42,7 +42,7 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "s3-play-plugin" % "0.7"
+  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.0.0"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
@@ -60,7 +60,7 @@ object Dependencies {
   val cssParser = "com.phloc" % "phloc-css" % "3.7.6"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
-  val elasticsearchPlayWS = "org.corespring" %% "elasticsearch-play-ws" % "0.0.10-PLAY22"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.13-PLAY22").exclude("org.mongodb",  "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   val all = Seq(

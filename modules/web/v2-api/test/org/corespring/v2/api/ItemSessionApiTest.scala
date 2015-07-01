@@ -1,12 +1,17 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.common.encryption.AESCrypto
+import org.corespring.platform.core.encryption.ApiClientEncrypter
+import org.corespring.platform.core.models.auth.ApiClient
 import org.corespring.platform.core.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.errors.Errors.{ errorSaving, generalError, sessionDoesNotContainResponses }
+import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -26,14 +31,19 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
     val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     val maybeSessionId: Option[ObjectId] = None,
     val sessionAndItem: Validation[V2Error, (JsValue, PlayerDefinition)] = Failure(generalError("no")),
-    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score"))) extends Scope {
+    val scoreResult: Validation[V2Error, JsValue] = Failure(generalError("error getting score")),
+    val clonedSession: Validation[V2Error, ObjectId] = Failure(generalError("no")),
+    val apiClient: Option[ApiClient] = None) extends Scope {
 
     val api: ItemSessionApi = new ItemSessionApi {
+      override def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClient
       override def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = {
         val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
         m.canCreate(anyString)(any[OrgAndOpts]) returns canCreate
         m.loadForRead(anyString)(any[OrgAndOpts]) returns sessionAndItem
         m.loadForWrite(anyString)(any[OrgAndOpts]) returns sessionAndItem
+        m.loadWithIdentity(anyString)(any[OrgAndOpts]) returns sessionAndItem
+        m.cloneIntoPreview(anyString)(any[OrgAndOpts]) returns clonedSession
         import scalaz.Scalaz._
         m.create(any[JsValue])(any[OrgAndOpts]) returns maybeSessionId.toSuccess(errorSaving("no session id returned from mock"))
         m
@@ -54,7 +64,67 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
         m
       }
+
+      override def orgService: OrgService = ???
     }
+  }
+
+  "cloneSession" should {
+
+    PlaySingleton.start()
+
+    "with invalid session" should {
+      val missingSessionId = new ObjectId().toString
+
+      "return 404" in new apiScope(clonedSession = Failure(cantLoadSession(missingSessionId))) {
+        val result = api.cloneSession(missingSessionId)(FakeRequest("", ""))
+        status(result) must be equalTo (NOT_FOUND)
+      }
+
+    }
+
+    "without authentication" should {
+
+      val sessionId = new ObjectId().toString
+      val request = FakeRequest("", "")
+
+      "return 401" in new apiScope(clonedSession = Success(new ObjectId()),
+        orgAndOpts = Failure(noOrgIdAndOptions(request))) {
+        val result = api.cloneSession(sessionId)(request)
+        status(result) must be equalTo (UNAUTHORIZED)
+      }
+
+    }
+
+    "with valid session and authentication" should {
+
+      val apiClient = ApiClient(mockOrg().id, new ObjectId(), "secret")
+
+      "return 201" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
+        status(result) must be equalTo (CREATED)
+      }
+
+      "return apiClient" in new apiScope(clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
+        Option((contentAsJson(result) \ "apiClient").as[String]) must be equalTo (apiClient.map(_.clientId.toString))
+      }
+
+      "return cloned session options decryptable by apiClient" in new apiScope(
+        clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
+        sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
+        val encrypter = new ApiClientEncrypter(AESCrypto)
+
+        encrypter.decrypt(
+          apiClient.getOrElse(throw new Exception("No apiClient provided")),
+          (contentAsJson(result) \ "options").as[String]) must be equalTo (Some(ItemSessionApi.clonedSessionOptions.toString))
+      }
+
+    }
+
   }
 
   "V2 - ItemSessionApi" should {

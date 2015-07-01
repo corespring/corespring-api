@@ -12,15 +12,16 @@ class ItemIndexQueryTest extends Specification {
 
     "read from ItemIndexQuery.Defaults" in {
       val default = ItemIndexQuery()
-      default.offset must be equalTo(Defaults.offset)
-      default.count must be equalTo(Defaults.count)
-      default.text must be equalTo(Defaults.text)
-      default.contributors must be equalTo(Defaults.contributors)
-      default.collections must be equalTo(Defaults.collections)
-      default.itemTypes must be equalTo(Defaults.itemTypes)
-      default.gradeLevels must be equalTo(Defaults.gradeLevels)
-      default.published must be equalTo(Defaults.published)
-      default.workflows must be equalTo(Defaults.workflows)
+      default.offset must be equalTo (Defaults.offset)
+      default.count must be equalTo (Defaults.count)
+      default.text must be equalTo (Defaults.text)
+      default.contributors must be equalTo (Defaults.contributors)
+      default.collections must be equalTo (Defaults.collections)
+      default.itemTypes must be equalTo (Defaults.itemTypes)
+      default.gradeLevels must be equalTo (Defaults.gradeLevels)
+      default.published must be equalTo (Defaults.published)
+      default.workflows must be equalTo (Defaults.workflows)
+      default.requiredPlayerWidth must be equalTo (Defaults.requiredPlayerWidth)
     }
   }
 
@@ -29,6 +30,7 @@ class ItemIndexQueryTest extends Specification {
 
     val offset = 10
     val count = 10
+    val requiredPlayerWidth = 500
     val text = "hey this is some text for the query"
     val contributors = Seq("these", "are", "contributors")
     val collections = (1 to 5).map(f => new ObjectId().toString)
@@ -46,6 +48,7 @@ class ItemIndexQueryTest extends Specification {
       "itemTypes": ["${itemTypes.mkString("\",\"")}"],
       "gradeLevels": ["${gradeLevels.mkString("\",\"")}"],
       "published" : $published,
+      "requiredPlayerWidth" : $requiredPlayerWidth,
       "workflows" : ["${workflows.mkString("\",\"")}"]
     }"""
 
@@ -53,15 +56,16 @@ class ItemIndexQueryTest extends Specification {
       val query = Json.fromJson[ItemIndexQuery](Json.parse(apiJson)).getOrElse(throw new Exception("Couldn't parse JSON"))
 
       "set fields on ItemIndexQuery" in {
-        query.offset must be equalTo(offset)
-        query.count must be equalTo(count)
-        query.text must be equalTo(Some(text))
-        query.contributors must be equalTo(contributors)
-        query.collections must be equalTo(collections)
-        query.itemTypes must be equalTo(itemTypes)
-        query.gradeLevels must be equalTo(gradeLevels)
-        query.published must be equalTo(Some(published))
-        query.workflows must be equalTo(workflows)
+        query.offset must be equalTo (offset)
+        query.count must be equalTo (count)
+        query.text must be equalTo (Some(text))
+        query.contributors must be equalTo (contributors)
+        query.collections must be equalTo (collections)
+        query.itemTypes must be equalTo (itemTypes)
+        query.gradeLevels must be equalTo (gradeLevels)
+        query.published must be equalTo (Some(published))
+        query.workflows must be equalTo (workflows)
+        query.requiredPlayerWidth must be equalTo (Some(requiredPlayerWidth))
       }
 
     }
@@ -71,11 +75,16 @@ class ItemIndexQueryTest extends Specification {
   "ElasticSearchWrites" should {
     implicit val ElasticSearchWrites = ItemIndexQuery.ElasticSearchWrites
 
-    def shouldClause(json: JsValue, name: String) = (json \ "query" \ "bool" \ "should").as[Seq[JsObject]]
-      .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
-      .getOrElse(JsUndefined(s"Could not find $name clause"))
+    def shouldClause(json: JsValue, name: String) = clause(json, name, "should")
+    def mustClause(json: JsValue, name: String) = clause(json, name, "must")
+
+    def clause(json: JsValue, name: String, clauseName: String) =
+      (json \ "query" \ "bool" \ clauseName).as[Seq[JsObject]]
+        .find(node => (node \ name).asOpt[JsObject].nonEmpty).map(_ \ name)
+        .getOrElse(JsUndefined(s"Could not find $name clause"))
 
     def multiMatch(json: JsValue): JsValue = shouldClause(json, "multi_match")
+    def nested(json: JsValue): JsValue = mustClause(json, "nested")
     def ids(json: JsValue): JsValue = shouldClause(json, "ids")
 
     "text" should {
@@ -96,7 +105,7 @@ class ItemIndexQueryTest extends Specification {
         "multi_match" should {
 
           "include query as query parameter" in {
-            (multiMatch(json) \ "query").as[String] must be equalTo(text)
+            (multiMatch(json) \ "query").as[String] must be equalTo (text)
           }
 
           "query on title field" in {
@@ -115,11 +124,29 @@ class ItemIndexQueryTest extends Specification {
 
         "include ids querying" in {
           (ids(json)) must haveClass[JsObject]
-          (ids(json) \ "values").as[Seq[String]].headOption must be equalTo(Some(text))
+          (ids(json) \ "values").as[Seq[String]].headOption must be equalTo (Some(text))
         }
 
       }
     }
+
+    "metadata" should {
+      val metadata = Map("kds.scoringType" -> "PARCC")
+      val query = ItemIndexQuery(metadata = metadata)
+      val json = Json.toJson(query)
+
+      "include nested metadata query" in {
+        (nested(json) \ "path").as[String] must be equalTo("metadata")
+      }
+
+      "matches on metadata.key and metadata.value" in {
+        val mustClauses = (nested(json) \ "query" \ "bool" \ "must").as[Seq[JsObject]]
+        mustClauses.find(c => (c \ "match").as[JsObject].keys.contains("metadata.key")) must not beEmpty;
+        mustClauses.find(c => (c \ "match").as[JsObject].keys.contains("metadata.value")) must not beEmpty
+      }
+
+    }
+
 
     "contributors" should {
 
@@ -209,6 +236,22 @@ class ItemIndexQueryTest extends Specification {
 
     }
 
+    "requiredPlayerWidth" should {
+      "empty" should {
+        "not be included in filter" in {
+          Json.toJson(ItemIndexQuery(requiredPlayerWidth = None)).hasFilter("requiredPlayerWidth") must beFalse
+        }
+      }
+
+      "nonEmpty" should {
+        "be included as range filter" in {
+          val requiredPlayerWidth = 500
+          Json.toJson(ItemIndexQuery(requiredPlayerWidth = Some(requiredPlayerWidth)))
+          .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
+        }
+      }
+    }
+
     "workflows" should {
 
       "empty" should {
@@ -233,7 +276,7 @@ class ItemIndexQueryTest extends Specification {
 
     private def getFilter(filter: String): Option[JsObject] = {
       val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-      Seq("term", "terms").map(key => (filters.find(f => (f \ key \ filter) match {
+      Seq("term", "terms","range").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
       }))).flatten.headOption
@@ -241,8 +284,7 @@ class ItemIndexQueryTest extends Specification {
 
     def hasFilter(filter: String) = getFilter(filter).nonEmpty
 
-    private def hasFilter[T](filter: String, value: T, filterName: String, execution: Option[String])
-                            (implicit reads: Reads[T]) = {
+    private def hasFilter[T](filter: String, value: T, filterName: String, execution: Option[String])(implicit reads: Reads[T]) = {
       val f = getFilter(filter).get
       val matchesValue = (f \ filterName \ filter).as[T] == value
       execution match {
@@ -253,8 +295,17 @@ class ItemIndexQueryTest extends Specification {
 
     def hasTermsFilter[T](filter: String, value: T, execution: Option[String] = None)(implicit reads: Reads[T]) =
       hasFilter[T](filter, value, "terms", execution)
+
     def hasTermFilter[T](filter: String, value: T, execution: Option[String] = None)(implicit reads: Reads[T]) =
       hasFilter[T](filter, value, "term", execution)
+
+    def hasRangeFilter(filter: String, lte: Option[Int] = None, lt: Option[Int] = None, gte: Option[Int] = None, gt: Option[Int] = None) = {
+      val f = getFilter(filter).get
+      (f \ "range" \ filter \ "lte").asOpt[Int] == lte
+      (f \ "range" \ filter \ "lt").asOpt[Int] == lt
+      (f \ "range" \ filter \ "gte").asOpt[Int] == gte
+      (f \ "range" \ filter \ "gt").asOpt[Int] == gt
+    }
 
   }
 

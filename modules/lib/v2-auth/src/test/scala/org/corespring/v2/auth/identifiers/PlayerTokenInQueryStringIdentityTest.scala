@@ -25,7 +25,7 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
   val identifier = new PlayerTokenInQueryStringIdentity {
     override def clientIdToOrg(apiClientId: String): Option[Organization] = Some(org)
 
-    override def decrypt(encrypted: String, orgId: ObjectId, header: RequestHeader): Option[String] = Some(encrypted)
+    override def decrypt(encrypted: String, apiClientId: String, header: RequestHeader): Option[String] = Some(encrypted)
 
     override def orgService: OrgService = {
       val m = mock[OrgService]
