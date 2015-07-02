@@ -4,7 +4,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
 import org.corespring.platform.core.models.assessment.basic.{ Answer, Question, Participant, Assessment }
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.itemSession.{DefaultItemSession, ItemSessionCompanion}
+import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSessionCompanion }
 import com.mongodb.casbah.Imports._
 import scala.Some
 import org.joda.time.DateTime
@@ -16,8 +16,12 @@ trait AssessmentService {
   def create(q: Assessment): Unit
   def findAllByOrgId(id: ObjectId): List[Assessment]
   def findByIds(ids: List[ObjectId]): List[Assessment]
+  def findByIds(ids: List[ObjectId], organizationId: ObjectId): List[Assessment]
   def findByAuthor(authorId: String): List[Assessment]
+  def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment]
   def findOneById(id: ObjectId): Option[Assessment]
+  def findByIdAndOrg(id: ObjectId, organizationId: ObjectId): Option[Assessment]
+
   def remove(q: Assessment): Unit
   def update(q: Assessment): Unit
 }
@@ -40,7 +44,7 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
     import org.corespring.platform.core.models.mongoContext.context
 
     val collection = mongoCollection("assessments")
-    val dao = new SalatDAO[Assessment, ObjectId](collection = collection){}
+    val dao = new SalatDAO[Assessment, ObjectId](collection = collection) {}
   }
 
   /** Bind Item title and standards to the question */
@@ -70,8 +74,18 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
 
   def findOneById(id: ObjectId) = Dao.findOneById(id)
 
+  def findByIdAndOrg(id: ObjectId, organizationId: ObjectId) = {
+    val query = MongoDBObject("_id" -> id, "orgId" -> organizationId)
+    Dao.findOne(query)
+  }
+
   def findByIds(ids: List[ObjectId]) = {
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
+    Dao.find(query).toList
+  }
+
+  def findByIds(ids: List[ObjectId], organizationId: ObjectId) = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids), "orgId" -> organizationId)
     Dao.find(query).toList
   }
 
@@ -117,6 +131,11 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
 
   def findByAuthor(authorId: String): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId)
+    withParticipantTimestamps(Dao.find(query).toList)
+  }
+
+  def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment] = {
+    val query = MongoDBObject(Keys.authorId -> authorId, Keys.orgId -> organizationId)
     withParticipantTimestamps(Dao.find(query).toList)
   }
 
