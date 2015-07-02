@@ -18,9 +18,9 @@ trait AssessmentService {
   def findByIds(ids: List[ObjectId]): List[Assessment]
   def findByIds(ids: List[ObjectId], organizationId: ObjectId): List[Assessment]
   def findByAuthor(authorId: String): List[Assessment]
-  def findByAuthor(authorId: String, organizationId: ObjectId): List[Assessment]
+  def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment]
   def findOneById(id: ObjectId): Option[Assessment]
-  def findOneById(id: ObjectId, organizationId: ObjectId): Option[Assessment]
+  def findByIdAndOrg(id: ObjectId, organizationId: ObjectId): Option[Assessment]
 
   def remove(q: Assessment): Unit
   def update(q: Assessment): Unit
@@ -74,7 +74,7 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
 
   def findOneById(id: ObjectId) = Dao.findOneById(id)
 
-  def findOneById(id: ObjectId, organizationId: ObjectId) = {
+  def findByIdAndOrg(id: ObjectId, organizationId: ObjectId) = {
     val query = MongoDBObject("_id" -> id, "orgId" -> organizationId)
     Dao.findOne(query)
   }
@@ -134,7 +134,7 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
     withParticipantTimestamps(Dao.find(query).toList)
   }
 
-  def findByAuthor(authorId: String, organizationId: ObjectId): List[Assessment] = {
+  def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId, Keys.orgId -> organizationId)
     withParticipantTimestamps(Dao.find(query).toList)
   }

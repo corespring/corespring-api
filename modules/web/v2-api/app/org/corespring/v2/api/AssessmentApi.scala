@@ -116,7 +116,7 @@ trait AssessmentApi extends V2Api {
     })
 
   private def getByAuthorId(authorId: String, organizationId: ObjectId) =
-    Ok(Json.prettyPrint(toJson(assessmentService.findByAuthor(authorId, organizationId))))
+    Ok(Json.prettyPrint(toJson(assessmentService.findByAuthorAndOrg(authorId, organizationId))))
 
   private def getAssessmentJson(identity: OrgAndOpts, request: Request[AnyContent]): JsObject = (try {
     request.body.asJson.map(_.asInstanceOf[JsObject])
@@ -126,7 +126,7 @@ trait AssessmentApi extends V2Api {
 
   private def withAssessment(assessmentId: ObjectId, block: ((Assessment, OrgAndOpts, Request[AnyContent]) => SimpleResult)) =
     withIdentity { (identity, request) =>
-      assessmentService.findOneById(assessmentId, identity.org.id) match {
+      assessmentService.findByIdAndOrg(assessmentId, identity.org.id) match {
         case Some(assessment) => block(assessment, identity, request)
         case _ => cantFindAssessmentWithId(assessmentId).toResult
       }
