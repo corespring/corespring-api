@@ -42,12 +42,12 @@ class AssessmentApiTest extends Specification with MockFactory {
         case Some(orgId) => {
           m.findByIds(any[List[ObjectId]], any[ObjectId]) returns assessments
           allIds.foreach(id => {
-            m.findOneById(id, orgId) returns Some(assessmentFor(id))
+            m.findByIdAndOrg(id, orgId) returns Some(assessmentFor(id))
           })
           m.findAllByOrgId(orgId) returns assessments
           authorId match {
             case Some(authorId) => {
-              m.findByAuthor(authorId, orgId) returns assessments.map(_.copy(metadata = Map("author" -> authorId)))
+              m.findByAuthorAndOrg(authorId, orgId) returns assessments.map(_.copy(metadata = Map("author" -> authorId)))
             }
             case _ => {}
           }
