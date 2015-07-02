@@ -46,7 +46,7 @@ class ViewsTest extends Specification with Mockito {
 
     override def findOne(query: Imports.DBObject): Option[ModelItem] = ???
 
-    override def findOneById(id: VersionedId[Imports.ObjectId]): Option[ModelItem] = ???
+    override def findOneById(id: VersionedId[ObjectId]): Option[ModelItem] = ???
 
     def save(i: Item, createNewVersion: Boolean) {}
     def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean) {}
@@ -67,9 +67,9 @@ class ViewsTest extends Specification with Mockito {
     def remove(q: Assessment) {}
     def update(q: Assessment) {}
     def findByAuthor(authorId: String): List[Assessment] = ???
-    def findByIds(ids: List[Imports.ObjectId], organizationId: Imports.ObjectId): List[Assessment] = ???
-    def findByAuthor(authorId: String, organizationId: Imports.ObjectId): List[Assessment] = ???
-    def findOneById(id: Imports.ObjectId, organizationId: Imports.ObjectId): Option[Assessment] = ???
+    def findByIds(ids: List[ObjectId], organizationId: ObjectId): List[Assessment] = ???
+    def findByAuthor(authorId: String, organizationId: ObjectId): List[Assessment] = ???
+    def findOneById(id: ObjectId, organizationId: ObjectId): Option[Assessment] = ???
   }
 
   val views = new Views(new TestBuilder, mockService, assessmentService)
