@@ -8,15 +8,15 @@ import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.TypeImports.ObjectId
 import org.corespring.platform.core.models.item.Content
 import org.joda.time.DateTime
-import org.corespring.platform.core.models.item.resource.{Resource, BaseFile, VirtualFile}
+import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile, VirtualFile }
 import org.corespring.platform.core.models.item.json.ContentView
 
-case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
-                              var collectionId: Option[String] = None,
-                              var orgId: Option[ObjectId] = None,
-                              metadata: Map[String, String] = Map(),
-                              dateModified: Option[DateTime] = Some(new DateTime()),
-                              questions: Seq[Question] = Seq()) extends Content[ObjectId] {
+case class AssessmentTemplate(var id: ObjectId = AssessmentTemplate.Defaults.id,
+  var collectionId: Option[String] = AssessmentTemplate.Defaults.collectionId,
+  var orgId: Option[ObjectId] = AssessmentTemplate.Defaults.orgId,
+  metadata: Map[String, String] = AssessmentTemplate.Defaults.metadata,
+  dateModified: Option[DateTime] = AssessmentTemplate.Defaults.dateModified,
+  questions: Seq[Question] = AssessmentTemplate.Defaults.questions) extends Content[ObjectId] {
 
   import AssessmentTemplate._
 
@@ -31,8 +31,7 @@ case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
     name = filename,
     contentType = BaseFile.ContentTypes.JSON,
     isMain = true,
-    content = (Format.writes(this).asInstanceOf[JsObject] - Keys.id).toString
-  )
+    content = (Format.writes(this).asInstanceOf[JsObject] - Keys.id).toString)
 
   def forSalat = SalatAssessmentTemplate(
     id = id,
@@ -40,17 +39,23 @@ case class AssessmentTemplate(var id: ObjectId = ObjectId.get(),
     collectionId = collectionId,
     orgId = orgId,
     dateModified = dateModified,
-    data = Option(resource)
-  )
+    data = Option(resource))
+
+  def merge(that: AssessmentTemplate) = this.copy(
+    collectionId = if (that.collectionId.nonEmpty) that.collectionId else this.collectionId,
+    orgId = if (that.orgId.nonEmpty) that.orgId else this.orgId,
+    metadata = if (that.metadata.nonEmpty) that.metadata else this.metadata,
+    dateModified = if (that.dateModified.nonEmpty) that.dateModified else this.dateModified,
+    questions = if (that.questions.nonEmpty) that.questions else this.questions)
 
 }
 
 case class SalatAssessmentTemplate(var id: ObjectId,
-                                 var contentType: String = "",
-                                 var collectionId: Option[String] = None,
-                                 orgId: Option[ObjectId] = None,
-                                 dateModified: Option[DateTime] = None,
-                                 data: Option[Resource] = None) extends Content[ObjectId] {
+  var contentType: String = "",
+  var collectionId: Option[String] = None,
+  orgId: Option[ObjectId] = None,
+  dateModified: Option[DateTime] = None,
+  data: Option[Resource] = None) extends Content[ObjectId] {
 
   implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
 
@@ -75,6 +80,15 @@ object AssessmentTemplate extends JsonUtil {
   protected val filename = "template.json"
   protected val nameOfFile = "template"
 
+  object Defaults {
+    def id = new ObjectId()
+    val collectionId = None
+    val orgId = None
+    val metadata = Map.empty[String, String]
+    def dateModified = Some(new DateTime())
+    val questions = Seq.empty[Question]
+  }
+
   object Keys {
     val contentType = "contentType"
     val orgId = "orgId"
@@ -98,9 +112,7 @@ object AssessmentTemplate extends JsonUtil {
           collectionId = (json \ collectionId).asOpt[String],
           orgId = (json \ orgId).asOpt[String].map(new ObjectId(_)),
           metadata = (json \ metadata).asOpt[Map[String, String]].getOrElse(Map.empty),
-          questions = (json \ questions).asOpt[Seq[Question]].getOrElse(Seq.empty)
-        )
-      )
+          questions = (json \ questions).asOpt[Seq[Question]].getOrElse(Seq.empty)))
     }
 
     def writes(assessmentTemplate: AssessmentTemplate): JsValue = partialObj(
@@ -114,8 +126,7 @@ object AssessmentTemplate extends JsonUtil {
       questions -> (assessmentTemplate.questions match {
         case nonEmpty: Seq[Question] if nonEmpty.nonEmpty => Some(JsArray(nonEmpty.map(Json.toJson(_))))
         case _ => None
-      })
-    )
+      }))
   }
 
   object ContentViewWrites extends Writes[ContentView[SalatAssessmentTemplate]] {

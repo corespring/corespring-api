@@ -8,7 +8,10 @@ import org.corespring.drafts.item.services.CommitService
 import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ ItemType, Item, PlayerDefinition }
 import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, ApiClientEncrypter }
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
+import org.corespring.platform.core.services.assessment.template.AssessmentTemplateService
 import org.corespring.platform.core.services.item.{ ItemIndexService, ItemService }
+import org.corespring.platform.core.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -43,6 +46,10 @@ trait V2ApiServices {
   def apiClientEncryptionService: ApiClientEncryptionService
   def draftsBackend: ItemDrafts
   def itemCommitService: CommitService
+  def metadataService: MetadataService
+  def metadataSetService: MetadataSetService
+  def assessmentService: AssessmentService
+  def assessmentTemplateService: AssessmentTemplateService
 }
 
 class V2ApiBootstrap(
@@ -94,6 +101,29 @@ class V2ApiBootstrap(
     override def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit = sessionCreatedHandler.map(_(itemId))
 
     override def orgService: OrgService = services.orgService
+  }
+
+  lazy val metadataApi = new MetadataApi {
+
+    override def metadataService: MetadataService = services.metadataService
+
+    override def metadataSetService: MetadataSetService = services.metadataSetService
+
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
+
+    override def getOrgAndOptions(request: RequestHeader) = headerToOrgAndOpts(request)
+  }
+
+  lazy val assessmentApi = new AssessmentApi {
+    override def assessmentService: AssessmentService = services.assessmentService
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
+    override def getOrgAndOptions(request: RequestHeader) = headerToOrgAndOpts(request)
+  }
+
+  lazy val assessmentTemplateApi = new AssessmentTemplateApi {
+    override def assessmentTemplateService: AssessmentTemplateService = services.assessmentTemplateService
+    override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
+    override def getOrgAndOptions(request: RequestHeader) = headerToOrgAndOpts(request)
   }
 
   lazy val playerTokenService = new PlayerTokenService {
@@ -156,6 +186,9 @@ class V2ApiBootstrap(
     itemApi,
     itemSessionApi,
     playerTokenApi,
+    metadataApi,
+    assessmentApi,
+    assessmentTemplateApi,
     externalModelLaunchApi,
     utils,
     itemDrafts)

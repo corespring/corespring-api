@@ -15,6 +15,7 @@ import org.corespring.v2.api.services.BasicScoreService
 import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, V2ApiBootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.{ CDNResolver, V2PlayerBootstrap }
 import org.corespring.v2.wiring.auth.RequestIdentifiers
 import org.corespring.v2.wiring.services.Services

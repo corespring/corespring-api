@@ -200,3 +200,23 @@ To deploy with docker-deployer:
 ```shell
     docker-deployer deploy --deploy-name $NAME 
 ```
+
+### Running Localy ###
+
+If you want to run the API on local environment for the first time start the **play console**:
+
+    play
+    
+then in the play console run:
+
+    seed-dev
+    
+when thats done run:
+
+    index
+    
+if indexing finishes run the API:
+
+    run
+    
+Once it's running you can access the CMS in a browser on `localhost:9000`
