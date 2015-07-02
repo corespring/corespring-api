@@ -9,7 +9,7 @@ import org.corespring.v2.errors.Errors.invalidToken
 import org.corespring.v2.errors.V2Error
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{JsValue, JsObject, Json}
+import play.api.libs.json.{ JsValue, JsObject, Json }
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -58,10 +58,12 @@ class MetadataApiTest extends Specification with MockFactory {
           Right(argArray(1).asInstanceOf[MetadataSet])
         }
       }
-      m.update(any[MetadataSet]) answers { (args, _) => {
-        val argArray = args.asInstanceOf[Array[Object]]
-        Right(argArray(0).asInstanceOf[MetadataSet])
-      }}
+      m.update(any[MetadataSet]) answers { (args, _) =>
+        {
+          val argArray = args.asInstanceOf[Array[Object]]
+          Right(argArray(0).asInstanceOf[MetadataSet])
+        }
+      }
       m
     }
 

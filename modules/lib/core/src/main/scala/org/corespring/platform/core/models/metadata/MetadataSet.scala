@@ -31,8 +31,6 @@ object MetadataSet {
 
   import org.corespring.platform.core.models.json._
 
-  //implicit val format = Json.format[MetadataSet]
-
   implicit val format = new Format[MetadataSet] {
 
     override def writes(metadataSet: MetadataSet): JsValue = Json.writes[MetadataSet].writes(metadataSet)

@@ -49,7 +49,7 @@ trait MetadataApi extends V2Api {
     }
   }
 
-  def update(metadataSetId: ObjectId) = withMetadataSet (metadataSetId, { (metadataSet, identity, request) =>
+  def update(metadataSetId: ObjectId) = withMetadataSet(metadataSetId, { (metadataSet, identity, request) =>
     val json = request.body.asJson.getOrElse(Json.obj())
     (try {
       json.asOpt[MetadataSet].map(_.copy(id = metadataSetId))
@@ -64,15 +64,15 @@ trait MetadataApi extends V2Api {
     }
   })
 
-  def getById(metadataSetId: ObjectId) = withMetadataSet (metadataSetId, { (metadataSet, _, _) =>
+  def getById(metadataSetId: ObjectId) = withMetadataSet(metadataSetId, { (metadataSet, _, _) =>
     Ok(Json.prettyPrint(metadataSet))
   })
 
-  def delete(metadataSetId: ObjectId) = withMetadataSet (metadataSetId, { (metadataSet, identity, _) =>
+  def delete(metadataSetId: ObjectId) = withMetadataSet(metadataSetId, { (metadataSet, identity, _) =>
     metadataSetService.delete(identity.org.id, metadataSetId) match {
-        case None => Ok(Json.prettyPrint(metadataSet))
-        case _ => cantFindMetadataSetWithId(metadataSetId).toResult
-      }
+      case None => Ok(Json.prettyPrint(metadataSet))
+      case _ => cantFindMetadataSetWithId(metadataSetId).toResult
+    }
   })
 
   private def withMetadataSet(metadataSetId: ObjectId, block: ((MetadataSet, OrgAndOpts, Request[AnyContent]) => SimpleResult)) =
