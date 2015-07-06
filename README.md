@@ -22,7 +22,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
     git clone git@github.com:corespring/corespring-api.git
 
 * Install mongodb
-* Install [play 2.1.3](http://www.playframework.com/download)
+* Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
 * Install elasticsearch
 * For running tests install phantomjs
 
@@ -221,3 +221,23 @@ To deploy with docker-deployer:
 ```shell
     docker-deployer deploy --deploy-name $NAME 
 ```
+
+### Running Localy ###
+
+If you want to run the API on local environment for the first time start the **play console**:
+
+    play
+    
+then in the play console run:
+
+    seed-dev
+    
+when thats done run:
+
+    index
+    
+if indexing finishes run the API:
+
+    run
+    
+Once it's running you can access the CMS in a browser on `localhost:9000`

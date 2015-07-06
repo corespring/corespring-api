@@ -39,8 +39,10 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
           val m = mock[SessionService]
           m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
           m.create(any[JsValue]) returns Some(savedId)
-          m.save(anyString, any[JsValue]) returns {
-            Some(Json.obj())
+          m.save(anyString, any[JsValue]).answers { (args, value) =>
+            {
+              Some(args.asInstanceOf[Array[Object]](1).asInstanceOf[JsValue])
+            }
           }
           m
         }
@@ -201,6 +203,50 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
           case _ => failure("nope nope")
         }
       }
+    }
+
+    "reopen" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "save into main service" in new authScope(session = Some(Json.obj())) {
+        auth.reopen("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "return session with 0 attempts" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.reopen("")(optsIn) match {
+          case Success(json) => (json \ "attempts").as[Int] must be equalTo (0)
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
+      "return session with isComplete false" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.reopen("")(optsIn) match {
+          case Success(json) => (json \ "isComplete").as[Boolean] must beFalse
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
+    }
+
+    "complete" should {
+      val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
+
+      "save into main service" in new authScope(session = Some(Json.obj())) {
+        auth.complete("")(optsIn)
+        there was one(auth.mainSessionService).load(any[String])
+      }
+
+      "return session with isComplete true" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
+        auth.complete("")(optsIn) match {
+          case Success(json) => {
+            println(Json.prettyPrint(json))
+            (json \ "isComplete").as[Boolean] must beTrue
+          }
+          case _ => Failure("reopen was unsuccessful")
+        }
+      }
+
     }
 
     "cloneIntoPreview" should {
