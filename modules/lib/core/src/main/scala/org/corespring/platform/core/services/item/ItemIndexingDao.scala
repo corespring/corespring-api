@@ -25,14 +25,18 @@ class ItemIndexingDao(dao: SalatVersioningDao[Item], itemIndexService: ItemIndex
    * available in search results.
    */
   private def synchronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-    Await.result(itemIndexService.reindex(id).flatMap(result => {
-      result match {
-        case Success(anything) => itemIndexService.refresh()
-        case Failure(error) => Future {
-          Failure(error)
+    try {
+      Await.result(itemIndexService.reindex(id).flatMap(result => {
+        result match {
+          case Success(anything) => itemIndexService.refresh()
+          case Failure(error) => Future {
+            Failure(error)
+          }
         }
-      }
-    }), Duration(20, SECONDS))
+      }), Duration(20, SECONDS))
+    } catch {
+      case e: Exception => Failure(new Error(e.getMessage))
+    }
   }
 
   private def index(block: => VersionedId[ObjectId]): VersionedId[ObjectId] = {
