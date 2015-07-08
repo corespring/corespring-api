@@ -35,9 +35,6 @@
         mk('/edit/draft/:itemId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
         mk('/edit/:itemId', '/web/partials/editItem', ItemController, false);
         mk('/view/:itemId', '/web/views/partials/tagger/viewItem', tagger.ViewItemController, false);
-        /* jshint ignore:start */
-        mk('/old/edit/:itemId', '/web/partials/editItem', ItemController, false);
-        /* jshint ignore:end */
         $rp.otherwise({
           redirectTo: '/home'
         });
