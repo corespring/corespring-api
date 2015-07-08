@@ -44,13 +44,13 @@ class AllItemVersionTransformer extends ItemTransformer {
 
         logger.debug(s"function=collectionToSaveIn - find id only in versioned and current collections: ${JSON.serialize(idOnly)}")
 
-        val versionedCount = ItemServiceWired.dao.versionedCollection.count(query)
-        val currentCount = ItemServiceWired.dao.currentCollection.count(query)
+        val versionedCount = ItemServiceWired.itemDao.versionedCollection.count(query)
+        val currentCount = ItemServiceWired.itemDao.currentCollection.count(query)
 
         if (versionedCount == 1) {
-          Some(ItemServiceWired.dao.versionedCollection)
+          Some(ItemServiceWired.itemDao.versionedCollection)
         } else if (currentCount == 1) {
-          Some(ItemServiceWired.dao.currentCollection)
+          Some(ItemServiceWired.itemDao.currentCollection)
         } else None
       }.flatten
 
