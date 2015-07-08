@@ -24,7 +24,7 @@ class ItemIndexingDao(dao: SalatVersioningDao[Item], itemIndexService: ItemIndex
    * needed so that the client can be assured that when they re-query the index after update that the changes will be
    * available in search results.
    */
-  private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
+  private def synchronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
     Await.result(itemIndexService.reindex(id).flatMap(result => {
       result match {
         case Success(anything) => itemIndexService.refresh()
@@ -37,14 +37,14 @@ class ItemIndexingDao(dao: SalatVersioningDao[Item], itemIndexService: ItemIndex
 
   private def index(block: => VersionedId[ObjectId]): VersionedId[ObjectId] = {
     val id = block
-    syncronousReindex(id)
+    synchronousReindex(id)
     id
   }
 
   private def index(block: => Either[String, VersionedId[ObjectId]]) = {
     val maybeId = block
     maybeId match {
-      case Right(id) => syncronousReindex(id)
+      case Right(id) => synchronousReindex(id)
       case _ => logger.error("Cannot index failure")
     }
     maybeId
@@ -52,7 +52,7 @@ class ItemIndexingDao(dao: SalatVersioningDao[Item], itemIndexService: ItemIndex
 
   private def index(block: => Option[VersionedId[ObjectId]]) = {
     val maybeId = block
-    maybeId.map(syncronousReindex)
+    maybeId.map(synchronousReindex)
     maybeId
   }
 
@@ -71,7 +71,7 @@ class ItemIndexingDao(dao: SalatVersioningDao[Item], itemIndexService: ItemIndex
     multi: Boolean = false, concern: com.mongodb.WriteConcern = collection.writeConcern)(implicit queryView: A => DBObject, objView: B => DBObject,
       encoder: DBEncoder = collection.customEncoderFactory.map(_.create).orNull): WriteResult = {
     val rv = collection.update(query, obj, upsert, multi)
-    syncronousReindex(id)
+    synchronousReindex(id)
     rv
   }
 
