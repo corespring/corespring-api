@@ -1,6 +1,6 @@
 package org.corespring.platform.core.services.item
 
-import com.mongodb.casbah
+import com.mongodb.{ DBObject, casbah }
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.{ Imports, MongoDBObject }
 import com.novus.salat._
@@ -28,7 +28,7 @@ import se.radley.plugin.salat.SalatPlugin
 class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
-  val dao: SalatVersioningDao[Item],
+  val itemDao: SalatVersioningDao[Item],
   itemIndexService: ItemIndexService)(implicit executionContext: ExecutionContext)
   extends ItemService with ItemFiles with ItemPublishingService {
 
@@ -41,27 +41,14 @@ class ItemServiceWired(
 
   val FieldValuesVersion = "0.0.1"
 
-  lazy val collection = dao.currentCollection
-
   lazy val fieldValues = FieldValue.current
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
-  /**
-   * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is
-   * needed so that the client can be assured that when they re-query the index after update that the changes will be
-   * available in search results.
-   */
-  private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-    Await.result(itemIndexService.reindex(id).flatMap(result => {
-      result match {
-        case Success(anything) => itemIndexService.refresh()
-        case Failure(error) => Future {
-          Failure(error)
-        }
-      }
-    }), Duration(20, SECONDS))
-  }
+  val dao = new ItemIndexingDao(itemDao, itemIndexService)
+
+  // This is a leaky abstraction
+  val collection = itemDao.currentCollection
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
@@ -70,7 +57,6 @@ class ItemServiceWired(
     result match {
       case Success(updatedItem) => {
         dao.save(updatedItem, false)
-        syncronousReindex(updatedItem.id)
         Some(updatedItem)
       }
       case Failure(files) => {
@@ -92,8 +78,7 @@ class ItemServiceWired(
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
-    val result = collection.update(vidToDbo(id), update, false)
-    syncronousReindex(id)
+    val result = dao.collectionUpdate(id, vidToDbo(id), update, false)
     result.getLastError.ok
   }
 
@@ -103,7 +88,7 @@ class ItemServiceWired(
    * @return the VersionedId[ObjectId] of the new item
    */
   override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
-    dao.get(id).map { item =>
+    itemDao.get(id).map { item =>
       val update = item.copy(published = false)
       save(update, true) match {
         case Left(_) => None
@@ -112,21 +97,20 @@ class ItemServiceWired(
     }.flatten
   }
 
-  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
+  def count(query: DBObject, fields: Option[String] = None): Int = itemDao.countCurrent(baseQuery ++ query).toInt
 
-  def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
+  def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = itemDao.findDbo(id, fields)
 
-  override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
+  override def currentVersion(id: VersionedId[ObjectId]): Long = itemDao.getCurrentVersion(id)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = dao.findCurrent(baseQuery ++ query, fields)
+  def find(query: DBObject, fields: DBObject = new BasicDBObject()): SalatMongoCursor[Item] = itemDao.findCurrent(baseQuery ++ query, fields)
 
-  def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
+  def findOneById(id: VersionedId[ObjectId]): Option[Item] = itemDao.findOneById(id)
 
-  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
+  def findOne(query: DBObject): Option[Item] = itemDao.findOneCurrent(baseQuery ++ query)
 
   def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) {
     dao.update(id, dbo, createNewVersion)
-    syncronousReindex(id)
   }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
@@ -135,7 +119,7 @@ class ItemServiceWired(
     import org.corespring.platform.core.models.mongoContext.context
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
-    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, false, false)
+    val result = dao.collectionUpdate(item.id, MongoDBObject("_id._id" -> item.id.id), update, false, false)
     logger.trace(s"function=addFileToPlayerDefinition, itemId=${item.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${item.id} must have been updated")
     if (result.getN != 1) {
@@ -150,16 +134,9 @@ class ItemServiceWired(
   override def save(item: Item, createNewVersion: Boolean = false): Either[String, VersionedId[ObjectId]] = {
 
     val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
-    savedVid match {
-      case Left(_) => logger.error("Cannot index a failure")
-      case Right(id) => {
-        import ExecutionContext.Implicits.global
-        itemIndexService.reindex(id)
-      }
-    }
 
     if (createNewVersion) {
-      val newItem = dao.findOneById(VersionedId(item.id.id)).get
+      val newItem = itemDao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[Seq[CloneFileResult], Item] = cloneStoredFiles(item, newItem)
       result match {
         case Success(updatedItem) => {
@@ -186,7 +163,7 @@ class ItemServiceWired(
   def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
     val oids = ids.map(i => i.id)
     val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
-    val out = dao.findCurrent(query, keys).toSeq
+    val out = itemDao.findCurrent(query, keys).toSeq
     out
   }
 
@@ -221,7 +198,7 @@ class ItemServiceWired(
 
   def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> ContentCollection.archiveCollId.toString))
-    saveUsingDbo(id, update, false)
+    dao.update(id, update, false)
   }
 
   def v2SessionCount(itemId: VersionedId[ObjectId]): Long = ItemVersioningDao.db("v2.itemSessions").count(MongoDBObject("itemId" -> itemId.toString))
