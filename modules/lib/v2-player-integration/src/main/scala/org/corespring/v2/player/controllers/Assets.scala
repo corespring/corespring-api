@@ -1,33 +1,29 @@
 package org.corespring.v2.player.controllers
 
-import org.corespring.amazon.s3.ConcreteS3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.controllers.{ Assets => ContainerAssets }
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.sessiondb.SessionService
 import play.api.mvc.{ AnyContent, Request, SimpleResult }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import play.utils.UriEncoding
 
 trait Assets extends ContainerAssets {
 
-  private lazy val key = AppConfig.amazonKey
-  private lazy val secret = AppConfig.amazonSecret
   private lazy val bucket = AppConfig.assetsBucket
 
   lazy val logger = V2LoggerFactory.getLogger(classOf[Assets])
 
   lazy val playS3 = CorespringS3ServiceExtended
 
-  def sessionService: MongoService
+  def sessionService: SessionService
 
-  def previewSessionService: MongoService
+  def previewSessionService: SessionService
 
   def itemService: ItemService
 

@@ -66,12 +66,13 @@ object Build extends sbt.Build {
     "org.bson.types.ObjectId",
     "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
 
-  val playJsonSalatUtils = builders.lib("play-json-salat-utils").settings(
-    libraryDependencies ++= Seq(playJson, salat, specs2 % "test"))
+  val playJsonSalatUtils = builders.lib("play-json-salat-utils")
+    .settings(
+      libraryDependencies ++= Seq(playJson, salat, specs2 % "test"))
 
   val apiUtils = builders.lib("api-utils")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", playFramework, salatPlay, playJson % "test"),
+      libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
       Keys.fork in Test := forkInTests)
 
   /** Any shared test helpers in here */
@@ -87,24 +88,25 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   /** Core data model */
-  val core = builders.lib("core").settings(
-    libraryDependencies ++= Seq(
-      salatPlay,
-      corespringCommonUtils,
-      httpClient,
-      salatVersioningDao,
-      specs2 % "test",
-      playS3,
-      playFramework,
-      securesocial,
-      assetsLoader,
-      mockito,
-      sprayCaching,
-      componentLoader,
-      playTest % "test",
-      scalaFaker,
-      elasticsearchPlayWS,
-      jsoup))
+  val core = builders.lib("core")
+    .settings(
+      libraryDependencies ++= Seq(
+        assetsLoader,
+        componentLoader,
+        corespringCommonUtils,
+        elasticsearchPlayWS,
+        httpClient,
+        jsoup,
+        mockito,
+        playFramework,
+        playS3,
+        playTest % "test",
+        salatPlay,
+        salatVersioningDao,
+        scalaFaker,
+        securesocial,
+        specs2 % "test",
+        sprayCaching))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
 
   val playerLib = builders.lib("player-lib")
@@ -127,22 +129,28 @@ object Build extends sbt.Build {
       IO.write(file, contents)
   }
 
-  val commonViews = builders.web("common-views").settings(
-    buildInfoTask,
-    (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
-    libraryDependencies ++= Seq(playJson % "test")).dependsOn(core % "compile->compile;test->test")
+  val commonViews = builders.web("common-views")
+    .settings(
+      buildInfoTask,
+      (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
+      libraryDependencies ++= Seq(playJson % "test"))
+    .dependsOn(core % "compile->compile;test->test")
 
-  val clientLogging = builders.web("client-logging").settings(
-    libraryDependencies ++= Seq(playFramework, scalaz)).dependsOn(apiUtils, core % "test->test")
+  val clientLogging = builders.web("client-logging")
+    .settings(
+      libraryDependencies ++= Seq(playFramework, scalaz))
+    .dependsOn(apiUtils, core % "test->test")
 
   val scormLib = builders.lib("scorm").settings(
-    libraryDependencies ++= Seq(playFramework)).dependsOn(core)
+    libraryDependencies ++= Seq(playFramework))
+    .dependsOn(core)
 
   val ltiLib = builders.lib("lti")
     .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
 
-  val drafts = builders.lib("drafts").settings(
-    libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert, scalaz))
+  val drafts = builders.lib("drafts")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert, scalaz))
 
   val itemDrafts = builders.lib("item-drafts")
     .settings(
@@ -151,13 +159,16 @@ object Build extends sbt.Build {
     .aggregate(core, drafts)
 
   /** Qti -> v2 transformers */
-  val qtiToV2 = builders.lib("qti-to-v2").settings(
-    libraryDependencies ++= Seq(playJson, rhino % "test")).dependsOn(core, qti, apiUtils, testLib % "test->compile")
+  val qtiToV2 = builders.lib("qti-to-v2")
+    .settings(
+      libraryDependencies ++= Seq(playJson, rhino % "test"))
+    .dependsOn(core, qti, apiUtils, testLib % "test->compile")
 
-  val v1Api = builders.web("v1-api").settings(
-    libraryDependencies ++= Seq(casbah),
-    templatesImport ++= TemplateImports.Ids,
-    routesImport ++= customImports)
+  val v1Api = builders.web("v1-api")
+    .settings(
+      libraryDependencies ++= Seq(casbah),
+      templatesImport ++= TemplateImports.Ids,
+      routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
       MongoDbSeederPlugin.logLevel := "DEBUG",
       testUri := "mongodb://localhost/api",
@@ -167,14 +178,23 @@ object Build extends sbt.Build {
   /**
    * Error types
    */
-  val v2Errors = builders.lib("v2-errors").settings(
-    libraryDependencies ++= Seq(scalaz)).dependsOn(core)
+  val v2Errors = builders.lib("v2-errors")
+    .settings(
+      libraryDependencies ++= Seq(scalaz))
+    .dependsOn(core)
+
+  val v2SessionDb = builders.lib("v2-session-db")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
+
   /**
    * All authentication code for v2 api + player/editor
    */
-  val v2Auth = builders.lib("v2-auth").settings(
-    libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
+  val v2Auth = builders.lib("v2-auth")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
+    .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts, v2SessionDb)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(
@@ -185,7 +205,8 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
 
-  val draftsApi = builders.web("v2-api-drafts").dependsOn(itemDrafts, testLib % "test->test")
+  val draftsApi = builders.web("v2-api-drafts")
+    .dependsOn(itemDrafts, testLib % "test->test")
 
   val v2Api = builders.web("v2-api")
     .settings(
@@ -197,6 +218,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports)
     .dependsOn(
       v2Auth % "test->test;compile->compile",
+      v2SessionDb % "test->test;compile->compile",
       qtiToV2,
       v1Api,
       core % "test->test;compile->compile",
@@ -213,20 +235,24 @@ object Build extends sbt.Build {
     .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
     .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
 
-  val devTools = builders.web("dev-tools").settings(
-    routesImport ++= customImports,
-    libraryDependencies ++= Seq(containerClientWeb, mongoJsonService)).dependsOn(v1Player, playerLib, core, v2Auth)
+  val devTools = builders.web("dev-tools")
+    .settings(
+      routesImport ++= customImports,
+      libraryDependencies ++= Seq(containerClientWeb, mongoJsonService))
+    .dependsOn(v1Player, playerLib, core, v2Auth)
 
   /** Implementation of corespring container hooks */
-  val v2PlayerIntegration = builders.lib("v2-player-integration").settings(
-    libraryDependencies ++= Seq(
-      containerClientWeb,
-      componentLoader,
-      componentModel,
-      scalaz,
-      mongoJsonService,
-      playS3,
-      httpClient)).dependsOn(
+  val v2PlayerIntegration = builders.lib("v2-player-integration")
+    .settings(
+      libraryDependencies ++= Seq(
+        containerClientWeb,
+        componentLoader,
+        componentModel,
+        scalaz,
+        mongoJsonService,
+        playS3,
+        httpClient))
+    .dependsOn(
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
@@ -236,25 +262,30 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  val ltiWeb = builders.web("lti-web").settings(
-    templatesImport ++= TemplateImports.Ids,
-    routesImport ++= customImports)
+  val ltiWeb = builders.web("lti-web")
+    .settings(
+      templatesImport ++= TemplateImports.Ids,
+      routesImport ++= customImports)
     .aggregate(core, ltiLib, playerLib, v1Player)
     .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test")
 
-  val public = builders.web("public").settings(
-    libraryDependencies ++= Seq(playFramework, securesocial),
-    routesImport ++= customImports)
+  val public = builders.web("public")
+    .settings(
+      libraryDependencies ++= Seq(playFramework, securesocial),
+      routesImport ++= customImports)
     .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, v1Player, testLib % "test->compile")
-    .aggregate(commonViews).settings(disableDocsSettings: _*)
+    .aggregate(commonViews)
+    .settings(disableDocsSettings: _*)
 
   val reports = builders.web("reports")
     .settings(
       libraryDependencies ++= Seq(simplecsv))
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
-  val scormWeb = builders.web("scorm-web").settings(
-    routesImport ++= customImports).dependsOn(core, scormLib, v1Player)
+  val scormWeb = builders.web("scorm-web")
+    .settings(
+      routesImport ++= customImports)
+    .dependsOn(core, scormLib, v1Player)
 
   val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
 
@@ -401,6 +432,7 @@ object Build extends sbt.Build {
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
       v2Api,
+      v2SessionDb,
       apiTracking,
       clientLogging % "compile->compile;test->test",
       qtiToV2,
@@ -422,9 +454,11 @@ object Build extends sbt.Build {
       v2Api,
       apiTracking,
       v2Auth,
+      v2SessionDb,
       clientLogging,
       qtiToV2,
       itemImport,
       itemDrafts)
+
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }

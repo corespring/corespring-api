@@ -8,6 +8,7 @@ import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
 import org.corespring.wiring.AppWiring
+import org.corespring.wiring.sessiondb.SessionDbInitialiser
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api._
 import play.api.http.ContentTypes
@@ -90,6 +91,7 @@ object Global
 
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
+    SessionDbInitialiser.init(app)
   }
 
   private def timeLeftUntil2am = {

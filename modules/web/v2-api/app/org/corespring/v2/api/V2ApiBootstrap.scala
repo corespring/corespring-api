@@ -5,7 +5,6 @@ import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.CommitService
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ ItemType, Item, PlayerDefinition }
 import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, ApiClientEncrypter }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
@@ -19,9 +18,10 @@ import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.services.{OrgService, TokenService}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionService
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
@@ -36,7 +36,7 @@ import scalaz.Validation
 
 trait V2ApiServices {
   def orgService: OrgService
-  def sessionService: MongoService
+  def sessionService: SessionService
   def itemService: ItemService
   def itemType: ItemType
   def itemIndexService: ItemIndexService

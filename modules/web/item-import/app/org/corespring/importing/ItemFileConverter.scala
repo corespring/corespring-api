@@ -7,9 +7,10 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
+import org.corespring.common.aws.AwsUtil
 import org.corespring.json.validation.JsonValidator
 import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{Resource, StoredFile, BaseFile}
+import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile, BaseFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -19,7 +20,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
-import scalaz.{Success, Failure, Validation}
+import scalaz.{ Success, Failure, Validation }
 
 trait ItemFileConverter {
 
@@ -81,8 +82,7 @@ trait ItemFileConverter {
                 reviewsPassed = extractStringSeq("reviewsPassed"),
                 standards = extractStringSeq("standards"),
                 supportingMaterials = supporting,
-                workflow = workflow
-              )
+                workflow = workflow)
               itemService.save(item, createNewVersion = false)
               Success(item)
             }
@@ -126,7 +126,7 @@ trait ItemFileConverter {
   }
 
   private def files(itemId: VersionedId[ObjectId], itemJson: JsValue)(implicit sources: Map[String, Source]): Validation[Error, Option[Resource]] = {
-    upload(itemId, sources.filter{case (filename, source) => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(filename) }) match {
+    upload(itemId, sources.filter { case (filename, source) => (itemJson \ "files").asOpt[Seq[String]].getOrElse(Seq.empty).contains(filename) }) match {
       case Success(files) if files.nonEmpty => Success(Some(Resource(name = "data", files = files)))
       case Success(files) => Success(None)
       case Failure(error) => Failure(error)
@@ -135,7 +135,7 @@ trait ItemFileConverter {
 
   private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
     val futureFiles =
-      Future.sequence(files.map{ case(filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
+      Future.sequence(files.map { case (filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
     try {
       Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
     } catch {
@@ -181,8 +181,7 @@ trait ItemFileConverter {
         setup = workflowStrings.contains(setup),
         tagged = workflowStrings.contains(tagged),
         standardsAligned = workflowStrings.contains(standardsAligned),
-        qaReview = workflowStrings.contains(qaReview)
-      ))
+        qaReview = workflowStrings.contains(qaReview)))
       case _ => None
     }).flatten
   }
@@ -191,13 +190,13 @@ trait ItemFileConverter {
     try {
       Success(metadata.map(md => (md \ "supportingMaterials").asOpt[Seq[JsObject]]).flatten.getOrElse(Seq.empty)
         .map(material => {
-        val name = (material \ "name").asOpt[String].getOrElse("")
-        val filenames = (material \ "files").asOpt[Seq[JsObject]].getOrElse(Seq.empty).map(f => (f \ "name").asOpt[String]).flatten
-        upload(itemId, files = sources.filter{ case(filename, source) => filenames.contains(filename) }) match {
-          case Success(files) => Resource(name = name, files = files)
-          case Failure(error) => throw new ConversionException(error)
-        }
-      }))
+          val name = (material \ "name").asOpt[String].getOrElse("")
+          val filenames = (material \ "files").asOpt[Seq[JsObject]].getOrElse(Seq.empty).map(f => (f \ "name").asOpt[String]).flatten
+          upload(itemId, files = sources.filter { case (filename, source) => filenames.contains(filename) }) match {
+            case Success(files) => Resource(name = name, files = files)
+            case Failure(error) => throw new ConversionException(error)
+          }
+        }))
     } catch {
       case e: ConversionException => Failure(e.error)
     }
@@ -209,9 +208,9 @@ trait Uploader {
   def upload(filename: String, path: String, file: Source): Future[StoredFile]
 }
 
-class TransferManagerUploader(awsKey: String, awsSecret: String, bucket: String) extends Uploader {
+class TransferManagerUploader(credentials: BasicAWSCredentials, bucket: String) extends Uploader {
 
-  val transferManager = new TransferManager(new BasicAWSCredentials(awsKey, awsSecret))
+  val transferManager = new TransferManager(credentials)
 
   def upload(filename: String, path: String, file: Source) = future {
     val byteArray = file.map(_.toByte).toArray

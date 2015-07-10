@@ -132,9 +132,23 @@ There are some useful utilities for working with the s3 assets:
 * [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
 * [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
 
-https://corespring.signin.aws.amazon.com/console
+[aws console](https://corespring.signin.aws.amazon.com/console)
 
 Ask evan for a user account.
+
+#### Amazon DynamoDb (experimental) 
+
+By default we are using MongoDb for session storage. So normally you don't have to worry about this. 
+As a new feature we are currently trying out Amazon's DynamoDb for the sessionDbService. If you want to play 
+with it or do some work in this area, you can enable it in application.conf       
+
+For development you should run a local instance. 
+You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
+
+Check application.conf for dynamo configuration properties.
+    
+[aws console](https://corespring.signin.aws.amazon.com/console)
+Ask evan for a user account or use an account from passpack 
 
 
 ### Dev Tools
@@ -188,11 +202,18 @@ If you want to run this docker image or deploy it using [docker-deployer](github
     sbt assembly
 ```
 
-To create and run a docker image: 
+To create and run a docker image with default Dockerfile: 
 
 ````shell
     docker build -t="corespring-api" .
     docker run -p 9000:9000 -t="corespring-api" #run main script
+```
+
+To create and run a docker image with custom docker file named DockerfileWithDynamo 
+
+````shell
+    docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
+    docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
 ```
 
 To deploy with docker-deployer:

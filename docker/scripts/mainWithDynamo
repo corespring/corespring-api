@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+def run(cmd)
+  puts " ---- cmd: [#{cmd}]"
+  system(cmd, out: $stdout, err: :out)
+end
+
+puts " -- starting mongo"
+run('mongod --fork --dbpath /var/lib/mongodb/ --smallfiles --logpath /var/log/mongodb.log --logappend')
+
+puts " -- start elasticsearch"
+run('service elasticsearch start')
+
+puts " -- give elasticsearch some time to boot up - 30 seconds"
+sleep 30 
+
+run('service elasticsearch status')
+run('curl -s http://localhost:9200')
+
+Dir.chdir('/opt/cs-api-docker-util')
+
+puts " -- seed db + index elasticsearch"
+run('java -jar run.jar')
+
+puts "-- pinging elasticsearch..."
+run('curl -s http://localhost:9200/content/_search?pretty=1')
+
+puts "-- boot fake s3"
+
+run("mkdir -p /var/log/fakes3")
+
+# Spawn a new process and run the rake command
+pid = Process.spawn("fakes3 -r /opt/fake-s3-root -p 4567", 
+  :out => "/var/log/fakes3/out.log", 
+  :err => "/var/log/fakes3/err.log")
+# Detach the spawned process
+Process.detach pid
+
+if ENV["ENV_DYNAMO_DB_ACTIVATE"] == "true" && ENV["ENV_DYNAMO_DB_USE_LOCAL"] == "true"
+  puts "-- boot local dynamo db"
+
+  run("mkdir -p /var/log/dynamo")
+
+  dynamo_port = ENV["ENV_DYNAMO_LOCAL_PORT"] || 8000
+
+  # Spawn a new process for dynamo db
+  dynamo_pid = Process.spawn("java -Djava.library.path=/opt/dynamo/DynamoDBLocal_lib -jar /opt/dynamo/DynamoDBLocal.jar -port #{dynamo_port} -sharedDb -dbPath /var/lib/dynamodb",
+    :out => "/var/log/dynamo/out.log",
+    :err => "/var/log/dynamo/err.log")
+  # Detach the spawned process
+  Process.detach dynamo_pid
+elsif ENV["ENV_DYNAMO_DB_ACTIVATE"] == "true"
+  puts "-- using remote aws dynamo db"
+end
+
+
+
+Dir.chdir('/opt')
+
+puts Dir.pwd
+
+puts "-- boot play app..."
+
+path = "corespring-api/bin/corespring"
+play_pid = Process.spawn(path)
+Process.wait(play_pid)
