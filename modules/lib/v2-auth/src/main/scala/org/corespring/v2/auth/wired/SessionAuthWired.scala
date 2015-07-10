@@ -143,9 +143,8 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     "dateCreated" -> Json.obj(
       "$date" -> DateTime.now(DateTimeZone.UTC)))
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject =
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
-  }
 
   private def rmIdentityFromSession(s: Session) = s.asInstanceOf[JsObject] - "identity"
 }

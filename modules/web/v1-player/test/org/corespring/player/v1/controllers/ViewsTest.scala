@@ -1,5 +1,6 @@
 package org.corespring.player.v1.controllers
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.assessment.basic.{ Answer, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
@@ -45,7 +46,7 @@ class ViewsTest extends Specification with Mockito {
 
     override def findOne(query: Imports.DBObject): Option[ModelItem] = ???
 
-    override def findOneById(id: VersionedId[Imports.ObjectId]): Option[ModelItem] = ???
+    override def findOneById(id: VersionedId[ObjectId]): Option[ModelItem] = ???
 
     def save(i: Item, createNewVersion: Boolean) {}
     def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean) {}
@@ -66,6 +67,9 @@ class ViewsTest extends Specification with Mockito {
     def remove(q: Assessment) {}
     def update(q: Assessment) {}
     def findByAuthor(authorId: String): List[Assessment] = ???
+    def findByIds(ids: List[ObjectId], organizationId: ObjectId): List[Assessment] = ???
+    def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment] = ???
+    def findByIdAndOrg(id: ObjectId, organizationId: ObjectId): Option[Assessment] = ???
   }
 
   val views = new Views(new TestBuilder, mockService, assessmentService)

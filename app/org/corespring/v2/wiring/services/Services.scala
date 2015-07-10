@@ -15,7 +15,10 @@ import org.corespring.platform.core.encryption.{ ApiClientEncrypter, ApiClientEn
 import org.corespring.platform.core.models.{ ContentCollection, Organization }
 import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
 import org.corespring.platform.core.models.item.{ ItemType, PlayerDefinition }
+import org.corespring.platform.core.services.assessment.basic.AssessmentService
+import org.corespring.platform.core.services.assessment.template.{ AssessmentTemplateServiceImpl, AssessmentTemplateService }
 import org.corespring.platform.core.services.item._
+import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataService, MetadataSetServiceImpl, MetadataServiceImpl }
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.V2ApiServices
@@ -54,6 +57,18 @@ class Services(cacheConfig: Configuration,
   override val itemType: ItemType = ItemType
 
   override val itemIndexService: ItemIndexService = ElasticSearchItemIndexService
+
+  override val metadataService: MetadataService = new MetadataServiceImpl with ItemServiceClient {
+    def itemService: ItemService = ItemServiceWired
+  }
+
+  override val metadataSetService: MetadataSetService = new MetadataSetServiceImpl {
+    def orgService: OrganizationService = Organization
+  }
+
+  override val assessmentService: AssessmentService = AssessmentService
+
+  override val assessmentTemplateService: AssessmentTemplateService = AssessmentTemplateServiceImpl
 
   override def draftsBackend: ItemDrafts = new ItemDrafts {
     override def itemService = Services.this.itemService

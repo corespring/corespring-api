@@ -9,10 +9,10 @@ PUT     /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.It
 DELETE  /items/drafts/:draftId             @org.corespring.v2.api.drafts.item.ItemDrafts.delete(draftId:String, all: Option[Boolean] ?= None)
 GET     /items/drafts                      @org.corespring.v2.api.drafts.item.ItemDrafts.getDraftsForOrg()
 
-GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
-POST /sessions/:sessionId/clone            @org.corespring.v2.api.ItemSessionApi.cloneSession(sessionId: String)
-PUT  /sessions/:sessionId/reopen           @org.corespring.v2.api.ItemSessionApi.reopen(sessionId: String)
-PUT  /sessions/:sessionId/complete         @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
+GET     /sessions/:sessionId               @org.corespring.v2.api.ItemSessionApi.get(sessionId:String)
+POST    /sessions/:sessionId/clone         @org.corespring.v2.api.ItemSessionApi.cloneSession(sessionId: String)
+PUT     /sessions/:sessionId/reopen        @org.corespring.v2.api.ItemSessionApi.reopen(sessionId: String)
+PUT     /sessions/:sessionId/complete      @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
 
 ## Check a score
 ## Load the score based on the saved response
@@ -61,3 +61,43 @@ GET  /item-types                           @org.corespring.v2.api.ItemApi.getIte
 
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 
+
+# Metadata
+
+GET     /metadata-sets                      @org.corespring.v2.api.MetadataApi.get
+
+GET     /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.getById(metadataSetId: ObjectId)
+
+GET     /item/:itemId/metadata              @org.corespring.v2.api.MetadataApi.getByItemId(itemId: VersionedId[ObjectId])
+
+POST    /metadata-sets                      @org.corespring.v2.api.MetadataApi.create()
+
+PUT     /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.update(metadataSetId: ObjectId)
+
+DELETE  /metadata-sets/:metadataSetId       @org.corespring.v2.api.MetadataApi.delete(metadataSetId: ObjectId)
+
+
+# Assessments
+
+GET     /assessments                                    @org.corespring.v2.api.AssessmentApi.get(author_id: Option[String] ?= None)
+
+GET     /assessments/:assessmentIds                     @org.corespring.v2.api.AssessmentApi.getByIds(assessmentIds: String)
+
+PUT     /assessments/:assessmentId                      @org.corespring.v2.api.AssessmentApi.update(assessmentId: ObjectId)
+
+POST    /assessments                                    @org.corespring.v2.api.AssessmentApi.create()
+
+PUT     /assessments/:assessmentId/add-answer           @org.corespring.v2.api.AssessmentApi.addAnswer(assessmentId: ObjectId, external_id: Option[String] ?= None)
+
+PUT     /assessments/:assessmentId/add-participants     @org.corespring.v2.api.AssessmentApi.addParticipants(assessmentId: ObjectId)
+
+
+# Assessment Templates
+
+GET     /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.get
+
+GET     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.AssessmentTemplateApi.getById(assessmentTemplateId: ObjectId)
+
+POST    /assessment-templates                           @org.corespring.v2.api.AssessmentTemplateApi.create()
+
+PUT     /assessment-templates/:assessmentTemplateId     @org.corespring.v2.api.AssessmentTemplateApi.update(assessmentTemplateId: ObjectId)

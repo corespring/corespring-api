@@ -39,6 +39,7 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
     val m = mock[ItemIndexService]
     m.search(any[ItemIndexQuery]) returns Future { Success(ItemIndexSearchResult.empty) }
     m.reindex(any[VersionedId[ObjectId]]) returns Future { Success("") }
+    m.refresh() returns Future { Success("") }
     m
   }
 
@@ -62,7 +63,11 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       m.currentCollection returns mockCollection
       m
     }
-    val mockIndex = mock[ItemIndexService]
+    val mockIndex = {
+      val m = mock[ItemIndexService]
+      m.reindex(any[VersionedId[ObjectId]]) returns Future { Success("") }
+      m
+    }
     val service = new ItemServiceWired(mockS3, mockSession, mockDao, mockIndex)
   }
 

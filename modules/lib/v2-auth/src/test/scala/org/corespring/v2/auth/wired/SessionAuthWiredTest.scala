@@ -239,10 +239,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "return session with isComplete true" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
         auth.complete("")(optsIn) match {
-          case Success(json) => {
-            println(Json.prettyPrint(json))
-            (json \ "isComplete").as[Boolean] must beTrue
-          }
+          case Success(json) => (json \ "isComplete").as[Boolean] must beTrue
           case _ => Failure("reopen was unsuccessful")
         }
       }

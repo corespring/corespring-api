@@ -30,8 +30,8 @@ class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification 
     lazy val transformer = new AllItemVersionTransformer()
 
     override def after: Any = {
-      ItemServiceWired.dao.currentCollection.remove(idQuery)
-      ItemServiceWired.dao.versionedCollection.remove(idQuery)
+      ItemServiceWired.itemDao.currentCollection.remove(idQuery)
+      ItemServiceWired.itemDao.versionedCollection.remove(idQuery)
     }
 
     override def before: Any = {
@@ -43,8 +43,8 @@ class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification 
 
     "save transformation in the right collection" in new WithItem {
       transformer.updateV2Json(item)
-      ItemServiceWired.dao.currentCollection.count(idQuery) === 1
-      ItemServiceWired.dao.versionedCollection.count(idQuery) === 1
+      ItemServiceWired.itemDao.currentCollection.count(idQuery) === 1
+      ItemServiceWired.itemDao.versionedCollection.count(idQuery) === 1
     }
   }
 }

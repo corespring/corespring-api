@@ -11,6 +11,10 @@ import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile
 import com.mongodb.DBObject
 import com.mongodb.util.JSON
 
+/**
+ * TODO: This helper is problematic because it violates the Law of Demeter by asking the ItemService for its underlying
+ * collection. This creates a leaky abstraction, and so this should be refactored to use the collection directly.
+ */
 object ItemHelper {
   val qtiXmlTemplate = "<assessmentItem><itemBody>::version::</itemBody></assessmentItem>"
   def create(collectionId: ObjectId): VersionedId[ObjectId] = {

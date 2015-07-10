@@ -1,5 +1,8 @@
 FROM phusion/baseimage:0.9.16
 
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
 RUN apt-get update && \
  apt-get upgrade -y && \
  apt-get install -y \
