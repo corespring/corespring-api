@@ -1,6 +1,6 @@
 package org.corespring.web.common.controllers
 
-object DefaultCss {
+/*object DefaultCss {
 
 
   private val BYTE_BUREAU = css("/assets/stylesheets/bytebureau/styles.css")
@@ -15,5 +15,5 @@ object DefaultCss {
 
   private def css(url: String): String = s""" <link rel="stylesheet" type="text/css" href="$url"></link> """
 
-}
+}*/
 

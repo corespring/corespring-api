@@ -7,11 +7,24 @@ object Dependencies {
   //V2 Player
   val containerVersion = "0.44.0-SNAPSHOT"
 
-  val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
-  val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
-  val componentModel = "org.corespring" %% "component-model" % containerVersion
-  val componentLoader = "org.corespring" %% "component-loader" % containerVersion
-  val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
+  def toModule(name: String) = "org.corespring" %% name % containerVersion
+
+  def toConfig(name: String) = {
+    //equiv of saying: "When you look for something with group id "org.scalatest",
+    //look in this repo, but not otherwise
+    ModuleConfiguration("org.corespring", name, Resolvers.corespringSnapshots)
+  }
+
+  val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
+  val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+
+  val containerClientWeb = toModule("container-client-web")
+  val containerJsProcessing = toModule("js-processing")
+  val componentModel = toModule("component-model")
+  val componentLoader = toModule("component-loader")
+  val mongoJsonService = toModule("mongo-json-service")
+
+  //lazy val csConfig : ModuleConfiguration = ModuleConfiguration("org.corespring", Resolvers.corespringSnapshots) //equiv of saying: "When you look for something with group id "org.scalatest", look n this repo, but not otherwise
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
@@ -59,7 +72,7 @@ object Dependencies {
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
   val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.14-PLAY22").exclude("org.mongodb",  "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.14-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   val all = Seq(
