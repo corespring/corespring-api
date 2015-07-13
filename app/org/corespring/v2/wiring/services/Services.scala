@@ -4,11 +4,11 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
+import org.corespring.common.config.{ SessionDbConfig, AppConfig }
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAssets }
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ ApiClientEncrypter, ApiClientEncryptionService }
@@ -20,7 +20,6 @@ import org.corespring.platform.core.services.assessment.template.{ AssessmentTem
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataService, MetadataSetServiceImpl, MetadataServiceImpl }
 import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.api.V2ApiServices
 import org.corespring.v2.auth._
@@ -32,6 +31,7 @@ import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.sessiondb.{ SessionService, SessionServiceFactory }
 import play.api.Configuration
 import play.api.mvc.RequestHeader
 import securesocial.core.{ Identity, SecureSocial }
@@ -42,13 +42,15 @@ class Services(cacheConfig: Configuration,
   db: MongoDB,
   itemTransformer: ItemTransformer,
   s3: AmazonS3,
-  bucket: String) extends V2ApiServices {
+  bucket: String,
+  sessionDbServiceFactory: SessionServiceFactory) extends V2ApiServices {
 
   private lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
 
-  lazy val mainSessionService: MongoService = new MongoService(db("v2.itemSessions"))
+  lazy val mainSessionService: SessionService = sessionDbServiceFactory.create(SessionDbConfig.sessionTable)
+  lazy val previewSessionService: SessionService = sessionDbServiceFactory.create(SessionDbConfig.previewSessionTable)
 
-  override val sessionService: MongoService = mainSessionService
+  override val sessionService: SessionService = mainSessionService
 
   override val itemService: ItemService with ItemPublishingService = ItemServiceWired
 
@@ -105,8 +107,6 @@ class Services(cacheConfig: Configuration,
       }.getOrElse(false)
     }
   }
-
-  lazy val previewSessionService: MongoService = new MongoService(db("v2.itemSessions_preview"))
 
   lazy val itemCommitService: CommitService = new CommitService {
     override def collection: MongoCollection = db("drafts.item_commits")
@@ -210,12 +210,11 @@ class Services(cacheConfig: Configuration,
   lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = new SessionAuthWired {
     override def itemAuth: ItemAuth[OrgAndOpts] = Services.this.itemAuth
 
-    override def mainSessionService: MongoService = Services.this.mainSessionService
+    override def mainSessionService: SessionService = Services.this.mainSessionService
+    override def previewSessionService: SessionService = Services.this.previewSessionService
 
     override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] =
       AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
-
-    override def previewSessionService: MongoService = Services.this.previewSessionService
 
     override def itemTransformer: ItemTransformer = Services.this.itemTransformer
   }
