@@ -168,7 +168,7 @@ object Build extends sbt.Build {
    * Error types
    */
   val v2Errors = builders.lib("v2-errors").settings(
-    libraryDependencies ++= Seq(scalaz)).dependsOn(core)
+    libraryDependencies ++= Seq(scalaz, playTest)).dependsOn(core)
   /**
    * All authentication code for v2 api + player/editor
    */
