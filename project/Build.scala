@@ -401,6 +401,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Seq(Dependencies.snapshots, Dependencies.releases),
+      updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
@@ -444,7 +445,7 @@ object Build extends sbt.Build {
       qtiToV2,
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
-    .aggregate(
+  /*.aggregate(
       scormWeb,
       reports,
       public,
@@ -464,7 +465,7 @@ object Build extends sbt.Build {
       clientLogging,
       qtiToV2,
       itemImport,
-      itemDrafts)
+      itemDrafts)*/
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
