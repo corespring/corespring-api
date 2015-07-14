@@ -108,7 +108,6 @@ trait ItemEditorHooks
       f.map { tuple =>
         val (s3Object, item) = tuple
         addFileToData(item, s3Object.getKey)
-        println(s">> $s3Object")
         UploadResult(s3Object.getKey)
       }
     }
