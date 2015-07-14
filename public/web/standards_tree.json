@@ -177,13 +177,14 @@
 				"name" : "Number & Operations in Base Ten",
 				"items" : [
 					"All",
-					"Work with numbers 11-19 to gain foundations for place value.",
-					"Extend the counting sequence.",
-					"Understand place value.",
-					"Use place value understanding and properties of operations to add and subtract.",
-					"Use place value understanding and properties of operations to perform multi-digit arithmetic.1",
-					"Understand the place value system.",
-					"Perform operations with multi-digit whole numbers and with decimals to hundredths."
+                    "Work with numbers 11-19 to gain foundations for place value.",
+                    "Extend the counting sequence.",
+                    "Understand place value.",
+                    "Use place value understanding and properties of operations to add and subtract.",
+                    "Use place value understanding and properties of operations to perform multi-digit arithmetic.",
+                    "Generalize place value understanding for multi-digit whole numbers.",
+                    "Understand the place value system.",
+                    "Perform operations with multi-digit whole numbers and with decimals to hundredths."
 				]
 			},
 			{
@@ -226,30 +227,16 @@
 				]
 			},
 			{
-				"name" : "Number & Operationsâ€”FractionsÂ¹",
+				"name" : "Number & Operations Fractions",
 				"items" : [
 					"All",
-					"Develop understanding of fractions as numbers.",
-					"Extend understanding of fraction equivalence and ordering.",
-					"Build fractions from unit fractions",
-					"Understand decimal notation for fractions, and compare decimal fractions."
-				]
-			},
-			{
-				"name" : "Number & Operations in Base TenÂ¹",
-				"items" : [
-					"All",
-					"Generalize place value understanding for multi-digit whole numbers.",
-					"Use place value understanding and properties of operations to perform multi-digit arithmetic."
-				]
-			},
-			{
-				"name" : "Number & Operationsâ€”Fractions",
-				"items" : [
-					"All",
-					"Use equivalent fractions as a strategy to add and subtract fractions.",
-					"Apply and extend previous understandings of multiplication and division."
-				]
+                    "Develop understanding of fractions as numbers.",
+                    "Extend understanding of fraction equivalence and ordering.",
+                    "Build fractions from unit fractions",
+                    "Understand decimal notation for fractions, and compare decimal fractions."
+                    "Use equivalent fractions as a strategy to add and subtract fractions.",
+					"Apply and extend previous understandings of multiplication and division.",
+                 ]
 			},
 			{
 				"name" : "Ratios & Proportional Relationships",
