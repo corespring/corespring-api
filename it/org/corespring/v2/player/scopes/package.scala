@@ -7,9 +7,10 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
+import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{SessionDbConfig, AppConfig}
+import org.corespring.common.config.{ SessionDbConfig, AppConfig }
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
@@ -160,6 +161,15 @@ package object scopes {
       val l = client.listObjects(bucket, path)
       l.getObjectSummaries.map { s => s.getKey }
     }
+
+    def delete(path: String) = {
+      list(path).foreach { key =>
+        println(s"[delete] $key")
+        client.deleteObject(bucket, key)
+      }
+      println(s"[delete] $path")
+      client.deleteObject(bucket, path)
+    }
   }
 
   object ImageUploader {
@@ -194,6 +204,15 @@ package object scopes {
       upload.waitForUploadResult()
       itemId
     }
+
+    def imageData(imagePath: String): Array[Byte] = {
+      val file = new File(imagePath)
+      require(file.exists)
+      require(Seq("jpg", "png").exists(s => file.getName.endsWith(s)))
+      val bytes = IOUtils.toByteArray(file.toURI)
+      bytes
+    }
+
   }
 
   class AddImageAndItem(imagePath: String)
@@ -398,7 +417,7 @@ package object scopes {
       FakeRequest(call.method, call.url).withCookies(cookies: _*)
     }
 
-    def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType:String = "application/json"): Request[AnyContent] = {
+    def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType: String = "application/json"): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withHeaders(("Content-Type", contentType))
     }
   }

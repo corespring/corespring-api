@@ -186,7 +186,7 @@ object Build extends sbt.Build {
    */
   val v2Errors = builders.lib("v2-errors")
     .settings(
-      libraryDependencies ++= Seq(scalaz))
+      libraryDependencies ++= Seq(scalaz, playTest))
     .dependsOn(core)
 
   val v2SessionDb = builders.lib("v2-session-db")
@@ -335,10 +335,14 @@ object Build extends sbt.Build {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
     lazy val overrideClear = System.getProperty("clear.before.seeding", "false") == "true"
     s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed - Clear collection before seed? $clear")
-    val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
-    val host = new URI(uri).getHost.toLowerCase
+    val uriString = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
+    s.log.info(s"[safeSeed] uriString: $uriString")
+    val uri = new URI(uriString)
+    s.log.info(s"[safeSeed] uri: $uri")
+    val host = uri.getHost
+    s.log.info(s"[safeSeed] host: $host")
     if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
-      MongoDbSeederPlugin.seed(uri, paths, name, logLevel, clear || overrideClear)
+      MongoDbSeederPlugin.seed(uriString, paths, name, logLevel, clear || overrideClear)
       s.log.info(s"[safeSeed] $paths - seeding complete")
     } else {
       s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
