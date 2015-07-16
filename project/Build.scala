@@ -170,9 +170,9 @@ object Build extends sbt.Build {
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-    MongoDbSeederPlugin.logLevel := "DEBUG",
-    testUri := "mongodb://localhost/api",
-    testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
+      MongoDbSeederPlugin.logLevel := "DEBUG",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -329,10 +329,14 @@ object Build extends sbt.Build {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
     lazy val overrideClear = System.getProperty("clear.before.seeding", "false") == "true"
     s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed - Clear collection before seed? $clear")
-    val uri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
-    val host = new URI(uri).getHost.toLowerCase
+    val uriString = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
+    s.log.info(s"[safeSeed] uriString: $uriString")
+    val uri = new URI(uriString)
+    s.log.info(s"[safeSeed] uri: $uri")
+    val host = uri.getHost
+    s.log.info(s"[safeSeed] host: $host")
     if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
-      MongoDbSeederPlugin.seed(uri, paths, name, logLevel, clear || overrideClear)
+      MongoDbSeederPlugin.seed(uriString, paths, name, logLevel, clear || overrideClear)
       s.log.info(s"[safeSeed] $paths - seeding complete")
     } else {
       s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
@@ -402,9 +406,9 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-    MongoDbSeederPlugin.logLevel := "INFO",
-    testUri := "mongodb://localhost/api",
-    testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
+      MongoDbSeederPlugin.logLevel := "INFO",
+      testUri := "mongodb://localhost/api",
+      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
