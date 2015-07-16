@@ -57,7 +57,7 @@ trait AssetResourceBase extends ObjectIdParser with S3ServiceClient with ItemSer
   def renderDataResource(itemId: String) = getDefaultResourceFile(itemId, Resource.DataPath)
 
   protected def addDefaultCss(html: String): String = {
-    val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
+    val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU).mkString("\n")
     val replacement = "<head>\n%s".format(css)
     """<head>""".r.replaceAllIn(html, replacement)
   }

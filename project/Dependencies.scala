@@ -9,22 +9,16 @@ object Dependencies {
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
-  def toConfig(name: String) = {
-    //equiv of saying: "When you look for something with group id "org.scalatest",
-    //look in this repo, but not otherwise
-    ModuleConfiguration("org.corespring", name, Resolvers.corespringSnapshots)
+  object ModuleConfigurations{
+    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
-
-  val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
-  val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
 
   val containerClientWeb = toModule("container-client-web")
   val containerJsProcessing = toModule("js-processing")
   val componentModel = toModule("component-model")
   val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
-
-  //lazy val csConfig : ModuleConfiguration = ModuleConfiguration("org.corespring", Resolvers.corespringSnapshots) //equiv of saying: "When you look for something with group id "org.scalatest", look n this repo, but not otherwise
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")

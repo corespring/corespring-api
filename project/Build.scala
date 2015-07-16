@@ -49,12 +49,11 @@ object Build extends sbt.Build {
     }
   }
 
-  //TODO - test if this helps: updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  //TODO - updateOptions := updateOptions.value.withLatestSnapshots(false),
+  //TODO: This is not useful at the moment - when it works however it'll be amazing:
+  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
+  // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
-    moduleConfigurations ++= Seq(Dependencies.snapshots, Dependencies.releases),
-    //updateOptions := updateOptions.value.withLatestSnapshots(false),
-    updateOptions := updateOptions.value.withConsolidatedResolution(true),
+    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
     aggregate in update := false,
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
@@ -401,11 +400,12 @@ object Build extends sbt.Build {
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
+      libraryDependencies ++= Seq(playMemcached),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      moduleConfigurations ++= Seq(Dependencies.snapshots, Dependencies.releases),
-      updateOptions := updateOptions.value.withConsolidatedResolution(true),
+      moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+      //updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
@@ -449,27 +449,6 @@ object Build extends sbt.Build {
       qtiToV2,
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
-  /*.aggregate(
-      scormWeb,
-      reports,
-      public,
-      ltiWeb,
-      v1Api,
-      v1Player,
-      playerLib,
-      core,
-      apiUtils,
-      commonViews,
-      testLib,
-      v2PlayerIntegration,
-      v2Api,
-      apiTracking,
-      v2Auth,
-      v2SessionDb,
-      clientLogging,
-      qtiToV2,
-      itemImport,
-      itemDrafts)*/
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
