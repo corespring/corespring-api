@@ -222,7 +222,7 @@ To deploy with docker-deployer:
     docker-deployer deploy --deploy-name $NAME 
 ```
 
-### Running Localy ###
+### Running Localy
 
 If you want to run the API on local environment for the first time start the **play console**:
 
@@ -241,3 +241,23 @@ if indexing finishes run the API:
     run
     
 Once it's running you can access the CMS in a browser on `localhost:9000`
+
+#### Slow updates
+
+All corespring dependencies are configured to use only repository.corespring.org as their resolver.
+
+So you should see resolution times of:
+
+* `clean update` -> ~200s
+* `update` -> 10s
+
+> Once sbt have [improved consolidated resolution](https://github.com/sbt/sbt/issues/2105) our resolve times should improve again.
+
+If your updates are slow due to snapshot updates, you may set the following in your console:
+
+```sh
+  set updateOptions := updateOptions.value.withLatestSnapshots(false)
+
+```
+
+This will disable snapshots updating themselves.
