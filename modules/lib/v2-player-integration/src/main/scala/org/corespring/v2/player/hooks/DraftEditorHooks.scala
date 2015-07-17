@@ -112,8 +112,10 @@ trait DraftEditorHooks
     playS3.s3ObjectAndData[ItemDraft](bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
-        addFileToData(draft, s3Object.getKey)
-        UploadResult(s3Object.getKey)
+        val key = s3Object.getKey
+        addFileToData(draft, key)
+        s3Object.close()
+        UploadResult(key)
       }
     }
   }
