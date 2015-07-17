@@ -68,7 +68,8 @@ window.fieldValues = {"version":"0.0.1", "gradeLevels":[
     {"key":"CC BY-SA", "value":"CC BY-SA"},
     {"key":"CC BY-NC", "value":"CC BY-NC"},
     {"key":"CC BY-ND", "value":"CC BY-ND"},
-    {"key":"CC BY-NC-SA", "value":"CC BY-NC-SA"}
+    {"key":"CC BY-NC-SA", "value":"CC BY-NC-SA"},
+    {"key":"Other", "value":"Other"}
 ], "priorUses":[
     {"key":"Formative", "value":"Formative"},
     {"key":"Interim", "value":"Interim"},
