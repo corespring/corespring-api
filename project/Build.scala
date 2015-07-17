@@ -449,6 +449,27 @@ object Build extends sbt.Build {
       qtiToV2,
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
+    .aggregate(
+      scormWeb,
+      reports,
+      public,
+      ltiWeb,
+      v1Api,
+      v1Player,
+      playerLib,
+      core,
+      apiUtils,
+      commonViews,
+      testLib,
+      v2PlayerIntegration,
+      v2Api,
+      apiTracking,
+      v2Auth,
+      v2SessionDb,
+      clientLogging,
+      qtiToV2,
+      itemImport,
+      itemDrafts)
 
   addCommandAlias("gen-idea-project", ";update-classifiers;idea")
 }
