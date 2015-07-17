@@ -2,7 +2,7 @@ package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports._
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.platform.core.controllers.auth.{ApiRequest, BaseApi}
+import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Content
 import org.corespring.platform.core.models.itemSession._
@@ -33,8 +33,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
       assessmentService.findOneById(assessmentId) match {
         case Some(q) =>
           val sessions = q.participants.map(_.answers.filter(_.itemId.toString == itemId.toString).map(_.sessionId.toString)).flatten
-          Ok(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2)))))
-
+          Ok(Json.prettyPrint(JsObject(aggregateSessions(sessions).toList.map(p => (p._1, toJson(p._2))))))
         case _ => NotFound
       }
   }
@@ -80,17 +79,17 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
       } else Unauthorized(toJson(ApiError.UnauthorizedItemSession))
   }
 
-  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String, action: Option[String]) = action match {
+  def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String, action: Option[String]) = action match {
     case Some("begin") => begin(itemId, sessionId)
     case Some("updateSettings") => updateSettings(itemId, sessionId)
     case _ => processResponse(itemId, sessionId)(role)
   }
 
-  def reopen(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction{ request =>
+  def reopen(itemId: VersionedId[ObjectId], sessionId: ObjectId) = ApiAction { request =>
     findSessionAndCheckAuthorization(sessionId, itemId, request.ctx.organization) match {
       case Left(error) => BadRequest(toJson(error))
       case Right(session) => {
-        itemSession.reopen(session).map{ update => Ok(toJson(update)) }.getOrElse{
+        itemSession.reopen(session).map { update => Ok(toJson(update)) }.getOrElse {
           BadRequest(toJson(ApiError.ReopenItemSessionFailed))
         }
       }
@@ -101,7 +100,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * @param sessionId
    * @return
    */
-  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String) = ApiAction {
+  def get(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String) = ApiAction {
     request =>
       implicit val isInstructor = role == "instructor"
       itemSession.get(sessionId) match {
@@ -228,7 +227,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
    * Return sessionData and ResponseOutcomes
    * @param itemId
    */
-  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role:String) = ApiAction {
+  def processResponse(itemId: VersionedId[ObjectId], sessionId: ObjectId)(implicit role: String) = ApiAction {
     request =>
       implicit val isInstructor = role == "instructor"
       logger.debug("[processResponse]: " + sessionId)
@@ -253,7 +252,7 @@ class ItemSessionApi(itemSession: ItemSessionCompanion, itemService: ItemService
 
                       itemSession.getXmlWithFeedback(dbSession) match {
                         case Right(xmlWithCsFeedbackIds) => {
-                          itemSession.process(dbSession, xmlWithCsFeedbackIds,isAttempt) match {
+                          itemSession.process(dbSession, xmlWithCsFeedbackIds, isAttempt) match {
                             case Right(newSession) => {
                               if (isInstructor) newSession.settings = newSession.settings.copy(highlightCorrectResponse = true, highlightUserResponse = true, showFeedback = true)
                               val json = toJson(newSession)

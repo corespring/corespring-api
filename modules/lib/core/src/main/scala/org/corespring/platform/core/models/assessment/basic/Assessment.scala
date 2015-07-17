@@ -165,7 +165,14 @@ case class Assessment(orgId: Option[ObjectId] = None,
   starts: Option[DateTime] = None,
   ends: Option[DateTime] = None,
   participants: Seq[Participant] = Seq(),
-  id: ObjectId = new ObjectId()) extends BaseAssessment(questions, participants, id)
+  id: ObjectId = new ObjectId()) extends BaseAssessment(questions, participants, id) {
+
+  def merge(that: Assessment) = this.copy(
+    orgId = if (that.orgId.nonEmpty) that.orgId else this.orgId,
+    participants = if (that.participants.length > 0) that.participants else this.participants,
+    questions = if (that.questions.length > 0) that.questions else this.questions,
+    metadata = if (that.metadata.size > 0) that.metadata else this.metadata)
+}
 
 object Assessment {
 

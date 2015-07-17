@@ -1,7 +1,6 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
@@ -10,11 +9,12 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.sessiondb.SessionService
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
-import scalaz.{ Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
@@ -28,16 +28,16 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
    * The main session service holds 'real' item sessions
    * @return
    */
-  def mainSessionService: MongoService
+  def mainSessionService: SessionService
 
   /**
    * The preview session service holds 'preview' sessions -
    * This service is used when the identity -> AuthMode == UserSession
    * @return
    */
-  def previewSessionService: MongoService
+  def previewSessionService: SessionService
 
-  private def sessionService(implicit identity: OrgAndOpts): MongoService = if (identity.authMode == AuthMode.UserSession) {
+  private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
     previewSessionService
   } else {
@@ -74,6 +74,22 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
     logger.trace(s"loadFor sessionId: $sessionId - result successful")
     out
+  }
+
+  override def reopen(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    reopenedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> false, "attempts" -> 0)).toSuccess(cantLoadSession(sessionId))
+    savedReopened <- sessionService.save(sessionId, reopenedSession).toSuccess(errorSaving)
+  } yield {
+    savedReopened
+  }
+
+  override def complete(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Session] = for {
+    completedSession <- sessionService.load(sessionId)
+      .map(_.as[JsObject] ++ Json.obj("isComplete" -> true)).toSuccess(cantLoadSession(sessionId))
+    savedCompleted <- sessionService.save(sessionId, completedSession).toSuccess(errorSaving)
+  } yield {
+    savedCompleted
   }
 
   private def loadPlayerDefinition(sessionId: String, session: JsValue)(implicit identity: OrgAndOpts): Validation[V2Error, PlayerDefinition] = {
@@ -127,9 +143,8 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     "dateCreated" -> Json.obj(
       "$date" -> DateTime.now(DateTimeZone.UTC)))
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject =
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
-  }
 
   private def rmIdentityFromSession(s: Session) = s.asInstanceOf[JsObject] - "identity"
 }

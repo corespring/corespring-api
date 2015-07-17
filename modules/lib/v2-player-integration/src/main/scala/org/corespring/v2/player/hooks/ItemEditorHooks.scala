@@ -29,7 +29,7 @@ trait ItemEditorHooks
 
   import V2ErrorToTuple._
 
-  private lazy val logger = V2LoggerFactory.getLogger(classOf[DraftEditorHooks])
+  private lazy val logger = V2LoggerFactory.getLogger(classOf[ItemEditorHooks])
 
   def transform: Item => JsValue
 
@@ -55,8 +55,9 @@ trait ItemEditorHooks
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
     logger.trace(s"function=loadFile id=$id path=$path")
     val result = for {
-      _ <- Success(logger.trace(s"function=loadDraft id=$id"))
+      _ <- Success(logger.trace(s"function=loadFile id=$id"))
       identity <- getOrgAndOptions(request)
+      _ <- Success(logger.trace(s"function=loadFile identity=$identity"))
       vid <- VersionedId(id).toSuccess(cantParseItemId(id))
     } yield playS3.download(bucket, S3Paths.itemFile(vid, path))
 

@@ -1,20 +1,21 @@
 package org.corespring.wiring
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.amazon.s3.ConcreteS3Service
+import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
 import org.corespring.api.v1.{ CollectionApi, ItemApi }
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.dev.tools.DevTools
 import org.corespring.importing.{ Bootstrap => ItemImportBootstrap }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.BasicScoreService
 import org.corespring.v2.api.{ V1CollectionApiProxy, V1ItemApiProxy, V2ApiBootstrap }
 import org.corespring.v2.auth.identifiers.{ OrgRequestIdentity, WithRequestIdentitySequence }
 import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.{ CDNResolver, V2PlayerBootstrap }
 import org.corespring.v2.wiring.auth.RequestIdentifiers
 import org.corespring.v2.wiring.services.Services
@@ -22,6 +23,8 @@ import org.corespring.web.common.views.helpers.Defaults
 import org.corespring.wiring.apiTracking.ApiTracking
 import org.corespring.wiring.itemTransform.ItemTransformWiring
 import org.corespring.wiring.itemTransform.ItemTransformWiring.UpdateItem
+import org.corespring.wiring.sessiondb.SessionServiceFactoryImpl
+import play.api.libs.json.JsValue
 import play.api.mvc.{ Controller, Action, AnyContent }
 import play.api.{ Configuration, Logger, Mode, Play }
 
@@ -32,7 +35,7 @@ object AppWiring {
 
   import play.api.Play.current
 
-  private val logger = Logger("org.corespring.AppWiring")
+  private val logger = Logger("org.corespring.wiring.AppWiring")
 
   private lazy val bucket = AppConfig.assetsBucket
 
@@ -61,15 +64,15 @@ object AppWiring {
     Db.salatDb(),
     ItemTransformWiring.itemTransformer,
     playS3.client,
-    bucket)
+    bucket,
+    SessionServiceFactoryImpl)
 
   private lazy val requestIdentifiers: RequestIdentifiers = new RequestIdentifiers(
     services.secureSocialService,
     services.orgService,
     services.tokenService,
     services.apiClientEncryptionService,
-
-    Play.current.configuration.getBoolean("DEV_TOOLS_ENABLED").getOrElse(false))
+    DevTools.enabled)
 
   /**
    * For v2 api - we move token to the top of the list as that is the most common form of authentication.
@@ -125,8 +128,9 @@ object AppWiring {
   }.getOrElse(Configuration.empty)
 
   private def getItemIdForSessionId(sessionId: String): Option[VersionedId[ObjectId]] = {
-    def toVid(dbo: DBObject): Option[VersionedId[ObjectId]] = {
-      val vidString = dbo.get("itemId").asInstanceOf[String]
+
+    def toVid(json: JsValue): Option[VersionedId[ObjectId]] = {
+      val vidString = (json \ "itemId").as[String]
       val vid = VersionedId(vidString)
       require(vid.map { _.version.isDefined }.getOrElse(true), s"The version must be defined for an itemId: $vid, within a session: $sessionId")
       vid
@@ -135,11 +139,10 @@ object AppWiring {
     val itemIdOnly = MongoDBObject("itemId" -> 1)
 
     try {
-      val oid = new ObjectId(sessionId)
-      val maybeDbo = services.mainSessionService.collection
-        .findOneByID(oid, itemIdOnly)
+      val maybeDbo = services.mainSessionService
+        .load(sessionId)
         .orElse {
-          services.previewSessionService.collection.findOneByID(oid, itemIdOnly)
+          services.previewSessionService.load(sessionId)
         }
       maybeDbo.map { toVid }.flatten
     } catch {
