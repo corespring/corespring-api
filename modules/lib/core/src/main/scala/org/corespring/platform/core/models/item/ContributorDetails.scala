@@ -1,9 +1,7 @@
 package org.corespring.platform.core.models.item
 
-import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import org.corespring.platform.core.models.json.JsonValidationException
-import play.api.Logger
 
 case class ContributorDetails(
   var additionalCopyrights: Seq[AdditionalCopyright] = Seq(),

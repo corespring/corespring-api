@@ -13,7 +13,7 @@ object Build extends sbt.Build {
 
   val appName = "corespring"
   val appVersion = "1.0"
-  val ScalaVersion = "2.10.3"
+  val ScalaVersion = "2.10.5"
   val org = "org.corespring"
 
   val forkInTests = false
@@ -49,7 +49,12 @@ object Build extends sbt.Build {
     }
   }
 
+  //TODO: This is not useful at the moment - when it works however it'll be amazing:
+  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
+  // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
+    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+    aggregate in update := false,
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
     resolvers ++= Dependencies.Resolvers.all,
@@ -170,7 +175,7 @@ object Build extends sbt.Build {
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "DEBUG",
+      MongoDbSeederPlugin.seederLogLevel := "DEBUG",
       testUri := "mongodb://localhost/api",
       testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
@@ -360,19 +365,19 @@ object Build extends sbt.Build {
     staticData := "conf/seed-data/static")
 
   val seedDevData = TaskKey[Unit]("seed-dev-data")
-  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
+  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
 
   val seedDemoData = TaskKey[Unit]("seed-demo-data")
-  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
+  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
 
   val seedDebugData = TaskKey[Unit]("seed-debug-data")
-  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
+  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
 
   val seedSampleData = TaskKey[Unit]("seed-sample-data")
-  val seedSampleDataTask = seedSampleData <<= (sampleData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(false)
+  val seedSampleDataTask = seedSampleData <<= (sampleData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
 
   val seedStaticData = TaskKey[Unit]("seed-static-data")
-  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.logLevel, streams) map safeSeed(true)
+  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(true)
 
   val seedDev = TaskKey[Unit]("seed-dev")
   val seedDevTask = seedDev := {
@@ -395,10 +400,12 @@ object Build extends sbt.Build {
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
+      libraryDependencies ++= Seq(playMemcached),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      libraryDependencies ++= Dependencies.all,
+      moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+      //updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
@@ -406,7 +413,7 @@ object Build extends sbt.Build {
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.logLevel := "INFO",
+      MongoDbSeederPlugin.seederLogLevel := "INFO",
       testUri := "mongodb://localhost/api",
       testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)

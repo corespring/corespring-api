@@ -8,7 +8,6 @@ import org.corespring.platform.core.models.item.Item.Keys
 import org.corespring.platform.core.models.json.JsonValidationException
 import org.corespring.test.BaseTest
 import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
-import scala.Some
 import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, Resource }
 
 class ItemTest extends BaseTest {
