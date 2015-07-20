@@ -18,7 +18,7 @@ import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
-import org.corespring.v2.auth.services.{OrgService, TokenService}
+import org.corespring.v2.auth.services.{ OrgService, TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
@@ -126,7 +126,7 @@ class V2ApiBootstrap(
     override def getOrgAndOptions(request: RequestHeader) = headerToOrgAndOpts(request)
   }
 
-  lazy val contributorApi = new ContributorApi {
+  lazy val contributorApi = new FieldValuesApi {
     override def itemIndexService: ItemIndexService = services.itemIndexService
     override implicit def ec: ExecutionContext = ExecutionContexts.itemSessionApi
     override def getOrgAndOptions(request: RequestHeader) = headerToOrgAndOpts(request)
