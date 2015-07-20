@@ -9,7 +9,7 @@ object Dependencies {
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
-  object ModuleConfigurations{
+  object ModuleConfigurations {
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
@@ -64,8 +64,6 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
-  val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
   val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.14-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
@@ -83,7 +81,6 @@ object Dependencies {
     jbcrypt,
     mockito,
     mongoDbSeeder,
-    newRelic,
     play.Keys.cache,
     playMemcached,
     playPluginMailer,
@@ -104,7 +101,6 @@ object Dependencies {
     containerClientWeb,
     componentLoader,
     componentModel,
-    newRelic,
     slf4j,
     jsonValidator,
     elasticsearchPlayWS,
