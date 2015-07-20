@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.{ ContentCollRef, JsonUtil }
+import org.corespring.platform.core.models.{Organization, ContentCollRef, JsonUtil}
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.drafts.item.models.ItemDraft
@@ -84,15 +84,12 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
+  import Organization._
+
   def search(query: Option[String]) = Action.async { implicit request =>
     implicit val QueryReads = ItemIndexQuery.ApiReads
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val queryString = query.getOrElse("{}")
-
-    implicit class Accessible(collections: Seq[ContentCollRef]) {
-      private val readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
-      def accessible = collections.filter(readable)
-    }
 
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
