@@ -129,6 +129,9 @@
   }, {
     "key": "CC BY-NC-SA",
     "value": "CC BY-NC-SA"
+  }, {
+    "key": "Other",
+    "value": "Other"
   }],
   "itemTypes": [{
     "key": "Fixed Choice",
