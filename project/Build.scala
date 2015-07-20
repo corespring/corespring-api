@@ -18,6 +18,10 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
+  /*val stage = taskKey[Unit]("Stage task")
+
+  val Stage = config("stage")*/
+
   def getEnv(prop: String): Option[String] = {
     val env = System.getenv(prop)
     if (env == null) None else Some(env)
@@ -397,10 +401,14 @@ object Build extends sbt.Build {
   val index = TaskKey[Unit]("index")
   val indexTask = index <<= (streams) map safeIndex
 
+  val nrConfig = config("newrelic-agent").hide
+
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(
-      libraryDependencies ++= Seq(playMemcached),
+      ivyConfigurations += nrConfig,
+      libraryDependencies ++= Seq(playMemcached, newRelic),
+      libraryDependencies += "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0" % nrConfig,
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
