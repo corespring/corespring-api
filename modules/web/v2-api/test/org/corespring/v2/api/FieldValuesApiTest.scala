@@ -19,16 +19,16 @@ class FieldValuesApiTest extends Specification with MockFactory {
 
   PlaySingleton.start()
 
-  val contributors = Seq("these", "are", "contributors")
-  val grades = Seq("these are grades")
+  val contributorValues = Seq("these", "are", "contributors")
+  val gradeValues = Seq("these are grades")
 
   class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts())) extends Scope {
     val fieldValuesApi = new FieldValuesApi {
 
       def itemIndexService = {
         val m = mock[ItemIndexService]
-        m.distinct(Matchers.eq("contributorDetails.contributor"), any[Seq[String]]) returns Future { Success(contributors) }
-        m.distinct(Matchers.eq("taskInfo.gradeLevel"), any[Seq[String]]) returns Future { Success(grades) }
+        m.distinct(Matchers.eq("contributorDetails.contributor"), any[Seq[String]]) returns Future { Success(contributorValues) }
+        m.distinct(Matchers.eq("taskInfo.gradeLevel"), any[Seq[String]]) returns Future { Success(gradeValues) }
         m
       }
       override implicit def ec: ExecutionContext = ExecutionContext.global
@@ -41,26 +41,42 @@ class FieldValuesApiTest extends Specification with MockFactory {
     }
   }
 
-  "get" should {
+  "contributors" should {
 
     "return 200" in new apiScope() {
-      status(fieldValuesApi.get("contributorDetails.contributor")(FakeRequest())) must be equalTo (OK)
+      status(fieldValuesApi.contributors()(FakeRequest())) must be equalTo (OK)
     }
 
     "return contributors from ItemIndexService" in new apiScope() {
-      val json = contentAsJson(fieldValuesApi.get("contributorDetails.contributor")(FakeRequest()))
-      json.as[Seq[String]] must be equalTo (contributors)
-    }
-
-    "return gradeLevels from itemIndexService" in new apiScope() {
-      val json = contentAsJson(fieldValuesApi.get("taskInfo.gradeLevel")(FakeRequest()))
-      json.as[Seq[String]] must be equalTo (grades)
+      val json = contentAsJson(fieldValuesApi.contributors()(FakeRequest()))
+      json.as[Seq[String]] must be equalTo (contributorValues)
     }
 
     "user not authenticated" should {
 
       "return 401" in new apiScope(orgAndOpts = None) {
-        status(fieldValuesApi.get("contributorDetails.contributor")(FakeRequest())) must be equalTo (UNAUTHORIZED)
+        status(fieldValuesApi.contributors()(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      }
+
+    }
+
+  }
+
+  "gradeLevels" should {
+
+    "return 200" in new apiScope() {
+      status(fieldValuesApi.gradeLevels()(FakeRequest())) must be equalTo (OK)
+    }
+
+    "return gradeLevels from itemIndexService" in new apiScope() {
+      val json = contentAsJson(fieldValuesApi.gradeLevels()(FakeRequest()))
+      json.as[Seq[String]] must be equalTo (gradeValues)
+    }
+
+    "user not authenticated" should {
+
+      "return 401" in new apiScope(orgAndOpts = None) {
+        status(fieldValuesApi.gradeLevels()(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
 
     }

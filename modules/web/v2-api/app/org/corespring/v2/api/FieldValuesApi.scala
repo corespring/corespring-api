@@ -12,7 +12,15 @@ trait FieldValuesApi extends V2Api {
 
   import Organization._
 
-  def get(field: String) = futureWithIdentity { (identity, _) =>
+  def contributors() = get(Keys.contributor)
+  def gradeLevels() = get(Keys.gradeLevel)
+
+  private object Keys {
+    val contributor = "contributorDetails.contributor"
+    val gradeLevel = "taskInfo.gradeLevel"
+  }
+
+  private def get(field: String) = futureWithIdentity { (identity, _) =>
     itemIndexService.distinct(field,
       identity.org.contentcolls.accessible.map(_.collectionId.toString)).map(_ match {
         case Success(contributors) => Ok(Json.prettyPrint(JsArray(contributors.map(JsString))))
