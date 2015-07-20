@@ -23,6 +23,7 @@ case class Organization(var name: String = "",
                         var id: ObjectId = new ObjectId()) {
 
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
+
 }
 
 trait OrganizationImpl
@@ -331,6 +332,12 @@ trait OrganizationImpl
 }
 
 object Organization extends OrganizationImpl {
+
+  implicit class Accessible(collections: Seq[ContentCollRef]) {
+    private val readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
+    def accessible = collections.filter(readable)
+  }
+
   def metadataSetService: MetadataSetServiceImpl = new MetadataSetServiceImpl {
     def orgService: OrganizationService = Organization
   }

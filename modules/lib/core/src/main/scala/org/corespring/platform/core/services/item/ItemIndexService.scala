@@ -10,7 +10,7 @@ import scalaz.Validation
 trait ItemIndexService {
 
   def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]]
-  def distinct(field: String): Future[Validation[Error, Seq[String]]]
+  def distinct(field: String, collections: Seq[String] = Seq.empty): Future[Validation[Error, Seq[String]]]
   def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]]
   def refresh(): Future[Validation[Error, String]]
 

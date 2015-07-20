@@ -51,10 +51,10 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
     }
   }
 
-  def distinct(field: String): Future[Validation[Error, Seq[String]]] = {
+  def distinct(field: String, collectionIds: Seq[String]): Future[Validation[Error, Seq[String]]] = {
     try {
       implicit val AggregationWrites = ItemIndexAggregation.Writes
-      val agg = ItemIndexAggregation(field = field)
+      val agg = ItemIndexAggregation(field = field, collectionIds = collectionIds)
       authed("/content/_search")
         .post(Json.toJson(agg))
         .map(result => {

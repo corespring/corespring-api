@@ -59,6 +59,8 @@ GET  /collections                          @org.corespring.v2.api.V1CollectionAp
 
 GET  /item-types                           @org.corespring.v2.api.ItemApi.getItemTypes()
 
+GET  /contributors                         @org.corespring.v2.api.ContributorApi.get()
+
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 
 
