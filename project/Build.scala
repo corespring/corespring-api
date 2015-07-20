@@ -50,9 +50,9 @@ object Build extends sbt.Build {
   }
 
   //TODO: This is not useful at the moment - when it works however it'll be amazing:
-  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
   // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
+    updateOptions := updateOptions.value.withConsolidatedResolution(true),
     moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
     aggregate in update := false,
     scalaVersion := ScalaVersion,
@@ -405,7 +405,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
-      //updateOptions := updateOptions.value.withConsolidatedResolution(true),
+      updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += cred,
