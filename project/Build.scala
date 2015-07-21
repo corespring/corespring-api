@@ -401,14 +401,11 @@ object Build extends sbt.Build {
   val index = TaskKey[Unit]("index")
   val indexTask = index <<= (streams) map safeIndex
 
-  val nrConfig = config("newrelic-agent").hide
-
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
+    .settings(NewRelic.settings: _*)
     .settings(
-      ivyConfigurations += nrConfig,
-      libraryDependencies ++= Seq(playMemcached, newRelic),
-      libraryDependencies += "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0" % nrConfig,
+      libraryDependencies ++= Seq(playMemcached),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
