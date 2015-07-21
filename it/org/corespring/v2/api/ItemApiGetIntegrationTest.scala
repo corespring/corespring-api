@@ -33,6 +33,7 @@ class ItemApiGetIntegrationTest extends IntegrationSpecification {
           collectionId = Some(collectionId.toString),
           contributorDetails = Some(new ContributorDetails(
             author = Some("Author"),
+            contributor = Some("Contributor"),
             copyright = Some(new Copyright(
               owner = Some("Copyright Owner"))),
             credentials = Some("Test Item Writer"))),

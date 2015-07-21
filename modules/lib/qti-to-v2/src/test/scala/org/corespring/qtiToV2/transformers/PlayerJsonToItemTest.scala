@@ -34,6 +34,7 @@ class PlayerJsonToItemTest extends Specification {
         "lexile" -> "30",
         "contributorDetails" -> Json.obj(
           "author" -> "AU",
+          "contributor" -> "CON",
           "credentials" -> "CR",
           "credentialsOther" -> "CRO",
           "sourceUrl" -> "SU",
@@ -76,6 +77,7 @@ class PlayerJsonToItemTest extends Specification {
 
       update.contributorDetails.map { details =>
         details.author === Some("AU")
+        details.contributor === Some("CON")
         details.credentials === Some("CR")
         details.credentialsOther === Some("CRO")
         details.licenseType === Some("LT")
