@@ -1,9 +1,9 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
+import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -49,8 +49,7 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
   override def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
     for {
-      collectionId <- item.collectionId
-      canCreate <- access.canCreateInCollection(collectionId).toOption
+      canCreate <- access.canCreateInCollection(item.collectionId).toOption
       itemId <- itemService.insert(item)
     } yield itemId
   }

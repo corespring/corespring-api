@@ -1,8 +1,8 @@
 package org.corespring.v2.auth.encryption
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, EncryptionResult }
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.encryption.apiClient.{ EncryptionResult, ApiClientEncryptionService }
+import org.corespring.models.auth.ApiClient
 import org.corespring.v2.log.V2LoggerFactory
 import spray.caching.Cache
 

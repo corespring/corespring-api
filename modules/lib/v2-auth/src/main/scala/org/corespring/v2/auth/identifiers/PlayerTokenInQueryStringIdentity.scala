@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.{ User, Organization }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.V2Error

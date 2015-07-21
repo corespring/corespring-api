@@ -21,8 +21,8 @@ import scalaz._
 import org.corespring.{ services => interface }
 
 trait ItemService
-    extends interface.item.ItemService
-    with interface.item.ItemPublishingService {
+  extends interface.item.ItemService
+  with interface.item.ItemPublishingService {
 
   protected val logger = Logger(classOf[ItemService])
 
@@ -147,8 +147,7 @@ trait ItemService
     implicit def toServiceError[A](e: Either[String, A]): Either[PlatformServiceError, A] = {
       e.fold(
         err => Left(PlatformServiceError(err)),
-        (i) => Right(i)
-      )
+        (i) => Right(i))
     }
 
     val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
@@ -213,9 +212,10 @@ trait ItemService
     None
   }
 
-  def moveItemToArchive(id: VersionedId[ObjectId]) = {
+  override def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveCollectionId.toString))
     saveUsingDbo(id, update, false)
+    Some(archiveCollectionId.toString)
   }
 
   override def isPublished(vid: VersionedId[casbah.Imports.ObjectId]): Boolean = {

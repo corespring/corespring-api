@@ -94,8 +94,7 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   val coreModels = builders.lib("models", "core").settings(
-    libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test")
-  )
+    libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
   val coreJson = builders.lib("json", "core").dependsOn(coreModels)
 
@@ -103,12 +102,15 @@ object Build extends sbt.Build {
 
   val coreUtils = builders.lib("utils", "core")
 
+  val coreWeb = builders.lib("web", "core")
+    .settings(libraryDependencies ++= Seq(securesocial, playFramework))
+    .dependsOn(coreModels, coreServices)
+
   val coreServicesSalat = builders.lib("services-salat", "core")
     .settings(
-      libraryDependencies ++= Seq(grizzledLog, logbackClassic)
-    )
+      libraryDependencies ++= Seq(grizzledLog, logbackClassic))
     .configs(IntegrationTest)
-    .settings(Defaults.itSettings : _*)
+    .settings(Defaults.itSettings: _*)
     .settings(
       Keys.parallelExecution in IntegrationTest := false,
       Keys.fork in IntegrationTest := false,
@@ -120,10 +122,13 @@ object Build extends sbt.Build {
       }),
       testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
         loader.loadClass("org.corespring.it.mongo.Cleanup").newInstance
-      })
-    )
+      }))
     .settings(libraryDependencies ++= Seq(specs2 % "it,test", specs2Mock % "it,test", aws))
     .dependsOn(coreServices, coreUtils)
+
+  val encryption = builders.lib("encryption", "core")
+    .settings(libraryDependencies ++= Seq(casbah, commonsCodec))
+    .dependsOn(coreServices, coreModels)
 
   val coreLeftovers = builders.lib("leftovers", "core")
 
@@ -170,8 +175,7 @@ object Build extends sbt.Build {
 
   val itemSearch = builders.lib("item-search")
     .settings(
-      libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog)
-    )
+      libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog))
     .dependsOn(coreModels, coreJson)
 
   val commonViews = builders.web("common-views")
@@ -179,7 +183,7 @@ object Build extends sbt.Build {
       buildInfoTask,
       (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
       libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws)).dependsOn(assets, itemSearch)
-    //.dependsOn(core % "compile->compile;test->test")
+  //.dependsOn(core % "compile->compile;test->test")
 
   /*
   val clientLogging = builders.web("client-logging")
@@ -227,21 +231,21 @@ object Build extends sbt.Build {
    */
   val v2Errors = builders.lib("v2-errors")
     .settings(
-      libraryDependencies ++= Seq(scalaz, playTest))
-    //.dependsOn()
+      libraryDependencies ++= Seq(scalaz, playTest, casbah, salatVersioningDao))
+    .dependsOn(coreModels)
 
   val v2SessionDb = builders.lib("v2-session-db")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, qtiToV2, itemDrafts)
+    .dependsOn(testLib, v2Errors, qtiToV2, itemDrafts)
 
   /**
    * All authentication code for v2 api + player/editor
    */
   val v2Auth = builders.lib("v2-auth")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
-    .dependsOn(testLib, v2Errors, core, qtiToV2, itemDrafts, v2SessionDb)
+      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching))
+    .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
   val apiTracking = builders.lib("api-tracking")
     .settings(

@@ -1,6 +1,6 @@
 package org.corespring.v2.auth.services.caching
 
-import org.corespring.platform.core.models.Organization
+import org.corespring.models.Organization
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory

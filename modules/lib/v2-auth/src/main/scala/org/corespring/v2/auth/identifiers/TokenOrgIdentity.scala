@@ -1,11 +1,11 @@
 package org.corespring.v2.auth.identifiers
 
-import org.corespring.platform.core.controllers.auth.TokenReader
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.{ User, Organization }
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.errors.Errors.{ invalidToken, noOrgForToken, noToken }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.web.token.TokenReader
 import play.api.mvc.RequestHeader
 
 import scalaz.{ Failure, Success, Validation }

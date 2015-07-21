@@ -1,7 +1,8 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.models.item.{ PlayerDefinition, Item }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, PlayerAccessSettings }
@@ -16,11 +17,17 @@ import play.api.libs.json.{ Json, JsObject, JsValue }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
+trait JsonToPlayerDefinition extends JsonFormatting {
+  def toPlayerDefinition(json: JsValue): Option[PlayerDefinition] = json.asOpt[PlayerDefinition]
+}
+
 trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   lazy val logger = V2LoggerFactory.getLogger("auth.SessionAuth")
 
   def itemTransformer: ItemTransformer
+
+  def jsonToPlayerDef: JsonToPlayerDefinition
 
   def itemAuth: ItemAuth[OrgAndOpts]
 
@@ -104,7 +111,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
     val sessionPlayerDef: Option[PlayerDefinition] = (session \ "item").asOpt[JsObject].map {
       internalModel =>
-        internalModel.asOpt[PlayerDefinition]
+        jsonToPlayerDef.toPlayerDefinition(internalModel)
     }.flatten
 
     sessionPlayerDef

@@ -7,6 +7,9 @@ import org.corespring.services.errors.PlatformServiceError
 
 trait OrganizationService {
 
+  def defaultCollection(o: Organization): Option[ObjectId]
+  def defaultCollection(oid: ObjectId): Option[ObjectId]
+
   def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization]
 
   def addMetadataSet(orgId: ObjectId, setId: ObjectId, checkExistence: Boolean = true): Either[String, MetadataSetRef]
@@ -32,7 +35,7 @@ trait OrganizationService {
 
   def findOneById(orgId: ObjectId): Option[Organization]
 
-  def findOneByName(name:String): Option[Organization]
+  def findOneByName(name: String): Option[Organization]
 
   def getDefaultCollection(orgId: ObjectId): Either[PlatformServiceError, ContentCollection]
 

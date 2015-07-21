@@ -1,7 +1,7 @@
 package org.corespring.v2.errors
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.data.validation.ValidationError
 import play.api.libs.json._

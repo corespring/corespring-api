@@ -16,6 +16,8 @@ trait ItemServiceClient {
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
   def clone(item: Item): Option[Item]
 
+  def moveItemToArchive(id: VersionedId[ObjectId]): Option[String]
+
   def asMetadataOnly(i: Item): DBObject
 
   def publish(id: VersionedId[ObjectId]): Boolean

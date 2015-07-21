@@ -36,6 +36,16 @@ trait OrganizationService extends interface.OrganizationService with HasDao[Orga
 
   def isProd: Boolean
 
+  @deprecated("use getDefaultCollection instead", "1.0")
+  override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
+    getDefaultCollection(oid).right.toOption.map(_.id)
+  }
+
+  @deprecated("use getDefaultCollection instead", "1.0")
+  override def defaultCollection(o: Organization): Option[ObjectId] = {
+    getDefaultCollection(o.id).right.toOption.map(_.id)
+  }
+
   override def addMetadataSet(orgId: ObjectId, setId: ObjectId, checkExistence: Boolean): Either[String, MetadataSetRef] = {
     def applyUpdate = try {
       val ref = MetadataSetRef(setId, true)
@@ -150,10 +160,7 @@ trait OrganizationService extends interface.OrganizationService with HasDao[Orga
           "$elemMatch" ->
             MongoDBObject(
               Keys.collectionId -> collectionId,
-              pval -> MongoDBObject("$gte" -> permission.value)
-            )
-        )
-    )
+              pval -> MongoDBObject("$gte" -> permission.value))))
 
     val access = isRequestForPublicCollection(collectionId, permission) || dao.count(query) > 0
     logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
@@ -174,8 +181,7 @@ trait OrganizationService extends interface.OrganizationService with HasDao[Orga
       org.copy(
         id = if (isProd) ObjectId.get else org.id,
         path = Seq(org.id) ++ path,
-        contentcolls = org.contentcolls ++ collectionService.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value))
-      )
+        contentcolls = org.contentcolls ++ collectionService.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value)))
     }
 
     val paths = {
@@ -238,7 +244,7 @@ trait OrganizationService extends interface.OrganizationService with HasDao[Orga
 
   override def findOneById(orgId: ObjectId): Option[Organization] = dao.findOneById(orgId)
 
-  override def findOneByName(name:String): Option[Organization] = dao.findOne(MongoDBObject("name"-> name))
+  override def findOneByName(name: String): Option[Organization] = dao.findOne(MongoDBObject("name" -> name))
 
   /**
    * get all sub-nodes of given organization.

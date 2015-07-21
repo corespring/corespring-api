@@ -1,16 +1,14 @@
 package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.ItemDraft
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
+import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 
-import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 trait Access[DATA, REQUESTER] {
@@ -52,11 +50,10 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
     def orgCanAccess(collectionId: String) = orgService.canAccessCollection(identity.org, new ObjectId(collectionId), permission)
 
     for {
-      collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(item.id))
-      canAccess <- if (orgCanAccess(collectionId))
+      canAccess <- if (orgCanAccess(item.collectionId))
         Success(true)
       else
-        Failure(orgCantAccessCollection(identity.org.id, item.collectionId.getOrElse("?"), permission.name))
+        Failure(orgCantAccessCollection(identity.org.id, item.collectionId, permission.name))
       permissionAccess <- hasPermissions(item.id.toString, None, identity.opts)
     } yield {
       logger.trace(s"orgCanAccessItem: $canAccess")
