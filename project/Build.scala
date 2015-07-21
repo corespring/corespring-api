@@ -18,6 +18,10 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
+  /*val stage = taskKey[Unit]("Stage task")
+
+  val Stage = config("stage")*/
+
   def getEnv(prop: String): Option[String] = {
     val env = System.getenv(prop)
     if (env == null) None else Some(env)
@@ -399,6 +403,7 @@ object Build extends sbt.Build {
 
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
+    .settings(NewRelic.settings: _*)
     .settings(
       libraryDependencies ++= Seq(playMemcached),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
