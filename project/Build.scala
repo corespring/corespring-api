@@ -18,10 +18,6 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
-  /*val stage = taskKey[Unit]("Stage task")
-
-  val Stage = config("stage")*/
-
   def getEnv(prop: String): Option[String] = {
     val env = System.getenv(prop)
     if (env == null) None else Some(env)
