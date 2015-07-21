@@ -36,12 +36,16 @@ object Dependencies {
     .exclude("junit", "junit")
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
-  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
+  val commonsCodec = "commons-codec" % "commons-codec" % "1.10"
+
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
+  val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
+  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val jodaTime = "joda-time" % "joda-time" % "2.2"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
+  val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playFramework = "com.typesafe.play" %% "play" % playVersion
@@ -60,7 +64,8 @@ object Dependencies {
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-  val specs2 = "org.specs2" %% "specs2" % "2.1.1"
+  val specs2 = "org.specs2" %% "specs2-core" % "3.6.2"
+  val specs2Mock = "org.specs2" %% "specs2-mock" % "3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
@@ -83,7 +88,10 @@ object Dependencies {
     val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
     val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
+    val scalazBintray = "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+
     val all: Seq[Resolver] = Seq(
+      scalazBintray,
       sonatypeSnapshots,
       typesafe,
       corespringSnapshots,

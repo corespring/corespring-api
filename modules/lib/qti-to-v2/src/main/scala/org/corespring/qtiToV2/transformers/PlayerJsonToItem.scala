@@ -1,8 +1,8 @@
 package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile }
+import org.corespring.models.item._
+import org.corespring.models.item.resource.{Resource, BaseFile}
 import play.api.libs.json._
 
 object PlayerJsonToItem {
@@ -11,6 +11,8 @@ object PlayerJsonToItem {
     (playerJson \ "xhtml") match {
       case undefined: JsUndefined => item
       case _ => {
+
+        implicit val pdf = org.corespring.models.json.item.PlayerDefinitionFormat
         val playerDef = playerJson.as[PlayerDefinition]
         item.copy(playerDefinition = Some(playerDef))
       }
@@ -120,7 +122,7 @@ object PlayerJsonToItem {
     }
 
   def supportingMaterials(item: Item, json: JsValue): Item = {
-    implicit val baseFileFormat = BaseFile.BaseFileFormat
+    implicit val baseFileFormat = org.corespring.models.json.item.resource.BaseFileFormat
     (json \ "supportingMaterials") match {
       case undefined: JsUndefined => item
       case array: JsArray => item.copy(

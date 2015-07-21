@@ -1,17 +1,17 @@
 package org.corespring.web.common.views.helpers
 
-import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.{ ItemType, FieldValue }
-import org.corespring.platform.core.services.item._
+import org.corespring.models.item.FieldValue
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-import scala.concurrent.Await
 
-class Defaults(itemIndexService: ItemIndexService) {
+class Defaults(
+                fieldValue: => Option[FieldValue],
+                itemTypes: Seq[(String,String)]
+                ) {
 
   val propsFile = "/buildInfo.properties"
 
@@ -26,13 +26,18 @@ class Defaults(itemIndexService: ItemIndexService) {
     }.getOrElse(new Properties())
   }
 
-  lazy val fieldValues: String = FieldValue.findOne(MongoDBObject()) match {
+  lazy val fieldValues: String = fieldValue match {
     case Some(fv) => {
-      import org.corespring.platform.core.models.json._
-      implicit val writes = Json.writes[FieldValue]
 
-      val json: JsValue = (writes.writes(fv) match {
-        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes))
+      import org.corespring.models.json.item.FieldValueWrites
+
+      val json: JsValue = (FieldValueWrites.writes(fv) match {
+        case obj: JsObject => {
+          val itemTypeJson = Json.obj("v2ItemTypes" ->
+            itemTypes.map{ case (key,value) => Json.obj("key" -> key, "value" -> value) } )
+
+          obj.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson ))
+        }
         case value: JsValue => value
       })
       Json.stringify(json)
@@ -63,8 +68,5 @@ class Defaults(itemIndexService: ItemIndexService) {
       applicationID = get("newrelic.application-id").getOrElse(""))
   }
 
-  lazy val v2ItemTypes = ItemType.all
-
 }
 
-object Defaults extends Defaults(ElasticSearchItemIndexService)

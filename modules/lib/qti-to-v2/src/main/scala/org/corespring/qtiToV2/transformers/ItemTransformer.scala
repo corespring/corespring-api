@@ -2,16 +2,30 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.platform.core.models.{ ContentCollection, Standard }
-import org.corespring.platform.core.models.item.resource.{ CDataHandler, Resource, VirtualFile, XMLCleaner }
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
-import org.corespring.platform.core.services.BaseFindAndSaveService
+import org.corespring.models.{Subject, Standard, ContentCollection}
+import org.corespring.models.item.resource.VirtualFile
+import org.corespring.models.item.{FieldValue, PlayerDefinition, Item}
+import org.corespring.models.json.JsonFormatting
+import org.corespring.models.utils.xml.CDataHandler
+import org.corespring.platform.core.models.item.resource.XMLCleaner
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
+import org.corespring.services.{SubjectService, StandardService}
+import org.corespring.services.item.ItemService
 import play.api.{ Configuration, Play, Logger }
-import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
+import play.api.libs.json._
 
-trait ItemTransformer {
+trait ItemTransformer extends JsonFormatting {
+
+
+
+  def fieldValue : FieldValue
+
+
+
+  override def findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById _
+
+  override def findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation _
 
   def configuration: Configuration
 
@@ -20,7 +34,11 @@ trait ItemTransformer {
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
   //TODO: Remove service - transform should only transform. see: CA-2085
-  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
+  def itemService: ItemService
+
+  def standardService:StandardService
+
+  def subjectService : SubjectService
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
@@ -93,7 +111,7 @@ trait ItemTransformer {
   def transformToV2Json(item: Item, rootJson: Option[JsObject]): JsValue = {
     logger.debug(s"itemId=${item.id} function=transformToV2Json")
     logger.trace(s"itemId=${item.id} function=transformToV2Json -> rootJson=${rootJson.map(Json.stringify)}")
-    implicit val ResourceFormat = Resource.Format
+    //implicit val ResourceFormat = Resource.Format
 
     val root: JsObject = (rootJson match {
       case Some(json) => json
@@ -119,8 +137,7 @@ trait ItemTransformer {
     val profile = toProfile(item)
 
     val collectionJs = (for {
-      collectionId <- item.collectionId
-      collection <- findCollection(new ObjectId(collectionId))
+      collection <- findCollection(new ObjectId(item.collectionId))
     } yield Json.toJson(collection)).getOrElse(Json.obj())
 
     val out = root ++ Json.obj(
@@ -148,7 +165,7 @@ trait ItemTransformer {
       contributorDetails ++
       otherAlignments ++
       Json.obj(
-        "standards" -> item.standards.map(Standard.findOneByDotNotation).flatten.map(Json.toJson(_)),
+        "standards" -> item.standards.map(standardService.findOneByDotNotation).flatten.map(Json.toJson(_)),
         "reviewsPassed" -> item.reviewsPassed,
         "reviewsPassedOther" -> item.reviewsPassedOther,
         "priorGradeLevel" -> item.priorGradeLevels,

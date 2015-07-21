@@ -1,8 +1,8 @@
 package org.corespring.drafts.item.models
 
 import org.bson.types.ObjectId
-import org.corespring.drafts.{ Src, UserDraft }
-import org.corespring.platform.core.models.item.Item
+import org.corespring.drafts.{ UserDraft }
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.{ DateTimeZone, DateTime }
 

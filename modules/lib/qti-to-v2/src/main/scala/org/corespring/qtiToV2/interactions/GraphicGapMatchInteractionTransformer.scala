@@ -1,6 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
-import org.corespring.platform.core.utils.NumberParsers
+import org.corespring.qtiToV2.utils.NumberParsers
 import play.api.libs.json._
 
 import scala.xml._
