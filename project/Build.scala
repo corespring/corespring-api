@@ -18,10 +18,6 @@ object Build extends sbt.Build {
 
   val forkInTests = false
 
-  /*val stage = taskKey[Unit]("Stage task")
-
-  val Stage = config("stage")*/
-
   def getEnv(prop: String): Option[String] = {
     val env = System.getenv(prop)
     if (env == null) None else Some(env)
@@ -95,6 +91,12 @@ object Build extends sbt.Build {
   val qti = builders.lib("qti")
     .settings(libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, salatPlay, playJson, salat, rhino, rhinos))
     .dependsOn(apiUtils)
+
+  val coreJson = builders.lib("core-json", "core")
+  val coreModels = builders.lib("core-models", "core")
+  val coreServices = builders.lib("core-services", "core")
+  val coreServicesSalat = builders.lib("core-services-salat", "core")
+  val coreUtils = builders.lib("core-utils", "core")
 
   /** Core data model */
   val core = builders.lib("core")
