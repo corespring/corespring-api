@@ -8,16 +8,16 @@ object Seeding {
   import MongoDbSeederPlugin._
 
   lazy val settings: Seq[Setting[_]] = newSettings ++ Seq(
-      seederLogLevel := "INFO",
-      testUri := "mongodb://localhost/api",
-      seedDevTask,
-      seedProdTask,
-      seedDebugDataTask,
-      seedDemoDataTask,
-      seedDevDataTask,
-      seedSampleDataTask,
-      seedStaticDataTask,
-      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings
+    seederLogLevel := "INFO",
+    testUri := "mongodb://localhost/api",
+    seedDevTask,
+    seedProdTask,
+    seedDebugDataTask,
+    seedDemoDataTask,
+    seedDevDataTask,
+    seedSampleDataTask,
+    seedStaticDataTask,
+    testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings
 
   def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
     lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"

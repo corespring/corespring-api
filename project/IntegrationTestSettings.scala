@@ -1,7 +1,7 @@
 import sbt._
 import sbt.Keys._
 
-object IntegrationTestSettings{
+object IntegrationTestSettings {
 
   val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
 

@@ -1,7 +1,7 @@
 import sbt._
 import sbt.Keys._
 
-object Indexing{
+object Indexing {
 
   import Utils._
 
