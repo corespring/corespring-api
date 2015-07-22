@@ -11,6 +11,7 @@ import org.corespring.common.log.Logging
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.elasticsearch._
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.Play._
 import play.api.libs.json._
 import play.api.libs.ws.WS
 import scala.concurrent._
@@ -40,7 +41,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
-      authed("/content/_search")
+      authed("/content/_search")(elasticSearchUrl, ec, application)
         .post(Json.toJson(query))
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
@@ -55,7 +56,8 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
     try {
       implicit val AggregationWrites = ItemIndexAggregation.Writes
       val agg = ItemIndexAggregation(field = field, collectionIds = collectionIds)
-      authed("/content/_search")
+      println(Json.prettyPrint(Json.toJson(agg)))
+      authed("/content/_search")(elasticSearchUrl, ec, application)
         .post(Json.toJson(agg))
         .map(result => {
           Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]
@@ -92,9 +94,11 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
   private object Indexer {
 
     val contentDenormalizer =
-      new ContentDenormalizer(play.api.Play.current.configuration
+      new ContentDenormalizer(current.configuration
         .getConfig("mongodb").map(_.getConfig("default")).flatten.map(_.getString("uri")).flatten
-        .getOrElse(throw new Exception("Cannot connect to MongoDB without URI")))
+        .getOrElse(throw new Exception("Cannot connect to MongoDB without URI")),
+        current.configuration.getConfig("container").map(_.getString("components.path")).flatten
+          .getOrElse(throw new Exception("Cannot use content denormalizer without component path")))
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
       contentDenormalizer.withCollection("content", collection => {
