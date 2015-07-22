@@ -1,6 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.platform.core.encryption.ApiClientEncryptionService
+import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.auth.services.caching.CachingTokenService

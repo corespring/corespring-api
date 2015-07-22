@@ -1,24 +1,19 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.{Organization, ContentCollRef, JsonUtil}
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
-import org.corespring.drafts.item.models.ItemDraft
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.itemSearch.{ ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
+import org.corespring.models.item.Item
+import org.corespring.models.json.{ JsonFormatting, JsonUtil }
+import org.corespring.models.{ Organization }
+import org.corespring.models.item.Item.Keys._
+import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
-import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent._
 
-import org.corespring.platform.core.models.item.{ ItemType, Item }
-import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -32,9 +27,12 @@ trait ItemApi extends V2Api with JsonUtil {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
-  def itemType: ItemType
+  def itemTypes: Seq[(String, String)]
   def itemIndexService: ItemIndexService
   def scoreService: ScoreService
+  def jsonFormatting: JsonFormatting
+
+  implicit val itemFormat = jsonFormatting.item
 
   /**
    * For a known organization (derived from the request) return Some(id)
@@ -95,7 +93,7 @@ trait ItemApi extends V2Api with JsonUtil {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
           case JsSuccess(query, _) => {
-            val accessibleCollections = orgAndOpts.org.contentcolls.accessible.map(_.collectionId.toString)
+            val accessibleCollections = orgAndOpts.org.accessibleCollections.map(_.collectionId.toString)
             val collections = query.collections.filter(id => accessibleCollections.contains(id))
             val scopedQuery = (collections.isEmpty match {
               case true => query.copy(collections = accessibleCollections)
@@ -123,7 +121,11 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  def getItemTypes() = Action { Ok(Json.prettyPrint(itemType.all)) }
+  def getItemTypes() = Action {
+    val keyValues = itemTypes.map { case (key, value) => Json.obj("key" -> key, "value" -> value) }
+    val json = JsArray(keyValues)
+    Ok(Json.prettyPrint(json))
+  }
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._

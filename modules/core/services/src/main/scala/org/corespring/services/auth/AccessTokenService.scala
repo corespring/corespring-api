@@ -21,7 +21,9 @@ trait AccessTokenService {
   @deprecated("use findByTokenId instead", "0.1")
   def findByToken(token: String) = findByTokenId(token)
 
-  final def findById(token: String) = throw new NotImplementedError("Use 'findByTokenId' instead")
+  @deprecated("use findByTokenId instead", "0.1")
+  final def findById(token: String) = findByTokenId(token)
+
   /**
    * Finds an access token by organization and scope
    *
@@ -37,4 +39,6 @@ trait AccessTokenService {
   def findByOrgId(id: ObjectId): Option[AccessToken]
 
   def getOrCreateToken(org: Organization): AccessToken
+
+  def orgForToken(token: String): Option[Organization]
 }

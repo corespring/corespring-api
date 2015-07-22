@@ -1,16 +1,13 @@
 package org.corespring.v2.api.services
 
-import org.bson.types.ObjectId
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.platform.core.models.item.{PlayerDefinition, Item}
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.errors.Errors.generalError
+import org.corespring.models.item.{ PlayerDefinition }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.{ Json, JsValue }
 
-import scalaz.{Success, Validation}
+import scalaz.{ Success, Validation }
 
 trait ScoreService {
 
@@ -49,7 +46,6 @@ trait ScoreService {
 class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor) extends ScoreService {
 
   protected lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
-
 
   override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
 

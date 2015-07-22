@@ -5,20 +5,20 @@ import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.CommitService
-import org.corespring.platform.core.models.item.{ ItemType, Item, PlayerDefinition }
-import org.corespring.platform.core.encryption.{ ApiClientEncryptionService, ApiClientEncrypter }
-import org.corespring.platform.core.services.assessment.basic.AssessmentService
-import org.corespring.platform.core.services.assessment.template.AssessmentTemplateService
-import org.corespring.platform.core.services.item.{ ItemIndexService, ItemService }
-import org.corespring.platform.core.services.metadata.{ MetadataService, MetadataSetService }
-import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.encryption.apiClient.ApiClientEncryptionService
+import org.corespring.itemSearch.ItemIndexService
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.OrganizationService
+import org.corespring.services.assessment.{ AssessmentTemplateService, AssessmentService }
+import org.corespring.services.item.ItemService
+import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.v2.api.services.{ PlayerTokenService, _ }
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.{ IdentityJson, OrgAndOpts }
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
+import org.corespring.v2.auth.services.{ TokenService }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
@@ -35,10 +35,10 @@ import scalaz.Validation
  */
 
 trait V2ApiServices {
-  def orgService: OrgService
+  def orgService: OrganizationService
   def sessionService: SessionService
   def itemService: ItemService
-  def itemType: ItemType
+  def itemTypes: Seq[(String, String)]
   def itemIndexService: ItemIndexService
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]

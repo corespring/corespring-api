@@ -1,24 +1,24 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.Assessment
-import org.corespring.platform.core.models.metadata.{ Metadata, MetadataSet }
-import org.corespring.platform.core.services.metadata.{ SetJson, MetadataService, MetadataSetService }
+import org.corespring.models.json.metadata.{ SetJson, MetadataSetFormat }
+import org.corespring.models.metadata.{ MetadataSet }
+import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
-import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json._
-import play.api.libs.json.{ JsArray, JsValue, Json }
+import play.api.libs.json.{ Format, JsArray, JsValue, Json }
 import play.api.mvc._
-
-import scala.concurrent.Future
-import scalaz.Success
 
 trait MetadataApi extends V2Api {
 
   def metadataSetService: MetadataSetService
   def metadataService: MetadataService
+
+  implicit val ms: Format[MetadataSet] = MetadataSetFormat
+
+  import scala.language.implicitConversions
 
   implicit private def seqToJsValue(l: Seq[MetadataSet]): JsValue = JsArray(l.map(toJson(_)))
   implicit private def metadataToJsValue(m: MetadataSet): JsValue = toJson(m)

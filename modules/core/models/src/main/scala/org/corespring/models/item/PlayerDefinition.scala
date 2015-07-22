@@ -14,11 +14,11 @@ import play.api.libs.json.{ Json, JsValue }
  */
 
 class PlayerDefinition(
-    val files: Seq[BaseFile],
-    val xhtml: String,
-    val components: JsValue,
-    val summaryFeedback: String,
-    val customScoring: Option[String]) {
+  val files: Seq[BaseFile],
+  val xhtml: String,
+  val components: JsValue,
+  val summaryFeedback: String,
+  val customScoring: Option[String]) {
   override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
 
   override def hashCode() = {
@@ -39,5 +39,13 @@ class PlayerDefinition(
 
 object PlayerDefinition {
   def apply(xhtml: String) = new PlayerDefinition(Seq.empty, xhtml, Json.obj(), "", None)
+
+  def apply(
+    files: Seq[BaseFile],
+    xhtml: String,
+    components: JsValue,
+    summaryFeedback: String,
+    customScoring: Option[String]) = new PlayerDefinition(files, xhtml, components, summaryFeedback, customScoring)
+
   def empty = new PlayerDefinition(Seq(), "", Json.obj(), "", None)
 }

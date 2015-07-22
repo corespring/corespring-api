@@ -7,8 +7,6 @@ import org.corespring.models.json.ValueGetter
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
-import scala.collection.Map
-
 trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
 
   object Keys {
@@ -44,7 +42,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
     }
   }
 
-  def extendedAsJson(extended: Map[String, BasicDBObject]): JsValue = {
+  def extendedAsJson(extended: Map[String, DBObject]): JsValue = {
     JsObject(extended.foldRight[Seq[(String, JsValue)]](Seq())((md, acc1) => {
       acc1 :+ (md._1 -> JsObject(md._2.toSeq.map(prop => prop._1 -> JsString(prop._2.toString))))
     }))
@@ -59,8 +57,7 @@ trait TaskInfoFormat extends ValueGetter with Format[TaskInfo] {
       extended = getExtended(json),
       subjects = getSubjects(json),
       domains = getDomains(json),
-      gradeLevel = getGradeLevel(json)
-    )
+      gradeLevel = getGradeLevel(json))
     JsSuccess(info)
   }
 

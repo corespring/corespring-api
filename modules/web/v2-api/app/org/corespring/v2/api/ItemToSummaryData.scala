@@ -1,15 +1,23 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.{ Standard, Subject }
-import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.models.item.Item
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.{ StandardService, SubjectService }
 import play.api.Logger
 import play.api.libs.json._
 
 trait ItemToSummaryData {
 
-  lazy val logger = V2LoggerFactory.getLogger("api", "V2ItemTransformer")
+  def subjectService: SubjectService
+  def standardService: StandardService
+
+  def jsonFormatting: JsonFormatting
+
+  implicit val subjectFormat = jsonFormatting.writeSubject
+  implicit val standardFormat = jsonFormatting.formatStandard
+
+  lazy val logger = Logger(classOf[ItemToSummaryData])
 
   def toSummaryData(item: Item, detail: Option[String] = None): JsValue = {
     logger.debug(s"itemId=${item.id} function=transform $detail")
@@ -51,7 +59,7 @@ trait ItemToSummaryData {
    */
   private def subjects(item: Item): JsObject = {
     def subjectToJson(subject: Option[ObjectId]): Option[JsValue] = subject match {
-      case Some(id) => Subject.findOneById(id) match {
+      case Some(id) => subjectService.findOneById(id) match {
         case Some(subj) => Some(Json.toJson(subj))
         case _ => throw new RuntimeException("Can't find subject with id: " + id)
       }
@@ -59,7 +67,7 @@ trait ItemToSummaryData {
     }
 
     def subjectsToJson(subjects: Seq[ObjectId]): Option[JsArray] = Some(JsArray(
-      subjects.map(id => Subject.findOneById(id) match {
+      subjects.map(id => subjectService.findOneById(id) match {
         case Some(subj) => Json.toJson(subj)
         case _ => throw new RuntimeException("Can't find subject with id: " + id)
       })))
@@ -80,7 +88,7 @@ trait ItemToSummaryData {
   }
 
   private def standard(standards: Seq[String]): Seq[JsValue] = {
-    standards.map(Standard.findOneByDotNotation).flatten.map(Json.toJson(_))
+    standards.map(standardService.findOneByDotNotation).flatten.map(Json.toJson(_))
   }
 
   private def priorUse(item: Item): JsObject = {

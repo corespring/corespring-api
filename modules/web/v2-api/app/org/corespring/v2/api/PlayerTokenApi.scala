@@ -1,8 +1,8 @@
 package org.corespring.v2.api
 
-import org.corespring.platform.core.models.Organization
-import org.corespring.v2.api.services.{CreateTokenResult, PlayerTokenService}
-import org.corespring.v2.errors.Errors.{encryptionFailed, noJson}
+import org.corespring.models.Organization
+import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
+import org.corespring.v2.errors.Errors.{ encryptionFailed, noJson }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json._
@@ -18,7 +18,7 @@ trait PlayerTokenApi extends V2Api {
 
   def tokenService: PlayerTokenService
 
-  def encryptionFailedError(org:Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
+  def encryptionFailedError(org: Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
 
   /**
    * Creates a player token.

@@ -1,26 +1,27 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.AssessmentTemplate
-import org.corespring.platform.core.models.assessment.basic.{ Answer, Assessment }
-import org.corespring.platform.core.services.assessment.basic.AssessmentService
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.models.assessment.{ Answer, Assessment }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.assessment.AssessmentService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import play.api.libs.json.{ JsObject, JsSuccess, Json }
 import play.api.libs.json.Json._
 import play.api.mvc.{ SimpleResult, AnyContent, Request }
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
 trait AssessmentApi extends V2Api {
 
   def assessmentService: AssessmentService
 
+  def jsonFormatting: JsonFormatting
+
+  implicit val formatAssessment = jsonFormatting.formatAssessment
+  implicit val formatAnswer = jsonFormatting.formatAnswer
+
   def create() = withIdentity { (identity, request) =>
     val json = getAssessmentJson(identity, request)
-    Json.fromJson[Assessment](json) match {
+    Json.fromJson[Assessment](json)(jsonFormatting.formatAssessment) match {
       case JsSuccess(jsonAssessment, _) => {
         val assessment = new Assessment().merge(jsonAssessment)
         assessmentService.create(assessment)
@@ -103,15 +104,6 @@ trait AssessmentApi extends V2Api {
           }
         }
         case _ => addAnswerRequiresId(assessmentId).toResult
-      }
-    })
-
-  def aggregate(assessmentId: ObjectId, itemId: Option[VersionedId[ObjectId]]) =
-    withAssessment(assessmentId, { (assessment, identity, request) =>
-      itemId match {
-        case Some(itemId) =>
-          Await.result(org.corespring.api.v1.ItemSessionApi.aggregate(assessmentId, itemId)(request), Duration.Inf)
-        case _ => aggregateRequiresItemId(assessmentId).toResult
       }
     })
 

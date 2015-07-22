@@ -1,7 +1,9 @@
 package org.corespring.models.json
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ContentCollection, Standard, Subject}
+import org.corespring.models.assessment.{ AssessmentTemplate, Answer, Assessment }
+import org.corespring.models.json.assessment.{ AssessmentTemplateFormat, AnswerFormat, AssessmentFormat }
+import org.corespring.models.{ ContentCollection, Standard, Subject }
 import org.corespring.models.item._
 import org.corespring.models.item.resource.Resource
 import org.corespring.models.json.item._
@@ -20,19 +22,24 @@ trait JsonFormatting {
   def findSubjectById: ObjectId => Option[Subject]
   def findStandardByDotNotation: String => Option[Standard]
 
+  implicit lazy val formatAssessmentTemplate: Format[AssessmentTemplate] = AssessmentTemplateFormat
+
+  implicit lazy val formatAssessment: Format[Assessment] = AssessmentFormat
+  implicit lazy val formatAnswer: Format[Answer] = AnswerFormat
+
   implicit lazy val formatWorkflow: Format[Workflow] = Json.format[Workflow]
 
   implicit lazy val formatCopyright: Format[Copyright] = new CopyrightFormat {
     override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
   }
 
-  implicit lazy val formatPlayerDefinition : Format[PlayerDefinition] = PlayerDefinitionFormat
+  implicit lazy val formatPlayerDefinition: Format[PlayerDefinition] = PlayerDefinitionFormat
 
-  implicit lazy val writeContentCollection : Writes[ContentCollection] = ContentCollectionWrites
+  implicit lazy val writeContentCollection: Writes[ContentCollection] = ContentCollectionWrites
 
-  implicit lazy val formatResource : Format[Resource] = ResourceFormat
+  implicit lazy val formatResource: Format[Resource] = ResourceFormat
 
-  implicit lazy val formatStandard : Format[Standard] = StandardFormat
+  implicit lazy val formatStandard: Format[Standard] = StandardFormat
 
   implicit lazy val formatContributorDetails: Format[ContributorDetails] = new ContributorDetailsFormat {
     override implicit def ac: Format[AdditionalCopyright] = JsonFormatting.this.formatAdditionalCopyright
@@ -40,10 +47,12 @@ trait JsonFormatting {
     override implicit def c: Format[Copyright] = JsonFormatting.this.formatCopyright
   }
 
+  implicit lazy val writeSubject: Writes[Subject] = SubjectWrites
+
   implicit lazy val formatSubjects: Format[Subjects] = new SubjectsFormat {
     override def findOneById(id: ObjectId): Option[Subject] = findSubjectById(id)
 
-    override implicit def sf: Writes[Subject] = SubjectWrites
+    override implicit def sf: Writes[Subject] = JsonFormatting.this.writeSubject
 
     override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
   }

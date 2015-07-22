@@ -1,18 +1,16 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.AESCrypto
-import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{ EncryptionResult, EncryptionSuccess, ApiClientEncrypter }
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.encryption.apiClient.{ EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.item.PlayerDefinition
+import org.corespring.services.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
-import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -29,7 +27,9 @@ trait ItemSessionApi extends V2Api {
 
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def scoreService: ScoreService
-  def orgService: OrgService
+  def orgService: OrganizationService
+  def encryptionService: ApiClientEncryptionService
+  def apiClientService: ApiClientService
 
   /**
    * A session has been created for an item with the given item id.
@@ -172,14 +172,13 @@ trait ItemSessionApi extends V2Api {
    * of the original session.
    */
   def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-    val encrypter = new ApiClientEncrypter(AESCrypto)
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
         identity <- getOrgAndOptions(request)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
         apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
-        options <- encrypter.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
+        options <- encryptionService.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
       } yield session
@@ -188,11 +187,11 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
-  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
+  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClientService.findOneByOrgId(orgId)
 
   private def withOrg(jsValue: JsValue) = jsValue match {
     case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
-      .map(orgId => orgService.org(new ObjectId(orgId))).flatten match {
+      .map(orgId => orgService.findOneById(new ObjectId(orgId))).flatten match {
         case Some(org) => jsObject ++ Json.obj("organization" -> org.name)
         case _ => jsValue
       }

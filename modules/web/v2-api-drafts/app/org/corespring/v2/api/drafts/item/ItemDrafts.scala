@@ -21,6 +21,8 @@ trait ItemDrafts extends Controller with MakeDraftId {
 
   def identifyUser(rh: RequestHeader): Option[OrgAndUser]
 
+  def itemDraftJson: ItemDraftJson
+
   private def toOrgAndUser(request: RequestHeader) = identifyUser(request).toSuccess(AuthenticationFailed)
 
   import scala.language.implicitConversions
@@ -39,7 +41,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftList <- Success(drafts.listByItemAndOrgId(vid, user.org.id))
       } yield {
-        val seq = draftList.map(ItemDraftJson.simple)
+        val seq = draftList.map(itemDraftJson.simple)
         Json.toJson(seq)
       }
     }
@@ -61,12 +63,12 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftName <- Success(mkDraftName(user.user.map(_.userName).getOrElse("unknown_user")))
         draft <- drafts.create(DraftId(vid.id, draftName, user.org.id), user, expires).leftMap { e => generalDraftApiError(e.msg) }
-      } yield ItemDraftJson.simple(draft)
+      } yield itemDraftJson.simple(draft)
     }
   }
 
   private def toApiResult(e: DraftError): DraftApiResult = e match {
-    case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data)
+    case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data, itemDraftJson.conflict)
     case NothingToCommit(id) => nothingToCommit(id.toString)
     case _ => generalDraftApiError(e.msg)
   }
@@ -92,7 +94,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
   def get(id: String, ignoreConflicts: Option[Boolean] = None) = draftsAction(id) { (user, draftId, rh) =>
     drafts.loadOrCreate(user)(draftId, ignoreConflicts.getOrElse(false)).bimap(
       toApiResult,
-      d => ItemDraftJson.withFullItem(d))
+      d => itemDraftJson.withFullItem(d))
   }
 
   private implicit def draftErrorToDraftApiError[A](v: Validation[DraftError, A]): Validation[DraftApiError, A] = {
@@ -125,7 +127,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
       for {
         user <- toOrgAndUser(request)
         orgDrafts <- Success(drafts.listForOrg(user.org.id))
-      } yield Json.toJson(orgDrafts.map { ItemDraftJson.simple })
+      } yield Json.toJson(orgDrafts.map { itemDraftJson.simple })
     }
   }
 
@@ -133,10 +135,10 @@ trait ItemDrafts extends Controller with MakeDraftId {
     drafts.conflict(user)(draftId)
       .bimap(
         e => generalDraftApiError(e.msg),
-        c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
+        c => c.map(itemDraftJson.conflict).getOrElse(Json.obj()))
   }
 
-  private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent )(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =
+  private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent)(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =
     Action.async(parser) { implicit request =>
       Future {
         for {

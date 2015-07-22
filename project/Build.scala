@@ -49,8 +49,6 @@ object Build extends sbt.Build {
     }
   }
 
-  //TODO: This is not useful at the moment - when it works however it'll be amazing:
-  // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
     updateOptions := updateOptions.value.withCachedResolution(true),
     moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
@@ -250,14 +248,14 @@ object Build extends sbt.Build {
   val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
-    .dependsOn(v2Errors, core, testLib % "test->compile")
+    .dependsOn(coreServices, v2Errors, testLib % "test->compile")
 
   val itemImport = builders.web("item-import")
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
-    .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
+    .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
 
   val draftsApi = builders.web("v2-api-drafts")
-    .dependsOn(itemDrafts, testLib % "test->test")
+    .dependsOn(coreJson, itemDrafts, testLib % "test->test")
 
   val v2Api = builders.web("v2-api")
     .settings(
@@ -270,8 +268,12 @@ object Build extends sbt.Build {
     .dependsOn(
       v2Auth % "test->test;compile->compile",
       v2SessionDb % "test->test;compile->compile",
+      coreModels,
+      coreServices,
+      encryption,
+      itemSearch,
+      coreJson,
       qtiToV2,
-      core % "test->test;compile->compile",
       draftsApi)
 
   object TemplateImports {

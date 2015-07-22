@@ -7,13 +7,12 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
-import org.corespring.common.aws.AwsUtil
 import org.corespring.json.validation.JsonValidator
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile, BaseFile }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.item._
+import org.corespring.models.item.resource.{ Resource, StoredFile, BaseFile }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.json._
 
 import scala.concurrent._
@@ -26,6 +25,7 @@ trait ItemFileConverter {
 
   def uploader: Uploader
   def itemService: ItemService
+  def jsonFormatting: JsonFormatting
 
   val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
 
@@ -66,7 +66,7 @@ trait ItemFileConverter {
               }
               val item = Item(
                 id = id,
-                collectionId = Some(collectionId),
+                collectionId = collectionId,
                 contributorDetails = contributorDetails,
                 data = itemFiles,
                 lexile = extractString("lexile"),
@@ -120,7 +120,7 @@ trait ItemFileConverter {
 
   private def create(collectionId: String): Option[VersionedId[ObjectId]] = {
     val item = Item(
-      collectionId = Some(collectionId),
+      collectionId = collectionId,
       playerDefinition = Some(PlayerDefinition.empty))
     itemService.insert(item)
   }
@@ -150,7 +150,7 @@ trait ItemFileConverter {
     metadata.map(metadata => (metadata \ field).asOpt[Seq[String]]).flatten.getOrElse(Seq.empty)
 
   private def otherAlignments(implicit metadata: Option[JsValue]): Option[Alignments] = {
-    implicit val alignmentsReads = Alignments.Reads
+    implicit val alignmentsReads = jsonFormatting.formatAlignments
     metadata.map(md => (md \ "otherAlignments").asOpt[JsObject]).flatten.map(Json.fromJson[Alignments](_) match {
       case JsSuccess(value, _) => value
       case _ => throw new ConversionException(new Error(metadataParseError("otherAlignments")))
@@ -158,7 +158,7 @@ trait ItemFileConverter {
   }
 
   private def contributorDetails(implicit metadata: Option[JsValue]): Option[ContributorDetails] = {
-    implicit val contributorDetailsReads = ContributorDetails.Reads
+    implicit val contributorDetailsReads = jsonFormatting.formatContributorDetails
     implicit val Formats = Json.format[Copyright]
     metadata.map(md => (md \ "contributorDetails").asOpt[JsObject]).flatten.map(js => Json.fromJson[ContributorDetails](js) match {
       case JsSuccess(value, _) => value.copy(copyright = (js \ "copyright").asOpt[JsObject].map(Json.fromJson[Copyright](_) match {
@@ -170,18 +170,18 @@ trait ItemFileConverter {
   }
 
   private def taskInfo(implicit metadata: Option[JsValue]): Option[TaskInfo] = {
-    implicit val taskInfoReads = TaskInfo.taskInfoReads
+    implicit val taskInfoReads = jsonFormatting.formatTaskInfo
     metadata.map(md => (md \ "taskInfo").asOpt[TaskInfo]).flatten
   }
 
   private def workflow(implicit metadata: Option[JsValue]): Option[Workflow] = {
-    import org.corespring.platform.core.models.item.Workflow._
+    import Workflow.Keys
     metadata.map(md => (md \ "workflow").asOpt[Seq[String]] match {
       case Some(workflowStrings) => Some(Workflow(
-        setup = workflowStrings.contains(setup),
-        tagged = workflowStrings.contains(tagged),
-        standardsAligned = workflowStrings.contains(standardsAligned),
-        qaReview = workflowStrings.contains(qaReview)))
+        setup = workflowStrings.contains(Keys.setup),
+        tagged = workflowStrings.contains(Keys.tagged),
+        standardsAligned = workflowStrings.contains(Keys.standardsAligned),
+        qaReview = workflowStrings.contains(Keys.qaReview)))
       case _ => None
     }).flatten
   }

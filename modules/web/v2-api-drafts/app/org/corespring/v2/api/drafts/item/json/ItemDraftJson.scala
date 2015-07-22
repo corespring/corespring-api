@@ -1,15 +1,14 @@
 package org.corespring.v2.api.drafts.item.json
 
 import org.corespring.drafts.item.models.{ Conflict, ItemDraft }
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.json.ContentView
-import org.corespring.platform.core.models.json.ItemView
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.models.json.JsonFormatting
 import org.joda.time.{ DateTimeZone, DateTime }
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
-object ItemDraftJson {
+trait ItemDraftJson {
+
+  def jsonFormatting: JsonFormatting
 
   lazy val longDateTime = DateTimeFormat.longDateTime()
 
@@ -31,14 +30,14 @@ object ItemDraftJson {
   }
 
   def withFullItem(d: ItemDraft): JsValue = {
-
-    import ItemView.Writes
-    val itemJson = Json.toJson[ContentView[Item]](ContentView(d.parent.data, None))
+    val itemJson = jsonFormatting.item.writes(d.parent.data)
     val simpleJson = simple(d)
     simpleJson.asInstanceOf[JsObject] ++ Json.obj("src" -> Json.obj("data" -> itemJson))
   }
 
   def conflict(c: Conflict): JsValue = {
+
+    implicit val i = jsonFormatting.item
     Json.obj(
       "draftId" -> c.draft.id.toIdString,
       "draftParent" -> Json.toJson(c.draft.parent.data),
