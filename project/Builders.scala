@@ -2,7 +2,33 @@ import sbt._
 import Keys._
 import play.Project._
 
-class Builders(root:String, org:String, appVersion:String, rootScalaVersion:String, sharedSettings : Seq[Setting[_]]) {
+object Builders{
+
+  val disableDocsSettings = Seq(
+    // disable publishing the main API jar
+    publishArtifact in (Compile, packageDoc) := false,
+    // disable publishing the main sources jar
+    publishArtifact in (Compile, packageSrc) := false,
+    sources in doc in Compile := List())
+
+
+}
+class Builders(root:String, org:String, appVersion:String, rootScalaVersion:String) {
+
+  val forkInTests = false
+
+  //TODO: This is not useful at the moment - when it works however it'll be amazing:
+  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
+  // see: https://github.com/sbt/sbt/issues/2105
+  val sharedSettings = Seq(
+    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+    aggregate in update := false,
+    scalaVersion := rootScalaVersion,
+    parallelExecution.in(Test) := false,
+    resolvers ++= Dependencies.Resolvers.all,
+    credentials += LoadCredentials.cred,
+    Keys.fork.in(Test) := forkInTests,
+    scalacOptions ++= Seq("-feature", "-deprecation")) ++ Builders.disableDocsSettings
 
   def lib(name: String, folder:String = "lib", deps: Seq[sbt.ClasspathDep[sbt.ProjectReference]] = Seq.empty) =
 

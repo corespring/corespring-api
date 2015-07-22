@@ -1,16 +1,17 @@
 import sbt._
 import sbt.Keys._
+import MongoDbSeederPlugin._
 
 object Seeding {
 
   import Utils._
   import MongoDbSeederPlugin._
 
-  val h: Seq[Setting[_]] = Seq(seedDevTask, seedTestTask)
-  val settings: Seq[Setting[_]] = /*Seq(seedDevTask, seedTestTask) ++ */
-    MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.seederLogLevel := "INFO",
+  lazy val settings: Seq[Setting[_]] = newSettings ++ Seq(
+      seederLogLevel := "INFO",
       testUri := "mongodb://localhost/api",
+      seedDevTask,
+      seedProdTask,
       seedDebugDataTask,
       seedDemoDataTask,
       seedDevDataTask,

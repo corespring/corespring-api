@@ -1,15 +1,10 @@
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import sbt.Keys._
 import sbt._
 import play.Project._
-import MongoDbSeederPlugin._
-import ElasticsearchIndexerPlugin._
 
 object Build extends sbt.Build {
 
   import Dependencies._
-  import Utils._
   import ComponentsBuilder._
 
   val appName = "corespring"
@@ -17,29 +12,7 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.5"
   val org = "org.corespring"
 
-  val forkInTests = false
-
-  val disableDocsSettings = Seq(
-    // disable publishing the main API jar
-    publishArtifact in (Compile, packageDoc) := false,
-    // disable publishing the main sources jar
-    publishArtifact in (Compile, packageSrc) := false,
-    sources in doc in Compile := List())
-
-  //TODO: This is not useful at the moment - when it works however it'll be amazing:
-  // updateOptions := updateOptions.value.withConsolidatedResolution(true),
-  // see: https://github.com/sbt/sbt/issues/2105
-  val sharedSettings = Seq(
-    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
-    aggregate in update := false,
-    scalaVersion := ScalaVersion,
-    parallelExecution.in(Test) := false,
-    resolvers ++= Dependencies.Resolvers.all,
-    credentials += LoadCredentials.cred,
-    Keys.fork.in(Test) := forkInTests,
-    scalacOptions ++= Seq("-feature", "-deprecation")) ++ disableDocsSettings
-
-  val builders = new Builders(appName, org, appVersion, ScalaVersion, sharedSettings)
+  val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq(
     "scala.language.reflectiveCalls",
@@ -55,7 +28,7 @@ object Build extends sbt.Build {
   val apiUtils = builders.lib("api-utils")
     .settings(
       libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
-      Keys.fork in Test := forkInTests)
+      Keys.fork in Test := builders.forkInTests)
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers")
@@ -95,7 +68,6 @@ object Build extends sbt.Build {
     .settings(
       libraryDependencies ++= Seq(corespringCommonUtils, playFramework, specs2, playTest % "test", scalaFaker % "test"))
     .dependsOn(core)
-    .settings(disableDocsSettings: _*)
 
   val commonViews = builders.web("common-views")
     .settings(
@@ -137,10 +109,6 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(casbah),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.seederLogLevel := "DEBUG",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
     .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)
 
   /**
@@ -243,7 +211,6 @@ object Build extends sbt.Build {
       routesImport ++= customImports)
     .dependsOn(commonViews, core % "compile->compile;test->test", playerLib, v1Player, testLib % "test->compile")
     .aggregate(commonViews)
-    .settings(disableDocsSettings: _*)
 
   val reports = builders.web("reports")
     .settings(
@@ -254,47 +221,6 @@ object Build extends sbt.Build {
     .settings(
       routesImport ++= customImports)
     .dependsOn(core, scormLib, v1Player)
-
-  val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
-
-  lazy val integrationTestSettings = Seq(
-    scalaSource in IntegrationTest <<= baseDirectory / "it",
-    Keys.parallelExecution in IntegrationTest := false,
-    Keys.fork in IntegrationTest := false,
-    Keys.logBuffered := false,
-    /**
-     * Note: Adding qtiToV2 resources so they can be reused in the integration tests
-     *
-     */
-    unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "modules/lib/qti-to-v2/src/test/resources",
-    testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
-    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test")),
-
-    /**
-     * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
-     * This is a workaround that *always* calls an empty Integration test first.
-     * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
-     */
-    testOnly in IntegrationTest := {
-      (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
-    })
-
-  def safeIndex(s: TaskStreams): Unit = {
-    lazy val isRemoteIndexingAllowed = System.getProperty("allow.remote.indexing", "false") == "true"
-    val mongoUri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api")
-    val elasticSearchUri = getEnv("BONSAI_URL").getOrElse("http://localhost:9200")
-    if (isRemoteIndexingAllowed || elasticSearchUri.contains("localhost") || elasticSearchUri.contains("127.0.0.1")) {
-      ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
-      s.log.info(s"[safeIndex] Indexing $elasticSearchUri complete")
-    } else {
-      s.log.error(
-        s"[safeIndex] - Not allowed to index to a remote elasticsearch. Add -Dallow.remote.indexing=true to override.")
-    }
-    ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
-  }
-
-  val index = TaskKey[Unit]("index")
-  val indexTask = index <<= (streams) map safeIndex
 
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
@@ -309,16 +235,14 @@ object Build extends sbt.Build {
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += LoadCredentials.cred,
-      Keys.fork.in(Test) := forkInTests,
+      Keys.fork.in(Test) := builders.forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
     .settings(Seeding.settings: _*)
-    .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
-    .settings(Defaults.itSettings: _*)
-    .settings(integrationTestSettings: _*)
+    .settings(IntegrationTestSettings.settings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
-    .settings(indexTask)
+    .settings(Indexing.indexTask)
     .dependsOn(scormWeb,
       reports,
       public,
