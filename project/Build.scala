@@ -466,7 +466,6 @@ object Build extends sbt.Build {
       MongoDbSeederPlugin.seederLogLevel := "INFO",
       testUri := "mongodb://localhost/api",
       testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
-    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
     .settings(disableDocsSettings: _*)
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
