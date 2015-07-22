@@ -1,10 +1,6 @@
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import sbt.Keys._
 import sbt._
 import play.Project._
-import MongoDbSeederPlugin._
-import ElasticsearchIndexerPlugin._
 
 object Build extends sbt.Build {
 
@@ -16,52 +12,7 @@ object Build extends sbt.Build {
   val ScalaVersion = "2.10.5"
   val org = "org.corespring"
 
-  val forkInTests = false
-
-  def getEnv(prop: String): Option[String] = {
-    val env = System.getenv(prop)
-    if (env == null) None else Some(env)
-  }
-
-  val disableDocsSettings = Seq(
-    // disable publishing the main API jar
-    publishArtifact in (Compile, packageDoc) := false,
-    // disable publishing the main sources jar
-    publishArtifact in (Compile, packageSrc) := false,
-    sources in doc in Compile := List())
-
-  val cred = {
-    val envCredentialsPath = getEnv("CREDENTIALS_PATH")
-    val path = envCredentialsPath.getOrElse(Seq(Path.userHome / ".ivy2" / ".credentials").mkString)
-    val f: File = file(path)
-    println("[credentials] check file: : " + f.getAbsolutePath)
-    if (f.exists()) {
-      println("[credentials] using credentials file")
-      Credentials(f)
-    } else {
-      //https://devcenter.heroku.com/articles/labs-user-env-compile
-      println("[credentials] using credentials env vars - you need to have: user-env-compile enabled in heroku")
-
-      def repoVar(s: String) = System.getenv("ARTIFACTORY_" + s)
-      val args = Seq("REALM", "HOST", "USER", "PASS").map(repoVar)
-      println("[credentials] args: " + args)
-      Credentials(args(0), args(1), args(2), args(3))
-    }
-  }
-
-  val sharedSettings = Seq(
-    updateOptions := updateOptions.value.withCachedResolution(true),
-    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
-    aggregate in update := false,
-    scalaVersion := ScalaVersion,
-    parallelExecution.in(Test) := false,
-    resolvers ++= Dependencies.Resolvers.all,
-    credentials += cred,
-    Keys.fork.in(Test) := forkInTests,
-    scalacOptions in Test ++= Seq("-Yrangepos"),
-    scalacOptions ++= Seq("-feature", "-deprecation")) ++ disableDocsSettings
-
-  val builders = new Builders(appName, org, appVersion, ScalaVersion, sharedSettings)
+  val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
   val customImports = Seq(
     "scala.language.reflectiveCalls",
@@ -77,7 +28,7 @@ object Build extends sbt.Build {
   val apiUtils = builders.lib("api-utils")
     .settings(
       libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
-      Keys.fork in Test := forkInTests)
+      Keys.fork in Test := builders.forkInTests)
 
   /** Any shared test helpers in here */
   val testLib = builders.testLib("test-helpers")
@@ -151,25 +102,6 @@ object Build extends sbt.Build {
         specs2 % "test",
         sprayCaching))
     .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
-  /*val playerLib = builders.lib("player-lib")
-    .settings(
-      libraryDependencies ++= Seq(casbah, corespringCommonUtils, playFramework, specs2, playTest % "test", scalaFaker % "test"))
-    .dependsOn(coreModels, coreServices)
-    .settings(disableDocsSettings: _*)*/
-
-  val buildInfo = TaskKey[Unit]("build-client", "runs client installation commands")
-
-  val buildInfoTask = buildInfo <<= (classDirectory in Compile, name, version, streams) map {
-    (base, n, v, s) =>
-      s.log.info("[buildInfo] ---> write build properties file] on " + base.getAbsolutePath)
-      val file = base / "buildInfo.properties"
-      val commitHash: String = Process("git rev-parse --short HEAD").!!.trim
-      val branch: String = Process("git rev-parse --abbrev-ref HEAD").!!.trim
-      val formatter = DateTimeFormat.forPattern("HH:mm dd MMMM yyyy");
-      val date = formatter.print(DateTime.now)
-      val contents = "commit.hash=%s\nbranch=%s\nversion=%s\ndate=%s".format(commitHash, branch, v, date)
-      IO.write(file, contents)
-  }
 
   val itemSearch = builders.lib("item-search")
     .settings(
@@ -178,24 +110,10 @@ object Build extends sbt.Build {
 
   val commonViews = builders.web("common-views")
     .settings(
-      buildInfoTask,
-      (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildInfo,
-      libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws)).dependsOn(assets, itemSearch)
-  //.dependsOn(core % "compile->compile;test->test")
-
-  /*
-  val clientLogging = builders.web("client-logging")
-    .settings(
-      libraryDependencies ++= Seq(playFramework, scalaz))
-    .dependsOn(apiUtils, core % "test->test")
-
-  val scormLib = builders.lib("scorm").settings(
-    libraryDependencies ++= Seq(playFramework))
-    .dependsOn(core)
-
-  val ltiLib = builders.lib("lti")
-    .dependsOn(apiUtils, core % "compile->compile;test->compile;test->test")
-  */
+      BuildInfo.buildInfoTask,
+      (packagedArtifacts) <<= (packagedArtifacts) dependsOn BuildInfo.buildInfo,
+      libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws))
+    .dependsOn(assets, itemSearch)
 
   val drafts = builders.lib("drafts")
     .settings(
@@ -218,11 +136,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(casbah),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.seederLogLevel := "DEBUG",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static"): _*)
-    .dependsOn(core % "compile->compile;test->test", scormLib, ltiLib, qtiToV2)*/
+    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)*/
 
   /**
    * Error types
@@ -280,20 +194,6 @@ object Build extends sbt.Build {
     val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
 
-  /*val v1Player = builders.web("v1-player")
-    .settings(
-      templatesImport ++= TemplateImports.Ids,
-      routesImport ++= customImports)
-    .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
-    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
-  */
-
-  /*val devTools = builders.web("dev-tools")
-    .settings(
-      routesImport ++= customImports,
-      libraryDependencies ++= Seq(containerClientWeb, mongoJsonService))
-    .dependsOn(v1Player, playerLib, core, v2Auth)*/
-
   /** Implementation of corespring container hooks */
   val v2PlayerIntegration = builders.lib("v2-player-integration")
     .settings(
@@ -314,139 +214,10 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  /*val ltiWeb = builders.web("lti-web")
+  val reports = builders.web("reports")
     .settings(
-      templatesImport ++= TemplateImports.Ids,
-      routesImport ++= customImports)
-    .aggregate(core, ltiLib, playerLib, v1Player)
-    .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test")
-  */
-
-  /*val public = builders.web("public")
-    .settings(
-      libraryDependencies ++= Seq(playFramework, securesocial),
-      routesImport ++= customImports)
-    .dependsOn(commonViews, testLib % "test->compile")
-    .aggregate(commonViews)
-    .settings(disableDocsSettings: _*)*/
-
-  /*val reports = builders.web("reports")
-    .settings(
-      libraryDependencies ++= Seq(simplecsv))
-    .dependsOn(commonViews, core % "compile->compile;test->test")
-    */
-
-  /*
-  val scormWeb = builders.web("scorm-web")
-    .settings(
-      routesImport ++= customImports)
-    .dependsOn(core, scormLib, v1Player)
-  */
-
-  val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
-
-  lazy val integrationTestSettings = Seq(
-    scalaSource in IntegrationTest <<= baseDirectory / "it",
-    Keys.parallelExecution in IntegrationTest := false,
-    Keys.fork in IntegrationTest := false,
-    Keys.logBuffered := false,
-    /**
-     * Note: Adding qtiToV2 resources so they can be reused in the integration tests
-     *
-     */
-    unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "modules/lib/qti-to-v2/src/test/resources",
-    testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
-    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test")),
-
-    /**
-     * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
-     * This is a workaround that *always* calls an empty Integration test first.
-     * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
-     */
-    testOnly in IntegrationTest := {
-      (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
-    })
-
-  def safeIndex(s: TaskStreams): Unit = {
-    lazy val isRemoteIndexingAllowed = System.getProperty("allow.remote.indexing", "false") == "true"
-    val mongoUri = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost:27017/api")
-    val elasticSearchUri = getEnv("BONSAI_URL").getOrElse("http://localhost:9200")
-    if (isRemoteIndexingAllowed || elasticSearchUri.contains("localhost") || elasticSearchUri.contains("127.0.0.1")) {
-      ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
-      s.log.info(s"[safeIndex] Indexing $elasticSearchUri complete")
-    } else {
-      s.log.error(
-        s"[safeIndex] - Not allowed to index to a remote elasticsearch. Add -Dallow.remote.indexing=true to override.")
-    }
-    ElasticsearchIndexerPlugin.index(mongoUri, elasticSearchUri)
-  }
-
-  def safeSeed(clear: Boolean)(paths: String, name: String, logLevel: String, s: TaskStreams): Unit = {
-    lazy val isRemoteSeedingAllowed = System.getProperty("allow.remote.seeding", "false") == "true"
-    lazy val overrideClear = System.getProperty("clear.before.seeding", "false") == "true"
-    s.log.info(s"[safeSeed] $paths - Allow remote seeding? $isRemoteSeedingAllowed - Clear collection before seed? $clear")
-    val uriString = getEnv("ENV_MONGO_URI").getOrElse("mongodb://localhost/api")
-    s.log.info(s"[safeSeed] uriString: $uriString")
-    val uri = new URI(uriString)
-    s.log.info(s"[safeSeed] uri: $uri")
-    val host = uri.getHost
-    s.log.info(s"[safeSeed] host: $host")
-    if (host == "127.0.0.1" || host == "localhost" || isRemoteSeedingAllowed) {
-      MongoDbSeederPlugin.seed(uriString, paths, name, logLevel, clear || overrideClear)
-      s.log.info(s"[safeSeed] $paths - seeding complete")
-    } else {
-      s.log.error(s"[safeSeed] $paths - Not allowed to seed a remote db. Add -Dallow.remote.seeding=true to override.")
-    }
-  }
-
-  val devData = SettingKey[String]("dev-data")
-  val demoData = SettingKey[String]("demo-data")
-  val debugData = SettingKey[String]("debug-data")
-  val sampleData = SettingKey[String]("sample-data")
-  val staticData = SettingKey[String]("static-data")
-
-  lazy val seederSettings = Seq(
-    devData := Seq(
-      "conf/seed-data/common",
-      "conf/seed-data/dev",
-      "conf/seed-data/exemplar-content").mkString(","),
-    demoData := "conf/seed-data/demo",
-    debugData := "conf/seed-data/debug",
-    sampleData := "conf/seed-data/sample",
-    staticData := "conf/seed-data/static")
-
-  val seedDevData = TaskKey[Unit]("seed-dev-data")
-  val seedDevDataTask = seedDevData <<= (devData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
-
-  val seedDemoData = TaskKey[Unit]("seed-demo-data")
-  val seedDemoDataTask = seedDemoData <<= (demoData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
-
-  val seedDebugData = TaskKey[Unit]("seed-debug-data")
-  val seedDebugDataTask = seedDebugData <<= (debugData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
-
-  val seedSampleData = TaskKey[Unit]("seed-sample-data")
-  val seedSampleDataTask = seedSampleData <<= (sampleData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(false)
-
-  val seedStaticData = TaskKey[Unit]("seed-static-data")
-  val seedStaticDataTask = seedStaticData <<= (staticData, name, MongoDbSeederPlugin.seederLogLevel, streams) map safeSeed(true)
-
-  val seedDev = TaskKey[Unit]("seed-dev")
-  val seedDevTask = seedDev := {
-    (seedStaticData.value,
-      seedDevData.value,
-      seedDemoData.value,
-      seedDebugData.value,
-      seedSampleData.value)
-  }
-
-  val seedProd = TaskKey[Unit]("seed-prod")
-  val seedProdTask = seedProd := {
-    (seedStaticData.value,
-      seedSampleData.value)
-  }
-
-  val index = TaskKey[Unit]("index")
-  val indexTask = index <<= (streams) map safeIndex
+      libraryDependencies ++= Seq(simplecsv, casbah))
+    .dependsOn(coreModels, commonViews)
 
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
@@ -460,34 +231,16 @@ object Build extends sbt.Build {
       updateOptions := updateOptions.value.withCachedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
-      credentials += cred,
-      Keys.fork.in(Test) := forkInTests,
+      credentials += LoadCredentials.cred,
+      Keys.fork.in(Test) := builders.forkInTests,
       scalacOptions ++= Seq("-feature", "-deprecation"),
       (test in Test) <<= (test in Test).map(Commands.runJsTests))
-    .settings(MongoDbSeederPlugin.newSettings ++ Seq(
-      MongoDbSeederPlugin.seederLogLevel := "INFO",
-      testUri := "mongodb://localhost/api",
-      testPaths := "conf/seed-data/test,conf/seed-data/static") ++ seederSettings: _*)
-    .settings(disableDocsSettings: _*)
+    .settings(Seeding.settings: _*)
     .configs(IntegrationTest)
-    .settings(Defaults.itSettings: _*)
-    .settings(integrationTestSettings: _*)
+    .settings(IntegrationTestSettings.settings: _*)
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
-    .settings(seedDebugDataTask)
-    .settings(seedDemoDataTask)
-    .settings(seedDevDataTask)
-    .settings(seedSampleDataTask)
-    .settings(seedStaticDataTask)
-    .settings(seedDevTask)
-    .settings(seedProdTask)
-    .settings(indexTask)
+    .settings(Indexing.indexTask)
     .dependsOn(
-      //scormWeb,
-      //public,
-      //reports,
-      //ltiWeb,
-      //v1Api,
-      //v1Player,
       core % "it->test;compile->compile",
       apiUtils,
       commonViews,
@@ -496,17 +249,10 @@ object Build extends sbt.Build {
       v2Api,
       v2SessionDb,
       apiTracking,
-      //clientLogging % "compile->compile;test->test",
       qtiToV2,
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
-      //scormWeb,
-      //public,
-      //reports,
-      //ltiWeb,
-      //v1Api,
-      //v1Player,
       core,
       apiUtils,
       commonViews,
@@ -516,7 +262,6 @@ object Build extends sbt.Build {
       apiTracking,
       v2Auth,
       v2SessionDb,
-      //clientLogging,
       qtiToV2,
       itemImport,
       itemDrafts)

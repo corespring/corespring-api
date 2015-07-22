@@ -230,6 +230,9 @@ angular.module('corespring-utils')
           return undefined;
         }
         return _.chain(item.itemTypes)
+          .filter(function(itemType) {
+            return itemType !== 'multiple-interactions';
+          })
           .map(function(itemType) {
             var v2ItemType = _.find(window.fieldValues.v2ItemTypes, function(v2ItemType) {
               return v2ItemType.key === itemType;
