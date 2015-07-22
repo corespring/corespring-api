@@ -9,7 +9,7 @@ import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
-import scala.collection.immutable.{ListMap, SortedMap}
+import scala.collection.immutable.{ ListMap }
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 
@@ -113,7 +113,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     }
   }
 
-  lazy val sorter: (String, String) => Boolean = (a,b) => {
+  lazy val sorter: (String, String) => Boolean = (a, b) => {
     val standards: Seq[Standard] = cachedStandards()
     ((standards.find(_.dotNotation == Some(a)), standards.find(_.dotNotation == Some(b))) match {
       case (Some(one), Some(two)) => standardSorter(one, two)
@@ -162,9 +162,9 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
     Standard,
     guid)
 
-  def baseQuery: DBObject = new BasicDBObject("legacyItem", new BasicDBObject("$ne", true))
+  def notLegacy: DBObject = new BasicDBObject("legacyItem", new BasicDBObject("$ne", true))
   def baseQuery(mongo: DBObject): DBObject = {
-    val base = baseQuery
+    val base = notLegacy
     base.putAll(mongo.toMap)
     base
   }
@@ -184,27 +184,26 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
        * @param getDomain function describing the property of each standard to be used as the name for the Domain
        */
       def mapDomains(standards: Iterator[Standard], getDomain: (Standard => Option[String])) =
-        standards.foldLeft(Map.empty[String, Seq[String]]){ case (map, standard) => getDomain(standard) match {
-          case Some(domain) => map.get(domain) match {
-            case Some(standards) =>
-              map + (domain -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
-            case _ => map + (domain -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+        standards.foldLeft(Map.empty[String, Seq[String]]) {
+          case (map, standard) => getDomain(standard) match {
+            case Some(domain) => map.get(domain) match {
+              case Some(standards) =>
+                map + (domain -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+              case _ => map + (domain -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+            }
+            case _ => map
           }
-          case _ => map
-        }}.map{ case (name, standards) => new Domain(name, standards)}.toSeq
+        }.map { case (name, standards) => new Domain(name, standards) }.toSeq
 
       combineFutures(Seq(
         future {
           "ELA" -> mapDomains(find(MongoDBObject(
-            Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy))
-          )), { _.subCategory })
+            Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy)))), { _.subCategory })
         },
         future {
           "Math" -> mapDomains(find(MongoDBObject(
-            Subject -> Subjects.Math
-          )), { _.category })
-        }
-      ))
+            Subject -> Subjects.Math)), { _.category })
+        }))
     }
   }
 

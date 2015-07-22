@@ -20,7 +20,7 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[String,String])(implicit ec: ExecutionContext)
+class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[String, String])(implicit ec: ExecutionContext)
   extends ItemIndexService with AuthenticatedUrl {
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
@@ -85,10 +85,17 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[
    */
   private object Indexer {
 
-    val contentDenormalizer =
-      new ContentDenormalizer(play.api.Play.current.configuration
-        .getConfig("mongodb").map(_.getConfig("default")).flatten.map(_.getString("uri")).flatten
-        .getOrElse(throw new Exception("Cannot connect to MongoDB without URI")))
+    val contentDenormalizer = {
+
+      val cfg = play.api.Play.current.configuration
+      val uri = cfg.getString("mongodb.default.uri")
+      val componentPath = cfg.getString("container.components.path")
+
+      require(uri.isDefined, "Cannot connect to MongoDB without URI")
+      require(componentPath.isDefined, "Cannot use content denormalizer without component path")
+
+      new ContentDenormalizer(uri.get, componentPath.get)
+    }
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
       contentDenormalizer.withCollection("content", collection => {

@@ -15,3 +15,15 @@ case class TaskInfo(
     copy(title = title.map(t => if (t.isEmpty) titlePrefix else titlePrefix + " " + t) orElse Some(titlePrefix))
   }
 }
+
+object TaskInfo {
+
+  val gradeLevelSorter: (String, String) => Boolean = (a, b) => {
+    val reference = List("PK", "KG", "01", "02", "03", "04", "05", "06", "07", "08", "09",
+      "10", "11", "12", "13", "PS", "AP", "UG")
+    (Option(reference.indexOf(a)), Option(reference.indexOf(b))) match {
+      case (Some(one), Some(two)) => (one <= two)
+      case _ => a <= b
+    }
+  }
+}

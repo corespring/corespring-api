@@ -214,16 +214,16 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  val reports = builders.web("reports")
+  /*val reports = builders.web("reports")
     .settings(
-      libraryDependencies ++= Seq(simplecsv, casbah))
-    .dependsOn(coreModels, commonViews)
+      libraryDependencies ++= Seq(simplecsv, casbah, playCache))
+    .dependsOn(coreModels, coreServices, commonViews)*/
 
   val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
-      libraryDependencies ++= Seq(playMemcached),
+      libraryDependencies ++= Seq(playMemcached, assetsLoader),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
@@ -241,7 +241,7 @@ object Build extends sbt.Build {
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .settings(Indexing.indexTask)
     .dependsOn(
-      core % "it->test;compile->compile",
+      //core % "it->test;compile->compile",
       apiUtils,
       commonViews,
       testLib % "test->compile;test->test;it->test",
@@ -253,7 +253,7 @@ object Build extends sbt.Build {
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
-      core,
+      //core,
       apiUtils,
       commonViews,
       testLib,

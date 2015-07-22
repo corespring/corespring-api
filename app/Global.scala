@@ -1,15 +1,14 @@
 import actors.reporting.ReportActor
 import akka.actor.Props
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import filters.{AccessControlFilter, AjaxFilter, Headers, IEHeaders}
+import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
-import org.corespring.reporting.services.ReportGenerator
-import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
+import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
 import org.corespring.wiring.AppWiring
 import org.corespring.wiring.sessiondb.SessionDbInitialiser
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
@@ -27,7 +26,6 @@ object Global
   with ClassLogging {
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
 
   def controllers: Seq[Controller] = AppWiring.controllers
 
@@ -101,15 +99,5 @@ object Global
     (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(6).withZone(DateTimeZone.forID("America/New_York"))
       .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
   }
-
-  private def reportingDaemon(app: Application) = {
-    import scala.language.postfixOps
-
-    Logger.info("Scheduling the reporting daemon")
-
-    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
-    Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
-  }
-
 
 }

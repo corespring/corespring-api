@@ -3,11 +3,9 @@ package org.corespring.reporting.services
 import org.corespring.reporting.services.ReportGenerator.ReportKeys
 import org.joda.time.DateTime
 import play.Logger
-import play.cache.Cache
-import scala.Some
 import scala.concurrent._
 import play.libs.Akka
-
+import play.api.cache.Cache
 
 object ExecutionContexts {
   import play.api.Play.current
@@ -22,15 +20,14 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.contributor -> reportsService.buildContributorReport _,
     ReportKeys.collection -> reportsService.buildCollectionReport _,
     ReportKeys.standardsByCollection -> reportsService.buildStandardsByCollectionReport _,
-    ReportKeys.subcategory -> reportsService.buildStandardsGroupReport _
-  )
+    ReportKeys.subcategory -> reportsService.buildStandardsGroupReport _)
 
   /**
    * Triggers generation of all reports
    */
   def generateAllReports = generatorFunctions.map { case (key, _) => generateReport(key) }.toSeq
 
-  def getReport(reportKey: String): Option[(DateTime, Option[String], Boolean)] = Option(Cache.get(reportKey)) match {
+  def getReport(reportKey: String): Option[(DateTime, Option[String], Boolean)] = Option(play.api.Cache.get(reportKey)) match {
     case Some((date: DateTime, report, inProgress)) => Some(date, report.asInstanceOf[Option[String]], inProgress.asInstanceOf[Boolean])
     case _ => None
   }
@@ -46,7 +43,7 @@ class ReportGenerator(reportsService: ReportsService) {
     ReportKeys.keys.map(key => (key, (getReport(key) match {
       case Some((date: DateTime, Some(report), _)) => Some(date.toString("MM/dd/YYYY hh:mm aa z"))
       case _ => None
-    }))).filter{ case (a,b) => b.nonEmpty }.map{ case (a,b) => (a, b.get) }.toMap
+    }))).filter { case (a, b) => b.nonEmpty }.map { case (a, b) => (a, b.get) }.toMap
   }
 
   /**
@@ -55,7 +52,7 @@ class ReportGenerator(reportsService: ReportsService) {
    */
   def generateReport(reportKey: String): Future[Option[String]] = {
 
-    implicit val executionContext : ExecutionContext = ExecutionContexts.reportGeneration
+    implicit val executionContext: ExecutionContext = ExecutionContexts.reportGeneration
 
     Option(Cache.get(reportKey)) match {
       case Some((date, report, _)) => Cache.set(reportKey, (date, report, true))

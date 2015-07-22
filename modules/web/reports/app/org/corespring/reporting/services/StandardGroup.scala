@@ -1,21 +1,21 @@
-package org.corespring.platform.core.models
+package org.corespring.reporting.services
 
 /**
  * Defines a property 'group' by which Standards are categorized.
  */
 trait StandardGroup {
 
-  //def subCategory: Option[String]
-  //def grades: Seq[String]
-  //def dotNotation: Option[String]
+  def subCategory: Option[String]
+  def grades: Seq[String]
+  def dotNotation: Option[String]
 
   /**
    * Returns true if the Standards belong to the same group, that is if they have the same grades, same subcategory,
    * and begin with the same first two letters.
    */
-  def sameGroupAs(a: Standard, b: Standard) =
-    (a.subCategory == b.subCategory) && (a.grades == b.grades) &&
-      ((a.dotNotation, b.dotNotation) match {
+  def sameGroupAs(standard: StandardGroup) =
+    (this.subCategory == standard.subCategory) && (standard.grades == this.grades) &&
+      ((this.dotNotation, standard.dotNotation) match {
         case (Some(dot), Some(other)) => dot.startsWith(other.substring(0, 2))
         case (None, None) => true
         case _ => false
@@ -26,7 +26,7 @@ trait StandardGroup {
    */
   def group: Option[String] = {
     // All Standards within the same group as the current Standard
-    val inSameGroup = Standard.cachedStandards().filter(sameGroupAs(_)).map(_.dotNotation).flatten
+    val inSameGroup = StandardsHelper.cachedStandards().filter(sameGroupAs(_)).map(_.dotNotation).flatten
 
     val prefix = {
       def longestCommonPrefix(a: String, b: String) = {

@@ -48,6 +48,7 @@ object Dependencies {
   val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
+  val playCache = "com.typesafe.play" %% "play-cache" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playFramework = "com.typesafe.play" %% "play" % playVersion
   val playJson = "com.typesafe.play" %% "play-json" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
