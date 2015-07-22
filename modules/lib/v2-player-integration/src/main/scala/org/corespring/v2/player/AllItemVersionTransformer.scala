@@ -1,14 +1,15 @@
 package org.corespring.v2.player
 
-import com.mongodb.casbah.Imports
+import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSON
+import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.BaseFindAndSaveService
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.{ StandardService, SubjectService, ContentCollectionService }
+import org.corespring.services.item.{ ItemService, BaseFindAndSaveService }
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import play.api.{ Play, Configuration, Logger }
 
 /**
@@ -16,22 +17,29 @@ import play.api.{ Play, Configuration, Logger }
  * This is not possible using the SalatVersioningDao as it has logic in place that prevents that happening.
  * @see SalatVersioningDao
  */
-class AllItemVersionTransformer extends ItemTransformer {
+class AllItemVersionTransformer(
+  contentCollectionService: ContentCollectionService,
+  underlyingItemService: ItemService,
+  currentCollection: MongoCollection,
+  versionedCollection: MongoCollection,
+  implicit val context: Context,
+  val fieldValue: FieldValue,
+  val standardService: StandardService,
+  val subjectService: SubjectService) extends ItemTransformer {
 
   override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")
 
   override def configuration: Configuration = Play.current.configuration
 
-  override def findCollection(id: ObjectId) = ContentCollection.findOneById(id)
+  override def findCollection(id: ObjectId) = contentCollectionService.findOneById(id)
 
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
 
-    override def findOneById(id: VersionedId[Imports.ObjectId]): Option[Item] = ItemServiceWired.findOneById(id)
+    override def findOneById(id: VersionedId[ObjectId]): Option[Item] = underlyingItemService.findOneById(id)
 
-    override def save(i: Item, createNewVersion: Boolean): Either[String, VersionedId[ObjectId]] = {
+    override def save(i: Item, createNewVersion: Boolean): Either[PlatformServiceError, VersionedId[ObjectId]] = {
       import com.mongodb.casbah.Imports._
       import com.novus.salat._
-      import org.corespring.platform.core.models.mongoContext.context
       logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
@@ -44,13 +52,13 @@ class AllItemVersionTransformer extends ItemTransformer {
 
         logger.debug(s"function=collectionToSaveIn - find id only in versioned and current collections: ${JSON.serialize(idOnly)}")
 
-        val versionedCount = ItemServiceWired.itemDao.versionedCollection.count(query)
-        val currentCount = ItemServiceWired.itemDao.currentCollection.count(query)
+        val versionedCount = versionedCollection.count(query)
+        val currentCount = currentCollection.count(query)
 
         if (versionedCount == 1) {
-          Some(ItemServiceWired.itemDao.versionedCollection)
+          Some(versionedCollection)
         } else if (currentCount == 1) {
-          Some(ItemServiceWired.itemDao.currentCollection)
+          Some(currentCollection)
         } else None
       }.flatten
 
@@ -61,9 +69,9 @@ class AllItemVersionTransformer extends ItemTransformer {
         if (result.getLastError.ok) {
           Right(i.id)
         } else {
-          Left(result.getLastError.getErrorMessage)
+          Left(GeneralError(result.getLastError.getErrorMessage, None))
         }
-      }.getOrElse(Left("Can't find a collection to save in"))
+      }.getOrElse(Left(GeneralError("Can't find a collection to save in", None)))
     }
   }
 }

@@ -5,15 +5,15 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
 import org.corespring.drafts.item.S3Paths
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -30,7 +30,7 @@ trait ItemEditorHooks
 
   import V2ErrorToTuple._
 
-  private lazy val logger = V2LoggerFactory.getLogger(classOf[ItemEditorHooks])
+  private lazy val logger = Logger(classOf[ItemEditorHooks])
 
   def transform: Item => JsValue
 

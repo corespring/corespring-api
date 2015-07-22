@@ -3,7 +3,7 @@ package org.corespring.v2.auth.identifiers
 import org.corespring.models.{ User, Organization }
 import org.corespring.services.OrganizationService
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.mvc.RequestHeader
 
 import scalaz.Validation
@@ -28,7 +28,7 @@ trait OrgRequestIdentity[B] extends RequestIdentity[B] {
   /** convert the header, org and defaultCollection into the expected output type B */
   def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, B]
 
-  lazy val logger = V2LoggerFactory.getLogger("auth", "OrgRequestIdentity")
+  lazy val logger = Logger(classOf[OrgRequestIdentity[B]])
 
   def apply(rh: RequestHeader): Validation[V2Error, B] = {
 

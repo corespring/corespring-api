@@ -1,8 +1,9 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.{ DataQueryHooks => ContainerDataQueryHooks }
-import org.corespring.platform.core.models.{ Standard, Subject }
-import org.corespring.platform.core.services.QueryService
+import org.corespring.models.json.JsonFormatting
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.services.QueryService
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{ JsObject, JsArray, JsValue, Json }
 import play.api.mvc.RequestHeader
@@ -20,6 +21,12 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
   def fieldValueJson: JsObject
 
   def standardsTreeJson: JsArray
+
+  def jsonFormatting: JsonFormatting
+
+  implicit val writeSubject = jsonFormatting.writeSubject
+  implicit val formatSubjects = jsonFormatting.formatSubjects
+  implicit val formatStandard = jsonFormatting.formatStandard
 
   override def findOne(topic: String, id: String)(implicit header: RequestHeader): Future[Either[(Int, String), Option[JsValue]]] = Future {
     logger.trace(s"findOne $topic id: $id")

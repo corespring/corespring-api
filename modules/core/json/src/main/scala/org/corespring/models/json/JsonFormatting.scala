@@ -22,6 +22,8 @@ trait JsonFormatting {
   def findSubjectById: ObjectId => Option[Subject]
   def findStandardByDotNotation: String => Option[Standard]
 
+  implicit lazy val writesFieldValue: Writes[FieldValue] = FieldValueWrites
+
   implicit lazy val formatAssessmentTemplate: Format[AssessmentTemplate] = AssessmentTemplateFormat
 
   implicit lazy val formatAssessment: Format[Assessment] = AssessmentFormat

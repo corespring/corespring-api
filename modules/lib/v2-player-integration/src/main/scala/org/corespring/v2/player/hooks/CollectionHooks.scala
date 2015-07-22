@@ -2,13 +2,14 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks }
-import org.corespring.platform.core.models.{ Organization, ContentCollection }
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService }
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ Organization, ContentCollection }
+import org.corespring.services.ContentCollectionService
 import org.corespring.v2.auth.{ LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{ RequestHeader }
 
@@ -19,7 +20,7 @@ import scalaz.{ Failure, Success, Validation }
 
 trait CollectionHooks extends ContainerCollectionHooks with LoadOrgAndOptions {
 
-  lazy val logger = V2LoggerFactory.getLogger("CollectionHooks")
+  lazy val logger = Logger(classOf[CollectionHooks])
 
   def colService: ContentCollectionService
 
@@ -43,10 +44,8 @@ trait CollectionHooks extends ContainerCollectionHooks with LoadOrgAndOptions {
   }
 
   private def findWritableCollections(org: Organization): Validation[V2Error, Seq[ContentCollection]] = {
-    try {
-      Success(colService.getCollections(org, Permission.Write).toSeq)
-    } catch {
-      case e: Throwable => Failure(generalError("Error finding collections"))
+    Validation.fromEither(colService.getCollections(org.id, Permission.Write)).leftMap {
+      e => generalError(e.message)
     }
   }
 }

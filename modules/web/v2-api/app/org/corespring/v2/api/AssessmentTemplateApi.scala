@@ -7,7 +7,7 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentTemplateService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, cantFindAssessmentTemplateWithId }
-import play.api.libs.json.{ JsSuccess, JsObject, Json }
+import play.api.libs.json.{ JsError, JsSuccess, JsObject, Json }
 import play.api.mvc.{ Request, AnyContent }
 
 trait AssessmentTemplateApi extends V2Api {
@@ -46,7 +46,8 @@ trait AssessmentTemplateApi extends V2Api {
   }
 
   def update(assessmentTemplateId: ObjectId) = withIdentity { (identity, request) =>
-    Json.fromJson[AssessmentTemplate](getJson(identity, request)) match {
+    val json = getJson(identity, request)
+    Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
         //TODO: RF: could $set or update work here?
@@ -59,6 +60,7 @@ trait AssessmentTemplateApi extends V2Api {
           case _ => cantFindAssessmentTemplateWithId(assessmentTemplateId).toResult
         }
       }
+      case JsError(_) => incorrectJsonFormat(json).toResult
     }
   }
 

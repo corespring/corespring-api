@@ -4,7 +4,7 @@ import org.corespring.models.{ User, Organization }
 import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.errors.Errors.{ invalidToken, noOrgForToken, noToken }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import org.corespring.web.token.TokenReader
 import play.api.mvc.RequestHeader
 
@@ -16,7 +16,7 @@ trait TokenOrgIdentity[B]
 
   def tokenService: TokenService
 
-  override lazy val logger = V2LoggerFactory.getLogger("auth", "TokenOrgIdentity")
+  override lazy val logger = Logger(classOf[TokenOrgIdentity[B]])
 
   override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     def onToken(token: String) = tokenService.orgForToken(token)(rh).map { o =>

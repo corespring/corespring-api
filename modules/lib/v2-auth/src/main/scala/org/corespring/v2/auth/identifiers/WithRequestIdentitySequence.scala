@@ -2,7 +2,7 @@ package org.corespring.v2.auth.identifiers
 
 import org.corespring.v2.errors.Errors.{ generalError, compoundError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.http.Status._
 import play.api.mvc.RequestHeader
 
@@ -15,7 +15,7 @@ object WithRequestIdentitySequence {
 
 trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
-  lazy val logger = V2LoggerFactory.getLogger("auth.WithRequestIdentitySequence")
+  lazy val logger = Logger(classOf[WithRequestIdentitySequence[B]])
 
   def identifiers: Seq[OrgRequestIdentity[B]]
 

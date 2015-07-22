@@ -68,7 +68,7 @@ object Build extends sbt.Build {
     "se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
-    "org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._")
+    "org.corespring.web.pathbind.VersionedIdPathBind._")
 
   val playJsonSalatUtils = builders.lib("play-json-salat-utils")
     .settings(
@@ -242,7 +242,7 @@ object Build extends sbt.Build {
    */
   val v2Auth = builders.lib("v2-auth")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching))
+      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
     .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
   val apiTracking = builders.lib("api-tracking")
@@ -309,7 +309,8 @@ object Build extends sbt.Build {
       qtiToV2,
       testLib,
       v2Auth % "test->test;compile->compile",
-      core % "test->test;compile->compile",
+      coreModels,
+      coreServices,
       itemDrafts)
     .dependsOn(v2Api)
 
@@ -321,18 +322,19 @@ object Build extends sbt.Build {
     .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test")
   */
 
-  val public = builders.web("public")
+  /*val public = builders.web("public")
     .settings(
       libraryDependencies ++= Seq(playFramework, securesocial),
       routesImport ++= customImports)
-    .dependsOn(commonViews, core % "compile->compile;test->test", testLib % "test->compile")
+    .dependsOn(commonViews, testLib % "test->compile")
     .aggregate(commonViews)
-    .settings(disableDocsSettings: _*)
+    .settings(disableDocsSettings: _*)*/
 
-  val reports = builders.web("reports")
+  /*val reports = builders.web("reports")
     .settings(
       libraryDependencies ++= Seq(simplecsv))
     .dependsOn(commonViews, core % "compile->compile;test->test")
+    */
 
   /*
   val scormWeb = builders.web("scorm-web")
@@ -481,8 +483,8 @@ object Build extends sbt.Build {
     .settings(indexTask)
     .dependsOn(
       //scormWeb,
-      reports,
-      public,
+      //public,
+      //reports,
       //ltiWeb,
       //v1Api,
       //v1Player,
@@ -500,8 +502,8 @@ object Build extends sbt.Build {
       itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
       //scormWeb,
-      reports,
-      public,
+      //public,
+      //reports,
       //ltiWeb,
       //v1Api,
       //v1Player,

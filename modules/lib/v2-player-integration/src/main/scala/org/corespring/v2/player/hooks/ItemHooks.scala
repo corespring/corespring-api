@@ -5,14 +5,14 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
-import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 
@@ -39,7 +39,7 @@ trait ItemHooks
 
   def itemService: ItemService
 
-  lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
+  lazy val logger = Logger(classOf[ItemHooks])
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[StatusMessage, JsValue]] = Future {
     val item: Validation[V2Error, JsValue] = for {
@@ -61,10 +61,11 @@ trait ItemHooks
   private def updateDb[A](id: String, dbKey: String, data: A, returnKey: Option[String] = None)(implicit h: RequestHeader, w: Writes[A]): Either[(Int, String), JsValue] = {
 
     def update(vid: VersionedId[ObjectId], dbo: DBObject) = {
-      val result = itemService.collection.update(MongoDBObject("_id._id" -> vid.id), MongoDBObject("$set" -> dbo), false, false)
-      logger.debug(s"no of documents update: ${result.getN.toString}")
-      require(result.getN == 1)
+      val ok = itemService.saveUsingDbo(vid, MongoDBObject("$set" -> dbo), false)
+      logger.debug(s"function=updateDb saveOk=$ok")
+      require(ok)
     }
+
     import com.mongodb.util.JSON
     val dbo = MongoDBObject(dbKey -> JSON.parse(Json.stringify((Json.toJson(data)))))
 
@@ -112,7 +113,7 @@ trait ItemHooks
     def createItem(collectionId: String, identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
       val definition = PlayerDefinition(Seq(), "<div>I'm a new item</div>", Json.obj(), "", None)
       val item = ModelItem(
-        collectionId = Some(collectionId),
+        collectionId = collectionId,
         playerDefinition = Some(definition))
       auth.insert(item)(identity)
     }

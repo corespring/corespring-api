@@ -13,7 +13,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
 import play.api.mvc.{ Action, AnyContent }
 
@@ -23,7 +23,7 @@ import scalaz.{ Failure, Success, Validation }
 
 trait ItemSessionApi extends V2Api {
 
-  private lazy val logger = V2LoggerFactory.getLogger("ItemSessionApi")
+  private lazy val logger = Logger(classOf[ItemSessionApi])
 
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
   def scoreService: ScoreService

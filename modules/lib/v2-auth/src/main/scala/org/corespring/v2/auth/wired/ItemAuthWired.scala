@@ -10,14 +10,14 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAccess, ItemAuth }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
 
-  lazy val logger = V2LoggerFactory.getLogger("auth.ItemAuthWired")
+  lazy val logger = Logger(classOf[ItemAuthWired])
 
   def itemService: ItemService
 

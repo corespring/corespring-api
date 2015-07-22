@@ -2,16 +2,14 @@ package org.corespring.web.common.views.helpers
 
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.models.item.FieldValue
+import org.corespring.models.item.{ ItemType, FieldValue }
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-
 class Defaults(
-                fieldValue: => Option[FieldValue],
-                itemTypes: Seq[(String,String)]
-                ) {
+  fieldValue: => Option[FieldValue],
+  itemTypes: Seq[ItemType]) {
 
   val propsFile = "/buildInfo.properties"
 
@@ -34,9 +32,9 @@ class Defaults(
       val json: JsValue = (FieldValueWrites.writes(fv) match {
         case obj: JsObject => {
           val itemTypeJson = Json.obj("v2ItemTypes" ->
-            itemTypes.map{ case (key,value) => Json.obj("key" -> key, "value" -> value) } )
+            itemTypes.map { it => Json.obj("key" -> it.key, "value" -> it.value) })
 
-          obj.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson ))
+          obj.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson))
         }
         case value: JsValue => value
       })

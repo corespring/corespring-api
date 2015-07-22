@@ -2,15 +2,15 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
-import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
-import org.corespring.v2.log.V2LoggerFactory
-import org.joda.time.{ DateTimeZone, DateTime }
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
@@ -27,7 +27,11 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   def auth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
-  lazy val logger = V2LoggerFactory.getLogger("PlayerHooks")
+  def jsonFormatting: JsonFormatting
+
+  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
+
+  lazy val logger = Logger(classOf[PlayerHooks])
 
   override def createSessionForItem(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = Future {
 

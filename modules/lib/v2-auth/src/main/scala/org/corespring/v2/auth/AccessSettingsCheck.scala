@@ -1,18 +1,18 @@
 package org.corespring.v2.auth
 
+import grizzled.slf4j.Logger
 import org.corespring.common.config.AppConfig
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.permissionNotGranted
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
 import play.api.libs.json.Json
 
 import scalaz.{ Success, Failure, Validation }
 
 class AccessSettingsWildcardCheck(appConfig: AppConfig) {
 
-  private lazy val logger = V2LoggerFactory.getLogger("AccessSettingsWildcardCheck")
+  private lazy val logger = Logger(classOf[AccessSettingsWildcardCheck])
 
   def notGrantedError(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings) = {
     permissionNotGranted(

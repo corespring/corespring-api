@@ -9,7 +9,7 @@ import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, Playe
 import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import org.corespring.v2.sessiondb.SessionService
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
@@ -23,7 +23,7 @@ trait JsonToPlayerDefinition extends JsonFormatting {
 
 trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
-  lazy val logger = V2LoggerFactory.getLogger("auth.SessionAuth")
+  lazy val logger = Logger(classOf[SessionAuthWired])
 
   def itemTransformer: ItemTransformer
 

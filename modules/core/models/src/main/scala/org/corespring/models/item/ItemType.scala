@@ -1,1 +1,3 @@
-case class ItemType
+package org.corespring.models.item
+
+case class ItemType(key: String, value: String)

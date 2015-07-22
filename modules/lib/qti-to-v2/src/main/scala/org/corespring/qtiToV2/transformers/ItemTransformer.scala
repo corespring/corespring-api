@@ -2,26 +2,22 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.models.{Subject, Standard, ContentCollection}
+import org.corespring.models.{ Subject, Standard, ContentCollection }
 import org.corespring.models.item.resource.VirtualFile
-import org.corespring.models.item.{FieldValue, PlayerDefinition, Item}
+import org.corespring.models.item.{ FieldValue, PlayerDefinition, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.utils.xml.CDataHandler
 import org.corespring.platform.core.models.item.resource.XMLCleaner
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
-import org.corespring.services.{SubjectService, StandardService}
-import org.corespring.services.item.ItemService
+import org.corespring.services.{ SubjectService, StandardService }
+import org.corespring.services.item.{ BaseFindAndSaveService, ItemService }
 import play.api.{ Configuration, Play, Logger }
 import play.api.libs.json._
 
 trait ItemTransformer extends JsonFormatting {
 
-
-
-  def fieldValue : FieldValue
-
-
+  def fieldValue: FieldValue
 
   override def findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById _
 
@@ -34,11 +30,11 @@ trait ItemTransformer extends JsonFormatting {
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
   //TODO: Remove service - transform should only transform. see: CA-2085
-  def itemService: ItemService
+  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
-  def standardService:StandardService
+  def standardService: StandardService
 
-  def subjectService : SubjectService
+  def subjectService: SubjectService
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {

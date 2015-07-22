@@ -4,7 +4,8 @@ import org.corespring.models.Organization
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
 import org.corespring.v2.errors.Errors.{ encryptionFailed, noJson }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 
@@ -14,7 +15,7 @@ import scalaz.Validation
 
 trait PlayerTokenApi extends V2Api {
 
-  private lazy val logger = V2LoggerFactory.getLogger("PlayerTokenApi")
+  private lazy val logger = Logger(classOf[PlayerTokenApi])
 
   def tokenService: PlayerTokenService
 

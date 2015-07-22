@@ -30,7 +30,7 @@ import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService, T
 import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import org.corespring.v2.sessiondb.{ SessionService, SessionServiceFactory }
 import play.api.Configuration
 import play.api.mvc.RequestHeader

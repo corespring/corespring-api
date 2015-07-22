@@ -118,9 +118,10 @@ trait ItemService
 
   def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false) {
-    dao.update(id, dbo, createNewVersion)
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
+    val result = dao.update(id, dbo, createNewVersion)
     syncronousReindex(id)
+    result.isRight
   }
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)

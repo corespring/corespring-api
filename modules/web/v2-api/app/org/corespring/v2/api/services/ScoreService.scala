@@ -4,8 +4,8 @@ import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
 import org.corespring.models.item.{ PlayerDefinition }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
-import play.api.libs.json.{ Json, JsValue }
+import play.api.Logger
+import play.api.libs.json.{ Writes, Json, JsValue }
 
 import scalaz.{ Success, Validation }
 
@@ -43,9 +43,9 @@ trait ScoreService {
   def score(item: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue]
 }
 
-class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor) extends ScoreService {
+class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: ScoreProcessor)(implicit val w: Writes[PlayerDefinition]) extends ScoreService {
 
-  protected lazy val logger = V2LoggerFactory.getLogger(this.getClass.getSimpleName)
+  protected lazy val logger = Logger(classOf[BasicScoreService])
 
   override def score(pd: PlayerDefinition, answers: JsValue): Validation[V2Error, JsValue] = {
 
@@ -55,6 +55,7 @@ class BasicScoreService(outcomeProcessor: OutcomeProcessor, scoreProcessor: Scor
     //TODO: Currently they'll just be ignored
 
     val itemJson = Json.toJson(pd)
+
     /** Because we are only getting the score we don't care about feedback */
     val blankSettings = Json.obj()
     val componentAnswers = Json.obj("components" -> answers)

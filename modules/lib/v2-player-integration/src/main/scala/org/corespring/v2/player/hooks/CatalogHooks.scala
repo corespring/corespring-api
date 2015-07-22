@@ -1,12 +1,11 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.{CatalogHooks => ContainerCatalogHooks}
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogHooks }
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
-import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import play.api.http.Status._
 import play.api.libs.json.JsValue
 import play.api.mvc._
@@ -22,8 +21,6 @@ trait CatalogHooks extends ContainerCatalogHooks with LoadOrgAndOptions {
   def transform: Item => JsValue
 
   def auth: ItemAuth[OrgAndOpts]
-
-  private lazy val logger = V2LoggerFactory.getLogger("Catalog")
 
   override def load(itemId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     val result = for {

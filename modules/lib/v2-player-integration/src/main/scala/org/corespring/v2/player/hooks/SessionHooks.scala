@@ -2,11 +2,12 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.item.{ PlayerDefinition, Item }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
@@ -23,7 +24,11 @@ trait SessionHooks
 
   def transformItem: Item => JsValue
 
-  lazy val logger = V2LoggerFactory.getLogger("SessionHooks")
+  def jsonFormatting: JsonFormatting
+
+  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
+
+  lazy val logger = Logger(classOf[SessionHooks])
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 

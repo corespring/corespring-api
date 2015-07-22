@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.corespring.itemSearch.{ ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
-import org.corespring.models.item.Item
+import org.corespring.models.item.{ Item, ItemType }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.models.{ Organization }
 import org.corespring.models.item.Item.Keys._
@@ -16,7 +16,7 @@ import scala.concurrent._
 
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import org.corespring.v2.errors.Errors._
 import play.api.libs.json._
 import play.api.mvc._
@@ -27,7 +27,7 @@ trait ItemApi extends V2Api with JsonUtil {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
-  def itemTypes: Seq[(String, String)]
+  def itemTypes: Seq[ItemType]
   def itemIndexService: ItemIndexService
   def scoreService: ScoreService
   def jsonFormatting: JsonFormatting
@@ -42,7 +42,7 @@ trait ItemApi extends V2Api with JsonUtil {
    */
   def defaultCollection(implicit identity: OrgAndOpts): Option[String]
 
-  protected lazy val logger = V2LoggerFactory.getLogger("ItemApi")
+  protected lazy val logger = Logger(classOf[ItemApi])
 
   /**
    * Create an Item. Will set the collectionId to the default id for the
@@ -122,7 +122,7 @@ trait ItemApi extends V2Api with JsonUtil {
   }
 
   def getItemTypes() = Action {
-    val keyValues = itemTypes.map { case (key, value) => Json.obj("key" -> key, "value" -> value) }
+    val keyValues = itemTypes.map { it => Json.obj("key" -> it.key, "value" -> it.value) }
     val json = JsArray(keyValues)
     Ok(Json.prettyPrint(json))
   }

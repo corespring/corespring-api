@@ -40,7 +40,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def findOne(query: DBObject): Option[Item]
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false)
+  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean
 
   def deleteUsingDao(id: VersionedId[ObjectId])
 
@@ -66,6 +66,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
   def deleteFromSharedCollections(collectionId: ObjectId): Either[PlatformServiceError, Unit]
 
   def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item]
+
 }
 
 trait ItemPublishingService {

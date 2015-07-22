@@ -1,5 +1,6 @@
 package org.corespring.v2.auth
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
@@ -7,7 +8,6 @@ import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
 
 import scalaz.{ Failure, Success, Validation }
 
@@ -21,7 +21,7 @@ trait Access[DATA, REQUESTER] {
 
 trait ItemAccess extends Access[Item, OrgAndOpts] {
 
-  lazy val logger = V2LoggerFactory.getLogger("auth.ItemAccess")
+  lazy val logger = Logger(classOf[ItemAccess])
 
   def orgService: OrganizationService
 

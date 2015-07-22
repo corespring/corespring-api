@@ -10,6 +10,8 @@ import scalaz.Validation
 
 trait ContentCollectionService {
 
+  def findOneById(id: ObjectId): Option[ContentCollection]
+
   def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Either[PlatformServiceError, ContentCollection]
 
   def updateCollection(coll: ContentCollection): Either[PlatformServiceError, ContentCollection]

@@ -6,12 +6,12 @@ import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
 import org.corespring.drafts.item.{ MakeDraftId, S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc._
 
@@ -27,7 +27,7 @@ trait DraftEditorHooks
 
   import scalaz._
 
-  private lazy val logger = V2LoggerFactory.getLogger(classOf[DraftEditorHooks])
+  private lazy val logger = Logger(classOf[DraftEditorHooks])
 
   def transform: Item => JsValue
 
