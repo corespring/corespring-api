@@ -14,6 +14,14 @@ Before you do *anything* please run the following to install the git pre-commit 
     
 For more information, please see our git commit hooks [documentation](hooks/README.md).
 
+**corespring-components submodule**
+
+After downloading the corespring-api repository, run the following commands to init the submodule.
+
+`git submodule init`
+
+`git submodule update`
+
 *we assume you already have Java JDK >= 1.6*
 
 *Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
@@ -24,6 +32,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
 * Install mongodb
 * Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
 * Install elasticsearch
+* Install sbt (using brew or download zip)
 * For running tests install phantomjs
 
 ### SBT Configuration
@@ -202,24 +211,30 @@ If you want to run this docker image or deploy it using [docker-deployer](github
     sbt assembly
 ```
 
-To create and run a docker image with default Dockerfile: 
+**To deploy your local instance to Elastic Beanstalk on AWS.**
+
+1. Request AWS IAM credentials (AWS admin on the team can provide these for you)
+2. run `play stage` to build a zip with the current state of your local environment
+3. delpoy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
+
+Deploying with docker-deployer:
+
+```shell
+    docker-deployer deploy --deploy-name $NAME 
+```
+
+**To create and run a docker image with default Dockerfile:** 
 
 ````shell
     docker build -t="corespring-api" .
     docker run -p 9000:9000 -t="corespring-api" #run main script
 ```
 
-To create and run a docker image with custom docker file named DockerfileWithDynamo 
+**To create and run a docker image with custom docker file named DockerfileWithDynamo**
 
 ````shell
     docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
     docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
-```
-
-To deploy with docker-deployer:
-
-```shell
-    docker-deployer deploy --deploy-name $NAME 
 ```
 
 ### Running Localy
