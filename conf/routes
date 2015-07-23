@@ -49,11 +49,7 @@ GET         /                                                         web.contro
 GET         /web                                                      web.controllers.Main.index
 
 # Item Preview
-
 GET         /web/partials/editItem                                    web.controllers.Partials.editItem
-GET         /web/partials/createItem                                  web.controllers.Partials.createItem
-GET         /web/partials/home                                        web.controllers.Partials.home
-GET         /web/partials/viewItem                                    web.controllers.Partials.viewItem
 GET         /web/views/*path                                             web.controllers.Partials.loadFromPath(path:String)
 GET         /web/javascripts/routes                                   web.controllers.ShowResource.javascriptRoutes
 
