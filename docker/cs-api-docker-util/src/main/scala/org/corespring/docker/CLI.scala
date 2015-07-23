@@ -20,6 +20,11 @@ object CLI extends App {
       descr = "the elasticsearch uri to use for indexing",
       required = false,
       default = Some("http://localhost:9200"))
+
+    val componentPath: ScallopOption[String] = opt[String](
+      "componentPath",
+      descr = "the path to locate corespring-components",
+      required = false default = Some("corespring-components/components"))
   }
 
   def handleError(e: Throwable) = throw e
@@ -48,7 +53,7 @@ object CLI extends App {
   def indexElasticSearch() = {
     import org.corespring.elasticsearch.ContentIndexer
     println(s"running content indexer for: ${Conf.elasticSearchUri()}")
-    ContentIndexer.reindex(new java.net.URL(Conf.elasticSearchUri()), Conf.mongoUri())
+    ContentIndexer.reindex(new java.net.URL(Conf.elasticSearchUri()), Conf.mongoUri(), Conf.componentPath())
     println("done.")
   }
 

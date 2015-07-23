@@ -16,9 +16,6 @@ object Partials extends BaseApi {
     val isRoot = Organization.findOneById(user.org.orgId).map(_.isRoot).getOrElse(false)
     Ok(web.views.html.partials.editItem(useV2, isRoot))
   }
-  def createItem = Action { Ok(web.views.html.partials.createItem()) }
-  def home = Action { Ok(web.views.html.partials.home()) }
-  def viewItem = Action { Ok(web.views.html.partials.viewItem()) }
   def redirect(url: String) = Action {
     if(Play.current.mode == Mode.Dev){
       Redirect("/login")

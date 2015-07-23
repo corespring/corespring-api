@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.44.0-SNAPSHOT"
+  val containerVersion = "0.45.0-SNAPSHOT"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
@@ -64,7 +64,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.14-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.15-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   object Resolvers {
