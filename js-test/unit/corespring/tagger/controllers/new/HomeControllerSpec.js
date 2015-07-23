@@ -197,7 +197,7 @@ describe('tagger.controllers.new.HomeController', function() {
         scope.v1.edit({
           id: '123'
         });
-        expect(location.url).toHaveBeenCalledWith('/old/edit/123');
+        expect(location.url).toHaveBeenCalledWith('/edit/123');
       });
     });
     describe('cloneItem', function() {
@@ -228,7 +228,7 @@ describe('tagger.controllers.new.HomeController', function() {
         expect(newItem.clone).toHaveBeenCalled();
       });
       it("launches the old editor with the clone", function() {
-        expect(location.url).toHaveBeenCalledWith('/old/edit/123-clone');
+        expect(location.url).toHaveBeenCalledWith('/edit/123-clone');
       });
     });
   });
