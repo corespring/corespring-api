@@ -46,6 +46,8 @@ object Dependencies {
   val jodaTime = "joda-time" % "joda-time" % "2.2"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
   val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
+  val macWireMacro = "com.softwaremill.macwire" %% "macros" % "1.0.5"
+  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "1.0.5"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
   val playCache = "com.typesafe.play" %% "play-cache" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")

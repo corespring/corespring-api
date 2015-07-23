@@ -2,7 +2,7 @@ package org.corespring.services.salat.bootstrap
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.{ AmazonS3Client, AmazonS3 }
-import com.mongodb.casbah.{ MongoDB }
+import com.mongodb.casbah.{Imports, MongoDB}
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
@@ -72,6 +72,10 @@ class SalatServices(
     override val dao: SalatDAO[ContentCollection, ObjectId] = new SalatDAO[ContentCollection, ObjectId](db("contentcolls")) {}
 
     override implicit def context: Context = SalatServices.this.context
+
+    override def findByDbo(dbo: Imports.DBObject): Stream[ContentCollection] = ???
+
+    override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = ???
   }
 
   override lazy val metadata = new MetadataSetService {

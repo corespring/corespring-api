@@ -2,13 +2,18 @@ package org.corespring.services.salat.assessment
 
 import com.mongodb.{ BasicDBObject, DBObject }
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.AssessmentTemplate
 import org.corespring.services.salat.HasDao
 import org.joda.time.DateTime
 import org.corespring.{ services => interface }
 
-trait AssessmentTemplateService
+class AssessmentTemplateService(
+                               val dao : SalatDAO[AssessmentTemplate,ObjectId],
+                               val context : Context
+                                 )
     extends interface.assessment.AssessmentTemplateService
     with HasDao[AssessmentTemplate, ObjectId] {
 
@@ -42,5 +47,6 @@ trait AssessmentTemplateService
   override def findWithIds(ids: Seq[ObjectId]): Stream[AssessmentTemplate] =
     this.find(MongoDBObject("_id" -> MongoDBObject("$in" -> ids)))
 
+  override def findOne(query: DBObject, fields: DBObject): Option[AssessmentTemplate] = ???
 }
 

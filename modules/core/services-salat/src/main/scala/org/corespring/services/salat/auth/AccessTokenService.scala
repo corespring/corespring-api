@@ -1,7 +1,8 @@
 package org.corespring.services.salat.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.dao.{ SalatInsertError, SalatRemoveError }
+import com.novus.salat.Context
+import com.novus.salat.dao.{SalatDAO, SalatInsertError, SalatRemoveError}
 import com.typesafe.config.ConfigFactory
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
@@ -12,7 +13,11 @@ import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
-trait AccessTokenService extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
+class AccessTokenService(
+                        val dao : SalatDAO[AccessToken,ObjectId],
+                        val context : Context,
+                        tokenDurationInHours: Int
+                          ) extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
 
   private val logger = Logger[AccessTokenService]()
 
@@ -22,7 +27,6 @@ trait AccessTokenService extends interface.auth.AccessTokenService with HasDao[A
     val scope = "scope"
   }
 
-  def tokenDurationInHours: Int
 
   // Not sure when to call this.
   def index = Seq(
@@ -118,4 +122,6 @@ trait AccessTokenService extends interface.auth.AccessTokenService with HasDao[A
     if (scope.isDefined) query += (Keys.scope -> scope.get)
     dao.findOne(query.result())
   }
+
+  override def orgForToken(token: String): Option[Organization] = ???
 }

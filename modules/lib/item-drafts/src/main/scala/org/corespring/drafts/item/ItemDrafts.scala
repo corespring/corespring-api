@@ -21,20 +21,17 @@ case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
 case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
 
-trait ItemDrafts
+class ItemDrafts(
+itemService: ItemService with ItemPublishingService,
+draftService: ItemDraftService,
+commitService: CommitService,
+assets: ItemDraftAssets)
+
   extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
   implicit def context: com.novus.salat.Context
-
-  def itemService: ItemService with ItemPublishingService
-
-  def draftService: ItemDraftService
-
-  def commitService: CommitService
-
-  def assets: ItemDraftAssets
 
   def collection = draftService.collection
 

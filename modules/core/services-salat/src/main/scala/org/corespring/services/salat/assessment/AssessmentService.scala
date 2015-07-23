@@ -2,6 +2,8 @@ package org.corespring.services.salat.assessment
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Participant, Answer, Question, Assessment }
 import org.corespring.models.item.TaskInfo
@@ -11,9 +13,11 @@ import org.corespring.{ services => interface }
  * Note: Assessments were using the old v1 itemSession.
  * Need to glue in the new item session instead.
  */
-trait AssessmentService extends interface.assessment.AssessmentService with HasDao[Assessment, ObjectId] {
-
-  def itemService: interface.item.ItemService
+class AssessmentService(
+                       val dao : SalatDAO[Assessment,ObjectId],
+                       val itemService: interface.item.ItemService,
+                       val context : Context
+                         ) extends interface.assessment.AssessmentService with HasDao[Assessment, ObjectId] {
 
   private object Keys {
     val orgId = "orgId"

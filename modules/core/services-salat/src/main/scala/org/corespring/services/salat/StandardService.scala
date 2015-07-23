@@ -1,10 +1,15 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
-import org.corespring.models.{ Standard, Domain }
+import org.corespring.models.{Standard, Domain}
 
-trait StandardService extends org.corespring.services.StandardService with HasDao[Standard,ObjectId]{
+class StandardService(
+                       val dao : SalatDAO[Standard,ObjectId],
+                       val context : Context
+                       ) extends org.corespring.services.StandardService with HasDao[Standard,ObjectId]{
 
   override def findOneById(id: ObjectId): Option[Standard] = dao.findOneById(id)
 
@@ -12,4 +17,10 @@ trait StandardService extends org.corespring.services.StandardService with HasDa
   override def domains: Map[String, Seq[Domain]] = ???
 
   override def findOneByDotNotation(dotNotation: String): Option[Standard] = dao.findOne(MongoDBObject("dotNotation" -> dotNotation))
+
+  override def query(term: String): Seq[Standard] = ???
+
+  override def findOne(id: String): Option[Standard] = ???
+
+  override def list(): Seq[Standard] = ???
 }

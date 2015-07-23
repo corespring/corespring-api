@@ -1,15 +1,18 @@
 package org.corespring.services.salat.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
-/**
- * Salat implementation
- */
-trait ApiClientService extends interface.auth.ApiClientService with HasDao[ApiClient, ObjectId] {
+
+class ApiClientService(
+                        val dao : SalatDAO[ApiClient,ObjectId],
+                        val context : Context
+                        ) extends interface.auth.ApiClientService with HasDao[ApiClient, ObjectId] {
 
   private val logger = Logger[ApiClientService]()
 

@@ -1,0 +1,22 @@
+<div class="control-group">
+    <label class="control-label">Key Skills
+        <a ng-click="expandKeySkills = true" ng-show="!expandKeySkills"><i class="icon-plus-sign"></i></a>
+        <a ng-click="expandKeySkills = false" ng-show="expandKeySkills"><i class="icon-minus-sign"></i></a>
+    </label>
+
+    <div class="controls">
+        <div ng-show="!expandKeySkills" style="padding-top: 4px;">
+            <label >{{getKeySkillsSummary(itemData.keySkills)}}</label>
+        </div>
+
+        <div ng-repeat="def in itemData.$defaults.keySkills" ng-show="expandKeySkills">
+            <div>
+                <span class="tag-list-header" style="float:left">{{def.header}}</span>
+            <span tag-list
+                  tags="def.list"
+                  selected-tags="itemData.keySkills"></span>
+            </div>
+            <div style="float:none; clear:both;"></div>
+        </div>
+    </div>
+</div>

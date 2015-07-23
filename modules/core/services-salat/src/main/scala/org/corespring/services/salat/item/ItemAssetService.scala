@@ -6,9 +6,7 @@ import org.corespring.models.item.resource._
 import org.corespring.{ services => interface }
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemAssetService extends interface.item.ItemAssetService {
-
-  def copyAsset(from: String, to: String)
+class ItemAssetService(copyAsset: (String,String) => Unit, deleteFn: (String) => Unit) extends interface.item.ItemAssetService {
 
   private val logger = Logger(classOf[ItemAssetService])
   /**
@@ -100,4 +98,5 @@ trait ItemAssetService extends interface.item.ItemAssetService {
     if (successful) Success(to) else Failure(cloneFileResults)
   }
 
+  override def delete(key: String): Unit = deleteFn(key)
 }

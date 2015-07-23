@@ -20,7 +20,12 @@ import scala.xml.Elem
 import scalaz._
 import org.corespring.{ services => interface }
 
-trait ItemService
+class ItemService(
+    dao: SalatVersioningDao[Item],
+    assets: interface.item.ItemAssetService,
+    contentCollectionService: interface.ContentCollectionService,
+    val context: Context,
+    val archiveCollectionId: ObjectId)
   extends interface.item.ItemService
   with interface.item.ItemPublishingService {
 
@@ -28,16 +33,8 @@ trait ItemService
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
-  def dao: SalatVersioningDao[Item]
-
-  def assets: interface.item.ItemAssetService
-  def contentCollectionService: interface.ContentCollectionService
-
-  implicit def context: Context
-
   private lazy val collection = dao.currentCollection
 
-  def archiveCollectionId: ObjectId
 
   /**
    * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is

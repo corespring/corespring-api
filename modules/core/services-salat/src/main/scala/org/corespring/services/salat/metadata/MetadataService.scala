@@ -5,9 +5,8 @@ import org.corespring.models.metadata.Metadata
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services
 
-trait MetadataService extends services.metadata.MetadataService {
-
-  def itemService: services.item.ItemService
+class MetadataService(itemService: services.item.ItemService)
+  extends services.metadata.MetadataService {
 
   def get(itemId: VersionedId[ObjectId], keys: Seq[String]): Seq[Metadata] = {
 

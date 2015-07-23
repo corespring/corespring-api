@@ -2,8 +2,8 @@ package org.corespring.services.salat
 
 import com.mongodb.{ DBObject, BasicDBList }
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.grater
-import com.novus.salat.dao.{ SalatDAOUpdateError, SalatRemoveError }
+import com.novus.salat.{Context, grater}
+import com.novus.salat.dao.{SalatDAO, SalatDAOUpdateError, SalatRemoveError}
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.services.errors.PlatformServiceError
@@ -13,7 +13,15 @@ import org.corespring.models.auth.Permission
 
 import scalaz.{ Success, Validation }
 
-trait OrganizationService extends interface.OrganizationService with HasDao[Organization, ObjectId] {
+class OrganizationService(
+                           val dao : SalatDAO[Organization,ObjectId],
+                           val context : Context,
+ collectionService: interface.ContentCollectionService,
+ metadataSetService: interface.metadata.MetadataSetService,
+ itemService: interface.item.ItemService,
+ isProd: Boolean
+
+                           ) extends interface.OrganizationService with HasDao[Organization, ObjectId] {
 
   lazy val logger: Logger = Logger(classOf[OrganizationService])
 
@@ -29,12 +37,6 @@ trait OrganizationService extends interface.OrganizationService with HasDao[Orga
   }
 
   import Keys._
-
-  def collectionService: interface.ContentCollectionService
-  def metadataSetService: interface.metadata.MetadataSetService
-  def itemService: interface.item.ItemService
-
-  def isProd: Boolean
 
   @deprecated("use getDefaultCollection instead", "1.0")
   override def defaultCollection(oid: ObjectId): Option[ObjectId] = {

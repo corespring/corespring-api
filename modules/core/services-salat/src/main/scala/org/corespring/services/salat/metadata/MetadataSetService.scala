@@ -2,17 +2,21 @@ package org.corespring.services.salat.metadata
 
 import com.mongodb.WriteResult
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 
-trait MetadataSetService extends interface.metadata.MetadataSetService with HasDao[MetadataSet, ObjectId] {
+class MetadataSetService(
+  val dao : SalatDAO[MetadataSet,ObjectId],
+  val context : Context,
+                        val orgService : interface.OrganizationService
+) extends interface.metadata.MetadataSetService with HasDao[MetadataSet, ObjectId] {
 
-  private lazy val logger: Logger = Logger()
-
-  def orgService: interface.OrganizationService
+  private lazy val logger: Logger = Logger(classOf[MetadataSetService])
 
   override def update(set: MetadataSet): Either[String, MetadataSet] = {
     val result = dao.save(set)

@@ -1,0 +1,25 @@
+@(propertyName : String)
+@camelToCaps(s:String) = @{
+    s match {
+    case null => ""
+    case _ => {
+        val list = s.split("""(?=[A-Z])""").toList
+        (capitalize(list.head) :: list.tail).mkString(" ")
+    }
+    }
+}
+
+@capitalize(s: String) = @{
+  s.length match {
+    case 0 => s
+    case 1 => s
+    case _ => s(0).toUpper + s.substring(1, s.length).toLowerCase
+}}
+
+<div class="control-group">
+    <label class="control-label" for="@propertyName">@camelToCaps( propertyName )</label>
+
+    <div class="controls">
+        <input type="text" class="input-xlarge" id="@propertyName" ng-model="itemData.@propertyName">
+    </div>
+</div>

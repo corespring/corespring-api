@@ -1,7 +1,9 @@
 package org.corespring.services.salat
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.dao.{ SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
+import com.novus.salat.Context
+import com.novus.salat.dao.{SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError}
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.{ services => interface }
@@ -12,7 +14,13 @@ import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.{ Failure, Validation }
 
-trait ContentCollectionService extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+class ContentCollectionService(
+                                val dao : SalatDAO[ContentCollection,ObjectId],
+                                val context : Context,
+val organizationService: interface.OrganizationService,
+val itemService: interface.item.ItemService,
+val isProd: Boolean
+) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
 
   object Keys {
     val isPublic = "isPublic"
@@ -21,10 +29,6 @@ trait ContentCollectionService extends interface.ContentCollectionService with H
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
 
-  def organizationService: interface.OrganizationService
-  def itemService: interface.item.ItemService
-
-  def isProd: Boolean
 
   override def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean): Either[PlatformServiceError, ContentCollection] = {
 
@@ -285,4 +289,7 @@ trait ContentCollectionService extends interface.ContentCollectionService with H
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
 
+  override def findByDbo(dbo: Imports.DBObject): Stream[ContentCollection] = ???
+
+  override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = ???
 }

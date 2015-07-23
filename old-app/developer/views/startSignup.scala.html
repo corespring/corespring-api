@@ -1,0 +1,48 @@
+@(startForm:Form[String])(implicit request: RequestHeader)
+@import helper._
+@import securesocial.core.IdentityProvider
+@implicitFieldConstructor = @{ FieldConstructor(developer.views.html.inputFieldConstructor.f) }
+
+@main("Registration") {
+    <div class="container-fluid">
+        <div class="well col-md-4 col-md-offset-4" style="position: relative; top: 100px;">
+            <h3>Developer Registration</h3>
+            <p>
+                Registering as a developer allows you to access to the CoreSpring APIs. <br/>
+                </p>
+            <p>
+                To register for a developer account, enter your email address below. An email will be sent to you with a link
+            to complete your registration.</p>
+        </div>
+        <div class="well" style="position: relative; top: 100px; width:500px;">
+
+        @request.flash.get("error").map { msg =>
+        <div class="alert alert-danger">
+            @Messages(msg)
+        </div>
+    }
+
+
+
+    <form action="/signup"
+          class="form-horizontal"
+          autocomplete="off" method="post"
+    >
+        <fieldset>
+            @helper.inputText(
+            startForm("email"),
+            '_label -> Messages("securesocial.signup.email1"),
+            'class -> "form-control"
+            )
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@Messages("securesocial.signup.createAccount")</button>
+                <a class="btn" href="/">@Messages("securesocial.signup.cancel")</a>
+            </div>
+
+        </fieldset>
+    </form>
+
+    </div>
+    </div>
+}
