@@ -1,8 +1,8 @@
 package org.corespring.v2.api
 
 import org.corespring.encryption.apiClient.ApiClientEncryptionService
+import org.corespring.services.auth.AccessTokenService
 import org.corespring.v2.auth.encryption.CachingApiClientEncryptionService
-import org.corespring.v2.auth.services.TokenService
 import org.corespring.v2.auth.services.caching.CachingTokenService
 import play.api.mvc.{ Action, AnyContent, Controller }
 
@@ -12,7 +12,7 @@ trait Utils extends Controller {
 
   implicit def ec: ExecutionContext
 
-  def tokenService: TokenService
+  def tokenService: AccessTokenService
 
   def apiClientEncryptionService: ApiClientEncryptionService
 

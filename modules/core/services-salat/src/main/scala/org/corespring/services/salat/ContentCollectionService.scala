@@ -3,9 +3,10 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
-import com.novus.salat.dao.{SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError}
+import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.services.salat.bootstrap.AppMode
 import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
@@ -15,12 +16,13 @@ import org.corespring.services.errors.PlatformServiceError
 import scalaz.{ Failure, Validation }
 
 class ContentCollectionService(
-                                val dao : SalatDAO[ContentCollection,ObjectId],
-                                val context : Context,
-val organizationService: interface.OrganizationService,
-val itemService: interface.item.ItemService,
-val isProd: Boolean
-) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+  val dao: SalatDAO[ContentCollection, ObjectId],
+  val context: Context,
+  organizationService: => interface.OrganizationService,
+  val itemService: interface.item.ItemService,
+  val appMode: AppMode) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+
+  def isProd = appMode.isProd
 
   object Keys {
     val isPublic = "isPublic"
@@ -28,7 +30,6 @@ val isProd: Boolean
   }
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
-
 
   override def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean): Either[PlatformServiceError, ContentCollection] = {
 

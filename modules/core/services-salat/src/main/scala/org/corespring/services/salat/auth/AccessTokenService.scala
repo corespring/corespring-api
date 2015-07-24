@@ -2,10 +2,11 @@ package org.corespring.services.salat.auth
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
-import com.novus.salat.dao.{SalatDAO, SalatInsertError, SalatRemoveError}
+import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
 import com.typesafe.config.ConfigFactory
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.services.salat.bootstrap.AccessTokenConfig
 import org.corespring.models.auth.AccessToken
 import org.corespring.models.{ Organization }
 import org.corespring.services.errors.PlatformServiceError
@@ -14,10 +15,9 @@ import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
 class AccessTokenService(
-                        val dao : SalatDAO[AccessToken,ObjectId],
-                        val context : Context,
-                        tokenDurationInHours: Int
-                          ) extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
+  val dao: SalatDAO[AccessToken, ObjectId],
+  val context: Context,
+  config: AccessTokenConfig) extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
 
   private val logger = Logger[AccessTokenService]()
 
@@ -27,12 +27,10 @@ class AccessTokenService(
     val scope = "scope"
   }
 
-
   // Not sure when to call this.
   def index = Seq(
     MongoDBObject("tokenId" -> 1),
-    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)
-  ).foreach(dao.collection.ensureIndex(_))
+    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(dao.collection.ensureIndex(_))
 
   override def removeToken(tokenId: String): Either[PlatformServiceError, Unit] = {
     logger.info(s"function=removeToken tokenId=$tokenId")
@@ -86,7 +84,7 @@ class AccessTokenService(
           scope = None,
           tokenId = new ObjectId().toString,
           creationDate = now,
-          expirationDate = now.plusHours(tokenDurationInHours))
+          expirationDate = now.plusHours(config.tokenDurationInHours))
         dao.insert(token)
         Some(token)
       }

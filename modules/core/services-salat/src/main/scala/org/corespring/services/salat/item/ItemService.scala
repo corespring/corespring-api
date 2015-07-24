@@ -7,6 +7,7 @@ import com.novus.salat._
 import com.novus.salat.dao.{ SalatDAOUpdateError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.services.salat.bootstrap.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.Item.Keys
@@ -21,20 +22,18 @@ import scalaz._
 import org.corespring.{ services => interface }
 
 class ItemService(
-    dao: SalatVersioningDao[Item],
-    assets: interface.item.ItemAssetService,
-    contentCollectionService: interface.ContentCollectionService,
-    val context: Context,
-    val archiveCollectionId: ObjectId)
-  extends interface.item.ItemService
-  with interface.item.ItemPublishingService {
+  val dao: SalatVersioningDao[Item],
+  assets: interface.item.ItemAssetService,
+  contentCollectionService: => interface.ContentCollectionService,
+  implicit val context: Context,
+  archiveConfig: ArchiveConfig)
+  extends interface.item.ItemService {
 
   protected val logger = Logger(classOf[ItemService])
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
 
   private lazy val collection = dao.currentCollection
-
 
   /**
    * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is
@@ -211,9 +210,9 @@ class ItemService(
   }
 
   override def moveItemToArchive(id: VersionedId[ObjectId]) = {
-    val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveCollectionId.toString))
+    val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveConfig.contentCollectionId.toString))
     saveUsingDbo(id, update, false)
-    Some(archiveCollectionId.toString)
+    Some(archiveConfig.contentCollectionId.toString)
   }
 
   override def isPublished(vid: VersionedId[casbah.Imports.ObjectId]): Boolean = {

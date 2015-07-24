@@ -2,9 +2,10 @@ package org.corespring.services.salat
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
-import com.novus.salat.dao.{SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError}
+import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.services.salat.bootstrap.AppMode
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
@@ -12,14 +13,16 @@ import org.corespring.models.{ Organization, User, UserOrg }
 import org.joda.time.DateTime
 
 class UserService(
-                   val dao : SalatDAO[User,ObjectId],
-                   val context : Context,
-orgService: interface.OrganizationService,
-isProd: Boolean
+  val dao: SalatDAO[User, ObjectId],
+  val context: Context,
+  orgService: interface.OrganizationService,
+  appMode: AppMode) extends interface.UserService with HasDao[User, ObjectId] {
 
-                   ) extends interface.UserService with HasDao[User, ObjectId] {
+  def isProd: Boolean = appMode.isProd
 
   def logger: Logger = Logger(classOf[UserService])
+
+  private implicit val ctx = context
 
   /**
    * insert a user into the database as a member of the given organization, along with their private organization and collection

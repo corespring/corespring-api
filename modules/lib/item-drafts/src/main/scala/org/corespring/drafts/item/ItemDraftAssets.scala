@@ -57,12 +57,9 @@ object S3Paths {
   }
 }
 
-trait S3ItemDraftAssets extends ItemDraftAssets {
-  def s3: AmazonS3
+class S3ItemDraftAssets(s3: AmazonS3, bucket: String) extends ItemDraftAssets {
 
   lazy val logger = Logger(classOf[S3ItemDraftAssets])
-
-  def bucket: String
 
   def utils = new AssetUtils(s3, bucket)
 

@@ -7,8 +7,9 @@ import org.bson.types.ObjectId
 import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.services.{ StandardService, SubjectService, ContentCollectionService }
-import org.corespring.services.item.{ ItemService, BaseFindAndSaveService }
+import org.corespring.services.bootstrap.Services
+import org.corespring.services.{ StandardService, SubjectService }
+import org.corespring.services.item.{ BaseFindAndSaveService }
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import play.api.{ Play, Configuration, Logger }
 
@@ -18,24 +19,20 @@ import play.api.{ Play, Configuration, Logger }
  * @see SalatVersioningDao
  */
 class AllItemVersionTransformer(
-  contentCollectionService: ContentCollectionService,
-  underlyingItemService: ItemService,
+  services: Services,
   currentCollection: MongoCollection,
   versionedCollection: MongoCollection,
-  implicit val context: Context,
-  val fieldValue: FieldValue,
-  val standardService: StandardService,
-  val subjectService: SubjectService) extends ItemTransformer {
+  implicit val context: Context) extends ItemTransformer {
 
   override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")
 
   override def configuration: Configuration = Play.current.configuration
 
-  override def findCollection(id: ObjectId) = contentCollectionService.findOneById(id)
+  override def findCollection(id: ObjectId) = services.contentCollection.findOneById(id)
 
   def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
 
-    override def findOneById(id: VersionedId[ObjectId]): Option[Item] = underlyingItemService.findOneById(id)
+    override def findOneById(id: VersionedId[ObjectId]): Option[Item] = services.item.findOneById(id)
 
     override def save(i: Item, createNewVersion: Boolean): Either[PlatformServiceError, VersionedId[ObjectId]] = {
       import com.mongodb.casbah.Imports._
@@ -74,4 +71,10 @@ class AllItemVersionTransformer(
       }.getOrElse(Left(GeneralError("Can't find a collection to save in", None)))
     }
   }
+
+  override def fieldValue: FieldValue = services.fieldValue.get.get
+
+  override def standardService: StandardService = services.standard
+
+  override def subjectService: SubjectService = services.subject
 }

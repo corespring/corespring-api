@@ -57,7 +57,7 @@ object Build extends sbt.Build {
 
   val coreServicesSalat = builders.lib("services-salat", "core")
     .settings(
-      libraryDependencies ++= Seq(grizzledLog, logbackClassic))
+      libraryDependencies ++= Seq(grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(
@@ -72,7 +72,7 @@ object Build extends sbt.Build {
       testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
         loader.loadClass("org.corespring.it.mongo.Cleanup").newInstance
       }))
-    .settings(libraryDependencies ++= Seq(specs2 % "it,test", specs2Mock % "it,test", aws))
+    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", specs2Mock % "it,test", aws))
     .dependsOn(coreServices, coreUtils)
 
   val encryption = builders.lib("encryption", "core")
@@ -121,7 +121,7 @@ object Build extends sbt.Build {
 
   val itemDrafts = builders.lib("item-drafts")
     .settings(
-      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao))
+      libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
     .dependsOn(coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 

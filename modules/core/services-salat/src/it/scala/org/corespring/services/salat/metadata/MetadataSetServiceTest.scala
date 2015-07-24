@@ -1,17 +1,15 @@
 package org.corespring.services.salat.metadata
 
-import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.it.mongo.DbSingleton
 import org.corespring.models.Organization
-import org.corespring.models.metadata.{MetadataSet, SchemaMetadata}
+import org.corespring.models.metadata.{ MetadataSet, SchemaMetadata }
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
 
 class MetadataSetServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
-  lazy val service = services.metadata
+  lazy val service = services.metadataSet
 
   /**
    * Note: Always use traits for BeforeAfter

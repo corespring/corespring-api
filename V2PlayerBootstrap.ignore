@@ -17,8 +17,9 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.services.item.{ FieldValueService, ItemService }
-import org.corespring.services._
+import org.corespring.services.{UserService, ContentCollectionService, OrganizationService, QueryService}
+import org.corespring.services.item.{ ItemService }
+import org.corespring.services.bootstrap.{Services => CoreServices}
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -37,22 +38,16 @@ import org.apache.commons.httpclient.util.URIUtil
 import scala.concurrent.ExecutionContext
 import scalaz.{ Validation }
 
-trait V2ApiServices {
-  def orgService: OrganizationService
-  def contentCollectionService: ContentCollectionService
-  def fieldValue: FieldValueService
-  def itemService: ItemService
+trait V2PlayerServices {
   def itemDrafts: ItemDrafts
   def itemAuth: ItemAuth[OrgAndOpts]
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
-  def standardService: StandardService
-  def subjectService: SubjectService
   def s3Service: S3Service
-  def userService: UserService
 }
 
 class V2PlayerBootstrap(
-  val services: V2ApiServices,
+  val services: CoreServices,
+  val v2PlayerServices : V2PlayerServices,
   val components: Seq[Component],
   val configuration: Configuration,
   resolveDomainPaths: String => String,
@@ -116,9 +111,9 @@ class V2PlayerBootstrap(
   }
 
   override def dataQueryHooks: DataQueryHooks = new apiHooks.DataQueryHooks {
-    override def subjectQueryService: QueryService[Subject] = services.subjectService //SubjectQueryService
+    override def subjectQueryService: QueryService[Subject] = services.subject //SubjectQueryService
 
-    override def standardQueryService: QueryService[Standard] = services.standardService
+    override def standardQueryService: QueryService[Standard] = services.standard
 
     override val fieldValueJson: JsObject = {
       services.fieldValue.get.map { fv =>
@@ -148,7 +143,7 @@ class V2PlayerBootstrap(
     def transform: (Item) => JsValue = itemTransformer.transformToV2Json
     def transformItem: (Item) => JsValue = transform
     implicit override def ec: ExecutionContext = V2PlayerBootstrap.this.ec
-    def itemService: ItemService = services.itemService
+    def itemService: ItemService = services.item
   }
 
   override def sessionHooks: SessionHooks = new apiHooks.SessionHooks with WithDefaults {
@@ -164,17 +159,17 @@ class V2PlayerBootstrap(
   override def itemDraftHooks: ItemDraftHooks = new ItemDraftHooks with WithDefaults {
     override def backend: ItemDrafts = services.itemDrafts
 
-    override def orgService: OrganizationService = services.orgService
+    override def orgService: OrganizationService = services.org
 
     override def jsonFormatting: JsonFormatting = V2PlayerBootstrap.this.jsonFormatting
   }
 
   override def playerLauncherHooks: PlayerLauncherHooks = new apiHooks.PlayerLauncherHooks with WithDefaults {
-    override def userService: UserService = services.userService
+    override def userService: UserService = services.user
   }
 
   override def collectionHooks: ContainerCollectionHooks = new apiHooks.CollectionHooks with WithDefaults {
-    override def colService: ContentCollectionService = services.contentCollectionService
+    override def colService: ContentCollectionService = services.contentCollection
   }
 
   /**
@@ -245,7 +240,7 @@ class V2PlayerBootstrap(
 
     override def itemAuth: ItemAuth[OrgAndOpts] = services.itemAuth
 
-    override def itemService: ItemService = services.itemService
+    override def itemService: ItemService = services.item
   }
 
 }

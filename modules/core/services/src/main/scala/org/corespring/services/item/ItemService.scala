@@ -69,7 +69,3 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
 }
 
-trait ItemPublishingService {
-
-  def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item]
-}

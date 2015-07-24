@@ -6,9 +6,7 @@ import org.joda.time.{ DateTimeZone, DateTime }
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
-trait ItemDraftJson {
-
-  def jsonFormatting: JsonFormatting
+class ItemDraftJson(jsonFormatting: JsonFormatting) {
 
   lazy val longDateTime = DateTimeFormat.longDateTime()
 

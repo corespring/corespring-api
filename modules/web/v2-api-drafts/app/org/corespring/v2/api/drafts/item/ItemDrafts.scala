@@ -3,6 +3,7 @@ package org.corespring.v2.api.drafts.item
 import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
 import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
 import org.joda.time.DateTime
 import play.api.libs.json.{ JsValue, Json }
@@ -12,13 +13,12 @@ import scala.concurrent.Future
 import scalaz.{ Failure, Success, Validation }
 
 class ItemDrafts(
-                  drafts:DraftsBackend,
-                  identifyUser:(RequestHeader => Option[OrgAndUser]),
-                  itemDraftJson : ItemDraftJson) extends Controller with MakeDraftId {
+  drafts: DraftsBackend,
+  identifyUser: (RequestHeader) => Option[OrgAndUser],
+  itemDraftJson: ItemDraftJson) extends Controller with MakeDraftId {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   import scalaz.Scalaz._
-
 
   private def toOrgAndUser(request: RequestHeader) = identifyUser(request).toSuccess(AuthenticationFailed)
 

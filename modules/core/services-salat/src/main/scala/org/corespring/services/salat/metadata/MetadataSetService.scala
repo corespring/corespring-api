@@ -11,10 +11,9 @@ import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 
 class MetadataSetService(
-  val dao : SalatDAO[MetadataSet,ObjectId],
-  val context : Context,
-                        val orgService : interface.OrganizationService
-) extends interface.metadata.MetadataSetService with HasDao[MetadataSet, ObjectId] {
+  val dao: SalatDAO[MetadataSet, ObjectId],
+  implicit val context: Context,
+  orgService: => interface.OrganizationService) extends interface.metadata.MetadataSetService with HasDao[MetadataSet, ObjectId] {
 
   private lazy val logger: Logger = Logger(classOf[MetadataSetService])
 

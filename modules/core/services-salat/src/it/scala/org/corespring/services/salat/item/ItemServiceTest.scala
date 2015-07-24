@@ -2,8 +2,8 @@ package org.corespring.services.salat.item
 
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.models.item.{TaskInfo, Item}
-import org.corespring.models.item.resource.{CloneFileResult, Resource, StoredFile}
+import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionService
@@ -11,9 +11,9 @@ import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 
-import scalaz.{Success, Failure, Validation}
+import scalaz.{ Success, Failure, Validation }
 
-class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito{
+class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
   lazy val itemService = services.item
 
@@ -27,22 +27,18 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito{
       itemService.save(update)
       val dbItem = itemService.findOneById(clonedItem.get.id)
       dbItem.isDefined === true
-        clonedItem.map(_.collectionId) === dbItem.map(_.collectionId)
+      clonedItem.map(_.collectionId) === dbItem.map(_.collectionId)
     }
   }
 
   "save" should {
 
-    def itemServiceWithMockFiles(succeed:Boolean) = new ItemService {
-      override def dao: SalatVersioningDao[Item] = itemService.asInstanceOf[ItemService].dao
+    def mockAssets(succeed: Boolean) = {
+      val m = mock[ItemAssetService]
 
-      override def archiveCollectionId: ObjectId = ???
-
-      val mockAssets = {
-        val m = mock[ItemAssetService]
-
-        m.cloneStoredFiles(any[Item], any[Item]).answers{ (args) => {
-          val out : Validation[Seq[CloneFileResult],Item] = if(succeed){
+      m.cloneStoredFiles(any[Item], any[Item]).answers { (args) =>
+        {
+          val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
             val arr = args.asInstanceOf[Array[Any]]
             Success(arr(1).asInstanceOf[Item])
           } else {
@@ -50,18 +46,19 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito{
           }
           out
         }
-        }
-        m
       }
-
-      override def assets: ItemAssetService = mockAssets
-
-      override implicit def context: Context = services.context
-
-      override def contentCollectionService: ContentCollectionService = ???
+      m
     }
 
-    def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean) : MatchResult[Any] = {
+    def itemServiceWithMockFiles(succeed: Boolean) = new ItemService(
+      itemService.asInstanceOf[ItemService].dao,
+      mockAssets(succeed),
+      mock[ContentCollectionService],
+      services.context,
+      services.archiveConfig) {
+    }
+
+    def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): MatchResult[Any] = {
       val service = itemServiceWithMockFiles(shouldSucceed)
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id.id, 0, "data", name))
@@ -83,7 +80,7 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito{
 
       println("expecting version: " + expectedVersion)
 
-      val out : MatchResult[Any] = dbItem
+      val out: MatchResult[Any] = dbItem
         .map(i => i.id === VersionedId(id.id, Some(expectedVersion))).get
 
       out

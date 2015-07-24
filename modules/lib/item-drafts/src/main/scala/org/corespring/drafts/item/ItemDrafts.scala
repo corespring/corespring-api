@@ -6,12 +6,12 @@ import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ItemDraftDbUtils, CommitService, ItemDraftService}
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.item.{ItemPublishingService, ItemService}
+import org.corespring.services.item.{ ItemService }
 import org.joda.time.DateTime
 import play.api.Logger
 import scalaz.Scalaz._
@@ -22,26 +22,27 @@ case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
 
 class ItemDrafts(
-itemService: ItemService with ItemPublishingService,
-draftService: ItemDraftService,
-commitService: CommitService,
-assets: ItemDraftAssets)
+  itemService: ItemService,
+  draftService: ItemDraftService,
+  commitService: CommitService,
+  assets: ItemDraftAssets,
+  implicit val context: com.novus.salat.Context)
 
   extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
-  implicit def context: com.novus.salat.Context
-
   def collection = draftService.collection
 
-  private val utils = new ItemDraftDbUtils{
+  protected def userCanCreateDraft(itemId: org.bson.types.ObjectId, user: org.corespring.drafts.item.models.OrgAndUser): Boolean = ???
+  protected def userCanDeleteDrafts(itemId: org.bson.types.ObjectId, user: org.corespring.drafts.item.models.OrgAndUser): Boolean = ???
+
+  private val utils = new ItemDraftDbUtils {
     override implicit def context: Context = ItemDrafts.this.context
   }
 
-  /** Check that the user may create the draft for the given src id */
-  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean
-  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean
+  //protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean
+  //protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
@@ -234,9 +235,7 @@ assets: ItemDraftAssets)
     ItemDraftIsOutOfDate(d, src)
   }
 
-
   def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
-
 
     val query = utils.idToDbo(draft.id)
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
