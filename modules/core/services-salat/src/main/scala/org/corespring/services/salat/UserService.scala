@@ -82,9 +82,9 @@ class UserService(
     returnValue
   }
 
-  override def touchLastLogin(userId: ObjectId) = touch(userId, "lastLoginDate")
+  override def touchLastLogin(userId: String) = touch(userId, "lastLoginDate")
 
-  private def touch(userId: ObjectId, field: String): Unit =
+  private def touch(userId: String, field: String): Unit =
     getUser(userId) match {
       case Some(user) => {
         dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
@@ -96,7 +96,7 @@ class UserService(
       case None => Left(PlatformServiceError("no user found to update " + field))
     }
 
-  override def touchRegistration(userId: ObjectId) = touch(userId, "registrationDate")
+  override def touchRegistration(userId: String) = touch(userId, "registrationDate")
 
   override def updateUser(user: User): Either[PlatformServiceError, User] = {
     try {
@@ -150,4 +150,6 @@ class UserService(
       case e: SalatRemoveError => Left(PlatformServiceError("error occurred while removing user", e))
     }
   }
+
+  override def getUserByEmail(email: String): Option[User] = dao.findOne(MongoDBObject("email" -> email))
 }

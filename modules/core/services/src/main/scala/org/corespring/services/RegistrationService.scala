@@ -3,9 +3,18 @@ package org.corespring.services
 import org.bson.types.ObjectId
 import org.corespring.models.Organization
 import org.corespring.models.auth.ApiClient
+import org.corespring.models.registration.RegistrationToken
 import org.corespring.services.errors.PlatformServiceError
 
 case class RegistrationInfo(org: Organization, defaultCollection: ObjectId, apiClient: ApiClient)
+
+trait RegistrationTokenService{
+
+  def createToken(token:RegistrationToken) : Boolean
+  def findTokenByUuid(uuid:String) : Option[RegistrationToken]
+  def deleteTokenUuid(uuid:String) : Boolean
+  def deleteExpiredTokens() : Int
+}
 
 trait RegistrationService {
 

@@ -12,7 +12,7 @@ trait Services {
   def item: ItemService
   def org: OrganizationService
   def user: UserService
-  def registration: RegistrationService
+  def registrationToken: RegistrationTokenService
   def metadata: MetadataService
   def assessment: AssessmentService
   def assessmentTemplate: AssessmentTemplateService

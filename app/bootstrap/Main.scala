@@ -5,7 +5,9 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
+import developer.ServiceLookup
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.FieldValue
@@ -23,9 +25,9 @@ object Main extends SalatServices with ItemDraftsModule {
   lazy val config = current.configuration
 
   lazy val aws = AwsConfig(
-    config.getString("AMAZON_ACCESS_KEY").getOrElse("?"),
-    config.getString("AMAZON_ACCESS_SECRET").getOrElse("?"),
-    config.getString("AMAZON_BUCKET").getOrElse("?"))
+    AppConfig.amazonKey,
+    AppConfig.amazonSecret,
+    AppConfig.assetsBucket)
 
   lazy val archiveConfig = ArchiveConfig(
     new ObjectId(config.getString("archive.contentCollectionId").getOrElse("?")),
@@ -56,5 +58,15 @@ object Main extends SalatServices with ItemDraftsModule {
     override def fieldValue: FieldValue = Main.this.fieldValue.get.get
 
     override def findSubjectById: (ObjectId) => Option[Subject] = subject.findOneById(_)
+
+    override def rootOrgId: ObjectId = AppConfig.rootOrgId
   }
+
+  ServiceLookup.apiClientService = apiClient
+  ServiceLookup.contentCollection = contentCollection
+  ServiceLookup.itemService = item
+  ServiceLookup.jsonFormatting = jsonFormatting
+  ServiceLookup.orgService = org
+  ServiceLookup.registrationTokenService = registrationToken
+  ServiceLookup.userService = user
 }

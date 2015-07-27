@@ -1,0 +1,24 @@
+@(title: String)(content: Html, headContent : Html = Html("") )
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <link rel="shortcut icon" type="image/png" href="@com.ee.assets.controllers.routes.Assets.at("images/favicon.png")">
+
+        <link href='http://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700' rel='stylesheet' type='text/css'>
+        <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+
+        @org.corespring.web.common.views.html.head.newRelicRumJsAgent()
+        @org.corespring.web.common.views.html.head.coreJs()
+        @org.corespring.web.common.views.html.head.bootstrap()
+        @org.corespring.web.common.views.html.head.angular()
+        @org.corespring.web.common.views.html.partials.headNode()
+        @headContent
+    </head>
+    <body>
+        <!-- org.corespring.web.common.views.html.partials.header("dev") -->
+        @content
+    </body>
+</html>

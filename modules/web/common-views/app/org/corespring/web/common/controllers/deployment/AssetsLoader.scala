@@ -1,40 +1,46 @@
 package org.corespring.web.common.controllers.deployment
 
 import com.ee.assets.Loader
-import org.corespring.web.common.views.helpers.Defaults
-import play.api.{Mode, Configuration, Logger, Play}
+import com.ee.assets.deployment.Deployer
+import org.corespring.assets.CorespringS3ServiceExtended
+import org.corespring.web.common.views.helpers.BuildInfo
+import play.api.{Mode, Logger, Play}
 
-class AssetsLoader(val loader: Loader, defaults : Defaults, config:Configuration) {
+object AssetsLoader {
 
-  val logger = Logger(classOf[AssetsLoader])
+  import play.api.Play.current
 
+  private[this] val logger = Logger(this.getClass())
+
+  private val configuration = Play.current.configuration
   private def isProd: Boolean = play.api.Play.current.mode == Mode.Prod
 
-  //lazy val loader: Loader = new Loader(if (isProd) Some(s3Deployer) else None, Play.mode, config)
-  //lazy val localLoader: Loader = new Loader(None, Play.mode, config)
+  lazy val loader: Loader = if(isProd) {
 
-  //lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)
+    lazy val branch: String = if (BuildInfo.branch.isEmpty || BuildInfo.branch == "?") "no-branch" else BuildInfo.branch
 
-  val bucketName: String = {
-    val publicAssets = "corespring-public-assets"
-    if (isProd) {
-      val envName = defaults.envName("")
-      val bucketCompliantBranchName = branch.replaceAll("/", "-")
-      Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
+    lazy val releaseRoot: String = if (BuildInfo.commitHashShort.isEmpty || BuildInfo.commitHashShort == "?") {
+      val format = new java.text.SimpleDateFormat("yyyy-MM-dd--HH-mm")
+      "dev-" + format.format(new java.util.Date())
     } else {
-      "corespring-dev-tmp-assets"
+      BuildInfo.commitHashShort
     }
-  }
 
-  lazy val branch: String = if (defaults.branch.isEmpty || defaults.branch == "?") "no-branch" else defaults.branch
+    val bucketName: String = {
+      val publicAssets = "corespring-public-assets"
+      val env = configuration.getString("ENV_NAME").getOrElse("")
+      val bucketCompliantBranchName = branch.replaceAll("/", "-")
+      Seq(publicAssets, env, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
+    }
 
-  lazy val releaseRoot: String = if (defaults.commitHashShort.isEmpty || defaults.commitHashShort == "?") {
-    val format = new java.text.SimpleDateFormat("yyyy-MM-dd--HH-mm")
-    "dev-" + format.format(new java.util.Date())
+    lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)
+    new Loader(Some(s3Deployer), Play.mode, configuration)
   } else {
-    defaults.commitHashShort
+    new Loader(None, Play.mode, configuration)
   }
-  def init(implicit app: play.api.Application) = if (Play.isProd) {
+
+
+  def init(implicit app: play.api.Application) = if (isProd) {
     logger.debug("running S3 deployments...")
     tagger
     corespringCommon

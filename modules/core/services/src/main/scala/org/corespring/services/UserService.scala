@@ -19,8 +19,8 @@ trait UserService {
 
   def removeUser(userId: ObjectId): Either[PlatformServiceError, Unit]
 
-  def touchLastLogin(userId: ObjectId)
-  def touchRegistration(userId: ObjectId)
+  def touchLastLogin(userId: String)
+  def touchRegistration(userId: String)
 
   def updateUser(user: User): Either[PlatformServiceError, User]
 

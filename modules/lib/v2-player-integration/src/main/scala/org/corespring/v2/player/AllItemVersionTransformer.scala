@@ -22,6 +22,7 @@ class AllItemVersionTransformer(
   services: Services,
   currentCollection: MongoCollection,
   versionedCollection: MongoCollection,
+  val rootOrgId: ObjectId,
   implicit val context: Context) extends ItemTransformer {
 
   override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")

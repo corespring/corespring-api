@@ -12,8 +12,10 @@ import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
 import org.corespring.models.auth.{ ApiClient, AccessToken, Permission }
 import org.corespring.models.item.Item
 import org.corespring.models.metadata.MetadataSet
+import org.corespring.models.registration.RegistrationToken
 import org.corespring.platform.data.mongo.SalatVersioningDao
-import org.corespring.services.{ SubjectService, StandardService }
+import org.corespring.services.salat.registration.RegistrationTokenService
+import org.corespring.services.{SubjectService, StandardService}
 import org.corespring.services.item.FieldValueService
 import org.corespring.services.salat.item.{ ItemAssetService, ItemService }
 import org.corespring.services.salat.{ OrganizationService }
@@ -54,8 +56,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
     val archiveOrg = Organization(
       name = "archive-org",
-      id = archiveConfig.orgId,
-      isRoot = false)
+      id = archiveConfig.orgId)
 
     val coll = ContentCollection(
       "archive-collection",
@@ -89,6 +90,7 @@ trait SalatServices extends interface.bootstrap.Services {
   lazy val apiClientDao = new SalatDAO[ApiClient, ObjectId](db("apiClients")) {}
   lazy val userDao = new SalatDAO[User, ObjectId](db("users")) {}
   lazy val metadataSetDao = new SalatDAO[MetadataSet, ObjectId](db("metadataSets")) {}
+  lazy val registrationTokenDao = new SalatDAO[RegistrationToken, ObjectId](db("regTokens")) {}
 
   lazy val itemDao = new SalatVersioningDao[Item] {
 
@@ -131,7 +133,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
   lazy val user: interface.UserService = wire[UserService]
 
-  lazy val registration: interface.RegistrationService = ???
+  lazy val registrationToken: interface.RegistrationTokenService = wire[RegistrationTokenService]
 
   lazy val metadataSet: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, org)
 

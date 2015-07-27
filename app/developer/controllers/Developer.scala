@@ -6,11 +6,12 @@ import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
+import org.corespring.models.json.ObjectIdFormat
+import org.corespring.web.api.v1.errors.ApiError
 import org.corespring.models.auth.{ApiClient, Permission}
 import org.corespring.models.{ContentCollection, Organization, User}
 import play.api.libs.json._
 import play.api.mvc._
-import scala._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 import securesocial.core.{SecuredRequest, IdentityId, SecureSocial}
@@ -22,6 +23,9 @@ import scala.concurrent.{ExecutionContext, Future}
 object Developer extends Controller with SecureSocial with PackageLogging {
 
   import ExecutionContext.Implicits.global
+
+  implicit val writeOid = ObjectIdFormat
+  implicit val writeOrg = ServiceLookup.jsonFormatting.writeOrg
 
   def at(path: String, file: String) = Assets.at(path, file)
 
@@ -42,13 +46,17 @@ object Developer extends Controller with SecureSocial with PackageLogging {
     }
   }
 
+  private def hasRegisteredOrg(u:User) = {
+    u.org.orgId != AppConfig.demoOrgId
+  }
+
   def home = Action.async {
     implicit request =>
 
       val defaultView : Future[SimpleResult] = at("/public/developer", "index.html")(request)
 
      userFromRequest(request)
-        .filterNot( _.hasRegisteredOrg )
+        .filterNot(hasRegisteredOrg)
         .map( u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
         .getOrElse(defaultView)
   }
@@ -133,7 +141,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
 
       val validation: Validation[String, (Organization, ApiClient)] = for {
         user <- getUser(request.user.identityId).toSuccess("Unknown user")
-        okUser <- if (user.hasRegisteredOrg) Failure("Org already registered") else Success(user)
+        okUser <- if (hasRegisteredOrg(user)) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
         org <- ServiceLookup.orgService.insert(orgToCreate,None).right.toOption.toSuccess("Couldn't create org")
@@ -148,22 +156,42 @@ object Developer extends Controller with SecureSocial with PackageLogging {
         case Success((o, c)) => Ok(developer.views.html.org_credentials(c.clientId.toString, c.clientSecret, o.name))
       }
   }
-
-  def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
+  /*
+   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
     request =>
-      getUser(request.user.identityId) match {
+      User.getUser(request.user.identityId) match {
         case Some(user) => {
           if (user.org.orgId == orgId) {
-            ServiceLookup.apiClientService.findOneById(orgId) match {
+            Organization.findOneById(orgId) match {
               case Some(org) => {
-                ServiceLookup.apiClientService.createApiClient(org.id) match {
+                OAuthProvider.createApiClient(org.id) match {
                   case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
                   case Left(error) => BadRequest(Json.toJson(error))
                 }
               }
               case None => InternalServerError("could not find organization, after authentication. this should never occur")
             }
-          } else Unauthorized(Json.obj("error" -> UnauthorizedOrganization)))
+          } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
+        }
+        case None => InternalServerError("could not find user...after authentication. something is very wrong")
+      }
+  }
+   */
+  def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
+    request =>
+      getUser(request.user.identityId) match {
+        case Some(user) => {
+          if (user.org.orgId == orgId) {
+            ServiceLookup.orgService.findOneById(orgId) match {
+              case Some(org) => {
+                ServiceLookup.apiClientService.createForOrg(org.id) match {
+                  case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
+                  case Left(error) => BadRequest(Json.toJson(error))
+                }
+              }
+              case None => InternalServerError("could not find organization, after authentication. this should never occur")
+            }
+          } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
         }
         case None => InternalServerError("could not find user...after authentication. something is very wrong")
       }

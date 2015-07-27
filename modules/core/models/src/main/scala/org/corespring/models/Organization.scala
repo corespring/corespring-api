@@ -7,8 +7,7 @@ case class Organization(name: String,
   path: Seq[ObjectId] = Seq(),
   contentcolls: Seq[ContentCollRef] = Seq(),
   metadataSets: Seq[MetadataSetRef] = Seq(),
-  id: ObjectId = new ObjectId(),
-  isRoot: Boolean) {
+  id: ObjectId = new ObjectId()) {
 
   private def readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
   def accessibleCollections = contentcolls.filter(readable)

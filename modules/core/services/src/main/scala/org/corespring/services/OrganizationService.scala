@@ -39,6 +39,8 @@ trait OrganizationService {
 
   def getDefaultCollection(orgId: ObjectId): Either[PlatformServiceError, ContentCollection]
 
+  //def isRoot(org:Organization) : Boolean
+
   /**
    * insert organization. if parent exists, insert as child of parent, otherwise, insert as root of new nested set tree
    * @param org - the organization to be inserted

@@ -3,7 +3,8 @@ package org.corespring.models.json
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ AssessmentTemplate, Answer, Assessment }
 import org.corespring.models.json.assessment.{ AssessmentTemplateFormat, AnswerFormat, AssessmentFormat }
-import org.corespring.models.{ ContentCollection, Standard, Subject }
+import org.corespring.models.registration.RegistrationToken
+import org.corespring.models.{Organization, ContentCollection, Standard, Subject}
 import org.corespring.models.item._
 import org.corespring.models.item.resource.Resource
 import org.corespring.models.json.item._
@@ -21,6 +22,12 @@ trait JsonFormatting {
   def fieldValue: FieldValue
   def findSubjectById: ObjectId => Option[Subject]
   def findStandardByDotNotation: String => Option[Standard]
+  def rootOrgId : ObjectId
+
+  implicit val formatOid = ObjectIdFormat
+  implicit val formatRegToken = Json.writes[RegistrationToken]
+
+  implicit lazy val writeOrg : Writes[Organization] = new OrganizationWrites(rootOrgId)
 
   implicit lazy val writesFieldValue: Writes[FieldValue] = FieldValueWrites
 

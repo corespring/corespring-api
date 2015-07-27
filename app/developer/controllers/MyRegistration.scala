@@ -1,5 +1,8 @@
 package developer.controllers
 
+import developer.ServiceLookup
+import org.corespring.models.auth.Permission
+import org.corespring.models.{UserOrg, Organization, ContentCollection, User}
 import play.api.mvc.{ Result, Action, Controller }
 import play.api.data._
 import play.api.data.Forms._
@@ -11,16 +14,12 @@ import Play.current
 import securesocial.core.providers.utils._
 import play.api.i18n.Messages
 import securesocial.core.providers.Token
-import scala.Some
 import securesocial.controllers.Registration._
 import play.api.libs.json.{ JsString, JsObject }
-import org.corespring.platform.core.models
-import org.corespring.platform.core.models.{ContentCollection, User}
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.models.auth.Permission
 
 object MyRegistration extends Controller {
-  val Organization = "organization"
+  //val Organization = "organization"
 
   case class MyRegistrationInfo(userName: Option[String],
     firstName: String,
@@ -35,7 +34,7 @@ object MyRegistration extends Controller {
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
-      Organization -> optional(nonEmptyText),
+      "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
@@ -48,7 +47,7 @@ object MyRegistration extends Controller {
     mapping(
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
-      Organization -> optional(nonEmptyText),
+      "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
@@ -86,16 +85,22 @@ object MyRegistration extends Controller {
             info => {
               val id = if (UsernamePasswordProvider.withUserNameSupport) info.userName.get else t.email
               val passwordInfo = use[PasswordHasher].hash(info.password)
-              val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
+              val user = User(
+                userName = id,
+                fullName = s"${info.firstName} ${info.lastName}",
+                email = t.email,
+                password = passwordInfo.password,
+                org = UserOrg(AppConfig.demoOrgId, Permission.Read.value),
+                provider = providerId)
               (info.organization match {
-                case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
+                case Some(orgName) => ServiceLookup.orgService.insert(Organization(orgName), None) match {
                   case Right(org) => {
-                    ContentCollection.insertCollection(org.id, ContentCollection(ContentCollection.DEFAULT, org.id), Permission.Write);
-                    User.insertUser(user, org.id, Permission.Write, false)
+                    ServiceLookup.contentCollection.insertCollection(org.id, ContentCollection(ContentCollection.Default, org.id), Permission.Write);
+                    ServiceLookup.userService.insertUser(user, org.id, Permission.Write, false)
                   }
                   case Left(error) => Left(error)
                 }
-                case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
+                case None => ServiceLookup.userService.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
               }) match {
                 case Right(dbuser) => {
                   val socialUser = SocialUser(
@@ -114,7 +119,7 @@ object MyRegistration extends Controller {
                   Events.fire(new SignUpEvent(socialUser))
                   Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone))
                 }
-                case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString("error occurred during registration [" + error.clientOutput.getOrElse("") + "]"))))
+                case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString(s"error occurred during registration [${error.message}]"))))
               }
             })
       })

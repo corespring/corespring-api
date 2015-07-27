@@ -11,8 +11,8 @@ case class User(userName: String = "",
   org: UserOrg,
   password: String = "",
   provider: String = "userpass",
-  id: ObjectId = new ObjectId(),
-  hasRegisteredOrg: Boolean)
+  id: ObjectId = new ObjectId())
+
 
 case class UserOrg(orgId: ObjectId, pval: Long)
 

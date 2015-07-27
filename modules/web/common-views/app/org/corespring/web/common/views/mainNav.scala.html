@@ -1,0 +1,47 @@
+@(username : String = "", root : String = "/web" )
+<div class="navbar navbar-fixed-top" ng-controller="MainNavController">
+    <div class="navbar-inner" style="padding-bottom: 0px; padding-top:0px;">
+        <div class="container-fluid">
+            <a class="pull-left" ng-click="navigateToRoot('@root')">
+                <img src="/assets/images/logo2015-small.png"
+                     alt="Corespring"/></a>
+
+
+            @if( username != "" && username != null){
+
+            <div style="margin-left: 10px; float: left;">
+
+                <span class="nav">
+                    <a class="btn btn-large btn-info" ng-click="createItem()"><i class="fa fa-plus"></i> Create</a>
+                </span>
+
+                <ul
+                        id="resultPager"
+                        class="nav"
+                        result-pager
+                        load-item="goToItem"
+                        load-more="loadMore"
+                        list-model="items"
+                        item-count="resultCount"
+                        current-item="itemData"
+                >
+                    <li style="padding-top: 11px;">
+                        <div class="pager">
+                            <div ng-show="pagerText" class="muted pager-text">{{pagerText}} items</div>
+                            <div class="progress progress-success progress-striped
+                                 active pager-progress-bar" network-progress ng-show="isLoading">
+                                <div class="bar"></div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+                <span style="float:right; line-height: 38px;">hi, @username&nbsp;
+                    <a class="logout-icon" title="logout" href="/logout"><i class="fa fa-sign-out"></i></a>
+                </span>
+            }
+
+        </div>
+    </div>
+</div>

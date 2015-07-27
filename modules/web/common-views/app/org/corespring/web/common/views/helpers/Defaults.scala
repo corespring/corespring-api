@@ -7,11 +7,8 @@ import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-class Defaults(
-  fieldValue: => Option[FieldValue],
-  itemTypes: Seq[ItemType]) {
-
-  val propsFile = "/buildInfo.properties"
+object BuildInfo{
+   val propsFile = "/buildInfo.properties"
 
   private val properties = {
     val url = Play.resource(propsFile)
@@ -23,6 +20,16 @@ class Defaults(
       props
     }.getOrElse(new Properties())
   }
+
+  lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
+  lazy val pushDate: String = properties.getProperty("date", "?")
+  lazy val branch: String = properties.getProperty("branch", "?")
+}
+
+class Defaults(
+  fieldValue: => Option[FieldValue],
+  itemTypes: Seq[ItemType]) {
+
 
   lazy val fieldValues: String = fieldValue match {
     case Some(fv) => {
@@ -43,9 +50,6 @@ class Defaults(
     case _ => "{}"
   }
 
-  lazy val commitHashShort: String = properties.getProperty("commit.hash", "?")
-  lazy val pushDate: String = properties.getProperty("date", "?")
-  lazy val branch: String = properties.getProperty("branch", "?")
 
   def envName(default: String): String = get("ENV_NAME").getOrElse(default)
 
