@@ -5,6 +5,8 @@ import org.corespring.models.auth.ApiClient
 
 trait ApiClientService {
 
+  def createForOrg(orgId:ObjectId) : Either[String,ApiClient]
+
   def findByKey(key: String): Option[ApiClient]
 
   /**

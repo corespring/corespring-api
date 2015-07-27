@@ -39,6 +39,8 @@ trait UserService {
 
   def getUser(username: String, provider: String): Option[User]
 
+  def getUserByEmail(email:String) : Option[User]
+
   def getUsers(orgId: ObjectId): Either[PlatformServiceError, Seq[User]]
 
   def getPermissions(username: String, orgId: ObjectId): Either[PlatformServiceError, Permission]

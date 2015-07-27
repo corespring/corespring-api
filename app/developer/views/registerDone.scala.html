@@ -1,0 +1,31 @@
+@(errorMsg: Option[String] = None)(implicit request: RequestHeader)
+
+@import helper._
+@import securesocial.core.AuthenticationMethod._
+@import securesocial.core.providers.UsernamePasswordProvider.UsernamePassword
+
+@main("Registration") {
+    <div class="container-fluid">
+        <div class="well col-md-4 col-md-offset-4" style="position: relative; top: 100px;">
+
+            <h3>Thank you!</h3>
+            <br/>
+            @errorMsg.map { msg =>
+            <div class="alert alert-danger">
+                @Messages(msg)
+            </div>
+            }
+
+            @Messages("securesocial.signup.thankYouCheckEmail")
+
+            <br/>
+            <br/>
+            <a class="btn-link" href="/developer/home">Return to the CoreSpring Developer Page</a>
+        </div>
+    </div>
+}
+
+
+
+
+

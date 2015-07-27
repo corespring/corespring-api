@@ -16,5 +16,9 @@ case class ContentCollection(
   //TODO: RF: itemCount is now on ContentCollectionService
 }
 
+object ContentCollection{
+  val Default = "default"
+}
+
 case class CollectionExtraDetails(coll: ContentCollection, access: Long)
 
