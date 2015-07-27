@@ -14,6 +14,10 @@ trait V2Api extends Controller with LoadOrgAndOptions {
 
   implicit def ec: ExecutionContext
 
+  def getOrgAndOptionsFn : RequestHeader => Validation[V2Error, OrgAndOpts]
+
+  final override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsFn(request)
+
   /**
    * Convert a Validation to a SimpleResult.
    * @param fn the function to convert A to a SimpleResult

@@ -48,7 +48,7 @@ object Main extends SalatServices with ItemDraftsModule {
   @deprecated("This is a legacy function - remove", "1.0")
   override def mode: AppMode = AppMode(Play.current.mode.toString.toLowerCase())
 
-  override implicit def context: Context = new ServicesContext(Play.classloader)
+  override lazy val context: Context = new ServicesContext(Play.classloader)
 
   override def identifyUser: (RequestHeader) => Option[OrgAndUser] = ???
 
@@ -62,11 +62,13 @@ object Main extends SalatServices with ItemDraftsModule {
     override def rootOrgId: ObjectId = AppConfig.rootOrgId
   }
 
-  ServiceLookup.apiClientService = apiClient
-  ServiceLookup.contentCollection = contentCollection
-  ServiceLookup.itemService = item
-  ServiceLookup.jsonFormatting = jsonFormatting
-  ServiceLookup.orgService = org
-  ServiceLookup.registrationTokenService = registrationToken
-  ServiceLookup.userService = user
+  def initServiceLookup() = {
+    ServiceLookup.apiClientService = apiClient
+    ServiceLookup.contentCollection = contentCollection
+    ServiceLookup.itemService = item
+    ServiceLookup.jsonFormatting = jsonFormatting
+    ServiceLookup.orgService = org
+    ServiceLookup.registrationTokenService = registrationToken
+    ServiceLookup.userService = user
+  }
 }

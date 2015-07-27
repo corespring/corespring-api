@@ -46,6 +46,7 @@ object Build extends sbt.Build {
     libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
   val coreJson = builders.lib("json", "core").dependsOn(coreModels)
+    .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
   val coreServices = builders.lib("services", "core").dependsOn(coreModels)
 

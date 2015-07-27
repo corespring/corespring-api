@@ -24,6 +24,8 @@ trait JsonFormatting {
   def findStandardByDotNotation: String => Option[Standard]
   def rootOrgId : ObjectId
 
+  val itemSummary = new ItemToSummaryWrites(this)
+
   implicit val formatOid = ObjectIdFormat
   implicit val formatRegToken = Json.writes[RegistrationToken]
 

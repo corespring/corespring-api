@@ -6,6 +6,8 @@ import org.corespring.models.item.{ Item, ItemType }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.models.{ Organization }
 import org.corespring.models.item.Item.Keys._
+import org.corespring.services.bootstrap.Services
+import org.corespring.services.{SubjectService, StandardService, OrganizationService}
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
@@ -23,16 +25,20 @@ import play.api.mvc._
 import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
-trait ItemApi extends V2Api with JsonUtil {
+case class ItemApiExecutionContext(context:ExecutionContext)
 
-  def itemAuth: ItemAuth[OrgAndOpts]
-  def itemService: ItemService
-  def itemTypes: Seq[ItemType]
-  def itemIndexService: ItemIndexService
-  def scoreService: ScoreService
-  def jsonFormatting: JsonFormatting
+class ItemApi(
+  coreServices : Services,
+  itemAuth: ItemAuth[OrgAndOpts],
+  itemTypes: Seq[ItemType],
+  scoreService: ScoreService,
+  val jsonFormatting: JsonFormatting,
+  apiContext: ItemApiExecutionContext,
+  override val getOrgAndOptionsFn : RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
 
   implicit val itemFormat = jsonFormatting.item
+
+  override implicit def ec: ExecutionContext = apiContext.context
 
   /**
    * For a known organization (derived from the request) return Some(id)
@@ -40,7 +46,7 @@ trait ItemApi extends V2Api with JsonUtil {
    * @param identity
    * @return
    */
-  def defaultCollection(implicit identity: OrgAndOpts): Option[String]
+  def defaultCollection(implicit identity: OrgAndOpts): Option[String] = orgService.defaultCollection(identity.org).map(_.toString)
 
   protected lazy val logger = Logger(classOf[ItemApi])
 
@@ -180,7 +186,6 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  def getSummaryData: (Item, Option[String]) => JsValue
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -190,7 +195,7 @@ trait ItemApi extends V2Api with JsonUtil {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         identity <- getOrgAndOptions(request)
         item <- itemAuth.loadForRead(itemId)(identity)
-      } yield getSummaryData(item, detail)
+      } yield jsonFormatting.itemSummary.write(item, detail)
 
       validationToResult[JsValue](i => Ok(i))(out)
     }

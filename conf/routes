@@ -43,3 +43,11 @@ GET         /web/javascripts/routes                                   web.contro
 GET         /web/show-resource/:itemId/:resourceName/main             web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
 GET         /web/show-resource/:itemId/:resourceName/:filename        web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
 GET         /web/print-resource/:itemId/data/main                     web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
+
+
+GET         /password                                                 securesocial.controllers.PasswordChange.page
+POST        /password                                                 securesocial.controllers.PasswordChange.handlePasswordChange
+
+# Providers entry points
+GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
+POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)

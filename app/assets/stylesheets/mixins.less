@@ -1,0 +1,133 @@
+/* -- Mixins -- */
+.mixin-bg-gradient(@bottom, @top){
+  background-image: -moz-linear-gradient(top, @bottom, @top);
+  background-image: -ms-linear-gradient(top, @bottom, @top);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@bottom), to(@top));
+  background-image: -webkit-linear-gradient(top, @bottom, @top);
+  background-image: -o-linear-gradient(top, @bottom, @top);
+  background-image: linear-gradient(top, @bottom, @top);
+//filter: progid:dximagetransform.microsoft.gradient(startColorstr='@{bottom}', endColorstr='@{top}', GradientType=0);
+  background-repeat: repeat-x;
+}
+
+.mixin-box-shadow( @radius : 3px ){
+  -webkit-box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px @radius rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/**
+* Less subtle than the one above.
+*/
+.mixin-simple-box-shadow( @color: #000000, @radius: 5px, @alpha: 30% ){
+  -moz-box-shadow: 0 0 @radius @radius fade(@color, @alpha);
+  -webkit-box-shadow: 0 0 @radius @radius fade(@color, @alpha);
+  box-shadow: 0 0 @radius @radius fade(@color,@alpha);
+}
+
+.mixin-inner-shadow(@radius: 5px, @color: #888){
+  -moz-box-shadow: inset 0 0 @radius @radius @color;
+  -webkit-box-shadow: inset 0 0 @radius @radius @color;
+  box-shadow: inset 0 0 @radius @radius @color;
+}
+
+.mixin-background-image-gradient(@top, @bottom){
+  background-image: -ms-linear-gradient(top, @top, @bottom);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(@top), to(@bottom));
+  background-image: -webkit-linear-gradient(top, @top, @bottom);
+  background-image: -o-linear-gradient(top, @top, @bottom);
+  background-image: -moz-linear-gradient(top, @top, @bottom);
+  background-image: linear-gradient(top, @top, @bottom);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+
+.mixin-diagonal-stripes(@angle: -45deg, @color, @size, @alpha){
+  @multiple: 25%;
+  background-size: @size @size;
+  background-color: @color;
+
+  background-image:
+    -webkit-linear-gradient(@angle,
+      rgba(255, 255, 255, @alpha) @multiple,
+      transparent @multiple,
+      transparent (@multiple * 2),
+      rgba(255, 255, 255, @alpha) (@multiple * 2),
+      rgba(255, 255, 255, @alpha) (@multiple * 3),
+      transparent (@multiple * 3), transparent);
+
+  background-image:
+    -moz-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    -ms-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    -o-linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+
+  background-image:
+    linear-gradient(@angle,
+    rgba(255, 255, 255, @alpha) @multiple,
+    transparent @multiple,
+    transparent (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 2),
+    rgba(255, 255, 255, @alpha) (@multiple * 3),
+    transparent (@multiple * 3), transparent);
+}
+
+.mixin-bg-carbon( @size, @color) {
+
+  @dark : darken(@color, 6%);
+  background:
+    -webkit-radial-gradient(@dark 15%, transparent 16%) 0 0,
+    -webkit-radial-gradient(@dark 15%, transparent 16%) @size @size,
+    -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 15%) 0 1px,
+    -webkit-radial-gradient(rgba(255,255,255,.1) 15%, transparent 15%) @size (@size + 1);
+  background-color:@color;
+  @double: (@size * 2);
+  background-size:@double @double;
+}
+
+.mixin-text-non-selectable{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.mixin-btn-cs-green{
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #80b312;
+  background-image: -ms-linear-gradient(top, #92D400, #80b312);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#92D400), to(#80b312));
+  background-image: -webkit-linear-gradient(top, #92D400, #80b312);
+  background-image: -o-linear-gradient(top, #92D400, #80b312);
+  background-image: -moz-linear-gradient(top, #92D400, #80b312);
+  background-image: linear-gradient(top, #92D400, #80b312);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='@top', endColorstr='@bottom', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+  background-repeat: repeat-x;
+  border-color: #0097b5 #00819b #00819b;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+}
