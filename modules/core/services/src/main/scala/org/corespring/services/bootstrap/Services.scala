@@ -7,18 +7,18 @@ import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services._
 
 trait Services {
-  def contentCollection: ContentCollectionService
-  def metadataSet: MetadataSetService
-  def item: ItemService
-  def org: OrganizationService
-  def user: UserService
-  def registrationToken: RegistrationTokenService
-  def metadata: MetadataService
-  def assessment: AssessmentService
-  def assessmentTemplate: AssessmentTemplateService
-  def apiClient: ApiClientService
-  def token: AccessTokenService
-  def subject: SubjectService
-  def standard: StandardService
-  def fieldValue: FieldValueService
+  def contentCollectionService: ContentCollectionService
+  def metadataSetService: MetadataSetService
+  def itemService: ItemService
+  def orgService: OrganizationService
+  def userService: UserService
+  def registrationTokenService: RegistrationTokenService
+  def metadataService: MetadataService
+  def assessmentService: AssessmentService
+  def assessmentTemplateService: AssessmentTemplateService
+  def apiClientService: ApiClientService
+  def tokenService: AccessTokenService
+  def subjectService: SubjectService
+  def standardService: StandardService
+  def fieldValueService: FieldValueService
 }

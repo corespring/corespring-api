@@ -6,7 +6,6 @@ import com.novus.salat.{ Context, grater }
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.salat.bootstrap.AppMode
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
@@ -19,9 +18,7 @@ class OrganizationService(
   implicit val context: Context,
   collectionService: => interface.ContentCollectionService,
   metadataSetService: interface.metadata.MetadataSetService,
-  itemService: interface.item.ItemService,
-  appMode: AppMode) extends interface.OrganizationService with HasDao[Organization, ObjectId] {
-  def isProd: Boolean = appMode.isProd
+  itemService: interface.item.ItemService) extends interface.OrganizationService with HasDao[Organization, ObjectId] {
 
   lazy val logger: Logger = Logger(classOf[OrganizationService])
 
@@ -181,7 +178,7 @@ class OrganizationService(
 
     def update(path: Seq[ObjectId]): Organization = {
       org.copy(
-        id = if (isProd) ObjectId.get else org.id,
+        id = org.id,
         path = Seq(org.id) ++ path,
         contentcolls = org.contentcolls ++ collectionService.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value)))
     }

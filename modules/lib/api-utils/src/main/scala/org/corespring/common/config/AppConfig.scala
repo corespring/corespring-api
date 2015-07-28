@@ -29,7 +29,10 @@ class AppConfig(config: Configuration) {
   lazy val envName: String = config.getString(Key.ENV_NAME).getOrElse("dev")
   lazy val rootOrgId: ObjectId = config.getString(Key.ROOT_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
   lazy val v2playerOrgIds: Seq[ObjectId] = config.getString(Key.V2_PLAYER_ORG_IDS).map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
+  lazy val archiveContentCollectionId: ObjectId = new ObjectId(getString("archive.contentCollectionId"))
+  lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
 
+  private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 }
 
 object AppConfig extends AppConfig(play.api.Play.current.configuration)

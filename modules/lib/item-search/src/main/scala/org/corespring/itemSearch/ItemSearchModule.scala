@@ -10,5 +10,5 @@ trait ItemSearchModule {
   def componentTypes: Seq[ComponentType]
   def elasticSearchExecutionContext: ElasticSearchExecutionContext
 
-  def itemIndex: ItemIndexService = wire[ElasticSearchItemIndexService]
+  lazy val itemIndexService: ItemIndexService = wire[ElasticSearchItemIndexService]
 }

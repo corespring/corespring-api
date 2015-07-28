@@ -8,14 +8,14 @@ import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.models.json.ObjectIdFormat
 import org.corespring.web.api.v1.errors.ApiError
-import org.corespring.models.auth.{ApiClient, Permission}
-import org.corespring.models.{ContentCollection, Organization, User}
+import org.corespring.models.auth.{ ApiClient, Permission }
+import org.corespring.models.{ ContentCollection, Organization, User }
 import play.api.libs.json._
 import play.api.mvc._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-import securesocial.core.{SecuredRequest, IdentityId, SecureSocial}
-import scala.concurrent.{ExecutionContext, Future}
+import securesocial.core.{ SecuredRequest, IdentityId, SecureSocial }
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * TODO: remove magic strings
@@ -29,7 +29,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
 
   def at(path: String, file: String) = Assets.at(path, file)
 
-  private def getUser(id:IdentityId) : Option[User] = ServiceLookup.userService.getUser(id.userId, id.providerId)
+  private def getUser(id: IdentityId): Option[User] = ServiceLookup.userService.getUser(id.userId, id.providerId)
 
   private def userFromRequest(r: Request[AnyContent]): Option[User] = {
     val result: Validation[String, User] = for {
@@ -46,18 +46,18 @@ object Developer extends Controller with SecureSocial with PackageLogging {
     }
   }
 
-  private def hasRegisteredOrg(u:User) = {
+  private def hasRegisteredOrg(u: User) = {
     u.org.orgId != AppConfig.demoOrgId
   }
 
   def home = Action.async {
     implicit request =>
 
-      val defaultView : Future[SimpleResult] = at("/public/developer", "index.html")(request)
+      val defaultView: Future[SimpleResult] = at("/public/developer", "index.html")(request)
 
-     userFromRequest(request)
+      userFromRequest(request)
         .filterNot(hasRegisteredOrg)
-        .map( u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
+        .map(u => Future(Redirect(DeveloperRoutes.createOrganizationForm().url)))
         .getOrElse(defaultView)
   }
 
@@ -67,7 +67,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
   }
 
   def isLoggedIn = SecuredAction(ajaxCall = true) {
-    request : SecuredRequest[AnyContent] =>
+    request: SecuredRequest[AnyContent] =>
 
       def json(isLoggedIn: Boolean, username: Option[String] = None) = JsObject(Seq("isLoggedIn" -> JsBoolean(isLoggedIn)) ++ username.map("username" -> JsString(_)))
       val userId: IdentityId = request.user.identityId
@@ -116,7 +116,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
   }
 
   def createOrganization = SecuredAction(false) {
-    request : SecuredRequest[AnyContent] =>
+    request: SecuredRequest[AnyContent] =>
 
       def makeOrg(json: JsValue): Option[Organization] = (json \ "name").asOpt[String].map {
         n =>
@@ -135,8 +135,8 @@ object Developer extends Controller with SecureSocial with PackageLogging {
         }
       }
 
-      def createDefaultCollection(orgId : ObjectId) =
-        ServiceLookup.contentCollection.insertCollection(orgId,
+      def createDefaultCollection(orgId: ObjectId) =
+        ServiceLookup.contentCollectionService.insertCollection(orgId,
           ContentCollection(ContentCollection.Default, orgId), Permission.Write)
 
       val validation: Validation[String, (Organization, ApiClient)] = for {
@@ -144,7 +144,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
         okUser <- if (hasRegisteredOrg(user)) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
-        org <- ServiceLookup.orgService.insert(orgToCreate,None).right.toOption.toSuccess("Couldn't create org")
+        org <- ServiceLookup.orgService.insert(orgToCreate, None).right.toOption.toSuccess("Couldn't create org")
         updatedIdentityId <- setOrg(okUser.id, org.id).toSuccess("Couldn't set org")
         // Ensure default collection is created for this organisation
         defaultCollection <- createDefaultCollection(org.id).right.toOption.toSuccess("Couldn't create default collection")
@@ -200,10 +200,12 @@ object Developer extends Controller with SecureSocial with PackageLogging {
   def handleStartSignUp = Action.async {
     implicit request =>
       val action = securesocial.controllers.Registration.handleStartSignUp(request)
-      action.transform({ r => r match {
-        case BadRequest => action
-        case _ => Ok(developer.views.html.registerDone())
-      }}, e => e)
+      action.transform({ r =>
+        r match {
+          case BadRequest => action
+          case _ => Ok(developer.views.html.registerDone())
+        }
+      }, e => e)
       action
   }
 

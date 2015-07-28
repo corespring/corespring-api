@@ -3,7 +3,7 @@ package developer
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.auth.ApiClientService
 import org.corespring.services.item.ItemService
-import org.corespring.services.{RegistrationTokenService, ContentCollectionService, OrganizationService, UserService}
+import org.corespring.services.{ RegistrationTokenService, ContentCollectionService, OrganizationService, UserService }
 
 /**
  * An interim solution for parts of the application where we can't
@@ -11,17 +11,17 @@ import org.corespring.services.{RegistrationTokenService, ContentCollectionServi
  */
 object ServiceLookup {
 
-  var userService : UserService = null
+  var userService: UserService = null
 
-  var orgService : OrganizationService = null
+  var orgService: OrganizationService = null
 
-  var apiClientService : ApiClientService = null
+  var apiClientService: ApiClientService = null
 
-  var contentCollection : ContentCollectionService = null
+  var contentCollectionService: ContentCollectionService = null
 
-  var jsonFormatting : JsonFormatting = null
+  var jsonFormatting: JsonFormatting = null
 
-  var registrationTokenService : RegistrationTokenService = null
+  var registrationTokenService: RegistrationTokenService = null
 
-  var itemService : ItemService = null
+  var itemService: ItemService = null
 }

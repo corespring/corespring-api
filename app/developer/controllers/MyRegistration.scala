@@ -2,7 +2,7 @@ package developer.controllers
 
 import developer.ServiceLookup
 import org.corespring.models.auth.Permission
-import org.corespring.models.{UserOrg, Organization, ContentCollection, User}
+import org.corespring.models.{ UserOrg, Organization, ContentCollection, User }
 import play.api.mvc.{ Result, Action, Controller }
 import play.api.data._
 import play.api.data.Forms._
@@ -95,7 +95,7 @@ object MyRegistration extends Controller {
               (info.organization match {
                 case Some(orgName) => ServiceLookup.orgService.insert(Organization(orgName), None) match {
                   case Right(org) => {
-                    ServiceLookup.contentCollection.insertCollection(org.id, ContentCollection(ContentCollection.Default, org.id), Permission.Write);
+                    ServiceLookup.contentCollectionService.insertCollection(org.id, ContentCollection(ContentCollection.Default, org.id), Permission.Write);
                     ServiceLookup.userService.insertUser(user, org.id, Permission.Write, false)
                   }
                   case Left(error) => Left(error)

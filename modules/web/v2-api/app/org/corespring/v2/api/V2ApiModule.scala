@@ -20,15 +20,15 @@ trait V2ApiModule extends ItemDraftsModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def org: OrganizationService
+  def orgService: OrganizationService
 
-  def itemIndex: ItemIndexService
+  def itemIndexService: ItemIndexService
 
   def itemAuth: ItemAuth[OrgAndOpts]
 
   def componentTypes: Seq[ComponentType]
 
-  def score: ScoreService
+  def scoreService: ScoreService
 
   def itemApiExecutionContext: ItemApiExecutionContext
 
@@ -38,14 +38,14 @@ trait V2ApiModule extends ItemDraftsModule {
 
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
-  def apiClientEncryption: ApiClientEncryptionService
+  def apiClientEncryptionService: ApiClientEncryptionService
 
-  def apiClient: ApiClientService
+  def apiClientService: ApiClientService
 
   def sessionCreatedCallback: VersionedId[ObjectId] => Unit
 
-  def itemApi = wire[ItemApi]
+  lazy val itemApi = wire[ItemApi]
 
-  def itemSessionApi = wire[ItemSessionApi]
+  lazy val itemSessionApi = wire[ItemSessionApi]
 
 }

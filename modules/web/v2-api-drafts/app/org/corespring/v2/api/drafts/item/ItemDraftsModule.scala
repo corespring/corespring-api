@@ -15,7 +15,7 @@ trait ItemDraftsModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def item: ItemService
+  def itemService: ItemService
 
   def db: MongoDB
 
@@ -34,7 +34,7 @@ trait ItemDraftsModule {
   def s3: AmazonS3
   def assets: ItemDraftAssets = wire[S3ItemDraftAssets]
 
-  def draftsBackend: DraftsBackend = wire[DraftsBackend]
+  def itemDrafts: DraftsBackend = wire[DraftsBackend]
 
   def identifyUser: (RequestHeader) => Option[OrgAndUser]
 
@@ -42,5 +42,5 @@ trait ItemDraftsModule {
 
   lazy val itemDraftJson: ItemDraftJson = wire[ItemDraftJson]
 
-  lazy val itemDrafts: ItemDrafts = wire[ItemDrafts]
+  lazy val itemDraftsController: ItemDrafts = wire[ItemDrafts]
 }

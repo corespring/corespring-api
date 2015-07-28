@@ -6,7 +6,8 @@ import org.corespring.services.auth.ApiClientService
 trait EncryptionModule {
 
   import com.softwaremill.macwire.MacwireMacros._
-  val apiClient: ApiClientService
-  val encrypt: EncryptDecrypt = AESEncryptDecrypt
-  val apiClientEncryption: ApiClientEncryptionService = wire[MainApiClientEncryptionService]
+
+  def apiClientService: ApiClientService
+  lazy val encrypt: EncryptDecrypt = AESEncryptDecrypt
+  lazy val apiClientEncryptionService: ApiClientEncryptionService = wire[MainApiClientEncryptionService]
 }

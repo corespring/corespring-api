@@ -4,78 +4,71 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSON
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.models.item.{ FieldValue, Item }
+import org.corespring.models.item.{ Item }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.services.bootstrap.Services
-import org.corespring.services.{ StandardService, SubjectService }
-import org.corespring.services.item.{ BaseFindAndSaveService }
+import org.corespring.qtiToV2.transformers.{ ItemTransformerConfig, ItemTransformer }
+import org.corespring.services.{ ContentCollectionService, StandardService }
+import org.corespring.services.item.{ ItemService, BaseFindAndSaveService }
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
-import play.api.{ Play, Configuration, Logger }
+import play.api.{ Logger }
 
 /**
  * Note: Whilst we support v1 and v2 players, we need to allow the item transformer to save 'versioned' items (aka not the most recent item).
  * This is not possible using the SalatVersioningDao as it has logic in place that prevents that happening.
  * @see SalatVersioningDao
  */
-class AllItemVersionTransformer(
-  services: Services,
-  currentCollection: MongoCollection,
-  versionedCollection: MongoCollection,
-  val rootOrgId: ObjectId,
-  implicit val context: Context) extends ItemTransformer {
 
-  override lazy val logger = Logger("org.corespring.v2.player.AllItemsVersionTransformer")
+class TransformerItemService(underlying: ItemService, versionedCollection: MongoCollection, currentCollection: MongoCollection)(implicit context: Context) extends BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
 
-  override def configuration: Configuration = Play.current.configuration
+  private val logger = Logger(classOf[TransformerItemService])
 
-  override def findCollection(id: ObjectId) = services.contentCollection.findOneById(id)
+  override def findOneById(id: VersionedId[ObjectId]): Option[Item] = underlying.findOneById(id)
 
-  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]] = new BaseFindAndSaveService[Item, VersionedId[ObjectId]] {
+  override def save(i: Item, createNewVersion: Boolean): Either[PlatformServiceError, VersionedId[ObjectId]] = {
+    import com.mongodb.casbah.Imports._
+    import com.novus.salat._
+    logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
+    val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
 
-    override def findOneById(id: VersionedId[ObjectId]): Option[Item] = services.item.findOneById(id)
+    val collectionToSaveIn: Option[MongoCollection] = i.id.version.map { v =>
+      val query = MongoDBObject("_id._id" -> i.id.id, "_id.version" -> v)
 
-    override def save(i: Item, createNewVersion: Boolean): Either[PlatformServiceError, VersionedId[ObjectId]] = {
-      import com.mongodb.casbah.Imports._
-      import com.novus.salat._
-      logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
-      val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(i))
+      logger.trace(s"function=collectionToSaveIn query=${com.mongodb.util.JSON.serialize(query)}")
 
-      val collectionToSaveIn: Option[MongoCollection] = i.id.version.map { v =>
-        val query = MongoDBObject("_id._id" -> i.id.id, "_id.version" -> v)
+      val idOnly = MongoDBObject("_id._id" -> i.id.id)
 
-        logger.trace(s"function=collectionToSaveIn query=${com.mongodb.util.JSON.serialize(query)}")
+      logger.debug(s"function=collectionToSaveIn - find id only in versioned and current collections: ${JSON.serialize(idOnly)}")
 
-        val idOnly = MongoDBObject("_id._id" -> i.id.id)
+      val versionedCount = versionedCollection.count(query)
+      val currentCount = currentCollection.count(query)
 
-        logger.debug(s"function=collectionToSaveIn - find id only in versioned and current collections: ${JSON.serialize(idOnly)}")
+      if (versionedCount == 1) {
+        Some(versionedCollection)
+      } else if (currentCount == 1) {
+        Some(currentCollection)
+      } else None
+    }.flatten
 
-        val versionedCount = versionedCollection.count(query)
-        val currentCount = currentCollection.count(query)
+    logger.trace(s"function=save id=${i.id} collection=${collectionToSaveIn}")
 
-        if (versionedCount == 1) {
-          Some(versionedCollection)
-        } else if (currentCount == 1) {
-          Some(currentCollection)
-        } else None
-      }.flatten
-
-      logger.trace(s"function=save id=${i.id} collection=${collectionToSaveIn}")
-
-      collectionToSaveIn.map { c =>
-        val result = c.save(dbo)
-        if (result.getLastError.ok) {
-          Right(i.id)
-        } else {
-          Left(GeneralError(result.getLastError.getErrorMessage, None))
-        }
-      }.getOrElse(Left(GeneralError("Can't find a collection to save in", None)))
-    }
+    collectionToSaveIn.map { c =>
+      val result = c.save(dbo)
+      if (result.getLastError.ok) {
+        Right(i.id)
+      } else {
+        Left(GeneralError(result.getLastError.getErrorMessage, None))
+      }
+    }.getOrElse(Left(GeneralError("Can't find a collection to save in", None)))
   }
+}
 
-  override def fieldValue: FieldValue = services.fieldValue.get.get
+class AllItemVersionTransformer(
+  itemService: TransformerItemService,
+  contentCollectionService: ContentCollectionService,
+  standardService: StandardService,
+  config: ItemTransformerConfig,
+  jsonFormatting: JsonFormatting)
+  extends ItemTransformer(itemService, contentCollectionService, standardService, jsonFormatting, config) {
 
-  override def standardService: StandardService = services.standard
-
-  override def subjectService: SubjectService = services.subject
 }

@@ -2,39 +2,46 @@ package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
 import org.corespring.common.json.{ JsonCompare, JsonTransformer }
-import org.corespring.models.{ Subject, Standard, ContentCollection }
 import org.corespring.models.item.resource.VirtualFile
-import org.corespring.models.item.{ FieldValue, PlayerDefinition, Item }
+import org.corespring.models.item.{ PlayerDefinition, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.utils.xml.CDataHandler
 import org.corespring.platform.core.models.item.resource.XMLCleaner
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.QtiTransformer
-import org.corespring.services.{ SubjectService, StandardService }
-import org.corespring.services.item.{ BaseFindAndSaveService, ItemService }
-import play.api.{ Configuration, Play, Logger }
+import org.corespring.services.{ ContentCollectionService, StandardService }
+import org.corespring.services.item.{ BaseFindAndSaveService }
+import play.api.{ Logger }
 import play.api.libs.json._
 
-trait ItemTransformer extends JsonFormatting {
+case class ItemTransformerConfig(checkModelIsUpToDate: Boolean)
 
-  def fieldValue: FieldValue
+class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]],
+  contentCollectionService: ContentCollectionService,
+  standardService: StandardService,
+  jsonFormatting: JsonFormatting,
+  config: ItemTransformerConfig) {
+
+  import jsonFormatting._
+
+  /*def fieldValue: FieldValue
 
   override def findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById _
 
-  override def findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation _
+  override def findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation _*/
 
-  def configuration: Configuration
+  //def configuration: Configuration
 
-  def checkModelIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false)
+  //def checkModelIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false)
 
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
   //TODO: Remove service - transform should only transform. see: CA-2085
-  def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
+  //def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
 
-  def standardService: StandardService
+  //def standardService: StandardService
 
-  def subjectService: SubjectService
+  //def subjectService: SubjectService
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
@@ -44,8 +51,6 @@ trait ItemTransformer extends JsonFormatting {
       case _ => None
     }
   }
-
-  def findCollection(id: ObjectId): Option[ContentCollection]
 
   def updateV2Json(itemId: VersionedId[ObjectId]): Option[Item] = {
 
@@ -114,7 +119,7 @@ trait ItemTransformer extends JsonFormatting {
       case None => {
 
         val itemPlayerDef: Option[JsObject] = item.playerDefinition.map(Json.toJson(_).as[JsObject])
-        if (checkModelIsUpToDate && item.createdByApiVersion == 1) {
+        if (config.checkModelIsUpToDate && item.createdByApiVersion == 1) {
           val rawMappedThroughPlayerDef = createFromQti(item).asOpt[PlayerDefinition].map(Json.toJson(_))
           for {
             rawPd <- rawMappedThroughPlayerDef
@@ -133,7 +138,7 @@ trait ItemTransformer extends JsonFormatting {
     val profile = toProfile(item)
 
     val collectionJs = (for {
-      collection <- findCollection(new ObjectId(item.collectionId))
+      collection <- contentCollectionService.findOneById(new ObjectId(item.collectionId))
     } yield Json.toJson(collection)).getOrElse(Json.obj())
 
     val out = root ++ Json.obj(

@@ -5,7 +5,6 @@ import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.salat.bootstrap.AppMode
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
@@ -15,10 +14,7 @@ import org.joda.time.DateTime
 class UserService(
   val dao: SalatDAO[User, ObjectId],
   val context: Context,
-  orgService: interface.OrganizationService,
-  appMode: AppMode) extends interface.UserService with HasDao[User, ObjectId] {
-
-  def isProd: Boolean = appMode.isProd
+  orgService: interface.OrganizationService) extends interface.UserService with HasDao[User, ObjectId] {
 
   def logger: Logger = Logger(classOf[UserService])
 
@@ -33,7 +29,7 @@ class UserService(
   override def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean): Either[PlatformServiceError, User] = {
     if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
-        val update = user.copy(org = UserOrg(orgId, p.value), id = if (isProd) ObjectId.get else user.id)
+        val update = user.copy(org = UserOrg(orgId, p.value))
         dao.insert(update) match {
           case Some(id) => {
             Right(user)

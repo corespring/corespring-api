@@ -22,25 +22,20 @@ import org.corespring.services.salat.auth.{ ApiClientService, AccessTokenService
 import org.corespring.services.salat.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.{ services => interface }
 
-case class AwsConfig(key: String, secret: String, bucket: String)
+case class AwsBucket(bucket: String)
 case class ArchiveConfig(contentCollectionId: ObjectId, orgId: ObjectId)
-
-case class AppMode(mode: String) {
-  def isProd = mode == "prod"
-}
-
 case class AccessTokenConfig(tokenDurationInHours: Int = 24)
 
 trait SalatServices extends interface.bootstrap.Services {
 
   def db: MongoDB
   implicit def context: Context
-  def aws: AwsConfig
+  def aws: AwsBucket
   def archiveConfig: ArchiveConfig
   def accessTokenConfig: AccessTokenConfig
   def s3: AmazonS3
-  @deprecated("This is a legacy function - remove", "1.0")
-  def mode: AppMode
+  //@deprecated("This is a legacy function - remove", "1.0")
+  //def mode:
 
   private val logger = Logger(classOf[SalatServices])
 
@@ -60,11 +55,11 @@ trait SalatServices extends interface.bootstrap.Services {
       id = archiveConfig.contentCollectionId,
       ownerOrgId = archiveOrg.id)
 
-    org.insert(archiveOrg, None) match {
+    orgService.insert(archiveOrg, None) match {
       case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
 
       case Right(_) => {
-        contentCollection.insertCollection(archiveOrg.id, coll, Permission.Write) match {
+        contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
           case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
           case _ => logger.info("Archive org and content collection initialised")
         }
@@ -120,30 +115,31 @@ trait SalatServices extends interface.bootstrap.Services {
    *
    * For now going to manually build the objects
    */
-  lazy val contentCollection = new ContentCollectionService(contentCollectionDao, context, org, item, mode)
-  lazy val org: interface.OrganizationService = new OrganizationService(orgDao, context, contentCollection, metadataSet, item, mode)
+  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgService, itemService)
 
-  lazy val token: interface.auth.AccessTokenService = wire[AccessTokenService]
+  override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, contentCollectionService, metadataSetService, itemService)
 
-  lazy val assessmentTemplate: interface.assessment.AssessmentTemplateService = wire[AssessmentTemplateService]
+  override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
 
-  lazy val metadata: interface.metadata.MetadataService = wire[MetadataService]
+  override lazy val assessmentTemplateService: interface.assessment.AssessmentTemplateService = wire[AssessmentTemplateService]
 
-  lazy val apiClient: interface.auth.ApiClientService = wire[ApiClientService]
+  override lazy val metadataService: interface.metadata.MetadataService = wire[MetadataService]
 
-  lazy val user: interface.UserService = wire[UserService]
+  override lazy val apiClientService: interface.auth.ApiClientService = wire[ApiClientService]
 
-  lazy val registrationToken: interface.RegistrationTokenService = wire[RegistrationTokenService]
+  override lazy val userService: interface.UserService = wire[UserService]
 
-  lazy val metadataSet: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, org)
+  override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]
 
-  lazy val item: interface.item.ItemService = new ItemService(itemDao, itemAssetService, contentCollection, context, archiveConfig)
+  override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
 
-  lazy val assessment: interface.assessment.AssessmentService = wire[AssessmentService]
+  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, contentCollectionService, context, archiveConfig)
 
-  override def subject: interface.SubjectService = wire[SubjectService]
+  override lazy val assessmentService: interface.assessment.AssessmentService = wire[AssessmentService]
 
-  override def standard: interface.StandardService = wire[StandardService]
+  override lazy val subjectService: interface.SubjectService = wire[SubjectService]
 
-  override def fieldValue: interface.item.FieldValueService = wire[FieldValueService]
+  override lazy val standardService: interface.StandardService = wire[StandardService]
+
+  override lazy val fieldValueService: interface.item.FieldValueService = wire[FieldValueService]
 }

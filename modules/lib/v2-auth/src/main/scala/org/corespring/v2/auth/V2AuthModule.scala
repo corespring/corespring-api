@@ -1,6 +1,7 @@
 package org.corespring.v2.auth
 
 import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
@@ -11,13 +12,14 @@ trait V2AuthModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def item: ItemService
-  def org: OrganizationService
+  def jsonFormatting: JsonFormatting
+  def itemService: ItemService
+  def orgService: OrganizationService
   def itemTransformer: ItemTransformer
   def perms: HasPermissions
   def sessionServices: SessionServices
 
-  def itemAccess: ItemAccess = wire[ItemAccess]
-  def itemAuth: ItemAuth[OrgAndOpts] = wire[ItemAuthWired]
-  def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = wire[SessionAuthWired]
+  lazy val itemAccess: ItemAccess = wire[ItemAccess]
+  lazy val itemAuth: ItemAuth[OrgAndOpts] = wire[ItemAuthWired]
+  lazy val sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition] = wire[SessionAuthWired]
 }

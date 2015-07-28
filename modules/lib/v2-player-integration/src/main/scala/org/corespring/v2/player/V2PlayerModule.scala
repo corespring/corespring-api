@@ -28,14 +28,14 @@ trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def mode: Mode
+  def playMode: Mode
 
   def itemService: ItemService
-  def org: OrganizationService
-  def subjects: SubjectService
-  def standards: StandardService
-  def contentCollection: ContentCollectionService
-  def user: UserService
+  def orgService: OrganizationService
+  def subjectService: SubjectService
+  def standardService: StandardService
+  def contentCollectionService: ContentCollectionService
+  def userService: UserService
   def s3Service: S3Service
   def itemDrafts: ItemDrafts
 
@@ -47,7 +47,7 @@ trait V2PlayerModule extends DefaultIntegration {
   def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
 
   def standardTree: StandardsTree
-  //def jsonFormatting : JsonFormatting
+  def jsonFormatting: JsonFormatting
 
   def catalogAssets: CatalogAssets
   def playerAssets: PlayerAssets

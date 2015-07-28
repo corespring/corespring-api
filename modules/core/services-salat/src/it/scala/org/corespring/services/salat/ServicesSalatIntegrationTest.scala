@@ -19,10 +19,9 @@ class ServicesSalatIntegrationTest extends Specification with Mockito {
   lazy val services = new SalatServices(
     DbSingleton.db,
     new ServicesContext(this.getClass.getClassLoader),
-    AwsConfig(System.getenv("AWS_KEY"), System.getenv("AWS_SECRET"), System.getenv("AWS_BUCKET")),
+    AwsBucket(System.getenv("AWS_BUCKET")),
     ArchiveConfig(contentCollectionId, orgId),
     AccessTokenConfig(),
-    s3,
-    AppMode("test"))
+    s3)
 
 }

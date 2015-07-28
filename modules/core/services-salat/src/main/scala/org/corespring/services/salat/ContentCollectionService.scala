@@ -6,7 +6,6 @@ import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.salat.bootstrap.AppMode
 import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
@@ -19,10 +18,7 @@ class ContentCollectionService(
   val dao: SalatDAO[ContentCollection, ObjectId],
   val context: Context,
   organizationService: => interface.OrganizationService,
-  val itemService: interface.item.ItemService,
-  val appMode: AppMode) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
-
-  def isProd = appMode.isProd
+  val itemService: interface.item.ItemService) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
 
   object Keys {
     val isPublic = "isPublic"
@@ -31,17 +27,16 @@ class ContentCollectionService(
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
 
-  override def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean): Either[PlatformServiceError, ContentCollection] = {
+  override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Either[PlatformServiceError, ContentCollection] = {
 
     //TODO: apply two-phase commit
     try {
-      val collection = coll.copy(id = if (isProd) ObjectId.get else coll.id)
       dao.insert(collection) match {
         case Some(_) => try {
           val reference = new ContentCollRef(collection.id, p.value, enabled)
           organizationService.addCollectionReference(orgId, reference) match {
             case Left(e) => Left(e)
-            case Right(_) => Right(coll)
+            case Right(_) => Right(collection)
           }
         } catch {
           case e: SalatDAOUpdateError => Left(PlatformServiceError("failed to update organization with collection", e))
