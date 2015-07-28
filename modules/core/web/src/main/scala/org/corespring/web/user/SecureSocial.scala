@@ -5,5 +5,5 @@ import securesocial.core.Identity
 
 trait SecureSocial {
 
-  def currentUser(request: RequestHeader): Option[Identity]
+  def currentUser(request: RequestHeader): Option[Identity] = securesocial.core.SecureSocial.currentUser(request)
 }

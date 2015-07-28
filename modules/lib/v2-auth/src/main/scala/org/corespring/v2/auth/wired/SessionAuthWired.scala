@@ -10,14 +10,12 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import org.corespring.v2.sessiondb.SessionService
+import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
 import scalaz.{ Success, Validation }
-
-case class SessionServices(preview: SessionService, main: SessionService)
 
 trait HasPermissions {
   def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
@@ -39,8 +37,6 @@ class SessionAuthWired(
     logger.debug("Using main session service")
     sessionServices.main
   }
-
-  //def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
 

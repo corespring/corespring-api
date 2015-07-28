@@ -5,8 +5,12 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
-import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.wired.{ SessionServices, HasPermissions, ItemAuthWired, SessionAuthWired }
+import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
+import org.corespring.v2.auth.wired.{ HasPermissions, ItemAuthWired, SessionAuthWired }
+import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionServices
+
+import scalaz.Validation
 
 trait V2AuthModule {
 
@@ -16,7 +20,14 @@ trait V2AuthModule {
   def itemService: ItemService
   def orgService: OrganizationService
   def itemTransformer: ItemTransformer
-  def perms: HasPermissions
+
+  lazy val perms: HasPermissions = new HasPermissions {
+    import org.corespring.v2.auth.models.Mode
+    override def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+      AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
+    }
+  }
+
   def sessionServices: SessionServices
 
   lazy val itemAccess: ItemAccess = wire[ItemAccess]
