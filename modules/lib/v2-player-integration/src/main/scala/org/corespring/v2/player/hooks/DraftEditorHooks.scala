@@ -3,12 +3,14 @@ package org.corespring.v2.player.hooks
 import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
+import org.corespring.container.client.hooks.{ DraftEditorHooks => ContainerDraftEditorHooks, UploadResult }
 import org.corespring.drafts.item.{ MakeDraftId, S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.LoadOrgAndOptions
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
@@ -16,9 +18,16 @@ import play.api.libs.json.JsValue
 import play.api.mvc._
 
 import scala.concurrent.Future
+import scalaz.Validation
 
-trait DraftEditorHooks
-  extends ContainerEditorHooks
+case class V2PlayerAws(bucket: String)
+class DraftEditorHooks(
+  transformer: ItemTransformer,
+  playS3: S3Service,
+  awsConfig: V2PlayerAws,
+  backend: ItemDrafts,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends ContainerDraftEditorHooks
   with LoadOrgAndOptions
   with DraftHelper
   with MakeDraftId {
@@ -29,13 +38,7 @@ trait DraftEditorHooks
 
   private lazy val logger = Logger(classOf[DraftEditorHooks])
 
-  def transform: Item => JsValue
-
-  def playS3: S3Service
-
-  def bucket: String
-
-  def backend: ItemDrafts
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   private def getOrgAndUser(h: RequestHeader): Validation[V2Error, OrgAndUser] = getOrgAndOptions(h).map { oo =>
     OrgAndUser(SimpleOrg.fromOrganization(oo.org), oo.user.map(SimpleUser.fromUser))
@@ -56,7 +59,7 @@ trait DraftEditorHooks
     for {
       d <- loadDraft(id)
       item <- Success(d.change.data)
-    } yield transform(item)
+    } yield transformer.transformToV2Json(item)
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
@@ -65,7 +68,7 @@ trait DraftEditorHooks
       _ <- Success(logger.trace(s"function=loadDraft id=$id"))
       identity <- getOrgAndUser(request)
       draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
-    } yield playS3.download(bucket, S3Paths.draftFile(draftId, path))
+    } yield playS3.download(awsConfig.bucket, S3Paths.draftFile(draftId, path))
 
     result match {
       case Failure(e) => play.api.mvc.Results.Status(e.statusCode)(e.message)
@@ -81,7 +84,7 @@ trait DraftEditorHooks
       draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
       owns <- Success(backend.owns(identity)(draftId))
       _ <- if (owns) Success(true) else Failure(generalError(s"user: ${identity.user.map(_.userName)} from org: ${identity.org.name}, can't access $id"))
-    } yield playS3.delete(bucket, S3Paths.draftFile(draftId, path))
+    } yield playS3.delete(awsConfig.bucket, S3Paths.draftFile(draftId, path))
 
     v match {
       case Failure(e) => Some(e.statusCode, e.message)
@@ -110,7 +113,7 @@ trait DraftEditorHooks
       backend.addFileToChangeSet(draft, newFile)
     }
 
-    playS3.s3ObjectAndData[ItemDraft](bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
+    playS3.s3ObjectAndData[ItemDraft](awsConfig.bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
         val key = s3Object.getKey

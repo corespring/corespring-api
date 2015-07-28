@@ -4,25 +4,21 @@ import org.corespring.container.client.hooks.{ DataQueryHooks => ContainerDataQu
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.QueryService
-import org.slf4j.LoggerFactory
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsArray, JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
 
-trait DataQueryHooks extends ContainerDataQueryHooks {
+case class StandardsTree(json: JsArray)
 
-  lazy val logger = LoggerFactory.getLogger("v2.integration.DataQuery")
+class DataQueryHooks(
+  subjectQueryService: QueryService[Subject],
+  standardQueryService: QueryService[Standard],
+  standardsTree: StandardsTree,
+  jsonFormatting: JsonFormatting) extends ContainerDataQueryHooks {
 
-  def subjectQueryService: QueryService[Subject]
-
-  def standardQueryService: QueryService[Standard]
-
-  def fieldValueJson: JsObject
-
-  def standardsTreeJson: JsArray
-
-  def jsonFormatting: JsonFormatting
+  lazy val logger = Logger(classOf[DataQueryHooks])
 
   implicit val writeSubject = jsonFormatting.writeSubject
   implicit val formatSubjects = jsonFormatting.formatSubjects
@@ -45,9 +41,11 @@ trait DataQueryHooks extends ContainerDataQueryHooks {
       case "subjects.primary" => Right(toJson(subjectQuery).as[JsArray])
       case "subjects.related" => Right(toJson(subjectQuery).as[JsArray])
       case "standards" => Right(toJson(standardQuery).as[JsArray])
-      case "standardsTree" => Right(standardsTreeJson)
+      case "standardsTree" => Right(standardsTree.json)
       case _ => {
-        logger.trace(s"fields: ${fieldValueJson.fields.map(_._1)}")
+        implicit val fv = jsonFormatting.writesFieldValue
+        val fieldValueJson = Json.toJson(jsonFormatting.fieldValue).as[JsObject]
+        logger.trace(s"function=list, fieldValueJson.fields=${fieldValueJson.fields.map(_._1)}")
         if (fieldValueJson.fields.map(_._1).contains(topic)) {
           Right((fieldValueJson \ topic).as[JsArray])
         } else {

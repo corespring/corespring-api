@@ -2,13 +2,13 @@ package org.corespring.web.common.views.helpers
 
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.models.item.{ ItemType, FieldValue }
+import org.corespring.models.item.{ ComponentType, FieldValue }
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._
 
-object BuildInfo{
-   val propsFile = "/buildInfo.properties"
+object BuildInfo {
+  val propsFile = "/buildInfo.properties"
 
   private val properties = {
     val url = Play.resource(propsFile)
@@ -28,8 +28,7 @@ object BuildInfo{
 
 class Defaults(
   fieldValue: => Option[FieldValue],
-  itemTypes: Seq[ItemType]) {
-
+  itemTypes: Seq[ComponentType]) {
 
   lazy val fieldValues: String = fieldValue match {
     case Some(fv) => {
@@ -39,7 +38,7 @@ class Defaults(
       val json: JsValue = (FieldValueWrites.writes(fv) match {
         case obj: JsObject => {
           val itemTypeJson = Json.obj("v2ItemTypes" ->
-            itemTypes.map { it => Json.obj("key" -> it.key, "value" -> it.value) })
+            itemTypes.map { it => Json.obj("key" -> it.componentType, "value" -> it.label) })
 
           obj.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson))
         }
@@ -49,7 +48,6 @@ class Defaults(
     }
     case _ => "{}"
   }
-
 
   def envName(default: String): String = get("ENV_NAME").getOrElse(default)
 

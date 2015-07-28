@@ -5,12 +5,13 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.44.0-SNAPSHOT"
+  val containerVersion = "0.45.0-expand-types-SNAPSHOT"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
+    val localSnapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolver.defaultLocal)
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
 

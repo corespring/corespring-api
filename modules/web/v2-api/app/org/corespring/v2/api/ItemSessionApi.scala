@@ -15,13 +15,13 @@ import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{RequestHeader, Action, AnyContent}
+import play.api.mvc.{ RequestHeader, Action, AnyContent }
 
 import scala.concurrent._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-case class ItemSessionApiExecutionContext(context:ExecutionContext)
+case class ItemSessionApiExecutionContext(context: ExecutionContext)
 
 class ItemSessionApi(
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
@@ -29,10 +29,10 @@ class ItemSessionApi(
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   apiClientService: ApiClientService,
-  getOrgAndOpts:RequestHeader => Validation[V2Error,OrgAndOpts],
-  sessionCreatedForItem : VersionedId[ObjectId] => Unit,
-  apiContext:ItemSessionApiExecutionContext,
-  override val getOrgAndOptionsFn : RequestHeader=>Validation[V2Error, OrgAndOpts]) extends V2Api {
+  getOrgAndOpts: RequestHeader => Validation[V2Error, OrgAndOpts],
+  sessionCreatedForItem: VersionedId[ObjectId] => Unit,
+  apiContext: ItemSessionApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
   override implicit def ec: ExecutionContext = apiContext.context
 

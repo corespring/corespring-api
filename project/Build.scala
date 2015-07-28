@@ -77,36 +77,38 @@ object Build extends sbt.Build {
     .dependsOn(coreServices, coreUtils)
 
   val encryption = builders.lib("encryption", "core")
-    .settings(libraryDependencies ++= Seq(casbah, commonsCodec))
+    .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro))
     .dependsOn(coreServices, coreModels)
 
   val coreLeftovers = builders.lib("leftovers", "core")
 
-  /** Core data model */
-  val core = builders.lib("core")
-    .settings(
-      libraryDependencies ++= Seq(
-        assetsLoader,
-        componentLoader,
-        corespringCommonUtils,
-        elasticsearchPlayWS,
-        httpClient,
-        jsoup,
-        mockito,
-        playFramework,
-        playS3,
-        playTest % "test",
-        salatPlay,
-        salatVersioningDao,
-        scalaFaker,
-        securesocial,
-        specs2 % "test",
-        sprayCaching))
-    .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
+  /**
+   * Core data model
+   * val core = builders.lib("core")
+   * .settings(
+   * libraryDependencies ++= Seq(
+   * assetsLoader,
+   * componentLoader,
+   * corespringCommonUtils,
+   * elasticsearchPlayWS,
+   * httpClient,
+   * jsoup,
+   * mockito,
+   * playFramework,
+   * playS3,
+   * playTest % "test",
+   * salatPlay,
+   * salatVersioningDao,
+   * scalaFaker,
+   * securesocial,
+   * specs2 % "test",
+   * sprayCaching))
+   * .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
+   */
 
   val itemSearch = builders.lib("item-search")
     .settings(
-      libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog))
+      libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog, macWireMacro))
     .dependsOn(coreModels, coreJson)
 
   val commonViews = builders.web("common-views")
@@ -178,7 +180,8 @@ object Build extends sbt.Build {
         scalaz,
         mongoJsonService,
         salatVersioningDao,
-        componentModel),
+        componentModel,
+        macWireMacro),
       routesImport ++= customImports)
     .dependsOn(
       v2Auth % "test->test;compile->compile",
@@ -205,7 +208,8 @@ object Build extends sbt.Build {
         scalaz,
         mongoJsonService,
         playS3,
-        httpClient))
+        httpClient,
+        macWireMacro))
     .dependsOn(
       qtiToV2,
       testLib,
@@ -228,7 +232,7 @@ object Build extends sbt.Build {
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+      moduleConfigurations ++= Seq( /*Dependencies.ModuleConfigurations.snapshots, */ Dependencies.ModuleConfigurations.releases, Dependencies.ModuleConfigurations.localSnapshots),
       updateOptions := updateOptions.value.withCachedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,

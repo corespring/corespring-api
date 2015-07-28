@@ -9,9 +9,10 @@ import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
-import org.corespring.qtiToV2.transformers.PlayerJsonToItem
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
@@ -28,18 +29,20 @@ trait DraftHelper {
   implicit def validationToOption[A](v: Validation[V2Error, A]): Option[StatusMessage] = v.swap.map { e => e.statusCode -> e.message }.toOption
 }
 
-trait ItemDraftHooks
-  extends containerHooks.CoreItemHooks
-  with containerHooks.DraftHooks
+class ItemDraftHooks(
+  backend: DraftsBackend,
+  itemService: ItemService,
+  orgService: OrganizationService,
+  transformer: ItemTransformer,
+  jsonFormatting: JsonFormatting,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends containerHooks.DraftHooks
   with LoadOrgAndOptions
   with DraftHelper
   with MakeDraftId {
 
-  def backend: DraftsBackend
-  def itemService: ItemService
-  def orgService: OrganizationService
-  def transform: ModelItem => JsValue
-  def jsonFormatting: JsonFormatting
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
+
   implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
 
   private lazy val logger = Logger(classOf[ItemHooks])
@@ -49,7 +52,7 @@ trait ItemDraftHooks
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, ignoreConflict = true))
       draft <- Success(draftAndIdentity._1)
-      json <- Success(transform(draft.change.data))
+      json <- Success(transformer.transformToV2Json(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
       json

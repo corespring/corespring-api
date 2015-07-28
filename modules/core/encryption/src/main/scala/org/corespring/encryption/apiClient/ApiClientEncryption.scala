@@ -16,11 +16,9 @@ trait ApiClientEncryptionService {
   def encryptByOrg(orgId: ObjectId, s: String): Option[EncryptionResult]
 }
 
-trait MainApiClientEncryptionService extends ApiClientEncryptionService {
-
-  def apiClientService: ApiClientService
-
-  def encrypter: EncryptDecrypt
+class MainApiClientEncryptionService(
+  apiClientService: ApiClientService,
+  encrypter: EncryptDecrypt) extends ApiClientEncryptionService {
 
   val logger = Logger(classOf[MainApiClientEncryptionService])
 

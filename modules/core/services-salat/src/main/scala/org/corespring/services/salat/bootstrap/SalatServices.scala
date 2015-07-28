@@ -10,16 +10,13 @@ import org.bson.types.ObjectId
 import org.corespring.models._
 import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
 import org.corespring.models.auth.{ ApiClient, AccessToken, Permission }
-import org.corespring.models.item.Item
+import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.services.salat.registration.RegistrationTokenService
-import org.corespring.services.{SubjectService, StandardService}
-import org.corespring.services.item.FieldValueService
-import org.corespring.services.salat.item.{ ItemAssetService, ItemService }
-import org.corespring.services.salat.{ OrganizationService }
-import org.corespring.services.salat.{ UserService, ContentCollectionService }
+import org.corespring.services.salat.item.{ FieldValueService, ItemAssetService, ItemService }
+import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
 import org.corespring.services.salat.auth.{ ApiClientService, AccessTokenService }
 import org.corespring.services.salat.metadata.{ MetadataSetService, MetadataService }
@@ -91,6 +88,9 @@ trait SalatServices extends interface.bootstrap.Services {
   lazy val userDao = new SalatDAO[User, ObjectId](db("users")) {}
   lazy val metadataSetDao = new SalatDAO[MetadataSet, ObjectId](db("metadataSets")) {}
   lazy val registrationTokenDao = new SalatDAO[RegistrationToken, ObjectId](db("regTokens")) {}
+  lazy val standardDao = new SalatDAO[Standard, ObjectId](db("standards")) {}
+  lazy val subjectDao = new SalatDAO[Subject, ObjectId](db("subjects")) {}
+  lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db("fieldValues")) {}
 
   lazy val itemDao = new SalatVersioningDao[Item] {
 
@@ -141,9 +141,9 @@ trait SalatServices extends interface.bootstrap.Services {
 
   lazy val assessment: interface.assessment.AssessmentService = wire[AssessmentService]
 
-  override def subject: SubjectService = ???
+  override def subject: interface.SubjectService = wire[SubjectService]
 
-  override def standard: StandardService = ???
+  override def standard: interface.StandardService = wire[StandardService]
 
-  override def fieldValue: FieldValueService = ???
+  override def fieldValue: interface.item.FieldValueService = wire[FieldValueService]
 }

@@ -1,9 +1,9 @@
 package org.corespring.services
 
 trait QueryService[A] {
-  def query(term: String): Seq[A]
+  def query(term: String): Stream[A]
 
-  def list(): Seq[A]
+  def list(): Stream[A]
 
   def findOne(id: String): Option[A]
 }

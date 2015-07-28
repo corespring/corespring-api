@@ -10,6 +10,7 @@ import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
+import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{ JsObject, JsValue, Json }
@@ -19,17 +20,24 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
 
-trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
+trait PlayerAssets {
 
-  def itemService: ItemService
+  def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult
 
-  def itemTransformer: ItemTransformer
+  def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult
+}
 
-  def auth: SessionAuth[OrgAndOpts, PlayerDefinition]
-
-  def jsonFormatting: JsonFormatting
+class PlayerHooks(
+  itemService: ItemService,
+  itemTransformer: ItemTransformer,
+  auth: SessionAuth[OrgAndOpts, PlayerDefinition],
+  jsonFormatting: JsonFormatting,
+  playerAssets: PlayerAssets,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
+
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   lazy val logger = Logger(classOf[PlayerHooks])
 
@@ -82,5 +90,9 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
       (withId, playerV2Json)
     }.toEither
   }
+
+  override def loadItemFile(itemId: String, file: String)(implicit header: RequestHeader): SimpleResult = playerAssets.loadItemFile(itemId, file)(header)
+
+  override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = playerAssets.loadFile(id, path)(request)
 }
 

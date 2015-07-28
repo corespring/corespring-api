@@ -7,6 +7,7 @@ import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
@@ -26,18 +27,17 @@ object V2ErrorToTuple {
   implicit def v2ErrorToTuple[A](v: Validation[V2Error, A]): Either[(Int, String), A] = v.leftMap { e => (e.statusCode -> e.message) }.toEither
 }
 
-trait ItemHooks
-  extends containerHooks.CoreItemHooks
-  with containerHooks.CreateItemHook
+class ItemHooks(
+  transformer: ItemTransformer,
+  auth: ItemAuth[OrgAndOpts],
+  itemService: ItemService,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends containerHooks.ItemHooks
   with LoadOrgAndOptions {
 
   import V2ErrorToTuple._
 
-  def transform: ModelItem => JsValue
-
-  def auth: ItemAuth[OrgAndOpts]
-
-  def itemService: ItemService
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   lazy val logger = Logger(classOf[ItemHooks])
 
@@ -46,7 +46,7 @@ trait ItemHooks
       identity <- getOrgAndOptions(header)
       vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
       item <- auth.loadForRead(itemId)(identity)
-    } yield transform(item)
+    } yield transformer.transformToV2Json(item)
 
     item.leftMap(e => e.statusCode -> e.message).toEither
   }
@@ -133,5 +133,6 @@ trait ItemHooks
 
     accessResult.leftMap(e => e.statusCode -> e.message).rightMap(_.toString()).toEither
   }
+
 }
 

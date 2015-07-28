@@ -5,17 +5,20 @@ import org.corespring.services.UserService
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.compoundError
+import org.corespring.v2.errors.V2Error
 import play.api.Logger
 import play.api.mvc._
 
 import scala.concurrent.Future
 import scalaz._
 
-trait PlayerLauncherHooks extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
+class PlayerLauncherHooks(
+  userService: UserService,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[PlayerLauncherHooks])
 
-  def userService: UserService
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   override def playerJs(implicit header: RequestHeader): Future[PlayerJs] = load(header)
 

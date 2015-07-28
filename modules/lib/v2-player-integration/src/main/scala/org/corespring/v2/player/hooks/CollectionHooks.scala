@@ -5,6 +5,7 @@ import org.corespring.container.client.hooks.{ CollectionHooks => ContainerColle
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, ContentCollection }
 import org.corespring.services.ContentCollectionService
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
@@ -18,11 +19,13 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait CollectionHooks extends ContainerCollectionHooks with LoadOrgAndOptions {
+class CollectionHooks(
+  colService: ContentCollectionService,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerCollectionHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[CollectionHooks])
 
-  def colService: ContentCollectionService
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   override def list()(implicit header: RequestHeader): Future[Either[StatusMessage, JsArray]] = Future {
     val result: Validation[V2Error, JsArray] = for {
@@ -48,5 +51,6 @@ trait CollectionHooks extends ContainerCollectionHooks with LoadOrgAndOptions {
       e => generalError(e.message)
     }
   }
+
 }
 

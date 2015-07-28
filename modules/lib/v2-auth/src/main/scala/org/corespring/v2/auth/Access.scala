@@ -19,11 +19,10 @@ trait Access[DATA, REQUESTER] {
   }
 }
 
-trait ItemAccess extends Access[Item, OrgAndOpts] {
+class ItemAccess(
+  orgService: OrganizationService) extends Access[Item, OrgAndOpts] {
 
   lazy val logger = Logger(classOf[ItemAccess])
-
-  def orgService: OrganizationService
 
   def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
 

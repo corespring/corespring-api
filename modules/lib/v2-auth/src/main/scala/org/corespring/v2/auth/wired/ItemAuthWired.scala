@@ -15,15 +15,12 @@ import play.api.Logger
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
+class ItemAuthWired(
+  itemService: ItemService,
+  itemTransformer: ItemTransformer,
+  access: ItemAccess) extends ItemAuth[OrgAndOpts] {
 
   lazy val logger = Logger(classOf[ItemAuthWired])
-
-  def itemService: ItemService
-
-  def itemTransformer: ItemTransformer
-
-  def access: ItemAccess
 
   override def loadForRead(itemId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Item] = canWithPermission(itemId, Permission.Read)
 

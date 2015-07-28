@@ -2,12 +2,12 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.corespring.itemSearch.{ ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
-import org.corespring.models.item.{ Item, ItemType }
+import org.corespring.models.item.{ Item, ComponentType }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.models.{ Organization }
 import org.corespring.models.item.Item.Keys._
 import org.corespring.services.bootstrap.Services
-import org.corespring.services.{SubjectService, StandardService, OrganizationService}
+import org.corespring.services.{ SubjectService, StandardService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.bson.types.ObjectId
@@ -25,16 +25,18 @@ import play.api.mvc._
 import scalaz.{ Failure, Success, Validation }
 import scalaz.Scalaz._
 
-case class ItemApiExecutionContext(context:ExecutionContext)
+case class ItemApiExecutionContext(context: ExecutionContext)
 
 class ItemApi(
-  coreServices : Services,
+  itemService: ItemService,
+  orgService: OrganizationService,
+  itemIndexService: ItemIndexService,
   itemAuth: ItemAuth[OrgAndOpts],
-  itemTypes: Seq[ItemType],
+  itemTypes: Seq[ComponentType],
   scoreService: ScoreService,
   val jsonFormatting: JsonFormatting,
   apiContext: ItemApiExecutionContext,
-  override val getOrgAndOptionsFn : RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
 
   implicit val itemFormat = jsonFormatting.item
 
@@ -78,7 +80,7 @@ class ItemApi(
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
         vid <- if (canCreate) {
           logger.trace(s"function=create, inserting item, json=${validJson}")
-          itemService.insert(item).toSuccess(errorSaving("Insert failed"))
+          itemAuth.insert(item)(identity).toSuccess(errorSaving)
         } else Failure(errorSaving("creation denied"))
       } yield {
         logger.trace(s"new item id: $vid")
@@ -128,7 +130,7 @@ class ItemApi(
   }
 
   def getItemTypes() = Action {
-    val keyValues = itemTypes.map { it => Json.obj("key" -> it.key, "value" -> it.value) }
+    val keyValues = itemTypes.map { it => Json.obj("key" -> it.componentType, "value" -> it.label) }
     val json = JsArray(keyValues)
     Ok(Json.prettyPrint(json))
   }
@@ -185,7 +187,6 @@ class ItemApi(
       validationToResult[JsValue](j => Ok(j))(out)
     }
   }
-
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._

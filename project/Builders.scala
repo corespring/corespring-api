@@ -20,7 +20,7 @@ class Builders(root: String, org: String, appVersion: String, rootScalaVersion: 
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
   // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
-    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+    moduleConfigurations ++= Seq( /*Dependencies.ModuleConfigurations.snapshots,*/ Dependencies.ModuleConfigurations.releases, Dependencies.ModuleConfigurations.localSnapshots),
     aggregate in update := false,
     scalaVersion := rootScalaVersion,
     parallelExecution.in(Test) := false,

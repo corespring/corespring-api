@@ -15,44 +15,32 @@ import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Success, Validation }
 
-trait JsonToPlayerDefinition extends JsonFormatting {
-  def toPlayerDefinition(json: JsValue): Option[PlayerDefinition] = json.asOpt[PlayerDefinition]
+case class SessionServices(preview: SessionService, main: SessionService)
+
+trait HasPermissions {
+  def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 }
 
-trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
+class SessionAuthWired(
+  itemTransformer: ItemTransformer,
+  jsonToPlayerDef: JsonFormatting,
+  itemAuth: ItemAuth[OrgAndOpts],
+  sessionServices: SessionServices,
+  perms: HasPermissions) extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   lazy val logger = Logger(classOf[SessionAuthWired])
 
-  def itemTransformer: ItemTransformer
-
-  def jsonToPlayerDef: JsonToPlayerDefinition
-
-  def itemAuth: ItemAuth[OrgAndOpts]
-
-  /**
-   * The main session service holds 'real' item sessions
-   * @return
-   */
-  def mainSessionService: SessionService
-
-  /**
-   * The preview session service holds 'preview' sessions -
-   * This service is used when the identity -> AuthMode == UserSession
-   * @return
-   */
-  def previewSessionService: SessionService
-
   private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
-    previewSessionService
+    sessionServices.preview
   } else {
     logger.debug("Using main session service")
-    mainSessionService
+    sessionServices.main
   }
 
-  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
+  //def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
 
@@ -67,7 +55,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     val out = for {
       json <- (sessionService.load(sessionId) match {
         case Some(session) => Some(session)
-        case _ => previewSessionService.load(sessionId)
+        case _ => sessionServices.preview.load(sessionId)
       }).toSuccess(cantLoadSession(sessionId))
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield {
@@ -105,7 +93,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
       for {
         itemId <- (session \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
         item <- itemAuth.loadForRead(itemId)
-        hasPerms <- hasPermissions(item.id.toString, Some(sessionId), identity.opts)
+        hasPerms <- perms.has(item.id.toString, Some(sessionId), identity.opts)
       } yield item
     }
 
@@ -139,8 +127,8 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
     for {
-      original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
-      copy <- previewSessionService.create(original).toSuccess(cantLoadSession(sessionId))
+      original <- sessionServices.main.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      copy <- sessionServices.preview.create(original).toSuccess(cantLoadSession(sessionId))
     } yield {
       copy
     }

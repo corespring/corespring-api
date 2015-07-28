@@ -7,6 +7,7 @@ import grizzled.slf4j.Logger
 import org.apache.commons.codec.binary.Base64._
 import org.bson.types.ObjectId
 import org.corespring.elasticsearch._
+import org.corespring.models.item.ComponentType
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
 import play.api.libs.ws.WS
@@ -20,14 +21,21 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[String, String])(implicit ec: ExecutionContext)
+case class ElasticSearchUrl(url: URL)
+case class ElasticSearchExecutionContext(context: ExecutionContext)
+
+class ElasticSearchItemIndexService(elasticSearchUrl: ElasticSearchUrl,
+  rawTypes: Seq[ComponentType],
+  executionContext: ElasticSearchExecutionContext)
   extends ItemIndexService with AuthenticatedUrl {
+
+  implicit def ec: ExecutionContext = executionContext.context
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
 
-  implicit val url = elasticSearchUrl
+  implicit val url = elasticSearchUrl.url
 
-  private val contentIndex = ElasticSearchClient(elasticSearchUrl).index("content")
+  private val contentIndex = ElasticSearchClient(elasticSearchUrl.url).index("content")
 
   def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
@@ -73,12 +81,16 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[
 
   def refresh() = contentIndex.refresh()
 
-  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] =
-    distinct("taskInfo.itemTypes").map(result => result.map(itemTypes => itemTypes.map(itemType =>
-      componentMap.get(itemType).map(t => t.nonEmpty match {
-        case true => Some(t -> itemType)
-        case _ => None
-      }).flatten).flatten.toMap))
+  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] = {
+    val types: Future[Validation[Error, Seq[String]]] = distinct("taskInfo.itemTypes")
+
+    types.map { v =>
+      v.map { itemTypes =>
+        val comps = rawTypes.filter(c => itemTypes.contains(c.componentType))
+        comps.map(_.tuple).toMap
+      }
+    }
+  }
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
@@ -110,8 +122,6 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL, componentMap: => Map[
   }
 
 }
-
-//object ElasticSearchItemIndexService extends ElasticSearchItemIndexService(AppConfig.elasticSearchUrl)(ExecutionContext.Implicits.global, play.api.Play.current)
 
 trait AuthenticatedUrl {
 
