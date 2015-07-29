@@ -143,6 +143,12 @@ trait ItemDraftHooks
     } yield Json.obj("id" -> id)
   }
 
+  //DraftHook
+  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
+    savePartOfPlayerDef(draftId, json.as[JsObject])
+
+
+  //DraftHook
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
       identity <- getOrgAndUser(h)
@@ -152,6 +158,7 @@ trait ItemDraftHooks
     } yield CommitJson(result)
   }
 
+  //DraftHook
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
       orgService.defaultCollection(u.org.id).map { c =>
