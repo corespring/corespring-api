@@ -7,7 +7,7 @@ import com.novus.salat._
 import com.novus.salat.dao.{ SalatDAOUpdateError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.salat.bootstrap.ArchiveConfig
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.Item.Keys

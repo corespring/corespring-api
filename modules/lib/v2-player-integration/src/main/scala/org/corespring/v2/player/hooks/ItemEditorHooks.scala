@@ -5,6 +5,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
 import org.corespring.drafts.item.S3Paths
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -24,7 +25,7 @@ import scalaz.Validation
 class ItemEditorHooks(
   transformer: ItemTransformer,
   playS3: S3Service,
-  awsConfig: V2PlayerAws,
+  awsConfig: Bucket,
   itemAuth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])

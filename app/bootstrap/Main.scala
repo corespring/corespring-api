@@ -2,7 +2,7 @@ package bootstrap
 
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.s3.{ S3ClientOptions, AmazonS3, AmazonS3Client }
+import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
@@ -12,32 +12,31 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
-import org.corespring.container.components.loader.{ FileComponentLoader, ComponentLoader }
-import org.corespring.drafts.item.models.OrgAndUser
+import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.encryption.EncryptionModule
-import org.corespring.itemSearch.{ ElasticSearchUrl, ElasticSearchExecutionContext, ItemSearchModule }
-import org.corespring.models.{ Standard, Subject }
+import org.corespring.itemSearch.{ ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
+import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.item.{ ComponentType, FieldValue }
 import org.corespring.models.json.JsonFormatting
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.{ ItemTransformerConfig, ItemTransformer }
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
-import org.corespring.v2.api.{ ItemSessionApiExecutionContext, ItemApiExecutionContext, V2ApiModule }
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
-import org.corespring.v2.auth.{ AccessSettingsWildcardCheck, V2AuthModule }
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
-import org.corespring.v2.auth.wired.{ HasPermissions }
+import org.corespring.v2.api.{ ItemApiExecutionContext, ItemSessionApiExecutionContext, V2ApiModule }
+import org.corespring.v2.auth.V2AuthModule
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.hooks.{ V2PlayerAws, CatalogAssets, PlayerAssets, StandardsTree }
-import org.corespring.v2.player.{ TransformerItemService, V2PlayerModule, AllItemVersionTransformer }
-import org.corespring.v2.sessiondb.dynamo.{ DynamoSessionService, DynamoSessionServiceFactory }
+import org.corespring.v2.player.hooks.{ StandardsTree }
+import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerModule }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.user.SecureSocial
 import play.api.Mode.{ Mode => PlayMode }
-import play.api.libs.json.{ Json, JsArray }
-import play.api.{ Logger, Configuration, Play }
-import play.api.mvc.{ RequestHeader, Controller }
+import play.api.libs.json.{ JsArray, Json }
+import play.api.mvc._
+import play.api.{ Configuration, Logger, Play }
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -52,10 +51,11 @@ object Main
   with SessionDbModule {
 
   import com.softwaremill.macwire.MacwireMacros._
-
   import play.api.Play.current
 
   private lazy val logger = Logger(Main.getClass)
+
+  logger.debug("bootstrapping...")
 
   lazy val configuration = current.configuration
 
@@ -100,11 +100,19 @@ object Main
 
   override lazy val scoreService: ScoreService = new BasicScoreService(outcomeProcessor, scoreProcessor)(jsonFormatting.formatPlayerDefinition)
 
-  lazy val aws = AwsBucket(AppConfig.assetsBucket)
+  /**
+   * Note: macwire > 1.0 has a tagging option so that you can tag instances of the same type
+   * in a scope so it knows which property to inject (eg if we have multiple strings in scope)
+   * However this won't be available until we move to scala 2.11 and will probably involve a bump of play too.
+   * In the interim we create simple types to wrap the strings
+   */
+  override lazy val bucket = Bucket(AppConfig.assetsBucket)
 
-  lazy val archiveConfig = ArchiveConfig(AppConfig.archiveContentCollectionId, AppConfig.archiveOrgId)
+  override lazy val archiveConfig = ArchiveConfig(AppConfig.archiveContentCollectionId, AppConfig.archiveOrgId)
 
-  lazy val s3: AmazonS3 = {
+  override lazy val accessTokenConfig = AccessTokenConfig()
+
+  override lazy val s3: AmazonS3 = {
     val client = new AmazonS3Client(awsCredentials)
 
     AppConfig.amazonEndpoint.foreach { e =>
@@ -114,15 +122,20 @@ object Main
     client
   }
 
-  lazy val accessTokenConfig = AccessTokenConfig()
-
-  override def controllers: Seq[Controller] = Seq(itemDraftsController)
+  override lazy val controllers: Seq[Controller] = Seq(itemDraftsController)
 
   override lazy val db: MongoDB = Db.salatDb()
 
   override lazy val context: Context = new ServicesContext(Play.classloader)
 
-  override lazy val identifyUser: (RequestHeader) => Option[OrgAndUser] = ???
+  override lazy val identifyUser: RequestHeader => Option[OrgAndUser] = (rh) => {
+
+    def orgAndOptsToOrgAndUser(o: OrgAndOpts): OrgAndUser = OrgAndUser(
+      SimpleOrg.fromOrganization(o.org),
+      o.user.map(SimpleUser.fromUser))
+
+    getOrgAndOptsFn.apply(rh).map(o => orgAndOptsToOrgAndUser(o)).toOption
+  }
 
   override lazy val jsonFormatting: JsonFormatting = new JsonFormatting {
     override lazy val findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation(_)
@@ -145,12 +158,6 @@ object Main
   }
 
   override def s3Service: S3Service = wire[CorespringS3ServiceExtended]
-
-  override def v2PlayerAwsConfig: V2PlayerAws = V2PlayerAws(AppConfig.assetsBucket)
-
-  override def catalogAssets: CatalogAssets = ???
-
-  override def playerAssets: PlayerAssets = ???
 
   lazy val componentLoader: ComponentLoader = {
     val path = containerConfig.getString("components.path").toSeq

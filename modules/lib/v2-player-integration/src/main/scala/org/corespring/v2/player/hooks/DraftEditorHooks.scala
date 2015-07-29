@@ -6,6 +6,7 @@ import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ DraftEditorHooks => ContainerDraftEditorHooks, UploadResult }
 import org.corespring.drafts.item.{ MakeDraftId, S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -20,11 +21,10 @@ import play.api.mvc._
 import scala.concurrent.Future
 import scalaz.Validation
 
-case class V2PlayerAws(bucket: String)
 class DraftEditorHooks(
   transformer: ItemTransformer,
   playS3: S3Service,
-  awsConfig: V2PlayerAws,
+  awsConfig: Bucket,
   backend: ItemDrafts,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
   extends ContainerDraftEditorHooks

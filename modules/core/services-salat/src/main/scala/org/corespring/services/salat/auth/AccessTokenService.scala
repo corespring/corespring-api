@@ -6,7 +6,7 @@ import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
 import com.typesafe.config.ConfigFactory
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.salat.bootstrap.AccessTokenConfig
+import org.corespring.models.appConfig.AccessTokenConfig
 import org.corespring.models.auth.AccessToken
 import org.corespring.models.{ Organization }
 import org.corespring.services.errors.PlatformServiceError

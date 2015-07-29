@@ -8,6 +8,7 @@ import com.novus.salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models._
+import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
 import org.corespring.models.auth.{ ApiClient, AccessToken, Permission }
 import org.corespring.models.item.{ FieldValue, Item }
@@ -22,20 +23,14 @@ import org.corespring.services.salat.auth.{ ApiClientService, AccessTokenService
 import org.corespring.services.salat.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.{ services => interface }
 
-case class AwsBucket(bucket: String)
-case class ArchiveConfig(contentCollectionId: ObjectId, orgId: ObjectId)
-case class AccessTokenConfig(tokenDurationInHours: Int = 24)
-
 trait SalatServices extends interface.bootstrap.Services {
 
   def db: MongoDB
   implicit def context: Context
-  def aws: AwsBucket
+  def bucket: Bucket
   def archiveConfig: ArchiveConfig
   def accessTokenConfig: AccessTokenConfig
   def s3: AmazonS3
-  //@deprecated("This is a legacy function - remove", "1.0")
-  //def mode:
 
   private val logger = Logger(classOf[SalatServices])
 
@@ -55,10 +50,12 @@ trait SalatServices extends interface.bootstrap.Services {
       id = archiveConfig.contentCollectionId,
       ownerOrgId = archiveOrg.id)
 
+    logger.debug(s"function=initArchive org=${archiveOrg} - inserting")
     orgService.insert(archiveOrg, None) match {
       case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
 
       case Right(_) => {
+        logger.debug(s"function=initArchive collection=${coll} - inserting")
         contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
           case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
           case _ => logger.info("Archive org and content collection initialised")
@@ -100,18 +97,18 @@ trait SalatServices extends interface.bootstrap.Services {
     override def checkCurrentCollectionIntegrity: Boolean = false
   }
 
-  lazy val copyFiles: (String, String) => Unit = s3.copyObject(aws.bucket, _, aws.bucket, _)
-  lazy val deleteFiles: (String) => Unit = s3.deleteObject(aws.bucket, _)
+  lazy val copyFiles: (String, String) => Unit = s3.copyObject(bucket.bucket, _, bucket.bucket, _)
+  lazy val deleteFiles: (String) => Unit = s3.deleteObject(bucket.bucket, _)
 
   lazy val itemAssetService: interface.item.ItemAssetService = new ItemAssetService(
-    s3.copyObject(aws.bucket, _, aws.bucket, _),
-    s3.deleteObject(aws.bucket, _))
+    s3.copyObject(bucket.bucket, _, bucket.bucket, _),
+    s3.deleteObject(bucket.bucket, _))
 
   /**
    * Note:
    * There are some circular dependencies, which require call-by-name.
    * Later versions of macwire support this but not the version for 2.10:
-   * @see: https://github.com/adamw/macwire/pull/29
+   * see: https://github.com/adamw/macwire/pull/29
    *
    * For now going to manually build the objects
    */

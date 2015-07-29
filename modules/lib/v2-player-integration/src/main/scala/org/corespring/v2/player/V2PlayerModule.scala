@@ -1,11 +1,12 @@
 package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.{ VersionInfo, CompressedAndMinifiedComponentSets }
+import org.corespring.container.client.{ VersionInfo }
 import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.drafts.item.ItemDrafts
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -14,8 +15,10 @@ import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
+import org.corespring.v2.sessiondb.SessionServices
 import play.api.Mode.Mode
 import play.api.libs.json.JsObject
 import play.api.mvc.RequestHeader
@@ -43,14 +46,17 @@ trait V2PlayerModule extends DefaultIntegration {
   def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
 
   def itemTransformer: ItemTransformer
-  def v2PlayerAwsConfig: V2PlayerAws
   def getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
 
   def standardTree: StandardsTree
   def jsonFormatting: JsonFormatting
 
-  def catalogAssets: CatalogAssets
-  def playerAssets: PlayerAssets
+  def bucket: Bucket
+
+  def sessionServices: SessionServices
+
+  lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
+  lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
 
   def componentLoader: ComponentLoader
 
