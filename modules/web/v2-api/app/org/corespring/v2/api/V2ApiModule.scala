@@ -12,7 +12,7 @@ import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import play.api.mvc.RequestHeader
+import play.api.mvc.{ Controller, RequestHeader }
 
 import scalaz.Validation
 
@@ -44,8 +44,10 @@ trait V2ApiModule extends ItemDraftsModule {
 
   def sessionCreatedCallback: VersionedId[ObjectId] => Unit
 
-  lazy val itemApi = wire[ItemApi]
+  lazy val itemApi: Controller = wire[ItemApi]
 
-  lazy val itemSessionApi = wire[ItemSessionApi]
+  lazy val itemSessionApi: Controller = wire[ItemSessionApi]
+
+  lazy val v2ApiControllers: Seq[Controller] = Seq(itemApi, itemSessionApi)
 
 }

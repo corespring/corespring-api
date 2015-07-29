@@ -12,6 +12,8 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
+import org.corespring.container.client.integration
+import org.corespring.container.client.integration.{ DefaultIntegration, ContainerControllers }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.encryption.EncryptionModule
@@ -56,6 +58,10 @@ object Main
   private lazy val logger = Logger(Main.getClass)
 
   logger.debug("bootstrapping...")
+
+  override lazy val controllers: Seq[Controller] = {
+    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers
+  }
 
   lazy val configuration = current.configuration
 
@@ -121,8 +127,6 @@ object Main
     }
     client
   }
-
-  override lazy val controllers: Seq[Controller] = Seq(itemDraftsController)
 
   override lazy val db: MongoDB = Db.salatDb()
 

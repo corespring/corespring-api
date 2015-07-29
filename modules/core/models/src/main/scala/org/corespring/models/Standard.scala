@@ -4,14 +4,14 @@ import com.mongodb.casbah.Imports._
 
 //TODO: RF: Remove vars
 case class Standard(dotNotation: Option[String] = None,
-    guid: Option[String] = None,
-    subject: Option[String] = None,
-    category: Option[String] = None,
-    subCategory: Option[String] = None,
-    standard: Option[String] = None,
-    id: ObjectId = new ObjectId(),
-    grades: Seq[String] = Seq.empty[String],
-    legacyItem: Boolean = false) {
+  guid: Option[String] = None,
+  subject: Option[String] = None,
+  category: Option[String] = None,
+  subCategory: Option[String] = None,
+  standard: Option[String] = None,
+  id: ObjectId = new ObjectId(),
+  grades: Seq[String] = Seq.empty[String],
+  legacyItem: Boolean = false) {
 
   val kAbbrev = "[K|\\d].([\\w|-]+)\\..*".r
   val abbrev = "([\\w|-]+)..*".r
@@ -52,6 +52,18 @@ case class Standard(dotNotation: Option[String] = None,
 }
 
 object Standard {
+
+  object Keys {
+    val Id = "id"
+    val DotNotation = "dotNotation"
+    val Subject = "subject"
+    val Category = "category"
+    val SubCategory = "subCategory"
+    val Standard = "standard"
+    val guid = "guid"
+    val grades = "grades"
+  }
+
   object Subjects {
     val ELA = "ELA"
     val ELALiteracy = "ELA-Literacy"

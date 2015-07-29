@@ -9,6 +9,9 @@ import org.bson.types.ObjectId
 import org.corespring.models.{ Standard, Domain }
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
+import scala.concurrent._
+import scala.concurrent.duration.Duration
+
 class StandardService(val dao: SalatDAO[Standard, ObjectId],
   val context: Context) extends org.corespring.services.StandardService with HasDao[Standard, ObjectId] {
 
@@ -16,8 +19,48 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def findOneById(id: ObjectId): Option[Standard] = dao.findOneById(id)
 
-  //TODO: RF - implement
-  override val domains: Map[String, Seq[Domain]] = ???
+  import ExecutionContext.Implicits.global
+
+  val timeout = Duration(20, duration.SECONDS)
+
+  override lazy val domains: Map[String, Seq[Domain]] = {
+
+    def combineFutures(results: Seq[Future[(String, Seq[Domain])]]) =
+      Await.result(Future.sequence(results), timeout).toMap
+
+    /**
+     * Transforms an Iterator of standards into Domains
+     * @param getDomain function describing the property of each standard to be used as the name for the Domain
+     */
+    def mapDomains(standards: Iterator[Standard], getDomain: (Standard => Option[String])) =
+      standards.foldLeft(Map.empty[String, Seq[String]]) {
+        case (map, standard) => getDomain(standard) match {
+          case Some(domain) => map.get(domain) match {
+            case Some(standards) =>
+              map + (domain -> standard.dotNotation.map(standard => standards :+ standard).getOrElse(standards))
+            case _ => map + (domain -> standard.dotNotation.map(Seq(_)).getOrElse(Seq.empty))
+          }
+          case _ => map
+        }
+      }.map { case (name, standards) => new Domain(name, standards) }.toSeq
+
+    import Standard.Subjects
+    import Standard.Keys._
+
+    combineFutures(Seq(
+      future {
+        Subjects.ELA -> mapDomains(dao.find(MongoDBObject(
+          Subject -> MongoDBObject("$in" -> Seq(Subjects.ELA, Subjects.ELALiteracy)))), {
+          _.subCategory
+        })
+      },
+      future {
+        Subjects.Math -> mapDomains(dao.find(MongoDBObject(
+          Subject -> Subjects.Math)), {
+          _.category
+        })
+      }))
+  }
 
   override def findOneByDotNotation(dotNotation: String): Option[Standard] = dao.findOne(MongoDBObject("dotNotation" -> dotNotation))
 
@@ -58,7 +101,9 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     MongoDBObject("dotNotation" -> toRegex(searchTerm)))), (json \ "filters").asOpt[JsObject])
 
   private def addFilters(query: DBObject, json: Option[JsObject]): DBObject = {
-    json.map(filters => for ((k, v) <- filters.fields) { query.put(k, v.as[String]) })
+    json.map(filters => for ((k, v) <- filters.fields) {
+      query.put(k, v.as[String])
+    })
     query
   }
 

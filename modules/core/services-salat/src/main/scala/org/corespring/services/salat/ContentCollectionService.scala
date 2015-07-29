@@ -256,10 +256,29 @@ class ContentCollectionService(
    * @param query
    * @param collId
    * @return
+   *
+   *          "add filtered items to a collection" in new CollectionSharingScope {
+   *
+   * publishItemsInCollection(collectionB1)
+   * // this is to support a user searching for a set of items, then adding that set of items to a collection
+   * // share items in collection b1 that are published with collection a1...
+   * val query = s""" {"published":true, "collectionId":{"$$in":["$collectionB1"]} } """
+   * val addFilteredItemsReq = FakeRequest("", s"?q=$query&access_token=$accessTokenA")
+   * val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1, Some(query))(addFilteredItemsReq)
+   * assertResult(shareItemsResult)
+   * val response = parsed[JsNumber](shareItemsResult)
+   * response.toString mustEqual "3"
+   * // check how many items are now available in a1. There should be 6: 3 owned by a1 and 3 shared with a1 from b1
+   * val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
+   * val listResult = ItemApi.listWithColl(collectionA1, None, None, "10", 0, 10, None)(listReq)
+   * assertResult(listResult)
+   * val itemsList = parsed[List[JsValue]](listResult)
+   * itemsList.size must beEqualTo(6)
+   * }
    */
   override def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     //TODO: RF: implement - need to decide how to abstract search
-    Right(Seq.empty)
+    Left(PlatformServiceError("shareItemsMatchingQuery is not supported"))
     //Original --
     /*val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
     val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
@@ -285,7 +304,7 @@ class ContentCollectionService(
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
 
-  override def findByDbo(dbo: Imports.DBObject): Stream[ContentCollection] = ???
+  override def findByDbo(dbo: Imports.DBObject): Stream[ContentCollection] = dao.find(dbo, MongoDBObject.empty).toStream
 
-  override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = ???
+  override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = dao.findOneById(id)
 }

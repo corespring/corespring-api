@@ -31,6 +31,7 @@ class AppConfig(config: Configuration) {
   lazy val v2playerOrgIds: Seq[ObjectId] = config.getString(Key.V2_PLAYER_ORG_IDS).map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
   lazy val archiveContentCollectionId: ObjectId = new ObjectId(getString("archive.contentCollectionId"))
   lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
+  lazy val publicSite = config.getString("publicSiteUrl").getOrElse("//www.corespring.org")
 
   private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 }
