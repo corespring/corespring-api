@@ -233,7 +233,14 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Seq( /*Dependencies.ModuleConfigurations.snapshots, */ Dependencies.ModuleConfigurations.releases, Dependencies.ModuleConfigurations.localSnapshots),
-      //updateOptions := updateOptions.value.withCachedResolution(true),
+
+      /**
+       * Warning: Don't enable this for now:
+       * //updateOptions := updateOptions.value.withCachedResolution(true),
+       * It's causing an unusual rhino error.
+       * See: https://bitbucket.org/corespring/sbt-rhino-issue
+       * It's a project where I'm isolating the issue so I can raise it with sbt team.
+       */
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += LoadCredentials.cred,
