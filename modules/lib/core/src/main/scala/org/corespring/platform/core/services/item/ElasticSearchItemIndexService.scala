@@ -56,7 +56,6 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
     try {
       implicit val AggregationWrites = ItemIndexAggregation.Writes
       val agg = ItemIndexAggregation(field = field, collectionIds = collectionIds)
-      println(Json.prettyPrint(Json.toJson(agg)))
       authed("/content/_search")(elasticSearchUrl, ec, application)
         .post(Json.toJson(agg))
         .map(result => {
