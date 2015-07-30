@@ -233,7 +233,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Seq( /*Dependencies.ModuleConfigurations.snapshots, */ Dependencies.ModuleConfigurations.releases, Dependencies.ModuleConfigurations.localSnapshots),
-      updateOptions := updateOptions.value.withCachedResolution(true),
+      //updateOptions := updateOptions.value.withCachedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
       credentials += LoadCredentials.cred,
