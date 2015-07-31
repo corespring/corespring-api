@@ -87,6 +87,7 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
         params =>
           OAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_secret, params.scope) match {
             case Right(token) =>
+              logger.debug(s"getAccessToken returns token: ${token.tokenId}")
               val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map(OAuthConstants.Scope -> _)
               Ok(Json.toJson(result))
             case Left(error) => Forbidden(Json.toJson(error))

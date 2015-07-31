@@ -3,6 +3,7 @@ package org.corespring.platform.core.models.auth
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
+import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.Organization
 import org.joda.time.DateTime
 import play.api.Play.current
@@ -31,7 +32,7 @@ trait AccessTokenService {
   def findByToken(token: String): Option[AccessToken]
 }
 
-object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService {
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService with PackageLogging {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
@@ -68,7 +69,6 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
     } catch {
       case e: SalatInsertError => Left(CorespringInternalError("error occurred during insert", e))
     }
-
   }
   /**
    * Finds an access token by id
@@ -115,5 +115,10 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
       }
     }
 
+  }
+
+  override def insert(token:AccessToken) = {
+    logger.debug(s"inserting ${token.tokenId}")
+    super.insert(token)
   }
 }
