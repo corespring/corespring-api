@@ -99,7 +99,7 @@ class Services(cacheConfig: Configuration,
         try {
           val collectionId = dbo.get("collectionId").asInstanceOf[String]
           val canAccess = Organization.canAccessCollection(user.org.id, new ObjectId(collectionId), Permission.Write)
-          logger.debug(s"function=hasWriteAcces, canAccess=$canAccess")
+          logger.debug(s"function=hasWriteAccess, canAccess=$canAccess")
           canAccess
         } catch {
           case t: Throwable => false
