@@ -44,8 +44,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
   // Not sure when to call this.
   def index = Seq(
     MongoDBObject("tokenId" -> 1),
-    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)
-  ).foreach(collection.ensureIndex(_))
+    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(collection.ensureIndex(_))
 
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
@@ -117,8 +116,36 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
 
   }
 
-  override def insert(token:AccessToken) = {
+  override def insert(token: AccessToken) = {
     logger.debug(s"inserting ${token.tokenId}")
-    super.insert(token)
+    super.insert(token) match {
+      case Some(id) => {
+        if (tokenCanBeFound(id)) {
+          Some(id)
+        } else {
+          logger.error(s"timeout waiting for token $id")
+          None
+        }
+      }
+      case None => None
+    }
+
+    def tokenCanBeFound(id: ObjectId): Boolean = {
+      var sleepDuration = 1000
+      var timeout = 60
+      while(timeout > 0 && !tokenInDb(id)){
+        logger.trace("sleep while waiting for token to appear in db")
+        Thread.sleep(sleepDuration)
+        timeout -= 1
+      }
+      timeout > 0
+    }
+
+    def tokenInDb(id: ObjectId): Boolean = {
+      AccessToken.findOneById(id) match {
+        case Some(dbtoken) => true
+        case None => false
+      }
+    }
   }
 }
