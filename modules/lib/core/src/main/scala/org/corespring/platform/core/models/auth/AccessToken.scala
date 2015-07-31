@@ -117,24 +117,12 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
   }
 
   override def insert(token: AccessToken) = {
-    logger.debug(s"inserting ${token.tokenId}")
-    super.insert(token) match {
-      case Some(id) => {
-        if (tokenCanBeFound(id)) {
-          Some(id)
-        } else {
-          logger.error(s"timeout waiting for token $id")
-          None
-        }
-      }
-      case None => None
-    }
 
     def tokenCanBeFound(id: ObjectId): Boolean = {
       var sleepDuration = 1000
       var timeout = 60
       while(timeout > 0 && !tokenInDb(id)){
-        logger.trace("sleep while waiting for token to appear in db")
+        logger.warn("sleep 1000ms while waiting for token to appear in db")
         Thread.sleep(sleepDuration)
         timeout -= 1
       }
@@ -146,6 +134,19 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
         case Some(dbtoken) => true
         case None => false
       }
+    }
+
+    logger.debug(s"inserting ${token.tokenId}")
+    super.insert(token) match {
+      case Some(id) => {
+        if (tokenCanBeFound(id)) {
+          Some(id)
+        } else {
+          logger.error(s"timeout waiting for token $id")
+          None
+        }
+      }
+      case None => None
     }
   }
 }
