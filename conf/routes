@@ -17,6 +17,7 @@ GET         /developer/org/:orgid                                     developer.
 GET         /developer/home                                           developer.controllers.Developer.home
 GET         /developer/*file                                          developer.controllers.Developer.at(path="/public/developer", file)
 
+->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /v2/player                                                v2Player.Routes
 

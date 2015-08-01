@@ -21,4 +21,7 @@ trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSave
 
   def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean
 
+  def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[PlatformServiceError, AnyRef]
+
+  def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): DBObject
 }

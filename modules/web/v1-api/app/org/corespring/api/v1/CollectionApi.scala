@@ -3,19 +3,18 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import com.novus.salat.dao.SalatMongoCursor
-import org.corespring.api.v1.errors.ApiError
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.{ CollectionExtraDetails, ContentCollection, Organization }
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
-import org.corespring.platform.core.models.{ Organization, CollectionExtraDetails, ContentCollection }
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.models.search.{ Searchable, SearchCancelled }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.errors.PlatformServiceError
+import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc.Result
-import scala.Some
 import scalaz.Failure
 import scalaz.Success
 
@@ -24,6 +23,14 @@ import scalaz.Success
  */
 
 object CollectionApi extends BaseApi {
+
+  private[CollectionApi] object Dbo extends Searchable {
+    override protected val searchableFields = Seq("name")
+  }
+
+  lazy val orgService = ServiceLookup.orgService
+  lazy val contentCollectionService = ServiceLookup.contentCollectionService
+
   /**
    * Returns a list of collections visible to the organization in the request context
    *
@@ -36,12 +43,14 @@ object CollectionApi extends BaseApi {
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiActionRead {
     request =>
-      if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
+      if (orgService.getTree(request.ctx.organization).exists(_.id == orgId)) {
         doList(orgId, q, f, c, sk, l, sort)
       } else
         Forbidden(Json.toJson(ApiError.UnauthorizedOrganization))
   }
 
+  /*
+  TODO: move to a service
   val fieldValueMap = Map(
     "itemType" -> "taskInfo.itemType",
     "contributor" -> "contributorDetails.contributor")
@@ -90,26 +99,23 @@ object CollectionApi extends BaseApi {
       }
       case _ => BadRequest(Json.toJson(ApiError.InvalidField))
     }
-  }
+  }*/
 
-  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort: Option[String]) = {
-    val collrefs = ContentCollection.getContentCollRefs(orgId, Permission.Read, true)
+  private def doList(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, optsort: Option[String]): Result = {
+    val collrefs = contentCollectionService.getContentCollRefs(orgId, Permission.Read, true)
     val initSearch = MongoDBObject("_id" -> MongoDBObject("$in" -> collrefs.map(_.collectionId)))
-    def applySort(colls: SalatMongoCursor[ContentCollection]): Result = {
-      optsort.map(ContentCollection.toSortObj(_)) match {
-        case Some(Right(sort)) => Ok(Json.toJson(colls.sort(sort).skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
-        case None => Ok(Json.toJson(colls.skip(sk).limit(l).toSeq.map(c => CollectionExtraDetails(c, collrefs.find(_.collectionId == c.id).get.pval))))
-        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidSort(error.clientOutput)))
-      }
-    }
-    q.map(ContentCollection.toSearchObj(_, Some(initSearch))).getOrElse[Either[SearchCancelled, DBObject]](Right(initSearch)) match {
-      case Right(query) => f.map(ContentCollection.toFieldsObj(_)) match {
-        case Some(Right(searchFields)) => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(ContentCollection.find(query).count))))
-        else applySort(ContentCollection.find(query, searchFields.dbfields))
-        case None => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(ContentCollection.find(query).count))))
-        else applySort(ContentCollection.find(query))
-        case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))
-      }
+
+    val sortDbo = optsort.flatMap(Dbo.toSortObj(_).right.toOption)
+
+    q.map(Dbo.toSearchObj(_, Some(initSearch))).getOrElse[Either[SearchCancelled, DBObject]](Right(initSearch)) match {
+      case Right(query) =>
+        f.map(Dbo.toFieldsObj(_)) match {
+          case Some(Right(searchFields)) => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(contentCollectionService.count(query)))))
+          else Ok(Json.toJson(contentCollectionService.findByDbo(query, searchFields.dbfields, sortDbo)))
+          case None => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(contentCollectionService.count(query)))))
+          else Ok(Json.toJson(contentCollectionService.findByDbo(query, sort = sortDbo)))
+          case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))
+        }
       case Left(sc) => sc.error match {
         case None => Ok(JsArray(Seq()))
         case Some(error) => BadRequest(Json.toJson(ApiError.InvalidQuery(error.clientOutput)))
@@ -125,7 +131,7 @@ object CollectionApi extends BaseApi {
    */
   def getCollection(id: ObjectId) = ApiActionRead {
     request =>
-      ContentCollection.findOneById(id) match {
+      contentCollectionService.findOneById(id) match {
         case Some(org) => {
           // todo: check if this collection is visible to the caller?
           Ok(Json.toJson(org))
@@ -151,9 +157,9 @@ object CollectionApi extends BaseApi {
               BadRequest(Json.toJson(ApiError.CollectionNameMissing))
             } else {
               val collection = ContentCollection(id = newId, name = name.get, ownerOrgId = request.ctx.organization)
-              ContentCollection.insertCollection(request.ctx.organization, collection, Permission.Write) match {
+              contentCollectionService.insertCollection(request.ctx.organization, collection, Permission.Write) match {
                 case Right(coll) => Ok(Json.toJson(CollectionExtraDetails(coll, Permission.Write.value)))
-                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(e.clientOutput)))
+                case Left(e) => InternalServerError(Json.toJson(ApiError.InsertCollection(Some(e.message))))
               }
             }
           }
@@ -165,13 +171,13 @@ object CollectionApi extends BaseApi {
 
   private def unknownCollection = NotFound(Json.toJson(ApiError.UnknownCollection))
 
-  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[CorespringInternalError, Unit] = {
+  private def addCollectionToOrganizations(values: Seq[JsValue], collId: ObjectId): Either[PlatformServiceError, Unit] = {
     val orgs: Seq[(ObjectId, Permission)] = values.map(v => v match {
       case JsString(strval) => (new ObjectId(strval) -> Permission.Read)
       case JsObject(orgWithPerm) => (new ObjectId(orgWithPerm(1)._1) -> Permission.fromLong(orgWithPerm(1)._2.as[Long]).get)
       case _ => return Right(CorespringInternalError("incorrect format for organizations"))
     })
-    ContentCollection.addOrganizations(orgs, collId)
+    contentCollectionService.addOrganizations(orgs, collId)
   }
 
   /**
@@ -181,22 +187,22 @@ object CollectionApi extends BaseApi {
    */
   def updateCollection(id: ObjectId) = ApiActionWrite {
     request =>
-      ContentCollection.findOneById(id).map(original => {
+      contentCollectionService.findOneById(id).map(original => {
         request.body.asJson match {
           case Some(json) => {
             val name = (json \ "name").asOpt[String].getOrElse(original.name)
             val toUpdate = ContentCollection(name, id = original.id, ownerOrgId = original.ownerOrgId)
-            if ((Organization.getPermissions(request.ctx.organization, original.id).value & Permission.Read.value) == Permission.Read.value) {
-              ContentCollection.updateCollection(toUpdate) match {
+            if ((orgService.getPermissions(request.ctx.organization, original.id).value & Permission.Read.value) == Permission.Read.value) {
+              contentCollectionService.updateCollection(toUpdate) match {
                 case Right(coll) => (json \ "organizations") match {
                   case JsArray(values) => addCollectionToOrganizations(values, id) match {
                     case Right(_) => Ok(Json.toJson(coll))
-                    case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(e.clientOutput)))
+                    case Left(e) => InternalServerError(Json.toJson(ApiError.AddToOrganization(Some(e.message))))
                   }
                   case JsUndefined() => Ok(Json.toJson(coll))
                   case _ => BadRequest(Json.toJson(ApiError.UpdateCollection(Some("organizations was included but was not the right format"))))
                 }
-                case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(e.clientOutput)))
+                case Left(e) => InternalServerError(Json.toJson(ApiError.UpdateCollection(Some(e.message))))
               }
             } else Unauthorized(Json.toJson(ApiError.UpdateCollection(Some("you do not have permission to update this collection"))))
           }
@@ -206,8 +212,8 @@ object CollectionApi extends BaseApi {
   }
 
   def setEnabledStatus(id: ObjectId, enabled: Boolean) = ApiActionWrite { request =>
-    Organization.setCollectionEnabledStatus(request.ctx.organization, id, enabled) match {
-      case Left(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
+    orgService.setCollectionEnabledStatus(request.ctx.organization, id, enabled) match {
+      case Left(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(Some(error.message))))
       case Right(collRef) => {
         Ok(Json.toJson(s"updated ${collRef.collectionId.toString}"))
       }
@@ -222,11 +228,11 @@ object CollectionApi extends BaseApi {
    * @return
    */
   def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = ApiActionWrite { request =>
-    ContentCollection.findOneById(collectionId) match {
+    contentCollectionService.findOneById(collectionId) match {
       case Some(collection) =>
         if (collection.ownerOrgId == request.ctx.organization) {
-          Organization.addCollection(destinationOrgId, collectionId, Permission.Read) match {
-            case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(error.clientOutput)))
+          orgService.addCollection(destinationOrgId, collectionId, Permission.Read) match {
+            case Left(error) => InternalServerError(Json.toJson(ApiError.AddToOrganization(Some(error.message))))
             case Right(collRef) => Ok(Json.toJson("updated" + collRef.collectionId.toString))
           }
         } else {
@@ -241,11 +247,11 @@ object CollectionApi extends BaseApi {
    * Deletes a collection
    */
   def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
-    ContentCollection.findOneById(id) match {
-      case Some(coll) => if (coll.itemCount == 0 && ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
-        ContentCollection.delete(id) match {
+    contentCollectionService.findOneById(id) match {
+      case Some(coll) => if (contentCollectionService.itemCount(id) == 0 && contentCollectionService.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+        contentCollectionService.delete(id) match {
           case Success(_) => Ok(Json.toJson(coll))
-          case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(error.clientOutput)))
+          case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(Some(error.message))))
         }
       } else {
         InternalServerError(Json.toJson(ApiError.DeleteCollection(Some("cannot delete collection that contains items"))))
@@ -268,10 +274,10 @@ object CollectionApi extends BaseApi {
             BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
           } else {
             val itemIds = (json \ "items").as[Seq[String]]
-            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
-            ContentCollection.shareItems(request.ctx.organization, versionedItemIds, collectionId) match {
+            val versionedItemIds = itemIds.map(VersionedId(_)).flatten
+            contentCollectionService.shareItems(request.ctx.organization, versionedItemIds, collectionId) match {
               case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
             }
           }
         }
@@ -293,10 +299,10 @@ object CollectionApi extends BaseApi {
             BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
           } else {
             val itemIds = (json \ "items").as[Seq[String]]
-            val versionedItemIds = itemIds.map(stringToVersionedId).flatten
-            ContentCollection.unShareItems(request.ctx.organization, versionedItemIds, Seq(collectionId)) match {
+            val versionedItemIds = itemIds.map(VersionedId(_)).flatten
+            contentCollectionService.unShareItems(request.ctx.organization, versionedItemIds, Seq(collectionId)) match {
               case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
             }
           }
         }
@@ -311,12 +317,12 @@ object CollectionApi extends BaseApi {
    * @return  - json with success or error response
    */
   def shareFilteredItemsWithCollection(id: ObjectId, q: Option[String]) = ApiActionWrite { request =>
-    ContentCollection.findOneById(id) match {
-      case Some(coll) => if (ContentCollection.isAuthorized(request.ctx.organization, id, Permission.Write)) {
+    contentCollectionService.findOneById(id) match {
+      case Some(coll) => if (contentCollectionService.isAuthorized(request.ctx.organization, id, Permission.Write)) {
         if (q.isDefined) {
-          ContentCollection.shareItemsMatchingQuery(request.ctx.organization, q.get, id) match {
+          contentCollectionService.shareItemsMatchingQuery(request.ctx.organization, q.get, id) match {
             case Right(itemsAdded) => Ok(toJson(itemsAdded.size))
-            case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(error.clientOutput)))
+            case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
           }
         } else {
           BadRequest(Json.toJson(ApiError.ItemSharingError(Some("q is required parameter"))))

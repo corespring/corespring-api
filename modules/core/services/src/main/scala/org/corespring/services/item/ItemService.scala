@@ -14,6 +14,12 @@ trait ItemServiceClient {
 }
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
+
+  def sessionCount(id: VersionedId[ObjectId]): Long
+
+  /** return a distinct list of contributors */
+  def distinctContributors(): Seq[String]
+
   def clone(item: Item): Option[Item]
 
   def moveItemToArchive(id: VersionedId[ObjectId]): Option[String]

@@ -10,7 +10,12 @@ import scalaz.Validation
 
 trait ContentCollectionService {
 
-  def findByDbo(dbo: DBObject): Stream[ContentCollection]
+  def distinct()
+  def archiveCollectionId: ObjectId
+
+  def findByDbo(dbo: DBObject, fields: DBObject = None, sort: Option[DBObject] = None, skip: Int = 0, limit: Int = 0): Stream[ContentCollection]
+  def count(dbo: DBObject): Long
+
   def findOneById(id: ObjectId): Option[ContentCollection]
 
   def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Either[PlatformServiceError, ContentCollection]

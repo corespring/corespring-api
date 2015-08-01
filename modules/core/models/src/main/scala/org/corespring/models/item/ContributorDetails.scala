@@ -11,3 +11,17 @@ case class ContributorDetails(
   licenseType: Option[String] = None,
   sourceUrl: Option[String] = None)
 
+object ContributorDetails {
+
+  object Keys {
+    val additionalCopyrights = "additionalCopyrights"
+    val author = "author"
+    val contributor = "contributor"
+    val copyright = "copyright"
+    val costForResource = "costForResource"
+    val credentials = "credentials"
+    val credentialsOther = "credentialsOther"
+    val licenseType = "licenseType"
+    val sourceUrl = "sourceUrl"
+  }
+}

@@ -54,6 +54,7 @@ trait ContentCollectionImpl
 
   val collection = mongoCollection("contentcolls")
 
+  collection.distinct()
   import org.corespring.platform.core.models.mongoContext.context
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}

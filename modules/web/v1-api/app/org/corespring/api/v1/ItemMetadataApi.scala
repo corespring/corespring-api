@@ -1,14 +1,12 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.json.metadata.SetJson
+import org.corespring.models.metadata.{ Metadata, MetadataSet }
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.metadata.Metadata
-import org.corespring.platform.core.models.metadata.MetadataSet
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired, ItemServiceClient }
-import org.corespring.platform.core.services.metadata._
-import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
 import play.api.libs.json.{ Json, JsValue }
 
 class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetService) extends BaseApi {
@@ -24,10 +22,6 @@ class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetS
 }
 
 object ItemMetadataApi extends ItemMetadataApi(
-  new MetadataServiceImpl with ItemServiceClient {
-    def itemService: ItemService = ItemServiceWired
-  },
-  new MetadataSetServiceImpl {
-    def orgService: OrganizationService = Organization
-  })
+  ServiceLookup.metadataService,
+  ServiceLookup.metadataSetService)
 

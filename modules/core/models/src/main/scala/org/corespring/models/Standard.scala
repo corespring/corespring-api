@@ -53,6 +53,8 @@ case class Standard(dotNotation: Option[String] = None,
 
 object Standard {
 
+  val description = "common core state standards"
+
   object Keys {
     val Id = "id"
     val DotNotation = "dotNotation"

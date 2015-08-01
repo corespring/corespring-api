@@ -52,6 +52,10 @@ object Build extends sbt.Build {
 
   val coreUtils = builders.lib("utils", "core")
 
+  val coreLegacy = builders.lib("legacy", "core")
+    .settings(libraryDependencies ++= Seq(securesocial, playFramework, specs2 % "test", playS3))
+    .dependsOn(coreServices, coreModels, coreJson, qtiToV2)
+
   val coreWeb = builders.lib("web", "core")
     .settings(libraryDependencies ++= Seq(securesocial, playFramework))
     .dependsOn(coreModels, coreServices)
@@ -134,12 +138,12 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(playJson, rhino % "test"))
     .dependsOn(coreModels, coreServices, coreUtils, coreJson, qti, apiUtils, testLib % "test->compile")
 
-  /*val v1Api = builders.web("v1-api")
+  val v1Api = builders.web("v1-api")
     .settings(
-      libraryDependencies ++= Seq(casbah),
+      libraryDependencies ++= Seq(casbah, playS3),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .dependsOn(core % "compile->compile;test->test", playerLib, scormLib, ltiLib, qtiToV2)*/
+    .dependsOn(coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets)
 
   /**
    * Error types
@@ -262,6 +266,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib % "test->compile;test->test;it->test",
       v2PlayerIntegration,
+      v1Api,
       v2Api,
       v2SessionDb,
       apiTracking,
@@ -278,6 +283,7 @@ object Build extends sbt.Build {
       commonViews,
       testLib,
       v2PlayerIntegration,
+      v1Api,
       v2Api,
       apiTracking,
       v2Auth,

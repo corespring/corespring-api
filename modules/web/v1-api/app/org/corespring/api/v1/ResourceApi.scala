@@ -1,30 +1,27 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.api.v1.errors.ApiError
-import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
 import org.corespring.common.config.AppConfig
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
-import org.corespring.platform.core.models.item.{ Content, _ }
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.ContentCollectionService
+import org.corespring.services.item.ItemService
+import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsArray, JsObject, JsString, _ }
 import play.api.mvc._
-import play.api.{ Configuration, Play }
 
-class ResourceApi(s3service: CorespringS3Service, service: ItemService)
+class ResourceApi(
+  s3service: S3Service,
+  itemTransformer: ItemTransformer,
+  itemService: ItemService,
+  contentCollectionService: ContentCollectionService)
   extends BaseApi {
-
-  def itemTransformer = new ItemTransformer {
-    def itemService = service
-    override def configuration: Configuration = Play.current.configuration
-    override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
-  }
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -62,7 +59,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
       action: ItemRequest[A] => Result) = ApiAction(p) { request =>
     convertStringToVersionedId(itemId) match {
       case Some(validId) => {
-        service.findOneById(validId) match {
+        itemService.findOneById(validId) match {
           case Some(item) => {
             val errors: Seq[Result] = additionalChecks.flatMap(_(request, item))
             if (errors.length == 0) {
@@ -85,7 +82,6 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
    */
   private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
     logger.debug("handle itemId: " + itemId)
-    import org.corespring.platform.core.models.versioning.VersionedIdImplicits.Binders._
     stringToVersionedId(itemId)
   }
 
@@ -101,7 +97,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
           case StoredFile(_, _, _, key) => s3service.delete(AppConfig.assetsBucket, key)
           case _ => //do nothing
         }
-        service.save(item)
+        itemService.save(item)
         Ok
       }
       case _ => NotFound(filename)
@@ -110,8 +106,8 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
 
   def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
-      if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Write)) {
-        if (service.sessionCount(item) > 0 && item.published && !force) {
+      if (contentCollectionService.isAuthorized(request.ctx.organization, item.id, Permission.Write)) {
+        if (itemService.sessionCount(item) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment"))))))))
@@ -280,7 +276,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
                       unsetIsMain(resource)
                     }
                     resource.files = resource.files.map(bf => if (bf.name == filename) update else bf)
-                    service.save(item)
+                    itemService.save(item)
                     Ok(toJson(update))
                   }
                   case _ => NotFound
@@ -307,7 +303,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
 
     val someItem: Option[Item] = for {
       vId <- convertStringToVersionedId(itemId)
-      item <- service.findOneById(vId)
+      item <- itemService.findOneById(vId)
     } yield item
 
     someItem.map { i =>
@@ -346,7 +342,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
               key(itemId, DATA_PATH, filename))
 
             resource.files = resource.files ++ Seq(file)
-            service.save(item)
+            itemService.save(item)
             Ok(toJson(file))
         })
   }
@@ -375,7 +371,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
               false,
               storageKey(itemId, materialName, filename))
             resource.files = resource.files ++ Seq(file)
-            service.save(item)
+            itemService.save(item)
             Ok(toJson(file))
         })
 
@@ -395,8 +391,8 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
             case _ => {
               val file = new StoredFile(filename, contentType(filename), true, s3Key)
               val resource = Resource(name = name, files = Seq(file))
-              item.supportingMaterials = item.supportingMaterials ++ Seq(resource)
-              service.save(item)
+              val update = item.copy(supportingMaterials = item.supportingMaterials ++ Seq(resource))
+              itemService.save(update)
               Ok(toJson(resource))
             }
           }
@@ -412,8 +408,8 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
             isResourceNameTaken(foundResource.name)(request.item) match {
               case Some(error) => NotAcceptable(toJson(error))
               case _ => {
-                request.item.supportingMaterials = request.item.supportingMaterials ++ Seq[Resource](foundResource)
-                service.save(request.item)
+                val update = request.item.copy(supportingMaterials = request.item.supportingMaterials ++ Seq[Resource](foundResource))
+                itemService.save(update)
                 Ok(toJson(foundResource))
               }
             }
@@ -430,7 +426,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
     {
       request: ItemRequest[AnyContent] =>
         request.item.supportingMaterials = request.item.supportingMaterials.filter(_.name != resourceName)
-        service.save(request.item)
+        itemService.save(request.item)
         Ok("")
     })
 
@@ -451,7 +447,7 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
           unsetIsMain(resource)
         }
         resource.files = resource.files ++ Seq(file)
-        service.save(item)
+        itemService.save(item)
         Ok(toJson(file))
       }
     }
@@ -501,4 +497,8 @@ class ResourceApi(s3service: CorespringS3Service, service: ItemService)
   }
 }
 
-object ResourceApi extends ResourceApi(CorespringS3ServiceExtended, ItemServiceWired)
+object ResourceApi extends ResourceApi(
+  ServiceLookup.s3Service,
+  ServiceLookup.itemTransformer,
+  ServiceLookup.itemService,
+  ServiceLookup.contentCollectionService)
