@@ -51,6 +51,8 @@
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
     -->
+    <logger name="org.corespring.services" level="TRACE"/>
+    <!--
     <logger name="com.mongodb" level="TRACE"/>
     <logger name="org.corespring.platform.core.files" level="TRACE"/>
     <logger name="org.corespring.drafts" level="TRACE"/>
@@ -61,7 +63,8 @@
     <logger name="v2player.test" level="TRACE"/>
     <logger name="ItemApi" level="TRACE"/>
     <logger name="org.corespring.container.AssetUtils" level="TRACE" />
-    <root level="DEBUG">
+    -->
+    <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

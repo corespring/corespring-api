@@ -165,11 +165,15 @@ class ContentCollectionService(
 
     val orgs = organizationService.orgsWithPath(orgId, deep)
 
+    logger.trace(s"function=getContentCollRefs orgId=$orgId p=$p org=$orgs")
+
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
       acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
 
     val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
+
+    logger.trace(s"function=getContentCollRefs refsWithPermission=$out")
 
     if (p == Permission.Read) {
       out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, true))

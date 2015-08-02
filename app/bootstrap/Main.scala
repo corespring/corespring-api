@@ -6,14 +6,13 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
-import developer.ServiceLookup
+import org.corespring.ap.v1.V1ApiModule
+import org.corespring.legacy.ServiceLookup
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
-import org.corespring.container.client.integration
-import org.corespring.container.client.integration.{ DefaultIntegration, ContainerControllers }
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.encryption.EncryptionModule
@@ -49,6 +48,7 @@ object Main
   with ItemSearchModule
   with V2AuthModule
   with V2ApiModule
+  with V1ApiModule
   with V2PlayerModule
   with SessionDbModule {
 
@@ -60,7 +60,7 @@ object Main
   logger.debug("bootstrapping...")
 
   override lazy val controllers: Seq[Controller] = {
-    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers
+    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers ++ v1ApiControllers
   }
 
   lazy val configuration = current.configuration
@@ -149,6 +149,10 @@ object Main
     override lazy val findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById(_)
 
     override lazy val rootOrgId: ObjectId = AppConfig.rootOrgId
+
+    override def countItemsInCollection(collectionId: ObjectId): Long = {
+      itemService.countItemsInCollection(collectionId)
+    }
   }
 
   def initServiceLookup() = {

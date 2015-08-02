@@ -1,15 +1,14 @@
 package web.controllers
 
-import developer.ServiceLookup
-import org.corespring.models.{User}
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.{ User }
 import play.api.mvc._
-import securesocial.core.{SecuredRequest}
+import securesocial.core.{ SecuredRequest }
 
 object Main extends Controller with securesocial.core.SecureSocial {
 
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
-
 
   def index = SecuredAction {
     implicit request: SecuredRequest[AnyContent] =>

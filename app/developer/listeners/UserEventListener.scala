@@ -1,6 +1,6 @@
 package developer.listeners
 
-import developer.ServiceLookup
+import org.corespring.legacy.ServiceLookup
 import play.Application
 import play.api.mvc.{ Session, RequestHeader }
 import securesocial.core.{ LoginEvent, SignUpEvent, Event, EventListener }

@@ -1,7 +1,7 @@
 package developer.controllers
 
 import controllers.Assets
-import developer.ServiceLookup
+import org.corespring.legacy.ServiceLookup
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig

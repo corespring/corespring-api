@@ -25,7 +25,7 @@ trait SessionDbModule {
   private def mkService(name: String) = {
     if (sessionDBConfig.useDynamo) {
       val dynamoTable = s"${AppConfig.envName}.${name}"
-      new DynamoSessionService(dynamoDB.getTable(dynamoTable))
+      new DynamoSessionService(dynamoDB.getTable(dynamoTable), dbClient)
     } else {
       new MongoSessionService(db(name))
     }

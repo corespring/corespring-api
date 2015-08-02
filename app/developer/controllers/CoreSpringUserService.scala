@@ -1,12 +1,12 @@
 package developer.controllers
 
-import developer.ServiceLookup
+import org.corespring.legacy.ServiceLookup
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
 import org.corespring.models.auth.Permission
 import org.corespring.models.registration.RegistrationToken
-import org.corespring.models.{UserOrg, User}
+import org.corespring.models.{ UserOrg, User }
 import play.api.Application
 import securesocial.core._
 import securesocial.core.providers.Token

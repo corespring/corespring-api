@@ -241,7 +241,14 @@ class OrganizationService(
     }
   }
 
-  override def findOneById(orgId: ObjectId): Option[Organization] = dao.findOneById(orgId)
+  override def findOneById(orgId: ObjectId): Option[Organization] = try {
+    dao.findOneById(orgId)
+  } catch {
+    case t: Throwable => {
+      t.printStackTrace()
+      throw t
+    }
+  }
 
   override def findOneByName(name: String): Option[Organization] = dao.findOne(MongoDBObject("name" -> name))
 
@@ -343,7 +350,8 @@ class OrganizationService(
 
   override def addCollectionReference(orgId: ObjectId, reference: ContentCollRef): Either[PlatformServiceError, Unit] = {
     val query = MongoDBObject("_id" -> orgId)
-    val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.contentcolls -> reference))
+    val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.contentcolls -> com.novus.salat.grater[ContentCollRef].asDBObject(reference)))
+    logger.trace(s"function=addCollectionReference update=update")
     val result = dao.update(query, update, false, false)
     if (result.getLastError.ok) Right() else Left(PlatformServiceError(s"Error adding collection reference to org: $orgId, reference: $reference"))
   }

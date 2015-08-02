@@ -1,12 +1,12 @@
 package web.controllers
 
-import developer.ServiceLookup
-import org.corespring.models.{Organization, User}
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.{ Organization, User }
 import play.api.{ Play, Mode }
-import play.api.mvc.{Controller, Action}
+import play.api.mvc.{ Controller, Action }
 import org.corespring.common.config.AppConfig
 
-object Partials extends Controller with securesocial.core.SecureSocial{
+object Partials extends Controller with securesocial.core.SecureSocial {
 
   def editItem = SecuredAction { request =>
     val userId = request.user.identityId
@@ -17,24 +17,24 @@ object Partials extends Controller with securesocial.core.SecureSocial{
   }
 
   def redirect(url: String) = Action {
-    if(Play.current.mode == Mode.Dev){
+    if (Play.current.mode == Mode.Dev) {
       Redirect("/login")
     } else {
       MovedPermanently(url)
     }
   }
 
-  def loadFromPath(path:String) = Action{
+  def loadFromPath(path: String) = Action {
 
     val fullName = s"web.views.html.${path.replace("/", ".")}"
 
     try {
-      val c : Class[_] = Play.current.classloader.loadClass(fullName)
+      val c: Class[_] = Play.current.classloader.loadClass(fullName)
       println(s"c: $c")
       val fn = c.getMethod("render")
       Ok(fn.invoke(c).asInstanceOf[play.api.templates.HtmlFormat.Appendable])
     } catch {
-      case t : Throwable => {
+      case t: Throwable => {
         t.printStackTrace()
         BadRequest(s"Can't find class with name $path [$fullName]")
       }

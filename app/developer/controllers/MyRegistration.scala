@@ -1,6 +1,6 @@
 package developer.controllers
 
-import developer.ServiceLookup
+import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ UserOrg, Organization, ContentCollection, User }
 import play.api.mvc.{ Result, Action, Controller }

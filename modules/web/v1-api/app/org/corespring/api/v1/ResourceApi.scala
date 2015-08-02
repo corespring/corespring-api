@@ -12,6 +12,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.ContentCollectionService
 import org.corespring.services.item.ItemService
+import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.Logger
 import play.api.libs.json.Json._
@@ -24,7 +25,7 @@ class ResourceApi(
   itemService: ItemService,
   contentCollectionService: ContentCollectionService,
   jsonFormatting: JsonFormatting,
-  sessionService: SessionService)
+  sessionServices: SessionServices)
   extends BaseApi {
 
   import jsonFormatting._
@@ -117,7 +118,7 @@ class ResourceApi(
   def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
       if (contentCollectionService.isAuthorized(request.ctx.organization, new ObjectId(item.collectionId), Permission.Write)) {
-        if (sessionService.sessionCount(item.id) > 0 && item.published && !force) {
+        if (sessionServices.main.sessionCount(item.id) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment"))))))))

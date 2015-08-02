@@ -26,3 +26,4 @@ PUT     /items/:itemId/data/:filename         @org.corespring.api.v1.ResourceApi
 POST    /items/:itemId/data/:filename/upload   @org.corespring.api.v1.ResourceApi.uploadFileToData(itemId:String, filename : String )
 DELETE  /items/:itemId/data/:filename         @org.corespring.api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
 
+GET     /contributors                    @org.corespring.api.v1.ContributorApi.getContributorsList()

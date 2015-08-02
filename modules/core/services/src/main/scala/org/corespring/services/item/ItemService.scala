@@ -15,6 +15,8 @@ trait ItemServiceClient {
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
+  def countItemsInCollection(collectionId: ObjectId): Long
+
   def contributorsForOrg(orgId: ObjectId): Seq[String]
 
   @deprecated("use SessionService.sessionCount(itemId)", "")

@@ -271,13 +271,21 @@ class ItemService(
 
     val readableCollectionIds = contentCollectionService
       .getCollectionIds(orgId, Permission.Read)
-      .filter(_ == archiveConfig.contentCollectionId)
+      .filterNot(_ == archiveConfig.contentCollectionId)
       .map(_.toString)
+
+    logger.trace(s"function=contributorsForOrg readableCollectionIds=$readableCollectionIds")
 
     val filter = MongoDBObject(
       "contentType" -> "item",
       "collectionId" -> MongoDBObject("$in" -> readableCollectionIds))
     //TODO - include versioned content?
+
+    logger.trace(s"distinct.filter=$filter")
     dao.currentCollection.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
+  }
+
+  override def countItemsInCollection(collectionId: Imports.ObjectId): Long = {
+    dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
   }
 }
