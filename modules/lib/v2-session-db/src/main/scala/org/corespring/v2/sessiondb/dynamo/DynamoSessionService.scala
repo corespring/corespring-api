@@ -1,6 +1,8 @@
 package org.corespring.v2.sessiondb.dynamo
 
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec
 import com.amazonaws.services.dynamodbv2.document.{ Item, Table }
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.sessiondb.SessionService
 import org.bson.types.ObjectId
 import play.api.libs.json.{ Json, JsValue }
@@ -13,6 +15,11 @@ class DynamoSessionService(table: Table) extends SessionService {
   val itemIdKey = "itemId"
   val jsonKey = "json"
   val sessionIdKey = "id"
+
+  override def sessionCount(itemId: VersionedId[ObjectId]): Long = {
+
+    -1
+  }
 
   def create(data: JsValue): Option[ObjectId] = {
     val sessionId = (data \ sessionIdKey).asOpt[String].getOrElse((new ObjectId).toString)

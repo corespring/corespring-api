@@ -1,7 +1,6 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.legacy.ServiceLookup
 import org.corespring.models.json.metadata.SetJson
 import org.corespring.models.metadata.{ Metadata, MetadataSet }
 import org.corespring.platform.core.controllers.auth.BaseApi
@@ -20,8 +19,4 @@ class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetS
       Ok(Json.toJson(json))
   }
 }
-
-object ItemMetadataApi extends ItemMetadataApi(
-  ServiceLookup.metadataService,
-  ServiceLookup.metadataSetService)
 

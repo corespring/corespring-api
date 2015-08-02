@@ -112,7 +112,7 @@ trait SalatServices extends interface.bootstrap.Services {
    *
    * For now going to manually build the objects
    */
-  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgService, itemService)
+  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgService, itemService, archiveConfig)
 
   override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, contentCollectionService, metadataSetService, itemService)
 

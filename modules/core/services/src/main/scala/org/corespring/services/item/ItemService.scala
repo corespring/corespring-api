@@ -15,10 +15,10 @@ trait ItemServiceClient {
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
-  def sessionCount(id: VersionedId[ObjectId]): Long
+  def contributorsForOrg(orgId: ObjectId): Seq[String]
 
-  /** return a distinct list of contributors */
-  def distinctContributors(): Seq[String]
+  @deprecated("use SessionService.sessionCount(itemId)", "")
+  def sessionCount(id: VersionedId[ObjectId]): Long
 
   def clone(item: Item): Option[Item]
 

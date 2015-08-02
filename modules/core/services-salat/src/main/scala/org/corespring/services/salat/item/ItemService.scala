@@ -1,6 +1,7 @@
 package org.corespring.services.salat.item
 
 import com.mongodb.casbah
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.{ MongoDBObject }
 import com.novus.salat._
@@ -260,5 +261,23 @@ class ItemService(
       logger.debug("isAuthorized: can't find item with id: " + contentId)
       false
     }
+  }
+
+  override def sessionCount(id: VersionedId[Imports.ObjectId]): Long = {
+    throw new RuntimeException("not supported")
+  }
+
+  override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
+
+    val readableCollectionIds = contentCollectionService
+      .getCollectionIds(orgId, Permission.Read)
+      .filter(_ == archiveConfig.contentCollectionId)
+      .map(_.toString)
+
+    val filter = MongoDBObject(
+      "contentType" -> "item",
+      "collectionId" -> MongoDBObject("$in" -> readableCollectionIds))
+    //TODO - include versioned content?
+    dao.currentCollection.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
 }

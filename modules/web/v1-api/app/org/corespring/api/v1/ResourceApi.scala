@@ -1,17 +1,19 @@
 package org.corespring.api.v1
 
 import org.bson.types.ObjectId
+import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.ContentCollectionService
 import org.corespring.services.item.ItemService
 import org.corespring.web.api.v1.errors.ApiError
+import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsArray, JsObject, JsString, _ }
 import play.api.mvc._
@@ -20,8 +22,14 @@ class ResourceApi(
   s3service: S3Service,
   itemTransformer: ItemTransformer,
   itemService: ItemService,
-  contentCollectionService: ContentCollectionService)
+  contentCollectionService: ContentCollectionService,
+  jsonFormatting: JsonFormatting,
+  sessionService: SessionService)
   extends BaseApi {
+
+  import jsonFormatting._
+
+  private[ResourceApi] val logger = Logger(classOf[ResourceApi])
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -57,7 +65,7 @@ class ResourceApi(
     additionalChecks: Seq[(ApiRequest[A], Item) => Option[Result]],
     p: BodyParser[A])(
       action: ItemRequest[A] => Result) = ApiAction(p) { request =>
-    convertStringToVersionedId(itemId) match {
+    convertVersionedId(itemId) match {
       case Some(validId) => {
         itemService.findOneById(validId) match {
           case Some(item) => {
@@ -80,24 +88,26 @@ class ResourceApi(
    * @param itemId
    * @return an Option[ObjectId] or None if the id is invalid
    */
-  private def convertStringToVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
+  private def convertVersionedId(itemId: String): Option[VersionedId[ObjectId]] = {
     logger.debug("handle itemId: " + itemId)
-    stringToVersionedId(itemId)
+    VersionedId(itemId)
   }
 
   def HasItem(itemId: String,
     additionalChecks: Seq[(ApiRequest[AnyContent], Item) => Option[Result]] = Seq(),
     action: ItemRequest[AnyContent] => Result): Action[AnyContent] = HasItem(itemId, additionalChecks, parse.anyContent)(action)
 
-  private def removeFileFromResource(item: Item, resource: Resource, filename: String): Result = {
+  private def removeFileFromResource(resource: Resource, filename: String)(putResourceInItem: Resource => Item): Result = {
     resource.files.find(_.name == filename) match {
       case Some(f) => {
-        resource.files = resource.files.filterNot(_.name == filename)
+
+        val updated = resource.copy(files = resource.files.filterNot(_.name == filename))
+        val updatedItem = putResourceInItem(updated)
         f match {
           case StoredFile(_, _, _, key) => s3service.delete(AppConfig.assetsBucket, key)
           case _ => //do nothing
         }
-        itemService.save(item)
+        itemService.save(updatedItem)
         Ok
       }
       case _ => NotFound(filename)
@@ -106,8 +116,8 @@ class ResourceApi(
 
   def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
-      if (contentCollectionService.isAuthorized(request.ctx.organization, item.id, Permission.Write)) {
-        if (itemService.sessionCount(item) > 0 && item.published && !force) {
+      if (contentCollectionService.isAuthorized(request.ctx.organization, new ObjectId(item.collectionId), Permission.Write)) {
+        if (sessionService.sessionCount(item.id) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),
             "flags" -> JsArray(Seq(JsString("alert_increment"))))))))
@@ -115,6 +125,14 @@ class ResourceApi(
           None
         }
       } else Some(Unauthorized(toJson(ApiError.UnauthorizedOrganization)))
+    }
+  }
+
+  private def swapInUpdate(update: Resource)(r: Resource) = {
+    if (r.name == update.name) {
+      update
+    } else {
+      r
     }
   }
 
@@ -126,7 +144,9 @@ class ResourceApi(
         val item = request.item //.asInstanceOf[ItemRequest[AnyContent]].item
         item.supportingMaterials.find(_.name == resourceName) match {
           case Some(r) => {
-            removeFileFromResource(item, r, filename)
+            removeFileFromResource(r, filename)((update) => {
+              item.copy(supportingMaterials = item.supportingMaterials.map(swapInUpdate(update)))
+            })
           }
           case _ => NotFound(resourceName)
         }
@@ -141,7 +161,9 @@ class ResourceApi(
         if (filename == DEFAULT_DATA_FILE_NAME) {
           BadRequest("Can't delete " + DEFAULT_DATA_FILE_NAME)
         } else {
-          removeFileFromResource(item, item.data.get, filename)
+          removeFileFromResource(item.data.get, filename)((update) => {
+            item.copy(data = Some(update))
+          })
         }
     })
 
@@ -157,7 +179,18 @@ class ResourceApi(
               case Some(r) => {
                 json.asOpt[BaseFile] match {
                   case Some(file) => {
-                    saveFileIfNameNotTaken(item, r, file)
+                    saveFileIfNameNotTaken(r, file)((update: Resource) => {
+
+                      def updateResource(r: Resource) = {
+                        if (r.name == update.name) {
+                          update
+                        } else {
+                          r
+                        }
+                      }
+
+                      item.copy(supportingMaterials = item.supportingMaterials.map(updateResource))
+                    })
                   }
                   case _ => BadRequest
                 }
@@ -184,7 +217,9 @@ class ResourceApi(
                 }
 
                 val processedFile = ensureDataFileIsMainIsCorrect(file)
-                saveFileIfNameNotTaken(item, item.data.get, processedFile)
+                saveFileIfNameNotTaken(item.data.get, processedFile)((update: Resource) => {
+                  item.copy(data = Some(update))
+                })
               }
               case _ => BadRequest
             }
@@ -218,6 +253,14 @@ class ResourceApi(
     }
   }
 
+  private def updateKey(update: BaseFile, file: BaseFile): BaseFile = {
+    if (file.name == update.name && file.isInstanceOf[StoredFile]) {
+      update.asInstanceOf[StoredFile].copy(storageKey = file.asInstanceOf[StoredFile].storageKey)
+    } else {
+      file
+    }
+  }
+
   def updateDataFile(itemId: String, filename: String, force: Boolean) = HasItem(
     itemId,
     Seq(editCheck(force)),
@@ -229,12 +272,9 @@ class ResourceApi(
             item.data.get.files.find(_.name == filename) match {
               case Some(f) => {
                 val processedUpdate = ensureDataFileIsMainIsCorrect(update)
-                //we don't get the storage key in the request so we need to copy it across
-                if (processedUpdate.isInstanceOf[StoredFile]) {
-                  processedUpdate.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
-                }
-                item.data.get.files = item.data.get.files.map((bf) => if (bf.name == filename) processedUpdate else bf)
-                val updatedItem = itemTransformer.updateV2Json(item)
+                val updatedData = item.data.map(d => d.copy(files = d.files.map(updateKey(update, _))))
+                val i = item.copy(data = updatedData)
+                itemTransformer.updateV2Json(i)
                 Ok(toJson(processedUpdate))
               }
               case _ => NotFound(update.name)
@@ -267,17 +307,30 @@ class ResourceApi(
                 resource.files.find(_.name == filename) match {
                   case Some(f) => {
 
-                    //we don't get the storage key in the request so we need to copy it across
-                    if (update.isInstanceOf[StoredFile]) {
-                      update.asInstanceOf[StoredFile].storageKey = f.asInstanceOf[StoredFile].storageKey
+                    val updateAndUnset: BaseFile => BaseFile = {
+                      val f: BaseFile => BaseFile = updateKey(update, _)
+                      f.andThen(unsetIsMain _)
                     }
 
-                    if (update.isMain) {
-                      unsetIsMain(resource)
+                    def updateFile(f: BaseFile): BaseFile = {
+                      val nameMatches = (f.name == update.name)
+
+                      (nameMatches, update.isMain) match {
+                        case (true, true) => updateAndUnset(f)
+                        case (false, true) => unsetIsMain(f)
+                        case (true, false) => updateKey(update, f)
+                        case (false, false) => f
+                      }
                     }
-                    resource.files = resource.files.map(bf => if (bf.name == filename) update else bf)
-                    itemService.save(item)
-                    Ok(toJson(update))
+
+                    def updateResource(r: Resource): Resource = {
+                      r.copy(id = r.id, name = r.name, materialType = r.materialType, files = r.files.map(updateFile))
+                    }
+
+                    val updatedSupportingMaterials = item.supportingMaterials.map(updateResource)
+                    val i = item.copy(supportingMaterials = updatedSupportingMaterials)
+                    itemService.save(i)
+                    Ok(toJson(i)(jsonFormatting.item))
                   }
                   case _ => NotFound
                 }
@@ -302,7 +355,7 @@ class ResourceApi(
   private def key(itemId: String, keys: String*): String = {
 
     val someItem: Option[Item] = for {
-      vId <- convertStringToVersionedId(itemId)
+      vId <- convertVersionedId(itemId)
       item <- itemService.findOneById(vId)
     } yield item
 
@@ -327,13 +380,10 @@ class ResourceApi(
         {
           request =>
 
-            def getDataResource(item: Item): Resource = item.data match {
-              case Some(r) => r
-              case _ => item.data = Some(Resource(name = "data", files = Seq())); item.data.get
-            }
+            def getOrCreateData(i: Item) = i.data.getOrElse(Resource(name = "data", files = Seq.empty))
             val item = request.item
 
-            val resource = getDataResource(item)
+            val resource = getOrCreateData(item)
 
             val file = new StoredFile(
               filename,
@@ -341,8 +391,9 @@ class ResourceApi(
               false,
               key(itemId, DATA_PATH, filename))
 
-            resource.files = resource.files ++ Seq(file)
-            itemService.save(item)
+            val updated = resource.copy(files = resource.files ++ Seq(file))
+            val i = item.copy(data = Some(updated))
+            itemService.save(i)
             Ok(toJson(file))
         })
   }
@@ -363,15 +414,23 @@ class ResourceApi(
         {
           request =>
             val item = request.asInstanceOf[ItemRequest[AnyContent]].item
-            val resource = item.supportingMaterials.find(_.name == materialName).get
 
             val file = new StoredFile(
               filename,
               contentType(filename),
               false,
               storageKey(itemId, materialName, filename))
-            resource.files = resource.files ++ Seq(file)
-            itemService.save(item)
+
+            def updateResource(r: Resource): Resource = {
+              if (r.name == materialName) {
+                r.copy(files = r.files :+ file)
+              } else {
+                r
+              }
+            }
+
+            val update = item.copy(supportingMaterials = item.supportingMaterials.map(updateResource))
+            itemService.save(update)
             Ok(toJson(file))
         })
 
@@ -425,29 +484,30 @@ class ResourceApi(
     Seq(editCheck(), canFindResource(resourceName)(_, _)),
     {
       request: ItemRequest[AnyContent] =>
-        request.item.supportingMaterials = request.item.supportingMaterials.filter(_.name != resourceName)
-        itemService.save(request.item)
+        val update = request.item.copy(supportingMaterials = request.item.supportingMaterials.filterNot(_.name == resourceName))
+        itemService.save(update)
         Ok("")
     })
 
-  private def unsetIsMain(resource: Resource) {
-    resource.files = resource.files.map((f: BaseFile) => {
-      f match {
-        case VirtualFile(n, ct, _, k) => VirtualFile(n, ct, false, k)
-        case StoredFile(n, ct, _, c) => StoredFile(n, ct, false, c)
-      }
-    })
+  private def unsetIsMain(f: BaseFile) = {
+    f match {
+      case VirtualFile(n, ct, _, k) => VirtualFile(n, ct, false, k)
+      case StoredFile(n, ct, _, c) => StoredFile(n, ct, false, c)
+    }
   }
 
-  private def saveFileIfNameNotTaken(item: Item, resource: Resource, file: BaseFile): Result =
+  private def unsetIsMain(resource: Resource): Resource = {
+    resource.copy(files = resource.files.map(unsetIsMain))
+  }
+
+  private def saveFileIfNameNotTaken(resource: Resource, file: BaseFile)(putResourceInItem: Resource => Item): Result =
     resource.files.find(_.name == file.name) match {
       case Some(existingFile) => NotAcceptable(toJson(ApiError.FilenameTaken(Some(file.name))))
       case _ => {
-        if (file.isMain == true) {
-          unsetIsMain(resource)
-        }
-        resource.files = resource.files ++ Seq(file)
-        itemService.save(item)
+        val r = if (file.isMain) unsetIsMain(resource) else resource
+        val o = r.copy(files = r.files :+ file)
+        val i = putResourceInItem(o)
+        itemService.save(i)
         Ok(toJson(file))
       }
     }
@@ -497,8 +557,3 @@ class ResourceApi(
   }
 }
 
-object ResourceApi extends ResourceApi(
-  ServiceLookup.s3Service,
-  ServiceLookup.itemTransformer,
-  ServiceLookup.itemService,
-  ServiceLookup.contentCollectionService)

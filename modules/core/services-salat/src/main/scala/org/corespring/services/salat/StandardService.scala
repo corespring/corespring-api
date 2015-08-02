@@ -6,11 +6,8 @@ import grizzled.slf4j.Logger
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
-import org.corespring.models.{ Standard, Domain }
+import org.corespring.models.{ Standard }
 import play.api.libs.json.{ JsObject, JsValue, Json }
-
-import scala.concurrent._
-import scala.concurrent.duration.Duration
 
 class StandardService(val dao: SalatDAO[Standard, ObjectId],
   val context: Context) extends org.corespring.services.StandardService with HasDao[Standard, ObjectId] {
@@ -19,11 +16,11 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def findOneById(id: ObjectId): Option[Standard] = dao.findOneById(id)
 
-  import ExecutionContext.Implicits.global
+  //import ExecutionContext.Implicits.global
 
-  val timeout = Duration(20, duration.SECONDS)
+  //private val timeout = Duration(20, duration.SECONDS)
 
-  override lazy val domains: Map[String, Seq[Domain]] = {
+  /*override lazy val domains: Map[String, Seq[Domain]] = {
 
     def combineFutures(results: Seq[Future[(String, Seq[Domain])]]) =
       Await.result(Future.sequence(results), timeout).toMap
@@ -60,7 +57,7 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
           _.category
         })
       }))
-  }
+  }*/
 
   override def findOneByDotNotation(dotNotation: String): Option[Standard] = dao.findOne(MongoDBObject("dotNotation" -> dotNotation))
 
@@ -109,4 +106,7 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
+  override def count(query: DBObject): Long = dao.count(query)
+
+  override def find(dbo: DBObject): Stream[Standard] = dao.find(dbo).toStream
 }

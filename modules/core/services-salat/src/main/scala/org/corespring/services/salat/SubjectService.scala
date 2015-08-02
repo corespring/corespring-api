@@ -56,4 +56,8 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
   }
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
+
+  override def count(query: DBObject): Long = dao.count(query)
+
+  override def find(dbo: DBObject): Stream[Subject] = dao.find(dbo).toStream
 }

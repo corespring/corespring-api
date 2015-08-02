@@ -3,13 +3,14 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
 import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ CollectionExtraDetails, ContentCollection, Organization }
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.models.search.{ Searchable, SearchCancelled }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{ ContentCollectionService, OrganizationService }
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
@@ -22,14 +23,15 @@ import scalaz.Success
  * The Collections API
  */
 
-object CollectionApi extends BaseApi {
+class CollectionApi(orgService: OrganizationService,
+  contentCollectionService: ContentCollectionService,
+  jsonFormatting: JsonFormatting) extends BaseApi {
+
+  import jsonFormatting._
 
   private[CollectionApi] object Dbo extends Searchable {
     override protected val searchableFields = Seq("name")
   }
-
-  lazy val orgService = ServiceLookup.orgService
-  lazy val contentCollectionService = ServiceLookup.contentCollectionService
 
   /**
    * Returns a list of collections visible to the organization in the request context
@@ -111,7 +113,7 @@ object CollectionApi extends BaseApi {
       case Right(query) =>
         f.map(Dbo.toFieldsObj(_)) match {
           case Some(Right(searchFields)) => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(contentCollectionService.count(query)))))
-          else Ok(Json.toJson(contentCollectionService.findByDbo(query, searchFields.dbfields, sortDbo)))
+          else Ok(Json.toJson(contentCollectionService.findByDbo(query, Some(searchFields.dbfields), sortDbo)))
           case None => if (c == "true") Ok(JsObject(Seq("count" -> JsNumber(contentCollectionService.count(query)))))
           else Ok(Json.toJson(contentCollectionService.findByDbo(query, sort = sortDbo)))
           case Some(Left(error)) => BadRequest(Json.toJson(ApiError.InvalidFields(error.clientOutput)))

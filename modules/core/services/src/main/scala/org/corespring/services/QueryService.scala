@@ -1,10 +1,10 @@
 package org.corespring.services
 
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.DBObject
 
 trait QueryService[A] {
 
-  def find(dbo: MongoDBObject): Stream[A]
+  def find(dbo: DBObject): Stream[A]
 
   def query(term: String): Stream[A]
 

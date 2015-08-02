@@ -10,10 +10,9 @@ import scalaz.Validation
 
 trait ContentCollectionService {
 
-  def distinct()
   def archiveCollectionId: ObjectId
 
-  def findByDbo(dbo: DBObject, fields: DBObject = None, sort: Option[DBObject] = None, skip: Int = 0, limit: Int = 0): Stream[ContentCollection]
+  def findByDbo(dbo: DBObject, fields: Option[DBObject] = None, sort: Option[DBObject] = None, skip: Int = 0, limit: Int = 0): Stream[ContentCollection]
   def count(dbo: DBObject): Long
 
   def findOneById(id: ObjectId): Option[ContentCollection]

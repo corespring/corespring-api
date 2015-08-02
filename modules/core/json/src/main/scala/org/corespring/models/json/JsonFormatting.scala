@@ -4,11 +4,11 @@ import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ AssessmentTemplate, Answer, Assessment }
 import org.corespring.models.json.assessment.{ AssessmentTemplateFormat, AnswerFormat, AssessmentFormat }
 import org.corespring.models.registration.RegistrationToken
-import org.corespring.models.{ Organization, ContentCollection, Standard, Subject }
+import org.corespring.models._
 import org.corespring.models.item._
-import org.corespring.models.item.resource.Resource
+import org.corespring.models.item.resource.{ BaseFile, Resource }
 import org.corespring.models.json.item._
-import org.corespring.models.json.item.resource.ResourceFormat
+import org.corespring.models.json.item.resource.{ BaseFileFormat, ResourceFormat }
 import play.api.libs.json.{ JsValue, Writes, Json, Format }
 
 /**
@@ -23,6 +23,7 @@ trait JsonFormatting {
   def findSubjectById: ObjectId => Option[Subject]
   def findStandardByDotNotation: String => Option[Standard]
   def rootOrgId: ObjectId
+  def countItemsInCollection(collectionId: ObjectId): Long
 
   val itemSummary = new ItemToSummaryWrites(this)
 
@@ -30,6 +31,12 @@ trait JsonFormatting {
 
   implicit val formatOid = ObjectIdFormat
   implicit val formatRegToken = Json.writes[RegistrationToken]
+
+  implicit lazy val writesCollectionExtraDetails: Writes[CollectionExtraDetails] = new CollectionExtraDetailsWrites {
+    override def itemCount(id: ObjectId): Long = countItemsInCollection(id)
+  }
+
+  implicit lazy val formatBaseFile: Format[BaseFile] = BaseFileFormat
 
   implicit lazy val writeOrg: Writes[Organization] = new OrganizationWrites(rootOrgId)
 

@@ -7,60 +7,60 @@ object Build extends sbt.Build {
   import Dependencies._
   import ComponentsBuilder._
 
-  val appName = "corespring"
-  val appVersion = "1.0"
-  val ScalaVersion = "2.10.5"
-  val org = "org.corespring"
+  lazy val appName = "corespring"
+  lazy val appVersion = "1.0"
+  lazy val ScalaVersion = "2.10.5"
+  lazy val org = "org.corespring"
 
-  val builders = new Builders(appName, org, appVersion, ScalaVersion)
+  lazy val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
-  val customImports = Seq(
+  lazy val customImports = Seq(
     "scala.language.reflectiveCalls",
     "se.radley.plugin.salat.Binders._",
     "org.corespring.platform.data.mongo.models.VersionedId",
     "org.bson.types.ObjectId",
     "org.corespring.web.pathbind.VersionedIdPathBind._")
 
-  val playJsonSalatUtils = builders.lib("play-json-salat-utils")
+  lazy val playJsonSalatUtils = builders.lib("play-json-salat-utils")
     .settings(
       libraryDependencies ++= Seq(playJson, salat, specs2 % "test"))
 
-  val apiUtils = builders.lib("api-utils")
+  lazy val apiUtils = builders.lib("api-utils")
     .settings(
       libraryDependencies ++= Seq(aws, specs2 % "test", playFramework, salatPlay, playJson % "test"),
       Keys.fork in Test := builders.forkInTests)
 
   /** Any shared test helpers in here */
-  val testLib = builders.testLib("test-helpers")
+  lazy val testLib = builders.testLib("test-helpers")
     .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
 
-  val assets = builders.lib("assets")
+  lazy val assets = builders.lib("assets")
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  val qti = builders.lib("qti")
+  lazy val qti = builders.lib("qti")
     .settings(libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, salatPlay, playJson, salat, rhino, rhinos))
     .dependsOn(apiUtils)
 
-  val coreModels = builders.lib("models", "core").settings(
+  lazy val coreModels = builders.lib("models", "core").settings(
     libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
-  val coreJson = builders.lib("json", "core").dependsOn(coreModels)
+  lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  val coreServices = builders.lib("services", "core").dependsOn(coreModels)
+  lazy val coreServices = builders.lib("services", "core").dependsOn(coreModels)
 
-  val coreUtils = builders.lib("utils", "core")
+  lazy val coreUtils = builders.lib("utils", "core")
 
-  val coreLegacy = builders.lib("legacy", "core")
+  lazy val coreLegacy = builders.lib("legacy", "core")
     .settings(libraryDependencies ++= Seq(securesocial, playFramework, specs2 % "test", playS3))
     .dependsOn(coreServices, coreModels, coreJson, qtiToV2)
 
-  val coreWeb = builders.lib("web", "core")
+  lazy val coreWeb = builders.lib("web", "core")
     .settings(libraryDependencies ++= Seq(securesocial, playFramework))
     .dependsOn(coreModels, coreServices)
 
-  val coreServicesSalat = builders.lib("services-salat", "core")
+  lazy val coreServicesSalat = builders.lib("services-salat", "core")
     .settings(
       libraryDependencies ++= Seq(grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
@@ -80,15 +80,15 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", specs2Mock % "it,test", aws))
     .dependsOn(coreServices, coreUtils)
 
-  val encryption = builders.lib("encryption", "core")
+  lazy val encryption = builders.lib("encryption", "core")
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro))
     .dependsOn(coreServices, coreModels)
 
-  val coreLeftovers = builders.lib("leftovers", "core")
+  lazy val coreLeftovers = builders.lib("leftovers", "core")
 
   /**
    * Core data model
-   * val core = builders.lib("core")
+   * lazy val core = builders.lib("core")
    * .settings(
    * libraryDependencies ++= Seq(
    * assetsLoader,
@@ -110,50 +110,50 @@ object Build extends sbt.Build {
    * .dependsOn(assets, testLib % "test->compile", qti, playJsonSalatUtils)
    */
 
-  val itemSearch = builders.lib("item-search")
+  lazy val itemSearch = builders.lib("item-search")
     .settings(
       libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog, macWireMacro))
     .dependsOn(coreModels, coreJson)
 
-  val commonViews = builders.web("common-views")
+  lazy val commonViews = builders.web("common-views")
     .settings(
       BuildInfo.buildInfoTask,
       (packagedArtifacts) <<= (packagedArtifacts) dependsOn BuildInfo.buildInfo,
       libraryDependencies ++= Seq(playJson % "test", assetsLoader, aws))
     .dependsOn(assets, itemSearch)
 
-  val drafts = builders.lib("drafts")
+  lazy val drafts = builders.lib("drafts")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", jodaTime, jodaConvert, scalaz))
 
-  val itemDrafts = builders.lib("item-drafts")
+  lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
     .dependsOn(coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
   /** Qti -> v2 transformers */
-  val qtiToV2 = builders.lib("qti-to-v2")
+  lazy val qtiToV2 = builders.lib("qti-to-v2")
     .settings(
       libraryDependencies ++= Seq(playJson, rhino % "test"))
     .dependsOn(coreModels, coreServices, coreUtils, coreJson, qti, apiUtils, testLib % "test->compile")
 
-  val v1Api = builders.web("v1-api")
+  lazy val v1Api = builders.web("v1-api")
     .settings(
       libraryDependencies ++= Seq(casbah, playS3),
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
-    .dependsOn(coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets)
+    .dependsOn(coreWeb, coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets, v2SessionDb)
 
   /**
    * Error types
    */
-  val v2Errors = builders.lib("v2-errors")
+  lazy val v2Errors = builders.lib("v2-errors")
     .settings(
       libraryDependencies ++= Seq(scalaz, playTest, casbah, salatVersioningDao))
     .dependsOn(coreModels)
 
-  val v2SessionDb = builders.lib("v2-session-db")
+  lazy val v2SessionDb = builders.lib("v2-session-db")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
     .dependsOn(testLib, v2Errors, qtiToV2, itemDrafts)
@@ -161,24 +161,24 @@ object Build extends sbt.Build {
   /**
    * All authentication code for v2 api + player/editor
    */
-  val v2Auth = builders.lib("v2-auth")
+  lazy val v2Auth = builders.lib("v2-auth")
     .settings(
       libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sprayCaching, grizzledLog))
     .dependsOn(coreModels, coreServices, coreWeb, coreJson, testLib, v2Errors, qtiToV2, itemDrafts, v2SessionDb, encryption)
 
-  val apiTracking = builders.lib("api-tracking")
+  lazy val apiTracking = builders.lib("api-tracking")
     .settings(
       libraryDependencies ++= Seq(playFramework)).dependsOn(v2Auth)
     .dependsOn(coreServices, v2Errors, testLib % "test->compile")
 
-  val itemImport = builders.web("item-import")
+  lazy val itemImport = builders.web("item-import")
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
     .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
 
-  val draftsApi = builders.web("v2-api-drafts")
+  lazy val draftsApi = builders.web("v2-api-drafts")
     .dependsOn(coreJson, itemDrafts, testLib % "test->test")
 
-  val v2Api = builders.web("v2-api")
+  lazy val v2Api = builders.web("v2-api")
     .settings(
       libraryDependencies ++= Seq(
         scalaz,
@@ -199,11 +199,11 @@ object Build extends sbt.Build {
       draftsApi)
 
   object TemplateImports {
-    val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
+    lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")
   }
 
   /** Implementation of corespring container hooks */
-  val v2PlayerIntegration = builders.lib("v2-player-integration")
+  lazy val v2PlayerIntegration = builders.lib("v2-player-integration")
     .settings(
       libraryDependencies ++= Seq(
         containerClientWeb,
@@ -223,12 +223,12 @@ object Build extends sbt.Build {
       itemDrafts)
     .dependsOn(v2Api)
 
-  /*val reports = builders.web("reports")
+  /*lazy val reports = builders.web("reports")
     .settings(
       libraryDependencies ++= Seq(simplecsv, casbah, playCache))
     .dependsOn(coreModels, coreServices, commonViews)*/
 
-  val main = builders.web(appName, Some(file(".")))
+  lazy val main = builders.web(appName, Some(file(".")))
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(

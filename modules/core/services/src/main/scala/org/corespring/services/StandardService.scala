@@ -1,17 +1,14 @@
 package org.corespring.services
 
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.DBObject
 import org.bson.types.ObjectId
-import org.corespring.models.{ Domain, Standard }
+import org.corespring.models.{ Standard }
 
 trait StandardService extends QueryService[Standard] {
 
-  def count(query: MongoDBObject): Long
+  def count(query: DBObject): Long
 
   def findOneById(id: ObjectId): Option[Standard]
-
-  //TODO: RF: used by v1 FieldValues api - still applicable?
-  def domains: Map[String, Seq[Domain]]
 
   def findOneByDotNotation(dotNotation: String): Option[Standard]
 }

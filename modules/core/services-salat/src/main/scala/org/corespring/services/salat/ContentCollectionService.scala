@@ -6,6 +6,7 @@ import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
@@ -18,7 +19,8 @@ class ContentCollectionService(
   val dao: SalatDAO[ContentCollection, ObjectId],
   val context: Context,
   organizationService: => interface.OrganizationService,
-  val itemService: interface.item.ItemService) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
+  val itemService: interface.item.ItemService,
+  archiveConfig: ArchiveConfig) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
 
   object Keys {
     val isPublic = "isPublic"
@@ -304,7 +306,13 @@ class ContentCollectionService(
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
 
-  override def findByDbo(dbo: Imports.DBObject): Stream[ContentCollection] = dao.find(dbo, MongoDBObject.empty).toStream
-
   override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = dao.findOneById(id)
+
+  override def archiveCollectionId: Imports.ObjectId = archiveConfig.contentCollectionId
+
+  override def count(dbo: Imports.DBObject): Long = dao.count(dbo)
+
+  override def findByDbo(dbo: Imports.DBObject, fields: Option[Imports.DBObject] = None, sort: Option[Imports.DBObject], skip: Int, limit: Int): Stream[ContentCollection] = {
+    dao.find(dbo, fields.getOrElse(MongoDBObject.empty)).sort(sort.getOrElse(MongoDBObject.empty)).skip(skip).limit(limit).toStream
+  }
 }
