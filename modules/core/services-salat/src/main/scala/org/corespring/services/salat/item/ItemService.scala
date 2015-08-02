@@ -16,6 +16,7 @@ import org.corespring.models.item.resource._
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.salat.OrganizationService
 import org.joda.time.DateTime
 import scala.concurrent.{ ExecutionContext }
 import scala.xml.Elem
@@ -27,6 +28,7 @@ class ItemService(
   assets: interface.item.ItemAssetService,
   contentCollectionService: => interface.ContentCollectionService,
   implicit val context: Context,
+  orgService: OrganizationService,
   archiveConfig: ArchiveConfig)
   extends interface.item.ItemService {
 
@@ -287,5 +289,28 @@ class ItemService(
 
   override def countItemsInCollection(collectionId: Imports.ObjectId): Long = {
     dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
+  }
+
+  override def getOrgPermissionForItem(orgId: Imports.ObjectId, itemId: VersionedId[Imports.ObjectId]): Permission = {
+    dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).map { i =>
+      try {
+        val collectionId = i.get("collectionId").asInstanceOf[String]
+        orgService.getPermissions(orgId, new ObjectId(collectionId))
+      } catch {
+        case t: Throwable => {
+
+          if (logger.isDebugEnabled) {
+            t.printStackTrace()
+          }
+
+          logger.error(t.getMessage)
+          Permission.None
+        }
+      }
+
+    }.getOrElse {
+      logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
+      Permission.None
+    }
   }
 }

@@ -1,6 +1,7 @@
 package org.corespring.services.item
 
 import com.mongodb.casbah.Imports._
+import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -14,6 +15,8 @@ trait ItemServiceClient {
 }
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
+
+  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission
 
   def countItemsInCollection(collectionId: ObjectId): Long
 

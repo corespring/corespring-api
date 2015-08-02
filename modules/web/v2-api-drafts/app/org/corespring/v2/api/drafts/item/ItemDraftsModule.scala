@@ -5,7 +5,7 @@ import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import com.novus.salat.Context
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
-import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, S3ItemDraftAssets, ItemDraftAssets }
+import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, DraftPermissions, S3ItemDraftAssets, ItemDraftAssets }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.{ ItemService }
 import org.corespring.v2.api.drafts.item.json.ItemDraftJson
@@ -30,6 +30,8 @@ trait ItemDraftsModule {
     override def collection: MongoCollection = db("commits")
     override implicit def context: Context = ItemDraftsModule.this.context
   }
+
+  def draftPermissions: DraftPermissions
 
   def s3: AmazonS3
   def assets: ItemDraftAssets = wire[S3ItemDraftAssets]

@@ -7,6 +7,7 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
 import org.corespring.ap.v1.V1ApiModule
+import org.corespring.drafts.item.DraftPermissions
 import org.corespring.legacy.ServiceLookup
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
@@ -211,4 +212,9 @@ object Main
 
   override def playMode: PlayMode = Play.current.mode
 
+  override def draftPermissions: DraftPermissions = new DraftPermissions {
+    override def userCanDelete(itemId: ObjectId, user: OrgAndUser): Boolean = ???
+
+    override def userCanCreate(itemId: ObjectId, user: OrgAndUser): Boolean = ???
+  }
 }

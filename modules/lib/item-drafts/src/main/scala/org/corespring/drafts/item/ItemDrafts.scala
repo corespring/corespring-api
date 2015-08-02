@@ -8,6 +8,7 @@ import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftDbUtils, CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
+import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -34,15 +35,12 @@ class ItemDrafts(
 
   def collection = draftService.collection
 
-  protected def userCanCreateDraft(itemId: org.bson.types.ObjectId, user: org.corespring.drafts.item.models.OrgAndUser): Boolean = ???
-  protected def userCanDeleteDrafts(itemId: org.bson.types.ObjectId, user: org.corespring.drafts.item.models.OrgAndUser): Boolean = ???
+  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = itemService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
+  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = itemService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
 
   private val utils = new ItemDraftDbUtils {
     override implicit def context: Context = ItemDrafts.this.context
   }
-
-  //protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean
-  //protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
