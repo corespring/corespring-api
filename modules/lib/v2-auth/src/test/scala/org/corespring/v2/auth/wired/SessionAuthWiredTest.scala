@@ -1,6 +1,7 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ Item, FieldValue, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -43,10 +44,17 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         m.createPlayerDefinition(any[Item]) returns playerDefinition
         m
       }
-      lazy val jsonFormatting = {
-        val m = mock[JsonFormatting]
-        m.toPlayerDefinition(any[JsValue]) returns Some(playerDefinition)
-        m
+
+      lazy val jsonFormatting = new JsonFormatting {
+        override def fieldValue: FieldValue = ???
+
+        override def findStandardByDotNotation: (String) => Option[Standard] = ???
+
+        override def countItemsInCollection(collectionId: ObjectId): Long = ???
+
+        override def rootOrgId: ObjectId = ???
+
+        override def findSubjectById: (ObjectId) => Option[Subject] = ???
       }
 
       lazy val mockCollectionId = ObjectId.get.toString
@@ -58,12 +66,19 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
 
       lazy val itemAuth: ItemAuth[OrgAndOpts] = {
-        val m = mock[ItemAuth[OrgAndOpts]]
+        val m = mock[ItemAuth[OrgAndOpts]] //.verbose
         val out = Success(
           Item(collectionId = mockCollectionId, playerDefinition = Some(playerDefinition)))
 
-        m.loadForRead(anArgThat(new IsEmptyString()))(any[OrgAndOpts]) returns Failure(defaultItemFailure)
+        m.loadForRead(anArgThat(new IsEmptyString()))(any[OrgAndOpts]) returns {
+          //println("---> empty string")
+          Failure(defaultItemFailure)
+        }
         m.loadForRead(anyString)(any[OrgAndOpts]) returns (if (itemLoadForRead) out else Failure(defaultItemFailure))
+        m.loadForWrite(anArgThat(new IsEmptyString()))(any[OrgAndOpts]) returns {
+          //println("---> empty string")
+          Failure(defaultItemFailure)
+        }
         m.loadForWrite(anyString)(any[OrgAndOpts]) returns (if (itemLoadForWrite) out else Failure(defaultItemFailure))
         m
       }
@@ -108,12 +123,11 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       "fail if theres no session" in new authScope() {
         fn(auth) must_== Failure(cantLoadSession(""))
       }
-      /*
       "fail if theres a session with no item id" in new authScope(session = Some(Json.obj())) {
         fn(auth) must_== Failure(noItemIdInSession(""))
       }
 
-      "fail if there is no item" in new authScope(session = Some(Json.obj("itemId" -> "itemId"))) {
+      "fail if there is no item" in new authScope(itemLoadForRead = false, itemLoadForWrite = false, session = Some(Json.obj("itemId" -> "itemId"))) {
         fn(auth) must_== Failure(defaultItemFailure)
       }
 
@@ -132,7 +146,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val Success((rSession, rItem)) = fn(auth)
         (rSession.as[JsObject] - "service", rItem) must_== (session.get, PlayerDefinition.empty)
         (rSession \ "service").as[String] must_== serviceName
-      }*/
+      }
     }
     def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, m, clientId)
 
@@ -143,7 +157,6 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
     "load for write - access token - uses main service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.AccessToken)), "main")
     }
-    /*
     "load for write - access token - uses main service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
@@ -158,7 +171,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
     "load for read - access token - uses main service" should {
       run(a => a.loadForRead("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
-    }*/
+    }
 
     "when loading a session" should {
       "can load write if item is read only" in new authScope(
