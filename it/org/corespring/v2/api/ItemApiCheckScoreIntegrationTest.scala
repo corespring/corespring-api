@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import org.corespring.it.IntegrationSpecification
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.platform.core.models.item._
+import org.corespring.models.item._
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.{ JsValue, Json }

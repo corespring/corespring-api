@@ -6,11 +6,11 @@ import com.novus.salat._
 import com.novus.salat.dao._
 import org.bson.types.ObjectId
 import org.corespring.common.log.ClassLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.search.SearchCancelled
-import org.corespring.platform.core.models.search.{ ItemSearch, Searchable }
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.item.Item
+import org.corespring.models.search.SearchCancelled
+import org.corespring.models.search.{ ItemSearch, Searchable }
 import org.corespring.platform.core.services.ContentCollectionService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -55,7 +55,7 @@ trait ContentCollectionImpl
   val collection = mongoCollection("contentcolls")
 
   collection.distinct()
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val dao = new SalatDAO[ContentCollection, ObjectId](collection = collection) {}
 

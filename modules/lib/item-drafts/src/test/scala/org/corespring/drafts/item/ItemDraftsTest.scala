@@ -7,8 +7,8 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
-import org.corespring.platform.core.models.item._
+import org.corespring.models.item.resource.{ StoredFile, Resource }
+import org.corespring.models.item._
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.fakes.Fakes
@@ -429,7 +429,7 @@ class ItemDraftsTest extends Specification with Mockito {
       "update the document in the db" in new __ {
 
         running(FakeApplication()) {
-          import org.corespring.platform.core.models.mongoContext.context
+          import org.corespring.models.mongoContext.context
           val draft = mkDraft(ed, item)
           val file = StoredFile("test.png", "image/png", false)
           addFileToChangeSet(draft, file)

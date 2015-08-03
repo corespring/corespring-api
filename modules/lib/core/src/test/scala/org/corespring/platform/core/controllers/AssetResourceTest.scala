@@ -2,8 +2,8 @@ package org.corespring.platform.core.controllers
 
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.BaseFile
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.BaseFile
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito

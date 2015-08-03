@@ -3,15 +3,15 @@ package web.controllers
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
 import org.corespring.common.mongo.ObjectIdParser
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.controllers.{QtiResource, AssetResourceBase}
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.BaseFile
-import org.corespring.platform.core.models.item.{ Item, Content }
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.platform.core.controllers.{ QtiResource, AssetResourceBase }
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.resource.BaseFile
+import org.corespring.models.item.{ Item, Content }
+import org.corespring.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.item.{ ItemServiceClient, ItemService }
 import org.corespring.player.v1.controllers.QtiRenderer
-import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams}
+import org.corespring.player.v1.views.models.{ QtiKeys, PlayerParams }
 import org.corespring.qti.models.RenderingMode._
 import play.api.mvc._
 import scala.xml.Elem
@@ -35,7 +35,7 @@ object ShowResource
 
       import play.api.Routes
       import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-      import web.controllers.routes.javascript.{Partials => PartialsJs}
+      import web.controllers.routes.javascript.{ Partials => PartialsJs }
       Ok(
         Routes.javascriptRouter("WebRoutes")(
           PartialsJs.editItem,
@@ -66,7 +66,6 @@ object ShowResource
   private def renderPlayer(item: Item, renderMode: RenderingMode = Web): Action[AnyContent] =
     ApiAction {
       request =>
-
 
         if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
 

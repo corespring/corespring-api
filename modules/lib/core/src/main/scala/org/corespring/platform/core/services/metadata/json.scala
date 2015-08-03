@@ -1,7 +1,7 @@
 package org.corespring.platform.core.services.metadata
 
 import play.api.libs.json._
-import org.corespring.platform.core.models.metadata.{ Metadata, MetadataSet }
+import org.corespring.models.metadata.{ Metadata, MetadataSet }
 
 object SetJson {
   def apply(set: MetadataSet, data: Option[Metadata]): JsValue = {

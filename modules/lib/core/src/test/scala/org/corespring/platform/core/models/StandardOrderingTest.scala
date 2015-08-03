@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models
 
-import org.corespring.platform.core.models.Standard.Subjects
+import org.corespring.models.Standard.Subjects
 import org.specs2.mutable.Specification
 import org.corespring.test.PlaySingleton
 import scala.util.Sorting

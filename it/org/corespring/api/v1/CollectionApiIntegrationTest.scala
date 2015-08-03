@@ -2,7 +2,7 @@ package org.corespring.api.v1
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.models.ContentCollection
 import org.corespring.test.helpers.models._
 import org.corespring.v2.player.scopes
 import play.api.libs.json.{ Json, JsValue }

@@ -6,28 +6,28 @@ import org.corespring.common.url.BaseUrl
 import org.corespring.lti.models._
 import org.corespring.lti.web.accessControl.cookies.LtiCookieKeys
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
-import org.corespring.player.accessControl.cookies.{PlayerCookieWriter, PlayerCookieKeys}
-import org.corespring.player.accessControl.models.{RenderOptions, RequestedAccess}
+import org.corespring.models.Organization
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
+import org.corespring.player.accessControl.cookies.{ PlayerCookieWriter, PlayerCookieKeys }
+import org.corespring.player.accessControl.models.{ RenderOptions, RequestedAccess }
 import play.api.libs.json.Json
 import play.api.libs.json.Json._
 import play.api.libs.oauth.ConsumerKey
 import play.api.libs.oauth.OAuthCalculator
 import play.api.libs.oauth.RequestToken
-import play.api.libs.ws.{Response, WS}
+import play.api.libs.ws.{ Response, WS }
 import play.api.mvc._
 import scala.Left
 import scala.Right
 import scala.Some
 import scala.concurrent.Future
 import scalaz.Scalaz._
-import scala.concurrent.{ExecutionContext, Await, Future}
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import scala.concurrent.{ ExecutionContext, Await, Future }
+import org.corespring.models.Organization
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
 import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
 import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
@@ -284,7 +284,7 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
 
     import play.api.libs.concurrent.Execution.Implicits._
 
-    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String) : Future[Response] = {
+    def sendResultsToPassback(consumer: LtiOAuthConsumer, score: String): Future[Response] = {
       logger.debug("Sending the grade passback to: %s".format(participant.gradePassbackUrl))
       WS.url(participant.gradePassbackUrl)
         .sign(
@@ -307,11 +307,11 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
       futureResult
     } else {
 
-      val response : Future[Response] = sendResultsToPassback(consumer, score)
+      val response: Future[Response] = sendResultsToPassback(consumer, score)
 
-      import org.corespring.lti.web.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
+      import org.corespring.lti.web.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
 
-      def toResult(r:Response): SimpleResult = {
+      def toResult(r: Response): SimpleResult = {
         val returnUrl = r.body match {
           case e: String if e.contains("Invalid authorization header") => AssignmentLauncherRoutes.error("Unauthorized").url
           case e: String if e.contains("<imsx_codeMajor>unsupported</imsx_codeMajor>") => AssignmentLauncherRoutes.error("Unsupported").url
@@ -320,12 +320,12 @@ class AssignmentLauncher(auth: TokenizedRequestActionBuilder[RequestedAccess]) e
         Ok(toJson(Map("returnUrl" -> returnUrl)))
       }
 
-      def toError(e:Throwable) : Throwable = { throw new RuntimeException(e.getMessage) }
+      def toError(e: Throwable): Throwable = { throw new RuntimeException(e.getMessage) }
       response.transform(toResult, toError)
     }
   }
 
-  def error(cause: String) = Action(Ok( org.corespring.lti.web.views.html.error(cause)))
+  def error(cause: String) = Action(Ok(org.corespring.lti.web.views.html.error(cause)))
 
   private def getScore(session: ItemSession): String = {
     val (score, maxScore) = DefaultItemSession.getTotalScore(session)

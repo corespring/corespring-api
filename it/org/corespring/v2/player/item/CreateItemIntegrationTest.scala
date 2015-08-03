@@ -2,8 +2,8 @@ package org.corespring.v2.player.item
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.User
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.User
+import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper

@@ -1,6 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.platform.core.services.item.ItemIndexService
+import org.corespring.itemSearch.ItemIndexService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors.invalidToken

@@ -1,8 +1,8 @@
 package org.corespring.api.v1
 
-import java.io.{FileOutputStream, File}
+import java.io.{ FileOutputStream, File }
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
@@ -14,17 +14,17 @@ class ExporterApiTest extends BaseTest {
 
   sequential
 
-  private def writeToFile(path:String, bytes:Array[Byte]){
-    val file : File = new File(path)
+  private def writeToFile(path: String, bytes: Array[Byte]) {
+    val file: File = new File(path)
     val output = new FileOutputStream(file)
     output.write(bytes)
     output.close()
   }
 
-  private def unzip(path:String, folder:String){
+  private def unzip(path: String, folder: String) {
     //import sys.process._
     //Seq("unzip", path, "-d", folder).!
-    new UnzipUtil().unzip(path,folder)
+    new UnzipUtil().unzip(path, folder)
   }
 
   "Exporter api" should {
@@ -40,30 +40,30 @@ class ExporterApiTest extends BaseTest {
       val path = base + "/file.zip"
       writeToFile(path, bytes)
       unzip(path, base)
-      assertManifest( base + "/imsmanifest.xml", id)
+      assertManifest(base + "/imsmanifest.xml", id)
     }
   }
 
-  private def assertManifest(path:String, id : String) : Result = {
+  private def assertManifest(path: String, id: String): Result = {
     val manifest = scala.xml.XML.loadFile(path)
 
-    ItemServiceWired.findOneById( VersionedId(new ObjectId(id)) ).map{
-      i : Item =>
+    ItemServiceWired.findOneById(VersionedId(new ObjectId(id))).map {
+      i: Item =>
         val identifier = (manifest \ "resources" \ "resource" \ "@identifier").text
-        identifier ===  i.id.toString()
+        identifier === i.id.toString()
     }.getOrElse(failure("couldn't find item"))
   }
 
-  class CleanBeforeAndAfter(val base:String) extends BeforeAfter{
+  class CleanBeforeAndAfter(val base: String) extends BeforeAfter {
 
     import sys.process._
 
-    def before{
+    def before {
       Seq("rm", "-fr", base).!
       Seq("mkdir", "-p", base).!
     }
 
-    def after{
+    def after {
       Seq("rm", "-fr", base.split("/")(0)).!
     }
   }

@@ -2,8 +2,8 @@ package org.corespring.player.accessControl.auth
 
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, PreviewItemSessionCompanion, DefaultItemSession }
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.itemSession.{ ItemSessionCompanion, PreviewItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.models.RequestedAccess.Mode

@@ -12,8 +12,8 @@ import org.corespring.drafts.item._
 import org.corespring.drafts.item.models.{ Conflict => ItemConflict, _ }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
+import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.item.{ PlayerDefinition, Item }
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.player.scopes.{ orgWithAccessTokenAndItem, ImageUtils, ImageUploader, userAndItem }

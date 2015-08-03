@@ -13,8 +13,8 @@ import org.corespring.common.aws.AwsUtil
 import org.corespring.common.config.{ SessionDbConfig, AppConfig }
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
-import org.corespring.platform.core.models.{ mongoContext, Organization }
+import org.corespring.models.item.resource.{ Resource, StoredFile }
+import org.corespring.models.{ mongoContext, Organization }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
@@ -230,7 +230,7 @@ package object scopes {
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
+      import org.corespring.models.mongoContext._
 
       super.before
       logger.debug(s"sessionId: $sessionId")
@@ -273,7 +273,7 @@ package object scopes {
     val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
+      import org.corespring.models.mongoContext._
 
       super.before
 

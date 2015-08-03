@@ -1,6 +1,6 @@
 package org.corespring.platform.core.controllers.auth
 
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 
 /**
  * A Permission Set

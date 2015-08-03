@@ -1,6 +1,6 @@
 package plugins
 
-import org.corespring.platform.core.models.User
+import org.corespring.models.User
 import play.Application
 import play.api.mvc.{ Session, RequestHeader }
 import securesocial.core.{ LoginEvent, SignUpEvent, Event, EventListener }

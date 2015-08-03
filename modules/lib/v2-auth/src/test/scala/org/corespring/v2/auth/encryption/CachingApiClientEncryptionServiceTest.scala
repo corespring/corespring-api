@@ -1,8 +1,8 @@
 package org.corespring.v2.auth.encryption
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption.{ EncryptionSuccess, ApiClientEncryptionService }
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.encryption.apiClient.{ EncryptionSuccess, ApiClientEncryptionService }
+import org.corespring.models.auth.ApiClient
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -10,7 +10,6 @@ import org.specs2.specification.Scope
 import scala.concurrent.duration.Duration
 
 class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
-
   val apiClient = ApiClient(orgId = new ObjectId(), clientId = new ObjectId(), clientSecret = "secret")
   val data = "this is my data"
   val encryptedData = "guvf vf zl qngn"

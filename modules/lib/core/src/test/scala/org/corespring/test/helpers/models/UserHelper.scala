@@ -1,8 +1,8 @@
 package org.corespring.test.helpers.models
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ UserOrg, User }
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.{ UserOrg, User }
+import org.corespring.models.auth.Permission
 
 object UserHelper {
 

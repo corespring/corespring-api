@@ -3,12 +3,12 @@ package org.corespring.platform.core.models.item
 import com.mongodb.BasicDBObject
 import org.bson.types.ObjectId
 import org.corespring.platform.core
-import org.corespring.platform.core.models.Subject
-import org.corespring.platform.core.models.item.Item.Keys
-import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.models.Subject
+import org.corespring.models.item.Item.Keys
+import org.corespring.models.json.JsonValidationException
 import org.corespring.test.BaseTest
 import play.api.libs.json.{ JsArray, JsObject, JsString, Json }
-import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, Resource }
+import org.corespring.models.item.resource.{ BaseFile, VirtualFile, Resource }
 
 class ItemTest extends BaseTest {
 

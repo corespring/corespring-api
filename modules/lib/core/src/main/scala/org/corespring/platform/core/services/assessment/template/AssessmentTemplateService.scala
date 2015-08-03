@@ -6,11 +6,11 @@ import org.corespring.platform.core.services.BaseContentService
 import com.novus.salat.dao.{ ModelCompanion, SalatDAO, SalatMongoCursor }
 import com.mongodb.casbah.commons.MongoDBObject
 import org.joda.time.DateTime
-import org.corespring.platform.core.models.assessment.SalatAssessmentTemplate
+import org.corespring.models.assessment.SalatAssessmentTemplate
 import scala.Some
 import com.mongodb.casbah.commons.TypeImports.ObjectId
 import play.api.Play.current
-import org.corespring.platform.core.models.mongoContext.context
+import org.corespring.models.mongoContext.context
 
 trait AssessmentTemplateService extends BaseContentService[SalatAssessmentTemplate, ObjectId] {
   def find(): SalatMongoCursor[SalatAssessmentTemplate]

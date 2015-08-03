@@ -3,9 +3,9 @@ package org.corespring.v2.player.hooks
 import java.util.concurrent.TimeUnit
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
+import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.Organization
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer

@@ -6,8 +6,8 @@ import play.mvc.BodyParser.FormUrlEncoded
 import org.corespring.platform.data.VersioningDao
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.SalatVersioningDao
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.Organization
+import org.corespring.models.item.Item
 import org.corespring.platform.core.services.item.{ XmlSearchClient, XmlSearch, ItemServiceWired }
 import org.corespring.platform.core.controllers.auth.BaseApi
 

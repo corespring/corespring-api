@@ -5,11 +5,11 @@ import org.bson.types.ObjectId
 import org.corespring.api.v1.routes.OrganizationApi
 import org.corespring.platform.core.controllers.auth.OAuthConstants
 import org.joda.time.DateTime
-import play.api.mvc.{SimpleResult, AnyContentAsFormUrlEncoded}
-import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.platform.core.models.auth.{Permission, ApiClient, AccessToken}
-import org.corespring.platform.core.models.{User, Organization}
-import org.corespring.test.{SecureSocialHelpers, TestModelHelpers, BaseTest}
+import play.api.mvc.{ SimpleResult, AnyContentAsFormUrlEncoded }
+import org.corespring.models.{ User, Organization }
+import org.corespring.models.auth.{ Permission, ApiClient, AccessToken }
+import org.corespring.models.{ User, Organization }
+import org.corespring.test.{ SecureSocialHelpers, TestModelHelpers, BaseTest }
 import org.specs2.execute.Result
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsFormUrlEncoded
@@ -24,7 +24,6 @@ class AuthControllerTest extends BaseTest
   with SecureSocialHelpers {
 
   val Routes = org.corespring.platform.core.controllers.auth.routes.AuthController
-
 
   /** Execute a specs method body once we register and have a client id and secret, tidy up after */
   def withRegistration(orgId: ObjectId, user: Option[User], fn: ((String, String) => Result)): Result = {
@@ -46,7 +45,7 @@ class AuthControllerTest extends BaseTest
   /** Execute a specs method body once we have a token and tidy up after */
   def withToken(user: User, clientId: String, secret: String, fn: (String => Result), grantType: Option[String] = None): Result = {
     val tokenRequest = FakeRequest(Routes.getAccessToken().method, Routes.getAccessToken().url)
-      .withCookies(secureSocialCookie(Some(user)).toList : _*)
+      .withCookies(secureSocialCookie(Some(user)).toList: _*)
       .withFormUrlEncodedBody(tokenFormBody(clientId, secret, user.userName, grantType): _*)
 
     route(tokenRequest) match {
@@ -61,10 +60,9 @@ class AuthControllerTest extends BaseTest
     }
   }
 
-
   def registerRequest(orgId: ObjectId, maybeUser: Option[User] = None): FakeRequest[AnyContentAsFormUrlEncoded] = {
     FakeRequest(Routes.register().method, Routes.register().url)
-      .withCookies(secureSocialCookie(maybeUser).toList : _*)
+      .withCookies(secureSocialCookie(maybeUser).toList: _*)
       .withFormUrlEncodedBody(OAuthConstants.Organization -> orgId.toString)
   }
 

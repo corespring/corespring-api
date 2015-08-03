@@ -15,8 +15,7 @@ trait ItemServiceClient {
 }
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
-
-  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission
+  def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 
   def countItemsInCollection(collectionId: ObjectId): Long
 

@@ -8,9 +8,9 @@ import dao.SalatMongoCursor
 import dao.SalatRemoveError
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.search.Searchable
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.search.Searchable
 import org.joda.time.DateTime
 import play.api.Play
 import play.api.Play.current
@@ -42,7 +42,7 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
 
   val collection = mongoCollection("users")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val dao = new SalatDAO[User, ObjectId](collection = collection) {}
 

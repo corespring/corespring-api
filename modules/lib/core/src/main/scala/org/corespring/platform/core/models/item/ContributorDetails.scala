@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import play.api.libs.json._
-import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.models.json.JsonValidationException
 
 case class ContributorDetails(
   var additionalCopyrights: Seq[AdditionalCopyright] = Seq(),

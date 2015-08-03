@@ -1,8 +1,8 @@
 package org.corespring.platform.core.services
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.metadata.MetadataSet
-import org.corespring.platform.core.models.{ Organization, OrganizationImpl }
+import org.corespring.models.metadata.MetadataSet
+import org.corespring.models.{ Organization, OrganizationImpl }
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.test.PlaySingleton

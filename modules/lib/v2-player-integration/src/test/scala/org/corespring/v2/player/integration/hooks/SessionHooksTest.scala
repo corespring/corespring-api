@@ -2,9 +2,9 @@ package org.corespring.v2.player.integration.hooks
 
 import akka.util.internal.Timeout
 import org.corespring.container.client.hooks.{ SaveSession, SessionOutcome, FullSession }
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
+import org.corespring.models.Organization
+import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.SessionAuth.Session

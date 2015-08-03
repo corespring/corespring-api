@@ -2,10 +2,10 @@ package web.controllers
 
 import common.controllers.session.SessionHandler
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.web.QtiTemplate
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.web.QtiTemplate
+import org.corespring.models.{ User, Organization }
 import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 import play.api.mvc._
 import scala.Some
 import securesocial.core.SecuredRequest

@@ -2,7 +2,7 @@ package org.corespring.wiring.apiTracking
 
 import akka.actor.{ ActorRef, Props }
 import org.corespring.api.tracking.{ LogRequest, ApiCall, ApiTrackingActor, TrackingService }
-import org.corespring.platform.core.models.auth.ApiClientService
+import org.corespring.models.auth.ApiClientService
 import org.corespring.v2.auth.services.TokenService
 import play.api.mvc.RequestHeader
 import play.api.{ Logger, Mode, Play }

@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.metadata.{ MetadataSet, SchemaMetadata, Metadata }
+import org.corespring.models.metadata.{ MetadataSet, SchemaMetadata, Metadata }
 import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.{ OrgAndOpts, MockFactory }

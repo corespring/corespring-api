@@ -4,8 +4,8 @@ import com.novus.salat.dao.SalatSaveError
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
+import org.corespring.models.Organization
+import org.corespring.models.auth.{ ApiClient, AccessToken }
 import org.joda.time.DateTime
 import play.api.Logger
 import scala.Some

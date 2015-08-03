@@ -6,6 +6,7 @@ import com.novus.salat.{ Context, grater }
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
@@ -371,5 +372,27 @@ class OrganizationService(
   override def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization] = {
     val cursor = if (deep) dao.find(MongoDBObject(path -> orgId)) else dao.find(MongoDBObject("_id" -> orgId)) //find the tree of the given organization
     cursor.toSeq
+  }
+
+  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission = {
+    itemService.collectionIdForItem(itemId).map { collectionId =>
+      try {
+        getPermissions(orgId, collectionId)
+      } catch {
+        case t: Throwable => {
+
+          if (logger.isDebugEnabled) {
+            t.printStackTrace()
+          }
+
+          logger.error(t.getMessage)
+          Permission.None
+        }
+      }
+
+    }.getOrElse {
+      logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
+      Permission.None
+    }
   }
 }

@@ -1,7 +1,7 @@
 package org.corespring.platform.core.services.item
 
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.StoredFile
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.services.BaseContentService

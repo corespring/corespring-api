@@ -4,8 +4,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ContentCollection, Organization, User}
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ ContentCollection, Organization, User }
 import play.api.libs.json.{ JsObject, JsString, Json, _ }
 import play.api.mvc._
 import securesocial.core.SecureSocial

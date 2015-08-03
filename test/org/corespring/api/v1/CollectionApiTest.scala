@@ -2,8 +2,8 @@ package org.corespring.api.v1
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ Organization, ContentCollection }
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ Organization, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.test.BaseTest
 import org.corespring.test.helpers.models._
@@ -282,8 +282,8 @@ trait CollectionSharingScope extends BeforeAfter {
   // enable collection b1 in org A
   Organization.setCollectionEnabledStatus(organizationA, collectionB1, true)
 
-  def publishItemsInCollection(collectionId:ObjectId) = {
-    ItemHelper.publish( MongoDBObject("collectionId" -> collectionId.toString))
+  def publishItemsInCollection(collectionId: ObjectId) = {
+    ItemHelper.publish(MongoDBObject("collectionId" -> collectionId.toString))
   }
 
   def before: Unit = {

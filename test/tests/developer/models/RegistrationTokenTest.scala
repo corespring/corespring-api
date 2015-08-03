@@ -1,7 +1,7 @@
 package tests.developer.models
 
 import org.specs2.mutable.Specification
-import org.corespring.platform.core.models._
+import org.corespring.models._
 import play.api.libs.json.Json
 import scala.Some
 import org.joda.time.DateTime
@@ -17,8 +17,7 @@ class RegistrationTokenTest extends BaseTest {
         email = "email",
         creationTime = Some(new DateTime()),
         expirationTime = Some(new DateTime() plusHours 1),
-        isSignUp = true
-      )
+        isSignUp = true)
 
       val json = Json.toJson(token)
 
@@ -30,12 +29,11 @@ class RegistrationTokenTest extends BaseTest {
 
     "deserializing from json" in {
       val token = RegistrationToken(
-              uuid = "uuid",
-              email = "email",
-              creationTime = Some(new DateTime()),
-              expirationTime = Some(new DateTime() plusHours 1),
-              isSignUp = true
-            )
+        uuid = "uuid",
+        email = "email",
+        creationTime = Some(new DateTime()),
+        expirationTime = Some(new DateTime() plusHours 1),
+        isSignUp = true)
 
       val json = Json.toJson(token)
       val parsed = json.as[RegistrationToken]

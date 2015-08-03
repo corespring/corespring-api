@@ -1,17 +1,17 @@
 package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.services.organization.OrganizationService
-import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, MockFactory }
+import org.corespring.models.Organization
+import org.corespring.models.auth.Permission
+import org.corespring.services.OrganizationService
+import org.corespring.v2.auth.models.Mode.Mode
+import org.corespring.v2.auth.models.{ PlayerAccessSettings, MockFactory }
 import org.corespring.v2.errors.Errors.{ invalidObjectId, generalError, orgCantAccessCollection, noCollectionIdForItem }
-import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{ Validation, Failure, Success }
+import scalaz.{ Failure, Success }
 
 class ItemAccessTest extends Specification with Mockito with MockFactory {
 
@@ -22,9 +22,18 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
 
     val noPermission = generalError("no permission")
 
-    lazy val access = new ItemAccess {
+    lazy val orgService: OrganizationService = {
+      val m = mock[OrganizationService]
+      m.canAccessCollection(
+        any[Organization],
+        any[ObjectId],
+        any[Permission]) returns orgCanAccess
+      m
+    }
 
-      override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+    lazy val checker = {
+      val m = mock[AccessSettingsWildcardCheck]
+      m.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns {
         if (hasPermission) {
           Success(true)
         } else {
@@ -32,41 +41,31 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
         }
       }
 
-      override def orgService: OrganizationService = {
-        val m = mock[OrganizationService]
-        m.canAccessCollection(
-          any[Organization],
-          any[ObjectId],
-          any[Permission]) returns orgCanAccess
-        m
-      }
     }
+
+    lazy val access = new ItemAccess(orgService, checker)
   }
 
   "ItemAccess" should {
 
     "grant" should {
-      "return Failure - if the item has no collection id" in new accessScope {
-        val item = mockItem
-        access.grant(opts, Permission.Write, item) must_==
-          Failure(noCollectionIdForItem(item.id))
-      }
 
       "return Failure - if org can't access" in new accessScope(false) {
-        val item = mockItem.copy(collectionId = Some(ObjectId.get.toString))
+        val item = mockItem.copy(collectionId = ObjectId.get.toString)
         access.grant(opts, Permission.Write, item) must_==
           Failure(
             orgCantAccessCollection(opts.org.id,
-              item.collectionId.getOrElse("?"), Permission.Write.name))
+              item.collectionId, Permission.Write.name))
       }
 
-      "return Failure -  permission is false" in new accessScope(hasPermission = false) {
-        val item = mockItem.copy(collectionId = Some(ObjectId.get.toString))
+      "return Failure - permission is false" in new accessScope(hasPermission = false) {
+        val item = mockItem.copy(collectionId = ObjectId.get.toString)
+        opts.copy(opts = opts.opts.copy())
         access.grant(opts, Permission.Write, item) must_== Failure(noPermission)
       }
 
       "return Success" in new accessScope {
-        val item = mockItem.copy(collectionId = Some(ObjectId.get.toString))
+        val item = mockItem.copy(collectionId = ObjectId.get.toString)
         access.grant(opts, Permission.Write, item) must_==
           Success(true)
       }
@@ -78,13 +77,18 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
 
         val opts = mockOrgAndOpts()
 
-        lazy val access = new ItemAccess {
-          override def orgService: OrganizationService = {
-            val m = mock[OrganizationService]
-            m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
-            m
-          }
+        lazy val orgService = {
+          val m = mock[OrganizationService]
+          m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
+          m
         }
+
+        lazy val checker = {
+          val m = mock[AccessSettingsWildcardCheck]
+          m.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns Success(true)
+        }
+
+        lazy val access = new ItemAccess(orgService, checker)
       }
 
       "return Failure - if collection id is invalid" in new s {

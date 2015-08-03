@@ -8,8 +8,8 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.UploadResult
 import org.corespring.drafts.item.S3Paths
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton

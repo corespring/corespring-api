@@ -3,8 +3,8 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.encryption.ApiClientEncrypter
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService

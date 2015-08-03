@@ -3,8 +3,8 @@ package org.corespring.api.v1
 import org.bson.types.ObjectId
 import org.corespring.api.v1
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.itemSession._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.QtiItem
 import org.corespring.qti.models.responses.ArrayResponse
@@ -178,7 +178,7 @@ class ItemSessionApiTest extends BaseTest with RequestCalling {
   }
 
   "creating and then updating item session" should {
-    import org.corespring.platform.core.models.itemSession.{ DefaultItemSession => IS }
+    import org.corespring.models.itemSession.{ DefaultItemSession => IS }
 
     def addResponses(): Seq[Response] = Seq(
       StringResponse("mexicanPresident", "calderon"),

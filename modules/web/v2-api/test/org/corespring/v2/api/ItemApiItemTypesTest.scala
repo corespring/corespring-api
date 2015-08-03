@@ -1,6 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.platform.core.models.item.ItemType
+import org.corespring.models.item.ItemType
 import org.corespring.platform.core.services.item.ItemIndexService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

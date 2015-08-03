@@ -1,12 +1,12 @@
 package org.corespring.platform.core.services
 
-import org.corespring.platform.core.models.item.Content
+import org.corespring.models.item.Content
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models._
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models._
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
 import com.mongodb.casbah.commons.MongoDBObject
-import org.corespring.platform.core.models.item.Item.Keys._
+import org.corespring.models.item.Item.Keys._
 import com.novus.salat.dao.SalatMongoCursor
 
 trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {

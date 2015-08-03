@@ -1,7 +1,7 @@
 package org.corespring.qtiToV2.transformers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ AdditionalCopyright, Copyright, Item }
+import org.corespring.models.item.{ AdditionalCopyright, Copyright, Item }
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 

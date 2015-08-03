@@ -2,9 +2,9 @@ package org.corespring.platform.core.models.itemSession
 
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.BaseFile.ContentTypes
+import org.corespring.models.item.resource.{ VirtualFile, Resource }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{ ArrayResponse, StringResponse }
 import org.corespring.test.BaseTest
@@ -262,24 +262,24 @@ class ItemSessionTest extends BaseTest {
         }
       }
     }
-    "return session outcome with overall score" in{
+    "return session outcome with overall score" in {
 
       val xml = <assessmentItem>
-        <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
-          <correctResponse>
-            <value>q1Answer</value>
-          </correctResponse>
-        </responseDeclaration>
-        <responseDeclaration identifier="q2" cardinality="single" baseType="identifier">
-          <correctResponse>
-            <value>q2Answer</value>
-          </correctResponse>
-        </responseDeclaration>
-        <itemBody>
-          <choiceInteraction responseIdentifier="q1"></choiceInteraction>
-          <choiceInteraction responseIdentifier="q2"></choiceInteraction>
-        </itemBody>
-      </assessmentItem>
+                  <responseDeclaration identifier="q1" cardinality="single" baseType="identifier">
+                    <correctResponse>
+                      <value>q1Answer</value>
+                    </correctResponse>
+                  </responseDeclaration>
+                  <responseDeclaration identifier="q2" cardinality="single" baseType="identifier">
+                    <correctResponse>
+                      <value>q2Answer</value>
+                    </correctResponse>
+                  </responseDeclaration>
+                  <itemBody>
+                    <choiceInteraction responseIdentifier="q1"></choiceInteraction>
+                    <choiceInteraction responseIdentifier="q2"></choiceInteraction>
+                  </itemBody>
+                </assessmentItem>
 
       val session = ItemSession(itemId = genItemId)
       session.responses = Seq(
@@ -340,7 +340,7 @@ class ItemSessionTest extends BaseTest {
       }
       session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
       itemSession.process(session, MockXml.AllItems, false)(false) match {
-        case Left(e) => failure("error: "+e.message)
+        case Left(e) => failure("error: " + e.message)
         case Right(s) => {
           println(Json.toJson(s).toString())
           s.responses.exists(r => r.id == "winterDiscontent" && r.value == "blergl") === true
@@ -434,10 +434,10 @@ class ItemSessionTest extends BaseTest {
       val session = ItemSession(id = id, itemId = genItemId, finish = Some(DateTime.now), attempts = 10)
       val dbId = itemSession.insert(session)
       itemSession.reopen(session)
-      itemSession.findOneById(id).map{ s =>
+      itemSession.findOneById(id).map { s =>
         s.finish.isEmpty === true
         s.attempts === 0
       }.getOrElse(failure(s"Can't find session with id: $id"))
     }
-   }
+  }
 }

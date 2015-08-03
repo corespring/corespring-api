@@ -2,11 +2,11 @@ package tests.models
 
 import org.specs2.mutable.Specification
 import org.corespring.qti.models.QtiItem
-import org.corespring.platform.core.models.itemSession.{ SessionOutcome, ItemSession }
+import org.corespring.models.itemSession.{ SessionOutcome, ItemSession }
 import org.corespring.qti.models.responses.{ ArrayResponse, StringResponse }
 import scalaz.{ Failure, Success }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 import play.api.libs.json._
 
 class SessionOutcomeTest extends Specification {

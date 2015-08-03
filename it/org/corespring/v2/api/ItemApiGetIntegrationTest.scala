@@ -2,8 +2,8 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item._
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models.{ CollectionHelper, ItemHelper }

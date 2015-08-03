@@ -1,20 +1,20 @@
 package org.corespring.platform.core.models.item.index
 
-import org.corespring.platform.core.models.JsonUtil
+import org.corespring.models.JsonUtil
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
 case class ItemIndexHit(id: String,
-                        collectionId: Option[String],
-                        contributor: Option[String],
-                        published: Boolean,
-                        standards: Map[String, String],
-                        subject: Option[String],
-                        gradeLevels: Seq[String],
-                        title: Option[String],
-                        description: Option[String],
-                        apiVersion: Option[Int],
-                        itemTypes: Seq[String])
+  collectionId: Option[String],
+  contributor: Option[String],
+  published: Boolean,
+  standards: Map[String, String],
+  subject: Option[String],
+  gradeLevels: Seq[String],
+  title: Option[String],
+  description: Option[String],
+  apiVersion: Option[Int],
+  itemTypes: Seq[String])
 
 object ItemIndexHit {
 
@@ -37,10 +37,12 @@ object ItemIndexHit {
 
     def reads(json: JsValue) = try {
       JsSuccess(ItemIndexHit(
-        id = s"${(json \ "_id").as[String]}${(json \ "_source" \ "version").asOpt[Int] match {
-          case Some(version) => s":$version"
-          case _ => ""
-        }}",
+        id = s"${(json \ "_id").as[String]}${
+          (json \ "_source" \ "version").asOpt[Int] match {
+            case Some(version) => s":$version"
+            case _ => ""
+          }
+        }",
         collectionId = (json \ "_source" \ "collectionId").asOpt[String],
         contributor = (json \ "_source" \ "contributorDetails" \ "contributor").asOpt[String],
         published = (json \ "_source" \ "published").asOpt[Boolean].getOrElse(false),
@@ -51,8 +53,7 @@ object ItemIndexHit {
         title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
         description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
         apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int],
-        itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)
-      ))
+        itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)))
     } catch {
       case exception: Exception => {
         logger.error(s"Error parsing ${json \ "_id"}")
@@ -73,8 +74,7 @@ object ItemIndexHit {
         "title" -> title,
         "description" -> description,
         "apiVersion" -> apiVersion,
-        "itemTypes" -> itemTypes
-      )
+        "itemTypes" -> itemTypes)
     }
   }
 

@@ -3,9 +3,9 @@ package org.corespring.qtiToV2.transformers
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.ModelCompanion
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.ContentCollection
+import org.corespring.models.item._
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
@@ -16,21 +16,20 @@ import play.api.libs.json.{ JsObject, JsValue, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
-
   PlaySingleton.start()
 
   val itemServiceMock = mock[ItemService]
 
   val mockCollectionId = ObjectId.get()
 
-  var mockCollection:Option[ContentCollection] = Some(new ContentCollection("Collection name",ownerOrgId = ObjectId.get(),id = mockCollectionId))
+  var mockCollection: Option[ContentCollection] = Some(new ContentCollection("Collection name", ownerOrgId = ObjectId.get(), id = mockCollectionId))
 
   val itemTransformer = new ItemTransformer {
     def itemService = itemServiceMock
 
     override def configuration: Configuration = Configuration.empty
 
-    override def findCollection(id:ObjectId):Option[ContentCollection] = mockCollection
+    override def findCollection(id: ObjectId): Option[ContentCollection] = mockCollection
   }
 
   val qti =

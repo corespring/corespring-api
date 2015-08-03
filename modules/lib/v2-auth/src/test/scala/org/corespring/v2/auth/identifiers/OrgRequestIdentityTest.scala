@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ User, Organization }
+import org.corespring.models.{ User, Organization }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.specs2.execute.AsResult
@@ -13,8 +13,7 @@ import scalaz.{ Failure, Success, Validation }
 
 class OrgRequestIdentityTest
   extends Specification
-  with Mockito
-  with IdentitySpec {
+  with Mockito {
 
   "With org transformer" should {
 
@@ -23,9 +22,7 @@ class OrgRequestIdentityTest
       val org: Validation[V2Error, (Organization, Option[User])] = Failure(generalError("?"))) extends Around {
 
       override def around[T: AsResult](t: => T) = {
-        running(fakeApp) {
-          AsResult.effectively(t)
-        }
+        AsResult.effectively(t)
       }
 
       val tf = new MockRequestIdentity(defaultCollection, org)

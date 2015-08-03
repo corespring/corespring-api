@@ -1,8 +1,8 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ContentCollRef, Organization}
-import org.corespring.services.errors.{GeneralError, PlatformServiceError}
+import org.corespring.models.{ ContentCollRef, Organization }
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
 
@@ -10,15 +10,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   trait TestWrapper extends BeforeAfter {
 
-    lazy val service = services.org
+    lazy val service = services.orgService
     lazy val orgId: ObjectId = ObjectId.get
-    lazy val collectionId : ObjectId = ObjectId.get
+    lazy val collectionId: ObjectId = ObjectId.get
     lazy val org = Organization(
       name = "orgservice-test-org",
       id = orgId,
-      isRoot = true,
-      contentcolls = Seq(ContentCollRef(collectionId = collectionId))
-    )
+      contentcolls = Seq(ContentCollRef(collectionId = collectionId)))
     lazy val setId: ObjectId = ObjectId.get
 
     def after: Any = service.delete(orgId)
@@ -65,21 +63,21 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       service.findOneById(org.id).map(_.name) === Some("update")
     }
 
-    "return an error if no org is found" in new TestWrapper{
+    "return an error if no org is found" in new TestWrapper {
       service.changeName(ObjectId.get, "update").left.get must haveClass[GeneralError]
     }
   }
 
   "updateOrganization" should {
     "update the org in the db" in new TestWrapper {
-      val update = org.copy(name ="update")
+      val update = org.copy(name = "update")
       service.updateOrganization(update)
       service.findOneById(update.id).map(_.name) === Some("update")
     }
   }
 
   "setCollectionEnabledStatus" should {
-    "set the status to true" in new TestWrapper{
+    "set the status to true" in new TestWrapper {
       service.setCollectionEnabledStatus(org.id, collectionId, true)
       service.findOneById(org.id).get
         .contentcolls
@@ -87,7 +85,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         .map(_.enabled) === Some(true)
     }
 
-    "set the status to false" in new TestWrapper{
+    "set the status to false" in new TestWrapper {
       service.setCollectionEnabledStatus(org.id, collectionId, true)
       service.setCollectionEnabledStatus(org.id, collectionId, false)
       service.findOneById(org.id).get

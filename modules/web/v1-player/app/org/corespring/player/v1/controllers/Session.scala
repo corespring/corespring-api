@@ -2,11 +2,11 @@ package org.corespring.player.v1.controllers
 
 import org.bson.types.ObjectId
 import org.corespring.api.v1.ItemSessionApi
-import org.corespring.platform.core.models.itemSession.PreviewItemSessionCompanion
+import org.corespring.models.itemSession.PreviewItemSessionCompanion
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.player.accessControl.auth.{CheckSessionAccess, TokenizedRequestActionBuilder}
+import org.corespring.player.accessControl.auth.{ CheckSessionAccess, TokenizedRequestActionBuilder }
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess
 import org.corespring.player.accessControl.models.RequestedAccess.Mode._
@@ -30,15 +30,14 @@ class Session(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Cont
   def create(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId)))(implicit request => api.create(itemId)(request))
 
-  def read(itemId: VersionedId[ObjectId], sessionId: ObjectId, role:String) = auth.ValidatedAction(
+  def read(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId), Some(sessionId), role = Some(role)))(implicit request =>
-    api.get(itemId, sessionId, role)(request))
+      api.get(itemId, sessionId, role)(request))
 
   def update(itemId: VersionedId[ObjectId], sessionId: ObjectId, role: String, action: Option[String] = None) = {
     auth.ValidatedAction(
       RequestedAccess.asRead(Some(itemId), Some(sessionId), role = Some(role)))(implicit request =>
-      api.update(itemId, sessionId, role, action)(request)
-    )
+        api.update(itemId, sessionId, role, action)(request))
   }
 
   def aggregate(assessmentId: ObjectId, itemId: VersionedId[ObjectId]) = auth.ValidatedAction(

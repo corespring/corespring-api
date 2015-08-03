@@ -15,9 +15,9 @@ import scala.Some
 import securesocial.controllers.Registration._
 import play.api.libs.json.{ JsString, JsObject }
 import org.corespring.platform.core.models
-import org.corespring.platform.core.models.{ContentCollection, User}
+import org.corespring.models.{ ContentCollection, User }
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 
 object MyRegistration extends Controller {
   val Organization = "organization"

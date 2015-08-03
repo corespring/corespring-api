@@ -5,7 +5,7 @@ import com.mongodb.{ BasicDBList, DBObject }
 import com.novus.salat.Context
 import com.novus.salat.transformers.CustomTransformer
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.corespring.platform.core.models.item.resource.BaseFile
+import org.corespring.models.item.resource.BaseFile
 import org.corespring.play.json.salat.utils.{ ToJsValue, ToDBObject }
 import play.api.libs.json._
 import org.slf4j.LoggerFactory

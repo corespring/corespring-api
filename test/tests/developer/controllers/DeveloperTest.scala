@@ -6,49 +6,49 @@ import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.controllers.auth.AuthController
-import org.corespring.platform.core.models.{ContentCollection, User, Organization}
-import org.corespring.test.{SecureSocialHelpers, TestModelHelpers, BaseTest}
-import org.specs2.mutable.{Before, After}
-import play.api.libs.json.{JsArray, Json}
-import play.api.mvc.{AnyContentAsFormUrlEncoded, AnyContentAsJson}
+import org.corespring.models.{ ContentCollection, User, Organization }
+import org.corespring.test.{ SecureSocialHelpers, TestModelHelpers, BaseTest }
+import org.specs2.mutable.{ Before, After }
+import play.api.libs.json.{ JsArray, Json }
+import play.api.mvc.{ AnyContentAsFormUrlEncoded, AnyContentAsJson }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 class DeveloperTest extends BaseTest
   with SecureSocialHelpers
-  with PackageLogging{
+  with PackageLogging {
 
   sequential
 
   "Developer" should {
 
-    "redirects to organization form when user belongs to demo org" in new MockUser{
-      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
+    "redirects to organization form when user belongs to demo org" in new MockUser {
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList: _*)
       val result = Developer.home(request)
       status(result) must equalTo(SEE_OTHER)
       headers(result).get("Location") must beEqualTo(Some("/developer/org/form"))
     }
 
-    "return developer/home when user has registered org" in new MockUser{
+    "return developer/home when user has registered org" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList: _*)
       val createResult = Developer.createOrganization()(createRequest)
       status(createResult) === OK
-      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val request = fakeRequest().withCookies(secureSocialCookie(Some(user)).toList: _*)
       val result = Developer.home(request)
       status(result) must equalTo(OK)
     }
 
-    "creates a default collection for the organisation" in new MockUser{
+    "creates a default collection for the organisation" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList: _*)
       status(Developer.createOrganization()(request)) === OK
       Organization.findOne(MongoDBObject("name" -> testOrgName))
         .map(
           org => {
-            val publicCollectionsRefs =  ContentCollection.getPublicCollections.map (col => col.id)
+            val publicCollectionsRefs = ContentCollection.getPublicCollections.map(col => col.id)
 
             // Check that newly created organization contains reference to a default collection
             // When created any organization is automatically added all public collections so we will filter them out
@@ -69,21 +69,20 @@ class DeveloperTest extends BaseTest
     "create only one org" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val request = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList: _*)
       status(Developer.createOrganization()(request)) === OK
       status(Developer.createOrganization()(request)) === BAD_REQUEST
     }
 
-    "be able to view org after creating it" in new MockUser{
+    "be able to view org after creating it" in new MockUser {
       val orgName = """{"name":"%s"}""".format(testOrgName)
       val json = Json.parse(orgName)
-      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList : _*)
+      val createRequest = fakeRequest(AnyContentAsJson(json)).withCookies(secureSocialCookie(Some(user)).toList: _*)
       val createResult = Developer.createOrganization()(createRequest)
       status(createResult) === OK
-      val body = contentAsString(createResult).replaceAll("\\s","")
+      val body = contentAsString(createResult).replaceAll("\\s", "")
       val m = Pattern.compile(
-        """.*<p><span class="span2">ClientID:</span>(.*)</p>.*<p><span class="span2">Client Secret:</span>(.*)</p>.*""".replaceAll("\\s","")
-      ).matcher(body)
+        """.*<p><span class="span2">ClientID:</span>(.*)</p>.*<p><span class="span2">Client Secret:</span>(.*)</p>.*""".replaceAll("\\s", "")).matcher(body)
       m.matches() === true
       val clientSecret = m.group(2)
       val clientId = m.group(1)
@@ -92,7 +91,7 @@ class DeveloperTest extends BaseTest
       status(tokenResult) === OK
       val token = (Json.parse(contentAsString(tokenResult)) \ "access_token").as[String]
       val listCall = org.corespring.api.v1.routes.OrganizationApi.list()
-      val request = FakeRequest(listCall.method, tokenize(listCall.url,token))
+      val request = FakeRequest(listCall.method, tokenize(listCall.url, token))
       val result = route(request).get
       status(result) === OK
       (Json.parse(contentAsString(result)) match {
@@ -101,18 +100,17 @@ class DeveloperTest extends BaseTest
       }) === true
     }
 
-    "return unauthorized with expired session" in new MockUser{
-
+    "return unauthorized with expired session" in new MockUser {
 
       val request = fakeRequest()
-        .withCookies(expiredSecureSocialCookie(Some(user)).toSeq : _*)
+        .withCookies(expiredSecureSocialCookie(Some(user)).toSeq: _*)
       val result = Developer.isLoggedIn(request)
       status(result) === UNAUTHORIZED
     }
   }
 }
 
-class MockUser extends After with Before{
+class MockUser extends After with Before {
 
   lazy val oid = ObjectId.get()
   lazy val user = createUser

@@ -8,8 +8,8 @@ import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.drafts.errors.{ GeneralError, DraftError }
 import org.corespring.drafts.item.{ S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models._
-import org.corespring.platform.core.models.User
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.User
+import org.corespring.models.item.Item
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error

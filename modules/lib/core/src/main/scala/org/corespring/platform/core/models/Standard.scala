@@ -6,7 +6,7 @@ import play.api.libs.json.JsString
 import com.novus.salat.dao._
 import se.radley.plugin.salat._
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.search.Searchable
+import org.corespring.models.search.Searchable
 import play.api.cache.Cache
 import com.mongodb.casbah.commons.MongoDBObject
 import scala.collection.immutable.{ ListMap }
@@ -63,7 +63,7 @@ object Standard extends ModelCompanion[Standard, ObjectId] with Searchable with 
 
   val collection = mongoCollection("ccstandards")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
   val dao = new SalatDAO[Standard, ObjectId](collection = collection) {}
 
   val Id = "id"

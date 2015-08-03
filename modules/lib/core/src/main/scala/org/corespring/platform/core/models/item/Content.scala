@@ -3,10 +3,10 @@ package org.corespring.platform.core.models.item
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.ContentCollection
+import org.corespring.models.ContentCollection
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 
 trait Content[Id] {

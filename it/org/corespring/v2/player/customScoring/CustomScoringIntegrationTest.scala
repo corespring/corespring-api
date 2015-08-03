@@ -6,9 +6,9 @@ import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
 import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, TaskInfo }
+import org.corespring.models.ContentCollection
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -72,7 +72,6 @@ class CustomScoringIntegrationTest extends IntegrationSpecification {
   class testScope(val rootPath: String) extends orgWithAccessToken {
 
     def base = s"../../../qtiToV2/customScoring/$rootPath"
-
 
     lazy val sessionService = SessionServiceFactoryImpl.create(SessionDbConfig.sessionTable)
 

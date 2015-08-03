@@ -4,12 +4,12 @@ import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.log.PackageLogging
 import org.corespring.common.mongo.ObjectIdParser
-import org.corespring.platform.core.models.User
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.User
+import org.corespring.models.auth.Permission
 import play.api.data.Forms._
 import play.api.data._
 import play.api.data.validation._
-import play.api.libs.json.{JsBoolean, JsObject, Json}
+import play.api.libs.json.{ JsBoolean, JsObject, Json }
 import play.api.mvc.{ Action, Controller }
 import securesocial.core.SecureSocial
 
@@ -93,10 +93,10 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
           }).as(JSON)
   }
 
-  def isValid(token:String) = Action {
-      OAuthProvider.getAuthorizationContext(token) match {
-        case Right(context) => Ok(JsObject(Seq("valid" -> JsBoolean(true))))
-        case Left(error) => Forbidden(Json.toJson(error))
+  def isValid(token: String) = Action {
+    OAuthProvider.getAuthorizationContext(token) match {
+      case Right(context) => Ok(JsObject(Seq("valid" -> JsBoolean(true))))
+      case Left(error) => Forbidden(Json.toJson(error))
     }
   }
 

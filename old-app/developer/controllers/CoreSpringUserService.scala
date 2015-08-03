@@ -5,8 +5,8 @@ import developer.models.RegistrationToken
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ UserOrg, User }
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ UserOrg, User }
 import org.joda.time.DateTime
 import play.api.Application
 import securesocial.core._

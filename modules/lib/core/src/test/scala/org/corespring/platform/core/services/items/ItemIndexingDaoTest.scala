@@ -3,7 +3,7 @@ package org.corespring.platform.core.services.items
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.platform.core.services.item.{ ItemIndexingDao, ItemIndexService }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId

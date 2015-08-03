@@ -3,13 +3,13 @@ package org.corespring.lti.web.controllers.dev
 import oauth.signpost.signature.AuthorizationHeaderSigningStrategy
 import org.bson.types.ObjectId
 import org.corespring.common.url.BaseUrl
-import org.corespring.lti.models.{LtiOAuthConsumer, LtiData}
+import org.corespring.lti.models.{ LtiOAuthConsumer, LtiData }
 import org.corespring.lti.web.controllers.AssignmentLauncher
-import org.corespring.lti.web.controllers.dev.routes.{TestHarness=>TestHarnessRoutes}
-import org.corespring.lti.web.controllers.routes.{AssignmentLauncher => AssignmentLauncherRoutes}
+import org.corespring.lti.web.controllers.dev.routes.{ TestHarness => TestHarnessRoutes }
+import org.corespring.lti.web.controllers.routes.{ AssignmentLauncher => AssignmentLauncherRoutes }
 import org.corespring.lti.web.views.html.dev._
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.models.auth.ApiClient
 import org.jboss.netty.handler.codec.http.HttpMethod
 import play.Logger
 import play.api.mvc._
@@ -111,7 +111,7 @@ object TestHarness extends BaseApi with SecureSocial {
       try {
         val xml = scala.xml.XML.loadString(passbackText)
         val score = (xml \\ "resultScore" \ "textString").text.trim
-        Ok( grade(score))
+        Ok(grade(score))
       } catch {
         case e: Throwable => Ok("An error occured parsing: " + passbackText + ", " + e.getMessage)
       }

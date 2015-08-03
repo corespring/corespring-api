@@ -3,7 +3,7 @@ package org.corespring.v2.player
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
-import org.corespring.platform.core.models.Organization
+import org.corespring.models.Organization
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence

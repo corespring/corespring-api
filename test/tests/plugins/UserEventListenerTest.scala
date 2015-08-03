@@ -1,22 +1,22 @@
 package tests.plugins
 
-import org.corespring.platform.core.models.User
-import org.corespring.test.{TestModelHelpers, BaseTest}
+import org.corespring.models.User
+import org.corespring.test.{ TestModelHelpers, BaseTest }
 import org.joda.time.DateTime
 import play.api.mvc.Session
 import play.api.test.FakeRequest
 import plugins.UserEventListener
 import securesocial.core.AuthenticationMethod.UserPassword
 import securesocial.core._
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 
 class UserEventListenerTest extends BaseTest with TestModelHelpers {
 
   case class MockIdentity(identityId: IdentityId, firstName: String = "", lastName: String = "", fullName: String = "", email: Option[String] = None,
-                     avatarUrl: Option[String] = None, authMethod: AuthenticationMethod = UserPassword,
-                     oAuth1Info: Option[OAuth1Info] = None,
-                     oAuth2Info: Option[OAuth2Info] = None,
-                     passwordInfo: Option[PasswordInfo] = None) extends Identity
+    avatarUrl: Option[String] = None, authMethod: AuthenticationMethod = UserPassword,
+    oAuth1Info: Option[OAuth1Info] = None,
+    oAuth2Info: Option[OAuth2Info] = None,
+    passwordInfo: Option[PasswordInfo] = None) extends Identity
 
   def identity(userId: IdentityId) = MockIdentity(userId)
 

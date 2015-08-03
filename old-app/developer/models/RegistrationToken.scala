@@ -16,7 +16,7 @@ case class RegistrationToken(var uuid: String = "",
 
 object RegistrationToken extends ModelCompanion[RegistrationToken, ObjectId] {
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val collection = mongoCollection("regtokens")
   val dao = new SalatDAO[RegistrationToken, ObjectId](collection = collection) {}
@@ -28,7 +28,7 @@ object RegistrationToken extends ModelCompanion[RegistrationToken, ObjectId] {
   val Expires = "expirationTime"
   val IsSignUp = "isSignUp"
 
-  import org.corespring.platform.core.models.json._
+  import org.corespring.models.json._
   implicit val Writes = Json.writes[RegistrationToken]
   implicit val Reads = Json.reads[RegistrationToken]
 

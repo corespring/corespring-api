@@ -3,7 +3,7 @@ package org.corespring.api.v1
 import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import org.corespring.platform.core.models.item.FieldValue
+import org.corespring.models.item.FieldValue
 import org.corespring.test.BaseTest
 import play.api.test.FakeHeaders
 import play.api.libs.json._
@@ -13,7 +13,7 @@ import scala.concurrent.duration.Duration
 
 object FieldValuesApiTest extends BaseTest {
 
-  val FieldValueCount =  FieldValue.descriptions.toList.length + 2
+  val FieldValueCount = FieldValue.descriptions.toList.length + 2
   val routes = org.corespring.api.v1.routes.FieldValuesApi
 
   "FieldValuesApi" should {
@@ -66,8 +66,8 @@ object FieldValuesApiTest extends BaseTest {
       val params = "gradeLevels,reviewsPassed"
       val request = FakeRequest(GET, "/")
       val result = FieldValuesApi.multiple(params, None, "")(request)
-      val json : JsValue = Json.parse(contentAsString(result))
-      ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0)  === true
+      val json: JsValue = Json.parse(contentAsString(result))
+      ((json \ "gradeLevels").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
       ((json \ "reviewsPassed").asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
     }
 
@@ -81,7 +81,7 @@ object FieldValuesApiTest extends BaseTest {
     "multiple handles invalid json" in {
       val result = FieldValuesApi.multiple("reviewsPassed", Some("asdfadsf"), "")(FakeRequest(GET, "/"))
       val json = contentAsJson(result)
-      (((json\ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
+      (((json \ "reviewsPassed")).asOpt[List[JsObject]].getOrElse(List()).length > 0) === true
     }
 
   }

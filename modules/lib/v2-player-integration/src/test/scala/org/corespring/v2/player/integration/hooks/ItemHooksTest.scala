@@ -7,8 +7,8 @@ import com.mongodb.casbah.{ MongoCollection, Imports }
 import com.mongodb._
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.Organization
+import org.corespring.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton

@@ -3,8 +3,8 @@ package org.corespring.v2.player
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, TaskInfo }
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.BeforeAfter

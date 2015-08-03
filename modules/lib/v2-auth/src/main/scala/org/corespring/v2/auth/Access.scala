@@ -2,6 +2,7 @@ package org.corespring.v2.auth
 
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.services.OrganizationService
@@ -14,13 +15,15 @@ import scalaz.{ Failure, Success, Validation }
 trait Access[DATA, REQUESTER] {
   def grant(identity: REQUESTER, permission: Permission, data: DATA): Validation[V2Error, Boolean]
 
-  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
-    AccessSettingsWildcardCheck.allow(itemId, sessionId, Mode.evaluate, settings)
-  }
 }
 
 class ItemAccess(
-  orgService: OrganizationService) extends Access[Item, OrgAndOpts] {
+  orgService: OrganizationService,
+  checker: AccessSettingsWildcardCheck) extends Access[Item, OrgAndOpts] {
+
+  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
+    checker.allow(itemId, sessionId, Mode.evaluate, settings)
+  }
 
   lazy val logger = Logger(classOf[ItemAccess])
 

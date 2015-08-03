@@ -3,7 +3,7 @@ package web.views.helpers
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.templates.Html
 import play.api.libs.json.{ JsValue, Json }
-import org.corespring.platform.core.models.Organization
+import org.corespring.models.Organization
 
 object MainHelper {
 

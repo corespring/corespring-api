@@ -1,6 +1,6 @@
 package org.corespring.wiring.apiTracking
 
-import org.corespring.platform.core.models.auth.ApiClientService
+import org.corespring.models.auth.ApiClientService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.services.TokenService
 import org.specs2.mock.Mockito

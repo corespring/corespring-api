@@ -2,8 +2,8 @@ package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item._
+import org.corespring.models.auth.Permission
+import org.corespring.models.item._
 import org.corespring.platform.core.services.item.{ ItemIndexService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer

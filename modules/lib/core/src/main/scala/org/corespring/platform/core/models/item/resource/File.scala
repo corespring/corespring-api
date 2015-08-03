@@ -4,7 +4,7 @@ import com.novus.salat.annotations.raw.Salat
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
-import org.corespring.platform.core.models.JsonUtil
+import org.corespring.models.JsonUtil
 
 @Salat
 abstract class BaseFile(val name: String, val contentType: String, val isMain: Boolean)
@@ -67,7 +67,7 @@ object BaseFile extends JsonUtil {
       val contentType = (json \ "contentType").asOpt[String].getOrElse(getContentType(name))
       val isMain = (json \ "isMain").asOpt[Boolean].getOrElse(false)
 
-      import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes._
+      import org.corespring.models.item.resource.BaseFile.ContentTypes._
 
       val isTextType = textTypes.contains(contentType)
 

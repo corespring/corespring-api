@@ -7,11 +7,11 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
 import se.radley.plugin.salat._
 import com.novus.salat.dao._
-import org.corespring.platform.core.models.metadata.{ Metadata, MetadataSet }
+import org.corespring.models.metadata.{ Metadata, MetadataSet }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.platform.core.services.item.ItemServiceClient
 import play.api.Play.current
-import org.corespring.platform.core.models.mongoContext._
+import org.corespring.models.mongoContext._
 
 trait MetadataService {
 

@@ -1,7 +1,7 @@
 package org.corespring.test.helpers.models
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.Organization
+import org.corespring.models.Organization
 
 object OrganizationHelper {
 

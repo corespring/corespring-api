@@ -9,15 +9,15 @@ import org.specs2.mutable.BeforeAfter
 
 class MetadataSetServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
-  lazy val service = services.metadataSet
+  lazy val service = services.metadataSetService
 
   /**
    * Note: Always use traits for BeforeAfter
    */
   trait SetWrapper extends BeforeAfter {
     lazy val orgId = {
-      val org = Organization(name = "test org", isRoot = true)
-      val result = services.org.insert(org, None)
+      val org = Organization(name = "test org")
+      val result = services.orgService.insert(org, None)
       org.id
     }
 
@@ -32,7 +32,7 @@ class MetadataSetServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
     override def after: Any = {
       service.delete(orgId, newSet.id)
-      services.org.delete(orgId)
+      services.orgService.delete(orgId)
     }
 
     def before: Any = {}

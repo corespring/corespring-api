@@ -3,9 +3,12 @@ package org.corespring.services
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
 trait OrganizationService {
+
+  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission
 
   def defaultCollection(o: Organization): Option[ObjectId]
   def defaultCollection(oid: ObjectId): Option[ObjectId]

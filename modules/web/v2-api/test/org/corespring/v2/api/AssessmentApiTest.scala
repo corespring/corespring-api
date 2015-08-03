@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.{ Answer, Participant, Assessment }
+import org.corespring.models.assessment.basic.{ Answer, Participant, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }

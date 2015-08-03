@@ -77,7 +77,8 @@ object Build extends sbt.Build {
       testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
         loader.loadClass("org.corespring.it.mongo.Cleanup").newInstance
       }))
-    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", specs2Mock % "it,test", aws))
+    //specs2 % "it,test",
+    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreServices, coreUtils)
 
   lazy val encryption = builders.lib("encryption", "core")

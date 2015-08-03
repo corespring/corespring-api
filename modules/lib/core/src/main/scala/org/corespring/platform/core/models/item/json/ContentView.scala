@@ -1,8 +1,8 @@
 package org.corespring.platform.core.models.item.json
 
-import org.corespring.platform.core.models.User
-import org.corespring.platform.core.models.item.{ Item, Content }
-import org.corespring.platform.core.models.search.SearchFields
+import org.corespring.models.User
+import org.corespring.models.item.{ Item, Content }
+import org.corespring.models.search.SearchFields
 import play.api.libs.json.Writes
 
 case class ContentView[ContentType <: Content[_]](content: ContentType, searchFields: Option[SearchFields])(implicit writes: Writes[ContentView[ContentType]])

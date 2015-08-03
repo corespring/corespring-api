@@ -8,7 +8,7 @@ import org.apache.commons.codec.binary.Base64._
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.Logging
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.models.item.index.ItemIndexSearchResult
 import org.corespring.elasticsearch._
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play._

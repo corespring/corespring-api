@@ -4,7 +4,7 @@ import com.mongodb.casbah.MongoCollection
 import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models._
-import org.corespring.platform.core.models.{ Organization, User }
+import org.corespring.models.{ Organization, User }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play

@@ -3,7 +3,7 @@ package org.corespring.api.v1
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.itemSession._
+import org.corespring.models.itemSession._
 import org.specs2.mutable._
 import play.api.Play
 import play.api.libs.json.Json
@@ -37,7 +37,6 @@ class CanCastIntegerToLongIntegrationTest extends IntegrationSpecification {
       version === Some(0)
       version.get.toLong === 0L
     }
-
 
   }
 }

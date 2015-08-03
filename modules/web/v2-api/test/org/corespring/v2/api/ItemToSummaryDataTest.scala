@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item._
+import org.corespring.models.item._
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

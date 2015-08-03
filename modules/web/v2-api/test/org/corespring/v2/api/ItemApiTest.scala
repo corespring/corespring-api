@@ -1,8 +1,8 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ ItemType, Item }
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.models.item.{ ItemType, Item }
+import org.corespring.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.api.services.ScoreService

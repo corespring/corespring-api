@@ -12,9 +12,9 @@ import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts, S3ItemDraftAsse
 import org.corespring.platform.core.caching.SimpleCache
 import org.corespring.platform.core.controllers.auth.SecureSocialService
 import org.corespring.platform.core.encryption.{ ApiClientEncrypter, ApiClientEncryptionService }
-import org.corespring.platform.core.models.{ ContentCollection, Organization }
-import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
-import org.corespring.platform.core.models.item.{ ItemType, PlayerDefinition }
+import org.corespring.models.{ ContentCollection, Organization }
+import org.corespring.models.auth.{ AccessToken, ApiClient, ApiClientService, Permission }
+import org.corespring.models.item.{ ItemType, PlayerDefinition }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.assessment.template.{ AssessmentTemplateServiceImpl, AssessmentTemplateService }
 import org.corespring.platform.core.services.item._

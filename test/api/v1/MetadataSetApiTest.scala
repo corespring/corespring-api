@@ -1,16 +1,16 @@
 package api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.metadata.{SchemaMetadata, MetadataSet}
+import org.corespring.models.metadata.{ SchemaMetadata, MetadataSet }
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.test.PlaySingleton
 import org.mockito.ArgumentMatcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsJson, AnyContent, AnyContentAsEmpty}
+import play.api.libs.json.{ JsObject, Json }
+import play.api.mvc.{ AnyContentAsJson, AnyContent, AnyContentAsEmpty }
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, FakeHeaders}
+import play.api.test.{ FakeRequest, FakeHeaders }
 import org.corespring.api.v1.MetadataSetApi
 
 class MetadataSetApiTest extends Specification with Mockito {
@@ -23,7 +23,7 @@ class MetadataSetApiTest extends Specification with Mockito {
     def matches(p1: Any): Boolean = p1.isInstanceOf[ObjectId] && p1.asInstanceOf[ObjectId].toString == oid.toString
   }
 
-  import org.mockito.Matchers.{anyObject, argThat => mockitoArgThat}
+  import org.mockito.Matchers.{ anyObject, argThat => mockitoArgThat }
 
   def thisId(id: ObjectId) = mockitoArgThat(new ObjectIdMatcher(id))
 

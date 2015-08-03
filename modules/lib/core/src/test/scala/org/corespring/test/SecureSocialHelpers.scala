@@ -1,6 +1,6 @@
 package org.corespring.test
 
-import org.corespring.platform.core.models.User
+import org.corespring.models.User
 import org.joda.time.DateTime
 import play.api.mvc.Cookie
 import scala.Some
@@ -18,7 +18,6 @@ trait SecureSocialHelpers {
     }
     authenticator.toCookie
   }
-
 
   def expiredSecureSocialCookie(u: Option[User]): Option[Cookie] = u.map { user =>
 

@@ -3,7 +3,7 @@ package org.corespring.v2.player.hooks
 import java.util.concurrent.TimeUnit
 
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }

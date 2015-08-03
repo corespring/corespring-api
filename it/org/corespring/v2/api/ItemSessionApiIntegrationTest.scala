@@ -5,8 +5,8 @@ import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.encryption.ApiClientEncrypter
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models
@@ -15,7 +15,7 @@ import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.player.scopes._
 import org.specs2.specification.BeforeAfter
-import play.api.libs.json.{JsNumber, JsString, JsObject, Json}
+import play.api.libs.json.{ JsNumber, JsString, JsObject, Json }
 import play.api.mvc.{ RequestHeader, AnyContentAsJson, AnyContent, Call }
 
 class ItemSessionApiIntegrationTest extends IntegrationSpecification {

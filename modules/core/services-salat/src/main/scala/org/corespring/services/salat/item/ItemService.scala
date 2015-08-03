@@ -28,7 +28,6 @@ class ItemService(
   assets: interface.item.ItemAssetService,
   contentCollectionService: => interface.ContentCollectionService,
   implicit val context: Context,
-  orgService: OrganizationService,
   archiveConfig: ArchiveConfig)
   extends interface.item.ItemService {
 
@@ -291,26 +290,21 @@ class ItemService(
     dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
   }
 
-  override def getOrgPermissionForItem(orgId: Imports.ObjectId, itemId: VersionedId[Imports.ObjectId]): Permission = {
-    dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).map { i =>
-      try {
-        val collectionId = i.get("collectionId").asInstanceOf[String]
-        orgService.getPermissions(orgId, new ObjectId(collectionId))
-      } catch {
-        case t: Throwable => {
-
-          if (logger.isDebugEnabled) {
-            t.printStackTrace()
+  override def collectionIdForItem(itemId: VersionedId[Imports.ObjectId]): Option[Imports.ObjectId] = {
+    dao.findDbo(itemId.copy(version = None),
+      MongoDBObject("collectionId" -> 1)).flatMap { dbo =>
+        try {
+          val idString = dbo.get("collectionId").asInstanceOf[String]
+          Some(new ObjectId(idString))
+        } catch {
+          case t: Throwable => {
+            if (logger.isDebugEnabled) {
+              t.printStackTrace()
+            }
+            logger.error(t.getMessage)
+            None
           }
-
-          logger.error(t.getMessage)
-          Permission.None
         }
       }
-
-    }.getOrElse {
-      logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
-      Permission.None
-    }
   }
 }

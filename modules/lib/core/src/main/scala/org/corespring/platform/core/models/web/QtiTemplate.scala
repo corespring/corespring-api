@@ -2,7 +2,7 @@ package org.corespring.platform.core.models.web
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao._
-import org.corespring.platform.core.models.mongoContext.context
+import org.corespring.models.mongoContext.context
 import play.api.Play.current
 import play.api.libs.json.{ JsNumber, JsObject, JsString, Writes }
 
