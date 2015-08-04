@@ -1048,7 +1048,7 @@ div.span4.admin-col div, div.span2.admin-col div {
 	width: 612px;
 }
 
-div.admin-col input[type="radio"], 
+div.admin-col input[type="radio"],
 div.admin-col input[type="checkbox"] {
 margin: 4px 2px 5px 0px;
 }
@@ -1062,7 +1062,7 @@ div.span1.admin-col{
 	clear:right;
 }
 
-.admin-container div.span.admin-col2 { 
+.admin-container div.span.admin-col2 {
 margin-left:
 5px;
 }

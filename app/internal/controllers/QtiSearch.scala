@@ -41,6 +41,6 @@ trait QtiSearch extends BaseApi { self: XmlSearchClient =>
 
 object QtiSearch extends QtiSearch with XmlSearchClient {
   def xmlSearch: XmlSearch = new XmlSearch {
-    def dao: SalatVersioningDao[Item] = ItemServiceWired.dao
+    def dao: SalatVersioningDao[Item] = ItemServiceWired.itemDao
   }
 }

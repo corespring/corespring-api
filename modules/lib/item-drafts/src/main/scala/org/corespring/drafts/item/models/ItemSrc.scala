@@ -13,7 +13,6 @@ case class ItemSrc(data: Item)
   override protected def dataWithVid: HasVid[VersionedId[ObjectId]] = {
     new HasVid[VersionedId[ObjectId]] {
       override def id: VersionedId[ObjectId] = {
-        println(s"data: $data")
         data.id
       }
     }

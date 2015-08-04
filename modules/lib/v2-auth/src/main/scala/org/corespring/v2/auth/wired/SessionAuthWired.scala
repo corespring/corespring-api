@@ -1,7 +1,6 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
@@ -10,6 +9,7 @@ import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.sessiondb.SessionService
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api.libs.json.{ Json, JsObject, JsValue }
 
@@ -28,16 +28,16 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
    * The main session service holds 'real' item sessions
    * @return
    */
-  def mainSessionService: MongoService
+  def mainSessionService: SessionService
 
   /**
    * The preview session service holds 'preview' sessions -
    * This service is used when the identity -> AuthMode == UserSession
    * @return
    */
-  def previewSessionService: MongoService
+  def previewSessionService: SessionService
 
-  private def sessionService(implicit identity: OrgAndOpts): MongoService = if (identity.authMode == AuthMode.UserSession) {
+  private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
     previewSessionService
   } else {
@@ -143,9 +143,8 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     "dateCreated" -> Json.obj(
       "$date" -> DateTime.now(DateTimeZone.UTC)))
 
-  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject = {
+  private def addIdentityToSession(session: Session, identity: OrgAndOpts): JsObject =
     session.as[JsObject] ++ Json.obj("identity" -> IdentityJson(identity))
-  }
 
   private def rmIdentityFromSession(s: Session) = s.asInstanceOf[JsObject] - "identity"
 }

@@ -14,6 +14,14 @@ Before you do *anything* please run the following to install the git pre-commit 
     
 For more information, please see our git commit hooks [documentation](hooks/README.md).
 
+**corespring-components submodule**
+
+After downloading the corespring-api repository, run the following commands to init the submodule.
+
+`git submodule init`
+
+`git submodule update`
+
 *we assume you already have Java JDK >= 1.6*
 
 *Mac users - It is recommended that you use [homebrew](http://mxcl.github.io/homebrew/) for all your installations.*
@@ -24,6 +32,7 @@ For more information, please see our git commit hooks [documentation](hooks/READ
 * Install mongodb
 * Install [play 2.2.1](http://downloads.typesafe.com/play/2.2.1/play-2.2.1.zip)
 * Install elasticsearch
+* Install sbt (using brew or download zip)
 * For running tests install phantomjs
 
 ### SBT Configuration
@@ -132,9 +141,23 @@ There are some useful utilities for working with the s3 assets:
 * [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
 * [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
 
-https://corespring.signin.aws.amazon.com/console
+[aws console](https://corespring.signin.aws.amazon.com/console)
 
 Ask evan for a user account.
+
+#### Amazon DynamoDb (experimental) 
+
+By default we are using MongoDb for session storage. So normally you don't have to worry about this. 
+As a new feature we are currently trying out Amazon's DynamoDb for the sessionDbService. If you want to play 
+with it or do some work in this area, you can enable it in application.conf       
+
+For development you should run a local instance. 
+You can get it here: [local dynamodb](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html)
+
+Check application.conf for dynamo configuration properties.
+    
+[aws console](https://corespring.signin.aws.amazon.com/console)
+Ask evan for a user account or use an account from passpack 
 
 
 ### Dev Tools
@@ -188,15 +211,68 @@ If you want to run this docker image or deploy it using [docker-deployer](github
     sbt assembly
 ```
 
-To create and run a docker image: 
+**To deploy your local instance to Elastic Beanstalk on AWS.**
+
+1. Request AWS IAM credentials (AWS admin on the team can provide these for you)
+2. run `play stage` to build a zip with the current state of your local environment
+3. delpoy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
+
+Deploying with docker-deployer:
+
+```shell
+    docker-deployer deploy --deploy-name $NAME 
+```
+
+**To create and run a docker image with default Dockerfile:** 
 
 ````shell
     docker build -t="corespring-api" .
     docker run -p 9000:9000 -t="corespring-api" #run main script
 ```
 
-To deploy with docker-deployer:
+**To create and run a docker image with custom docker file named DockerfileWithDynamo**
 
-```shell
-    docker-deployer deploy --deploy-name $NAME 
+````shell
+    docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
+    docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
 ```
+
+### Running Localy
+
+If you want to run the API on local environment for the first time start the **play console**:
+
+    play
+    
+then in the play console run:
+
+    seed-dev
+    
+when thats done run:
+
+    index
+    
+if indexing finishes run the API:
+
+    run
+    
+Once it's running you can access the CMS in a browser on `localhost:9000`
+
+#### Slow updates
+
+All corespring dependencies are configured to use only repository.corespring.org as their resolver.
+
+So you should see resolution times of:
+
+* `clean update` -> ~200s
+* `update` -> 10s
+
+> Once sbt have [improved consolidated resolution](https://github.com/sbt/sbt/issues/2105) our resolve times should improve again.
+
+If your updates are slow due to snapshot updates, you may set the following in your console:
+
+```sh
+  set updateOptions := updateOptions.value.withLatestSnapshots(false)
+
+```
+
+This will disable snapshots updating themselves.

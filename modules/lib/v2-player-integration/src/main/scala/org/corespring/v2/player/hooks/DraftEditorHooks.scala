@@ -1,5 +1,6 @@
 package org.corespring.v2.player.hooks
 
+import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, UploadResult }
@@ -112,8 +113,10 @@ trait DraftEditorHooks
     playS3.s3ObjectAndData[ItemDraft](bucket, d => S3Paths.draftFile(d.id, path))(loadDraftPredicate).map { f =>
       f.map { tuple =>
         val (s3Object, draft) = tuple
-        addFileToData(draft, s3Object.getKey)
-        UploadResult(s3Object.getKey)
+        val key = s3Object.getKey
+        addFileToData(draft, key)
+        IOUtils.closeQuietly(s3Object)
+        UploadResult(key)
       }
     }
   }

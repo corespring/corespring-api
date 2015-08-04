@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<configuration>
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+        </encoder>
+    </appender>
+    <logger name="play" level="WARN" />
+    <logger name="application" level="WARN" />
+    <logger name="api" level="WARN" />
+
+    <logger name="org.corespring.api.tracking" level="INFO"/>
+    <logger name="org.corespring.v2.CachingTokenService" level="TRACE"/>
+    <logger name="org.corespring.v2.Services" level="TRACE"/>
+    <logger name="org.corespring.platform.core.controllers.auth" level="TRACE"/>
+    <logger name="org.corespring.platform.core.models.auth" level="TRACE"/>
+
+    <logger name="client-logger" level="INFO"/>
+
+    <root level="ERROR">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

@@ -31,6 +31,9 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
+  /**
+   * TODO: This should be removed, as it is a leaky abstraction.
+   */
   def collection: MongoCollection
 
   def currentVersion(id: VersionedId[ObjectId]): Long

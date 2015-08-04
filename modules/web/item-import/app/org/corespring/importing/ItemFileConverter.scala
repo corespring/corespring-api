@@ -199,9 +199,9 @@ trait Uploader {
   def upload(filename: String, path: String, file: SourceWrapper): Future[StoredFile]
 }
 
-class TransferManagerUploader(awsKey: String, awsSecret: String, bucket: String) extends Uploader {
+class TransferManagerUploader(credentials: BasicAWSCredentials, bucket: String) extends Uploader {
 
-  val transferManager = new TransferManager(new BasicAWSCredentials(awsKey, awsSecret))
+  val transferManager = new TransferManager(credentials)
 
   def upload(filename: String, path: String, file: SourceWrapper) = future {
     val byteArray = file.toByteArray
