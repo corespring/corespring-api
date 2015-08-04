@@ -1,6 +1,6 @@
 package org.corespring.qtiToV2.kds
 
-import org.corespring.qtiToV2.kds.responseProcessing.{ResponseProcessingTransformer, FieldValueProcessingTransformer}
+import org.corespring.qtiToV2.kds.responseProcessing.{ ResponseProcessingTransformer, FieldValueProcessingTransformer }
 import play.api.libs.json.Json
 
 import scala.xml._
@@ -21,16 +21,15 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
         Some(JsResponseProcessing(
           vars = outcomeDeclarations(qti),
           responseVars = responseDeclarations(qti),
-          lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))
-        ))
+          lines = node.withoutEmptyChildren.map(n => responseCondition(n)(qti))))
       } catch {
         case e: Exception => {
           e.printStackTrace
           None
         }
       }
-    case _ => None
-  }
+      case _ => None
+    }
 
   private def getResponseNode(qti: Node): Option[Node] = {
     (qti \ "responseProcessing").headOption.map(ResponseProcessingTransformer.transformAll(_)) match {
@@ -102,7 +101,6 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
       case _ => throw new Exception("Error")
     }
 
-
   protected def responseRule(node: Node)(implicit qti: Node) = node.label match {
     case "setOutcomeValue" => setOutcomeValue(node)
     case _ => throw new Exception(s"Unsupported response rule: ${node.label}\n${qti}")
@@ -123,11 +121,22 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     case "correct" => correct(node)
     case "baseValue" => baseValue(node)
     case "mapResponse" => mapResponse(node)
+    case "multiple" => multiple(node)
     case "containerSize" => containerSize(node)
+    case "contains" => contains(node)
     case _ => throw new Exception(s"Not a supported expression: ${node.label}")
   }
 
   protected def gt(node: Node)(implicit qti: Node) = binaryOp(node, ">")
+
+  protected def multiple(node: Node)(implicit qti: Node) = s"[${node.withoutEmptyChildren.map(expression).mkString(", ")}]"
+
+  protected def contains(node: Node)(implicit qti: Node) = {
+    node.withoutEmptyChildren match {
+      case child if (child.length != 2) => throw new Exception(s"contains expression must combine two expressions")
+      case child => s"contains(${expression(child.head)}, ${expression(child.last)})"
+    }
+  }
 
   protected def equal(node: Node)(implicit qti: Node) = {
     def isArray(string: String) = string.startsWith("[") && string.endsWith("]")
@@ -135,18 +144,18 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
       case child if (child.length != 2) => throw new Exception(s"equal expression must combine two expressions")
       case child => {
         (child.find(_.label == "variable").map(v => (v \ "@identifier").text),
-         child.find(_.label == "correct").map(c => (c \ "@identifier").text)) match {
-          case (Some(variable), Some(correct)) if (variable == correct) => s"isCorrect('$variable')"
-          case _ => {
-            node.withoutEmptyChildren.map(expression) match {
-              case Seq(lhs, rhs) if ((isArray(lhs) || isArray(rhs))) =>
-                s"_.isEmpty(_.xor($lhs, $rhs))"
-              case Seq(lhs, rhs) => s"$lhs === $rhs"
-              case e: Seq[String] =>
-                throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
+          child.find(_.label == "correct").map(c => (c \ "@identifier").text)) match {
+            case (Some(variable), Some(correct)) if (variable == correct) => s"isCorrect('$variable')"
+            case _ => {
+              node.withoutEmptyChildren.map(expression) match {
+                case Seq(lhs, rhs) if ((isArray(lhs) || isArray(rhs))) =>
+                  s"_.isEmpty(_.xor($lhs, $rhs))"
+                case Seq(lhs, rhs) => s"$lhs === $rhs"
+                case e: Seq[String] =>
+                  throw new Exception(s"Match can only have two children in ${node.withoutEmptyChildren}")
+              }
             }
           }
-        }
       }
     }
   }
@@ -159,18 +168,20 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     val rd = (qti \ "responseDeclaration").find(rd => (rd \ "@identifier").text == (node \ "@identifier").text)
       .getOrElse(throw ProcessingTransformerException("Did not contain response declaration matching identifier", node))
 
-    s"[${(rd \ "correctResponse" \ "value").map(_.text).map(v => {
-      (rd \ "@baseType").text match {
-        case "string" => s""""$v""""
-        case "identifier" => s""""$v""""
-        case "directedPair" => directedPair(v)
-        case _ => v
-      }
-    }).mkString(", ")}]"
+    s"[${
+      (rd \ "correctResponse" \ "value").map(_.text).map(v => {
+        (rd \ "@baseType").text match {
+          case "string" => s""""$v""""
+          case "identifier" => s""""$v""""
+          case "directedPair" => directedPair(v)
+          case _ => v
+        }
+      }).mkString(", ")
+    }]"
   }
 
   private def directedPair(value: String)(implicit qti: Node) = {
-    Json.obj("id" -> value, "matchSet" -> Seq(1,2,3))
+    Json.obj("id" -> value, "matchSet" -> Seq(1, 2, 3))
   }
 
   protected def baseValue(node: Node) = {
@@ -203,7 +214,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
 
   private implicit class NodeHelper(node: Node) {
     import Utility._
-    def withoutEmptyChildren = trim(node).child.filter{ child => !child.isInstanceOf[Text] || !child.text.trim.isEmpty }
+    def withoutEmptyChildren = trim(node).child.filter { child => !child.isInstanceOf[Text] || !child.text.trim.isEmpty }
   }
 
   private case class ProcessingTransformerException(message: String, node: Node) extends Exception {
@@ -216,5 +227,5 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
  * Contains the output of converting <responseProcessing/> to Javascript
  */
 case class JsResponseProcessing(vars: Map[String, String], lines: Seq[String], responseVars: Seq[String] = Seq.empty) {
-  override def toString = (vars.map{ case(name, value) => s"var $name = $value;" } ++ lines).mkString("\n")
+  override def toString = (vars.map { case (name, value) => s"var $name = $value;" } ++ lines).mkString("\n")
 }

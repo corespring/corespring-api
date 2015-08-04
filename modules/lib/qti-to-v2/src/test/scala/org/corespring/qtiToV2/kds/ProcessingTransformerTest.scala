@@ -10,8 +10,8 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   "containerSize" should {
     val node = <containerSize>
-      <variable identifier="RESPONSE1"/>
-    </containerSize>
+                 <variable identifier="RESPONSE1"/>
+               </containerSize>
 
     "should transform to id.length" in {
       containerSize(node) === "RESPONSE1.length"
@@ -19,7 +19,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
   }
 
   "mapResonse" should {
-    val node = <mapResponse identifier="RESPONSE1" />
+    val node = <mapResponse identifier="RESPONSE1"/>
 
     "should transform to mapResponse('id')" in {
       mapResponse(node) === "mapResponse('RESPONSE1')"
@@ -32,17 +32,17 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     val correctResponses = Seq("2")
 
     def qti(responseId: String = responseId,
-            correctResponses: Seq[String] = correctResponses) =
+      correctResponses: Seq[String] = correctResponses) =
       <assessmentItem>
-        <responseDeclaration identifier={responseId} cardinality="single" baseType="string">
+        <responseDeclaration identifier={ responseId } cardinality="single" baseType="string">
           <correctResponse>
-            {correctResponses.map(r => <value>{r}</value>)}
+            { correctResponses.map(r => <value>{ r }</value>) }
           </correctResponse>
         </responseDeclaration>
         <responseProcessing>
           <match>
-            <variable identifier={responseId}/>
-            <correct identifier={responseId}/>
+            <variable identifier={ responseId }/>
+            <correct identifier={ responseId }/>
           </match>
         </responseProcessing>
       </assessmentItem>
@@ -54,7 +54,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     "translate equivalence of variable to isCorrect for single values" in {
       val node = qti()
       val matchNode = matcher(node)
-      _match(matchNode)(node) must be equalTo(s"""isCorrect('$responseId')""")
+      _match(matchNode)(node) must be equalTo (s"""isCorrect('$responseId')""")
     }
 
     "translate equivalence of variable to isCorrect for multiple values" in {
@@ -62,7 +62,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       val node = qti(correctResponses = correctResponses)
       val matchNode = matcher(node)
 
-      _match(matchNode)(node) must be equalTo(s"""isCorrect('$responseId')""")
+      _match(matchNode)(node) must be equalTo (s"""isCorrect('$responseId')""")
     }
 
   }
@@ -70,7 +70,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
   val oneExpression = Seq(<match><variable identifier="test"/><variable identifier="test"/></match>)
   val twoExpressions = oneExpression :+ <match><variable identifier="one"/><variable identifier="two"/></match>
   val threeExpressions = twoExpressions :+ <match><variable identifier="great"/><variable identifier="stuff"/></match>
-  def node(expressions: Seq[Node]) = <and>{expressions}</and>
+  def node(expressions: Seq[Node]) = <and>{ expressions }</and>
 
   "and" should {
 
@@ -83,18 +83,18 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      and(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_).mkString).mkString(" && ")}""")
+      and(node(twoExpressions)) must be equalTo (s"""${twoExpressions.map(expression(_).mkString).mkString(" && ")}""")
     }
 
     "combine three expressions" in {
-      and(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_).mkString).mkString(" && ")}""")
+      and(node(threeExpressions)) must be equalTo (s"""${threeExpressions.map(expression(_).mkString).mkString(" && ")}""")
     }
 
   }
 
   "or" should {
 
-    def node(expressions: Seq[Node]) = <or>{expressions}</or>
+    def node(expressions: Seq[Node]) = <or>{ expressions }</or>
 
     "error on empty node" in {
       or(<or/>) must throwAn[Exception]
@@ -105,18 +105,18 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     }
 
     "combine two expressions" in {
-      or(node(twoExpressions)) must be equalTo(s"""${twoExpressions.map(expression(_).mkString).mkString(" || ")}""")
+      or(node(twoExpressions)) must be equalTo (s"""${twoExpressions.map(expression(_).mkString).mkString(" || ")}""")
     }
 
     "combine three expressions" in {
-      or(node(threeExpressions)) must be equalTo(s"""${threeExpressions.map(expression(_).mkString).mkString(" || ")}""")
+      or(node(threeExpressions)) must be equalTo (s"""${threeExpressions.map(expression(_).mkString).mkString(" || ")}""")
     }
 
   }
 
   "sum" should {
     val values = Seq("1", "2")
-    val node = <sum>{values.map(v => <baseValue>{v}</baseValue>)}</sum>
+    val node = <sum>{ values.map(v => <baseValue>{ v }</baseValue>) }</sum>
 
     "return X + Y" in {
       sum(node).mkString must be equalTo values.mkString(" + ")
@@ -125,23 +125,57 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
 
   "gt" should {
     val values = Seq("2", "1")
-    val node = <gt>{values.map(v => <baseValue>{v}</baseValue>)}</gt>
+    val node = <gt>{ values.map(v => <baseValue>{ v }</baseValue>) }</gt>
 
     "return X > Y" in {
       gt(node) must be equalTo values.mkString(" > ")
     }
   }
 
+  "contains" should {
+
+    val variable = "RESPONSE2"
+    val integer = 1
+
+    val node = <contains>
+                 <variable identifier={ variable }/>
+                 <multiple>
+                   <baseValue baseType="integer">{ integer }</baseValue>
+                 </multiple>
+               </contains>
+
+    "return contains(X,Y)" in {
+      contains(node) must be equalTo s"contains($variable, [$integer])"
+    }
+
+  }
+
+  "multiple" should {
+
+    val integer = 1
+    val string = "hey"
+
+    val node = <multiple>
+                 <baseValue baseType="integer">{ integer }</baseValue>
+                 <baseValue baseType="string">{ string }</baseValue>
+               </multiple>
+
+    "wrap in array" in {
+      multiple(node) must be equalTo s"""[${integer}, "${string}"]"""
+    }
+
+  }
+
   "isNull" should {
     val value = "RESPONSE1"
-    val node = <isNull><variable identifier={value}/></isNull>
+    val node = <isNull><variable identifier={ value }/></isNull>
 
     "return value == undefined" in {
       isNull(node) must be equalTo s"$value == undefined"
     }
 
     "throw exception if more than one child node" in {
-      val badNode = <isNull><variable identifier={value}/><variable identifier="bad!"/></isNull>
+      val badNode = <isNull><variable identifier={ value }/><variable identifier="bad!"/></isNull>
       isNull(badNode) must throwAn[Exception]
     }
 
@@ -153,12 +187,12 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     val value = "OMG"
 
     val node =
-      <setOutcomeValue identifier={identifier}>
-        <baseValue baseType="string">{value}</baseValue>
+      <setOutcomeValue identifier={ identifier }>
+        <baseValue baseType="string">{ value }</baseValue>
       </setOutcomeValue>
 
     "translate into assignment expression" in {
-      setOutcomeValue(node) must be equalTo(s"""$identifier = "$value";""")
+      setOutcomeValue(node) must be equalTo (s"""$identifier = "$value";""")
     }
 
   }
@@ -171,17 +205,17 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     val correctResponses = Seq("RESPONSE2")
 
     def qti(responseId: String = responseId,
-            correctResponses: Seq[String] = correctResponses,
-            responseIfNode: Node) =
+      correctResponses: Seq[String] = correctResponses,
+      responseIfNode: Node) =
       <assessmentItem>
-        <responseDeclaration identifier={responseId} cardinality="single" baseType="identifier">
+        <responseDeclaration identifier={ responseId } cardinality="single" baseType="identifier">
           <correctResponse>
-            {correctResponses.map(r => <value>{r}</value>)}
+            { correctResponses.map(r => <value>{ r }</value>) }
           </correctResponse>
         </responseDeclaration>
         <responseProcessing>
           <responseCondition>
-            {responseIfNode}
+            { responseIfNode }
           </responseCondition>
         </responseProcessing>
       </assessmentItem>
@@ -189,11 +223,11 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
     def responseIfNode() =
       <responseIf>
         <match>
-          <variable identifier={responseId}/>
-          <correct identifier={responseId}/>
+          <variable identifier={ responseId }/>
+          <correct identifier={ responseId }/>
         </match>
-        <setOutcomeValue identifier={identifier}>
-          <baseValue baseType="string">{value}</baseValue>
+        <setOutcomeValue identifier={ identifier }>
+          <baseValue baseType="string">{ value }</baseValue>
         </setOutcomeValue>
       </responseIf>
 
@@ -247,14 +281,14 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
           </correctResponse>
         </responseDeclaration>
         <responseProcessing>
-          {responseConditionVal}
+          { responseConditionVal }
         </responseProcessing>
       </assessmentItem>
 
-      "translate into conditional statement" in {
-        responseCondition(responseConditionVal)(qti()) must be equalTo
-          """if ((isCorrect('RESPONSE1')) && (isCorrect('RESPONSE2'))) { SCORE = 2; } else if (isCorrect('RESPONSE1')) { SCORE = 1; }"""
-      }
+    "translate into conditional statement" in {
+      responseCondition(responseConditionVal)(qti()) must be equalTo
+        """if ((isCorrect('RESPONSE1')) && (isCorrect('RESPONSE2'))) { SCORE = 2; } else if (isCorrect('RESPONSE1')) { SCORE = 1; }"""
+    }
   }
 
   "toJs" should {
@@ -316,7 +350,7 @@ class ProcessingTransformerTest extends Specification with ProcessingTransformer
       </assessmentItem>
 
     "convert response processing node to JS" in {
-//      println(toJs(qti).map(wrap).getOrElse("Oops!"))
+      //      println(toJs(qti).map(wrap).getOrElse("Oops!"))
       true === true
     }
   }

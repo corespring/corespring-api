@@ -10,13 +10,22 @@ trait V2JavascriptWrapper {
       |    return (outcomes && outcomes[key]) ? (outcomes[key].correctness === 'correct' || outcomes[key].correctness === 'all_correct') : false;
       |  }
       |
+      |  function contains(a1, a2) {
+      |    for (var i in a2) {
+      |      if (a1.indexOf(a2[i]) < 0) {
+      |        return false;
+      |      }
+      |    }
+      |    return true;
+      |  }
+      |
       |  function mapResponse(key) {
       |    return (outcomes && outcomes[key]) ? (outcomes[key].correctNum) : undefined;
       |  }
       |
       |  ${js.responseVars.map(responseVar => s"var $responseVar = answers['$responseVar'].answers;").mkString("\n|  ")}
       |
-      |  ${js.vars.map{ case (name, value) => s"var $name = $value;"}.mkString("\n|  ")}
+      |  ${js.vars.map { case (name, value) => s"var $name = $value;" }.mkString("\n|  ")}
       |
       |  ${js.lines.mkString("\n|  ")}
       |
