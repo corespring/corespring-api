@@ -32,20 +32,6 @@
 
     $scope.devEditorVisible = false;
 
-    var normalEditor = [
-      '/v2/player/draft/editor/',
-      $routeParams.itemId,
-      '/index.html',
-      '?bypass-iframe-launch-mechanism=true'
-    ].join('');
-
-    var devEditor = [
-      '/v2/player/draft/dev-editor/',
-      $routeParams.itemId,
-      '/index.html',
-      '?bypass-iframe-launch-mechanism=true'
-    ].join('');
-
     var itemService = new ItemService({
       id: $routeParams.itemId
     });
@@ -122,23 +108,26 @@
       done = done || function() {};
 
       $scope.isSaveDone = false;
-      ItemDraftService.commit($scope.itemId, force, function success() {
-        Logger.info('commit successful');
-        $scope.draftIsConflicted = false;
-        $scope.isSaveDone = true;
-        $timeout(function() {
-          $scope.isSaveDone = false;
-        }, 3000);
-        done();
-      }, function error(err) {
-        Logger.warn(err);
-        Modals.commitFailedDueToConflict(function(cancelled) {
-          $scope.draftIsConflicted = true;
-          if (cancelled) {
-            done();
-            return;
-          }
-          commit(true, done);
+
+      $scope.v2Editor.forceSave(function(err){
+        ItemDraftService.commit($scope.itemId, force, function success() {
+          Logger.info('commit successful');
+          $scope.draftIsConflicted = false;
+          $scope.isSaveDone = true;
+          $timeout(function() {
+            $scope.isSaveDone = false;
+          }, 3000);
+          done();
+        }, function error(err) {
+          Logger.warn(err);
+          Modals.commitFailedDueToConflict(function(cancelled) {
+            $scope.draftIsConflicted = true;
+            if (cancelled) {
+              done();
+              return;
+            }
+            commit(true, done);
+          });
         });
       });
     }
@@ -174,6 +163,25 @@
         });
     };
 
+
+    function loadEditor(devEditor){
+     
+      if($scope.v2Editor){
+        $scope.v2Editor.remove();
+      } 
+
+      var opts = {
+        itemId: $scope.itemId,
+        draftName: $scope.draft.user,
+        onItemChanged: $scope.onItemChanged,
+        devEditor: devEditor
+      };
+
+      return new org.corespring.players.DraftEditor('.draft-editor-holder', opts, function(e){
+        Logger.error(e);
+      });
+    }
+
     $scope.loadDraftItem = function(ignoreConflict) {
 
       ignoreConflict = ignoreConflict === true;
@@ -189,7 +197,7 @@
           $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
           $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
           console.warn('ItemSessionCount doesn\'t apply for a user draft');
-          $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
+          $scope.v2Editor = loadEditor($scope.devEditorVisible); 
           $scope.draftIsConflicted = ignoreConflict;
         },
         function onError(err, statusCode) {
@@ -215,18 +223,12 @@
 
     $scope.showDevEditor = function() {
       $scope.devEditorVisible = true;
-      $scope.v2Editor = devEditor;
-      if ($scope.channel) {
-        $scope.channel.remove();
-      }
+      $scope.v2Editor = loadEditor(true); 
     };
 
     $scope.showEditor = function() {
       $scope.devEditorVisible = false;
-      $scope.v2Editor = normalEditor;
-      if ($scope.channel) {
-        $scope.channel.remove();
-      }
+      $scope.v2Editor = loadEditor(false);
     };
 
     $scope.onItemChanged = function() {
@@ -234,12 +236,6 @@
         $scope.hasChanges = true;
       });
     };
-
-    var iframe = $('.edit-container .item-iframe-container iframe');
-    iframe.bind('load', function() {
-      $scope.channel = new msgr.Channel(window, iframe[0].contentWindow);
-      $scope.channel.on('itemChanged', $scope.onItemChanged);
-    });
 
     if (!$scope.hasBoundBeforeUnload) {
       $($window).bind('beforeunload', function() {
