@@ -239,12 +239,24 @@
       });
     };
 
-    if (!$scope.hasBoundBeforeUnload) {
-      $($window).bind('beforeunload', function() {
-        return $scope.hasChanges ? "There are updates to this item that have not been saved. Are you sure you want to leave?" : undefined;
-      });
-      $scope.hasBoundBeforeUnload = true;
+    $scope.unloadMessages = {
+      saveInProgress: 'saving in progress - please try again',
+      hasChanges: 'There are updates to this item that have not been saved. Are you sure you want to leave?'
+    };
+
+    function onBeforeUnload(){
+      if($scope.showProgressModal){
+        return $scope.unloadMessages.saveInProgress;
+      } else if($scope.hasChanges){
+        return $scope.unloadMessages.hasChanges;
+      }
     }
+    
+    var bindBeforeUnloadHandler = _.once(function(){
+      $($window).bind('beforeunload', onBeforeUnload);
+    });
+
+    bindBeforeUnloadHandler();
 
     $scope.loadDraftItem();
   }
