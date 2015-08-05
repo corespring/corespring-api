@@ -203,7 +203,7 @@
           $scope.draftIsConflicted = ignoreConflict;
         },
         function onError(err, statusCode) {
-          if (statusCode == 409) {
+          if (statusCode === 409) {
             $scope.showConflictError = true;
           } else {
             console.error('An error has occured', err);

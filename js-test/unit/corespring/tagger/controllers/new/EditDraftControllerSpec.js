@@ -5,10 +5,29 @@ describe('tagger.controllers.new.EditDraftController', function() {
     draftService,
     scope,
     mocks,
-    jQueryFunctions;
+    jQueryFunctions,
+    controller,
+    rootScope,
+    bindHandlers;
   
   beforeEach(module('tagger.services'));
   
+  function mkController(){
+    scope = rootScope.$new();
+    scope.navigationHooks = {};
+    controller(tagger.EditDraftController, {
+      $scope: scope,
+      ItemDraftService: mocks.itemDraftService,
+      $routeParams: mocks.routeParams,
+      $location: mocks.location,
+      ItemService: mocks.ItemServiceConstructor,
+      Modals: mocks.modals,
+      Logger: mocks.logger,
+      $window: mocks.window,
+      $timeout: function(fn){ fn(); }
+    });
+  } 
+
   beforeEach(inject(function($rootScope, $controller) { 
 
     mocks = {};
@@ -67,7 +86,9 @@ describe('tagger.controllers.new.EditDraftController', function() {
       commit: jasmine.createSpy('commit').andCallFake(function(id, force, success) {
         success({});
       }),
-      deleteDraft : jasmine.createSpy('deleteDraft'),
+      deleteDraft : jasmine.createSpy('deleteDraft').andCallFake(function(id, success, error){
+        success();
+      }),
       clone: jasmine.createSpy('clone').andCallFake(function(id, cb){
         cb({itemId: id});
       })
@@ -75,6 +96,9 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     mocks.modals = {
       cancelled: true,
+      confirmSave: jasmine.createSpy('confirmSave').andCallFake(function(fn){
+        fn(mocks.modals.cancelled);
+      }),
       saveConflictedDraft: jasmine.createSpy('saveConflictedDraft').andCallFake(function(fn){
         fn(mocks.modals.cancelled);
       })
@@ -85,32 +109,96 @@ describe('tagger.controllers.new.EditDraftController', function() {
     };
 
     mocks.logger = {
-      info: function(){}
+      info: function(){},
+      log: function(){}
     };
 
     jQueryFunctions = {
-      unbind: $.fn.unbind
+      unbind: $.fn.unbind,
+      bind: $.fn.bind
     };
 
+    bindHandlers = {};
     $.fn.unbind = jasmine.createSpy('unbind');
-
-    scope = $rootScope.$new();
-    scope.navigationHooks = {};
-    $controller(tagger.EditDraftController, {
-      $scope: scope,
-      ItemDraftService: mocks.itemDraftService,
-      $routeParams: mocks.routeParams,
-      $location: mocks.location,
-      ItemService: mocks.ItemServiceConstructor,
-      Modals: mocks.modals,
-      Logger: mocks.logger,
-      $window: mocks.window,
-      $timeout: function(fn){ fn(); }
+    $.fn.bind = jasmine.createSpy('bind').andCallFake(function(key, handler){
+      bindHandlers[key] = bindHandlers[key] || [];
+      bindHandlers[key].push(handler);
     });
+
+    rootScope = $rootScope;
+    controller = $controller;
+    mkController();
   }));
 
   afterEach(function(){
     $.fn.unbind = jQueryFunctions.unbind;
+    $.fn.bind = jQueryFunctions.bind;
+  });
+
+  describe('initialisation', function(){
+
+    it('binds beforeunload', function(){
+      expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
+    });
+
+    it('sets hasBoundBeforeUnload to true', function(){
+      expect(scope.hasBoundBeforeUnload).toBe(true);
+    });
+  });
+
+  describe('beforeunload', function(){
+
+    it('returns a message if hasChanges == true', function(){
+      scope.hasChanges = true;
+      expect(bindHandlers.beforeunload[0]()).toEqual(jasmine.any(String));
+    });
+    
+    it('returns undefined hasChanges == false', function(){
+      scope.hasChanges = false;
+      expect(bindHandlers.beforeunload[0]()).toBe(undefined);
+    });
+  });
+
+  describe('navigationHooks.beforeUnload', function(){
+
+    var callback;
+
+    beforeEach(function(){
+      callback = jasmine.createSpy('callback');
+    });
+
+    it('calls unbind', function(){
+      scope.navigationHooks.beforeUnload(callback);
+      expect($.fn.unbind).toHaveBeenCalledWith('beforeunload');
+    });
+
+    it('calls callback', function(){
+      scope.hasChanges = false;
+      scope.navigationHooks.beforeUnload(callback);
+      expect(callback).toHaveBeenCalled();
+    });
+    
+    it('calls modals.confirmSave', function(){
+      scope.hasChanges = true;
+      scope.navigationHooks.beforeUnload(callback);
+      expect(mocks.modals.confirmSave).toHaveBeenCalledWith(jasmine.any(Function));
+    });
+    
+    it('calls modals.confirmSave -> saveBackToItem if not cancelled', function(){
+      spyOn(scope, 'saveBackToItem');
+      scope.hasChanges = true;
+      mocks.modals.cancelled = false;
+      scope.navigationHooks.beforeUnload(callback);
+      expect(scope.saveBackToItem).toHaveBeenCalledWith(jasmine.any(Function));
+    });
+    
+    it('calls modals.confirmSave -> discardDraft if cancelled', function(){
+      spyOn(scope, 'discardDraft');
+      scope.hasChanges = true;
+      mocks.modals.cancelled = true;
+      scope.navigationHooks.beforeUnload(callback);
+      expect(scope.discardDraft).toHaveBeenCalled();
+    });
   });
 
   describe('discardDraft', function(){
@@ -222,14 +310,97 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
   describe('loadDraftItem', function(){
 
-    it('creates new editor', function(){
-      scope.loadDraftItem(true);
-      expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
-        '.draft-editor-holder', 
-        jasmine.any(Object), 
-        jasmine.any(Function)
-        );
+    function load(getResult, expected){
+
+      return function(){
+        beforeEach(function(){
+          
+          getResult = getResult || {
+            draft: {},
+            itemId: mocks.routeParams.itemId
+          };
+          
+          var returnSuccess = typeof(getResult) === 'object';
+
+          mocks.itemDraftService.get.andCallFake(function(opts, success, error){
+            if(returnSuccess){
+              success(getResult);
+            } else {
+              error(new Error('failed'), getResult);
+            }
+          });
+
+          mkController();
+        });
+
+        it('sets showConflictError to false', function(){
+          expect(scope.showConflictError).toBe(expected.showConflictError);
+        });
+
+        it('sets itemId', function(){
+          expect(scope.itemId).toBe('123:0');
+        });
+        
+        it('sets baseId', function(){
+          expect(scope.baseId).toBe(expected.baseId);
+        });
+
+        it('sets version', function(){
+          expect(scope.version).toBe(expected.version);
+        });
+        
+        it('creates new editor', function(){
+          expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
+              '.draft-editor-holder', 
+              jasmine.any(Object), 
+              jasmine.any(Function)
+              );
+          });
+      };
+    }
+
+    describe('load no errors', load(undefined, {
+      showConflictError: false,
+      version: '0',
+      baseId: '123'
+    }));
+    
+    describe('load with 409', load(409, {
+      showConflictError: true,
+      version: undefined,
+      baseId: undefined,
+    }));
+
+  });
+
+  describe('discard', function(){
+    it('calls ItemDraftService.deleteDraft', function(){
+      spyOn(scope, 'loadDraftItem');
+      scope.discard();
+      expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
+      expect(scope.loadDraftItem).toHaveBeenCalled();
     });
+  });
+  
+  describe('showEditor', function(){
+
+    function show(showEditorFn){
+      return function(){
+        scope[showEditorFn]();
+        expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
+          '.draft-editor-holder', 
+          {
+            itemId: jasmine.any(String),
+            draftName: jasmine.any(String),
+            devEditor: showEditorFn === 'showDevEditor',
+            onItemChanged: scope.onItemChanged
+          },
+          jasmine.any(Function));
+      };
+    }
+
+    it('calls new DraftEditor', show('showEditor'));
+    it('calls new DraftEditor with devEditor: true', show('showDevEditor'));
   });
 
 
