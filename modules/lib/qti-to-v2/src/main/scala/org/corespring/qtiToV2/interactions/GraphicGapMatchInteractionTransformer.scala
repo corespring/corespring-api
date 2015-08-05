@@ -23,12 +23,10 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
 
   override def transform(node: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
-    node match {
-      case elem: Elem if elem.label == "graphicGapMatchInteraction" =>
-        elem.child.filter(_.label != "simpleChoice").map(n => n.label match {
-          case "prompt" => <p class="prompt">
-                             { n.child }
-                           </p>
+    node.label match {
+      case "graphicGapMatchInteraction" =>
+        node.child.filter(_.label == "prompt").map(n => n.label match {
+          case "prompt" => <p class="prompt">{ n.child }</p>
           case _ => n
         }) ++ <corespring-graphic-gap-match id={ identifier }></corespring-graphic-gap-match>
       case _ => node
