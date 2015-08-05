@@ -108,12 +108,13 @@
       done = done || function() {};
 
       $scope.isSaveDone = false;
-
+      $scope.showProgressModal = true;
       $scope.v2Editor.forceSave(function(err){
         ItemDraftService.commit($scope.itemId, force, function success() {
           Logger.info('commit successful');
           $scope.draftIsConflicted = false;
           $scope.isSaveDone = true;
+          $scope.showProgressModal = false;
           $timeout(function() {
             $scope.isSaveDone = false;
           }, 3000);
@@ -122,6 +123,7 @@
           Logger.warn(err);
           Modals.commitFailedDueToConflict(function(cancelled) {
             $scope.draftIsConflicted = true;
+            $scope.showProgressModal = false;
             if (cancelled) {
               done();
               return;
