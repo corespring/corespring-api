@@ -1,19 +1,13 @@
 describe('tagger.controllers.new.EditDraftController', function() {
 
-  'use strict';
-
-  var itemId,
-  draftService,
-  scope,
-  mocks,
-  jQueryFunctions;
-
+  var 
+    itemId,
+    draftService,
+    scope,
+    mocks,
+    jQueryFunctions;
   
   beforeEach(module('tagger.services'));
-
-  beforeEach(function(){
-
-  });
   
   beforeEach(inject(function($rootScope, $controller) { 
 
