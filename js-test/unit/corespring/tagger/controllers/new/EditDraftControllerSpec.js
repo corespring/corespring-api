@@ -2,30 +2,24 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
   'use strict';
 
-  var cmsService,
-    ctrl,
-    itemDraftService,
-    itemService,
-    location,
-    routeParams,
-    scope,
-    rootScope,
-    v2ItemService;
+  var itemId,
+  draftService,
+  scope,
+  mocks,
+  jQueryFunctions;
 
-  function MockItemService() {
-    this.createWorkflowObject = jasmine.createSpy('createWorkflowObject');
-    this.remove = jasmine.createSpy('remove');
-  }
-
+  
   beforeEach(module('tagger.services'));
-
-  var editorElement;
-  var editorOptions;
-  var mockEditor;
 
   beforeEach(function(){
 
-    mockEditor = {
+  });
+  
+  beforeEach(inject(function($rootScope, $controller) { 
+
+    mocks = {};
+
+    mocks.editor = {
       forceSave: jasmine.createSpy('forceSave').andCallFake(function(success){
         success(null);
       }),
@@ -35,32 +29,35 @@ describe('tagger.controllers.new.EditDraftController', function() {
     window.org = window.org || {};
     org.corespring = org.corespring || {};
     org.corespring.players = org.corespring.players || {};
-    org.corespring.players.DraftEditor = function(element, options){
-      editorElement = element;
-      editorOptions = options;
-      return mockEditor;
-    };
-  });
+    org.corespring.players.DraftEditor = jasmine.createSpy('DraftEditor').andCallFake(
+      function(){
+        return mocks.editor;
+      });
 
-
-  beforeEach(function() {
-    location = {
+    mocks.location = {
       url: jasmine.createSpy('url'),
       path: jasmine.createSpy('path').andReturn({
         search: function(){} 
       })
     };
 
-    v2ItemService = {
-      clone: jasmine.createSpy('clone')
+    mocks.routeParams = {
+      itemId: '123:0'
     };
-    
-    routeParams = {itemId:'123'};
 
-    itemDraftService = {
+    mocks.itemService = {
+
+    };
+
+    mocks.ItemServiceConstructor = jasmine.createSpy('new ItemService')
+      .andCallFake(function(){
+        return mocks.itemService;
+      });
+    
+    mocks.itemDraftService = {
       get: jasmine.createSpy('get').andCallFake(function(opts, success){
         success({
-          itemId: routeParams.itemId,
+          itemId: mocks.routeParams.itemId,
           user: 'ed'
         });
       }),
@@ -76,164 +73,170 @@ describe('tagger.controllers.new.EditDraftController', function() {
       commit: jasmine.createSpy('commit').andCallFake(function(id, force, success) {
         success({});
       }),
-      deleteDraft : jasmine.createSpy('deleteDraft')
+      deleteDraft : jasmine.createSpy('deleteDraft'),
+      clone: jasmine.createSpy('clone').andCallFake(function(id, cb){
+        cb({itemId: id});
+      })
     };
 
+    mocks.modals = {
+      cancelled: true,
+      saveConflictedDraft: jasmine.createSpy('saveConflictedDraft').andCallFake(function(fn){
+        fn(mocks.modals.cancelled);
+      })
+    };
 
-    module(function($provide) {
-      $provide.value('$timeout', function(fn) {
-        fn();
-      });
-      $provide.value('$location', location);
-      $provide.value('$routeParams', routeParams);
-      $provide.value('ItemService', MockItemService);
-      $provide.value('ItemDraftService', itemDraftService);
-      $provide.value('V2ItemService', v2ItemService);
-      $provide.value('UserInfo', {
-        userName: 'ed',
-        org: '111'
-      });
-    }, 'corespring-utils');
-  });
+    mocks.window = {
+      confirm: jasmine.createSpy('confirm').andReturn(true)
+    };
 
-  beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
-    rootScope = $rootScope;
+    mocks.logger = {
+      info: function(){}
+    };
+
+    jQueryFunctions = {
+      unbind: $.fn.unbind
+    };
+
+    $.fn.unbind = jasmine.createSpy('unbind');
+
     scope = $rootScope.$new();
-    scope.search = function() {};
     scope.navigationHooks = {};
-    ctrl = $controller(tagger.EditDraftController, {
+    $controller(tagger.EditDraftController, {
       $scope: scope,
-      Logger: {info: function() {}}
+      ItemDraftService: mocks.itemDraftService,
+      $routeParams: mocks.routeParams,
+      $location: mocks.location,
+      ItemService: mocks.ItemServiceConstructor,
+      Modals: mocks.modals,
+      Logger: mocks.logger,
+      $window: mocks.window,
+      $timeout: function(fn){ fn(); }
     });
   }));
 
-  describe("init", function() {
-    it("is initialised correctly", function() {
-      expect(ctrl).not.toBeNull();
-      expect(scope.hasChanges).toBe(false);
+  afterEach(function(){
+    $.fn.unbind = jQueryFunctions.unbind;
+  });
+
+  describe('discardDraft', function(){
+
+    it('calls ItemDraftService.deleteDraft', function(){
+      scope.discardDraft();
+      expect(mocks.itemDraftService.deleteDraft)
+        .toHaveBeenCalledWith(
+          mocks.routeParams.itemId, 
+          jasmine.any(Function),
+          jasmine.any(Function)
+          );
     });
   });
 
-  describe("hasChanges", function() {
-    it('flag gets set when itemChanged event occurs', function () {
-      scope.onItemChanged();
-      expect(scope.hasChanges).toBe(true);
+  describe('confirmSaveBeforeLeaving', function(){
+    it('calls $window.confirm', function(){
+      scope.confirmSaveBeforeLeaving();
+      expect(mocks.window.confirm).toHaveBeenCalled();
     });
   });
 
-  describe("before unload hook (local)", function() {
-    xit('calls callback when there are no changes', function() {
-      scope.loadDraftItem(false);
-      scope.hasChanges = false;
-      var o = {callback: jasmine.createSpy('spy')};
-      scope.navigationHooks.beforeUnload(o.callback);
-      expect(o.callback).toHaveBeenCalled();
-    });
+  describe('$routeChangeStart handler', function(){
 
-    xit('doesnt call callback immediately when there are changes', function() {
-      scope.loadDraftItem(false);
-      scope.hasChanges = true;
-      var o = {callback: jasmine.createSpy('spy')};
-      scope.navigationHooks.beforeUnload(o.callback);
-      expect(o.callback).not.toHaveBeenCalled();
-    });
-
-    xit('calls callback after saving item when there are changes', function() {
-      scope.loadDraftItem(false);
-      scope.hasChanges = true;
-      var o = {callback: jasmine.createSpy('spy')};
-      scope.navigationHooks.beforeUnload(o.callback);
-      expect(o.callback).not.toHaveBeenCalled();
-      rootScope.modals.confirmSave.done();
-      expect(o.callback).toHaveBeenCalled();
-    });
-
-    xit('calls discardDraft if modal.cancelled == true', function(){
-      scope.loadDraftItem(false);
-      scope.hasChanges = true;
-      scope.navigationHooks.beforeUnload(function(){});
-      rootScope.modals.confirmSave.done(true);
-      expect( itemDraftService.deleteDraft)
-        .toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
-    });
-  });
-
-  describe('backToCollections', function(){
-    
-    it('does not call discardDraft if modal.cancelled == true', function(){
-      scope.hasChanges = true;
-      scope.backToCollections();
-      rootScope.modals.confirmSave.done();
-      expect( itemDraftService.deleteDraft)
-        .not.toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
-    });
-    
-    it('calls discardDraft if modal.cancelled == true', function(){
-      scope.hasChanges = true;
-      scope.backToCollections();
-      rootScope.modals.confirmSave.done(true);
-      expect( itemDraftService.deleteDraft)
-        .toHaveBeenCalledWith(routeParams.itemId, jasmine.any(Function), jasmine.any(Function));
-    });
-  });
-
-  describe("saving item on route change", function() {
-    it('asks for save confirmation if there are unsaved changes', function() {
-      spyOn(scope, 'confirmSaveBeforeLeaving');
-      scope.hasChanges = true;
+    it('calls unbind', function(){
       scope.$emit('$routeChangeStart');
-      expect(scope.confirmSaveBeforeLeaving).toHaveBeenCalled();
+      expect($.fn.unbind).toHaveBeenCalledWith('beforeunload');
     });
 
-    it('doesnt ask for save confirmation if there are no unsaved changes', function() {
-      spyOn(scope, 'confirmSaveBeforeLeaving');
-      scope.hasChanges = false;
-      scope.$emit('$routeChangeStart');
-      expect(scope.confirmSaveBeforeLeaving).not.toHaveBeenCalled();
-    });
-
-    it('saves item before leaving if confirmed', function() {
-      spyOn(scope, 'confirmSaveBeforeLeaving').andReturn(true);
+    it('calls saveBackToItem', function(){
       spyOn(scope, 'saveBackToItem');
       scope.hasChanges = true;
       scope.$emit('$routeChangeStart');
       expect(scope.saveBackToItem).toHaveBeenCalled();
     });
+  });
 
-    it('doesnt save item before leaving if not confirmed', function() {
-      spyOn(scope, 'confirmSaveBeforeLeaving').andReturn(false);
-      spyOn(scope, 'saveBackToItem');
-      scope.hasChanges = true;
-      scope.$emit('$routeChangeStart');
-      expect(scope.saveBackToItem).not.toHaveBeenCalled();
+  describe('saveBackToItem', function(){
+    it('if draftIsConflicted = false it doesn\'t call Modal.saveConflictedDraft', function(){
+      scope.draftIsConflicted = false;
+      scope.saveBackToItem();
+      expect(mocks.modals.saveConflictedDraft).not.toHaveBeenCalledWith(jasmine.any(Function));
+    });
+
+    it('if draftIsConflicted it calls Modal.saveConflictedDraft', function(){
+      scope.draftIsConflicted = true;
+      scope.saveBackToItem();
+      expect(mocks.modals.saveConflictedDraft).toHaveBeenCalledWith(jasmine.any(Function));
+    });
+
+    function callToServices(conflicted, cancelled, forced){
+
+      conflicted = conflicted || false;
+      cancelled = cancelled === undefined ? true : cancelled;
+      forced = forced === undefined ? false : forced;
+
+      return function(){
+
+          function label(l){
+            return 'conflicted: ' + conflicted + ', cancelled: ' + cancelled + ' forced: ' + forced + ' ' + l;
+          }
+
+          beforeEach(function(){
+            scope.draftIsConflicted = conflicted;
+            mocks.modals.saveConflictedDraft.andCallFake(function(fn){
+              fn(cancelled);
+            });
+            scope.saveBackToItem();
+          });
+          
+          it(label('calls v2Editor.forceSave'), function(){
+            if(cancelled){
+              expect(scope.v2Editor.forceSave).not.toHaveBeenCalled();
+            } else {
+              expect(scope.v2Editor.forceSave).toHaveBeenCalled();
+            }
+          });
+          
+          it(label('calls itemDraftService.commit'), function(){
+
+            if(cancelled){
+              expect(mocks.itemDraftService.commit).not.toHaveBeenCalledWith();
+            } else {
+              expect(mocks.itemDraftService.commit).toHaveBeenCalledWith(
+                mocks.routeParams.itemId, 
+                forced, 
+                jasmine.any(Function), 
+                jasmine.any(Function));
+            }
+          });
+      };
+    }
+
+    describe('call to services - not conflicted => force is false', callToServices(false, false, false));
+    describe('call to services - conflicted => force is true', callToServices(true, false, true));
+    describe('call to services - conflicted + cancelled - no calls to services', callToServices(true, true, true));
+  });
+
+  describe('clone', function(){
+    it('calls itemDraftService.clone', function(){
+      scope.clone();
+      expect(mocks.itemDraftService.clone).toHaveBeenCalledWith(
+        mocks.routeParams.itemId, 
+        jasmine.any(Function),
+        jasmine.any(Function)
+        );
     });
   });
 
-  describe("showDevEditor", function() {
-    it('sets devEditorVisible to true', function(){
-      scope.showDevEditor();
-      expect(scope.devEditorVisible).toBe(true);
-    });
-    
-    it('creates dev editor', function(){
-      scope.showDevEditor();
-      expect(editorOptions.devEditor).toBe(true);
-      expect(scope.v2Editor).not.toBe(null);
+  describe('loadDraftItem', function(){
+
+    it('creates new editor', function(){
+      scope.loadDraftItem(true);
+      expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
+        '.draft-editor-holder', 
+        jasmine.any(Object), 
+        jasmine.any(Function)
+        );
     });
   });
-
-  describe("showEditor", function() {
-    it('sets devEditorVisible to false', function() {
-      scope.showEditor();
-      expect(scope.devEditorVisible).toBe(false);
-    });
-    it('creates editor', function(){
-      scope.showEditor();
-      expect(editorOptions.devEditor).toBe(false);
-      expect(scope.v2Editor).not.toBe(null); 
-    });
-  });
-
 
 
 });
