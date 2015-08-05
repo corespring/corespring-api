@@ -141,16 +141,18 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
     });
 
-    it('sets hasBoundBeforeUnload to true', function(){
-      expect(scope.hasBoundBeforeUnload).toBe(true);
-    });
   });
 
   describe('beforeunload', function(){
 
-    it('returns a message if hasChanges == true', function(){
+     it('returns a message if hasChanges == true', function(){
       scope.hasChanges = true;
-      expect(bindHandlers.beforeunload[0]()).toEqual(jasmine.any(String));
+      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.hasChanges);
+    });
+    
+    it('returns a message if saveState == in-progress', function(){
+      scope.showProgressModal = true;
+      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.saveInProgress);
     });
     
     it('returns undefined hasChanges == false', function(){

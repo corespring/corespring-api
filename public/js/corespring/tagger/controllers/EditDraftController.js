@@ -114,16 +114,18 @@
           Logger.info('commit successful');
           $scope.draftIsConflicted = false;
           $scope.isSaveDone = true;
-          $scope.showProgressModal = false;
+          $timeout(function(){
+            $scope.showProgressModal = false;
+          }, 4000);
           $timeout(function() {
             $scope.isSaveDone = false;
           }, 3000);
           done();
         }, function error(err) {
           Logger.warn(err);
+          $scope.showProgressModal = false;
           Modals.commitFailedDueToConflict(function(cancelled) {
             $scope.draftIsConflicted = true;
-            $scope.showProgressModal = false;
             if (cancelled) {
               done();
               return;
