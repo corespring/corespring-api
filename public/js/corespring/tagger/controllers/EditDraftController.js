@@ -181,7 +181,7 @@
         devEditor: devEditor
       };
 
-      return new org.corespring.players.DraftEditor('.draft-editor-holder', opts, function(e){
+      return new org.corespring.players.DraftEditor('.item-iframe-container', opts, function(e){
         Logger.error(e);
       });
     }
