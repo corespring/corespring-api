@@ -2,22 +2,24 @@ package org.corespring.v2.api
 
 import org.corespring.models.Organization
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ encryptionFailed, noJson }
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Action
+import play.api.mvc.{ RequestHeader, Action }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.Validation
 
-trait PlayerTokenApi extends V2Api {
+class PlayerTokenApi(
+  tokenService: PlayerTokenService,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
+  override implicit def ec: ExecutionContext = v2ApiContext.context
   private lazy val logger = Logger(classOf[PlayerTokenApi])
-
-  def tokenService: PlayerTokenService
 
   def encryptionFailedError(org: Organization) = encryptionFailed(s"orgId: ${org.id} orgName: ${org.name} - Unknown error trying to encrypt")
 
@@ -53,4 +55,5 @@ trait PlayerTokenApi extends V2Api {
       }(out)
     }
   }
+
 }

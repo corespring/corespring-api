@@ -8,13 +8,12 @@ import play.api.mvc.{ Action, AnyContent, Controller }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-trait Utils extends Controller {
+class Utils(
+  tokenService: AccessTokenService,
+  apiClientEncryptionService: ApiClientEncryptionService,
+  v2ApiContext: V2ApiExecutionContext) extends Controller {
 
-  implicit def ec: ExecutionContext
-
-  def tokenService: AccessTokenService
-
-  def apiClientEncryptionService: ApiClientEncryptionService
+  implicit def ec: ExecutionContext = v2ApiContext.context
 
   def flushCaches: Action[AnyContent] = Action.async { implicit request =>
     Future {

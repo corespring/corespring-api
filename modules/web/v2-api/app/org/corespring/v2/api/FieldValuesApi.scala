@@ -1,12 +1,19 @@
 package org.corespring.v2.api
 
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsString, JsArray, Json }
 import org.corespring.itemSearch.ItemIndexService
-import scalaz.{ Failure, Success }
+import play.api.mvc.RequestHeader
+import scala.concurrent.ExecutionContext
+import scalaz.{ Validation, Failure, Success }
 
-trait FieldValuesApi extends V2Api {
+class FieldValuesApi(
+  indexService: ItemIndexService,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
-  def indexService: ItemIndexService
+  override implicit def ec: ExecutionContext = v2ApiContext.context
 
   def contributors() = get(Keys.contributor)
   def gradeLevels() = get(Keys.gradeLevel)

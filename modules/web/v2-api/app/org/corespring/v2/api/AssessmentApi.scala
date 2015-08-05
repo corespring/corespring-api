@@ -2,22 +2,28 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Answer, Assessment }
-import org.corespring.models.json.JsonFormatting
+import org.corespring.models.json.{ JsonFormatting }
 import org.corespring.services.assessment.AssessmentService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsObject, JsSuccess, Json }
 import play.api.libs.json.Json._
-import play.api.mvc.{ SimpleResult, AnyContent, Request }
+import play.api.mvc.{ RequestHeader, SimpleResult, AnyContent, Request }
 
-trait AssessmentApi extends V2Api {
+import scala.concurrent.ExecutionContext
+import scalaz.Validation
 
-  def assessmentService: AssessmentService
+class AssessmentApi(
+  assessmentService: AssessmentService,
+  jsonFormatting: JsonFormatting,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends V2Api {
 
-  def jsonFormatting: JsonFormatting
+  override implicit def ec: ExecutionContext = v2ApiContext.context
 
-  implicit val formatAssessment = jsonFormatting.formatAssessment
-  implicit val formatAnswer = jsonFormatting.formatAnswer
+  import jsonFormatting._
 
   def create() = withIdentity { (identity, request) =>
     val json = getAssessmentJson(identity, request)

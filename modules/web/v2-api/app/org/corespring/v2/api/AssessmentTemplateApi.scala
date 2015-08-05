@@ -7,14 +7,21 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentTemplateService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, cantFindAssessmentTemplateWithId }
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsError, JsSuccess, JsObject, Json }
-import play.api.mvc.{ Request, AnyContent }
+import play.api.mvc.{ RequestHeader, Request, AnyContent }
 
-trait AssessmentTemplateApi extends V2Api {
+import scala.concurrent.ExecutionContext
+import scalaz.Validation
 
-  def assessmentTemplateService: AssessmentTemplateService
+class AssessmentTemplateApi(
+  assessmentTemplateService: AssessmentTemplateService,
+  jsonFormatting: JsonFormatting,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends V2Api {
 
-  def jsonFormatting: JsonFormatting
+  override def ec: ExecutionContext = v2ApiContext.context
 
   implicit val AssessmentTemplateFormat = jsonFormatting.formatAssessmentTemplate
 

@@ -1,12 +1,11 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.models.auth.Permission
+import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.item._
-import org.corespring.platform.core.services.item.{ ItemIndexService, ItemService }
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.OrganizationService
+import org.corespring.services.item.ItemService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -34,41 +33,60 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
 
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
-  def emptyPlayerDefinition = PlayerDefinition(Seq.empty, "", Json.obj(), "", None)
+  def emptyPlayerDefinition = PlayerDefinition.empty
+
+  lazy val collectionId = ObjectId.get
 
   case class checkScoreScope(
     orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-    loadForReadResult: Validation[V2Error, Item] = Success(Item(playerDefinition = Some(emptyPlayerDefinition))),
+    loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId, playerDefinition = Some(emptyPlayerDefinition))),
     scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
 
-    lazy val api = new ItemApi {
+    lazy val itemService: ItemService = mock[ItemService]
 
-      override def defaultCollection(implicit identity: OrgAndOpts): Option[String] = ???
-
-      override def itemService: ItemService = mock[ItemService]
-
-      override def scoreService: ScoreService = {
-        val m = mock[ScoreService]
-        m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
-        m
-      }
-
-      override def itemType: ItemType = mock[ItemType]
-
-      override def itemAuth: ItemAuth[OrgAndOpts] = {
-        val m = mock[ItemAuth[OrgAndOpts]]
-        m.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
-        m
-      }
-
-      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
-
-      override def itemIndexService: ItemIndexService = ???
-
-      override def getSummaryData: (Item, Option[String]) => JsValue = (i, s) => Json.obj()
+    lazy val scoreService: ScoreService = {
+      val m = mock[ScoreService]
+      m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
+      m
     }
+
+    lazy val itemAuth: ItemAuth[OrgAndOpts] = {
+      val m = mock[ItemAuth[OrgAndOpts]]
+      m.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
+      m
+    }
+
+    lazy val itemIndexService: ItemIndexService = mock[ItemIndexService]
+
+    lazy val orgService = {
+      val m = mock[OrganizationService]
+      m
+    }
+
+    lazy val itemTypes = Seq.empty[ComponentType]
+
+    lazy val jsonFormatting = {
+      val m = mock[JsonFormatting]
+      m
+    }
+
+    lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
+
+    lazy val getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = (rh: RequestHeader) => {
+      Success(orgAndOpts)
+    }
+
+    lazy val api = new ItemApi(
+      itemService,
+      orgService,
+      itemIndexService,
+      itemAuth,
+      itemTypes,
+      scoreService,
+      jsonFormatting,
+      apiContext,
+      getOrgAndOptsFn)
+
   }
 
   "V2 - ItemApi" should {

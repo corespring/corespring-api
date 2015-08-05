@@ -1,8 +1,11 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.assessment.basic.{ Answer, Participant, Assessment }
-import org.corespring.platform.core.services.assessment.basic.AssessmentService
+import org.corespring.models.item.FieldValue
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.assessment.{ Answer, Participant, Assessment }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.assessment.AssessmentService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors.invalidToken
@@ -21,6 +24,20 @@ import scalaz.{ Failure, Success, Validation }
 class AssessmentApiTest extends Specification with MockFactory {
 
   PlaySingleton.start()
+
+  val jsonFormatting = new JsonFormatting {
+    override def fieldValue: FieldValue = ???
+
+    override def findStandardByDotNotation: (String) => Option[Standard] = ???
+
+    override def countItemsInCollection(collectionId: ObjectId): Long = ???
+
+    override def rootOrgId: ObjectId = ???
+
+    override def findSubjectById: (ObjectId) => Option[Subject] = ???
+  }
+
+  import jsonFormatting._
 
   case class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
     id: Option[ObjectId] = None,

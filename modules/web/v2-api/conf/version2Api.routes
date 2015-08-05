@@ -31,7 +31,7 @@ GET  /sessions/:sessionId                  @org.corespring.v2.api.ItemSessionApi
 
 POST /items/:itemId/sessions               @org.corespring.v2.api.ItemSessionApi.create(itemId:VersionedId[ObjectId])
 
-GET  /items/:itemId/full                   @org.corespring.v2.api.V1ItemApiProxy.get(itemId: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
+GET  /items/:itemId/full                   @org.corespring.v2.api.ItemApi.get(itemId: String, detail : Option[String] ?= Some("normal"))
 
 GET  /items/:itemId                        @org.corespring.v2.api.ItemApi.get(itemId:String, detail : Option[String] ?= Some("normal"))
 
@@ -47,15 +47,15 @@ PUT /items/:itemId/publish                 @org.corespring.v2.api.ItemApi.publis
 
 PUT /items/:itemId/save-new-version        @org.corespring.v2.api.ItemApi.saveNewVersion(itemId)
 
-GET  /items                                @org.corespring.v2.api.V1ItemApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET  /items                                @org.corespring.v2.api.ItemApi.search(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
 POST /launch-item                          @org.corespring.v2.api.ExternalModelLaunchApi.buildExternalLaunchSession()
 
-GET  /collections/:collectionId/items      @org.corespring.v2.api.V1ItemApiProxy.listWithColl(collectionId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET  /collections/:collectionId/items      @org.corespring.v2.api.ItemApi.searchByCollectionId(collectionId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
-GET  /collections/:collectionId            @org.corespring.v2.api.V1CollectionApiProxy.getCollection(collectionId: ObjectId)
+GET  /collections/:collectionId            @org.corespring.v2.api.CollectionApi.getCollection(collectionId: ObjectId)
 
-GET  /collections                          @org.corespring.v2.api.V1CollectionApiProxy.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET  /collections                          @org.corespring.v2.api.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
 GET  /item-types                           @org.corespring.v2.api.ItemApi.getItemTypes()
 

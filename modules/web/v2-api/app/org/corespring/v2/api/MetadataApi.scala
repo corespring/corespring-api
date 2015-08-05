@@ -7,14 +7,21 @@ import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
+import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json._
 import play.api.libs.json.{ Format, JsArray, JsValue, Json }
 import play.api.mvc._
 
-trait MetadataApi extends V2Api {
+import scala.concurrent.ExecutionContext
+import scalaz.Validation
 
-  def metadataSetService: MetadataSetService
-  def metadataService: MetadataService
+class MetadataApi(
+  metadataSetService: MetadataSetService,
+  metadataService: MetadataService,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+
+  override implicit def ec: ExecutionContext = v2ApiContext.context
 
   implicit val ms: Format[MetadataSet] = MetadataSetFormat
 
