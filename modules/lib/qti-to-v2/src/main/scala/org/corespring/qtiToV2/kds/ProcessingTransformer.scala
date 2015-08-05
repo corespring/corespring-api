@@ -114,6 +114,7 @@ trait ProcessingTransformer extends V2JavascriptWrapper {
     case "and" => s"(${and(node)})"
     case "or" => s"(${or(node)})"
     case "gt" => s"(${gt(node)})"
+    case "gte" => s"(${gte(node)}})"
     case "isNull" => s"(${isNull(node)})"
     case "equal" => s"(${equal(node)})"
     case "sum" => sum(node)
