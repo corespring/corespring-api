@@ -353,7 +353,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
         
         it('creates new editor', function(){
           expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
-              '.draft-editor-holder', 
+              scope.containerClassName, 
               jasmine.any(Object), 
               jasmine.any(Function)
               );
@@ -390,12 +390,13 @@ describe('tagger.controllers.new.EditDraftController', function() {
       return function(){
         scope[showEditorFn]();
         expect(org.corespring.players.DraftEditor).toHaveBeenCalledWith(
-          '.draft-editor-holder', 
+          scope.containerClassName, 
           {
             itemId: jasmine.any(String),
             draftName: jasmine.any(String),
             devEditor: showEditorFn === 'showDevEditor',
-            onItemChanged: scope.onItemChanged
+            onItemChanged: scope.onItemChanged,
+            autosizeEnabled: false
           },
           jasmine.any(Function));
       };

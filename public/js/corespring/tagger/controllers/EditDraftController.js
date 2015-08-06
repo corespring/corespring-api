@@ -38,17 +38,22 @@
 
     $scope.navigationHooks.beforeUnload = function(callback) {
       $($window).unbind('beforeunload');
-      if (!$scope.hasChanges && !$scope.commitInProgress) {
-        callback();
+
+      if($scope.commitInProgress) {
+        return;
       } else {
-        Modals.confirmSave(function(cancelled) {
-          if (!cancelled) {
-            $scope.saveBackToItem(callback);
-          } else {
-            $scope.discardDraft();
-            callback();
-          }
-        });
+        if (!$scope.hasChanges) {
+          callback();
+        } else {
+          Modals.confirmSave(function(cancelled) {
+            if (!cancelled) {
+              $scope.saveBackToItem(callback);
+            } else {
+              $scope.discardDraft();
+              callback();
+            }
+          });
+        }
       }
     };
 
@@ -169,6 +174,8 @@
     };
 
 
+    $scope.containerClassName = '.item-iframe-container';
+
     function loadEditor(devEditor){
      
       if($scope.v2Editor){
@@ -183,7 +190,7 @@
         autosizeEnabled: false
       };
 
-      return new org.corespring.players.DraftEditor('.item-iframe-container', opts, function(e){
+      return new org.corespring.players.DraftEditor($scope.containerClassName, opts, function(e){
         Logger.error(e);
       });
     }

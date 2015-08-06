@@ -11,7 +11,7 @@ angular.module('tagger.directives').directive('toastMessage', [
       $scope.$on(eventToListenFor, function(event){
         if($scope.showToast === false){
           $scope.showToast = true;
-          $scope.promise = $timeout(function(){
+          $timeout(function(){
             $scope.showToast = false;
           }, timeout);
         }
@@ -22,7 +22,7 @@ angular.module('tagger.directives').directive('toastMessage', [
       restrict: 'C',
       link: link,
       transclude: true,
-      template: '<span ng-hide="!showToast" ng-transclude></span>',
+      template: '<span ng-class="{hidden: !showToast}" ng-transclude></span>',
       scope: true
     };
   }]);
