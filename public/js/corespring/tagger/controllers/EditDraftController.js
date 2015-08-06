@@ -38,7 +38,7 @@
 
     $scope.navigationHooks.beforeUnload = function(callback) {
       $($window).unbind('beforeunload');
-      if (!$scope.hasChanges) {
+      if (!$scope.hasChanges && !$scope.commitInProgress) {
         callback();
       } else {
         Modals.confirmSave(function(cancelled) {
@@ -72,6 +72,7 @@
     });
 
     $scope.backToCollections = function() {
+
       if ($scope.hasChanges) {
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
@@ -103,27 +104,27 @@
       $scope.hasChanges = false;
     };
 
+    $scope.$watch('commitInProgress', function(){
+      $scope.navDisabled = $scope.commitInProgress;
+    });
+
     function commit(force, done) {
 
       done = done || function() {};
 
-      $scope.isSaveDone = false;
-      $scope.showProgressModal = true;
+      $scope.commitInProgress = true;
+
       $scope.v2Editor.forceSave(function(err){
         ItemDraftService.commit($scope.itemId, force, function success() {
-          Logger.info('commit successful');
           $scope.draftIsConflicted = false;
-          $scope.isSaveDone = true;
+
           $timeout(function(){
-            $scope.showProgressModal = false;
-          }, 4000);
-          $timeout(function() {
-            $scope.isSaveDone = false;
+            $scope.commitInProgress = false;
+            $scope.$broadcast('commitComplete');
           }, 3000);
           done();
         }, function error(err) {
           Logger.warn(err);
-          $scope.showProgressModal = false;
           Modals.commitFailedDueToConflict(function(cancelled) {
             $scope.draftIsConflicted = true;
             if (cancelled) {
@@ -178,7 +179,8 @@
         itemId: $scope.itemId,
         draftName: $scope.draft.user,
         onItemChanged: $scope.onItemChanged,
-        devEditor: devEditor
+        devEditor: devEditor,
+        autosizeEnabled: false
       };
 
       return new org.corespring.players.DraftEditor('.item-iframe-container', opts, function(e){
@@ -242,13 +244,13 @@
     };
 
     $scope.unloadMessages = {
-      saveInProgress: 'saving in progress - please try again',
+      commitInProgress: 'saving in progress - please try again',
       hasChanges: 'There are updates to this item that have not been saved. Are you sure you want to leave?'
     };
 
     function onBeforeUnload(){
-      if($scope.showProgressModal){
-        return $scope.unloadMessages.saveInProgress;
+      if($scope.commitInProgress){
+        return $scope.unloadMessages.commitInProgress;
       } else if($scope.hasChanges){
         return $scope.unloadMessages.hasChanges;
       }
