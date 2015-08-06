@@ -122,16 +122,14 @@
       $scope.v2Editor.forceSave(function(err){
         ItemDraftService.commit($scope.itemId, force, function success() {
           $scope.draftIsConflicted = false;
-
-          $timeout(function(){
-            $scope.commitInProgress = false;
-            $scope.$broadcast('commitComplete');
-          }, 3000);
+          $scope.commitInProgress = false;
+          $scope.$broadcast('commitComplete');
           done();
         }, function error(err) {
           Logger.warn(err);
           Modals.commitFailedDueToConflict(function(cancelled) {
             $scope.draftIsConflicted = true;
+            $scope.commitInProgress = false;
             if (cancelled) {
               done();
               return;
