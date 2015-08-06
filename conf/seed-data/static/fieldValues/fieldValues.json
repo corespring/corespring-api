@@ -17,16 +17,19 @@
 
   "depthOfKnowledge": [{
     "key": "1",
-    "value": "Level 1 Recall & Reproduction"
+    "value": "Recall & Reproduction"
   }, {
     "key": "2",
-    "value": "Level 2 Skills & Concepts"
+    "value": "Skills & Concepts"
   }, {
     "key": "3",
-    "value": "Level 3 Strategic Thinking/Reasoning"
+    "value": "Strategic Thinking/Reasoning"
   }, {
     "key": "4",
-    "value": "Level 4 Extended Thinking"
+    "value": "Extended Thinking"
+  }, {
+    "key": "None",
+    "value": "None"
   }],
 
   "bloomsTaxonomy": [{
@@ -50,16 +53,16 @@
   }],
 
   "depthOfKnowledge": [{
-    "key": "Recall & Reproduction",
+    "key": "1",
     "value": "Recall & Reproduction"
   }, {
-    "key": "Strategic Thinking & Reasoning",
+    "key": "3",
     "value": "Strategic Thinking & Reasoning"
   }, {
-    "key": "Skills & Concepts",
+    "key": "2",
     "value": "Skills & Concepts"
   }, {
-    "key": "Extended Thinking",
+    "key": "4",
     "value": "Extended Thinking"
   }, {
     "key": "None",
