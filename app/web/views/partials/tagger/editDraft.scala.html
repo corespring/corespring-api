@@ -9,13 +9,15 @@
     <div class="container-fluid">
     <ul class="nav nav-pills">
       <li>
-        <span class="item-back-to-search"><a ng-click="backToCollections()">
-        <i class="icon-white icon-backward"></i> back to search results
-        </a></span>
+        <span class="item-back-to-search">
+          <a a-disabled="navDisabled" ng-click="backToCollections()">
+            <i class="icon-white icon-backward"></i> back to search results
+          </a>
+        </span>
       </li>
       <li><button class="btn btn-primary save-btn" ng-disabled="!hasChanges" ng-click="saveBackToItem()"><i class="fa fa-save "></i> Save</button></li>
       <li>
-          <span class="save-message"><span class="hidden" ng-class="{hidden: !isSaveDone}">All changes have been saved</span></span>
+        <span class="save-message toast-message" toast-event="commitComplete">All changes have been saved </span>
       </li>
            
       <li><span class="item-base-id"><b>ID:</b>  {{baseId}}</span>
@@ -24,18 +26,18 @@
 
       <li class="pull-right">
         <div class="dropdown actions-dropdown" id="menu2">
-          <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu2">
+          <button ng-disabled="navDisabled" class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#menu2">
             Select an action
             <b class="caret"></b>
           </button>
           <ul class="dropdown-menu dropdown-menu-actions">
-            <li><button class="btn btn-sm" ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;clone</button></li>
-            <li><button class="btn btn-info btn-sm" ng-show="!item.published" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;publish</button></li>
+            <li><button class="btn btn-sm" ng-disabled="navDisabled" ng-click="clone()"><i class="fa fa-copy"></i>&nbsp;clone</button></li>
+            <li><button class="btn btn-info btn-sm" ng-show="!item.published" ng-disabled="navDisabled" ng-click="publish()"><i class="fa fa-bolt"></i>&nbsp;publish</button></li>
           </ul>
         </div>
       
-        <span ng-show="!devEditorVisible"><a ng-click="showDevEditor()">Dev Editor</a></span>
-        <span ng-show="devEditorVisible"><a ng-click="showEditor()"><i class="icon-white icon-backward"></i> Exit the Dev Editor</a></span>
+        <span ng-show="!devEditorVisible"><a a-disabled="navDisabled" ng-click="showDevEditor()">Dev Editor</a></span>
+        <span ng-show="devEditorVisible"><a a-disabled="navDisabled" ng-click="showEditor()"><i class="icon-white icon-backward"></i> Exit the Dev Editor</a></span>
       </li>
    </ul>
 </div>

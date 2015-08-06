@@ -53,7 +53,7 @@ object Build extends sbt.Build {
   // updateOptions := updateOptions.value.withConsolidatedResolution(true),
   // see: https://github.com/sbt/sbt/issues/2105
   val sharedSettings = Seq(
-    moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+    //moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
     aggregate in update := false,
     scalaVersion := ScalaVersion,
     parallelExecution.in(Test) := false,
@@ -405,7 +405,7 @@ object Build extends sbt.Build {
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+      ////moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
       //updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
