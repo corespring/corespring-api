@@ -25,12 +25,6 @@ import scalaz.{ Failure, Success, Validation }
 
 class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory {
 
-  /**
-   * We should not need to run the app for a unit test.
-   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
-   */
-  PlaySingleton.start()
-
   def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "", FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
 
   def emptyPlayerDefinition = PlayerDefinition.empty
@@ -38,55 +32,12 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
   lazy val collectionId = ObjectId.get
 
   case class checkScoreScope(
-    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-    loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId, playerDefinition = Some(emptyPlayerDefinition))),
-    scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends Scope {
+    override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId.toString, playerDefinition = Some(emptyPlayerDefinition))),
+    scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends ItemApiScope {
 
-    lazy val itemService: ItemService = mock[ItemService]
-
-    lazy val scoreService: ScoreService = {
-      val m = mock[ScoreService]
-      m.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
-      m
-    }
-
-    lazy val itemAuth: ItemAuth[OrgAndOpts] = {
-      val m = mock[ItemAuth[OrgAndOpts]]
-      m.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
-      m
-    }
-
-    lazy val itemIndexService: ItemIndexService = mock[ItemIndexService]
-
-    lazy val orgService = {
-      val m = mock[OrganizationService]
-      m
-    }
-
-    lazy val itemTypes = Seq.empty[ComponentType]
-
-    lazy val jsonFormatting = {
-      val m = mock[JsonFormatting]
-      m
-    }
-
-    lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
-
-    lazy val getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts] = (rh: RequestHeader) => {
-      Success(orgAndOpts)
-    }
-
-    lazy val api = new ItemApi(
-      itemService,
-      orgService,
-      itemIndexService,
-      itemAuth,
-      itemTypes,
-      scoreService,
-      jsonFormatting,
-      apiContext,
-      getOrgAndOptsFn)
-
+    mockItemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
+    mockScoreService.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
   }
 
   "V2 - ItemApi" should {
@@ -117,7 +68,7 @@ class ItemApiCheckScoreTest extends Specification with Mockito with MockFactory 
       }
 
       "fail if there is no player definition" in new checkScoreScope(
-        loadForReadResult = Success(Item())) {
+        loadForReadResult = Success(Item(collectionId.toString))) {
         val result = api.checkScore("itemId")(FakeRequest("", "", FakeHeaders(), AnyContentAsJson(Json.obj())))
         val error = api.noPlayerDefinition(loadForReadResult.toEither.right.get.id)
         status(result) === error.statusCode

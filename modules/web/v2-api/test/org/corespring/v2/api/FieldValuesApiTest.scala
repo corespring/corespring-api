@@ -22,23 +22,18 @@ class FieldValuesApiTest extends Specification with MockFactory {
   val contributorValues = Seq("these", "are", "contributors")
   val gradeValues = Seq("these are grades")
 
-  class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts())) extends Scope {
-    val fieldValuesApi = new FieldValuesApi {
+  class apiScope(val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts())) extends Scope with V2ApiScope {
 
-      def itemIndexService = {
-        val m = mock[ItemIndexService]
-        m.distinct(Matchers.eq("contributorDetails.contributor"), any[Seq[String]]) returns Future { Success(contributorValues) }
-        m.distinct(Matchers.eq("taskInfo.gradeLevel"), any[Seq[String]]) returns Future { Success(gradeValues) }
-        m
-      }
-      override implicit def ec: ExecutionContext = ExecutionContext.global
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-        orgAndOpts match {
-          case Some(orgAndOpts) => Success(orgAndOpts)
-          case _ => Failure(invalidToken(FakeRequest()))
-        }
-      }
+    lazy val itemIndexService = {
+      val m = mock[ItemIndexService]
+      m.distinct(Matchers.eq("contributorDetails.contributor"), any[Seq[String]]) returns Future { Success(contributorValues) }
+      m.distinct(Matchers.eq("taskInfo.gradeLevel"), any[Seq[String]]) returns Future { Success(gradeValues) }
+      m
     }
+    val fieldValuesApi = new FieldValuesApi(
+      itemIndexService,
+      v2ApiContext,
+      getOrgAndOptionsFn)
   }
 
   "contributors" should {

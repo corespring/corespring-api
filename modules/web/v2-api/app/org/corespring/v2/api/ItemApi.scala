@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import org.corespring.itemSearch.{ ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
 import org.corespring.models.item.{ Item, ComponentType }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
-import org.corespring.models.{ Organization }
+import org.corespring.models.{ ContentCollRef, Organization }
 import org.corespring.models.item.Item.Keys._
 import org.corespring.services.bootstrap.Services
 import org.corespring.services.{ SubjectService, StandardService, OrganizationService }
@@ -41,6 +41,9 @@ class ItemApi(
   implicit val itemFormat = jsonFormatting.item
 
   override implicit def ec: ExecutionContext = apiContext.context
+
+  private implicit val QueryReads = ItemIndexQuery.ApiReads
+  private implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
   /**
    * For a known organization (derived from the request) return Some(id)
@@ -90,28 +93,61 @@ class ItemApi(
     }
   }
 
+  /*
+  {"sort":{"title":"asc"},"contributors":[],"collections":["5008248ee4b071cb5ef78ee0","504e70d1e4b07f3e2e43236b","5058ba1ce4b0b16db41bc80f","50b38ac7e4b0e4cc08f53c8f","51d2d327e4b057cc5caa07c8","532258c5827533a417427f71","532258c6827533a417427f72","532258c6827533a417427f73","5453b4e4e4b05f38dd6440a8","551d90f8e4b0b1cdd9dbba0a","558960f5e4b0acf781ff0561","55a83757e4b090e8adcb2e03"],"gradeLevels":[],"itemTypes":[],"workflows":[],"offset":50}
+  */
+
   import Organization._
 
+  private def searchWithQuery(q: ItemIndexQuery,
+    accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
+    val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
+    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
+    val scopedQuery = (collections.isEmpty match {
+      case true => q.copy(collections = accessibleCollectionStrings)
+      case _ => q.copy(collections = collections)
+    })
+    itemIndexService.search(scopedQuery).map(result => result match {
+      case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
+      case Failure(error) => BadRequest(error.getMessage)
+    })
+  }
+
+  private[ItemApi] implicit class JsResultToValidation[T](jsResult: JsResult[T]) {
+    def toValidation: Validation[V2Error, T] = jsResult match {
+      case JsSuccess(d, _) => Success(d)
+      case JsError(errors) => Failure(invalidJson(errors.mkString))
+    }
+  }
+
+  //upgrade of v1 item api - listWithColl
+  def searchByCollectionId(collectionId: ObjectId,
+    q: Option[String] = None) = Action.async { request =>
+
+    val queryString = q.getOrElse("{}")
+
+    val out: Validation[V2Error, Future[SimpleResult]] = for {
+      queryJson <- safeParse(queryString).leftMap(e => invalidJson(e.getMessage))
+      query <- Json.fromJson[ItemIndexQuery](queryJson).toValidation
+      identity <- getOrgAndOptions(request)
+    } yield {
+      val scopedQuery = query.copy(collections = Seq(collectionId.toString))
+      searchWithQuery(scopedQuery, identity.org.accessibleCollections)
+    }
+
+    out match {
+      case Failure(e) => Future(Status(e.statusCode)(e.message))
+      case Success(f) => f
+    }
+  }
+
   def search(query: Option[String]) = Action.async { implicit request =>
-    implicit val QueryReads = ItemIndexQuery.ApiReads
-    implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val queryString = query.getOrElse("{}")
 
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
-          case JsSuccess(query, _) => {
-            val accessibleCollections = orgAndOpts.org.accessibleCollections.map(_.collectionId.toString)
-            val collections = query.collections.filter(id => accessibleCollections.contains(id))
-            val scopedQuery = (collections.isEmpty match {
-              case true => query.copy(collections = accessibleCollections)
-              case _ => query.copy(collections = collections)
-            })
-            itemIndexService.search(scopedQuery).map(result => result match {
-              case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
-              case Failure(error) => BadRequest(error.getMessage)
-            })
-          }
+          case JsSuccess(query, _) => searchWithQuery(query, orgAndOpts.org.accessibleCollections)
           case _ => future {
             val error = invalidJson(queryString)
             Status(error.statusCode)(error.message)
@@ -187,6 +223,8 @@ class ItemApi(
       validationToResult[JsValue](j => Ok(j))(out)
     }
   }
+
+  def getFull(itemId: String) = get(itemId, Some("full"))
 
   def get(itemId: String, detail: Option[String] = None) = Action.async { implicit request =>
     import scalaz.Scalaz._

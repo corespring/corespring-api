@@ -1,17 +1,17 @@
 package org.corespring.v2.api
 
-import scala.concurrent.ExecutionContext
+import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{ MockFactory, AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.{ Field, V2Error }
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.api.mvc.{ AnyContentAsJson, RequestHeader }
+import play.api.mvc.{ AnyContentAsJson }
 import play.api.test.{ FakeHeaders, FakeRequest, PlaySpecification }
 import scalaz.{ Failure, Success, Validation }
 
@@ -22,30 +22,31 @@ class ExternalModelLaunchApiTest
   with MockFactory {
 
   case class apiScope(
-    orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
-    expectedError: Option[V2Error] = None) extends Scope {
+    expectedError: Option[V2Error] = None) extends Scope with V2ApiScope {
 
-    lazy val api = new ExternalModelLaunchApi {
-      override def sessionService: V2SessionService = {
-        val m = mock[V2SessionService]
-        m.createExternalModelSession(any[OrgAndOpts], any[JsObject]) returns createSession
-        m
-      }
-
-      override def tokenService: PlayerTokenService = {
-        val m = mock[PlayerTokenService]
-        m.createToken(any[ObjectId], any[JsValue]) returns createTokenResult
-        m
-      }
-
-      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
-
-      override def playerJsUrl: String = "/v2/player/player.js"
+    lazy val sessionServices = {
+      val m = mock[SessionServices]
+      val mainMock = mock[SessionService]
+      mainMock.create(any[JsObject]) returns createSession
+      m.main returns mainMock
     }
+
+    lazy val tokenService: PlayerTokenService = {
+      val m = mock[PlayerTokenService]
+      m.createToken(any[ObjectId], any[JsValue]) returns createTokenResult
+      m
+    }
+
+    lazy val config = ExternalModelLaunchConfig("/v2/player/player.js")
+
+    lazy val api = new ExternalModelLaunchApi(tokenService,
+      sessionServices,
+      config,
+      v2ApiContext,
+      getOrgAndOptionsFn)
 
     lazy val json = createJson
     lazy val result = api.buildExternalLaunchSession()(fakeRequest(json))

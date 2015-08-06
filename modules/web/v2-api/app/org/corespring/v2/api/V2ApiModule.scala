@@ -5,14 +5,12 @@ import org.corespring.encryption.apiClient.ApiClientEncryptionService
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.item.{ PlayerDefinition, ComponentType }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.OrganizationService
-import org.corespring.services.assessment.{ AssessmentService, AssessmentTemplateService }
-import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.drafts.item.ItemDraftsModule
-import org.corespring.v2.api.services.ScoreService
+import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionServices
 import play.api.mvc.{ Controller, RequestHeader }
 
 import scala.concurrent.ExecutionContext
@@ -20,19 +18,15 @@ import scalaz.Validation
 
 case class V2ApiExecutionContext(context: ExecutionContext)
 
-trait V2ApiModule extends ItemDraftsModule {
+trait V2ApiModule
+  extends ItemDraftsModule
+  with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
-
-  def orgService: OrganizationService
 
   def itemIndexService: ItemIndexService
 
   def itemAuth: ItemAuth[OrgAndOpts]
-
-  def assessmentTemplateService: AssessmentTemplateService
-
-  def assessmentService: AssessmentService
 
   def componentTypes: Seq[ComponentType]
 
@@ -50,11 +44,13 @@ trait V2ApiModule extends ItemDraftsModule {
 
   def apiClientEncryptionService: ApiClientEncryptionService
 
-  def apiClientService: ApiClientService
-
   def sessionCreatedCallback: VersionedId[ObjectId] => Unit
 
   def externalModelLaunchConfig: ExternalModelLaunchConfig
+
+  def sessionServices: SessionServices
+
+  lazy val playerTokenService: PlayerTokenService = wire[PlayerTokenService]
 
   private lazy val itemApi: Controller = wire[ItemApi]
 
@@ -74,6 +70,8 @@ trait V2ApiModule extends ItemDraftsModule {
 
   private lazy val utilsApi: Controller = wire[Utils]
 
+  private lazy val collectionApi: Controller = wire[CollectionApi]
+
   lazy val v2ApiControllers: Seq[Controller] = Seq(
     itemApi,
     itemSessionApi,
@@ -83,6 +81,7 @@ trait V2ApiModule extends ItemDraftsModule {
     fieldValuesApi,
     metadataApi,
     playerTokenApi,
-    utilsApi)
+    utilsApi,
+    collectionApi)
 
 }

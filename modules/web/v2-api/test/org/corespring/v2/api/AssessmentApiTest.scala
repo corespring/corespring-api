@@ -6,10 +6,8 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.assessment.{ Answer, Participant, Assessment }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentService
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors.invalidToken
-import org.corespring.v2.errors.V2Error
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.libs.json.{ Json, JsObject }
@@ -19,11 +17,9 @@ import play.api.test.Helpers._
 
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.concurrent.duration.Duration
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Failure, Success }
 
 class AssessmentApiTest extends Specification with MockFactory {
-
-  PlaySingleton.start()
 
   val jsonFormatting = new JsonFormatting {
     override def fieldValue: FieldValue = ???
@@ -39,11 +35,11 @@ class AssessmentApiTest extends Specification with MockFactory {
 
   import jsonFormatting._
 
-  case class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
+  case class apiScope(val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
     id: Option[ObjectId] = None,
     ids: List[ObjectId] = List.empty[ObjectId],
     authorId: Option[String] = None,
-    participants: Seq[String] = Seq.empty[String]) extends Scope {
+    participants: Seq[String] = Seq.empty[String]) extends Scope with V2ApiScope {
     val orgId = orgAndOpts.map(_.org.id)
     def assessmentFor(id: ObjectId) =
       new Assessment(id = id, orgId = orgId, participants = participants.map(id => Participant(Seq(), id)))
@@ -101,16 +97,12 @@ class AssessmentApiTest extends Specification with MockFactory {
       }
       m
     }
-    val assessmentApi = new AssessmentApi {
-      override def assessmentService: AssessmentService = apiScope.this.assessmentService
-      override implicit def ec: ExecutionContext = ExecutionContext.global
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-        orgAndOpts match {
-          case Some(orgAndOpts) => Success(orgAndOpts)
-          case _ => Failure(invalidToken(FakeRequest()))
-        }
-      }
-    }
+
+    val assessmentApi = new AssessmentApi(assessmentService,
+      mock[JsonFormatting],
+      v2ApiContext,
+      getOrgAndOptionsFn)
+
   }
 
   "create" should {

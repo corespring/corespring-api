@@ -13,11 +13,9 @@ import scalaz.Scalaz._
 
 case class CreateTokenResult(apiClient: String, token: String, settings: JsValue)
 
-trait PlayerTokenService {
+class PlayerTokenService(service: ApiClientEncryptionService) {
 
   private lazy val logger = Logger(classOf[PlayerTokenService])
-
-  def service: ApiClientEncryptionService
 
   def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
     accessSettings <- toAccessSettings(json)
