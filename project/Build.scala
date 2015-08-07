@@ -405,7 +405,7 @@ object Build extends sbt.Build {
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      duleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
+      moduleConfigurations ++= Seq(Dependencies.ModuleConfigurations.snapshots, Dependencies.ModuleConfigurations.releases),
       //updateOptions := updateOptions.value.withConsolidatedResolution(true),
       templatesImport ++= Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId"),
       resolvers ++= Dependencies.Resolvers.all,
