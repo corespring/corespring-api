@@ -144,13 +144,8 @@ trait ItemDraftHooks
   }
 
   //DraftHook
-  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = {
-    def updateItem(item: ModelItem, json: JsValue): ModelItem = {
-      PlayerJsonToItem.wholeItem(item, json)
-    }
-
-    update(draftId, json.as[JsObject], updateItem)
-  }
+  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
+    update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
 
 
   //DraftHook
