@@ -6,6 +6,8 @@ import play.api.libs.json.{ JsValue, Json, JsObject }
 
 trait StandardQueryBuilder {
 
+  lazy val searchTermKeys = Seq("standard", "subject", "category", "subCategory", "dotNotation")
+
   def getStandardByDotNotationQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
     dotNotation <- (json \ "dotNotation").asOpt[String]
@@ -31,16 +33,9 @@ trait StandardQueryBuilder {
   }
 
   def searchTermDbo(searchTerm: String): DBObject = {
-
     import com.mongodb.casbah.Imports._
-
     val r = toRegex(searchTerm)
-    $or(
-      "standard" -> r,
-      "subject" -> r,
-      "category" -> r,
-      "subCategory" -> r,
-      "dotNotation" -> r)
+    $or(searchTermKeys.map(_ -> r): _*)
   }
 
 }
