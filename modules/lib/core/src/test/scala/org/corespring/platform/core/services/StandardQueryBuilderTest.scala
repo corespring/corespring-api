@@ -1,47 +1,74 @@
 package org.corespring.platform.core.services
 
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.{ BasicDBObject, BasicDBList }
+import com.mongodb.DBObject
+import org.specs2.matcher.{ Matcher, Expectable }
 import org.specs2.mutable.Specification
-import org.specs2.specification.Scope
 
 class StandardQueryBuilderTest extends Specification {
 
-  class queryScope extends StandardQueryBuilder with Scope {
+  abstract class convert(expected: String) extends Matcher[String] with StandardQueryBuilder {
 
-    def assert(in: String, expected: String) = {
-      val dbo = getStandardBySearchQuery(in).get
-      com.mongodb.util.JSON.serialize(dbo) === expected
+    def convert(s: String): Option[DBObject]
+
+    private def suck(s: String) = {
+      s.replaceAll("\\s", "").replaceAll("\\r", "").replaceAll("\\t", "")
     }
+
+    def apply[S <: String](s: Expectable[S]) = {
+      val dbo = convert(s.value).get
+      val serialized = com.mongodb.util.JSON.serialize(dbo)
+      val same = suck(serialized) == suck(expected)
+
+      result(same,
+        s"${s.value} converts correctly",
+        s"${serialized} does not equal: $expected",
+        s)
+    }
+  }
+
+  case class convertSearch(expected: String) extends convert(expected) {
+    override def convert(s: String): Option[DBObject] = getStandardBySearchQuery(s)
+  }
+
+  case class convertDotNotation(expected: String) extends convert(expected) {
+    override def convert(s: String): Option[DBObject] = getStandardByDotNotationQuery(s)
   }
 
   "getStandardBySearchQuery" should {
 
-    "return filters in the dbo" in new queryScope {
-      val dbo = getStandardBySearchQuery("""{"filters" : {"subject" : "ELA", "foo" : "bar"}}""").get
-      dbo.get("subject") === "ELA"
-      dbo.get("foo") === "bar"
+    "return filters in the dbo" in {
+      """{"filters" : {"subject" : "ELA", "foo" : "bar"}}""" must convertSearch("""{ "subject": "ELA", "foo":"bar"}""")
     }
 
-    "return $or for searchTerm in the dbo" in new queryScope {
-      val dbo = getStandardBySearchQuery("""{"searchTerm" : "a"}""").get
-      val list = dbo.get("$or").asInstanceOf[List[BasicDBObject]]
-
-      forall(list) { (dbo) =>
-        val value = dbo.values().toArray().apply(0)
-        value === MongoDBObject("$regex" -> "a", "$options" -> "i")
-      }
-
-      forall(list) { (dbo) =>
-        val key = dbo.keySet().toArray().apply(0)
-        searchTermKeys.contains(key)
-      }
+    "return searchTerm in the dbo" in {
+      """{"searchTerm" : "a"}""" must convertSearch(
+        """{ "$or" : [
+          { "standard" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "subject" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "category" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "subCategory" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "dotNotation" : { "$regex" : "a" , "$options" : "i"}}
+          ]}""")
     }
 
-    "returns both" in new queryScope {
-      val dbo = getStandardBySearchQuery("""{"searchTerm" : "a", "filters" : {"subject" : "ELA", "foo" : "bar"}}""").get
-      dbo.get("$or").asInstanceOf[List[BasicDBObject]] !== null
-      dbo.get("subject") === "ELA"
+    "return searchTerm + filters in the dbo" in {
+      """{"filters" : {"foo": "bar"}, "searchTerm" : "a"}""" must convertSearch(
+        """{ "foo" : "bar",
+           "$or" : [
+          { "standard" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "subject" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "category" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "subCategory" : { "$regex" : "a" , "$options" : "i"}} ,
+          { "dotNotation" : { "$regex" : "a" , "$options" : "i"}}
+          ]}""")
+    }
+
+  }
+
+  "getStandardByDotNotation" should {
+
+    "return dotnotation in the dbo" in {
+      """{"dotNotation": "A.1"}""" must convertDotNotation("""{"dotNotation" : "A.1"}""")
     }
   }
 }

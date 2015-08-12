@@ -1,11 +1,8 @@
 package org.corespring.platform.core.services
 
-import com.mongodb.DBObject
-import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.{ Standard, Subject }
-import play.api.libs.json.{ JsObject, JsSuccess, JsValue, Json }
+import org.corespring.platform.core.models.{ Standard }
 
 object StandardQueryService extends QueryService[Standard] with StandardQueryBuilder with PackageLogging {
 

@@ -12,7 +12,6 @@ class StandardQueryServiceIntegrationTest extends IntegrationSpecification {
 
     def makeQuery(s: String) = Json.obj("searchTerm" -> s).toString()
 
-    ""
     "be able to find single items" in new StandardData("some test standard") {
       val result = StandardQueryService.query(makeQuery("some test"))
       result.length === 1

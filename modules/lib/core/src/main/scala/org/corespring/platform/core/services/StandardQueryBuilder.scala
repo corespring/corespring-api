@@ -4,7 +4,7 @@ import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import play.api.libs.json.{ JsValue, Json, JsObject }
 
-trait StandardQueryBuilder {
+private[services] trait StandardQueryBuilder {
 
   lazy val searchTermKeys = Seq("standard", "subject", "category", "subCategory", "dotNotation")
 
