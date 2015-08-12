@@ -145,7 +145,7 @@ trait ItemDraftHooks
 
   //DraftHook
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
-    savePartOfPlayerDef(draftId, json.as[JsObject])
+    update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
 
 
   //DraftHook
