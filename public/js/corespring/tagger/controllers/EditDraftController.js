@@ -127,9 +127,9 @@
           done();
         }, function error(err) {
           Logger.warn(err);
+          $scope.commitInProgress = false;
           Modals.commitFailedDueToConflict(function(cancelled) {
             $scope.draftIsConflicted = true;
-            $scope.commitInProgress = false;
             if (cancelled) {
               done();
               return;

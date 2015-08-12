@@ -150,9 +150,9 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.hasChanges);
     });
     
-    it('returns a message if commitInProgress', function(){
-      scope.commitInProgress = true;
-      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.commitInProgress);
+    it('returns a message if saveState == in-progress', function(){
+      scope.showProgressModal = true;
+      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.saveInProgress);
     });
     
     it('returns undefined hasChanges == false', function(){
