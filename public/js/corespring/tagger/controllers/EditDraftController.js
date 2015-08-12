@@ -32,37 +32,28 @@
 
     $scope.devEditorVisible = false;
 
-    var normalEditor = [
-      '/v2/player/draft/editor/',
-      $routeParams.itemId,
-      '/index.html',
-      '?bypass-iframe-launch-mechanism=true'
-    ].join('');
-
-    var devEditor = [
-      '/v2/player/draft/dev-editor/',
-      $routeParams.itemId,
-      '/index.html',
-      '?bypass-iframe-launch-mechanism=true'
-    ].join('');
-
     var itemService = new ItemService({
       id: $routeParams.itemId
     });
 
     $scope.navigationHooks.beforeUnload = function(callback) {
       $($window).unbind('beforeunload');
-      if (!$scope.hasChanges) {
-        callback();
+
+      if($scope.commitInProgress) {
+        return;
       } else {
-        Modals.confirmSave(function(cancelled) {
-          if (!cancelled) {
-            $scope.saveBackToItem(callback);
-          } else {
-            $scope.discardDraft();
-            callback();
-          }
-        });
+        if (!$scope.hasChanges) {
+          callback();
+        } else {
+          Modals.confirmSave(function(cancelled) {
+            if (!cancelled) {
+              $scope.saveBackToItem(callback);
+            } else {
+              $scope.discardDraft();
+              callback();
+            }
+          });
+        }
       }
     };
 
@@ -86,6 +77,7 @@
     });
 
     $scope.backToCollections = function() {
+
       if ($scope.hasChanges) {
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
@@ -117,28 +109,33 @@
       $scope.hasChanges = false;
     };
 
+    $scope.$watch('commitInProgress', function(){
+      $scope.navDisabled = $scope.commitInProgress;
+    });
+
     function commit(force, done) {
 
       done = done || function() {};
 
-      $scope.isSaveDone = false;
-      ItemDraftService.commit($scope.itemId, force, function success() {
-        Logger.info('commit successful');
-        $scope.draftIsConflicted = false;
-        $scope.isSaveDone = true;
-        $timeout(function() {
-          $scope.isSaveDone = false;
-        }, 3000);
-        done();
-      }, function error(err) {
-        Logger.warn(err);
-        Modals.commitFailedDueToConflict(function(cancelled) {
-          $scope.draftIsConflicted = true;
-          if (cancelled) {
-            done();
-            return;
-          }
-          commit(true, done);
+      $scope.commitInProgress = true;
+
+      $scope.v2Editor.forceSave(function(err){
+        ItemDraftService.commit($scope.itemId, force, function success() {
+          $scope.draftIsConflicted = false;
+          $scope.commitInProgress = false;
+          $scope.$broadcast('commitComplete');
+          done();
+        }, function error(err) {
+          Logger.warn(err);
+          Modals.commitFailedDueToConflict(function(cancelled) {
+            $scope.draftIsConflicted = true;
+            $scope.commitInProgress = false;
+            if (cancelled) {
+              done();
+              return;
+            }
+            commit(true, done);
+          });
         });
       });
     }
@@ -174,6 +171,28 @@
         });
     };
 
+
+    $scope.containerClassName = '.item-iframe-container';
+
+    function loadEditor(devEditor){
+     
+      if($scope.v2Editor){
+        $scope.v2Editor.remove();
+      } 
+
+      var opts = {
+        itemId: $scope.itemId,
+        draftName: $scope.draft.user,
+        onItemChanged: $scope.onItemChanged,
+        devEditor: devEditor,
+        autosizeEnabled: false
+      };
+
+      return new org.corespring.players.DraftEditor($scope.containerClassName, opts, function(e){
+        Logger.error(e);
+      });
+    }
+
     $scope.loadDraftItem = function(ignoreConflict) {
 
       ignoreConflict = ignoreConflict === true;
@@ -189,11 +208,11 @@
           $scope.baseId = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[0] : $scope.itemId;
           $scope.version = $scope.itemId.indexOf(':') !== -1 ? $scope.itemId.split(':')[1] : '';
           console.warn('ItemSessionCount doesn\'t apply for a user draft');
-          $scope.v2Editor = $scope.devEditorVisible ? devEditor : normalEditor;
+          $scope.v2Editor = loadEditor($scope.devEditorVisible); 
           $scope.draftIsConflicted = ignoreConflict;
         },
         function onError(err, statusCode) {
-          if (statusCode == 409) {
+          if (statusCode === 409) {
             $scope.showConflictError = true;
           } else {
             console.error('An error has occured', err);
@@ -215,18 +234,12 @@
 
     $scope.showDevEditor = function() {
       $scope.devEditorVisible = true;
-      $scope.v2Editor = devEditor;
-      if ($scope.channel) {
-        $scope.channel.remove();
-      }
+      $scope.v2Editor = loadEditor(true); 
     };
 
     $scope.showEditor = function() {
       $scope.devEditorVisible = false;
-      $scope.v2Editor = normalEditor;
-      if ($scope.channel) {
-        $scope.channel.remove();
-      }
+      $scope.v2Editor = loadEditor(false);
     };
 
     $scope.onItemChanged = function() {
@@ -235,18 +248,24 @@
       });
     };
 
-    var iframe = $('.edit-container .item-iframe-container iframe');
-    iframe.bind('load', function() {
-      $scope.channel = new msgr.Channel(window, iframe[0].contentWindow);
-      $scope.channel.on('itemChanged', $scope.onItemChanged);
+    $scope.unloadMessages = {
+      commitInProgress: 'saving in progress - please try again',
+      hasChanges: 'There are updates to this item that have not been saved. Are you sure you want to leave?'
+    };
+
+    function onBeforeUnload(){
+      if($scope.commitInProgress){
+        return $scope.unloadMessages.commitInProgress;
+      } else if($scope.hasChanges){
+        return $scope.unloadMessages.hasChanges;
+      }
+    }
+    
+    var bindBeforeUnloadHandler = _.once(function(){
+      $($window).bind('beforeunload', onBeforeUnload);
     });
 
-    if (!$scope.hasBoundBeforeUnload) {
-      $($window).bind('beforeunload', function() {
-        return $scope.hasChanges ? "There are updates to this item that have not been saved. Are you sure you want to leave?" : undefined;
-      });
-      $scope.hasBoundBeforeUnload = true;
-    }
+    bindBeforeUnloadHandler();
 
     $scope.loadDraftItem();
   }
