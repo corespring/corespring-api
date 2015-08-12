@@ -8,7 +8,7 @@ import play.api.libs.json._
 object PlayerJsonToItem {
 
   def wholeItem(item: Item, itemJson: JsValue): Item = {
-    supportingMaterials(profile(playerDef(item, itemJson \ "playerDefinition"), itemJson \ "profile"), itemJson)
+    supportingMaterials(profile(playerDef(item, itemJson), itemJson \ "profile"), itemJson)
   }
 
   def playerDef(item: Item, playerJson: JsValue): Item = {
