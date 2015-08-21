@@ -42,7 +42,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(i: Item, f: StoredFile): Validation[String, Boolean]
 
-  def addSupportingMaterialResource(id: VersionedId[ObjectId], r: Resource, bytes: => Array[Byte] = Array.empty[Byte])
+  def addSupportingMaterialResource(id: VersionedId[ObjectId], r: Resource, bytes: => Array[Byte] = Array.empty[Byte]): Validation[String, Resource]
 }
 
 trait ItemPublishingService {
