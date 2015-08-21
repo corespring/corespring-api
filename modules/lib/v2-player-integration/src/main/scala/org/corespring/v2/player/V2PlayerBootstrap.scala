@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client._
 import org.corespring.container.client.controllers.ComponentSets
-import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, DraftHooks => ContainerDraftHooks, CollectionHooks => ContainerCollectionHooks, CoreItemHooks, CreateItemHook, DataQueryHooks }
+import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, DraftHooks => ContainerDraftHooks, CollectionHooks => ContainerCollectionHooks, SupportingMaterialHooks, CoreItemHooks, CreateItemHook, DataQueryHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.drafts.item.{ S3Paths, ItemDrafts }
@@ -182,11 +182,11 @@ class V2PlayerBootstrap(
         getAssetFromItemId(S3Paths.itemFile(vid, path))
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
 
-    override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
+    /*override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
       versionedIdFromString(itemService, id).map { vid =>
         getAssetFromItemId(S3Paths.itemSupportingMaterialFile(vid, path))
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
-    }
+    }*/
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
@@ -226,4 +226,7 @@ class V2PlayerBootstrap(
     override def itemService: ItemService = ItemServiceWired
   }
 
+  override def itemDraftSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.ItemDraftSupportingMaterialHooks {}
+
+  override def itemSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.ItemSupportingMaterialHooks {}
 }
