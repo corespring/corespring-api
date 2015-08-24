@@ -92,15 +92,18 @@ trait ItemSupportingMaterialHooks
     service.delete(vid, name)
   }
 
-  override def getAsset(id: String, name: String, filename: String)(implicit h: RequestHeader): SimpleResult = executeWrite[FileData, SimpleResult] { (v) =>
-    v match {
-      case Failure(e) => play.api.mvc.Results.Status(e.statusCode)(e.message)
-      case Success(fd) => {
-        play.api.mvc.Results.Ok("")
+  override def getAsset(id: String, name: String, filename: String)(implicit h: RequestHeader): Future[Either[StatusMessage, FileDataStream]] = {
+    val execute = executeWrite[FileData, Either[StatusMessage, FileDataStream]] _
+    execute { (v) =>
+      v match {
+        case Failure(e) => Left(e.statusCode, e.message) //play.api.mvc.Results.Status(e.statusCode)(e.message)
+        case Success(fd) => {
+          Right(fd)
+        }
       }
+    }(id, h) { (vid) =>
+      service.getFile(vid, name, filename)
     }
-  }(id, h) { (vid) =>
-    service.getFile(vid, name, filename)
   }
 
   override def updateContent(id: String, name: String, filename: String, content: String)(implicit h: RequestHeader): R[JsValue] = writeForResource(id, h) { (vid) =>
