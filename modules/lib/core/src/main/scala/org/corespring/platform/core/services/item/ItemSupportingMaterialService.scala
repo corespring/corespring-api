@@ -1,15 +1,15 @@
 package org.corespring.platform.core.services.item
 
-import com.amazonaws.services.s3.model.S3Object
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.item.resource.{ StoredFileDataStream, BaseFile, StoredFile, Resource }
-import org.corespring.platform.data.mongo.models.VersionedId
+import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.{ Context, grater }
+import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, StoredFileDataStream }
+import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.http.HeaderNames
+
 import scala.util.Try
-import scalaz.{ Success, Failure, Validation }
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 class ItemSupportingMaterialService(collection: MongoCollection,
   bucket: String,
@@ -29,14 +29,6 @@ class ItemSupportingMaterialService(collection: MongoCollection,
   private def fileNotPresent(name: String) = materialsKey("files.name") $ne name
 
   private def fileNameEq(name: String) = materialsKey("files.name") $ne name
-
-  /*private def uploadBytes(key:String, f:StoredFile, bytes: Array[Byte]) : Validation[String,Boolean] = Validation.fromTryCatch {
-    val metadata = new ObjectMetadata()
-    metadata.setContentType(f.contentType)
-    metadata.setContentLength(bytes.length.toLong)
-    s3.putObject(bucket, key, new ByteArrayInputStream(bytes), metadata)
-    true
-  }.leftMap(t => t.getMessage)*/
 
   override def create(vid: VersionedId[ObjectId], resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
 
