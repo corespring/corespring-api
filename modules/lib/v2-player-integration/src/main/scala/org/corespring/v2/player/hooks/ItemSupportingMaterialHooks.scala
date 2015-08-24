@@ -26,12 +26,12 @@ trait SupportingMaterialHooks[ID]
 
   implicit def ec: ExecutionContext
 
-  def parseId(id: String): Validation[V2Error, ID]
+  def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, ID]
 
   private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(fn: ID => Validation[String, A]): Future[RESULT] = Future {
     val out: Validation[V2Error, A] = for {
       identity <- getOrgAndOptions(h)
-      vid <- parseId(id)
+      vid <- parseId(id, identity)
       canWrite <- auth.canWrite(id)(identity)
       result <- fn(vid).leftMap(e => generalError(e))
     } yield result

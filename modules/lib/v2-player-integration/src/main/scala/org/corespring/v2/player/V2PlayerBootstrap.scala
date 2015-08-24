@@ -14,7 +14,7 @@ import org.corespring.container.client.hooks.{ CollectionHooks => ContainerColle
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.drafts.item.models.DraftId
-import org.corespring.drafts.item.{ ItemDrafts, S3Paths }
+import org.corespring.drafts.item.{ MakeDraftId, ItemDrafts, S3Paths }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
 import org.corespring.platform.core.models.{ mongoContext, Standard, Subject }
 import org.corespring.platform.core.services._
@@ -224,7 +224,7 @@ class V2PlayerBootstrap(
     override def itemService: ItemService = ItemServiceWired
   }
 
-  override def itemDraftSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.SupportingMaterialHooks[DraftId] {
+  override def itemDraftSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.SupportingMaterialHooks[DraftId] with MakeDraftId {
     override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
 
     //Note: Parsing of the draftId requires more than just a string in the cms,
@@ -232,7 +232,7 @@ class V2PlayerBootstrap(
     /**
      * @see <MakeDraftId>
      */
-    override def parseId(id: String): Validation[V2Error, DraftId] = Failure(cantParseItemId(id))
+    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, DraftId] = mkDraftId(identity, id) //mFailure(cantParseItemId(id))
 
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
@@ -249,7 +249,7 @@ class V2PlayerBootstrap(
 
     import scalaz.Scalaz._
 
-    override def parseId(id: String): Validation[V2Error, VersionedId[ObjectId]] = VersionedId(id).toSuccess(cantParseItemId(id))
+    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, VersionedId[ObjectId]] = VersionedId(id).toSuccess(cantParseItemId(id))
 
     override def service: SupportingMaterialsService[VersionedId[ObjectId]] = new ItemSupportingMaterialService(
       ItemServiceWired.collection,
