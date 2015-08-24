@@ -1,7 +1,7 @@
 package org.corespring.platform.core.services.item
 
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
+import org.corespring.platform.core.models.item.resource.{ StoredFileDataStream, BaseFile, Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.services.BaseContentService
@@ -42,7 +42,15 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(i: Item, f: StoredFile): Validation[String, Boolean]
 
-  def addSupportingMaterialResource(id: VersionedId[ObjectId], r: Resource, bytes: => Array[Byte] = Array.empty[Byte]): Validation[String, Resource]
+}
+
+trait SupportingMaterialsService[ID] {
+  def create(id: ID, resource: Resource, bytes: => Array[Byte]): Validation[String, Resource]
+  def delete(id: ID, materialName: String): Validation[String, Seq[Resource]]
+  def removeFile(id: ID, materialName: String, filename: String): Validation[String, Resource]
+  def addFile(id: ID, materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource]
+  def getFile(id: ID, materialName: String, file: String, etag: Option[String] = None): Validation[String, StoredFileDataStream]
+  def updateFileContent(id: ID, materialName: String, file: String, content: String): Validation[String, Resource]
 }
 
 trait ItemPublishingService {

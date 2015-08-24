@@ -1,10 +1,11 @@
 package org.corespring.drafts.item
 
-import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
+import com.amazonaws.services.s3.{ AmazonS3 }
 import org.bson.types.ObjectId
 import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors._
-import org.corespring.drafts.item.models.{ DraftId, ItemDraft }
+import org.corespring.drafts.item.models.{ DraftId }
+import org.corespring.platform.core.services.item.{ ItemAssetKeys, AssetKeys }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 
@@ -17,44 +18,25 @@ trait ItemDraftAssets {
   def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit]
 }
 
-/**
- * Note: for now it is safe to assume that the asset will be located in the 'data' folder,
- * because assets are disabled in supporting materials.
- * When it comes to adding that back in we'll need to change this.
- * I'm proposing that the client uses the appropriate relative path,
- * eg:
- *   data/img.png
- *   supporting-materials/name/img.png
- * @see PE-98
- */
 object S3Paths {
 
   lazy val logger = Logger(S3Paths.getClass)
 
-  def itemFolder(id: VersionedId[ObjectId]) = itemIdToPath(id)
-
-  def itemFile(id: VersionedId[ObjectId], path: String): String = s"${itemIdToPath(id)}/data/$path"
-
-  def itemSupportingMaterialFile(id: VersionedId[ObjectId], path: String): String = {
-    s"${itemIdToPath(id)}/materials/$path"
-  }
-
-  def itemIdToPath(id: VersionedId[ObjectId]): String = {
-    val v = id.version.getOrElse {
-      throw new RuntimeException(s"Version must be defined for an itemId: $id")
+  val draftKeys = new AssetKeys[DraftId] {
+    override def folder(id: DraftId): String = {
+      s"${draftItemIdFolder(id.itemId)}/org-${id.orgId}/${id.name}"
     }
-    s"${id.id}/$v"
+
+    def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-${itemId}"
   }
 
-  def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-$itemId"
+  def itemFolder(id: VersionedId[ObjectId]) = ItemAssetKeys.folder(id)
 
-  def draftFolder(id: DraftId): String = s"${draftItemIdFolder(id.itemId)}/org-${id.orgId}/${id.name}"
+  def itemFile(id: VersionedId[ObjectId], path: String): String = ItemAssetKeys.file(id, path)
 
-  def draftFile(id: DraftId, path: String): String = s"${draftFolder(id)}/data/$path"
+  def draftFolder(id: DraftId): String = draftKeys.folder(id)
 
-  def draftSupportingMaterialFile(id: DraftId, path: String): String = {
-    s"${draftFolder(id)}/supporting-materials/$path"
-  }
+  def draftFile(id: DraftId, path: String): String = draftKeys.file(id, path)
 }
 
 trait S3ItemDraftAssets extends ItemDraftAssets {
@@ -94,7 +76,8 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
   }
 
   override def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit] = {
-    val path = S3Paths.draftItemIdFolder(itemId)
+    import scala.language.reflectiveCalls
+    val path = S3Paths.draftKeys.draftItemIdFolder(itemId)
     utils.deleteDir(path) match {
       case true => Success(Unit)
       case false => Failure(DeleteAssetsFailed(path))

@@ -1,65 +1,37 @@
 package org.corespring.v2.player.hooks
 
-import java.io.InputStream
-
-import org.bson.types.ObjectId
-import org.corespring.container.client.hooks.Hooks.{ StatusMessage, R }
-import org.corespring.container.client.hooks._
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.{ LoadOrgAndOptions, ItemAuth }
+import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.hooks.{ SupportingMaterialHooks => ContainerHooks, _ }
+import org.corespring.platform.core.models.item.resource.Resource
+import org.corespring.platform.core.services.item.SupportingMaterialsService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.{ generalError, cantParseItemId }
+import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
+import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ Json, JsValue }
-import play.api.mvc.{ SimpleResult, RequestHeader }
-import scala.concurrent.Future
-import scalaz.Scalaz._
-import scalaz.{ Success, Failure, Validation }
+import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.RequestHeader
 
-private[hooks] trait MaterialToResource {
+import scala.concurrent.{ ExecutionContext, Future }
+import scalaz.{ Failure, Success, Validation }
 
-  protected def binaryToFile(b: Binary, isMain: Boolean = false) = StoredFile(name = b.name, isMain = true, contentType = b.mimeType)
-  protected def htmlToFile(h: Html, isMain: Boolean = false) = VirtualFile(name = h.name, isMain = true, contentType = h.mimeType, content = h.content)
-  protected def requestToFile[F <: File](sm: CreateNewMaterialRequest[F]): BaseFile = sm match {
-    case CreateBinaryMaterial(_, _, binary) => binaryToFile(binary)
-    case CreateHtmlMaterial(_, _, main, _) => htmlToFile(main)
-  }
-
-  def materialToResource[F <: File](sm: CreateNewMaterialRequest[F]): Resource = Resource(
-    name = sm.name,
-    materialType = Some(sm.materialType),
-    files = Seq(requestToFile(sm)))
-}
-
-case class FileData(stream: InputStream, contentLength: Int, contentType: String, metadata: Map[String, String])
-
-trait SupportingMaterialsService {
-  def create(vid: VersionedId[ObjectId], resource: Resource, bytes: => Array[Byte]): Validation[String, Resource]
-  def delete(vid: VersionedId[ObjectId], materialName: String): Validation[String, Resource]
-  def removeFile(vid: VersionedId[ObjectId], materialName: String, filename: String): Validation[String, Resource]
-  def addFile(vid: VersionedId[ObjectId], materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource]
-  def getFile(vid: VersionedId[ObjectId], materialName: String, file: String): Validation[String, FileData]
-  def updateFileContent(vid: VersionedId[ObjectId], materialName: String, file: String, content: String): Validation[String, Resource]
-}
-
-trait ItemSupportingMaterialHooks
-  extends SupportingMaterialHooks
+trait SupportingMaterialHooks[ID]
+  extends ContainerHooks
   with LoadOrgAndOptions
   with MaterialToResource
   with ContainerConverters {
 
   def auth: ItemAuth[OrgAndOpts]
 
-  def itemService: ItemService
+  def service: SupportingMaterialsService[ID]
 
-  def service: SupportingMaterialsService
+  implicit def ec: ExecutionContext
 
-  private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(fn: VersionedId[ObjectId] => Validation[String, A]): Future[RESULT] = Future {
+  def parseId(id: String): Validation[V2Error, ID]
+
+  private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(fn: ID => Validation[String, A]): Future[RESULT] = Future {
     val out: Validation[V2Error, A] = for {
       identity <- getOrgAndOptions(h)
-      vid <- VersionedId(id).toSuccess(cantParseItemId(id))
+      vid <- parseId(id)
       canWrite <- auth.canWrite(id)(identity)
       result <- fn(vid).leftMap(e => generalError(e))
     } yield result
@@ -67,7 +39,9 @@ trait ItemSupportingMaterialHooks
     validationToResult(out)
   }
 
-  lazy val writeForResource = executeWrite[Resource, Either[(Int, String), JsValue]](v => v.map(r => Json.toJson(r))) _
+  lazy val writeForResource = executeWrite[Resource, Either[(Int, String), JsValue]] { v =>
+    v.map(r => Json.toJson(r))
+  } _
 
   override def create[F <: File](id: String, sm: CreateNewMaterialRequest[F])(implicit h: RequestHeader): R[JsValue] = {
     writeForResource(id, h) { (vid) =>
@@ -88,21 +62,30 @@ trait ItemSupportingMaterialHooks
     service.addFile(vid, name, binaryToFile(binary), binary.data)
   }
 
-  override def delete(id: String, name: String)(implicit h: RequestHeader): R[JsValue] = writeForResource(id, h) { (vid) =>
-    service.delete(vid, name)
+  private def vToE[A](v: Validation[V2Error, A]) = {
+    v.leftMap(e => e.statusCode -> e.message).toEither
+  }
+
+  override def delete(id: String, name: String)(implicit h: RequestHeader): R[JsValue] = {
+
+    def validate(v: Validation[V2Error, Seq[Resource]]) = {
+      vToE(v.map(s => Json.toJson(s)))
+    }
+
+    val execute = executeWrite[Seq[Resource], Either[StatusMessage, JsValue]](validate) _
+    execute(id, h) { vid =>
+      service.delete(vid, name)
+    }
   }
 
   override def getAsset(id: String, name: String, filename: String)(implicit h: RequestHeader): Future[Either[StatusMessage, FileDataStream]] = {
-    val execute = executeWrite[FileData, Either[StatusMessage, FileDataStream]] _
-    execute { (v) =>
-      v match {
-        case Failure(e) => Left(e.statusCode, e.message) //play.api.mvc.Results.Status(e.statusCode)(e.message)
-        case Success(fd) => {
-          Right(fd)
-        }
+
+    val execute = executeWrite[FileDataStream, Either[StatusMessage, FileDataStream]](vToE[FileDataStream]) _
+
+    execute(id, h) { (vid) =>
+      service.getFile(vid, name, filename).map { sfs =>
+        FileDataStream(sfs.stream, sfs.contentLength, sfs.contentType, sfs.metadata)
       }
-    }(id, h) { (vid) =>
-      service.getFile(vid, name, filename)
     }
   }
 

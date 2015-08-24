@@ -9,6 +9,8 @@ import play.api.libs.json._
  */
 case class Resource(id: Option[ObjectId] = None, name: String, materialType: Option[String] = None, var files: Seq[BaseFile]) {
   def defaultFile = files.find(_.isMain)
+
+  def defaultStoredFile: Option[StoredFile] = defaultFile.flatMap { case sf: StoredFile => Some(sf) }
 }
 
 object Resource extends PackageLogging with JsonUtil {

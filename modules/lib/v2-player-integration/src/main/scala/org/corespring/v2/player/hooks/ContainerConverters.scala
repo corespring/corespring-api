@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.v2.errors.V2Error
+import scala.language.implicitConversions
 
 import scalaz.Validation
 
