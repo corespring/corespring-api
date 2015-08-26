@@ -41,19 +41,17 @@
 
       if($scope.commitInProgress) {
         return;
+      } else if ($scope.hasChanges) {
+        Modals.confirmSave(function(cancelled) {
+          if (!cancelled) {
+            $scope.saveBackToItem(callback);
+          } else {
+            $scope.discardDraft();
+            callback();
+          }
+        });
       } else {
-        if (!$scope.hasChanges) {
-          callback();
-        } else {
-          Modals.confirmSave(function(cancelled) {
-            if (!cancelled) {
-              $scope.saveBackToItem(callback);
-            } else {
-              $scope.discardDraft();
-              callback();
-            }
-          });
-        }
+        callback();
       }
     };
 
@@ -77,7 +75,6 @@
     });
 
     $scope.backToCollections = function() {
-
       if ($scope.hasChanges) {
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
