@@ -181,6 +181,7 @@
         itemId: $scope.itemId,
         draftName: $scope.draft.user,
         onItemChanged: $scope.onItemChanged,
+        onProfileSaved: $scope.onProfileSaved,
         devEditor: devEditor,
         autosizeEnabled: false
       };
@@ -242,6 +243,12 @@
     $scope.onItemChanged = function() {
       $scope.$apply(function() {
         $scope.hasChanges = true;
+      });
+    };
+
+    $scope.onProfileSaved = function() {
+      $scope.$apply(function() {
+        $scope.hasChanges = false;
       });
     };
 
