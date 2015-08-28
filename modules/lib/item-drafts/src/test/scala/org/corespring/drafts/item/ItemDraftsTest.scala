@@ -1,18 +1,23 @@
 package org.corespring.drafts.item
 
-import com.mongodb.{ CommandResult, WriteResult }
+import com.mongodb.casbah.{ Imports, MongoCollection }
+import com.mongodb.casbah.Imports._
+import com.mongodb.{ DBCollection, WriteConcern, CommandResult, WriteResult }
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ ItemDraftService, CommitService }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.item.{TaskInfo, PlayerDefinition, Item}
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
+import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
+import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.test.fakes.Fakes
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
+import org.specs2.mock.mockito.ArgumentCapture
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import play.api.test.FakeApplication
 
 import scalaz.{ Validation, Success, Failure }
 
@@ -342,7 +347,7 @@ class ItemDraftsTest extends Specification with Mockito {
     }
 
     "hasSrcChanged" should {
-      class __() extends Scope with MockItemDrafts {
+      class __ extends Scope with MockItemDrafts {
         val item1 = Item(id = itemId)
       }
 
@@ -367,9 +372,76 @@ class ItemDraftsTest extends Specification with Mockito {
       }
 
       "return true if supportingMaterials has changed" in new __ {
-        val item2 = item1.copy(supportingMaterials = Seq(Resource(name="test", files=Seq.empty)))
+        val item2 = item1.copy(supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if standards has changed" in new __ {
+        val item2 = item1.copy(standards = Seq("std1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if reviewsPassed has changed" in new __ {
+        val item2 = item1.copy(reviewsPassed = Seq("rp1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if reviewsPassedOther has changed" in new __ {
+        val item2 = item1.copy(reviewsPassedOther = Some("rpo1"))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if otherAlignments has changed" in new __ {
+        val item2 = item1.copy(otherAlignments = Some(Alignments()))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if contributorDetails has changed" in new __ {
+        val item2 = item1.copy(contributorDetails = Some(ContributorDetails()))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorUse has changed" in new __ {
+        val item2 = item1.copy(priorUse = Some(""))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorUseOther has changed" in new __ {
+        val item2 = item1.copy(priorUseOther = Some(""))
+        hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if priorGradeLevels has changed" in new __ {
+        val item2 = item1.copy(priorGradeLevels = Seq(""))
         hasSrcChanged(item1, item2) must_== true
       }
     }
+
+    "addFileToChangeSet" should {
+
+      class __(n: Int = 1) extends Scope with MockItemDrafts {
+        val mockCollection = new Fakes.MongoCollection(n)
+        mockDraftService.collection returns mockCollection
+      }
+
+      import play.api.test.Helpers.running
+
+      "update the document in the db" in new __ {
+
+        running(FakeApplication()) {
+          import org.corespring.platform.core.models.mongoContext.context
+          val draft = mkDraft(ed, item)
+          val file = StoredFile("test.png", "image/png", false)
+          addFileToChangeSet(draft, file)
+          val expectedQuery = ItemDraftDbUtils.idToDbo(draft.id)
+          mockCollection.queryObj === expectedQuery
+          val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+          val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+          mockCollection.updateObj === expectedUpdate
+        }
+      }
+    }
+
   }
+
 }

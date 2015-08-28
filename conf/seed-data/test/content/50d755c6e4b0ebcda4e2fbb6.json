@@ -21,7 +21,7 @@
   },
   "published": false,
   "data": {
-    "name": "qtiItem",
+    "name": "data",
     "files": [
       {
         "_t" : "org.corespring.platform.core.models.item.resource.VirtualFile",

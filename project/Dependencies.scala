@@ -5,18 +5,25 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.40.1"
+  val containerVersion = "0.44.6"
 
-  val containerClientWeb = "org.corespring" %% "container-client-web" % containerVersion
-  val containerJsProcessing = "org.corespring" %% "js-processing" % containerVersion
-  val componentModel = "org.corespring" %% "component-model" % containerVersion
-  val componentLoader = "org.corespring" %% "component-loader" % containerVersion
-  val mongoJsonService = "org.corespring" %% "mongo-json-service" % containerVersion
+  def toModule(name: String) = "org.corespring" %% name % containerVersion
+
+  object ModuleConfigurations {
+    val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
+    val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
+  }
+
+  val containerClientWeb = toModule("container-client-web")
+  val containerJsProcessing = toModule("js-processing")
+  val componentModel = toModule("component-model")
+  val componentLoader = toModule("component-loader")
+  val mongoJsonService = toModule("mongo-json-service")
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
     .exclude("com.yahoo.platform.yui", "yuicompressor")
-  val aws = "com.amazonaws" % "aws-java-sdk" % "1.3.10"
+  val aws = "com.amazonaws" % "aws-java-sdk" % "1.10.0"
   val casbah = "org.mongodb" %% "casbah" % "2.6.3"
   val closureCompiler = ("com.google.javascript" % "closure-compiler" % "rr2079.1" notTransitive ())
     .exclude("args4j", "args4j")
@@ -42,7 +49,7 @@ object Dependencies {
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
   val playPluginMailer = "com.typesafe" %% "play-plugins-mailer" % "2.2.0"
   val playPluginUtil = "com.typesafe" %% "play-plugins-util" % "2.2.0"
-  val playS3 = "org.corespring" %% "s3-play-plugin" % "0.7"
+  val playS3 = "org.corespring" %% "s3-play-plugin" % "1.1.0"
   val playTest = "com.typesafe.play" %% "play-test" % playVersion
   val rhinos = "org.corespring.forks.scalapeno" %% "rhinos" % "0.6.1"
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
@@ -57,51 +64,8 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  //TODO: remove: see: https://thesib.atlassian.net/browse/CA-2210
-  val newRelic = "com.newrelic.agent.java" % "newrelic-agent" % "3.10.0"
-  val elasticsearchPlayWS = "org.corespring" %% "elasticsearch-play-ws" % "0.0.10-PLAY22"
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.14-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
-
-  val all = Seq(
-    amapClient,
-    assetsLoader,
-    aws,
-    closureCompiler,
-    commonsIo,
-    commonsLang,
-    httpClient,
-    componentLoader,
-    componentModel,
-    containerClientWeb,
-    jbcrypt,
-    mockito,
-    mongoDbSeeder,
-    newRelic,
-    play.Keys.cache,
-    playMemcached,
-    playPluginMailer,
-    playPluginUtil,
-    playS3,
-    salatPlay,
-    salatVersioningDao,
-    scalaFaker,
-    scalaz,
-    securesocial,
-    slf4j,
-    playMemcached,
-    playPluginMailer,
-    playPluginUtil,
-    salatPlay,
-    scalaz,
-    closureCompiler,
-    containerClientWeb,
-    componentLoader,
-    componentModel,
-    newRelic,
-    slf4j,
-    jsonValidator,
-    elasticsearchPlayWS,
-    jsoup)
 
   object Resolvers {
 

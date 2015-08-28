@@ -3,6 +3,7 @@ package org.corespring.platform.core.models.auth
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
+import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.Organization
 import org.joda.time.DateTime
 import play.api.Play.current
@@ -31,7 +32,7 @@ trait AccessTokenService {
   def findByToken(token: String): Option[AccessToken]
 }
 
-object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService {
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService with PackageLogging {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
@@ -43,8 +44,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
   // Not sure when to call this.
   def index = Seq(
     MongoDBObject("tokenId" -> 1),
-    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)
-  ).foreach(collection.ensureIndex(_))
+    MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(collection.ensureIndex(_))
 
   val dao = new SalatDAO[AccessToken, ObjectId](collection = collection) {}
 
@@ -68,7 +68,6 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
     } catch {
       case e: SalatInsertError => Left(CorespringInternalError("error occurred during insert", e))
     }
-
   }
   /**
    * Finds an access token by id
@@ -115,5 +114,36 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
       }
     }
 
+  }
+
+  override def insert(token: AccessToken) = {
+
+    def waitUntilTokenInDb(id: ObjectId): Option[ObjectId] = {
+      var timeout = 60
+      while(timeout > 0 && !tokenInDb(id)){
+        logger.warn("waiting for token to appear in db")
+        Thread.sleep(1000)
+        timeout -= 1
+      }
+      if(timeout > 0){
+        Some(id)
+      } else {
+        logger.error(s"timeout waiting for token $id")
+        None
+      }
+    }
+
+    def tokenInDb(id: ObjectId): Boolean = {
+      AccessToken.findOneById(id) match {
+        case Some(dbtoken) => true
+        case None => false
+      }
+    }
+
+    logger.debug(s"inserting ${token.tokenId}")
+    super.insert(token) match {
+      case Some(id) => waitUntilTokenInDb(id)
+      case None => None
+    }
   }
 }

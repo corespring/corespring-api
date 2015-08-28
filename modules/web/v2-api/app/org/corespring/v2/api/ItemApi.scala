@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.{ContentCollRef, JsonUtil}
+import org.corespring.platform.core.models.{Organization, ContentCollRef, JsonUtil}
 import org.corespring.platform.core.models.item.Item.Keys._
 import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
 import org.corespring.drafts.item.models.ItemDraft
@@ -17,8 +17,8 @@ import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent._
 
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ItemIndexQuery, ItemIndexService, ItemService}
+import org.corespring.platform.core.models.item.{ ItemType, Item }
+import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemService }
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
@@ -32,6 +32,7 @@ trait ItemApi extends V2Api with JsonUtil {
 
   def itemAuth: ItemAuth[OrgAndOpts]
   def itemService: ItemService
+  def itemType: ItemType
   def itemIndexService: ItemIndexService
   def scoreService: ScoreService
 
@@ -83,15 +84,12 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
+  import Organization._
+
   def search(query: Option[String]) = Action.async { implicit request =>
     implicit val QueryReads = ItemIndexQuery.ApiReads
     implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
     val queryString = query.getOrElse("{}")
-
-    implicit class Accessible(collections: Seq[ContentCollRef]) {
-      private val readable = (collection: ContentCollRef) => (collection.pval > 0 && collection.enabled == true)
-      def accessible = collections.filter(readable)
-    }
 
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
@@ -124,6 +122,8 @@ trait ItemApi extends V2Api with JsonUtil {
       }
     }
   }
+
+  def getItemTypes() = Action { Ok(Json.prettyPrint(itemType.all)) }
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._
@@ -229,7 +229,6 @@ trait ItemApi extends V2Api with JsonUtil {
       validationToResult[JsValue](i => Ok(i))(out)
     }
   }
-
 
   private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
 

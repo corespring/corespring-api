@@ -2,7 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{Domain, Standard}
+import org.corespring.platform.core.models.{ Domain, Standard }
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
@@ -16,7 +16,7 @@ case class Item(
   var contributorDetails: Option[ContributorDetails] = None,
   var data: Option[Resource] = None,
   var dateModified: Option[DateTime] = Some(new DateTime()),
-  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get()),
+  var id: VersionedId[ObjectId] = VersionedId(ObjectId.get(), Some(0)),
   var lexile: Option[String] = None,
   var originId: Option[String] = None,
   var otherAlignments: Option[Alignments] = None,
@@ -38,7 +38,7 @@ case class Item(
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
-    copy(id = VersionedId(ObjectId.get()), taskInfo = Some(taskInfoCopy), published = false)
+    copy(id = VersionedId(ObjectId.get(), Some(0)), taskInfo = Some(taskInfoCopy), published = false)
   }
 
   /** We're going to update this with a flag **/

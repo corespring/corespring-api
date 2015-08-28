@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
-import org.corespring.container.client.hooks.{ ItemDraftHooks => ContainerItemDraftHooks }
+import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
@@ -28,7 +28,8 @@ trait DraftHelper {
 }
 
 trait ItemDraftHooks
-  extends ContainerItemDraftHooks
+  extends containerHooks.CoreItemHooks
+  with containerHooks.DraftHooks
   with LoadOrgAndOptions
   with DraftHelper
   with MakeDraftId {
@@ -48,7 +49,7 @@ trait ItemDraftHooks
       json <- Success(transform(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
-      Json.obj("item" -> json)
+      json
     }
   }
 
@@ -142,6 +143,12 @@ trait ItemDraftHooks
     } yield Json.obj("id" -> id)
   }
 
+  //DraftHook
+  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
+    update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
+
+
+  //DraftHook
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
       identity <- getOrgAndUser(h)
@@ -151,6 +158,7 @@ trait ItemDraftHooks
     } yield CommitJson(result)
   }
 
+  //DraftHook
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
       orgService.defaultCollection(u.org.id).map { c =>

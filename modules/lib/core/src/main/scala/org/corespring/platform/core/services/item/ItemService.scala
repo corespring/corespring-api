@@ -1,6 +1,7 @@
 package org.corespring.platform.core.services.item
 
 import org.corespring.platform.core.models.item.Item
+import org.corespring.platform.core.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import com.mongodb.casbah.Imports._
 import org.corespring.platform.core.services.BaseContentService
@@ -30,11 +31,16 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
+  /**
+   * TODO: This should be removed, as it is a leaky abstraction.
+   */
   def collection: MongoCollection
 
   def currentVersion(id: VersionedId[ObjectId]): Long
 
   def isPublished(id: VersionedId[ObjectId]): Boolean
+
+  def addFileToPlayerDefinition(i: Item, f: StoredFile): Validation[String, Boolean]
 }
 
 trait ItemPublishingService {

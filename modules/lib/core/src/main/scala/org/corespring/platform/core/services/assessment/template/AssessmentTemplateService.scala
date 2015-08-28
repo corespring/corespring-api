@@ -14,6 +14,7 @@ import org.corespring.platform.core.models.mongoContext.context
 
 trait AssessmentTemplateService extends BaseContentService[SalatAssessmentTemplate, ObjectId] {
   def find(): SalatMongoCursor[SalatAssessmentTemplate]
+  def create(assessmentTemplate: SalatAssessmentTemplate)
 }
 
 class AssessmentTemplateServiceImpl(salatDao: SalatDAO[SalatAssessmentTemplate, ObjectId])

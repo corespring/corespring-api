@@ -36,6 +36,17 @@ trait ItemAuthWired extends ItemAuth[OrgAndOpts] {
     }
   }
 
+  override def canWrite(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
+    loadForWrite(id).rightMap { i => true }
+  }
+
+  override def delete(id: String)(implicit identity: OrgAndOpts): Validation[V2Error, VersionedId[ObjectId]] = {
+    loadForWrite(id).map { item =>
+      itemService.moveItemToArchive(item.id)
+      item.id
+    }
+  }
+
   override def insert(item: Item)(implicit identity: OrgAndOpts): Option[VersionedId[ObjectId]] = {
     for {
       collectionId <- item.collectionId

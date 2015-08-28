@@ -2,12 +2,11 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.commons.TypeImports.ObjectId
 import org.corespring.platform.core.models.Subject
-import org.corespring.platform.core.models.json.JsonValidationException
 import play.api.libs.json._
 import scala.Some
 
 case class Subjects(var primary: Option[ObjectId] = None,
-  var related: Option[ObjectId] = None)
+  var related: Seq[ObjectId] = Seq())
 
 object Subjects extends ValueGetter {
 
@@ -39,9 +38,11 @@ object Subjects extends ValueGetter {
         case _ => None
       }
 
+      def getSubjects(ids: Seq[ObjectId]): Seq[Option[JsValue]] = ids.map { oid => getSubject(Some(oid)) }
+
       val foundSubjects: Seq[Option[(String, JsValue)]] = Seq(
         getSubject(s.primary).map((primarySubject -> Json.toJson(_))),
-        getSubject(s.related).map((relatedSubject -> Json.toJson(_))))
+        Some(relatedSubject -> Json.toJson(getSubjects(s.related))))
 
       JsObject(foundSubjects.flatten)
     }
@@ -51,19 +52,11 @@ object Subjects extends ValueGetter {
     def reads(json: JsValue): JsResult[Subjects] = {
       import Keys._
 
-      def buildSubjectFromSeq(s: Seq[Option[String]]) = {
-        if (s.isEmpty)
-          None
-        else
-          Some(Subjects(s(0).map(new ObjectId(_)), s(1).map(new ObjectId(_))))
-      }
-
       try {
-        val maybeSubjects = get[Subjects](json, Seq(primarySubject, relatedSubject), buildSubjectFromSeq)
-        maybeSubjects match {
-          case Some(s) => JsSuccess(s)
-          case _ => JsError("error parsing subjects")
-        }
+        val primarySubjectObjectId = (json \ primarySubject).asOpt[String].map(new ObjectId(_))
+        val relatedSubjectObjectIds = (json \ relatedSubject).asOpt[Seq[String]].getOrElse(Seq()).map(new ObjectId(_))
+        val subject = Subjects(primarySubjectObjectId, relatedSubjectObjectIds)
+        JsSuccess(subject)
       } catch {
         case e: IllegalArgumentException => JsError("error parsing subjects")
       }
