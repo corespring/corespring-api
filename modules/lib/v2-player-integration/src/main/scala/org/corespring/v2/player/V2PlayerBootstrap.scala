@@ -13,7 +13,7 @@ import org.corespring.container.client.controllers.ComponentSets
 import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks, CoreItemHooks, CreateItemHook, DataQueryHooks, DraftHooks => ContainerDraftHooks, EditorHooks => ContainerEditorHooks, SupportingMaterialHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
-import org.corespring.drafts.item.models.DraftId
+import org.corespring.drafts.item.models.{ SimpleUser, SimpleOrg, OrgAndUser, DraftId }
 import org.corespring.drafts.item.{ MakeDraftId, ItemDrafts, S3Paths }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
 import org.corespring.platform.core.models.{ mongoContext, Standard, Subject }
@@ -25,7 +25,7 @@ import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService }
-import org.corespring.v2.errors.Errors.cantParseItemId
+import org.corespring.v2.errors.Errors.{ generalError, cantParseItemId }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
@@ -227,12 +227,12 @@ class V2PlayerBootstrap(
   override def itemDraftSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.SupportingMaterialHooks[DraftId] with MakeDraftId {
     override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
 
-    //Note: Parsing of the draftId requires more than just a string in the cms,
-    //we also need to know the user name and the org
-    /**
-     * @see <MakeDraftId>
-     */
-    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, DraftId] = mkDraftId(identity, id) //mFailure(cantParseItemId(id))
+    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, DraftId] = {
+      val org = SimpleOrg.fromOrganization(identity.org)
+      val user = identity.user.map(SimpleUser.fromUser)
+      val orgAndUser = OrgAndUser(org, user)
+      mkDraftId(orgAndUser, id).leftMap(e => generalError(e.msg))
+    }
 
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
