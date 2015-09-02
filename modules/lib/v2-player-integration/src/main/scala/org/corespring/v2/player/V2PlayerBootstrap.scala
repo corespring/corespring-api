@@ -14,7 +14,7 @@ import org.corespring.container.client.hooks.{ CollectionHooks => ContainerColle
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
 import org.corespring.drafts.item.models.{ SimpleUser, SimpleOrg, OrgAndUser, DraftId }
-import org.corespring.drafts.item.{ MakeDraftId, ItemDrafts, S3Paths }
+import org.corespring.drafts.item.{ DraftAssetKeys, MakeDraftId, ItemDrafts, S3Paths }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
 import org.corespring.platform.core.models.{ mongoContext, Standard, Subject }
 import org.corespring.platform.core.services._
@@ -29,6 +29,7 @@ import org.corespring.v2.errors.Errors.{ generalError, cantParseItemId }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
+import org.corespring.v2.player.services.item.{ ItemSupportingMaterialsService, DraftSupportingMaterialsService }
 import org.corespring.v2.player.{ hooks => apiHooks }
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
@@ -236,7 +237,10 @@ class V2PlayerBootstrap(
 
     override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
 
-    override def service: SupportingMaterialsService[DraftId] = ??? //new ItemDraftsSupportingMaterialsService{}
+    override def service: SupportingMaterialsService[DraftId] = new DraftSupportingMaterialsService(
+      itemDrafts.collection,
+      V2PlayerBootstrap.this.bucket,
+      new SupportingMaterialsAssets(s3, bucket, DraftAssetKeys))(mongoContext.context)
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
   }
@@ -251,10 +255,10 @@ class V2PlayerBootstrap(
 
     override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, VersionedId[ObjectId]] = VersionedId(id).toSuccess(cantParseItemId(id))
 
-    override def service: SupportingMaterialsService[VersionedId[ObjectId]] = new ItemSupportingMaterialService(
+    override def service: SupportingMaterialsService[VersionedId[ObjectId]] = new ItemSupportingMaterialsService(
       ItemServiceWired.collection,
       V2PlayerBootstrap.this.bucket,
-      new ItemSupportingMaterialsAssets(s3, bucket, ItemAssetKeys))(mongoContext.context)
+      new SupportingMaterialsAssets(s3, bucket, ItemAssetKeys))(mongoContext.context)
 
     override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
   }

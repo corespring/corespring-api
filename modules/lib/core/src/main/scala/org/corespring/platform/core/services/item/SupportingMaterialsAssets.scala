@@ -4,15 +4,13 @@ import java.io.ByteArrayInputStream
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{ ObjectMetadata, DeleteObjectsRequest, S3Object }
-import org.bson.types.ObjectId
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
-import org.corespring.platform.data.mongo.models.VersionedId
 
-import scalaz.{ Success, Validation }
+import scalaz.{ Validation }
 
-class ItemSupportingMaterialsAssets(s3: AmazonS3, bucket: String, assetKeys: AssetKeys[VersionedId[ObjectId]]) extends SupportingMaterialAssets[VersionedId[ObjectId]] {
+class SupportingMaterialsAssets[A](s3: AmazonS3, bucket: String, assetKeys: AssetKeys[A]) {
 
-  override def deleteDir(id: VersionedId[ObjectId], resource: Resource): Validation[String, Resource] = Validation.fromTryCatch {
+  def deleteDir(id: A, resource: Resource): Validation[String, Resource] = Validation.fromTryCatch {
     val listing = s3.listObjects(assetKeys.supportingMaterialFolder(id, resource.name))
     import scala.collection.JavaConversions._
     val keys: List[String] = listing.getObjectSummaries.toList.map { s =>
@@ -25,12 +23,12 @@ class ItemSupportingMaterialsAssets(s3: AmazonS3, bucket: String, assetKeys: Ass
     resource
   }.leftMap(_.getMessage)
 
-  override def getS3Object(id: VersionedId[ObjectId], materialName: String, file: String, etag: Option[String]): Option[S3Object] = {
+  def getS3Object(id: A, materialName: String, file: String, etag: Option[String]): Option[S3Object] = {
     val key = assetKeys.supportingMaterialFile(id, materialName, file)
     Some(s3.getObject(bucket, key))
   }
 
-  override def upload(id: VersionedId[ObjectId], resource: Resource, file: StoredFile, bytes: Array[Byte]): Validation[String, StoredFile] = Validation.fromTryCatch {
+  def upload(id: A, resource: Resource, file: StoredFile, bytes: Array[Byte]): Validation[String, StoredFile] = Validation.fromTryCatch {
     val key = assetKeys.supportingMaterialFile(id, resource.name, file.name)
     val metadata = new ObjectMetadata()
     metadata.setContentType(file.contentType)
@@ -39,7 +37,7 @@ class ItemSupportingMaterialsAssets(s3: AmazonS3, bucket: String, assetKeys: Ass
     file
   }.leftMap(_.getMessage)
 
-  override def deleteFile(id: VersionedId[ObjectId], resource: Resource, name: String): Validation[String, String] = Validation.fromTryCatch {
+  def deleteFile(id: A, resource: Resource, name: String): Validation[String, String] = Validation.fromTryCatch {
     val key = assetKeys.supportingMaterialFile(id, resource.name, name)
     s3.deleteObject(bucket, key)
     name

@@ -4,19 +4,26 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.{ Context, grater }
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, StoredFileDataStream }
-import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.http.HeaderNames
 
 import scala.util.Try
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-class ItemSupportingMaterialService(collection: MongoCollection,
-  bucket: String,
-  assets: SupportingMaterialAssets[VersionedId[ObjectId]],
-  prefix: String => String = s => s)(implicit ctx: Context)
-  extends SupportingMaterialsService[VersionedId[ObjectId]]
-  with IdConverters {
+private[corespring] trait MainSupportingMaterialsService[A]
+  extends SupportingMaterialsService[A] {
+
+  def idToDbo(id: A): DBObject
+
+  def collection: MongoCollection
+
+  def bucket: String
+
+  def assets: SupportingMaterialsAssets[A]
+
+  def prefix(s: String): String = s
+
+  implicit def ctx: Context
 
   private def materialsKey(key: String = "") = if (key.isEmpty) {
     prefix("supportingMaterials")
@@ -30,10 +37,11 @@ class ItemSupportingMaterialService(collection: MongoCollection,
 
   private def fileNameEq(name: String) = materialsKey("files.name") $ne name
 
-  override def create(vid: VersionedId[ObjectId], resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
+  //override def create(vid: VersionedId[ObjectId], resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
+  override def create(id: A, resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
 
     val nameNotPresent = prefix("supportingMaterials.name") $ne resource.name
-    val query = nameNotPresent ++ vidToDbo(vid)
+    val query = nameNotPresent ++ idToDbo(id)
     val resourceDbo = grater[Resource].asDBObject(resource)
     val update = MongoDBObject("$push" -> MongoDBObject(prefix("supportingMaterials") -> resourceDbo))
     val result = collection.update(query, update, false, false)
@@ -41,7 +49,7 @@ class ItemSupportingMaterialService(collection: MongoCollection,
     if (result.getN == 1) {
       resource.defaultStoredFile
         .map { sf =>
-          assets.upload(vid, resource, sf, bytes).map(_ => resource)
+          assets.upload(id, resource, sf, bytes).map(_ => resource)
         }
         .getOrElse(Success(resource))
     } else {
@@ -49,8 +57,9 @@ class ItemSupportingMaterialService(collection: MongoCollection,
     }
   }
 
-  override def addFile(vid: VersionedId[ObjectId], materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
-    val query = vidToDbo(vid) ++ fileNotPresent(file.name) ++ materialNameEq(materialName)
+  //override def addFile(vid: VersionedId[ObjectId], materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
+  override def addFile(id: A, materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
+    val query = idToDbo(id) ++ fileNotPresent(file.name) ++ materialNameEq(materialName)
     val fileDbo = grater[BaseFile].asDBObject(file)
     val update = MongoDBObject("$push" -> MongoDBObject(prefix("supportingMaterials.$.files") -> fileDbo))
     val fields = MongoDBObject(prefix("supportingMaterials.$") -> 1)
@@ -61,15 +70,16 @@ class ItemSupportingMaterialService(collection: MongoCollection,
       val resourceDbo = dbo.expand[BasicDBObject]("supportingMaterials.0")
       val resource = grater[Resource].asObject(resourceDbo.get)
       file match {
-        case sf: StoredFile => assets.upload(vid, resource, sf, bytes).map(_ => resource)
+        case sf: StoredFile => assets.upload(id, resource, sf, bytes).map(_ => resource)
         case _ => Success(resource)
       }
     }.getOrElse(Failure("Failed to update the document"))
   }
 
-  override def delete(vid: VersionedId[ObjectId], materialName: String): Validation[String, Seq[Resource]] = {
+  //override def delete(vid: VersionedId[ObjectId], materialName: String): Validation[String, Seq[Resource]] = {
+  override def delete(id: A, materialName: String): Validation[String, Seq[Resource]] = {
     val update = $pull(prefix("supportingMaterials") -> MongoDBObject("name" -> materialName))
-    val query = vidToDbo(vid) ++ materialNameEq(materialName)
+    val query = idToDbo(id) ++ materialNameEq(materialName)
 
     for {
       preUpdateData <- findAndModify(query, update, returnNew = false).toSuccess("Can't update item")
@@ -77,11 +87,12 @@ class ItemSupportingMaterialService(collection: MongoCollection,
       resourceToDelete <- resources.find(_.name == materialName).toSuccess("Can't find resource that is to be deleted")
       remaining <- Success(resources.filterNot(_.name == materialName))
       hasStoredFiles <- Success(resourceToDelete.files.filter(isStoredFile).length > 0)
-      assetDeletion <- if (hasStoredFiles) assets.deleteDir(vid, resourceToDelete) else Success(true)
+      assetDeletion <- if (hasStoredFiles) assets.deleteDir(id, resourceToDelete) else Success(true)
     } yield remaining
   }
 
-  override def updateFileContent(vid: VersionedId[ObjectId], materialName: String, file: String, content: String): Validation[String, Resource] = {
+  //override def updateFileContent(vid: VersionedId[ObjectId], materialName: String, file: String, content: String): Validation[String, Resource] = {
+  override def updateFileContent(id: A, materialName: String, file: String, content: String): Validation[String, Resource] = {
 
     def getFiles(dbo: DBObject): Option[BasicDBList] = Try {
       val materials = getDbo(dbo, materialsKey().split("\\.").toList).asInstanceOf[BasicDBList]
@@ -97,7 +108,7 @@ class ItemSupportingMaterialService(collection: MongoCollection,
       dbo
     }
 
-    val query = vidToDbo(vid) ++ materialNameEq(materialName) ++ fileNameEq(file)
+    val query = idToDbo(id) ++ materialNameEq(materialName) ++ fileNameEq(file)
     val fields = MongoDBObject(materialsKey("$") -> 1)
 
     def getUpdate(files: BasicDBList) = {
@@ -106,7 +117,7 @@ class ItemSupportingMaterialService(collection: MongoCollection,
     }
 
     for {
-      dbo <- collection.findOne(query, fields).toSuccess(s"Can't find item with id: $vid")
+      dbo <- collection.findOne(query, fields).toSuccess(s"Can't find item with id: $id")
       files <- getFiles(dbo).toSuccess("can't load files from dbo")
       update <- Success(getUpdate(files))
       updateResult <- findAndModify(query, update, true, fields).toSuccess("Error updating")
@@ -117,21 +128,23 @@ class ItemSupportingMaterialService(collection: MongoCollection,
     }
   }
 
-  override def removeFile(vid: VersionedId[ObjectId], materialName: String, filename: String): Validation[String, Resource] = {
+  //override def removeFile(vid: VersionedId[ObjectId], materialName: String, filename: String): Validation[String, Resource] = {
+  override def removeFile(id: A, materialName: String, filename: String): Validation[String, Resource] = {
 
-    val query = vidToDbo(vid) ++ materialNameEq(materialName)
+    val query = idToDbo(id) ++ materialNameEq(materialName)
     val update = $pull(materialsKey("$.files") -> MongoDBObject("name" -> filename))
 
     for {
       update <- findAndModify(query, update, true).toSuccess("Update failed")
       resources <- dbListToSeqResource(update).leftMap(_.getMessage)
       resource <- resources.find(_.name == materialName).toSuccess("Can't find resource that was updated")
-      assetDeletion <- assets.deleteFile(vid, resource, filename).map(_ => resource)
+      assetDeletion <- assets.deleteFile(id, resource, filename).map(_ => resource)
     } yield resource
   }
 
-  override def getFile(vid: VersionedId[ObjectId], materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
-    assets.getS3Object(vid, materialName, file, etag).map { s3o =>
+  //override def getFile(vid: VersionedId[ObjectId], materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
+  override def getFile(id: A, materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
+    assets.getS3Object(id, materialName, file, etag).map { s3o =>
       val metadata = s3o.getObjectMetadata
       val fileMetadata = Map(HeaderNames.ETAG -> metadata.getETag)
       Success(StoredFileDataStream(file, s3o.getObjectContent, metadata.getContentLength, metadata.getContentType, fileMetadata))

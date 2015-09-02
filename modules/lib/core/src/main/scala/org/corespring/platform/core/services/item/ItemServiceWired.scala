@@ -25,7 +25,7 @@ import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
 
-private[item] trait IdConverters {
+private[corespring] trait IdConverters {
   def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
     val base = MongoDBObject("_id._id" -> vid.id)
     vid.version.map { v =>

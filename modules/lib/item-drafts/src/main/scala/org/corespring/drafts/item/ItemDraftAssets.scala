@@ -10,6 +10,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }
+
 trait ItemDraftAssets {
   def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]
   def copyDraftToItem(draftId: DraftId, itemId: VersionedId[ObjectId]): Validation[DraftError, VersionedId[ObjectId]]
@@ -18,25 +19,26 @@ trait ItemDraftAssets {
   def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit]
 }
 
+object DraftAssetKeys extends AssetKeys[DraftId] {
+
+  override def folder(id: DraftId): String = {
+    s"${draftItemIdFolder(id.itemId)}/org-${id.orgId}/${id.name}"
+  }
+
+  def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-${itemId}"
+}
+
 object S3Paths {
 
   lazy val logger = Logger(S3Paths.getClass)
-
-  val draftKeys = new AssetKeys[DraftId] {
-    override def folder(id: DraftId): String = {
-      s"${draftItemIdFolder(id.itemId)}/org-${id.orgId}/${id.name}"
-    }
-
-    def draftItemIdFolder(itemId: ObjectId) = s"item-drafts/item-${itemId}"
-  }
 
   def itemFolder(id: VersionedId[ObjectId]) = ItemAssetKeys.folder(id)
 
   def itemFile(id: VersionedId[ObjectId], path: String): String = ItemAssetKeys.file(id, path)
 
-  def draftFolder(id: DraftId): String = draftKeys.folder(id)
+  def draftFolder(id: DraftId): String = DraftAssetKeys.folder(id)
 
-  def draftFile(id: DraftId, path: String): String = draftKeys.file(id, path)
+  def draftFile(id: DraftId, path: String): String = DraftAssetKeys.file(id, path)
 }
 
 trait S3ItemDraftAssets extends ItemDraftAssets {
@@ -77,7 +79,7 @@ trait S3ItemDraftAssets extends ItemDraftAssets {
 
   override def deleteDraftsByItemId(itemId: ObjectId): Validation[DraftError, Unit] = {
     import scala.language.reflectiveCalls
-    val path = S3Paths.draftKeys.draftItemIdFolder(itemId)
+    val path = DraftAssetKeys.draftItemIdFolder(itemId)
     utils.deleteDir(path) match {
       case true => Success(Unit)
       case false => Failure(DeleteAssetsFailed(path))
