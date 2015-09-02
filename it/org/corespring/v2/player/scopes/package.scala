@@ -23,6 +23,8 @@ import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.libs.Files
+import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
@@ -414,7 +416,14 @@ package object scopes {
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
     override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
-      FakeRequest(call.method, call.url).withCookies(cookies: _*)
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withBody(body)
+    }
+
+    def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withMultipartFormDataBody(form)
+    }
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withJsonBody(json)
     }
 
     def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType: String = "application/json"): Request[AnyContent] = {

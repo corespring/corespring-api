@@ -37,7 +37,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
 
   private def fileNameEq(name: String) = materialsKey("files.name") $ne name
 
-  //override def create(vid: VersionedId[ObjectId], resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
   override def create(id: A, resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
 
     val nameNotPresent = prefix("supportingMaterials.name") $ne resource.name
@@ -57,7 +56,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
     }
   }
 
-  //override def addFile(vid: VersionedId[ObjectId], materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
   override def addFile(id: A, materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
     val query = idToDbo(id) ++ fileNotPresent(file.name) ++ materialNameEq(materialName)
     val fileDbo = grater[BaseFile].asDBObject(file)
@@ -76,7 +74,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
     }.getOrElse(Failure("Failed to update the document"))
   }
 
-  //override def delete(vid: VersionedId[ObjectId], materialName: String): Validation[String, Seq[Resource]] = {
   override def delete(id: A, materialName: String): Validation[String, Seq[Resource]] = {
     val update = $pull(prefix("supportingMaterials") -> MongoDBObject("name" -> materialName))
     val query = idToDbo(id) ++ materialNameEq(materialName)
@@ -91,7 +88,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
     } yield remaining
   }
 
-  //override def updateFileContent(vid: VersionedId[ObjectId], materialName: String, file: String, content: String): Validation[String, Resource] = {
   override def updateFileContent(id: A, materialName: String, file: String, content: String): Validation[String, Resource] = {
 
     def getFiles(dbo: DBObject): Option[BasicDBList] = Try {
@@ -128,7 +124,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
     }
   }
 
-  //override def removeFile(vid: VersionedId[ObjectId], materialName: String, filename: String): Validation[String, Resource] = {
   override def removeFile(id: A, materialName: String, filename: String): Validation[String, Resource] = {
 
     val query = idToDbo(id) ++ materialNameEq(materialName)
@@ -142,7 +137,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
     } yield resource
   }
 
-  //override def getFile(vid: VersionedId[ObjectId], materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
   override def getFile(id: A, materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
     assets.getS3Object(id, materialName, file, etag).map { s3o =>
       val metadata = s3o.getObjectMetadata

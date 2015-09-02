@@ -12,7 +12,7 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Validation }
 
 trait SupportingMaterialHooks[ID]
   extends ContainerHooks
