@@ -8,6 +8,7 @@ import play.api.http.HeaderNames
 
 import scala.util.Try
 import scalaz.Scalaz._
+import org.corespring.common.mongo.ExpandableDbo._
 import scalaz.{ Failure, Success, Validation }
 
 private[corespring] trait MainSupportingMaterialsService[A]
@@ -64,9 +65,13 @@ private[corespring] trait MainSupportingMaterialsService[A]
     val maybeUpdated = collection.findAndModify(query, fields, sort = MongoDBObject.empty, remove = false, update, returnNew = true, upsert = false)
 
     maybeUpdated.map { dbo =>
-      //Note: this expand may need tuning..
-      val resourceDbo = dbo.expand[BasicDBObject]("supportingMaterials.0")
-      val resource = grater[Resource].asObject(resourceDbo.get)
+      println(s"_>> $dbo")
+
+      val resourceDbo = dbo.expandPath("supportingMaterials.0")
+        .getOrElse {
+          throw new RuntimeException(s"Can't find supporting materials in db object: $dbo")
+        }
+      val resource = grater[Resource].asObject(resourceDbo)
       file match {
         case sf: StoredFile => assets.upload(id, resource, sf, bytes).map(_ => resource)
         case _ => Success(resource)
@@ -90,11 +95,11 @@ private[corespring] trait MainSupportingMaterialsService[A]
 
   override def updateFileContent(id: A, materialName: String, file: String, content: String): Validation[String, Resource] = {
 
-    def getFiles(dbo: DBObject): Option[BasicDBList] = Try {
-      val materials = getDbo(dbo, materialsKey().split("\\.").toList).asInstanceOf[BasicDBList]
-      val m = materials.get(0).asInstanceOf[BasicDBObject]
-      m.get("files").asInstanceOf[BasicDBList]
-    }.toOption
+    def getFiles(dbo: DBObject): Option[BasicDBList] = for {
+      f <- dbo.expandPath(materialsKey("0.files"))
+    } yield {
+      f.asInstanceOf[BasicDBList]
+    }
 
     def updateFile(filename: String, content: String)(f: Any) = {
       val dbo = f.asInstanceOf[BasicDBObject]
@@ -143,16 +148,6 @@ private[corespring] trait MainSupportingMaterialsService[A]
       val fileMetadata = Map(HeaderNames.ETAG -> metadata.getETag)
       Success(StoredFileDataStream(file, s3o.getObjectContent, metadata.getContentLength, metadata.getContentType, fileMetadata))
     }.getOrElse(Failure("Can't find asset:"))
-  }
-
-  private def getDbo(dbo: DBObject, keys: List[String]): DBObject = {
-    keys match {
-      case Nil => dbo
-      case head :: xs => {
-        val inner = dbo.get(head).asInstanceOf[DBObject]
-        getDbo(inner, xs)
-      }
-    }
   }
 
   private def toResource(dbo: DBObject) = grater[Resource].asObject(dbo)

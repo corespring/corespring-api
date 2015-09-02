@@ -5,26 +5,26 @@ import org.specs2.mutable.Specification
 class SupportingMaterialHooksTest extends Specification {
 
   "create" should {
-    pending
+    "work" in pending
   }
 
   "deleteAsset" should {
-    pending
+    "work" in pending
   }
 
   "addAsset" should {
-    pending
+    "work" in pending
   }
 
   "delete" should {
-    pending
+    "work" in pending
   }
 
   "getAsset" should {
-    pending
+    "work" in pending
   }
 
   "updateContent" should {
-    pending
+    "work" in pending
   }
 }

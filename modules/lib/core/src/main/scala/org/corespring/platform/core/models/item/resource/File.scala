@@ -109,7 +109,11 @@ object VirtualFile {
 /**
  * A File that has been stored in a file storage service.
  */
-case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var storageKey: String = "") extends BaseFile(name, contentType, isMain)
+case class StoredFile(
+  override val name: String,
+  override val contentType: String,
+  override val isMain: Boolean = false,
+  var storageKey: String = "") extends BaseFile(name, contentType, isMain)
 
 case class StoredFileDataStream(name: String, stream: InputStream, contentLength: Long, contentType: String, metadata: Map[String, String])
 
