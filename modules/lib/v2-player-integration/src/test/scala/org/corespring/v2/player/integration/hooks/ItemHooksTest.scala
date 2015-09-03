@@ -18,6 +18,7 @@ import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, PlayerAccessSettings, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.integration.hooks.beErrorCodeMessage
 import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -99,19 +100,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
     val f: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)(FakeRequest("", ""))
   }
 
-  def returnError[D](e: V2Error) = returnStatusMessage[D](e.statusCode, e.message)
-
-  case class returnStatusMessage[D](expectedStatus: Int, body: String) extends Matcher[Either[(Int, String), D]] {
-    def apply[S <: Either[(Int, String), D]](s: Expectable[S]) = {
-
-      println(s" --> ${s.value}")
-      def callResult(success: Boolean) = result(success, s"${s.value} matches $expectedStatus & $body", s"${s.value} doesn't match $expectedStatus & $body", s)
-      s.value match {
-        case Left((code, msg)) => callResult(code == expectedStatus && msg == body)
-        case Right(_) => callResult(false)
-      }
-    }
-  }
+  def returnError[D](e: V2Error) = beErrorCodeMessage[D](e.statusCode, e.message)
 
   class createContext(
     val json: Option[JsValue] = None,
@@ -125,7 +114,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
   "load" should {
 
     "return can't find item id error" in new loadContext() {
-      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
+      result must beErrorCodeMessage(defaultFailure.statusCode, defaultFailure.message)
     }
 
     "return bad request for bad item id" in new loadContext("", authResult = Success(Item())) {
@@ -133,7 +122,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
     }
 
     "return org can't access item error" in new loadContext(authResult = Failure(generalError("NO!"))) {
-      result must returnStatusMessage(authResult.toEither.left.get.statusCode, authResult.toEither.left.get.message)
+      result must beErrorCodeMessage(authResult.toEither.left.get.statusCode, authResult.toEither.left.get.message)
     }
 
     "return an item" in new loadContext(
@@ -154,7 +143,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
     "return no org id and options" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString))) {
-      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
+      result must beErrorCodeMessage(defaultFailure.statusCode, defaultFailure.message)
     }
 
     "return item id for new item" in new createContext(
