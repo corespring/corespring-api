@@ -46,10 +46,6 @@ class ExpandableDboTest extends Specification {
       dbo.expandPath("a.b") === Some(MongoDBObject("c" -> "c-result"))
     }
 
-    "3 levels - returns a string" in {
-      dbo.expandPath("a.b.c") === Some("c-result")
-    }
-
     "3 levels - returns an object" in {
       dbo.expandPath("d.e.f") === Some(MongoDBObject("key" -> "value"))
     }
@@ -75,11 +71,7 @@ class ExpandableDboTest extends Specification {
     }
 
     "2 levels, 1 index - returns a list" in {
-      dbo.expandPath("j.0") === Some(MongoDBList(MongoDBObject("j-key" -> "j-value")))
-    }
-
-    "4 levels - 2 indices - returns a string" in {
-      dbo.expandPath("j.0.0.j-key") === Some("j-value")
+      dbo.expandPath("j.0") === Some(MongoDBList(MongoDBObject("j-key" -> "j-value")).underlying)
     }
 
     "supporting materials sample" in {
@@ -99,7 +91,12 @@ class ExpandableDboTest extends Specification {
           |} """.stripMargin
 
       val dbo = com.mongodb.util.JSON.parse(json).asInstanceOf[DBObject]
-      dbo.expandPath(path) must not beNone
+      dbo.expandPath(path).map { l =>
+
+        println(l)
+        l.asInstanceOf[BasicDBList]
+        success
+      }.getOrElse(failure("should have got an item"))
     }
 
     "core mongo types are navigable" in {

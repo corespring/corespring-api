@@ -1,10 +1,13 @@
 package org.corespring.platform.core.services.item
 
+import java.io.ByteArrayInputStream
+
+import com.amazonaws.services.s3.model.{ S3ObjectInputStream, ObjectMetadata, S3Object }
 import com.mongodb.{ WriteResult, DBObject }
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.resource.{ BaseFile, VirtualFile, StoredFile, Resource }
+import org.corespring.platform.core.models.item.resource._
 import org.corespring.platform.core.models.mongoContext
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
@@ -20,6 +23,12 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
   PlaySingleton.start()
 
   import com.novus.salat.grater
+  import mongoContext.context
+
+  val virtualFile = VirtualFile("index.html", "text/html", false, "hi")
+  val storedFile = StoredFile("image.png", "image/png", false)
+
+  val defaultResource = Resource(name = "material", files = Seq(virtualFile, storedFile))
 
   class scope
     extends Scope
@@ -40,6 +49,22 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
       m.deleteDir(any[VersionedId[ObjectId]], any[Resource]).answers { (args, _) =>
         val arr = args.asInstanceOf[Array[Any]]
         Success(arr(1).asInstanceOf[Resource])
+      }
+
+      m.getS3Object(any[VersionedId[ObjectId]], any[String], any[String], any[Option[String]]) returns {
+        val s3o = mock[S3Object]
+        s3o.getObjectMetadata returns {
+          val m = mock[ObjectMetadata]
+          m.getContentLength returns 0
+          m.getContentType returns "image/png"
+          m
+        }
+        s3o.getObjectContent returns mock[S3ObjectInputStream]
+        Some(s3o)
+      }
+
+      m.deleteFile(any[VersionedId[ObjectId]], any[Resource], any[String]) returns {
+        Success("ok")
       }
       m
     }
@@ -64,27 +89,24 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
   "create" should {
 
-    val defaultResource = Resource(name = "new material", files = Seq(
-      StoredFile("img.png", "image/png", true)))
-
-    val noFilesResource = Resource(name = "new material", files = Seq.empty)
+    val resourceWithStoredFile = defaultResource.copy(files = Seq(storedFile.copy(isMain = true)))
 
     class createScope(val resource: Resource = defaultResource) extends scope {
       val result = create(vid, resource, Array.empty)
     }
 
     "call collection.update" in new createScope() {
-      val expectedQuery = ("supportingMaterials.name" $ne "new material") ++ vidToDbo(vid)
+      val expectedQuery = ("supportingMaterials.name" $ne resource.name) ++ vidToDbo(vid)
       val expectedUpdate = $push("supportingMaterials" -> grater[Resource].asDBObject(resource))
       expectedQuery === mockCollection.queryObj
       expectedUpdate === mockCollection.updateObj
     }
 
-    "call assets.upload if the default file is a StoredFile" in new createScope() {
+    "call assets.upload if the default file is a StoredFile" in new createScope(resourceWithStoredFile) {
       there was one(assets).upload(vid, resource, resource.defaultStoredFile.get, Array.empty)
     }
 
-    "not call assets.upload if the default file is not a StoredFile" in new createScope(noFilesResource) {
+    "not call assets.upload if the default file is not a StoredFile" in new createScope {
       there was no(assets).upload(any[VersionedId[ObjectId]], any[Resource], any[StoredFile], any[Array[Byte]])
     }
 
@@ -98,18 +120,16 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
       result must_== Failure(updateFailed)
     }
 
-    "return failure if upload failed" in new scope() {
+    "return failure if upload failed" in new scope {
       assets.upload(any[VersionedId[ObjectId]], any[Resource], any[StoredFile], any[Array[Byte]]).returns(Failure("Upload failed"))
-      val result = create(vid, defaultResource, Array.empty)
+      val result = create(vid, resourceWithStoredFile, Array.empty)
       result must_== Failure("Upload failed")
     }
   }
 
   "addFile" should {
 
-    val htmlFile = VirtualFile("index.html", "text/html", false, "hi")
-
-    class addFileScope[F <: BaseFile](val file: F = htmlFile) extends scope {
+    class addFileScope[F <: BaseFile](val file: F = virtualFile) extends scope {
       val fakeResource = Resource(name = "fake result", files = Seq(file))
       val dbResult = MongoDBObject("supportingMaterials" -> MongoDBList(grater[Resource].asDBObject(fakeResource)))
       mockCollection.findAndModifyResult = Some(dbResult)
@@ -156,8 +176,6 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
   "delete" should {
 
-    val defaultResource = Resource(name = "material", materialType = Some("Rubric"), files = Seq.empty)
-
     class deleteScope(val r: Resource = defaultResource, otherResources: Seq[Resource] = Seq.empty) extends scope {
       val allResources: Seq[DBObject] = (otherResources :+ r).map(grater[Resource].asDBObject)
       mockCollection.findAndModifyResult = Some(MongoDBList(allResources: _*))
@@ -181,7 +199,8 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
       there was one(assets).deleteDir(vid, r)
     }
 
-    "not call assets.deleteDir if there are no stored files" in new deleteScope {
+    "not call assets.deleteDir if there are no stored files" in new deleteScope(
+      defaultResource.copy(files = Seq(virtualFile))) {
       there was no(assets).deleteDir(any[VersionedId[ObjectId]], any[Resource])
     }
 
@@ -191,10 +210,11 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
   }
 
   "updateFileContent" should {
-    //    class updateFileContentScope extends scope {
-    //      mockCollection.findOneResult = None
-    //
-    //    }
+
+    val update = virtualFile.copy(content = "new content")
+    val material = Resource(name = "my-material", files = Seq(virtualFile))
+    val materials = Seq(material)
+    val materialsDboList = MongoDBList(materials.map(grater[Resource].asDBObject): _*)
 
     "fail if document can't be found" in new scope {
       mockCollection.findOneResult = None
@@ -210,26 +230,69 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
     }
 
     "calls collection.findAndModify with the update" in new scope {
-      val htmlFile = VirtualFile("index.html", "text/html", true, "old content")
-      val update = htmlFile.copy(content = "new content")
-      val files = MongoDBList(
-        grater[BaseFile].asDBObject(htmlFile))
-      val materials = MongoDBList(
-        MongoDBObject("files" -> files))
-      val dbo = MongoDBObject("supportingMaterials" -> materials)
+      val dbo = MongoDBObject("supportingMaterials" -> materialsDboList)
       mockCollection.findOneResult = Some(dbo)
       val result = updateFileContent(vid, "material", "index.html", update.content)
       mockCollection.updateObj must_== $set("supportingMaterials.$.files" ->
         MongoDBList(
           grater[BaseFile].asDBObject(update)))
     }
+
+    "returns the updated resource" in new scope {
+      val dbo = MongoDBObject("supportingMaterials" -> materialsDboList)
+      mockCollection.findOneResult = Some(dbo)
+      mockCollection.findAndModifyResult = Some(dbo)
+      val result = updateFileContent(vid, "material", "index.html", update.content)
+      result must_== Success(Resource(name = "my-material", files = Seq(update)))
+    }
   }
 
   "getFile" should {
-    "work" in pending
+    "call assets.getS3Object" in new scope {
+      getFile(vid, "my-material", "file", None)
+      there was one(assets).getS3Object(vid, "my-material", "file", None)
+    }
+
+    "returns a StoredFileDataStream" in new scope {
+      val result = getFile(vid, "my-material", "file", None)
+      result match {
+        case Success(StoredFileDataStream(file, _, _, _, _)) => file must_== "file"
+        case Failure(_) => failure
+      }
+    }
   }
 
+  lazy val grate = grater[Resource]
+
   "removeFile" should {
-    "work" in pending
+
+    class removeFileScope(r: Resource = defaultResource, fileToDelete: String = virtualFile.name) extends scope {
+      mockCollection.findAndModifyResult = Some(
+        MongoDBObject("supportingMaterials" -> MongoDBList(grate.asDBObject(r))))
+      val result = removeFile(vid, r.name, fileToDelete)
+    }
+
+    "call collection.findAndModify with query" in new removeFileScope {
+      mockCollection.queryObj === idToDbo(vid) ++ materialNameEq("material")
+    }
+
+    "call collection.findAndModify with update" in new removeFileScope {
+      mockCollection.updateObj === $pull("supportingMaterials.$.files" -> MongoDBObject("name" -> virtualFile.name))
+    }
+
+    "not call assets.deleteFile" in new removeFileScope {
+      there was no(assets).deleteFile(any[VersionedId[ObjectId]], any[Resource], any[String])
+    }
+
+    "call assets.deleteFile" in new removeFileScope(fileToDelete = storedFile.name) {
+      there was one(assets).deleteFile(vid, defaultResource, storedFile.name)
+    }
+
+    "returns the updated resource" in new removeFileScope {
+      result match {
+        case Success(Resource(_, _, _, files)) => files.length must_== defaultResource.files.length - 1
+        case Failure(_) => failure
+      }
+    }
   }
 }
