@@ -11,17 +11,20 @@ import scalaz.{ Validation }
 class SupportingMaterialsAssets[A](s3: AmazonS3, bucket: String, assetKeys: AssetKeys[A]) {
 
   def deleteDir(id: A, resource: Resource): Validation[String, Resource] = Validation.fromTryCatch {
-    val listing = s3.listObjects(assetKeys.supportingMaterialFolder(id, resource.name))
+    val parent = assetKeys.supportingMaterialFolder(id, resource.name)
+    val listing = s3.listObjects(bucket, parent)
     import scala.collection.JavaConversions._
     val keys: List[String] = listing.getObjectSummaries.toList.map { s =>
       s.getKey
     }
-    val parent = assetKeys.supportingMaterialFolder(id, resource.name)
     val allKeys: List[String] = keys :+ parent
     val request = new DeleteObjectsRequest(bucket).withKeys(allKeys: _*)
     s3.deleteObjects(request)
     resource
-  }.leftMap(_.getMessage)
+  }.leftMap { e =>
+    e.printStackTrace()
+    e.getMessage
+  }
 
   def getS3Object(id: A, materialName: String, file: String, etag: Option[String]): Option[S3Object] = {
     val key = assetKeys.supportingMaterialFile(id, materialName, file)
