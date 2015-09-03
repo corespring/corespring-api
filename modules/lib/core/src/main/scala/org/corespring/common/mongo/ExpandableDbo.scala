@@ -1,14 +1,22 @@
 package org.corespring.common.mongo
 
 import com.mongodb.casbah.Imports._
+import play.api.Logger
 
 object ExpandableDbo {
+
+  lazy val logger = Logger(classOf[ExpandableDbo])
 
   implicit class ExpandableDbo(dbo: DBObject) {
 
     def expandPath(path: String): Option[DBObject] = {
+
+      logger.debug(s"[expandPath] $path, $dbo")
+
       val parts = path.split("\\.").toList
-      expand(parts, dbo)
+      val out = expand(parts, dbo)
+      logger.trace(s"[expandPath] return: $out")
+      out
     }
 
     private def toIndex(s: String): Option[Int] = try {
@@ -21,23 +29,23 @@ object ExpandableDbo {
       part
         .flatMap(toIndex)
         .flatMap { i: Int =>
-          l.get(i) match {
-            case null => None
-            case o: DBObject => Some(o)
-            case l: MongoDBList => Some(l)
-            case _ => None
+          try {
+            l.get(i) match {
+              case null => None
+              case o: DBObject => Some(o)
+              case l: MongoDBList => Some(l)
+              case _ => None
+            }
+          } catch {
+            case t: Throwable => None
           }
         }
     }
 
     private def expand(parts: Seq[String], acc: DBObject): Option[DBObject] = {
       parts match {
-        case Nil => {
-          Some(acc)
-        }
-        case head :: Nil => {
-          acc.getAs[DBObject](head)
-        }
+        case Nil => Some(acc)
+        case head :: Nil => acc.getAs[DBObject](head)
         case head :: xs => {
           val inner: Any = acc.get(head)
           inner match {

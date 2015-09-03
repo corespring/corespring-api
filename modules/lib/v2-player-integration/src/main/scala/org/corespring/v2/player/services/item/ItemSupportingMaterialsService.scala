@@ -3,13 +3,13 @@ package org.corespring.v2.player.services.item
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import org.corespring.drafts.item.models.DraftId
-import org.corespring.platform.core.services.item.{ SupportingMaterialsAssets, MainSupportingMaterialsService, IdConverters }
+import org.corespring.platform.core.services.item.{ SupportingMaterialsAssets, MongoSupportingMaterialsService, IdConverters }
 import org.corespring.platform.data.mongo.models.VersionedId
 
 class ItemSupportingMaterialsService(val collection: MongoCollection,
   val bucket: String,
   val assets: SupportingMaterialsAssets[VersionedId[ObjectId]])(implicit val ctx: Context)
-  extends MainSupportingMaterialsService[VersionedId[ObjectId]]
+  extends MongoSupportingMaterialsService[VersionedId[ObjectId]]
   with IdConverters {
   override def idToDbo(id: VersionedId[ObjectId]): DBObject = vidToDbo(id)
 }
@@ -17,7 +17,7 @@ class ItemSupportingMaterialsService(val collection: MongoCollection,
 class DraftSupportingMaterialsService(val collection: MongoCollection,
   val bucket: String,
   val assets: SupportingMaterialsAssets[DraftId])(implicit val ctx: Context)
-  extends MainSupportingMaterialsService[DraftId] {
+  extends MongoSupportingMaterialsService[DraftId] {
   override def idToDbo(id: DraftId): DBObject = {
     val dbo = com.novus.salat.grater[DraftId].asDBObject(id)
     MongoDBObject("_id" -> dbo)

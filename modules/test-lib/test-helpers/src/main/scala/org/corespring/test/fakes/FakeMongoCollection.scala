@@ -19,6 +19,11 @@ object Fakes extends Mockito {
     }
 
     var findAndModifyResult: Option[DBObject] = None
+    var findOneResult: Option[DBObject] = None
+
+    override def findOne[A, B](query: A, fields: B, rp: ReadPreference)(implicit ac: A => DBObject, bc: B => DBObject): Option[DBObject] = {
+      findOneResult
+    }
 
     override def findAndModify[A, B, C, D](
       query: A,
