@@ -66,6 +66,7 @@ object Dependencies {
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.15-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.2"
 
   object Resolvers {
 

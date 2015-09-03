@@ -121,7 +121,7 @@ object Build extends sbt.Build {
 
   val v2SessionDb = builders.lib("v2-session-db")
     .settings(
-      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz))
+      libraryDependencies ++= Seq(specs2 % "test", mockito, mongoJsonService, scalaz, sessionServiceClient))
     .dependsOn(testLib, v2Errors, core, playerLib, qtiToV2, itemDrafts)
 
   /**
