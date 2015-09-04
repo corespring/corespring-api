@@ -57,11 +57,14 @@
       }
     };
 
-    $scope.discardDraft = function(){
+    $scope.discardDraft = function(done){
+      done = done || function(){};
       ItemDraftService.deleteDraft($scope.itemId, function(data){
         Logger.log('draft ' + $scope.itemId + ' deleted');
+        done();
       }, function(err){
         Logger.warn('draft ' + $scope.itemId + ' not deleted');
+        done(err);
       });
     };
 
@@ -77,18 +80,20 @@
     });
 
     $scope.backToCollections = function() {
-
       if ($scope.hasChanges) {
         Modals.confirmSave(function(cancelled) {
           if (!cancelled) {
-            $scope.saveBackToItem();
+            $scope.saveBackToItem(goToCollections);
           } else {
-            $scope.discardDraft();
+            $scope.discardDraft(goToCollections);
           }
-          $scope.hasChanges = false;
-          $location.path("/home").search('');
         });
       } else {
+        goToCollections();
+      }
+
+      function goToCollections(){
+        $scope.hasChanges = false;
         $location.path("/home").search('');
       }
     };
