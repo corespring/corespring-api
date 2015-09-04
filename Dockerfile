@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.9.16
+FROM phusion/baseimage:1.9.16
 
 # Default to UTF-8 file.encoding
 ENV LANG C.UTF-8
