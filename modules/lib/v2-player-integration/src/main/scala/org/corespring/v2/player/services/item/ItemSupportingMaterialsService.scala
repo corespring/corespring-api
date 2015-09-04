@@ -23,5 +23,5 @@ class DraftSupportingMaterialsService(val collection: MongoCollection,
     MongoDBObject("_id" -> dbo)
   }
 
-  override def prefix(s: String) = s"change.$s"
+  override def prefix(s: String) = s"change.data.$s"
 }

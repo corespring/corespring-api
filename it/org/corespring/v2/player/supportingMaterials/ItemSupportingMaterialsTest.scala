@@ -9,40 +9,48 @@ import org.corespring.platform.core.services.item.ItemAssetKeys
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.specs2.time.NoTimeConversions
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.FilePart
 
-class ItemSupportingMaterialsTest extends IntegrationSpecification {
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeConversions {
   import org.corespring.container.client.controllers.resources.routes.{ Item => ItemRoutes }
 
-  trait baseScope extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
-    def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
+  import scala.concurrent.ExecutionContext.Implicits.global
 
+  trait scope extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
+    def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
   }
+
+  val materialName = "new-material"
+
+  val json = Json.obj(
+    "name" -> materialName,
+    "materialType" -> "Rubric",
+    "html" -> "<div>Hi</div>")
 
   "create" should {
 
-    "create a html based supporting material" in new baseScope {
-
-      val json = Json.obj(
-        "name" -> "new material",
-        "materialType" -> "Rubric",
-        "html" -> "<div>Hi</div>")
+    "create a html based supporting material" in new scope {
 
       val call = ItemRoutes.createSupportingMaterial(itemId.toString)
       val req = makeJsonRequest(call, json)
       route(req).map { r =>
         status(r) === CREATED
+
         getHeadResource match {
-          case Some(Resource(_, "new material", Some("Rubric"), _)) => success
-          case _ => failure
+          case Some(Resource(_, materialName, Some("Rubric"), _)) => success
+          case _ => failure("expected to get the head resource from supporting materials ")
         }
       }.getOrElse(failure("no result returned"))
     }
 
-    "create a binary supporting material" in new baseScope {
+    "create a binary supporting material" in new scope {
 
       val path = "it/org/corespring/v2/player/load-image/puppy.small.jpg"
 
@@ -96,6 +104,27 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification {
         }
         ImageUtils.list(key) === Seq(key)
       }.getOrElse(failure("no result returned"))
+    }
+  }
+
+  "updateFileContent" should {
+    trait updateFileContentScope extends scope
+    "update the file" in new updateFileContentScope {
+      val call = ItemRoutes.createSupportingMaterial(itemId.toString)
+      val createMaterial = makeJsonRequest(call, json)
+
+      route(createMaterial).map(f => Await.result(f, 1.second))
+      val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
+
+      route(makeTextRequest(updateContent, "new content")).map { f =>
+        println(s"error: ${contentAsString(f)}")
+        status(f) === 200
+
+        ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption).map { r =>
+          println(s" ----> ${r.defaultVirtualFile}")
+          r.defaultVirtualFile.map(_.content) must_== Some("new content")
+        }.getOrElse(failure("expected to find the updated resource"))
+      }.getOrElse(failure("expected to get a result back"))
     }
   }
 }

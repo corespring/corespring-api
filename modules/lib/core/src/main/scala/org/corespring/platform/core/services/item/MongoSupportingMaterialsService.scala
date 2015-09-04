@@ -2,21 +2,19 @@ package org.corespring.platform.core.services.item
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.{ Context, grater }
+import org.corespring.common.mongo.ExpandableDbo._
 import org.corespring.platform.core.models.item.resource.{ BaseFile, Resource, StoredFile, StoredFileDataStream }
 import org.corespring.platform.core.services.item.MongoSupportingMaterialsService.Errors
-import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 import play.api.http.HeaderNames
 
-import scala.util.Try
 import scalaz.Scalaz._
-import org.corespring.common.mongo.ExpandableDbo._
 import scalaz.{ Failure, Success, Validation }
 
 private[corespring] object MongoSupportingMaterialsService {
   object Errors {
     val updateFailed = "update failed"
-    def cantFindDocument(q: DBObject) = s"Can't find a document with the query: ${q}"
+    def cantFindDocument(q: DBObject) = s"Can't find a document with the query: $q"
     def cantFindResourceWithName(name: String, resources: Seq[Resource]) = s"Can't find a resource with name $name in names: ${resources.map(_.name)}"
     def cantLoadFiles(o: Any) = s"Can't load files from ${o}"
     def cantFindProperty(property: String, dbo: DBObject) = s"Can't find property: $property in $dbo"
@@ -44,20 +42,26 @@ private[corespring] trait MongoSupportingMaterialsService[A]
 
   implicit def ctx: Context
 
-  private def materialsKey(key: String = "") = if (key.isEmpty) {
-    prefix("supportingMaterials")
-  } else {
-    prefix(s"supportingMaterials.$key")
+  private def materialsKey(key: String = "") = {
+    val keyOut = if (key.isEmpty) {
+      prefix("supportingMaterials")
+    } else {
+      prefix(s"supportingMaterials.$key")
+    }
+
+    logger.trace(s"[materialsKey] in=$key, out=$keyOut")
+    keyOut
   }
 
   protected def materialNameEq(name: String) = materialsKey("name") $eq name
 
   protected def fileNotPresent(name: String) = materialsKey("files.name") $ne name
 
-  protected def fileNameEq(name: String) = materialsKey("files.name") $ne name
+  protected def fileNameEq(name: String) = materialsKey("files.name") $eq name
 
   override def create(id: A, resource: Resource, bytes: => Array[Byte]): Validation[String, Resource] = {
 
+    logger.debug(s"[create] id=$id, resource=${resource.name}")
     val nameNotPresent = prefix("supportingMaterials.name") $ne resource.name
     val query = nameNotPresent ++ idToDbo(id)
     val resourceDbo = grater[Resource].asDBObject(resource)
@@ -76,6 +80,7 @@ private[corespring] trait MongoSupportingMaterialsService[A]
   }
 
   override def addFile(id: A, materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
+    logger.debug(s"[addFile] id=$id, resource=${materialName}, file=${file.name}")
     val query = idToDbo(id) ++ fileNotPresent(file.name) ++ materialNameEq(materialName)
     val fileDbo = grater[BaseFile].asDBObject(file)
     val update = MongoDBObject("$push" -> MongoDBObject(prefix("supportingMaterials.$.files") -> fileDbo))
@@ -97,6 +102,7 @@ private[corespring] trait MongoSupportingMaterialsService[A]
   }
 
   override def delete(id: A, materialName: String): Validation[String, Seq[Resource]] = {
+    logger.debug(s"[delete] id=$id, resource=${materialName}")
     val update = $pull(prefix("supportingMaterials") -> MongoDBObject("name" -> materialName))
     val query = idToDbo(id) ++ materialNameEq(materialName)
 
@@ -110,7 +116,8 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     } yield remaining
   }
 
-  override def updateFileContent(id: A, materialName: String, file: String, content: String): Validation[String, Resource] = {
+  override def updateFileContent(id: A, materialName: String, filename: String, content: String): Validation[String, Resource] = {
+    logger.debug(s"[updateFileContent] id=$id, resource=${materialName}, file=$filename")
 
     def getFiles(dbo: DBObject): Option[MongoDBList] = dbo.expandPath(materialsKey("0.files"))
       .flatMap { r =>
@@ -127,11 +134,11 @@ private[corespring] trait MongoSupportingMaterialsService[A]
       dbo
     }
 
-    val query = idToDbo(id) ++ materialNameEq(materialName) ++ fileNameEq(file)
-    val fields = MongoDBObject(materialsKey("$") -> 1)
+    val query = idToDbo(id) ++ materialNameEq(materialName) ++ fileNameEq(filename)
+    val fields = MongoDBObject(materialsKey() -> 1)
 
     def getUpdate(files: MongoDBList) = {
-      val updatedFiles = files.map(d => updateFile(file, content)(d.asInstanceOf[DBObject]))
+      val updatedFiles = files.map(d => updateFile(filename, content)(d.asInstanceOf[DBObject]))
       MongoDBObject("$set" -> MongoDBObject(materialsKey("$.files") -> updatedFiles))
     }
 
@@ -140,6 +147,7 @@ private[corespring] trait MongoSupportingMaterialsService[A]
       files <- getFiles(dbo).toSuccess(cantLoadFiles(dbo))
       update <- Success(getUpdate(files))
       updateResult <- findAndModify(query, update, true, fields).toSuccess(cantFindDocument(query))
+      _ <- Success(logger.trace(s"[updateFileContent] updateResult=$updateResult"))
       materials <- updateResult.expandPath(materialsKey()).toSuccess(cantFindProperty(materialsKey(), updateResult))
       resources <- dbListToSeqResource(materials).leftMap(_.getMessage)
       head <- resources.headOption.toSuccess(resourcesIsEmpty)
@@ -149,6 +157,8 @@ private[corespring] trait MongoSupportingMaterialsService[A]
   }
 
   override def removeFile(id: A, materialName: String, filename: String): Validation[String, Resource] = {
+
+    logger.debug(s"[removeFile] id=$id, resource=$materialName, file=$filename")
 
     def deleteAssetIfNecessary(r: Resource) = {
       val filtered = r.copy(files = r.files.filterNot(_.name == filename))
@@ -170,15 +180,19 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     } yield filteredResource
   }
 
-  override def getFile(id: A, materialName: String, file: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
-    assets.getS3Object(id, materialName, file, etag).map { s3o =>
+  override def getFile(id: A, materialName: String, filename: String, etag: Option[String]): Validation[String, StoredFileDataStream] = {
+    logger.debug(s"[getFile] id=$id, resource=$materialName, file=$filename")
+    assets.getS3Object(id, materialName, filename, etag).map { s3o =>
       val metadata = s3o.getObjectMetadata
       val fileMetadata = Map(HeaderNames.ETAG -> metadata.getETag)
-      Success(StoredFileDataStream(file, s3o.getObjectContent, metadata.getContentLength, metadata.getContentType, fileMetadata))
-    }.getOrElse(Failure(cantFindAsset(id, materialName, file)))
+      Success(StoredFileDataStream(filename, s3o.getObjectContent, metadata.getContentLength, metadata.getContentType, fileMetadata))
+    }.getOrElse(Failure(cantFindAsset(id, materialName, filename)))
   }
 
-  private def toResource(dbo: DBObject) = grater[Resource].asObject(dbo)
+  private def toResource(dbo: DBObject) = {
+    logger.trace(s"[toResource] dbo=$dbo")
+    grater[Resource].asObject(dbo)
+  }
 
   private def dbListToSeqResource(dbo: Any): Validation[Throwable, Seq[Resource]] = dbo match {
     case l: BasicDBList => {

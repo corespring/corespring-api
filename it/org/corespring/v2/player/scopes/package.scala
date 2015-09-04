@@ -430,6 +430,10 @@ package object scopes {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withJsonBody(json)
     }
 
+    def makeTextRequest(call: Call, text: String): Request[AnyContentAsText] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withTextBody(text)
+    }
+
     def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType: String = "application/json"): Request[AnyContent] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withHeaders(("Content-Type", contentType))
     }
