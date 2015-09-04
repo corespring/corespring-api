@@ -251,13 +251,17 @@ package object scopes {
     }
   }
 
-  class AddSupportingMaterialImageAndItem(imagePath: String, val materialName: String)
+  trait AddSupportingMaterialImageAndItem
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelpers
     with S3Helper {
 
+    def imagePath: String
+    def materialName: String
+
     lazy val logger = Logger("v2player.test")
+
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
@@ -272,7 +276,8 @@ package object scopes {
       val path = Paths.get(imagePath)
       Files.readAllBytes(path)
     }
-    val fileName = grizzled.file.util.basename(file.getCanonicalPath)
+
+    lazy val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
     override def before: Any = {
       import org.corespring.platform.core.models.mongoContext._
@@ -395,27 +400,26 @@ package object scopes {
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-    def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent]
+    def requestBody: AnyContent = AnyContentAsEmpty
+    def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A]
   }
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), body)
     }
   }
 
   trait PlainRequestBuilder extends RequestBuilder {
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = FakeRequest(call.method, call.url)
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = FakeRequest(call.method, call.url, FakeHeaders(), body)
   }
 
   trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
 
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = {
       FakeRequest(call.method, call.url).withCookies(cookies: _*).withBody(body)
     }
 
@@ -435,11 +439,9 @@ package object scopes {
 
     import PlayerTokenInQueryStringIdentity.Keys
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl, FakeHeaders(), body)
