@@ -33,9 +33,12 @@ If you want to run this docker image or deploy it using [docker-deployer](github
 
 # Dockerfile_remote_mongo_search 
 
-This is much thinner - it only sets up the play app and requires that you have the env vars set.
+This is much thinner - it only sets up the play app and requires that you have the env vars set to point to mongo, elastic search and s3.
 
-This means that you'll need to have your own s3, mongo and elastic set up
+This means that you'll need to have your own s3, mongo and elastic set up.
+
+When running docker deployer you'll want to set the env vars you can do this by using `-v X=Y` for `deploy` or run `update-env-vars`. run `docker-deployer --help` for more info.
+
 
 # DockerfileWithDynamo 
 
