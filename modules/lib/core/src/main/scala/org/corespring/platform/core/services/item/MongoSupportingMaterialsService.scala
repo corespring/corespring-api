@@ -20,6 +20,10 @@ private[corespring] object MongoSupportingMaterialsService {
     def cantFindProperty(property: String, dbo: DBObject) = s"Can't find property: $property in $dbo"
     def cantFindAsset[A](id: A, material: String, file: String) = s"Can't find asset for $id, $material, $file"
     val resourcesIsEmpty = "Resources list is empty"
+    def cantConvertToResources(dbo: DBObject) = s"Can't convert to a list of resources: $dbo"
+    def cantFindResource(name: String, resources: Seq[Resource]) = s"Can't find $name in materials named: ${resources.map(_.name)}"
+    val cantLoadFirstResource = s"Can't load the first resource"
+    def fileAlreadyExists(name: String) = s"This file already exists: $name"
   }
 }
 
@@ -40,6 +44,8 @@ private[corespring] trait MongoSupportingMaterialsService[A]
 
   def prefix(s: String): String = s
 
+  logger.trace(s"prefix set to: [${prefix("")}]")
+
   implicit def ctx: Context
 
   private def materialsKey(key: String = "") = {
@@ -48,8 +54,6 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     } else {
       prefix(s"supportingMaterials.$key")
     }
-
-    logger.trace(s"[materialsKey] in=$key, out=$keyOut")
     keyOut
   }
 
@@ -81,25 +85,38 @@ private[corespring] trait MongoSupportingMaterialsService[A]
 
   override def addFile(id: A, materialName: String, file: BaseFile, bytes: => Array[Byte]): Validation[String, Resource] = {
     logger.debug(s"[addFile] id=$id, resource=${materialName}, file=${file.name}")
-    val query = idToDbo(id) ++ fileNotPresent(file.name) ++ materialNameEq(materialName)
-    val fileDbo = grater[BaseFile].asDBObject(file)
-    val update = MongoDBObject("$push" -> MongoDBObject(prefix("supportingMaterials.$.files") -> fileDbo))
-    val fields = MongoDBObject(prefix("supportingMaterials.$") -> 1)
-    val maybeUpdated = collection.findAndModify(query, fields, sort = MongoDBObject.empty, remove = false, update, returnNew = true, upsert = false)
+    val query = idToDbo(id) ++ materialNameEq(materialName)
+    val fields = MongoDBObject(materialsKey() -> 1)
 
-    maybeUpdated.map { dbo =>
+    def uploadFileIfNeeded(resource: Resource) = file match {
+      case sf: StoredFile => assets.upload(id, resource, sf, bytes).map(_ => resource)
+      case _ => Success(resource)
+    }
 
-      val resourceDbo = dbo.expandPath("supportingMaterials.0")
-        .getOrElse {
-          throw new RuntimeException(s"Can't find supporting materials in db object: $dbo")
-        }
-      val resource = grater[Resource].asObject(resourceDbo)
-      file match {
-        case sf: StoredFile => assets.upload(id, resource, sf, bytes).map(_ => resource)
-        case _ => Success(resource)
-      }
-    }.getOrElse(Failure(cantFindDocument(query)))
+    def addDataToMongoArray(index: Int) = {
+      val fileDbo = grater[BaseFile].asDBObject(file)
+      val update = $push(materialsKey(s"$index.files") -> fileDbo)
+      findAndModify(query, update, true, MongoDBObject(materialsKey() -> 1))
+    }
+
+    for {
+      dbo <- collection.findOne(query, fields).toSuccess(cantFindDocument(query))
+      resources <- getResourcesFromDbo(dbo)
+      resource <- resources.find(_.name == materialName).toSuccess(cantFindResource(materialName, resources))
+      resourceIndex <- Success(resources.indexOf(resource))
+      _ <- if (!resource.files.exists(_.name == file.name)) Success(true) else Failure(fileAlreadyExists(file.name))
+      updatedDbo <- addDataToMongoArray(resourceIndex).toSuccess(cantFindDocument(query))
+      updatedResources <- getResourcesFromDbo(updatedDbo)
+      _ <- Success(logger.trace(s"[addFile] updatedResources: $updatedResources"))
+      head <- Success(updatedResources(resourceIndex))
+      _ <- uploadFileIfNeeded(head)
+    } yield head
   }
+
+  private def getResourcesFromDbo(dbo: DBObject): Validation[String, Seq[Resource]] = for {
+    listDbo <- dbo.expandPath(materialsKey()).toSuccess(cantFindProperty(materialsKey(), dbo))
+    resources <- dbListToSeqResource(listDbo).leftMap(_.getMessage)
+  } yield resources
 
   override def delete(id: A, materialName: String): Validation[String, Seq[Resource]] = {
     logger.debug(s"[delete] id=$id, resource=${materialName}")
@@ -108,7 +125,7 @@ private[corespring] trait MongoSupportingMaterialsService[A]
 
     for {
       preUpdateData <- findAndModify(query, update, returnNew = false).toSuccess(cantFindDocument(query))
-      resources <- dbListToSeqResource(preUpdateData).leftMap(_.getMessage)
+      resources <- getResourcesFromDbo(preUpdateData)
       resourceToDelete <- resources.find(_.name == materialName).toSuccess(cantFindResourceWithName(materialName, resources))
       remaining <- Success(resources.filterNot(_.name == materialName))
       hasStoredFiles <- Success(resourceToDelete.files.filter(isStoredFile).length > 0)
@@ -135,7 +152,6 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     }
 
     val query = idToDbo(id) ++ materialNameEq(materialName) ++ fileNameEq(filename)
-    val fields = MongoDBObject(materialsKey() -> 1)
 
     def getUpdate(files: MongoDBList) = {
       val updatedFiles = files.map(d => updateFile(filename, content)(d.asInstanceOf[DBObject]))
@@ -143,13 +159,12 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     }
 
     for {
-      dbo <- collection.findOne(query, fields).toSuccess(cantFindDocument(query))
+      dbo <- collection.findOne(query, MongoDBObject(materialsKey("$") -> 1)).toSuccess(cantFindDocument(query))
       files <- getFiles(dbo).toSuccess(cantLoadFiles(dbo))
       update <- Success(getUpdate(files))
-      updateResult <- findAndModify(query, update, true, fields).toSuccess(cantFindDocument(query))
+      updateResult <- findAndModify(query, update, true, MongoDBObject(materialsKey() -> 1)).toSuccess(cantFindDocument(query))
       _ <- Success(logger.trace(s"[updateFileContent] updateResult=$updateResult"))
-      materials <- updateResult.expandPath(materialsKey()).toSuccess(cantFindProperty(materialsKey(), updateResult))
-      resources <- dbListToSeqResource(materials).leftMap(_.getMessage)
+      resources <- getResourcesFromDbo(updateResult)
       head <- resources.headOption.toSuccess(resourcesIsEmpty)
     } yield {
       head
@@ -163,6 +178,7 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     def deleteAssetIfNecessary(r: Resource) = {
       val filtered = r.copy(files = r.files.filterNot(_.name == filename))
       if (r.files.exists(f => f.name == filename && f.isInstanceOf[StoredFile])) {
+        logger.trace(s"[removeFile] id=$id, resource=$materialName, file=$filename - call assets.deletFile")
         assets.deleteFile(id, r, filename).map(_ => filtered)
       } else {
         Success(filtered)
@@ -172,8 +188,11 @@ private[corespring] trait MongoSupportingMaterialsService[A]
     val query = idToDbo(id) ++ materialNameEq(materialName)
     val update = $pull(materialsKey("$.files") -> MongoDBObject("name" -> filename))
 
+    logger.trace(s"[removeFile] id=$id, resource=$materialName, file=$filename, query=$query, update=$update")
+
     for {
       update <- findAndModify(query, update, false, fields = MongoDBObject(materialsKey() -> 1)).toSuccess("Update failed")
+      _ <- Success(logger.trace(s"[removeFile] updateResult=$update"))
       resourceDbo <- update.expandPath(materialsKey("0")).toSuccess(cantFindProperty(materialsKey("0"), update))
       resource <- Success(grater[Resource].asObject(resourceDbo))
       filteredResource <- deleteAssetIfNecessary(resource)
