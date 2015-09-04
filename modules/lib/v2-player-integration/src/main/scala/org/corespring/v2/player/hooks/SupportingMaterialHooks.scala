@@ -12,7 +12,7 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Validation }
+import scalaz.Validation
 
 trait SupportingMaterialHooks[ID]
   extends ContainerHooks
@@ -28,12 +28,12 @@ trait SupportingMaterialHooks[ID]
 
   def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, ID]
 
-  private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(fn: ID => Validation[String, A]): Future[RESULT] = Future {
+  private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(idToValidation: ID => Validation[String, A]): Future[RESULT] = Future {
     val out: Validation[V2Error, A] = for {
       identity <- getOrgAndOptions(h)
       vid <- parseId(id, identity)
       canWrite <- auth.canWrite(id)(identity)
-      result <- fn(vid).leftMap(e => generalError(e))
+      result <- idToValidation(vid).leftMap(e => generalError(e))
     } yield result
 
     validationToResult(out)

@@ -36,7 +36,7 @@ class VersionedIdImplicitsTest extends Specification with PackageLogging {
           v.version === Some(0)
           //v === VersionedId("000000000000000000000001", Some(0))
         }
-        case _ => failure("reads failed")
+        case _ => ko("reads failed")
       }
     }
   }

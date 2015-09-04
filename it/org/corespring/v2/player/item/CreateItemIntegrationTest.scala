@@ -8,7 +8,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
-import org.corespring.v2.errors.Errors.{ orgCantAccessCollection, propertyNotFoundInJson, noJson }
+import org.corespring.v2.errors.Errors.{ orgCantAccessCollection, propertyNotFoundInJson }
 import org.corespring.v2.player.scopes.user
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.Cookie

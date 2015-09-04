@@ -39,9 +39,7 @@ class ItemIndexSearchResultTest extends Specification {
         title = Some(title),
         description = Some(description),
         apiVersion = Some(apiVersion),
-        itemTypes = itemTypes
-      ))
-    )
+        itemTypes = itemTypes)))
 
     "reads" should {
 
@@ -57,7 +55,7 @@ class ItemIndexSearchResultTest extends Specification {
                 "contributor": "$contributor"
               },
               "published" : $published,
-              "standards" : [${standards.map{case (dotNotation, standard) => Json.obj("dotNotation" -> dotNotation, "standard" -> standard)}.mkString("\",\"")}],
+              "standards" : [${standards.map { case (dotNotation, standard) => Json.obj("dotNotation" -> dotNotation, "standard" -> standard) }.mkString("\",\"")}],
               "taskInfo" : {
                 "subjects" : {
                   "primary" : {
@@ -79,13 +77,13 @@ class ItemIndexSearchResultTest extends Specification {
       val result = Json.fromJson[ItemIndexSearchResult](json).getOrElse(throw new Exception("Couldn't parse JSON"))
 
       "read total" in {
-        result.total must be equalTo(total)
+        result.total must be equalTo (total)
       }
 
       "read hits" in {
         result.hits.headOption match {
           case Some(resultHit) => resultHit === searchResult.hits.head
-          case _ => failure("No results parsed from JSON")
+          case _ => ko("No results parsed from JSON")
         }
       }
 
