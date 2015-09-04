@@ -11,7 +11,7 @@ To test feature branches in isolation, we have defined a set of Dockerfiles that
 * DockerfileWithDynamo - the app with dynamo running
 
 
-# Dockerfile
+## Dockerfile
 
 This is a completely sandboxed instance. It seeds a local mongo, sets up a fake s3 and a local elastic search.
 
@@ -25,13 +25,8 @@ If you want to run this docker image or deploy it using [docker-deployer](github
     sbt assembly
 ```
 
-**To deploy your local instance to Elastic Beanstalk on AWS.**
 
-1. Request AWS IAM credentials (AWS admin on the team can provide these for you)
-2. run `play stage` to build a zip with the current state of your local environment
-3. deploy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
-
-# Dockerfile_remote_mongo_search 
+## Dockerfile_remote_mongo_search 
 
 This is much thinner - it only sets up the play app and requires that you have the env vars set to point to mongo, elastic search and s3.
 
@@ -40,9 +35,16 @@ This means that you'll need to have your own s3, mongo and elastic set up.
 When running docker deployer you'll want to set the env vars you can do this by using `-v X=Y` for `deploy` or run `update-env-vars`. run `docker-deployer --help` for more info.
 
 
-# DockerfileWithDynamo 
+## DockerfileWithDynamo 
+
+An instance with Dynamo set up
 
 
+# To deploy your local instance to Elastic Beanstalk on AWS.
+
+1. Request AWS IAM credentials (AWS admin on the team can provide these for you)
+2. run `play stage` to build the jars needed for the app to run.
+3. deploy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
 
 # Deploying with docker-deployer
 
@@ -50,7 +52,9 @@ When running docker deployer you'll want to set the env vars you can do this by 
     docker-deployer deploy --deploy-name $NAME --docker-filename $DOCKER_NAME
 ```
 
-# Testing the docker file locally (Need to have docker installed on your machine) 
+# Testing the docker file locally 
+
+> You need to have docker installed on your machine to do this.
 
 To create and run a docker image with default Dockerfile:** 
 
