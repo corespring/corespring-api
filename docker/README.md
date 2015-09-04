@@ -1,6 +1,22 @@
 ### Docker deployment
 
-To test feature branches in isolation, we have defined a `Dockerfile` that allows cs-api to be run in a sandboxed environment.
+To test feature branches in isolation, we have defined a set of Dockerfiles that allows cs-api to be run in a different environments.
+
+### Dockerfile types
+
+> We don't have a docker registry so there's a little bit of duplication amongst the following files.
+
+* Dockerfile - the main file that sets up a local mongo, s3 and elastic search
+* Dockerfile_remote_mongo_search - sets up only the app and requires that you set the env vars to point the app at a remote mongo, s3 and search
+* DockerfileWithDynamo - the app with dynamo running
+
+
+# Dockerfile
+
+This is a completely sandboxed instance. It seeds a local mongo, sets up a fake s3 and a local elastic search.
+
+> There is more work to do on this instances - like seeding the db with a backup of staging data etc.
+
 
 If you want to run this docker image or deploy it using [docker-deployer](github.com/corespring/docker-deployer), you'll need to build the following project once: 
 
@@ -13,15 +29,27 @@ If you want to run this docker image or deploy it using [docker-deployer](github
 
 1. Request AWS IAM credentials (AWS admin on the team can provide these for you)
 2. run `play stage` to build a zip with the current state of your local environment
-3. delpoy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
+3. deploy to AWS with [docker-deployer](github.com/corespring/docker-deployer) (see below)
 
-Deploying with docker-deployer:
+# Dockerfile_remote_mongo_search 
+
+This is much thinner - it only sets up the play app and requires that you have the env vars set.
+
+This means that you'll need to have your own s3, mongo and elastic set up
+
+# DockerfileWithDynamo 
+
+
+
+# Deploying with docker-deployer
 
 ```shell
-    docker-deployer deploy --deploy-name $NAME 
+    docker-deployer deploy --deploy-name $NAME --docker-filename $DOCKER_NAME
 ```
 
-**To create and run a docker image with default Dockerfile:** 
+# Testing the docker file locally (Need to have docker installed on your machine) 
+
+To create and run a docker image with default Dockerfile:** 
 
 ````shell
     docker build -t="corespring-api" .
@@ -36,10 +64,3 @@ Deploying with docker-deployer:
 ```
 
 
-### Dockerfile types
-
-> We don't have a docker registry so there's a little bit of duplication amongst the following files.
-
-* Dockerfile - the main file that sets up a local mongo, s3 and elastic search
-* Dockerfile_remote_mongo_search - sets up only the app and requires that you set the env vars to point the app at a remote mongo, s3 and search
-* DockerfileWithDynamo - the app with dynamo running
