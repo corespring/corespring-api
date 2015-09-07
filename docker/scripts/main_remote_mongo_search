@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd /opt
+
+: ${ENV_ELASTIC_SEARCH_URL:?"Need to set ENV_ELASTIC_SEARCH_URL non-empty"}
+: ${ENV_AMAZON_ASSETS_BUCKET:?"Need to set ENV_AMAZON_ASSETS_BUCKET non-empty"}
+: ${ENV_MONGO_URI:?"Need to set ENV_MONGO_URI non-empty"}
+
+echo "-- boot play app..."
+./corespring-api/bin/corespring
