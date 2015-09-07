@@ -140,6 +140,28 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     }
   }
 
+  "delete" should {
+
+    trait deleteScope extends scope {
+
+      def deleteMaterial(name: String) = {
+        val call = ItemRoutes.deleteSupportingMaterial(itemId.toString, name)
+        val req = makeRequest(call)
+        futureResult(req)
+      }
+    }
+
+    "delete the supporting material" in new deleteScope {
+      val result = for {
+        _ <- createHtmlMaterial
+        r <- deleteMaterial(materialName)
+      } yield r
+
+      status(result) === OK
+      getHeadResource must beNone
+    }
+  }
+
   "updateFileContent" should {
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
