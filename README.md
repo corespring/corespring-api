@@ -237,7 +237,7 @@ Deploying with docker-deployer:
     docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
 ```
 
-### Running Localy
+### Running Locally
 
 If you want to run the API on local environment for the first time start the **play console**:
 
