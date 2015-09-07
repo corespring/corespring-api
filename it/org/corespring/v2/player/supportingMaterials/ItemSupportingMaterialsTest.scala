@@ -58,7 +58,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     def filePath: String
 
     /**
-     * Note - we need to create a temporary file as it is going to be deleted as part of the upload.
+     * Note - we need to create a temporary file as it is going to be deleted as part of the multipart upload.
      */
     lazy val (fileToUpload, filename, contentType) = {
       import grizzled.file.GrizzledFile._
@@ -69,11 +69,11 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
       val (dir, basename, ext) = f.dirnameBasenameExtension
       val filename = s"$basename$ext"
       val dest: File = f.copyTo(util.joinPath(dir.getAbsolutePath, s"$basename.tmp$ext"))
-      val guessedContentType = MimeTypes.forFileName(filename).getOrElse {
+      val contentType = MimeTypes.forFileName(filename).getOrElse {
         throw new RuntimeException(s"Can't decide on mimeType for $filename")
       }
 
-      (dest, filename, guessedContentType)
+      (dest, filename, contentType)
     }
 
     def mkForm(dataParts: Map[String, Seq[String]] = Map.empty,
