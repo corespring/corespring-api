@@ -10,13 +10,15 @@ import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
 import org.specs2.time.NoTimeConversions
+import play.api.http.Writeable
 import play.api.libs.Files
 import play.api.libs.json.Json
-import play.api.mvc.MultipartFormData
+import play.api.mvc.{ Request, SimpleResult, MultipartFormData }
 import play.api.mvc.MultipartFormData.FilePart
 
-import scala.concurrent.Await
+import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
+import scala.util.Try
 
 class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeConversions {
   import org.corespring.container.client.controllers.resources.routes.{ Item => ItemRoutes }
@@ -25,6 +27,19 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
   trait scope extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
     def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
+
+    protected def futureResult[T](r: Request[T])(implicit w: Writeable[T]): Future[SimpleResult] = {
+      route(r).getOrElse {
+        throw new RuntimeException(s"route for request: $r failed")
+      }
+    }
+
+    def createHtmlMaterial: Future[SimpleResult] = {
+      val call = ItemRoutes.createSupportingMaterial(itemId.toString)
+      val createMaterial = makeJsonRequest(call, json)
+      futureResult(createMaterial)
+    }
+
   }
 
   val materialName = "new-material"
@@ -37,17 +52,13 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
   "create" should {
 
     "create a html based supporting material" in new scope {
+      val result = createHtmlMaterial
+      status(result) === CREATED
 
-      val call = ItemRoutes.createSupportingMaterial(itemId.toString)
-      val req = makeJsonRequest(call, json)
-      route(req).map { r =>
-        status(r) === CREATED
-
-        getHeadResource match {
-          case Some(Resource(_, materialName, Some("Rubric"), _)) => success
-          case _ => failure("expected to get the head resource from supporting materials ")
-        }
-      }.getOrElse(failure("no result returned"))
+      getHeadResource match {
+        case Some(Resource(_, materialName, Some("Rubric"), _)) => success
+        case _ => failure("expected to get the head resource from supporting materials ")
+      }
     }
 
     "create a binary supporting material" in new scope {
@@ -108,23 +119,27 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
   }
 
   "updateFileContent" should {
-    trait updateFileContentScope extends scope
+    trait updateFileContentScope extends scope {
+      def updateHtmlContent(content: String): Future[SimpleResult] = {
+        val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
+        futureResult(makeTextRequest(updateContent, content))
+      }
+    }
+
     "update the file" in new updateFileContentScope {
-      val call = ItemRoutes.createSupportingMaterial(itemId.toString)
-      val createMaterial = makeJsonRequest(call, json)
 
-      route(createMaterial).map(f => Await.result(f, 1.second))
-      val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
+      val result = for {
+        _ <- createHtmlMaterial
+        r <- updateHtmlContent("hi")
+      } yield r
 
-      route(makeTextRequest(updateContent, "new content")).map { f =>
-        println(s"error: ${contentAsString(f)}")
-        status(f) === 200
+      println(s"error: ${contentAsString(result)}")
+      status(result) === 200
 
-        ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption).map { r =>
-          println(s" ----> ${r.defaultVirtualFile}")
-          r.defaultVirtualFile.map(_.content) must_== Some("new content")
-        }.getOrElse(failure("expected to find the updated resource"))
-      }.getOrElse(failure("expected to get a result back"))
+      ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption).map { r =>
+        println(s" ----> ${r.defaultVirtualFile}")
+        r.defaultVirtualFile.map(_.content) must_== Some("new content")
+      }
     }
   }
 }
