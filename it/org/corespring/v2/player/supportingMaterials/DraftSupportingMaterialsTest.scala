@@ -1,10 +1,12 @@
 package org.corespring.v2.player.supportingMaterials
 
+import com.novus.salat.Context
+import org.corespring.drafts.item.models.DraftId
+import org.corespring.drafts.item.{ DraftAssetKeys, ItemDraftHelper }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
 import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.services.item.ItemAssetKeys
+import org.corespring.platform.core.models.{ Organization, mongoContext }
 import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
 import org.specs2.execute.Result
 import org.specs2.time.NoTimeConversions
@@ -12,8 +14,8 @@ import play.api.mvc.{ Call, SimpleResult }
 
 import scala.concurrent.Future
 
-class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeConversions {
-  import org.corespring.container.client.controllers.resources.routes.{ Item => ItemRoutes }
+class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeConversions {
+  import org.corespring.container.client.controllers.resources.routes.{ ItemDraft => Routes }
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -23,7 +25,17 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     with Helpers.requestToFuture
     with testDefaults {
 
-    def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
+    val helper = new ItemDraftHelper {
+      override implicit def context: Context = mongoContext.context
+    }
+
+    val draftId = {
+      val draftId = DraftId(itemId.id, user.userName, orgId)
+      val org = Organization.findOneById(orgId).get
+      helper.create(draftId, itemId, org)
+    }
+
+    def getHeadResource = helper.get(draftId).flatMap(_.change.data.supportingMaterials.headOption)
 
     def assertHeadResource(fn: Resource => Result) = getHeadResource match {
       case Some(r) => fn(r)
@@ -31,9 +43,14 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     }
 
     def createHtmlMaterial: Future[SimpleResult] = {
-      val call = ItemRoutes.createSupportingMaterial(itemId.toString)
+      val call = Routes.createSupportingMaterial(draftId.itemId.toString)
       val createMaterial = makeJsonRequest(call, json)
       futureResult(createMaterial)
+    }
+
+    override def after: Any = {
+      super.after
+      helper.delete(draftId)
     }
   }
 
@@ -41,6 +58,8 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a html based supporting material" in new scope {
       val result = createHtmlMaterial
+
+      println(s"content: ${contentAsString(result)}")
       status(result) === CREATED
 
       getHeadResource match {
@@ -52,7 +71,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     "create a binary supporting material" in new scope with withUploadFile {
 
       def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
-      lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", filename)
+      lazy val key = DraftAssetKeys.supportingMaterialFile(draftId, "binary-material", filename)
 
       override def after = {
         super.after
@@ -61,7 +80,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         fileCleanUp
       }
 
-      val call = ItemRoutes.createSupportingMaterialFromFile(itemId.toString)
+      val call = Routes.createSupportingMaterialFromFile(draftId.itemId.toString)
 
       val formData = Map("name" -> "binary-material", "materialType" -> "Rubric")
 
@@ -89,7 +108,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     trait deleteScope extends scope {
 
       def deleteMaterial(name: String) = {
-        val call = ItemRoutes.deleteSupportingMaterial(itemId.toString, name)
+        val call = Routes.deleteSupportingMaterial(draftId.itemId.toString, name)
         val req = makeRequest(call)
         futureResult(req)
       }
@@ -109,7 +128,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
   "updateFileContent" should {
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
-        val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
+        val updateContent = Routes.updateSupportingMaterialContent(draftId.itemId.toString, materialName, "index.html")
         futureResult(makeTextRequest(updateContent, content))
       }
     }
@@ -132,9 +151,9 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
   "addAssetToSupportingMaterial" should {
 
     "upload the file to s3" in new addFileScope with scope {
-      lazy val s3Key = ItemAssetKeys.supportingMaterialFile(itemId, materialName, filename)
+      lazy val s3Key = DraftAssetKeys.supportingMaterialFile(draftId, materialName, filename)
 
-      override def addFileCall: Call = ItemRoutes.addAssetToSupportingMaterial(itemId.toString, materialName)
+      override def addFileCall: Call = Routes.addAssetToSupportingMaterial(draftId.itemId.toString, materialName)
 
       override def after = {
         super.after
@@ -164,12 +183,12 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     trait removeFileScope extends addFileScope with scope {
 
-      lazy val s3Key = ItemAssetKeys.supportingMaterialFile(itemId, materialName, filename)
+      override def addFileCall: Call = Routes.addAssetToSupportingMaterial(draftId.itemId.toString, materialName)
 
-      override def addFileCall: Call = ItemRoutes.addAssetToSupportingMaterial(itemId.toString, materialName)
+      lazy val s3Key = DraftAssetKeys.supportingMaterialFile(draftId, materialName, filename)
 
       def removeFile = {
-        val call = ItemRoutes.deleteAssetFromSupportingMaterial(itemId.toString, materialName, filename)
+        val call = Routes.deleteAssetFromSupportingMaterial(draftId.itemId.toString, materialName, filename)
         val req = makeRequest(call)
         futureResult(req)
       }
@@ -199,6 +218,5 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
       ImageUtils.list(s3Key) === Nil
 
     }
-
   }
 }
