@@ -234,7 +234,8 @@
         draftName: $scope.draft.user,
         onItemChanged: $scope.onItemChanged,
         devEditor: devEditor,
-        autosizeEnabled: false
+        autosizeEnabled: false,
+        hideSaveButton: true
       };
 
       return new org.corespring.players.DraftEditor($scope.containerClassName, opts, function(e) {
