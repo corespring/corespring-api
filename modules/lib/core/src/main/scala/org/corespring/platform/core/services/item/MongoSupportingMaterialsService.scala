@@ -21,7 +21,7 @@ private[corespring] object MongoSupportingMaterialsService {
     def cantFindAsset[A](id: A, material: String, file: String) = s"Can't find asset for $id, $material, $file"
     val resourcesIsEmpty = "Resources list is empty"
     def cantConvertToResources(dbo: DBObject) = s"Can't convert to a list of resources: $dbo"
-    def cantFindResource(name: String, resources: Seq[Resource]) = s"Can't find $name in materials named: ${resources.map(_.name)}"
+    def cantFindResource(name: String, resources: Seq[Resource]) = s"Can't find '$name' in materials named: [${resources.map(_.name)}]"
     val cantLoadFirstResource = s"Can't load the first resource"
     def fileAlreadyExists(name: String) = s"This file already exists: $name"
   }

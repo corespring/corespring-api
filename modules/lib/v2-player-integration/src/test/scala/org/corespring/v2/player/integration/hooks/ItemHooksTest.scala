@@ -13,6 +13,7 @@ import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.test.fakes.Fakes
+import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.test.matchers.RequestMatchers
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, AuthMode, PlayerAccessSettings, OrgAndOpts }
@@ -164,7 +165,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
     class baseScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
       extends Scope
-      with ItemHooks {
+      with ItemHooks with withMockCollection {
 
       def orgAndOptsErr = orgAndOptsResult.toEither.left.get
 
@@ -173,11 +174,9 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
         o
       }
 
-      lazy val fakeCollection = new Fakes.MongoCollection(1)
-
       lazy val mockItemService = {
         val m = mock[ItemService]
-        m.collection returns fakeCollection
+        m.collection returns mockCollection
         m
       }
 
@@ -205,8 +204,9 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
       val expectedQuery = MongoDBObject("_id._id" -> vid.id)
       waitFor(fn(this)(vid.toString))
-      fakeCollection.queryObj === expectedQuery
-      fakeCollection.updateObj === MongoDBObject("$set" -> expectedSet)
+      val (q, u) = captureUpdate
+      q.value === expectedQuery
+      u.value === MongoDBObject("$set" -> expectedSet)
     }
 
     "save returns orgAndOpts error" in new baseScope(Failure(TestError("org-and-opts"))) {
