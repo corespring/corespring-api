@@ -2,23 +2,22 @@ package org.corespring.v2.player.supportingMaterials
 
 import java.io.File
 
-import org.apache.commons.io.FileUtils
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
 import org.corespring.platform.core.models.item.resource.Resource
 import org.corespring.platform.core.services.item.ItemAssetKeys
 import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.specs2.execute.Result
 import org.specs2.time.NoTimeConversions
-import play.api.http.Writeable
-import play.api.libs.Files
+import play.api.http.{ Writeable }
+import play.api.libs.{ MimeTypes, Files }
 import play.api.libs.json.Json
 import play.api.mvc.{ Request, SimpleResult, MultipartFormData }
 import play.api.mvc.MultipartFormData.FilePart
+import org.corespring.it.MultipartFormDataWriteable.writeableOf_multipartFormData
 
 import scala.concurrent.{ Future, Await }
-import scala.concurrent.duration._
-import scala.util.Try
 
 class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeConversions {
   import org.corespring.container.client.controllers.resources.routes.{ Item => ItemRoutes }
@@ -27,6 +26,11 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
   trait scope extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
     def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
+
+    def assertHeadResource(fn: Resource => Result) = getHeadResource match {
+      case Some(r) => fn(r)
+      case _ => failure("expected a resource")
+    }
 
     protected def futureResult[T](r: Request[T])(implicit w: Writeable[T]): Future[SimpleResult] = {
       route(r).getOrElse {
@@ -42,12 +46,52 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
   }
 
-  val materialName = "new-material"
+  val materialName = "html-material"
 
   val json = Json.obj(
     "name" -> materialName,
     "materialType" -> "Rubric",
     "html" -> "<div>Hi</div>")
+
+  trait withUploadFile {
+
+    def filePath: String
+
+    /**
+     * Note - we need to create a temporary file as it is going to be deleted as part of the upload.
+     */
+    lazy val (fileToUpload, filename, contentType) = {
+      import grizzled.file.GrizzledFile._
+      import grizzled.file.util
+      val f = new File(filePath)
+      require(f.exists, s"$filePath doesn't exist?")
+
+      val (dir, basename, ext) = f.dirnameBasenameExtension
+      val filename = s"$basename$ext"
+      val dest: File = f.copyTo(util.joinPath(dir.getAbsolutePath, s"$basename.tmp$ext"))
+      val guessedContentType = MimeTypes.forFileName(filename).getOrElse {
+        throw new RuntimeException(s"Can't decide on mimeType for $filename")
+      }
+
+      (dest, filename, guessedContentType)
+    }
+
+    def mkForm(dataParts: Map[String, Seq[String]] = Map.empty,
+      files: Seq[MultipartFormData.FilePart[Files.TemporaryFile]] = Seq.empty) = {
+      MultipartFormData[Files.TemporaryFile](dataParts, files, badParts = Seq.empty, missingFileParts = Seq.empty)
+    }
+
+    def mkFormWithFile(params: Map[String, String]) = {
+      val files = Seq(FilePart[Files.TemporaryFile]("file", filename, Some(contentType), Files.TemporaryFile(fileToUpload)))
+      val dataParts = params.mapValues(Seq(_))
+      mkForm(dataParts, files)
+    }
+
+    def fileCleanUp = {
+      println(s"deleting file: ${fileToUpload.getAbsolutePath}")
+      fileToUpload.delete()
+    }
+  }
 
   "create" should {
 
@@ -61,58 +105,36 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
       }
     }
 
-    "create a binary supporting material" in new scope {
+    "create a binary supporting material" in new scope with withUploadFile {
 
-      val path = "it/org/corespring/v2/player/load-image/puppy.small.jpg"
-
-      /**
-       * Note - we need to create a temporary file as it is going to be deleted as part of the upload.
-       */
-      lazy val fileToUpload = {
-        val f = new File(path)
-        require(f.exists, s"$path doesn't exist?")
-        val dest = new File(path.replace("jpg", "tmp.jpg"))
-        println(s"dest: $dest")
-        FileUtils.copyFile(f, dest)
-        dest
-      }
-
-      def mkForm(dataParts: Map[String, Seq[String]] = Map.empty,
-        files: Seq[MultipartFormData.FilePart[Files.TemporaryFile]] = Seq.empty) = {
-        MultipartFormData[Files.TemporaryFile](dataParts, files, badParts = Seq.empty, missingFileParts = Seq.empty)
-      }
-
-      def mkFormWithFile(params: Map[String, String], filename: String = "image.png", contentType: Option[String] = None) = {
-        val files = Seq(FilePart[Files.TemporaryFile]("file", filename, contentType, Files.TemporaryFile(fileToUpload)))
-        val dataParts = params.mapValues(Seq(_))
-        mkForm(dataParts, files)
-      }
-
-      lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", "puppy.jpg")
+      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", filename)
 
       override def after = {
         super.after
         println(s"deleting asset from s3: $key")
         ImageUtils.delete(key)
-        fileToUpload.delete()
+        fileCleanUp
       }
 
       val call = ItemRoutes.createSupportingMaterialFromFile(itemId.toString)
-      val form = mkFormWithFile(
-        Map(
-          "name" -> "binary-material",
-          "materialType" -> "Rubric"),
-        filename = "puppy.jpg",
-        contentType = Some("image/jpeg"))
+
+      val formData = Map("name" -> "binary-material", "materialType" -> "Rubric")
+
+      val form = mkFormWithFile(formData)
 
       val req = makeFormRequest(call, form)
 
       route(req)(MultipartFormDataWriteable.writeableOf_multipartFormData).map { r =>
         status(r) === CREATED
-        getHeadResource match {
-          case Some(Resource(_, "binary-material", Some("Rubric"), _)) => success
-          case _ => failure
+
+        assertHeadResource { r =>
+          r match {
+            case Resource(_, "binary-material", Some("Rubric"), _) => success
+            case _ => failure
+          }
         }
+
         ImageUtils.list(key) === Seq(key)
       }.getOrElse(failure("no result returned"))
     }
@@ -133,13 +155,90 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         r <- updateHtmlContent("hi")
       } yield r
 
-      println(s"error: ${contentAsString(result)}")
-      status(result) === 200
+      status(result) === OK
 
-      ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption).map { r =>
-        println(s" ----> ${r.defaultVirtualFile}")
-        r.defaultVirtualFile.map(_.content) must_== Some("new content")
+      assertHeadResource { r =>
+        r.defaultVirtualFile.map(_.content) must_== Some("hi")
       }
     }
+  }
+
+  trait addFileScope extends scope with withUploadFile {
+
+    lazy val s3Key = ItemAssetKeys.supportingMaterialFile(itemId, materialName, filename)
+
+    def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+
+    def addFile = {
+      val call = ItemRoutes.addAssetToSupportingMaterial(itemId.toString, materialName)
+      val form = mkFormWithFile(Map.empty)
+      val req = makeFormRequest(call, form)
+      futureResult(req)
+    }
+  }
+
+  "addAssetToSupportingMaterial" should {
+
+    "upload the file to s3" in new addFileScope {
+
+      override def after = {
+        super.after
+        ImageUtils.delete(s3Key)
+        fileCleanUp
+      }
+
+      val result = for {
+        _ <- createHtmlMaterial
+        r <- addFile
+      } yield r
+
+      println(contentAsString(result))
+      status(result) === OK
+
+      assertHeadResource { r =>
+        r.files.length === 2
+        r.files.exists(_.name == filename) === true
+      }
+
+      ImageUtils.list(s3Key) === Seq(s3Key)
+    }
+  }
+
+  "deleteAssetFromSupportingMaterial" should {
+
+    trait removeFileScope extends addFileScope {
+
+      def removeFile = {
+        val call = ItemRoutes.deleteAssetFromSupportingMaterial(itemId.toString, materialName, filename)
+        val req = makeRequest(call)
+        futureResult(req)
+      }
+    }
+
+    "delete the asset from the db and s3" in new removeFileScope {
+
+      override def after = {
+        super.after
+        fileCleanUp
+      }
+
+      val result = for {
+        _ <- createHtmlMaterial
+        _ <- addFile
+        r <- removeFile
+      } yield r
+
+      println(contentAsString(result))
+      status(result) === OK
+
+      assertHeadResource { r =>
+        r.files.length === 1
+        r.files.exists(_.name == filename) === false
+      }
+
+      ImageUtils.list(s3Key) === Nil
+
+    }
+
   }
 }
