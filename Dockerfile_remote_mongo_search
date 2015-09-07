@@ -1,0 +1,29 @@
+FROM phusion/baseimage:0.9.17
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
+RUN apt-get update && \
+ apt-get upgrade -y && \
+ apt-get install -y \
+ wget \
+ openjdk-7-jdk
+
+
+ADD corespring-components/components /opt/components
+ENV CONTAINER_COMPONENTS_PATH="/opt/components"
+
+ENV DEPLOY_ASSET_LOADER_JS=false
+
+RUN mkdir /data
+ADD docker/scripts/main_remote_mongo_search /data/main
+RUN chmod +x /data/main
+
+EXPOSE 9000
+
+ADD target/universal/stage/ /opt/corespring-api
+
+CMD ["/data/main" ]
+
+# Clean up APT when done.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
