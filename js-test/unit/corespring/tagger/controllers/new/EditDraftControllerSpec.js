@@ -110,7 +110,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     mocks.logger = {
       info: function(){},
-      log: function(){}
+      debug: function(){}
     };
 
     jQueryFunctions = {
