@@ -5,7 +5,7 @@ import org.corespring.legacy.ServiceLookup
 import org.corespring.models.item.{ Item, Alignments, TaskInfo, Content => CsContent }
 import org.corespring.models.json.item.ContentView
 import org.corespring.platform.core.controllers.auth.{ BaseApi }
-import org.corespring.models.search.SearchFields
+import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.services.item.BaseContentService
 import play.api.libs.json.Json._
 import play.api.libs.json._

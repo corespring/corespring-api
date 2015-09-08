@@ -1,26 +1,19 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.item.ItemType
-import org.corespring.models.item.index.ItemIndexSearchResult
-import org.corespring.platform.core.services.item._
+import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models._
 import org.corespring.v2.errors.Errors.invalidToken
 import org.corespring.v2.errors.V2Error
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
-import org.specs2.specification.Scope
 import play.api.libs.json._
-import play.api.mvc._
 import play.api.test.Helpers._
-import play.api.test._
 
 import scala.concurrent._
 import scalaz._
 
-class ItemApiSearchTest extends Specification with Mockito with MockFactory {
+class ItemApiSearchTest extends ItemApiSpec {
 
   /**
    * We should not need to run the app for a unit test.
@@ -28,29 +21,11 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
    */
   PlaySingleton.start()
 
-  def FakeJsonRequest(json: JsValue): FakeRequest[AnyContentAsJson] = FakeRequest("", "",
-    FakeHeaders(Seq(CONTENT_TYPE -> Seq("application/json"))), AnyContentAsJson(json))
-
-  case class searchApiScope(orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-    searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends Scope {
+  case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+    searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
     import ExecutionContext.Implicits.global
-
-    val indexService = mock[ItemIndexService]
-    indexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
-    indexService.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
-
-    lazy val api = new ItemApi {
-      implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-      def getOrgAndOptions(request: RequestHeader) = orgAndOpts
-      def itemIndexService = indexService
-      def defaultCollection(implicit identity: OrgAndOpts) = ???
-      def itemType: ItemType = ???
-      def transform = ???
-      def itemService = ???
-      def itemAuth = ???
-      def scoreService = ???
-      def getSummaryData = ???
-    }
+    mockItemIndexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
+    mockItemIndexService.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
   }
 
   "search" should {
@@ -61,7 +36,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
 
     "call itemIndexService#search" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-      there was one(indexService).search(any[ItemIndexQuery])
+      there was one(mockItemIndexService).search(any[ItemIndexQuery])
     }
 
     "with empty collections" should {
@@ -70,7 +45,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq()).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(indexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
+          there was one(mockItemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
     }
 
@@ -80,7 +55,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(unallowedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(indexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
+          there was one(mockItemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
 
     }
@@ -91,7 +66,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, unallowedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(indexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
+          there was one(mockItemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
         }
 
     }
@@ -103,9 +78,9 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
 
     "without proper authentication" should {
 
-      "return unauthorized" in new searchApiScope(orgAndOpts = Failure(invalidToken(FakeJsonRequest(Json.obj())))) {
+      "return unauthorized" in new searchApiScope(orgAndOpts = Failure(invalidToken(FakeJsonRequest()))) {
         val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-        status(result) must be equalTo (UNAUTHORIZED)
+        status(result) === (UNAUTHORIZED)
       }
 
     }
@@ -114,7 +89,7 @@ class ItemApiSearchTest extends Specification with Mockito with MockFactory {
 
       "return bad request" in new searchApiScope {
         val result = api.search(Some("this is not json."))(FakeJsonRequest(Json.obj()))
-        status(result) must be equalTo (BAD_REQUEST)
+        status(result) === (BAD_REQUEST)
       }
 
     }

@@ -29,7 +29,6 @@ class ItemSessionApi(
   orgService: OrganizationService,
   encryptionService: ApiClientEncryptionService,
   apiClientService: ApiClientService,
-  getOrgAndOpts: RequestHeader => Validation[V2Error, OrgAndOpts],
   sessionCreatedForItem: VersionedId[ObjectId] => Unit,
   apiContext: ItemSessionApiExecutionContext,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {

@@ -8,7 +8,7 @@ import org.corespring.models.error.CorespringInternalError
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ CollectionExtraDetails, ContentCollection, Organization }
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.models.search.{ Searchable, SearchCancelled }
+import org.corespring.platform.core.models.search.{ SearchCancelled, Searchable }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.{ ContentCollectionService, OrganizationService }
 import org.corespring.services.errors.PlatformServiceError

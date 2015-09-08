@@ -3,21 +3,20 @@ package org.corespring.v2.api
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.errors.Errors.invalidToken
-import org.corespring.v2.errors.V2Error
 import org.mockito.Matchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.{ Failure, Validation, Success }
+import scalaz.Success
 
 class FieldValuesApiTest extends Specification with MockFactory {
 
   PlaySingleton.start()
+
+  import ExecutionContext.Implicits.global
 
   val contributorValues = Seq("these", "are", "contributors")
   val gradeValues = Seq("these are grades")

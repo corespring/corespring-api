@@ -9,9 +9,9 @@ import scalaz.{ Validation }
 
 trait V2ApiScope {
 
-  val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
+  implicit val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
 
   def orgAndOpts: Validation[V2Error, OrgAndOpts]
 
-  def getOrgAndOptionsFn = (request: RequestHeader) => orgAndOpts
+  protected def getOrgAndOptionsFn = (request: RequestHeader) => orgAndOpts
 }

@@ -26,7 +26,7 @@ import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerCon
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
-import org.corespring.v2.api.{ ItemApiExecutionContext, ItemSessionApiExecutionContext, V2ApiModule }
+import org.corespring.v2.api._
 import org.corespring.v2.auth.V2AuthModule
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -54,6 +54,11 @@ object Main
 
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
+
+  override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.Implicits.global)
+
+  override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
+    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
 
   private lazy val logger = Logger(Main.getClass)
 
