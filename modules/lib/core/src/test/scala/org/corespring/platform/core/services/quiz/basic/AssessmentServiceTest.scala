@@ -61,21 +61,21 @@ class AssessmentServiceTest extends BaseTest with JsonToModel {
         case Some(updated) => {
           updated.participants(0).answers.length === 1
         }
-        case _ => failure("couldn't find updated")
+        case _ => ko("couldn't find updated")
       }
 
       service.addAnswer(q.id, "sam.smith@gmail.com", answer) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 1
         }
-        case _ => failure("couldn't find updated")
+        case _ => ko("couldn't find updated")
       }
 
       service.addAnswer(q.id, "sam.smith@gmail.com", Answer(new ObjectId(), VersionedId(new ObjectId()))) match {
         case Some(updated) => {
           updated.participants(0).answers.length === 2
         }
-        case _ => failure("couldn't find updated")
+        case _ => ko("couldn't find updated")
       }
     }
 
