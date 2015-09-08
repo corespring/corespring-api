@@ -15,12 +15,6 @@ import scalaz._
 
 class ItemApiSearchTest extends ItemApiSpec {
 
-  /**
-   * We should not need to run the app for a unit test.
-   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
-   */
-  PlaySingleton.start()
-
   case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
     import ExecutionContext.Implicits.global

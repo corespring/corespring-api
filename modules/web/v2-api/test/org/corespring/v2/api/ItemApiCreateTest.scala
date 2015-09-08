@@ -1,26 +1,19 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.models.Organization
 import org.corespring.models.item._
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsObject, Json }
 import play.api.mvc._
-import play.api.test.Helpers._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 import scalaz.{ Failure, Success, Validation }
 
 class ItemApiCreateTest extends ItemApiSpec {
-
-  /**
-   * We should not need to run the app for a unit test.
-   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
-   */
-  PlaySingleton.start()
 
   case class createApiScope(
     defaultCollectionId: ObjectId = ObjectId.get,
@@ -32,6 +25,12 @@ class ItemApiCreateTest extends ItemApiSpec {
     }
 
     mockItemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
+
+    mockItemAuth.insert(any[Item])(any[OrgAndOpts]) returns {
+      if (insertFails) None else Some(itemId)
+    }
+
+    mockOrgService.defaultCollection(any[Organization]) returns Some(defaultCollectionId)
 
     override def orgAndOpts: Validation[V2Error, OrgAndOpts] = canCreate.map(_ => mockOrgAndOpts())
   }
@@ -79,7 +78,7 @@ class ItemApiCreateTest extends ItemApiSpec {
       s"create - returns error with a bad save" in new createApiScope(
         insertFails = true) {
         val result = api.create()(FakeJsonRequest(Json.obj()))
-        val e = errorSaving("Insert failed")
+        val e = errorSaving
         result must beCodeAndJson(e.statusCode, e.json)
       }
     }

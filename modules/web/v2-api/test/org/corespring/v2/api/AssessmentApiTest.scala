@@ -1,46 +1,29 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.item.FieldValue
-import org.corespring.models.{ Standard, Subject }
-import org.corespring.models.assessment.{ Answer, Participant, Assessment }
+import org.corespring.models.assessment.{ Answer, Assessment, Participant }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentService
-import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.errors.Errors.invalidToken
-import org.specs2.mutable.Specification
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.V2Error
 import org.specs2.specification.Scope
-import play.api.libs.json.{ Json, JsObject }
-import play.api.mvc.RequestHeader
+import play.api.libs.json.{ JsObject, Json }
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scalaz.{ Failure, Success }
+import scalaz.{ Failure, Success, Validation }
 
-class AssessmentApiTest extends Specification with MockFactory {
-
-  val jsonFormatting = new JsonFormatting {
-    override def fieldValue: FieldValue = ???
-
-    override def findStandardByDotNotation: (String) => Option[Standard] = ???
-
-    override def countItemsInCollection(collectionId: ObjectId): Long = ???
-
-    override def rootOrgId: ObjectId = ???
-
-    override def findSubjectById: (ObjectId) => Option[Subject] = ???
-  }
+class AssessmentApiTest extends V2ApiSpec {
 
   import jsonFormatting._
 
-  case class apiScope(val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
+  case class apiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     id: Option[ObjectId] = None,
     ids: List[ObjectId] = List.empty[ObjectId],
     authorId: Option[String] = None,
     participants: Seq[String] = Seq.empty[String]) extends Scope with V2ApiScope {
-    val orgId = orgAndOpts.map(_.org.id)
+    val orgId = orgAndOpts.toOption.map(_.org.id)
     def assessmentFor(id: ObjectId) =
       new Assessment(id = id, orgId = orgId, participants = participants.map(id => Participant(Seq(), id)))
     val assessments = ids.map(id => assessmentFor(id))
@@ -99,7 +82,7 @@ class AssessmentApiTest extends Specification with MockFactory {
     }
 
     val assessmentApi = new AssessmentApi(assessmentService,
-      mock[JsonFormatting],
+      jsonFormatting,
       v2ApiContext,
       getOrgAndOptionsFn)
 
@@ -109,7 +92,7 @@ class AssessmentApiTest extends Specification with MockFactory {
 
     "without identity" should {
 
-      "return 401" in new apiScope(orgAndOpts = None) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
         status(assessmentApi.create()(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
 
@@ -129,7 +112,7 @@ class AssessmentApiTest extends Specification with MockFactory {
       "return created Assessment as JSON" in new apiScope() {
         val json = contentAsJson(assessmentApi.create()(FakeRequest()))
         (json \ "id").asOpt[String] must not beEmpty;
-        (json \ "orgId").asOpt[String] must be equalTo (orgAndOpts.map(_.org.id.toString))
+        (json \ "orgId").asOpt[String] must be equalTo (orgAndOpts.toOption.map(_.org.id.toString))
       }
 
     }
@@ -141,7 +124,7 @@ class AssessmentApiTest extends Specification with MockFactory {
     val ids = List(new ObjectId(), new ObjectId())
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
         status(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
     }
@@ -180,7 +163,7 @@ class AssessmentApiTest extends Specification with MockFactory {
     val authorId = Some("abc123")
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
         status(assessmentApi.get(None)(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
     }
@@ -222,7 +205,7 @@ class AssessmentApiTest extends Specification with MockFactory {
     val updateId = new ObjectId()
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None, id = Some(updateId)) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(updateId)) {
         status(assessmentApi.update(updateId)(FakeRequest().withJsonBody(jsonUpdate))) must be equalTo (UNAUTHORIZED)
       }
     }
@@ -252,7 +235,7 @@ class AssessmentApiTest extends Specification with MockFactory {
     val deleteId = new ObjectId()
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None, id = Some(deleteId)) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(deleteId)) {
         status(assessmentApi.delete(deleteId)(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
     }
@@ -284,7 +267,7 @@ class AssessmentApiTest extends Specification with MockFactory {
       "ids" -> participantIds)
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None, id = Some(assessmentId)) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId)) {
         status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo (UNAUTHORIZED)
       }
     }
@@ -316,7 +299,7 @@ class AssessmentApiTest extends Specification with MockFactory {
       "sessionId" -> answerSessionId)
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = None, id = Some(assessmentId), participants = participantIds) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId), participants = participantIds) {
         status(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson))) must be equalTo (UNAUTHORIZED)
       }
     }

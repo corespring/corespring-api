@@ -17,14 +17,13 @@ class PlayerTokenServiceTest extends Specification with Mockito {
 
   class serviceScope(encryptionResult: EncryptionResult = EncryptionSuccess("clientId", "data")) extends Scope {
 
-    val service = new PlayerTokenService {
-
-      override def service: ApiClientEncryptionService = {
-        val m = mock[ApiClientEncryptionService]
-        m.encrypt(any[ApiClient], anyString) returns Some(encryptionResult)
-        m
-      }
+    val encryptionService: ApiClientEncryptionService = {
+      val m = mock[ApiClientEncryptionService]
+      m.encryptByOrg(any[ObjectId], anyString) returns Some(encryptionResult)
+      m
     }
+
+    val service = new PlayerTokenService(encryptionService)
   }
 
   class serviceScopeWithJsonBack(jsonIn: JsValue) extends serviceScope {
@@ -36,9 +35,6 @@ class PlayerTokenServiceTest extends Specification with Mockito {
   }
 
   "PlayerTokenService" should {
-    "todo - see assertions in PlayerTokenApiTest" in {
-      true === false
-    }.pendingUntilFixed
 
     "fail if encryption fails" in new serviceScope(
       EncryptionFailure("?", new RuntimeException("?"))) {

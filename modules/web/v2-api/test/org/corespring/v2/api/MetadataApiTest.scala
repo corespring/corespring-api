@@ -1,23 +1,19 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.metadata.{ MetadataSet, SchemaMetadata, Metadata }
-import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataService }
+import org.corespring.models.metadata.{ Metadata, MetadataSet, SchemaMetadata }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.{ OrgAndOpts, MockFactory }
+import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.invalidToken
-import org.corespring.v2.errors.V2Error
-import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, JsObject, Json }
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 
 import scala.concurrent.ExecutionContext
-import scalaz.{ Failure, Success, Validation }
 
-class MetadataApiTest extends Specification with MockFactory {
+class MetadataApiTest extends V2ApiSpec {
 
   case class apiScope(orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
     metadata: Map[String, Map[String, String]] = Map.empty[String, Map[String, String]],
@@ -45,6 +41,7 @@ class MetadataApiTest extends Specification with MockFactory {
       }
       m
     }
+
     val metadataSetService = {
       val m = mock[MetadataSetService]
       orgAndOpts match {
@@ -58,6 +55,7 @@ class MetadataApiTest extends Specification with MockFactory {
           Right(argArray(1).asInstanceOf[MetadataSet])
         }
       }
+
       m.update(any[MetadataSet]) answers { (args, _) =>
         {
           val argArray = args.asInstanceOf[Array[Object]]
@@ -67,18 +65,11 @@ class MetadataApiTest extends Specification with MockFactory {
       m
     }
 
-    val metadataApi = new MetadataApi {
-      override def metadataSetService: MetadataSetService = apiScope.this.metadataSetService
-      override def metadataService: MetadataService = apiScope.this.metadataService
-      override implicit def ec: ExecutionContext = ExecutionContext.global
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-        orgAndOpts match {
-          case Some(orgAndOpts) => Success(orgAndOpts)
-          case _ => Failure(invalidToken(FakeRequest()))
-        }
-      }
-    }
+    import scalaz.Scalaz._
 
+    def getOrgAndOpts(rh: RequestHeader) = orgAndOpts.toSuccess(invalidToken(FakeRequest()))
+    val v2ApiContext = V2ApiExecutionContext(ExecutionContext.global)
+    val metadataApi = new MetadataApi(metadataSetService, metadataService, v2ApiContext, getOrgAndOpts)
   }
 
   val metadata = Map("this" -> Map("is" -> "the"), "form" -> Map("of" -> "metadata"))

@@ -1,8 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.AESCrypto
-import org.corespring.encryption.apiClient.{ MainApiClientEncryptionService, ApiClientEncryptionService }
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionSuccess }
 import org.corespring.models.auth.ApiClient
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -61,17 +60,19 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
 
     val mockEncryptionService = {
       val m = mock[ApiClientEncryptionService]
+      m.encrypt(any[ApiClient], any[String]) returns Some(EncryptionSuccess("apiClient", "encrypted"))
       m
     }
 
     val mockApiClientService = {
       val m = mock[ApiClientService]
+      m.findOneByOrgId(any[ObjectId]) returns apiClient
       m
     }
 
     def getOrgAndOpts(rh: RequestHeader) = orgAndOpts
 
-    def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = Unit
+    def sessionCreatedForItem(id: VersionedId[ObjectId]): Unit = {}
 
     val apiContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
 
@@ -87,8 +88,6 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
   }
 
   "cloneSession" should {
-
-    PlaySingleton.start()
 
     "with invalid session" should {
       val missingSessionId = new ObjectId().toString
@@ -132,11 +131,10 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
       "return cloned session options decryptable by apiClient" in new apiScope(
         clonedSession = Success(new ObjectId()), apiClient = Some(apiClient),
         sessionAndItem = Success((Json.obj(), new PlayerDefinition(Seq.empty, "", Json.obj(), "", None)))) {
+        val encryptedData = "encrypted"
+        mockEncryptionService.encrypt(any[ApiClient], any[String]) returns Some(EncryptionSuccess("clientId", encryptedData))
         val result = api.cloneSession(new ObjectId().toString)(FakeRequest("", ""))
-
-        encrypter.decrypt(
-          apiClient.getOrElse(throw new Exception("No apiClient provided")),
-          (contentAsJson(result) \ "options").as[String]) must be equalTo (Some(ItemSessionApi.clonedSessionOptions.toString))
+        (contentAsJson(result) \ "options").as[String] === encryptedData
       }
 
     }

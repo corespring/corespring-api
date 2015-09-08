@@ -14,6 +14,7 @@ trait MockFactory extends Mockito {
     m.id returns ObjectId.get
     m.name returns "mock org"
     m.contentcolls returns collections.map(ContentCollRef(_, enabled = true))
+    m.accessibleCollections returns Seq.empty
     m
   }
 

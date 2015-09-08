@@ -1,8 +1,11 @@
 package org.corespring.v2.api.services
 
+import org.bson.types.ObjectId
 import org.corespring.container.components.outcome.ScoreProcessor
 import org.corespring.container.components.response.OutcomeProcessor
-import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ FieldValue, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -10,6 +13,20 @@ import play.api.libs.json.{ JsValue, Json }
 import scalaz.Success
 
 class BasicScoreServiceTest extends Specification with Mockito {
+
+  val jsonFormatting = new JsonFormatting {
+    override def fieldValue: FieldValue = ???
+
+    override def findStandardByDotNotation: (String) => Option[Standard] = ???
+
+    override def countItemsInCollection(collectionId: ObjectId): Long = ???
+
+    override def rootOrgId: ObjectId = ???
+
+    override def findSubjectById: (ObjectId) => Option[Subject] = ???
+  }
+
+  import jsonFormatting.formatPlayerDefinition
 
   class scoreScope extends Scope {
 

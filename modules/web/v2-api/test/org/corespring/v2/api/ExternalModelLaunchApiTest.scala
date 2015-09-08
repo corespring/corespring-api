@@ -1,28 +1,22 @@
 package org.corespring.v2.api
 
-import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
-
 import org.bson.types.ObjectId
 import org.corespring.v2.api.services.{ CreateTokenResult, PlayerTokenService }
-import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.errors.{ Field, V2Error }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, missingRequiredField, noJson }
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+import org.corespring.v2.errors.{ Field, V2Error }
+import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.api.mvc.{ AnyContentAsJson }
-import play.api.test.{ FakeHeaders, FakeRequest, PlaySpecification }
+import play.api.mvc.AnyContentAsJson
+import play.api.test.{ FakeHeaders, FakeRequest }
+
 import scalaz.{ Failure, Success, Validation }
 
-class ExternalModelLaunchApiTest
-  extends Specification
-  with PlaySpecification
-  with Mockito
-  with MockFactory {
+class ExternalModelLaunchApiTest extends V2ApiSpec {
 
   case class apiScope(
-    val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts()),
+    override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     createSession: Option[ObjectId] = Some(ObjectId.get),
     createTokenResult: Validation[V2Error, CreateTokenResult] = Success(CreateTokenResult("apiClient", "token", Json.obj())),
     expectedError: Option[V2Error] = None) extends Scope with V2ApiScope {

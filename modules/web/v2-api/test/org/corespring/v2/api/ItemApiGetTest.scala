@@ -14,12 +14,6 @@ import scalaz.{ Failure, Success, Validation }
 
 class ItemApiGetTest extends ItemApiSpec {
 
-  /**
-   * We should not need to run the app for a unit test.
-   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
-   */
-  PlaySingleton.start()
-
   val collectionId = ObjectId.get()
 
   case class getApiScope(

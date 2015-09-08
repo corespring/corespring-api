@@ -2,6 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.item._
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -20,13 +21,13 @@ class ItemApiCheckScoreTest extends ItemApiSpec {
 
   case class checkScoreScope(
     override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
-    loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId.toString, playerDefinition = Some(emptyPlayerDefinition))),
-    scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends ItemApiScope {
+    val loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId.toString, playerDefinition = Some(emptyPlayerDefinition))),
+    val scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends ItemApiScope {
 
     mockItemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
     mockScoreService.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
 
-    def error = orgAndOpts.swap.toOption.get
+    def error[A](v: Validation[V2Error, A]) = v.swap.toOption.get
 
     def jsonReq = FakeJsonRequest()
   }
@@ -37,29 +38,33 @@ class ItemApiCheckScoreTest extends ItemApiSpec {
 
       "fail it the org and opts aren't found" in new checkScoreScope(
         orgAndOpts = Failure(generalError("no org and opts"))) {
-        api.checkScore("itemId")(FakeRequest("", "")) must beCodeAndJson(error.statusCode, error.json)
+        val e = error(orgAndOpts)
+        api.checkScore("itemId")(FakeRequest("", "")) must beCodeAndJson(e.statusCode, e.json)
       }
 
       "fail it the json body is empty" in new checkScoreScope() {
-        api.checkScore("itemId")(FakeRequest("", "")) must beCodeAndJson(error.statusCode, error.json)
+        api.checkScore("itemId")(FakeRequest("", "")) must beCodeAndJson(noJson.statusCode, noJson.json)
       }
 
       "fail it the item isn't loaded" in new checkScoreScope(
         loadForReadResult = Failure(generalError("No item"))) {
-        api.checkScore("itemId")(jsonReq) must beCodeAndJson(error.statusCode, error.json)
+        val e = error(loadForReadResult)
+        api.checkScore("itemId")(jsonReq) must beCodeAndJson(e.statusCode, e.json)
       }
 
       "fail if there is no player definition" in new checkScoreScope(
-        loadForReadResult = Success(Item(collectionId.toString))) {
-        api.checkScore("itemId")(jsonReq) must beCodeAndJson(error.statusCode, error.json)
+        loadForReadResult = Success(Item(collectionId.toString, id = itemId))) {
+        val e = api.noPlayerDefinition(itemId)
+        api.checkScore("itemId")(jsonReq) must beCodeAndJson(e.statusCode, e.json)
       }
 
       "fail it the score service fails" in new checkScoreScope(
         scoreResult = Failure(generalError("couldn't get score"))) {
-        api.checkScore("itemId")(jsonReq) must beCodeAndJson(error.statusCode, error.json)
+        val e = error(scoreResult)
+        api.checkScore("itemId")(jsonReq) must beCodeAndJson(e.statusCode, e.json)
       }
 
-      "work" in new checkScoreScope() {
+      "return the score" in new checkScoreScope() {
         val result = api.checkScore("itemId")(
           FakeRequest("", "",
             FakeHeaders(),

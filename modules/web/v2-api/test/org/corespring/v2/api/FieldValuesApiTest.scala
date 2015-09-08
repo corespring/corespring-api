@@ -2,26 +2,23 @@ package org.corespring.v2.api
 
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
+import org.corespring.v2.auth.models.OrgAndOpts
+import org.corespring.v2.errors.V2Error
 import org.mockito.Matchers
-import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scalaz.Success
+import scalaz.{ Failure, Success, Validation }
 
-class FieldValuesApiTest extends Specification with MockFactory {
-
-  PlaySingleton.start()
+class FieldValuesApiTest extends V2ApiSpec {
 
   import ExecutionContext.Implicits.global
 
   val contributorValues = Seq("these", "are", "contributors")
   val gradeValues = Seq("these are grades")
 
-  class apiScope(val orgAndOpts: Option[OrgAndOpts] = Some(mockOrgAndOpts())) extends Scope with V2ApiScope {
+  class apiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts())) extends Scope with V2ApiScope {
 
     lazy val itemIndexService = {
       val m = mock[ItemIndexService]
@@ -29,6 +26,7 @@ class FieldValuesApiTest extends Specification with MockFactory {
       m.distinct(Matchers.eq("taskInfo.gradeLevel"), any[Seq[String]]) returns Future { Success(gradeValues) }
       m
     }
+
     val fieldValuesApi = new FieldValuesApi(
       itemIndexService,
       v2ApiContext,
@@ -48,7 +46,7 @@ class FieldValuesApiTest extends Specification with MockFactory {
 
     "user not authenticated" should {
 
-      "return 401" in new apiScope(orgAndOpts = None) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
         status(fieldValuesApi.contributors()(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
 
@@ -69,7 +67,7 @@ class FieldValuesApiTest extends Specification with MockFactory {
 
     "user not authenticated" should {
 
-      "return 401" in new apiScope(orgAndOpts = None) {
+      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
         status(fieldValuesApi.gradeLevels()(FakeRequest())) must be equalTo (UNAUTHORIZED)
       }
 

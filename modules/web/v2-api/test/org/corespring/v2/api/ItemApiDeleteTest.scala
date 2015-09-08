@@ -17,12 +17,6 @@ import scalaz.{ Failure, Success, Validation }
 
 class ItemApiDeleteTest extends ItemApiSpec {
 
-  /**
-   * We should not need to run the app for a unit test.
-   * However the way the app is tied up (global Dao Objects) - we need to boot a play application.
-   */
-  PlaySingleton.start()
-
   case class deleteApiScope(isLoggedIn: Boolean = true,
     findFieldsById: Option[DBObject] = None,
     canDelete: Boolean = false,
@@ -64,14 +58,12 @@ class ItemApiDeleteTest extends ItemApiSpec {
 
       s"returns unAuthorised - if not logged in" in new deleteApiScope(
         isLoggedIn = false) {
-        val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = unAuthorized("")
         result must beCodeAndJson(e.statusCode, e.json)
       }
 
       s"returns cantFindItemWithId - if item does not exist" in new deleteApiScope() {
-        val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = cantFindItemWithId(itemId)
         result must beCodeAndJson(e.statusCode, e.json)
@@ -80,7 +72,6 @@ class ItemApiDeleteTest extends ItemApiSpec {
       s"returns orgCantAccessCollection - if not allowed to delete" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
         canDelete = false) {
-        val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = orgCantAccessCollection(dummyOrgId, dummyCollectionId, Permission.Write.name)
         result must beCodeAndJson(e.statusCode, e.json)
@@ -90,7 +81,6 @@ class ItemApiDeleteTest extends ItemApiSpec {
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
         canDelete = true,
         throwErrorInMoveItemToArchive = true) {
-        val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = generalError(s"Error deleting item ${itemId.toString}")
         result must beCodeAndJson(e.statusCode, e.json)
@@ -99,7 +89,6 @@ class ItemApiDeleteTest extends ItemApiSpec {
       s"work" in new deleteApiScope(
         findFieldsById = Some(MongoDBObject(collectionId -> "123")),
         canDelete = true) {
-        val itemId = VersionedId(ObjectId.get)
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         status(result) === OK
       }
