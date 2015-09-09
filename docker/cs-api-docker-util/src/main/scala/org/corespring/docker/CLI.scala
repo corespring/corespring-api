@@ -24,7 +24,8 @@ object CLI extends App {
     val componentPath: ScallopOption[String] = opt[String](
       "componentPath",
       descr = "the path to locate corespring-components",
-      required = false default = Some("corespring-components/components"))
+      required = false,
+      default = Some("corespring-components/components"))
   }
 
   def handleError(e: Throwable) = throw e
