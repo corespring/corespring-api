@@ -4,10 +4,10 @@ import java.util.concurrent.TimeUnit
 
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.services.OrganizationService
+import org.corespring.services.item.ItemService
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
-import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -27,11 +27,11 @@ class ItemDraftHooksTest
 
   PlaySingleton.start()
 
-  class __ extends Scope with ItemDraftHooks {
+  class __ extends Scope {
 
     val mockDrafts = mock[ItemDrafts]
     val mockItemService = mock[ItemService]
-    val mockOrgService = mock[OrgService]
+    val mockOrgService = mock[OrganizationService]
 
     def await[A](f: Future[A]): A = {
       Await.result[A](f, Duration(1, TimeUnit.SECONDS))
@@ -39,16 +39,19 @@ class ItemDraftHooksTest
 
     def rh = FakeRequest("", "")
 
-    override def backend: ItemDrafts = mockDrafts
+    //override def backend: ItemDrafts = mockDrafts
 
-    override def itemService: ItemService = mockItemService
+    //override def itemService: ItemService = mockItemService
 
-    override def transform: (Item) => JsValue = i => Json.obj()
+    //override def transform: (Item) => JsValue = i => Json.obj()
 
-    override def orgService: OrgService = mockOrgService
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
-      Success(mockOrgAndOpts())
-    }
+    //override def orgService: OrgService = mockOrgService
+    //override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
+    //  Success(mockOrgAndOpts())
+    //}
+
+    val hooks = new ItemDraftHooks(
+      itemDrafts, itemService, orgService, transformer, jsonFormatting, fn)
   }
 
   "ItemDraftHooks" should {

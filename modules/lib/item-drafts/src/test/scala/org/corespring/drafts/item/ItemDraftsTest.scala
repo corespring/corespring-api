@@ -93,7 +93,7 @@ class ItemDraftsTest extends Specification with Mockito {
       m
     }
 
-    val context = new SalatContext(this.getClass.getClassLoader)
+    implicit val context = new SalatContext(this.getClass.getClassLoader)
 
     private def mkDrafts() = new ItemDrafts(itemService,
       orgService,
@@ -248,7 +248,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
         val draft = mkDraft(ed, item)
         itemService.save(any[Item], any[Boolean]) returns {
-          if (saveSuccess) Right(itemId) else Left(GeneralError("Err"))
+          if (saveSuccess) Right(itemId) else Left(org.corespring.services.errors.GeneralError("Err", None))
         }
       }
 
@@ -277,8 +277,8 @@ class ItemDraftsTest extends Specification with Mockito {
         saveResult: Validation[DraftError, DraftId] = Failure(TestError("save"))) extends Scope with MockItemDrafts {
 
         override lazy val itemDrafts = new ItemDrafts(itemService, orgService, draftService, commitService, assets, context) {
+          override def save(u: OrgAndUser)(d: ItemDraft) = saveResult
           override def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = canCreate
-          override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime]) = createResult
         }
 
         itemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
@@ -388,7 +388,7 @@ class ItemDraftsTest extends Specification with Mockito {
       "return the draft if found and has local changes" in new __(
         Some(mkDraft(ed, item, mkItemWithXhtml("change"))),
         Some(item)) {
-        loadOrCreate(ed)(oid) match {
+        itemDrafts.loadOrCreate(ed)(oid) match {
           case Success(draft) => draft must_== load.get
           case Failure(e) => {
             println("error --->")
@@ -403,20 +403,20 @@ class ItemDraftsTest extends Specification with Mockito {
     "save" should {
 
       class __(owns: Boolean = false, saveDraft: Boolean = false) extends Scope with MockItemDrafts {
-        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
-        mockDraftService.save(any[ItemDraft]) returns mockWriteResult(saveDraft)
+        draftService.owns(any[OrgAndUser], any[DraftId]) returns owns
+        draftService.save(any[ItemDraft]) returns mockWriteResult(saveDraft)
       }
 
       "fail if user doesn't own" in new __() {
-        save(ed)(mkDraft(gwen, item)) must_== Failure(UserCantSave(ed, gwen))
+        itemDrafts.save(ed)(mkDraft(gwen, item)) must_== Failure(UserCantSave(ed, gwen))
       }
 
       "fail if save fails" in new __(true) {
-        save(ed)(mkDraft(ed, item)) must_== Failure(SaveDataFailed(mockWriteResult(false).getLastError.getErrorMessage))
+        itemDrafts.save(ed)(mkDraft(ed, item)) must_== Failure(SaveDataFailed(mockWriteResult(false).getLastError.getErrorMessage))
       }
 
       "succeed" in new __(true, true) {
-        save(ed)(mkDraft(ed, item)) must_== Success(oid)
+        itemDrafts.save(ed)(mkDraft(ed, item)) must_== Success(oid)
       }
     }
 
@@ -427,67 +427,67 @@ class ItemDraftsTest extends Specification with Mockito {
 
       "return false if item has not changed" in new __ {
         val item2 = item1.copy()
-        hasSrcChanged(item1, item2) must_== false
+        itemDrafts.hasSrcChanged(item1, item2) must_== false
       }
 
       "return true if collectionId has changed" in new __ {
-        val item2 = item1.copy(collectionId = Some("1234"))
-        hasSrcChanged(item1, item2) must_== true
+        val item2 = item1.copy(collectionId = "1234")
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if taskInfo has changed" in new __ {
         val item2 = item1.copy(taskInfo = Some(TaskInfo()))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if playerDefinition has changed" in new __ {
         val item2 = item1.copy(playerDefinition = Some(PlayerDefinition("")))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if supportingMaterials has changed" in new __ {
         val item2 = item1.copy(supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if standards has changed" in new __ {
         val item2 = item1.copy(standards = Seq("std1"))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if reviewsPassed has changed" in new __ {
         val item2 = item1.copy(reviewsPassed = Seq("rp1"))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if reviewsPassedOther has changed" in new __ {
         val item2 = item1.copy(reviewsPassedOther = Some("rpo1"))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if otherAlignments has changed" in new __ {
         val item2 = item1.copy(otherAlignments = Some(Alignments()))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if contributorDetails has changed" in new __ {
         val item2 = item1.copy(contributorDetails = Some(ContributorDetails()))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if priorUse has changed" in new __ {
         val item2 = item1.copy(priorUse = Some(""))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if priorUseOther has changed" in new __ {
         val item2 = item1.copy(priorUseOther = Some(""))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
 
       "return true if priorGradeLevels has changed" in new __ {
         val item2 = item1.copy(priorGradeLevels = Seq(""))
-        hasSrcChanged(item1, item2) must_== true
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
     }
 
@@ -495,18 +495,14 @@ class ItemDraftsTest extends Specification with Mockito {
 
       class __(n: Int = 1) extends Scope with MockItemDrafts {
         val mockCollection = new Fakes.MongoCollection(n)
-        mockDraftService.collection returns mockCollection
+        draftService.collection returns mockCollection
       }
 
       "update the document in the db" in new __ {
-        //TODO: how to hook in the mongo context
-        val dbUtils = new ItemDraftDbUtils {
-          override implicit def context: Context = ???
-        }
         val draft = mkDraft(ed, item)
         val file = StoredFile("test.png", "image/png", false)
-        addFileToChangeSet(draft, file)
-        val expectedQuery = dbUtils.idToDbo(draft.id)
+        itemDrafts.addFileToChangeSet(draft, file)
+        val expectedQuery = itemDrafts.utils.idToDbo(draft.id)
         mockCollection.queryObj === expectedQuery
         val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
         val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))

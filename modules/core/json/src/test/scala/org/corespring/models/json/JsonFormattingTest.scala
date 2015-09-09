@@ -1,7 +1,7 @@
 package org.corespring.models.json
 
 import org.bson.types.ObjectId
-import org.corespring.models.Subject
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item._
 import org.specs2.mutable.Specification
@@ -14,10 +14,23 @@ class JsonFormattingTest extends Specification {
   val mockFieldValues = FieldValue(
     depthOfKnowledge = Seq(StringKeyValue("Factual", "Factual")),
     bloomsTaxonomy = Seq(StringKeyValue("Applying", "Applying")),
-    gradeLevels = Seq(StringKeyValue("03", "03"), StringKeyValue("04", "04"))
-  )
+    gradeLevels = Seq(StringKeyValue("03", "03"), StringKeyValue("04", "04")))
+  val rootOrgId = ObjectId.get
 
-  lazy val formatter = new JsonFormatting(mockFieldValues, (oid) => None, dotNotation => None)
+  trait TestJsonFormatting extends JsonFormatting {
+    override def fieldValue: FieldValue = mockFieldValues
+
+    override def findStandardByDotNotation: (String) => Option[Standard] = s => None
+
+    override def countItemsInCollection(collectionId: ObjectId): Long = 0
+
+    override def rootOrgId: ObjectId = JsonFormattingTest.this.rootOrgId
+
+    override def findSubjectById: (ObjectId) => Option[Subject] = id => None
+  }
+
+  val formatter = new TestJsonFormatting {}
+
   implicit val f: Format[Item] = formatter.item
 
   "alignments" should {
@@ -117,18 +130,17 @@ class JsonFormattingTest extends Specification {
     val subjectId = ObjectId.get
     val subject = Subjects(primary = Some(subjectId))
 
-    lazy val mockFormatter = new JsonFormatting(mockFieldValues,
-      (oid) => {
+    lazy val mockFormatter = new TestJsonFormatting {
+      override def findSubjectById: (ObjectId) => Option[Subject] = (id) => {
         println("find subject by id ----------")
         Some(Subject(id = subjectId, subject = "some subject"))
-      },
-      dotNotation => None)
+      }
+    }
 
     //The json that is submittted to be read is different from the db json
     val jsonToRead = Json.obj(
       Keys.collectionId -> dummyCollectionId,
-      Keys.primarySubject -> JsString(subject.primary.get.toString)
-    )
+      Keys.primarySubject -> JsString(subject.primary.get.toString))
     val parsed = jsonToRead.as[Item](mockFormatter.item)
 
     "parse primary" in parsed.taskInfo.get.subjects.get.primary === subject.primary
@@ -143,8 +155,7 @@ class JsonFormattingTest extends Specification {
       Keys.id -> JsString(new ObjectId().toString),
       Keys.collectionId -> dummyCollectionId,
       Keys.primarySubject -> subject.primary.get.toString,
-      Keys.relatedSubject -> Json.arr(subject.related.head.toString)
-    )
+      Keys.relatedSubject -> Json.arr(subject.related.head.toString))
 
     val parsed = jsonToRead.as[Item]
 
@@ -163,7 +174,7 @@ class JsonFormattingTest extends Specification {
     val item = Item(collectionId = dummyCollectionId, contributorDetails = Some(contributorDetails))
     val json = Json.toJson(item)
 
-    implicit val ac = formatter.additionalCopyright
+    import formatter.formatAdditionalCopyright
 
     "serialize" in {
       (json \ "additionalCopyrights").asOpt[Seq[AdditionalCopyright]].get(0) must equalTo(additionalCopyright)

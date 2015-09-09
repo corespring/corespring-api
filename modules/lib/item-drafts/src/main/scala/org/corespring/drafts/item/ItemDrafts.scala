@@ -40,7 +40,8 @@ class ItemDrafts(
   protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
   protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
 
-  private val utils = new ItemDraftDbUtils {
+  //TODO: Move out?
+  val utils = new ItemDraftDbUtils {
     override implicit def context: Context = ItemDrafts.this.context
   }
 

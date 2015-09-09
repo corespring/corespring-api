@@ -1,8 +1,7 @@
 package org.corespring.models.json.item
 
-
 import org.bson.types.ObjectId
-import org.corespring.models.{Standard, Subject}
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item._
 import org.corespring.models.json.JsonFormatting
 import org.specs2.mutable.Specification
@@ -16,7 +15,7 @@ class ItemToSummaryWritesTest extends Specification {
     val detail: Option[String] = Some("normal")
 
     lazy val item = new Item(
-    collectionId = ObjectId.get.toString,
+      collectionId = ObjectId.get.toString,
       contributorDetails = Some(new ContributorDetails(
         author = Some("Author"),
         copyright = Some(new Copyright(
@@ -27,7 +26,7 @@ class ItemToSummaryWritesTest extends Specification {
         subjects = Some(new Subjects(
           primary = Some(new ObjectId("4ffb535f6bb41e469c0bf2aa")), //AP Art History
           related = Seq(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
-        )),
+          )),
         gradeLevel = Seq("GradeLevel1", "GradeLevel2"),
         itemType = Some("ItemType"))),
       standards = Seq("RL.1.5", "RI.5.8"),
@@ -36,35 +35,38 @@ class ItemToSummaryWritesTest extends Specification {
         bloomsTaxonomy = Some("BloomsTaxonomy"))),
       priorUse = Some("PriorUse"))
 
-
-    def findSubjectById(id:ObjectId) : Option[Subject] = None
-    def findStandardByDotNotation(notation:String) : Option[Standard] = None
+    val mockStandard = Standard(Some("DOT.NOTATION"))
+    val mockSubject = Subject("subject", Some("category"), ObjectId.get)
 
     val jsonFormatting = new JsonFormatting {
-      override def findStandardByDotNotation: (String) => Option[Standard] = (_) => None
-
+      override def findStandardByDotNotation: (String) => Option[Standard] = {
+        (_) => Some(mockStandard)
+      }
       override def rootOrgId: ObjectId = ObjectId.get
 
       override def fieldValue: FieldValue = FieldValue()
 
-      override def findSubjectById: (ObjectId) => Option[Subject] = (_) => None
+      override def findSubjectById: (ObjectId) => Option[Subject] = {
+        (id) => Some(mockSubject)
+      }
+
+      override def countItemsInCollection(collectionId: ObjectId): Long = 0
     }
 
     lazy val json = new ItemToSummaryWrites(
-      jsonFormatting
-    ).write(item)
+      jsonFormatting).write(item, detail)
 
     def assertNormalFields = {
       (json \ "id").asOpt[String] === Some(item.id.toString)
       (json \ "author").asOpt[String] === Some("Author")
       (json \ "title").asOpt[String] === Some("Title")
-      (json \ "primarySubject" \ "subject").asOpt[String] === Some("AP Art History")
-      (json \ "relatedSubject" \\ "subject").map(_.as[String]) === Seq("AP English Literature")
+      (json \ "primarySubject" \ "subject").asOpt[String] === Some("subject")
+      (json \ "relatedSubject" \\ "subject").map(_.as[String]) === Seq("subject")
       (json \ "gradeLevel").as[Seq[String]] === Seq("GradeLevel1", "GradeLevel2")
       (json \ "itemType").asOpt[String] === Some("ItemType")
       val standards: Seq[JsValue] = (json \ "standards").as[Seq[JsValue]]
-      (standards(0) \ "dotNotation").asOpt[String] === Some("RL.1.5")
-      (standards(1) \ "dotNotation").asOpt[String] === Some("RI.5.8")
+      (standards(0) \ "dotNotation").asOpt[String] === mockStandard.dotNotation
+      (standards(1) \ "dotNotation").asOpt[String] === mockStandard.dotNotation
       (json \ "priorUse" \ "use").asOpt[String] === Some("PriorUse")
     }
   }
@@ -98,8 +100,6 @@ class ItemToSummaryWritesTest extends Specification {
         (json \ "keySkills").as[Seq[String]] === Seq("KeySkill1", "KeySkill2")
         (json \ "bloomsTaxonomy").asOpt[String] === Some("BloomsTaxonomy")
       }
-
     }
-
   }
 }
