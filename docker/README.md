@@ -60,14 +60,14 @@ To create and run a docker image with default Dockerfile:**
 
 ````shell
     docker build -t="corespring-api" .
-    docker run -p 9000:9000 -t="corespring-api" #run main script
+    docker run -p 9000:9000 corespring-api #run main script
 ```
 
 **To create and run a docker image with custom docker file named DockerfileWithDynamo**
 
 ````shell
     docker build --file=./DockerfileWithDynamo -t="corespring-api-with-dynamo" .
-    docker run -p 9000:9000 -t="corespring-api-with-dynamo" #run main script
+    docker run -p 9000:9000 corespring-api-with-dynamo #run main script
 ```
 
 
