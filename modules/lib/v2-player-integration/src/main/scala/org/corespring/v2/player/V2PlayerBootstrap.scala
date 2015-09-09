@@ -2,40 +2,44 @@ package org.corespring.v2.player
 
 import java.io.File
 
+import com.amazonaws.services.s3.AmazonS3
 import com.typesafe.config.ConfigFactory
+import org.apache.commons.httpclient.util.URIUtil
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client._
 import org.corespring.container.client.controllers.ComponentSets
-import org.corespring.container.client.hooks.{ EditorHooks => ContainerEditorHooks, DraftHooks => ContainerDraftHooks, CollectionHooks => ContainerCollectionHooks, CoreItemHooks, CreateItemHook, DataQueryHooks }
+import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks, CoreItemHooks, CreateItemHook, DataQueryHooks, DraftHooks => ContainerDraftHooks, EditorHooks => ContainerEditorHooks, SupportingMaterialHooks }
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
-import org.corespring.drafts.item.{ S3Paths, ItemDrafts }
+import org.corespring.drafts.item.models.{ SimpleUser, SimpleOrg, OrgAndUser, DraftId }
+import org.corespring.drafts.item.{ DraftAssetKeys, MakeDraftId, ItemDrafts, S3Paths }
 import org.corespring.platform.core.models.item.{ FieldValue, Item, PlayerDefinition }
-import org.corespring.platform.core.models.{ Standard, Subject }
+import org.corespring.platform.core.models.{ mongoContext, Standard, Subject }
 import org.corespring.platform.core.services._
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
+import org.corespring.platform.core.services.item._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth._
 import org.corespring.v2.auth.identifiers._
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.services.{ ContentCollectionService, OrgService }
+import org.corespring.v2.errors.Errors.{ generalError, cantParseItemId }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.log.V2LoggerFactory
 import org.corespring.v2.player.hooks._
+import org.corespring.v2.player.services.item.{ ItemSupportingMaterialsService, DraftSupportingMaterialsService }
 import org.corespring.v2.player.{ hooks => apiHooks }
 import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json.{ JsArray, JsObject, JsValue, Json }
-import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.mvc._
 import play.api.{ Configuration, Mode => PlayMode, Play }
-import org.apache.commons.httpclient.util.URIUtil
 
 import scala.concurrent.ExecutionContext
-import scalaz.{ Validation }
+import scalaz.{ Failure, Validation }
 
 class V2PlayerBootstrap(
   val components: Seq[Component],
@@ -46,6 +50,7 @@ class V2PlayerBootstrap(
   itemAuth: ItemAuth[OrgAndOpts],
   sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
   playS3: S3Service,
+  s3: AmazonS3,
   bucket: String,
   itemDrafts: ItemDrafts,
   orgService: OrgService,
@@ -181,12 +186,6 @@ class V2PlayerBootstrap(
       versionedIdFromString(itemService, id).map { vid =>
         getAssetFromItemId(S3Paths.itemFile(vid, path))
       }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
-
-    override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-      versionedIdFromString(itemService, id).map { vid =>
-        getAssetFromItemId(S3Paths.itemSupportingMaterialFile(vid, path))
-      }.getOrElse(BadRequest(s"Invalid versioned id: $id"))
-    }
   }
 
   override def playerHooks: PlayerHooks = new apiHooks.PlayerHooks with WithDefaults {
@@ -226,4 +225,41 @@ class V2PlayerBootstrap(
     override def itemService: ItemService = ItemServiceWired
   }
 
+  override def itemDraftSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.SupportingMaterialHooks[DraftId] with MakeDraftId {
+    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
+
+    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, DraftId] = {
+      val org = SimpleOrg.fromOrganization(identity.org)
+      val user = identity.user.map(SimpleUser.fromUser)
+      val orgAndUser = OrgAndUser(org, user)
+      mkDraftId(orgAndUser, id).leftMap(e => generalError(e.msg))
+    }
+
+    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
+
+    override def service: SupportingMaterialsService[DraftId] = new DraftSupportingMaterialsService(
+      itemDrafts.collection,
+      V2PlayerBootstrap.this.bucket,
+      new SupportingMaterialsAssets(s3, bucket, DraftAssetKeys))(mongoContext.context)
+
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
+  }
+
+  override def itemSupportingMaterialHooks: SupportingMaterialHooks = new apiHooks.SupportingMaterialHooks[VersionedId[ObjectId]] {
+
+    override implicit def ec: ExecutionContext = V2PlayerBootstrap.this.ec
+
+    override def auth: ItemAuth[OrgAndOpts] = V2PlayerBootstrap.this.itemAuth
+
+    import scalaz.Scalaz._
+
+    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, VersionedId[ObjectId]] = VersionedId(id).toSuccess(cantParseItemId(id))
+
+    override def service: SupportingMaterialsService[VersionedId[ObjectId]] = new ItemSupportingMaterialsService(
+      ItemServiceWired.collection,
+      V2PlayerBootstrap.this.bucket,
+      new SupportingMaterialsAssets(s3, bucket, ItemAssetKeys))(mongoContext.context)
+
+    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = identifier(request)
+  }
 }

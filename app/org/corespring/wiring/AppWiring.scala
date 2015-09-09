@@ -162,6 +162,7 @@ object AppWiring {
     services.itemAuth,
     services.sessionAuth,
     playS3,
+    playS3.getClient,
     bucket,
     services.draftsBackend,
     services.orgService,
