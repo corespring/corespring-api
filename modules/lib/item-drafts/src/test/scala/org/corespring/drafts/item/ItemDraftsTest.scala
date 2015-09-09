@@ -1,32 +1,34 @@
 package org.corespring.drafts.item
 
-import com.mongodb.casbah.{ Imports, MongoCollection }
+import com.mongodb.CommandResult
 import com.mongodb.casbah.Imports._
-import com.mongodb.{ DBCollection, WriteConcern, CommandResult, WriteResult }
+import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
+import org.corespring.models.auth.Permission
 import org.corespring.models.item.resource.{ StoredFile, Resource }
 import org.corespring.models.item._
-import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.salat.config.SalatContext
+import org.corespring.services.OrganizationService
+import org.corespring.services.item.ItemService
 import org.corespring.test.fakes.Fakes
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
-import org.specs2.mock.mockito.ArgumentCapture
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.test.FakeApplication
 
 import scalaz.{ Validation, Success, Failure }
 
 class ItemDraftsTest extends Specification with Mockito {
 
+  val collectionId = ObjectId.get
   val itemId = VersionedId(ObjectId.get, Some(0))
   val ed = OrgAndUser(SimpleOrg(ObjectId.get, "ed-org"), None)
   val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
-  val item = Item(id = itemId)
+  val item = Item(id = itemId, collectionId = collectionId.toString)
 
   private def mockWriteResult(ok: Boolean = true, err: String = "mock mongo error"): WriteResult = {
     val m = mock[WriteResult]
@@ -40,11 +42,73 @@ class ItemDraftsTest extends Specification with Mockito {
 
   private def bump(vid: VersionedId[ObjectId]): VersionedId[ObjectId] = vid.copy(version = vid.version.map { n => n + 1 })
 
-  trait MockItemDrafts extends ItemDrafts {
+  trait MockItemDrafts extends Scope {
 
-    trait IS extends ItemService with ItemPublishingService
+    val itemService = {
+      val m = mock[ItemService]
+      m.save(any[Item], any[Boolean]).answers {
+        (obj, mock) =>
+          val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
+          val createNewVersion = arr(1).asInstanceOf[Boolean]
+          println(s"createNewVersion: $createNewVersion")
+          Right(if (createNewVersion) bump(itemId) else itemId)
+      }
+      m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
+      m.isPublished(any[VersionedId[ObjectId]]) returns false
+      m
+    }
+
+    val draftService = {
+      val m = mock[ItemDraftService]
+      m.save(any[ItemDraft]) returns mockWriteResult()
+      m.owns(any[OrgAndUser], any[DraftId]) returns true
+      m
+    }
+
+    val orgService = {
+      val m = mock[OrganizationService]
+      m.getOrgPermissionForItem(any[ObjectId], any[VersionedId[ObjectId]]) returns Permission.Write
+      m
+    }
+
+    val assets = {
+      val m = mock[ItemDraftAssets]
+      m.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]).answers { (obj, mock) =>
+        val arr = obj.asInstanceOf[Array[Any]]
+        val d = arr(1).asInstanceOf[VersionedId[ObjectId]]
+        Success(d)
+      }
+      m.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]).answers { (obj, mock) =>
+        val arr = obj.asInstanceOf[Array[Any]]
+        val d = arr(1).asInstanceOf[DraftId]
+        Success(d)
+      }
+      m.deleteDraft(any[DraftId]) returns Success()
+      m
+    }
+
+    val commitService = {
+      val m = mock[CommitService]
+      m.save(any[ItemCommit]) returns mockWriteResult()
+      m
+    }
+
+    val context = new SalatContext(this.getClass.getClassLoader)
+
+    private def mkDrafts() = new ItemDrafts(itemService,
+      orgService,
+      draftService,
+      commitService,
+      assets,
+      context)
+
+    lazy val itemDrafts = mkDrafts()
+
+  }
+  /*trait MockItemDrafts extends ItemDrafts {
+
     val mockItemService = {
-      val m = mock[IS]
+      val m = mock[ItemService]
       m.save(any[Item], any[Boolean]).answers {
         (obj, mock) =>
           val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
@@ -98,8 +162,8 @@ class ItemDraftsTest extends Specification with Mockito {
     val commitService: CommitService = mockCommitService
 
   }
-
-  def mkItem(isPublished: Boolean) = Item(id = itemId, published = isPublished)
+  */
+  def mkItem(isPublished: Boolean) = Item(id = itemId, collectionId = collectionId.toString, published = isPublished)
   def mkItemWithXhtml(xhtml: String) = item.copy(playerDefinition = Some(PlayerDefinition(xhtml)))
   def mkDraft(u: OrgAndUser, parent: Item = item, change: Item = item) = {
     ItemDraft(
@@ -119,26 +183,26 @@ class ItemDraftsTest extends Specification with Mockito {
     "remove" should {
 
       class __(removeSuccessful: Boolean, owns: Boolean, assetsSuccessful: Boolean) extends Scope with MockItemDrafts {
-        mockDraftService.remove(any[DraftId]) returns removeSuccessful
-        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns owns
-        mockAssets.deleteDraft(any[DraftId]) returns {
+        draftService.remove(any[DraftId]) returns removeSuccessful
+        draftService.owns(any[OrgAndUser], any[DraftId]) returns owns
+        assets.deleteDraft(any[DraftId]) returns {
           if (assetsSuccessful) Success(Unit) else Failure(TestError("deleteDraft"))
         }
       }
 
       "fail if user doesn't own draft" in new __(true, false, false) {
-        remove(gwen)(oid) must_== Failure(UserCantRemove(gwen, oid))
+        itemDrafts.remove(gwen)(oid) must_== Failure(UserCantRemove(gwen, oid))
       }
 
       "fail if remove failed" in new __(false, true, false) {
-        remove(ed)(oid) must_== Failure(DeleteDraftFailed(oid))
+        itemDrafts.remove(ed)(oid) must_== Failure(DeleteDraftFailed(oid))
       }
 
       "fail if assets.deleteDraft failed" in new __(true, true, false) {
-        remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
+        itemDrafts.remove(ed)(oid) must_== Failure(TestError("deleteDraft"))
       }
       "succeed" in new __(true, true, true) {
-        remove(ed)(oid) must_== Success(oid)
+        itemDrafts.remove(ed)(oid) must_== Success(oid)
       }
     }
 
@@ -148,24 +212,24 @@ class ItemDraftsTest extends Specification with Mockito {
         owns: Boolean, load: Boolean) extends Scope with MockItemDrafts {
 
         val draft = mkDraft(ed, item)
-        mockDraftService.owns(any[OrgAndUser], any[DraftId]) returns {
+        draftService.owns(any[OrgAndUser], any[DraftId]) returns {
           owns
         }
-        mockDraftService.load(any[DraftId]) returns {
+        draftService.load(any[DraftId]) returns {
           if (load) Some(draft) else None
         }
       }
 
       "fail if user doesn't own draft" in new __(false, false) {
-        load(ed)(oid) must_== Failure(UserCantLoad(ed, oid))
+        itemDrafts.load(ed)(oid) must_== Failure(UserCantLoad(ed, oid))
       }
 
       "fail if service.load fails" in new __(true, false) {
-        load(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
+        itemDrafts.load(ed)(oid) must_== Failure(LoadDraftFailed(oid.toString))
       }
 
       "succeed" in new __(true, true) {
-        load(ed)(oid) must_== Success(draft)
+        itemDrafts.load(ed)(oid) must_== Success(draft)
       }
     }
 
@@ -176,29 +240,32 @@ class ItemDraftsTest extends Specification with Mockito {
         createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")),
         saveSuccess: Boolean = false) extends Scope with MockItemDrafts {
 
-        override def load(user: OrgAndUser)(id: DraftId) = loadResult
-        override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime]) = createResult
+        //we are overriding some draft methods here.
+        override lazy val itemDrafts = new ItemDrafts(itemService, orgService, draftService, commitService, assets, context) {
+          override def load(user: OrgAndUser)(id: DraftId) = loadResult
+          override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime]) = createResult
+        }
 
         val draft = mkDraft(ed, item)
-        mockItemService.save(any[Item], any[Boolean]) returns {
-          if (saveSuccess) Right(itemId) else Left("Err")
+        itemService.save(any[Item], any[Boolean]) returns {
+          if (saveSuccess) Right(itemId) else Left(GeneralError("Err"))
         }
       }
 
       "fail if load fails" in new __() {
-        cloneDraft(ed)(oid) must_== Failure(TestError("load"))
+        itemDrafts.cloneDraft(ed)(oid) must_== Failure(TestError("load"))
       }
 
       "fail if itemService.save" in new __(Success(mkDraft(ed, item))) {
-        cloneDraft(ed)(oid) must_== Failure(SaveDraftFailed("Err"))
+        itemDrafts.cloneDraft(ed)(oid) must_== Failure(SaveDraftFailed("Err"))
       }
 
       "fail if create fails" in new __(Success(mkDraft(ed, item)), saveSuccess = true) {
-        cloneDraft(ed)(oid) must_== Failure(TestError("create"))
+        itemDrafts.cloneDraft(ed)(oid) must_== Failure(TestError("create"))
       }
 
       "succeed" in new __(Success(mkDraft(ed, item)), Success(mkDraft(ed, item)), true) {
-        cloneDraft(ed)(oid) must_== Success(DraftCloneResult(itemId, oid))
+        itemDrafts.cloneDraft(ed)(oid) must_== Success(DraftCloneResult(itemId, oid))
       }
     }
 
@@ -208,32 +275,36 @@ class ItemDraftsTest extends Specification with Mockito {
         val getUnpublishedVersion: Option[Item] = None,
         copyResult: Validation[DraftError, DraftId] = Failure(TestError("copyAssets")),
         saveResult: Validation[DraftError, DraftId] = Failure(TestError("save"))) extends Scope with MockItemDrafts {
-        override def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = canCreate
-        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
-        mockAssets.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) returns copyResult
-        override def save(u: OrgAndUser)(d: ItemDraft) = saveResult
+
+        override lazy val itemDrafts = new ItemDrafts(itemService, orgService, draftService, commitService, assets, context) {
+          override def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = canCreate
+          override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime]) = createResult
+        }
+
+        itemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+        assets.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]) returns copyResult
 
         def mkDraftId(itemId: VersionedId[ObjectId], user: OrgAndUser) = DraftId(itemId.id, user.user.map(_.userName).getOrElse("test_user"), user.org.id)
       }
 
       "fail if userCanCreateDraft fails" in new __(false) {
-        create(mkDraftId(itemId, ed), ed, None) must_== Failure(UserCantCreate(ed, itemId.id))
+        itemDrafts.create(mkDraftId(itemId, ed), ed, None) must_== Failure(UserCantCreate(ed, itemId.id))
       }
 
       "fail if itemService.getOrCreateUnpublishedVersion fails" in new __(true) {
-        create(mkDraftId(itemId, ed), ed, None) must_== Failure(GetUnpublishedItemError(itemId.id))
+        itemDrafts.create(mkDraftId(itemId, ed), ed, None) must_== Failure(GetUnpublishedItemError(itemId.id))
       }
 
       "fail if assets.copyItemToDraft fails" in new __(true, Some(item)) {
-        create(mkDraftId(itemId, ed), ed, None) must_== Failure(TestError("copyAssets"))
+        itemDrafts.create(mkDraftId(itemId, ed), ed, None) must_== Failure(TestError("copyAssets"))
       }
 
       "fail if save fails" in new __(true, Some(item), Success(oid)) {
-        create(mkDraftId(itemId, ed), ed, None) must_== Failure(TestError("save"))
+        itemDrafts.create(mkDraftId(itemId, ed), ed, None) must_== Failure(TestError("save"))
       }
 
       "succeed" in new __(true, Some(item), Success(oid), Success(oid)) {
-        create(mkDraftId(itemId, ed), ed, None) match {
+        itemDrafts.create(mkDraftId(itemId, ed), ed, None) match {
           case Success(d) => {
             d.parent.data must_== getUnpublishedVersion.get
           }
@@ -250,19 +321,22 @@ class ItemDraftsTest extends Specification with Mockito {
         val createResult: Validation[DraftError, ItemDraft] = Failure(TestError("create")))
         extends Scope
         with MockItemDrafts {
-        mockDraftService.load(any[DraftId]) returns load
-        mockItemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
-        override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime] = None) = createResult
+        draftService.load(any[DraftId]) returns load
+        itemService.getOrCreateUnpublishedVersion(any[VersionedId[ObjectId]]) returns getUnpublishedVersion
+
+        override lazy val itemDrafts = new ItemDrafts(itemService, orgService, draftService, commitService, assets, context) {
+          override def create(id: DraftId, user: OrgAndUser, expires: Option[DateTime] = None) = createResult
+        }
       }
 
       "fail if load fails and create fails" in new __() {
-        loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
+        itemDrafts.loadOrCreate(ed)(oid) must_== Failure(TestError("create"))
       }
 
       "fail if the draft.parent is out of date and the draft.parent != draft.change" in new __(
         Some(mkDraft(ed, item, item.copy(playerDefinition = Some(PlayerDefinition("Change!"))))),
         Some(item.cloneItem)) {
-        loadOrCreate(ed)(oid) match {
+        itemDrafts.loadOrCreate(ed)(oid) match {
           case Success(draft) => failure("should have failed")
           case Failure(ItemDraftIsOutOfDate(d, i)) => {
             d must_== load.get
@@ -276,7 +350,7 @@ class ItemDraftsTest extends Specification with Mockito {
         None,
         None,
         Success(mkDraft(ed, item))) {
-        loadOrCreate(ed)(oid) match {
+        itemDrafts.loadOrCreate(ed)(oid) match {
           case Success(draft) => draft must_== createResult.toOption.get
           case Failure(ItemDraftIsOutOfDate(d, i)) => failure("should have been successful")
           case _ => failure("should have been an out of date error")
@@ -287,7 +361,7 @@ class ItemDraftsTest extends Specification with Mockito {
         None,
         Some(item),
         Success(mkDraft(ed, mkItemWithXhtml("created")))) {
-        loadOrCreate(ed)(oid) match {
+        itemDrafts.loadOrCreate(ed)(oid) match {
           case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
           case Failure(e) => {
             println("error --->")
@@ -301,7 +375,7 @@ class ItemDraftsTest extends Specification with Mockito {
         Some(mkDraft(ed, item)),
         Some(item),
         Success(mkDraft(ed, mkItemWithXhtml("created")))) {
-        loadOrCreate(ed)(oid) match {
+        itemDrafts.loadOrCreate(ed)(oid) match {
           case Success(draft) => draft.parent.data.playerDefinition.map(_.xhtml) must_== Some("created")
           case Failure(e) => {
             println("error --->")
@@ -348,7 +422,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "hasSrcChanged" should {
       class __ extends Scope with MockItemDrafts {
-        val item1 = Item(id = itemId)
+        val item1 = Item(id = itemId, collectionId = collectionId.toString)
       }
 
       "return false if item has not changed" in new __ {
@@ -424,24 +498,21 @@ class ItemDraftsTest extends Specification with Mockito {
         mockDraftService.collection returns mockCollection
       }
 
-      import play.api.test.Helpers.running
-
       "update the document in the db" in new __ {
-
-        running(FakeApplication()) {
-          import org.corespring.models.mongoContext.context
-          val draft = mkDraft(ed, item)
-          val file = StoredFile("test.png", "image/png", false)
-          addFileToChangeSet(draft, file)
-          val expectedQuery = ItemDraftDbUtils.idToDbo(draft.id)
-          mockCollection.queryObj === expectedQuery
-          val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
-          val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
-          mockCollection.updateObj === expectedUpdate
+        //TODO: how to hook in the mongo context
+        val dbUtils = new ItemDraftDbUtils {
+          override implicit def context: Context = ???
         }
+        val draft = mkDraft(ed, item)
+        val file = StoredFile("test.png", "image/png", false)
+        addFileToChangeSet(draft, file)
+        val expectedQuery = dbUtils.idToDbo(draft.id)
+        mockCollection.queryObj === expectedQuery
+        val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
+        val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
+        mockCollection.updateObj === expectedUpdate
       }
     }
-
   }
 
 }

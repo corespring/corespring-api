@@ -60,9 +60,12 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(securesocial, playFramework))
     .dependsOn(coreModels, coreServices)
 
+  lazy val coreSalatConfig = builders.lib("salat-config", "core").settings(
+    libraryDependencies ++= Seq(salat))
+
   lazy val coreServicesSalat = builders.lib("services-salat", "core")
     .settings(
-      libraryDependencies ++= Seq(grizzledLog, logbackClassic, aws))
+      libraryDependencies ++= Seq(salat, grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(
@@ -79,7 +82,7 @@ object Build extends sbt.Build {
       }))
     //specs2 % "it,test",
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
-    .dependsOn(coreServices, coreUtils)
+    .dependsOn(coreSalatConfig, coreServices, coreUtils)
 
   lazy val encryption = builders.lib("encryption", "core")
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro))
@@ -130,7 +133,7 @@ object Build extends sbt.Build {
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(coreModels, coreServices, drafts, testLib)
+    .dependsOn(coreSalatConfig, coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
   /** Qti -> v2 transformers */
