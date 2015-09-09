@@ -17,7 +17,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -31,7 +31,8 @@ class ItemHooks(
   transformer: ItemTransformer,
   auth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ExecutionContext)
   extends containerHooks.ItemHooks
   with LoadOrgAndOptions {
 

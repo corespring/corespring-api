@@ -1,39 +1,29 @@
 package org.corespring.v2.player.hooks
 
-import java.util.concurrent.TimeUnit
-
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.casbah.{ MongoCollection, Imports }
 import com.mongodb._
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.models.Organization
 import org.corespring.models.item.Item
-import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
-import org.corespring.test.fakes.Fakes
-import org.corespring.test.matchers.RequestMatchers
+import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.item.ItemService
+import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ MockFactory, AuthMode, PlayerAccessSettings, OrgAndOpts }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.matcher.{ Expectable, Matcher }
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
-import play.api.test.FakeRequest
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
-class ItemHooksTest extends Specification with Mockito with RequestMatchers with MockFactory {
-
-  PlaySingleton.start()
+class ItemHooksTest extends V2PlayerIntegrationSpec {
 
   import scala.language.higherKinds
 
@@ -45,50 +35,35 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
   val defaultFailure = generalError("Default failure")
 
-  def TestError(msg: String) = generalError(msg)
-
-  abstract class baseContext[ERR, RES](val itemId: String = ObjectId.get.toString,
+  private[ItemHooksTest] abstract class baseContext[ERR, RES](
+    val itemId: String = ObjectId.get.toString,
     val authResult: Validation[V2Error, Item] = Failure(defaultFailure)) extends Scope {
 
     lazy val vid = VersionedId(new ObjectId(itemId))
 
-    implicit lazy val header = FakeRequest("", "")
+    lazy val itemTransformer = mock[ItemTransformer]
 
-    def f: Future[Either[ERR, RES]]
-
-    def result: Either[ERR, RES] = {
-      import scala.concurrent.duration._
-      Await.result(f, Duration(10, TimeUnit.SECONDS))
+    lazy val itemAuth: ItemAuth[OrgAndOpts] = {
+      val m = mock[ItemAuth[OrgAndOpts]]
+      m.loadForRead(anyString)(any[OrgAndOpts]) returns authResult
+      m.loadForWrite(anyString)(any[OrgAndOpts]) returns authResult
+      m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns authResult.map { i => true }
+      m.insert(any[Item])(any[OrgAndOpts]) returns Some(vid)
+      m
     }
 
-    lazy val hooks = new ItemHooks {
-
-      override def transform: (Item) => JsValue = (i: Item) => emptyItemJson
-
-      override def auth: ItemAuth[OrgAndOpts] = {
-        val m = mock[ItemAuth[OrgAndOpts]]
-        m.loadForRead(anyString)(any[OrgAndOpts]) returns authResult
-        m.loadForWrite(anyString)(any[OrgAndOpts]) returns authResult
-        m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns authResult.map { i => true }
-        m.insert(any[Item])(any[OrgAndOpts]) returns Some(vid)
-        m
-      }
-
-      override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-
-      lazy val org = {
-        val m = mock[Organization]
-        m.id returns ObjectId.get
-        m.name returns "mock org"
-        m
-      }
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
-
-      def mockItemService = mock[ItemService]
-
-      override def itemService: ItemService = mockItemService
+    lazy val org = {
+      val m = mock[Organization]
+      m.id returns ObjectId.get
+      m.name returns "mock org"
+      m
     }
+
+    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
+
+    val itemService = mock[ItemService]
+
+    lazy val hooks = new ItemHooks(itemTransformer, itemAuth, itemService, getOrgAndOptions, ExecutionContext.global)
   }
 
   class loadContext(
@@ -96,7 +71,7 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
     authResult: Validation[V2Error, Item] = Failure(defaultFailure))
     extends baseContext[StatusMessage, JsValue](itemId, authResult) {
 
-    val f: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)(FakeRequest("", ""))
+    val result: Future[Either[StatusMessage, JsValue]] = hooks.load(itemId)
   }
 
   def returnError[D](e: V2Error) = returnStatusMessage[D](e.statusCode, e.message)
@@ -119,124 +94,92 @@ class ItemHooksTest extends Specification with Mockito with RequestMatchers with
 
     extends baseContext[(Int, String), String](authResult = authResult) {
 
-    override def f: Future[Either[(Int, String), String]] = hooks.createItem(json)(header)
+    val result = hooks.createItem(json)
   }
 
   "load" should {
 
     "return can't find item id error" in new loadContext() {
-      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
+      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message).await
     }
 
-    "return bad request for bad item id" in new loadContext("", authResult = Success(Item())) {
-      result must returnError(cantParseItemId(""))
+    "return bad request for bad item id" in new loadContext("", authResult = Success(mockItem)) {
+      result must returnError(cantParseItemId("")).await
     }
 
     "return org can't access item error" in new loadContext(authResult = Failure(generalError("NO!"))) {
-      result must returnStatusMessage(authResult.toEither.left.get.statusCode, authResult.toEither.left.get.message)
+      result must returnStatusMessage(authResult.toEither.left.get.statusCode, authResult.toEither.left.get.message).await
     }
 
     "return an item" in new loadContext(
-      authResult = Success(Item(collectionId = Some(ObjectId.get.toString)))) {
-      result must_== Right(Json.parse("""{"profile":{},"components":{},"xhtml":"<div/>","summaryFeedback":""}"""))
+      authResult = Success(Item(collectionId = ObjectId.get.toString))) {
+      result must equalTo(Right(Json.parse("""{"profile":{},"components":{},"xhtml":"<div/>","summaryFeedback":""}"""))).await
     }
   }
 
   "create" should {
 
-    "return no json error" in new createContext(None, Success(Item())) {
-      result must returnError(noJson)
+    "return no json error" in new createContext(None, Success(mockItem)) {
+      result must returnError(noJson).await
     }
 
-    "return property not found" in new createContext(Some(Json.obj()), Success(Item())) {
-      result must returnError(propertyNotFoundInJson("collectionId"))
+    "return property not found" in new createContext(Some(Json.obj()), Success(mockItem)) {
+      result must returnError(propertyNotFoundInJson("collectionId")).await
     }
 
     "return no org id and options" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString))) {
-      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message)
+      result must returnStatusMessage(defaultFailure.statusCode, defaultFailure.message).await
     }
 
     "return item id for new item" in new createContext(
       Some(Json.obj("collectionId" -> ObjectId.get.toString)),
-      authResult = Success(Item())) {
-      result match {
-        case Left(e) => failure
-        case Right(s) => success
-      }
+      authResult = Success(mockItem)) {
+      result.map(_.isRight) must equalTo(true).await
     }
   }
 
   "save***" should {
 
-    implicit val r = FakeRequest("", "")
-
     val orgAndOptsForSpec = mockOrgAndOpts(AuthMode.AccessToken)
 
     class baseScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
-      extends Scope
-      with ItemHooks {
+      extends baseContext with withMockCollection {
 
       def orgAndOptsErr = orgAndOptsResult.toEither.left.get
 
-      lazy val vid = {
-        val o = VersionedId(ObjectId.get, Some(0))
-        o
-      }
-
-      lazy val fakeCollection = new Fakes.MongoCollection(1)
-
-      lazy val mockItemService = {
-        val m = mock[ItemService]
-        m.collection returns fakeCollection
-        m
-      }
-
-      lazy val mockItemAuth = {
-        val m = mock[ItemAuth[OrgAndOpts]]
-        m.canWrite(any[String])(any[OrgAndOpts]) returns Success(true)
-        m
-      }
-
-      override def transform: (Item) => JsValue = i => Json.obj()
-
-      override def itemService: ItemService = mockItemService
-
-      override def auth: ItemAuth[OrgAndOpts] = mockItemAuth
-
-      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
-
-      def waitFor[A](f: Future[A]) = Await.result(f, Duration(1, TimeUnit.SECONDS))
+      itemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Success(true)
 
     }
 
     class saveScope(
       fn: ItemHooks => String => Future[Either[(Int, String), JsValue]],
       expectedSet: DBObject) extends baseScope {
-
       val expectedQuery = MongoDBObject("_id._id" -> vid.id)
-      waitFor(fn(this)(vid.toString))
-      fakeCollection.queryObj === expectedQuery
-      fakeCollection.updateObj === MongoDBObject("$set" -> expectedSet)
+      waitFor(fn(hooks)(vid.toString))
+      val (q, u) = captureUpdate
+      q.value === MongoDBObject("_id._id" -> vid.id)
+      u.value === expectedSet
     }
 
     "save returns orgAndOpts error" in new baseScope(Failure(TestError("org-and-opts"))) {
-      waitFor(saveXhtml(vid.toString, "xhtml")) === Left(orgAndOptsErr.statusCode -> orgAndOptsErr.message)
+      hooks.saveXhtml(vid.toString, "xhtml") must equalTo(
+        Left(orgAndOptsErr.statusCode -> orgAndOptsErr.message)).await
     }
 
     "save returns cantParseItemId error" in new baseScope() {
       val err = cantParseItemId("bad id")
-      waitFor(saveXhtml("bad id", "xhtml")) === Left(err.statusCode -> err.message)
+      hooks.saveXhtml("bad id", "xhtml") must equalTo(Left(err.statusCode -> err.message)).await
     }
 
     "save returns itemAuth.canWrite error" in new baseScope() {
       val err = TestError("can-write")
-      mockItemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Failure(err)
-      waitFor(saveXhtml(vid.toString, "xhtml")) === Left(err.statusCode -> err.message)
+      itemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Failure(err)
+      hooks.saveXhtml(vid.toString, "xhtml") must equalTo(Left(err.statusCode -> err.message)).await
     }
 
     "save returns json" in new baseScope() {
-      waitFor(saveXhtml(vid.toString, "new-xhtml")) === Right(Json.obj("xhtml" -> "new-xhtml"))
+      hooks.saveXhtml(vid.toString, "new-xhtml") must equalTo(Right(Json.obj("xhtml" -> "new-xhtml")))
     }
 
     "saveXhtml calls MongoCollection.update" in new saveScope(

@@ -1,11 +1,9 @@
 package org.corespring.v2.player.hooks
 
-import java.util.concurrent.TimeUnit
-
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
-import org.corespring.drafts.errors.{ DraftError, GeneralError }
+import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts, S3Paths }
 import org.corespring.models.appConfig.Bucket
@@ -13,28 +11,23 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.{ User, UserOrg }
 import org.corespring.qtiToV2.transformers.ItemTransformer
-import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration.Duration
 import scalaz.{ Failure, Success, Validation }
 
-class DraftEditorHooksTest extends Specification with Mockito with MockFactory {
+class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
 
   val item = Item(collectionId = ObjectId.get.toString)
   val orgId = ObjectId.get
 
-  def TestError(name: String) = GeneralError(name)
-
   class scope(
-    val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(TestError("load or create"))) extends Scope {
+    val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))) extends Scope {
 
     val itemId = ObjectId.get
 
@@ -48,7 +41,7 @@ class DraftEditorHooksTest extends Specification with Mockito with MockFactory {
     val itemDrafts = {
       val m = mock[ItemDrafts]
       m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns {
-        val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(TestError("load or create"))
+        val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))
         loadOrCreateResult
       }
       m
@@ -77,18 +70,16 @@ class DraftEditorHooksTest extends Specification with Mockito with MockFactory {
     def orgAndUser(oo: OrgAndOpts) = {
       OrgAndUser(SimpleOrg.fromOrganization(oo.org), oo.user.map(SimpleUser.fromUser))
     }
-
-    def futureResult[A](f: Future[A]) = Await.result[A](f, Duration(1, TimeUnit.SECONDS))
   }
 
   "load" should {
     "call loadOrCreate" in new scope {
       val ou = orgAndUser(orgAndOpts.toOption.get)
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
-      override lazy val loadOrCreateResult: Validation[DraftError, ItemDraft] = Success(ItemDraft(draftId, item, ou))
+      override val loadOrCreateResult: Validation[DraftError, ItemDraft] = Success(ItemDraft(draftId, item, ou))
 
       val f = hooks.load(s"$itemId:0")(FakeRequest("", ""))
-      val r = futureResult(f)
+      val r = waitFor(f)
 
       r match {
         case Left((code, msg)) => failure(s"got: $msg")
@@ -120,7 +111,7 @@ class DraftEditorHooksTest extends Specification with Mockito with MockFactory {
       val ou = orgAndUser(orgAndOpts.toOption.get)
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
       val f = hooks.deleteFile(s"$itemId:0", "file")(FakeRequest("", ""))
-      val r = futureResult(f)
+      val r = waitFor(f)
       there was one(playS3).delete("bucket", S3Paths.draftFile(draftId, "file"))
     }
   }

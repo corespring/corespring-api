@@ -21,5 +21,6 @@ trait MockFactory extends Mockito {
   def mockOrgAndOpts(authMode: AuthMode = AuthMode.AccessToken,
     collections: Seq[ObjectId] = Seq.empty) = OrgAndOpts(mockOrg(collections), PlayerAccessSettings.ANYTHING, authMode, None)
 
-  def mockItem = Item(ObjectId.get.toString)
+  def mockCollectionId() = ObjectId.get
+  def mockItem = Item(collectionId = mockCollectionId().toString)
 }

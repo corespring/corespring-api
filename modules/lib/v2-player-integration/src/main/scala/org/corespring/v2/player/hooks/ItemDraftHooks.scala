@@ -20,7 +20,7 @@ import play.api.libs.json.{ JsValue, Json, _ }
 import play.api.mvc.RequestHeader
 
 import scala.language.implicitConversions
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -35,7 +35,9 @@ class ItemDraftHooks(
   orgService: OrganizationService,
   transformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  /** super.ec is being attached to Play.current somehow. remove the super.ec */
+  override implicit val ec: ExecutionContext)
   extends containerHooks.DraftHooks
   with LoadOrgAndOptions
   with DraftHelper
@@ -152,7 +154,6 @@ class ItemDraftHooks(
   //DraftHook
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
     savePartOfPlayerDef(draftId, json.as[JsObject])
-
 
   //DraftHook
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
