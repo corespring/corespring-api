@@ -54,7 +54,8 @@ class ContentCollectionService(
    * Share items to the collection specified.
    * - must ensure that the context org has write access to the collection
    * - must ensure that the context org has read access to the items being added
-   *
+   * TODO: Do we check perms here? or keep it outside of this scope?
+   * We'll have to filter the individual item ids anyway
    * @param orgId
    * @param items
    * @param collId
@@ -206,32 +207,37 @@ class ContentCollectionService(
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
     try {
+      val collectionItemCount = itemCount(collId)
+      if (collectionItemCount != 0) {
+        Failure(PlatformServiceError(s"Can't delete this collection it has $collectionItemCount item(s) in it."))
+      } else {
+        //TODO: RF: Once we move the logic to the appropriate service, run this stuff in a for{ .. }
+        //TODO: RF: Move to services
+        dao.removeById(collId)
+        organizationService.deleteCollectionFromAllOrganizations(collId)
+        import scalaz._
+        Validation.fromEither(itemService.deleteFromSharedCollections(collId))
+        /*Organization.find(
+          MongoDBObject(
+            Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
+          .foldRight[Validation[PlatformServiceError, Unit]](Success(()))((org, result) => {
+          if (result.isSuccess) {
+            org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
+            try {
+              Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
+              val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
+              ItemServiceWired.find(query).foreach(item => {
+                ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
+              })
+              Success(())
+            } catch {
+              case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
+            }
+          } else result
+        })
+        */
 
-      //TODO: RF: Once we move the logic to the appropriate service, run this stuff in a for{ .. }
-      //TODO: RF: Move to services
-      dao.removeById(collId)
-      organizationService.deleteCollectionFromAllOrganizations(collId)
-      import scalaz._
-      Validation.fromEither(itemService.deleteFromSharedCollections(collId))
-      /*Organization.find(
-        MongoDBObject(
-          Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
-        .foldRight[Validation[PlatformServiceError, Unit]](Success(()))((org, result) => {
-        if (result.isSuccess) {
-          org.contentcolls = org.contentcolls.filter(_.collectionId != collId)
-          try {
-            Organization.update(MongoDBObject("_id" -> org.id), org, false, false, Organization.defaultWriteConcern)
-            val query = MongoDBObject("sharedInCollections" -> MongoDBObject("$in" -> List(collId)))
-            ItemServiceWired.find(query).foreach(item => {
-              ItemServiceWired.saveUsingDbo(item.id, MongoDBObject("$pull" -> MongoDBObject(Item.Keys.sharedInCollections -> collId)))
-            })
-            Success(())
-          } catch {
-            case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-          }
-        } else result
-      })
-      */
+      }
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to transfer collection to archive", e))
       case e: SalatRemoveError => Failure(PlatformServiceError(e.getMessage))

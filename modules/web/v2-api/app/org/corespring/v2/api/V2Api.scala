@@ -59,7 +59,7 @@ trait V2Api extends Controller with LoadOrgAndOptions {
       }
     }
 
-  protected def futureWithIdentity(block: (OrgAndOpts, Request[AnyContent]) => Future[SimpleResult]) =
+  protected def futureWithIdentity(block: (OrgAndOpts, Request[A]) => Future[SimpleResult]) =
     Action.async { implicit request =>
       getOrgAndOptions(request) match {
         case Success(identity) => block(identity, request)

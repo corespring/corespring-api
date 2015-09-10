@@ -15,7 +15,7 @@ trait ContentCollectionService {
 
   def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection]
 
-  def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollectionService]
+  def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection]
 
   def archiveCollectionId: ObjectId
 
@@ -28,6 +28,12 @@ trait ContentCollectionService {
 
   def update(id: ObjectId, update: ContentCollectionUpdate): Validation[PlatformServiceError, ContentCollection]
 
+  /**
+   * delete the collection
+   * fails if the itemCount for the collection > 0
+   * @param collId
+   * @return
+   */
   def delete(collId: ObjectId): Validation[PlatformServiceError, Unit]
 
   def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef]
@@ -85,6 +91,10 @@ trait ContentCollectionService {
    * @return
    */
   def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
+
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+    unShareItems(orgId, items, Seq(collId))
+  }
 
   /**
    * does the given organization have access to the given collection with given permissions?

@@ -8,6 +8,8 @@ import play.api.libs.json._
 import play.api.mvc.RequestHeader
 import play.api.http.Status._
 
+import scalaz.Failure
+
 /**
  * Base type for all known V2 errors.
  * @param message
@@ -18,6 +20,8 @@ sealed abstract class V2Error(val title: String, val description: String, val me
   def errorType: String = this.getClass.getSimpleName
 
   def json: JsObject = Json.obj("message" -> message, "errorType" -> errorType)
+
+  def asFailure: Failure[V2Error, _] = Failure(this)
 
 }
 
