@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.{ PlayerJs, PlayerLauncherHooks => ContainerPlayerLauncherHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.services.UserService
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -14,7 +15,8 @@ import scalaz._
 
 class PlayerLauncherHooks(
   userService: UserService,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext) extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[PlayerLauncherHooks])
 

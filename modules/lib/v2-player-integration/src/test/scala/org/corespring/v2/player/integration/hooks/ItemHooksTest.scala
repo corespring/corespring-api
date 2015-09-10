@@ -11,7 +11,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
+import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
@@ -20,12 +20,14 @@ import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scalaz.{ Failure, Success, Validation }
 
 class ItemHooksTest extends V2PlayerIntegrationSpec {
 
   import scala.language.higherKinds
+
+  implicit val ec = containerExecutionContext
 
   val emptyItemJson = Json.obj(
     "profile" -> Json.obj(),
@@ -35,20 +37,29 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
   val defaultFailure = generalError("Default failure")
 
+  val defaultOrgAndOpts = mockOrgAndOpts()
+
   private[ItemHooksTest] abstract class baseContext[ERR, RES](
     val itemId: String = ObjectId.get.toString,
-    val authResult: Validation[V2Error, Item] = Failure(defaultFailure)) extends Scope {
+    val authResult: Validation[V2Error, Item] = Failure(defaultFailure),
+    val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(defaultOrgAndOpts)) extends Scope {
 
-    lazy val vid = VersionedId(new ObjectId(itemId))
-
-    lazy val itemTransformer = mock[ItemTransformer]
+    lazy val itemTransformer = {
+      val m = mock[ItemTransformer]
+      m.transformToV2Json(any[Item]) returns Json.obj("transformed-item" -> true)
+      m
+    }
 
     lazy val itemAuth: ItemAuth[OrgAndOpts] = {
       val m = mock[ItemAuth[OrgAndOpts]]
       m.loadForRead(anyString)(any[OrgAndOpts]) returns authResult
       m.loadForWrite(anyString)(any[OrgAndOpts]) returns authResult
       m.canCreateInCollection(anyString)(any[OrgAndOpts]) returns authResult.map { i => true }
-      m.insert(any[Item])(any[OrgAndOpts]) returns Some(vid)
+      m.insert(any[Item])(any[OrgAndOpts]) returns {
+        if (ObjectId.isValid(itemId)) {
+          Some(VersionedId(new ObjectId(itemId)))
+        } else None
+      }
       m
     }
 
@@ -59,11 +70,18 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
       m
     }
 
-    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = authResult.map(_ => OrgAndOpts(org, PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None))
+    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = {
+      orgAndOptsResult
+    }
 
     val itemService = mock[ItemService]
 
-    lazy val hooks = new ItemHooks(itemTransformer, itemAuth, itemService, getOrgAndOptions, ExecutionContext.global)
+    lazy val hooks = new ItemHooks(
+      itemTransformer,
+      itemAuth,
+      itemService,
+      getOrgAndOptions,
+      containerExecutionContext)
   }
 
   class loadContext(
@@ -79,7 +97,6 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
   case class returnStatusMessage[D](expectedStatus: Int, body: String) extends Matcher[Either[(Int, String), D]] {
     def apply[S <: Either[(Int, String), D]](s: Expectable[S]) = {
 
-      println(s" --> ${s.value}")
       def callResult(success: Boolean) = result(success, s"${s.value} matches $expectedStatus & $body", s"${s.value} doesn't match $expectedStatus & $body", s)
       s.value match {
         case Left((code, msg)) => callResult(code == expectedStatus && msg == body)
@@ -113,7 +130,8 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     "return an item" in new loadContext(
       authResult = Success(Item(collectionId = ObjectId.get.toString))) {
-      result must equalTo(Right(Json.parse("""{"profile":{},"components":{},"xhtml":"<div/>","summaryFeedback":""}"""))).await
+      result must equalTo(Right(Json.obj("transformed-item" -> true))).await
+      there was one(itemTransformer).transformToV2Json(any[Item])
     }
   }
 
@@ -143,7 +161,7 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     val orgAndOptsForSpec = mockOrgAndOpts(AuthMode.AccessToken)
 
-    class baseScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
+    class baseScope(override val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
       extends baseContext with withMockCollection {
 
       def orgAndOptsErr = orgAndOptsResult.toEither.left.get
@@ -152,14 +170,15 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     }
 
+    lazy val vid = VersionedId(ObjectId.get)
+
     class saveScope(
       fn: ItemHooks => String => Future[Either[(Int, String), JsValue]],
-      expectedSet: DBObject) extends baseScope {
+      val expectedSet: DBObject) extends baseScope {
       val expectedQuery = MongoDBObject("_id._id" -> vid.id)
-      waitFor(fn(hooks)(vid.toString))
-      val (q, u) = captureUpdate
-      q.value === MongoDBObject("_id._id" -> vid.id)
-      u.value === expectedSet
+      itemService.saveUsingDbo(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) returns true
+      val r = waitFor(fn(hooks)(vid.toString))
+      there was one(itemService).saveUsingDbo(vid, MongoDBObject("$set" -> expectedSet), false)
     }
 
     "save returns orgAndOpts error" in new baseScope(Failure(TestError("org-and-opts"))) {
@@ -179,12 +198,14 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
     }
 
     "save returns json" in new baseScope() {
-      hooks.saveXhtml(vid.toString, "new-xhtml") must equalTo(Right(Json.obj("xhtml" -> "new-xhtml")))
+      itemService.saveUsingDbo(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) returns true
+      hooks.saveXhtml(vid.toString, "new-xhtml") must equalTo(Right(Json.obj("xhtml" -> "new-xhtml"))).await
     }
 
     "saveXhtml calls MongoCollection.update" in new saveScope(
       ih => ih.saveXhtml(_, "update"),
-      MongoDBObject("playerDefinition.xhtml" -> "update"))
+      MongoDBObject("playerDefinition.xhtml" -> "update")) {
+    }
 
     "saveCollectionId calls MongoCollection.update" in new saveScope(
       h => h.saveCollectionId(_, "new-id"),

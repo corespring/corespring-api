@@ -31,6 +31,8 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
   val vid = VersionedId(ObjectId.get, Some(0))
 
+  implicit val ec = containerExecutionContext
+
   private class scope(
     val transformResult: JsValue = Json.obj(),
     val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOptsForSpecs)) extends Scope {
@@ -69,7 +71,11 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       m
     }
 
-    lazy val itemTransformer = mock[ItemTransformer]
+    lazy val itemTransformer = {
+      val m = mock[ItemTransformer]
+      m.transformToV2Json(any[Item]) returns transformResult
+      m
+    }
 
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOpts
 
@@ -79,7 +85,8 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
       Bucket("bucket"),
       itemAuth,
       itemService,
-      getOrgAndOptions)
+      getOrgAndOptions,
+      containerExecutionContext)
   }
 
   "load" should {

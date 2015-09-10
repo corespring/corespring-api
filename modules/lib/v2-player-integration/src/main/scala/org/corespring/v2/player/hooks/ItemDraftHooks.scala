@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
@@ -15,6 +16,7 @@ import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json, _ }
 import play.api.mvc.RequestHeader
@@ -36,8 +38,7 @@ class ItemDraftHooks(
   transformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  /** super.ec is being attached to Play.current somehow. remove the super.ec */
-  override implicit val ec: ExecutionContext)
+  override implicit val ec: ContainerExecutionContext)
   extends containerHooks.DraftHooks
   with LoadOrgAndOptions
   with DraftHelper

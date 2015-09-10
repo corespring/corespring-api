@@ -45,7 +45,12 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
 
     lazy val itemService: ItemService = mock[ItemService]
 
-    lazy val hooks = new SessionHooks(sessionAuth, itemService, jsonFormatting, getOrgAndOptions)
+    lazy val hooks = new SessionHooks(
+      sessionAuth,
+      itemService,
+      jsonFormatting,
+      getOrgAndOptions,
+      containerExecutionContext)
 
   }
 

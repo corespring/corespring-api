@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ DraftEditorHooks => ContainerDraftEditorHooks, UploadResult }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.drafts.item.{ MakeDraftId, S3Paths, ItemDrafts }
 import org.corespring.drafts.item.models.{ ItemDraft, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.models.appConfig.Bucket
@@ -26,7 +27,8 @@ class DraftEditorHooks(
   playS3: S3Service,
   awsConfig: Bucket,
   backend: ItemDrafts,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext)
   extends ContainerDraftEditorHooks
   with LoadOrgAndOptions
   with DraftHelper
@@ -49,7 +51,7 @@ class DraftEditorHooks(
     identity <- getOrgAndUser(header)
     draftId <- mkDraftId(identity, id).leftMap { e => generalError(e.msg) }
     //Note: for now we ignore conflicts
-    d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap { e => generalError(e.msg) }
+    d <- backend.loadOrCreate(identity)(draftId, ignoreConflict = true).leftMap(e => generalError(e.msg))
   } yield d
 
   override def load(id: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {

@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -11,12 +12,13 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz._
 
@@ -33,7 +35,8 @@ class PlayerHooks(
   auth: SessionAuth[OrgAndOpts, PlayerDefinition],
   jsonFormatting: JsonFormatting,
   playerAssets: PlayerAssets,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerPlayerHooks with LoadOrgAndOptions {
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext) extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
 

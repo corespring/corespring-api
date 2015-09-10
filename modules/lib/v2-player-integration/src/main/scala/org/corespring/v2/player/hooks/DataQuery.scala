@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.{ DataQueryHooks => ContainerDataQueryHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.QueryService
@@ -16,7 +17,8 @@ class DataQueryHooks(
   subjectQueryService: QueryService[Subject],
   standardQueryService: QueryService[Standard],
   standardsTree: StandardsTree,
-  jsonFormatting: JsonFormatting) extends ContainerDataQueryHooks {
+  jsonFormatting: JsonFormatting,
+  override implicit val ec: ContainerExecutionContext) extends ContainerDataQueryHooks {
 
   lazy val logger = Logger(classOf[DataQueryHooks])
 

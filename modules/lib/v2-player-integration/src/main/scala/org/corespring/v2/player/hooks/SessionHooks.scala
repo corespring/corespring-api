@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.item.{ PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.item.ItemService
@@ -19,7 +20,8 @@ import scalaz.Validation
 class SessionHooks(auth: SessionAuth[OrgAndOpts, PlayerDefinition],
   itemService: ItemService,
   jsonFormatting: JsonFormatting,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext)
   extends ContainerSessionHooks
   with LoadOrgAndOptions {
 

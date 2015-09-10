@@ -50,7 +50,14 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
     def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
 
-    val hooks = new PlayerHooks(itemService, itemTransformer, sessionAuth, jsonFormatting, playerAssets, getOrgAndOptions)
+    val hooks = new PlayerHooks(
+      itemService,
+      itemTransformer,
+      sessionAuth,
+      jsonFormatting,
+      playerAssets,
+      getOrgAndOptions,
+      containerExecutionContext)
 
   }
 

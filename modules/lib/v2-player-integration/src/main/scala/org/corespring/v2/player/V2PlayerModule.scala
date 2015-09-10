@@ -2,7 +2,7 @@ package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
 import org.corespring.container.client.{ VersionInfo }
-import org.corespring.container.client.integration.DefaultIntegration
+import org.corespring.container.client.integration.{ ContainerExecutionContext, DefaultIntegration }
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.drafts.item.ItemDrafts
@@ -23,15 +23,24 @@ import play.api.Mode.Mode
 import play.api.libs.json.JsObject
 import play.api.mvc.RequestHeader
 
+import scala.concurrent.ExecutionContext
 import scalaz.Validation
 
 case class AllComponents(components: Seq[Component])
+
+class V2PlayerExecutionContext(underlying: ExecutionContext) extends ExecutionContext {
+  override def execute(runnable: Runnable): Unit = underlying.execute(runnable)
+
+  override def reportFailure(t: Throwable): Unit = underlying.reportFailure(t)
+}
 
 trait V2PlayerModule extends DefaultIntegration {
 
   import com.softwaremill.macwire.MacwireMacros._
 
   def playMode: Mode
+
+  def containerExecutionContext: ContainerExecutionContext
 
   def itemService: ItemService
   def orgService: OrganizationService

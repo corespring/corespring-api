@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.{ ItemEditorHooks => ContainerItemEditorHooks, UploadResult }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.drafts.item.S3Paths
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
@@ -28,7 +29,8 @@ class ItemEditorHooks(
   awsConfig: Bucket,
   itemAuth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext)
   extends ContainerItemEditorHooks
   with LoadOrgAndOptions {
 

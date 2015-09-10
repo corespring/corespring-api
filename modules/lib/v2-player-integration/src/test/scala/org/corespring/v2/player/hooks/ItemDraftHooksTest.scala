@@ -7,24 +7,21 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
-import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scalaz.{ Success, Validation }
 
 class ItemDraftHooksTest
-  extends Specification
-  with Mockito
-  with MockFactory {
+  extends V2PlayerIntegrationSpec {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  implicit val ec = containerExecutionContext
 
   private class scope extends Scope {
 
@@ -47,7 +44,7 @@ class ItemDraftHooksTest
       transformer,
       jsonFormatting,
       getOrgAndOptions,
-      ExecutionContext.global) {
+      containerExecutionContext) {
 
       override protected def update(draftId: String,
         json: JsValue,

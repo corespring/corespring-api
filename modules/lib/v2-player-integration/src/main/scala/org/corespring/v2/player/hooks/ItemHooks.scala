@@ -4,6 +4,7 @@ import com.mongodb.DBObject
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
@@ -13,6 +14,7 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
@@ -32,7 +34,7 @@ class ItemHooks(
   auth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ExecutionContext)
+  override implicit val ec: ContainerExecutionContext)
   extends containerHooks.ItemHooks
   with LoadOrgAndOptions {
 
@@ -61,10 +63,10 @@ class ItemHooks(
 
   private def updateDb[A](id: String, dbKey: String, data: A, returnKey: Option[String] = None)(implicit h: RequestHeader, w: Writes[A]): Either[(Int, String), JsValue] = {
 
-    def update(vid: VersionedId[ObjectId], dbo: DBObject) = {
+    def update(vid: VersionedId[ObjectId], dbo: DBObject): Validation[V2Error, Boolean] = {
       val ok = itemService.saveUsingDbo(vid, MongoDBObject("$set" -> dbo), false)
       logger.debug(s"function=updateDb saveOk=$ok")
-      require(ok)
+      if (ok) Success(ok) else Failure(generalError(s"failed to update item $id with $dbo"))
     }
 
     import com.mongodb.util.JSON
@@ -74,7 +76,7 @@ class ItemHooks(
       identity <- getOrgAndOptions(h)
       vid <- VersionedId(id).toSuccess(cantParseItemId(id))
       canWrite <- auth.canWrite(id)(identity)
-      _ <- if (canWrite) Success(update(vid, dbo)) else Failure(generalError(s"Can't save to item $id"))
+      _ <- if (canWrite) update(vid, dbo) else Failure(generalError(s"Can't write to this item: $id"))
     } yield {
       val outKey = returnKey.getOrElse(dbKey)
       JsObject(Seq(outKey -> w.writes(data)))

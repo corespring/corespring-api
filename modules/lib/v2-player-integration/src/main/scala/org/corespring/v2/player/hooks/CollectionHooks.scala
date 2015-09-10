@@ -2,6 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, ContentCollection }
 import org.corespring.services.ContentCollectionService
@@ -21,7 +22,8 @@ import scalaz.{ Failure, Success, Validation }
 
 class CollectionHooks(
   colService: ContentCollectionService,
-  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends ContainerCollectionHooks with LoadOrgAndOptions {
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val ec: ContainerExecutionContext) extends ContainerCollectionHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[CollectionHooks])
 

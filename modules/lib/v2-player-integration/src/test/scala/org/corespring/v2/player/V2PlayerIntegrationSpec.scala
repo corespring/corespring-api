@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.drafts.errors.GeneralError
 import org.corespring.models.item.FieldValue
 import org.corespring.models.{ Standard, Subject }
@@ -19,7 +20,7 @@ private[player] class V2PlayerIntegrationSpec extends Specification with Mockito
 
   implicit val fakeRequest = FakeRequest("", "")
 
-  implicit val executionContext = ExecutionContext.global
+  val containerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 
   def waitFor[A](f: Future[A]) = Await.result(f, 1.second)
 

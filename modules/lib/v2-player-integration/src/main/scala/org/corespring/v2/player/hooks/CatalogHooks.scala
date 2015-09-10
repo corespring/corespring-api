@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogHooks }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -26,7 +27,8 @@ class CatalogHooks(
   transformer: ItemTransformer,
   auth: ItemAuth[OrgAndOpts],
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  catalogAssets: CatalogAssets) extends ContainerCatalogHooks with LoadOrgAndOptions {
+  catalogAssets: CatalogAssets,
+  override implicit val ec: ContainerExecutionContext) extends ContainerCatalogHooks with LoadOrgAndOptions {
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 

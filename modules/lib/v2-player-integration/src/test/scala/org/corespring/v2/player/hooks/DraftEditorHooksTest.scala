@@ -23,27 +23,24 @@ import scalaz.{ Failure, Success, Validation }
 
 class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
 
+  implicit val ec = containerExecutionContext
+
   val item = Item(collectionId = ObjectId.get.toString)
   val orgId = ObjectId.get
 
-  class scope(
-    val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))) extends Scope {
+  trait scope extends Scope {
+    lazy val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))
 
     val itemId = ObjectId.get
-
-    def transform: (Item) => JsValue = i => Json.obj()
 
     val playS3 = {
       val m = mock[S3Service]
       m
     }
 
-    val itemDrafts = {
+    lazy val itemDrafts = {
       val m = mock[ItemDrafts]
-      m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns {
-        val loadOrCreateResult: Validation[DraftError, ItemDraft] = Failure(DraftTestError("load or create"))
-        loadOrCreateResult
-      }
+      m.loadOrCreate(any[OrgAndUser])(any[DraftId], any[Boolean]) returns loadOrCreateResult
       m
     }
 
@@ -65,7 +62,8 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       playS3,
       Bucket("bucket"),
       itemDrafts,
-      getOrgAndOptions)
+      getOrgAndOptions,
+      containerExecutionContext)
 
     def orgAndUser(oo: OrgAndOpts) = {
       OrgAndUser(SimpleOrg.fromOrganization(oo.org), oo.user.map(SimpleUser.fromUser))
@@ -74,19 +72,14 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
 
   "load" should {
     "call loadOrCreate" in new scope {
+      override lazy val loadOrCreateResult = Success(ItemDraft(draftId, item, ou))
       val ou = orgAndUser(orgAndOpts.toOption.get)
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
-      override val loadOrCreateResult: Validation[DraftError, ItemDraft] = Success(ItemDraft(draftId, item, ou))
 
       val f = hooks.load(s"$itemId:0")(FakeRequest("", ""))
-      val r = waitFor(f)
 
-      r match {
-        case Left((code, msg)) => failure(s"got: $msg")
-        case Right(json) => {
-          there was one(itemDrafts).loadOrCreate(ou)(draftId, true)
-        }
-      }
+      f.map(_.isRight) must equalTo(true).await
+      there was one(itemDrafts).loadOrCreate(ou)(draftId, true)
     }
   }
 
