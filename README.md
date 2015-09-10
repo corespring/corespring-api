@@ -205,7 +205,7 @@ https://docs.newrelic.com/docs/agents/java-agent/instrumentation/page-load-timin
 [Docker Information](docker/README.md)
 
 
-### Running Localy
+### Running Locally
 
 If you want to run the API on local environment for the first time start the **play console**:
 

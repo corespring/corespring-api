@@ -110,7 +110,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     mocks.logger = {
       info: function(){},
-      log: function(){}
+      debug: function(){}
     };
 
     jQueryFunctions = {
@@ -396,7 +396,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
             draftName: jasmine.any(String),
             devEditor: showEditorFn === 'showDevEditor',
             onItemChanged: scope.onItemChanged,
-            autosizeEnabled: false
+            autosizeEnabled: false,
+            hideSaveButton: true
           },
           jasmine.any(Function));
       };
