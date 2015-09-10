@@ -33,6 +33,7 @@ object Build extends sbt.Build {
   /** Any shared test helpers in here */
   lazy val testLib = builders.testLib("test-helpers")
     .settings(libraryDependencies ++= Seq(specs2 % "test->compile", playFramework, playTest, salatPlay))
+    .dependsOn(apiUtils)
 
   lazy val assets = builders.lib("assets")
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))

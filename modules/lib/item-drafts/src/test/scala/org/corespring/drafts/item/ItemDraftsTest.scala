@@ -2,25 +2,24 @@ package org.corespring.drafts.item
 
 import com.mongodb.CommandResult
 import com.mongodb.casbah.Imports._
-import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ ItemDraftDbUtils, ItemDraftService, CommitService }
+import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.resource.{ StoredFile, Resource }
 import org.corespring.models.item._
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.salat.config.SalatContext
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
-import org.corespring.test.fakes.Fakes
+import org.corespring.test.fakes.Fakes.withMockCollection
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{ Validation, Success, Failure }
+import scalaz.{ Failure, Success, Validation }
 
 class ItemDraftsTest extends Specification with Mockito {
 
@@ -105,64 +104,7 @@ class ItemDraftsTest extends Specification with Mockito {
     lazy val itemDrafts = mkDrafts()
 
   }
-  /*trait MockItemDrafts extends ItemDrafts {
 
-    val mockItemService = {
-      val m = mock[ItemService]
-      m.save(any[Item], any[Boolean]).answers {
-        (obj, mock) =>
-          val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
-          val createNewVersion = arr(1).asInstanceOf[Boolean]
-          println(s"createNewVersion: $createNewVersion")
-          Right(if (createNewVersion) bump(itemId) else itemId)
-      }
-      m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
-      m.isPublished(any[VersionedId[ObjectId]]) returns false
-      m
-    }
-
-    val mockDraftService = {
-      val m = mock[ItemDraftService]
-      m.save(any[ItemDraft]) returns mockWriteResult()
-      m.owns(any[OrgAndUser], any[DraftId]) returns true
-      m
-    }
-
-    val mockAssets = {
-      val m = mock[ItemDraftAssets]
-      m.copyDraftToItem(any[DraftId], any[VersionedId[ObjectId]]).answers { (obj, mock) =>
-        val arr = obj.asInstanceOf[Array[Any]]
-        val d = arr(1).asInstanceOf[VersionedId[ObjectId]]
-        Success(d)
-      }
-      m.copyItemToDraft(any[VersionedId[ObjectId]], any[DraftId]).answers { (obj, mock) =>
-        val arr = obj.asInstanceOf[Array[Any]]
-        val d = arr(1).asInstanceOf[DraftId]
-        Success(d)
-      }
-      m.deleteDraft(any[DraftId]) returns Success()
-      m
-    }
-    val mockCommitService = {
-      val m = mock[CommitService]
-      m.save(any[ItemCommit]) returns mockWriteResult()
-      m
-    }
-
-    val itemService = mockItemService
-
-    /** Check that the user may create the draft for the given src id */
-    override protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = true
-    override protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = true
-
-    val draftService: ItemDraftService = mockDraftService
-
-    val assets: ItemDraftAssets = mockAssets
-
-    val commitService: CommitService = mockCommitService
-
-  }
-  */
   def mkItem(isPublished: Boolean) = Item(id = itemId, collectionId = collectionId.toString, published = isPublished)
   def mkItemWithXhtml(xhtml: String) = item.copy(playerDefinition = Some(PlayerDefinition(xhtml)))
   def mkDraft(u: OrgAndUser, parent: Item = item, change: Item = item) = {
@@ -493,8 +435,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "addFileToChangeSet" should {
 
-      class __(n: Int = 1) extends Scope with MockItemDrafts {
-        val mockCollection = new Fakes.MongoCollection(n)
+      class __(n: Int = 1) extends Scope with MockItemDrafts with withMockCollection {
         draftService.collection returns mockCollection
       }
 
@@ -503,10 +444,11 @@ class ItemDraftsTest extends Specification with Mockito {
         val file = StoredFile("test.png", "image/png", false)
         itemDrafts.addFileToChangeSet(draft, file)
         val expectedQuery = itemDrafts.utils.idToDbo(draft.id)
-        mockCollection.queryObj === expectedQuery
+        val (q, u) = captureUpdate
+        q.value === expectedQuery
         val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
         val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
-        mockCollection.updateObj === expectedUpdate
+        u.value === expectedUpdate
       }
     }
   }

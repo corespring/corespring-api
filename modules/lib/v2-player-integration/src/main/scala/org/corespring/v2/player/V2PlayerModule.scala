@@ -40,8 +40,6 @@ trait V2PlayerModule extends DefaultIntegration {
 
   def playMode: Mode
 
-  def containerExecutionContext: ContainerExecutionContext
-
   def itemService: ItemService
   def orgService: OrganizationService
   def subjectService: SubjectService

@@ -7,27 +7,29 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.transfer.TransferManager
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
-import org.corespring.json.validation.JsonValidator
+import org.corespring.json.validation.ItemValidator
 import org.corespring.models.item._
-import org.corespring.models.item.resource.{ Resource, StoredFile, BaseFile }
+import org.corespring.models.item.resource.{ BaseFile, Resource, StoredFile }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
 import play.api.libs.json._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
-import scalaz.{ Success, Failure, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 trait ItemFileConverter {
+
+  def readFile(path: String): Option[String]
 
   def uploader: Uploader
   def itemService: ItemService
   def jsonFormatting: JsonFormatting
 
-  val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
+  val S3_UPLOAD_TIMEOUT = 5.minutes
 
   object errors {
     val cannotCreateItem = "There was an error saving the item to the database"
@@ -95,12 +97,14 @@ trait ItemFileConverter {
     }
   }
 
+  val itemValidator = new ItemValidator(readFile)
+
   private def itemJson(implicit sources: Map[String, Source]): Validation[Error, JsValue] = {
     val filename = itemJsonFilename
     try {
       val itemJson = sources.get(filename).map(item => Json.parse(item.mkString))
         .getOrElse(throw new Exception(errors.fileMissing(filename)))
-      JsonValidator.validateItem(itemJson) match {
+      itemValidator.validate(itemJson) match {
         case Left(errorMessages) => Failure(new Error(errorMessages.mkString("\n")))
         case Right(itemJson) => Success(itemJson)
       }

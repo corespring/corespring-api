@@ -1,6 +1,7 @@
 package org.corespring.models.json.item
 
-import org.corespring.models.item.ContributorDetails
+import org.corespring.models.item.{ ContributorDetails, FieldValue }
+import org.corespring.models.json.UnacceptableJsonValueException
 import org.corespring.models.{ item => model }
 import play.api.libs.json._
 
@@ -9,6 +10,8 @@ trait ContributorDetailsFormat extends Format[model.ContributorDetails] {
   implicit def ac: Format[model.AdditionalCopyright]
 
   implicit def c: Format[model.Copyright]
+
+  def fieldValue: FieldValue
 
   object Keys {
     val additionalCopyrights = "additionalCopyrights"
@@ -31,10 +34,13 @@ trait ContributorDetailsFormat extends Format[model.ContributorDetails] {
       copyright = json.asOpt[model.Copyright],
       sourceUrl = (json \ Keys.sourceUrl).asOpt[String],
       licenseType = (json \ Keys.licenseType).asOpt[String],
-      credentials = None,
-      //TODO: RF: Hook in static data resource here...
-      //credentials = (json \ Keys.credentials).asOpt[String].
-      //  map(v => if (fieldValues.credentials.exists(_.key == v)) v else throw new JsonValidationException(credentials)),
+      credentials = (json \ Keys.credentials).asOpt[String].map { v =>
+        if (fieldValue.credentials.exists(_.key == v)) {
+          v
+        } else {
+          throw new UnacceptableJsonValueException(Keys.credentials, v, fieldValue.credentials.map(_.key))
+        }
+      },
       credentialsOther = (json \ Keys.credentialsOther).asOpt[String]))
   }
 

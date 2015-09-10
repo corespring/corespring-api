@@ -10,7 +10,8 @@ import java.io.File
  * Utility to ensure only one instance of FakeApplication is started for tests
  */
 object PlaySingleton {
-  def start() : Unit = {
+  @deprecated("do you really need a play app running? if so use FakeApplication", "core-refactor")
+  def start(): Unit = {
     Play.maybeApplication match {
       case Some(fakeApp) => Unit
       case None => {
@@ -23,7 +24,7 @@ object PlaySingleton {
     }
   }
 
-  def stop() : Unit = {
+  def stop(): Unit = {
     Play.maybeApplication match {
       case Some(fakeApp) => {
         Play.stop()

@@ -1,7 +1,8 @@
-package org.corespring.test.utils
+package org.corespring.test
 
-import org.specs2.mutable.Specification
+import org.corespring.common.json.JsonCompare
 import org.specs2.execute.Result
+import org.specs2.mutable.Specification
 
 trait JsonAssertions extends Specification {
 

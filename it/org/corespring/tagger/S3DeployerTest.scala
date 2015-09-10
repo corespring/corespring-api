@@ -1,24 +1,18 @@
-package org.corespring.web.common.controllers.deployment
+package org.corespring.tagger
+
+import java.io._
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.model.SetBucketPolicyRequest
 import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.ee.assets.deployment.ContentInfo
-import com.typesafe.config.ConfigFactory
-import java.io._
 import org.apache.commons.io.FileUtils
-import org.corespring.test.PlaySingleton
-import org.specs2.mutable.{ Before, Specification }
+import org.corespring.it.IntegrationSpecification
+import org.corespring.web.common.controllers.deployment.S3Deployer
+import org.specs2.mutable.Before
 import play.api.Play
-import scala.Left
-import scala.Right
-import scala.Some
 
-class S3DeployerTest extends Specification {
-
-  PlaySingleton.start()
-
-  sequential
+class S3DeployerTest extends IntegrationSpecification {
 
   lazy val client: AmazonS3Client = new AmazonS3Client(new AWSCredentials {
     def getAWSAccessKeyId: String = Play.current.configuration.getString("AMAZON_ACCESS_KEY").getOrElse("?")
@@ -32,8 +26,6 @@ class S3DeployerTest extends Specification {
 
     "deploy files" in new RemoveFileBefore(null, bucket, "test/tests/files/one.js") {
       true === true
-
-      import play.api.Play.current
 
       val file = Play.getFile(path)
       val source: String = FileUtils.readFileToString(file)
@@ -52,8 +44,6 @@ class S3DeployerTest extends Specification {
     }.pendingUntilFixed("broken?")
 
     "deploy gz file" in new RemoveFileBefore(null, bucket, "test/tests/files/cs-common.min.gz.js") {
-
-      import play.api.Play.current
 
       val file = Play.getFile(path)
 

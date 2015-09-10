@@ -7,6 +7,8 @@ import play.api.libs.json.Json
 
 class PlayerJsonToItemTest extends Specification {
 
+  val defaultCollectionId = ObjectId.get
+
   "PlayerJson => Item" should {
 
     "work for profile " in {
@@ -55,7 +57,7 @@ class PlayerJsonToItemTest extends Specification {
           "keySkills" -> Json.arr("KS1", "KS2"),
           "depthOfKnowledge" -> "DOK"))
 
-      val item = Item()
+      val item = Item(collectionId = defaultCollectionId.toString)
       val update = PlayerJsonToItem.profile(item, json)
 
       update.standards === Seq("ST1", "ST2")
@@ -112,7 +114,7 @@ class PlayerJsonToItemTest extends Specification {
         """.stripMargin
 
       val json = Json.parse(jsonString)
-      val item = Item()
+      val item = Item(collectionId = defaultCollectionId.toString)
       val update = PlayerJsonToItem.playerDef(item, json)
 
       update.playerDefinition.get.xhtml === "<div/>"

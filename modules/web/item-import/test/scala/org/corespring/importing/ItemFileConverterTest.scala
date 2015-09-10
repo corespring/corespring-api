@@ -1,23 +1,22 @@
 package org.corespring.importing
 
+import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
-import org.corespring.models.Organization
-import org.corespring.models.item.Item
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ StringKeyValue, FieldValue, Item }
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.models.{ OrgAndOpts, _ }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import org.corespring.platform.data.mongo.models.VersionedId
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.io.Source
 import scalaz.Success
 
 class ItemFileConverterTest extends Specification with Mockito {
-
-  PlaySingleton.start()
 
   val collectionId = "543edd2fa399191672bedea9"
 
@@ -26,6 +25,13 @@ class ItemFileConverterTest extends Specification with Mockito {
   val storageKey = "storageKey"
 
   val files = Seq("dot array.png")
+
+  private def toKeyValue(s: String) = StringKeyValue(s, s)
+
+  val fieldValue = FieldValue(
+    bloomsTaxonomy = Seq(otherAlignments.bloomsTaxonomy).map(toKeyValue),
+    credentials = Seq(contributorDetails.credentials).map(toKeyValue),
+    gradeLevels = Seq("03").map(toKeyValue))
 
   object contributorDetails {
     val author = "State of New Jersey Department of Education"
@@ -198,8 +204,9 @@ class ItemFileConverterTest extends Specification with Mockito {
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
       def itemService: ItemService = {
+        import org.mockito.{ Matchers => MockitoMatchers }
         val service = mock[ItemService]
-        service.insert(_root_.org.mockito.Matchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
+        service.insert(MockitoMatchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
         service
       }
       def uploader = new Uploader {
@@ -207,8 +214,33 @@ class ItemFileConverterTest extends Specification with Mockito {
           StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
         }
       }
+
+      val defaultRootOrgId = ObjectId.get()
+
+      override def jsonFormatting: JsonFormatting = new JsonFormatting {
+
+        override def fieldValue: FieldValue = ItemFileConverterTest.this.fieldValue
+
+        override def findStandardByDotNotation: (String) => Option[Standard] = s => None
+
+        override def countItemsInCollection(collectionId: ObjectId): Long = 0
+
+        override def rootOrgId: ObjectId = defaultRootOrgId
+
+        override def findSubjectById: (ObjectId) => Option[Subject] = id => None
+      }
+
+      override def readFile(path: String): Option[String] = {
+        val root = this.getClass.getResource("/schema")
+        println(s"root: $root")
+        val url = this.getClass.getResource(s"/$path")
+        require(url != null)
+        println(s"--> url: $url")
+        Some(IOUtils.toString(url))
+      }
     }
-    val result = itemFileConverter.convert(collectionId)(sources)
+
+    lazy val result = itemFileConverter.convert(collectionId)(sources)
 
     "create Item from local files" in {
       result must beAnInstanceOf[Success[Error, Item]]
@@ -218,8 +250,8 @@ class ItemFileConverterTest extends Specification with Mockito {
 
       val item: Item = result.asInstanceOf[Success[Error, Item]].getOrElse(throw new Exception("no item"))
 
-      "have correct collectionId" in { item.collectionId must be equalTo (Some(collectionId)) }
-      "have item as contentType" in { item.contentType must be equalTo (Item.contentType) }
+      "have correct collectionId" in { item.collectionId must be equalTo collectionId }
+      "have item as contentType" in { item.contentType must be equalTo Item.contentType }
 
       "contributorDetails" should {
         val itemContributorDetails = item.contributorDetails.getOrElse(throw new Exception("contributorDetails missing"))

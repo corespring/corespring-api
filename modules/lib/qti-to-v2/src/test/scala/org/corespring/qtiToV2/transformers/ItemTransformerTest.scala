@@ -1,36 +1,58 @@
 package org.corespring.qtiToV2.transformers
 
-import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.ModelCompanion
 import org.bson.types.ObjectId
-import org.corespring.models.ContentCollection
+import org.corespring.models.{ ContentCollection, Standard, Subject }
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
+import org.corespring.services.item.BaseFindAndSaveService
+import org.corespring.services.{ ContentCollectionService, StandardService }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import play.api.Configuration
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{ JsObject, Json }
 
 class ItemTransformerTest extends Specification with Mockito {
 
-  PlaySingleton.start()
-
-  val itemServiceMock = mock[ItemService]
+  val itemService = mock[BaseFindAndSaveService[Item, VersionedId[ObjectId]]]
 
   val mockCollectionId = ObjectId.get()
 
   var mockCollection: Option[ContentCollection] = Some(new ContentCollection("Collection name", ownerOrgId = ObjectId.get(), id = mockCollectionId))
 
-  val itemTransformer = new ItemTransformer {
-    def itemService = itemServiceMock
-
-    override def configuration: Configuration = Configuration.empty
-
-    override def findCollection(id: ObjectId): Option[ContentCollection] = mockCollection
+  val contentCollectionService = {
+    val m = mock[ContentCollectionService]
+    m.findOneById(any[ObjectId]) returns mockCollection
+    m
   }
+
+  val standardService = {
+    val m = mock[StandardService]
+    m
+  }
+
+  val defaultRootOrgId = ObjectId.get
+
+  val jsonFormatting = new JsonFormatting {
+    override def fieldValue: FieldValue = FieldValue()
+
+    override def findStandardByDotNotation: (String) => Option[Standard] = s => None
+
+    override def countItemsInCollection(collectionId: ObjectId): Long = 0
+
+    override def rootOrgId: ObjectId = defaultRootOrgId
+
+    override def findSubjectById: (ObjectId) => Option[Subject] = id => None
+  }
+
+  val config = new ItemTransformerConfig(false)
+
+  val itemTransformer = new ItemTransformer(
+    itemService,
+    contentCollectionService,
+    standardService,
+    jsonFormatting,
+    config)
 
   val qti =
     <assessmentItem>
@@ -76,7 +98,7 @@ class ItemTransformerTest extends Specification with Mockito {
 
       val item = Item(
         id = itemId,
-        collectionId = Some(mockCollectionId.toString),
+        collectionId = mockCollectionId.toString,
         lexile = Some("30"),
         reviewsPassed = Seq("RP1", "RP2"),
         reviewsPassedOther = Some("RPO"),
@@ -145,7 +167,7 @@ class ItemTransformerTest extends Specification with Mockito {
       (json \ "profile" \ "otherAlignments" \ "keySkills").as[Seq[String]] === Seq("KS1", "KS2")
       (json \ "profile" \ "otherAlignments" \ "depthOfKnowledge").asOpt[String] === Some("DOK")
 
-      mockCollection = None
+      //mockCollection = None
       json = itemTransformer.transformToV2Json(item)
       (json \ "collection").asOpt[JsObject] must beSome[JsObject]
     }

@@ -1,22 +1,17 @@
 package org.corespring.api.v1
 
+import _root_.org.corespring.legacy.BaseTest
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ Organization, ContentCollection }
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.test.BaseTest
-import org.corespring.test.helpers.models._
+import org.corespring.models.{ ContentCollection, Organization }
 import org.specs2.mutable.BeforeAfter
-import play.api.libs.json.{ JsNumber, Json, JsValue }
+import play.api.libs.json.{ JsNumber, JsValue, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
-import play.api.test._
+import play.api.test.{ FakeHeaders, _ }
+
 import scala._
-import scala.Some
-import play.api.libs.json.JsNumber
-import play.api.test.FakeHeaders
-import play.api.mvc.AnyContentAsJson
 
 @deprecated("Move the assertions to CollectionApiIntegrationTest (Work in progress)", "")
 class CollectionApiTest extends BaseTest {

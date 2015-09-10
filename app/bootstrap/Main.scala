@@ -7,6 +7,7 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
 import org.corespring.ap.v1.V1ApiModule
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.legacy.ServiceLookup
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
@@ -212,9 +213,10 @@ object Main
     StandardsTree(json)
   }
 
-  override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
-
   override def playMode: PlayMode = Play.current.mode
 
   override def appConfig: AppConfig = AppConfig
+
+  override def ec: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
+
 }

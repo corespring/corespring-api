@@ -42,11 +42,22 @@ GET  /items                                @org.corespring.v2.api.ItemApi.search
 
 POST /launch-item                          @org.corespring.v2.api.ExternalModelLaunchApi.buildExternalLaunchSession()
 
-GET  /collections/:collectionId/items      @org.corespring.v2.api.ItemApi.searchByCollectionId(collectionId:ObjectId, q: Option[String] ?= None)
 
-GET  /collections/:collectionId            @org.corespring.v2.api.CollectionApi.getCollection(collectionId: ObjectId)
+# Collections
+GET  /collections                                       @org.corespring.v2.api.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c : Boolean ?= false, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+GET  /collections/:collectionId                         @org.corespring.v2.api.CollectionApi.getCollection(collectionId: ObjectId)
+GET  /collections/:collectionId/items                   @org.corespring.v2.api.ItemApi.searchByCollectionId(collectionId:ObjectId, q: Option[String] ?= None)
+# V1 Api collections port
+GET     /organizations/:orgId/collections               @org.corespring.api.v2.CollectionApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
+POST    /collections                                    @org.corespring.api.v2.CollectionApi.createCollection
+PUT     /collections/:id                                @org.corespring.api.v2.CollectionApi.updateCollection(id: ObjectId)
+DELETE  /collections/:id                                @org.corespring.api.v2.CollectionApi.deleteCollection(id: ObjectId)
+PUT     /collections/:id/share-items                    @org.corespring.api.v2.CollectionApi.shareItemsWithCollection(id: ObjectId)
+PUT     /collections/:id/un-share-items                 @org.corespring.api.v2.CollectionApi.unShareItemsWithCollection(id: ObjectId)
+PUT     /collections/:id/share-filtered-items           @org.corespring.api.v2.CollectionApi.shareFilteredItemsWithCollection(id: ObjectId, q: Option[String] ?= None)
+PUT     /collections/:id/set-enabled-status/:enabled    @org.corespring.api.v2.CollectionApi.setEnabledStatus(id: ObjectId, enabled: Boolean)
+PUT     /collections/:id/share-with-org/:orgId          @org.corespring.api.v2.CollectionApi.shareCollection(id: ObjectId, orgId: ObjectId)
 
-GET  /collections                          @org.corespring.v2.api.CollectionApi.list(q: Option[String] ?= None, f: Option[String] ?= None, c : Boolean ?= false, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 
 GET  /item-types                           @org.corespring.v2.api.ItemApi.getItemTypes()
 

@@ -1,25 +1,20 @@
 package org.corespring.json.validation
 
-import play.api.Play
-
-import scala.io.Source
-import com.github.fge.jackson.JsonNodeReader
 import java.io.StringReader
-import play.api.libs.json.{JsArray, Json, JsValue}
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+
+import com.github.fge.jackson.JsonNodeReader
 import com.github.fge.jsonschema.core.util.AsJson
+import com.github.fge.jsonschema.main.JsonSchemaFactory
+import play.api.libs.json.{ JsArray, JsValue, Json }
 
-class JsonValidator(schemaFilename: String) {
-
-  import play.api.Play.current
+private[validation] abstract class JsonValidator(schemaFilename: String, readFile: String => Option[String]) {
 
   private val validator = JsonSchemaFactory.byDefault().getValidator()
   private val jsonNodeReader = new JsonNodeReader()
 
   private def schema(filename: String) = {
-    val inputStream = Play.application.resourceAsStream(filename).getOrElse(throw new IllegalArgumentException(s"File $filename not found"))
-    val schemaJson = Source.fromInputStream(inputStream).getLines.mkString
-    jsonNodeReader.fromReader(new StringReader(schemaJson))
+    val schemaString = readFile(filename).getOrElse(throw new IllegalArgumentException(s"File $filename not found"))
+    jsonNodeReader.fromReader(new StringReader(schemaString))
   }
 
   private def json(json: JsValue) = jsonNodeReader.fromReader(new StringReader(json.toString))
@@ -32,22 +27,11 @@ class JsonValidator(schemaFilename: String) {
       case _ => Right(jsValue)
     }
   }
-
 }
 
-object JsonValidator {
+private[corespring] class MetadataValidator(readFile: String => Option[String])
+  extends JsonValidator("schema/metadata-schema.json", readFile)
 
-  // Schema locations
-  private val ITEM_SCHEMA = "item-schema.json"
-  private val METADATA_SCHEMA = "metadata-schema.json"
+private[corespring] class ItemValidator(readFile: String => Option[String])
+  extends JsonValidator("schema/item-schema.json", readFile)
 
-  /**
-   * Returns a Seq[String] representing validation errors found with the JSON according to the provided schema file.
-   * The Seq is empty if there are no validation errors.
-   */
-  private def validate(schemaFilename: String, json: JsValue) = new JsonValidator(schemaFilename).validate(json)
-
-  def validateItem(json: JsValue) = validate(s"schema/$ITEM_SCHEMA", json)
-  def validateMetadata(json: JsValue) = validate(s"schema/$METADATA_SCHEMA", json)
-
-}

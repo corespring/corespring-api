@@ -65,6 +65,8 @@ trait JsonFormatting {
     override implicit def ac: Format[AdditionalCopyright] = JsonFormatting.this.formatAdditionalCopyright
 
     override implicit def c: Format[Copyright] = JsonFormatting.this.formatCopyright
+
+    override def fieldValue: FieldValue = JsonFormatting.this.fieldValue
   }
 
   implicit lazy val writeSubject: Writes[Subject] = SubjectWrites
