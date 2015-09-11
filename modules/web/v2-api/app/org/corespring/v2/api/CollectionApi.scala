@@ -1,17 +1,16 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.commons.TypeImports._
-import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{ ContentCollection, Organization }
+import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.web.api.v1.errors.ApiError
+import play.api.Logger
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc._
@@ -27,7 +26,69 @@ class CollectionApi(
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
+  private lazy val logger = Logger(classOf[CollectionApi])
+
+  private def deprecatedMethod(name: String) = {
+    logger.warn(s"deprecated method called $name")
+  }
+
   import jsonFormatting.writeContentCollection
+
+  def fieldValuesByFrequency(ids: String, field: String) = Action {
+    NotImplemented("Not ready yet!")
+
+    //TODO: move to a service
+    /*
+    val fieldValueMap = Map(
+      "itemType" -> "taskInfo.itemType",
+      "contributor" -> "contributorDetails.contributor")
+
+    def fieldValuesByFrequency(collectionIds: String, fieldName: String) = ApiActionRead { request =>
+
+      import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
+
+      fieldValueMap.get(fieldName) match {
+        case Some(field) => {
+          // Expand "one.two" into Seq("this.one", "this.one.two") for checks down path in a JSON object
+          val fieldCheck =
+            field.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
+              acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
+          val cmd = MapReduceCommand(
+            input = "content",
+            map = s"""
+              function() {
+                if (${fieldCheck}) {
+                  emit(this.$field, 1);
+                }
+              }""",
+            reduce = s"""
+              function(previous, current) {
+                var count = 0;
+                for (index in current) {
+                  count += current[index];
+                }
+                return count;
+              }""",
+            query = Some(DBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.split(",").toSeq))),
+            output = MapReduceInlineOutput)
+
+          ItemServiceWired.collection.mapReduce(cmd) match {
+            case result: MapReduceInlineResult => {
+              val fieldValueMap = result.map(_ match {
+                case dbo: DBObject => {
+                  Some(dbo.get("_id").toString -> dbo.get("value").asInstanceOf[Double])
+                }
+                case _ => None
+              }).flatten.toMap
+              Ok(Json.prettyPrint(Json.toJson(fieldValueMap)))
+            }
+            case _ => BadRequest(Json.toJson(ApiError.InvalidField))
+          }
+        }
+        case _ => BadRequest(Json.toJson(ApiError.InvalidField))
+      }
+    }*/
+  }
 
   private def canRead(collectionId: ObjectId)(fn: OrgAndOpts => SimpleResult): Action[AnyContent] = Action.async { r =>
 
@@ -50,6 +111,8 @@ class CollectionApi(
   def createCollection = futureWithIdentity { (identity, request) =>
     Future {
 
+      logger.debug(s"[createCollection]")
+
       val v: Validation[V2Error, ContentCollection] = for {
         json <- request.body.asJson.toSuccess(noJson)
         _ <- someToFailure((json \ "id").asOpt[String], propertyNotAllowedInJson("id", json))
@@ -61,12 +124,50 @@ class CollectionApi(
     }
   }
 
-  def deleteCollection(id: ObjectId) = futureWithIdentity {
+  /**
+   * Shares a collection with an organization, will fail if the context organization is not the same as
+   * the owner organization for the collection
+   * @param collectionId
+   * @param destinationOrgId
+   * @return
+   */
+  def shareCollection(collectionId: ObjectId, destinationOrgId: ObjectId) = futureWithIdentity { (identity, request) =>
+    Future {
+
+      logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId")
+
+      val v: Validation[V2Error, ContentCollRef] = for {
+        _ <- contentCollectionService.ownsCollection(identity.org, collectionId).v2Error
+        o <- contentCollectionService.shareCollectionWithOrg(collectionId, destinationOrgId, Permission.Read).v2Error
+      } yield o
+
+      v.map(r => Json.obj("updated" -> r.collectionId.toString)).toSimpleResult()
+    }
+  }
+
+  def setEnabledStatus(collectionId: ObjectId, enabled: Boolean) = futureWithIdentity { (identity, request) =>
+    Future {
+
+      logger.debug(s"[setEnabledStatus], collectionId=$collectionId, enabled=$enabled")
+
+      val toggle: (ObjectId, ObjectId) => Validation[PlatformServiceError, ContentCollRef] = if (enabled) {
+        contentCollectionService.enableCollectionForOrg
+      } else {
+        contentCollectionService.disableCollectionForOrg
+      }
+
+      val r = toggle(identity.org.id, collectionId).v2Error
+      r.map(c => Json.obj("updated" -> c.collectionId.toString)).toSimpleResult()
+    }
+  }
+
+  def deleteCollection(collectionId: ObjectId) = futureWithIdentity {
     (identity, request) =>
       Future {
+        logger.debug(s"[deleteCollection] collectionId=$collectionId")
         val v: Validation[V2Error, Boolean] = for {
-          canAccess <- orgCanAccess(identity.org, id, Permission.Write)
-          _ <- contentCollectionService.delete(id).v2Error
+          canAccess <- orgCanAccess(identity.org, collectionId, Permission.Write)
+          _ <- contentCollectionService.delete(collectionId).v2Error
         } yield true
 
         v.map(ok => Json.obj()).toSimpleResult()
@@ -77,18 +178,17 @@ class CollectionApi(
 
   private def handleShare[Q](collectionId: ObjectId, shareFn: ShareFunction[Q], buildQuery: Request[AnyContent] => Validation[V2Error, Q]) = {
     futureWithIdentity { (identity, request) =>
+
+      logger.debug(s"[handleShare] collectionId=$collectionId")
+
       Future {
         val v: Validation[V2Error, Seq[VersionedId[ObjectId]]] = for {
-          //json <- request.body.asJson.toSuccess(noJson)
-          //itemIds <- (json \ "items").asOpt[Seq[String]].filterNot(_.length == 0).toSuccess(propertyNotFoundInJson("items"))
-          //versionedIds <- Success(itemIds.flatMap(VersionedId(_)))
           q <- buildQuery(request)
           itemsAdded <- shareFn(identity.org.id, q, collectionId).v2Error
         } yield itemsAdded
 
         v.map(ids => ids.map(_.id.toString)).map(Json.toJson(_)).toSimpleResult()
       }
-
     }
   }
 
@@ -111,96 +211,17 @@ class CollectionApi(
   /**
    * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
    * @param q - the query to select items to add to the collection
-   * @param id  - collection to add the items to
+   * @param collectionId  - collection to add the items to
    * @return  - json with success or error response
    */
   def shareFilteredItemsWithCollection(collectionId: ObjectId, q: Option[String]) = {
-    handleShare(collectionId, contentCollectionService.shareItemsMatchingQuery, (r) => {
+    handleShare[String](collectionId, contentCollectionService.shareItemsMatchingQuery, (r) => {
       q match {
         case Some(str) => Success(str)
         case _ => propertyNotFoundInJson("q").asFailure
       }
     })
   }
-
-  /*
-   * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
-   * @param q - the query to select items to add to the collection
-   * @param id  - collection to add the items to
-   * @return  - json with success or error response
-
-  def shareFilteredItemsWithCollection(id: ObjectId, q: Option[String]) = ApiActionWrite { request =>
-    contentCollectionService.findOneById(id) match {
-      case Some(coll) => if (contentCollectionService.isAuthorized(request.ctx.organization, id, Permission.Write)) {
-        if (q.isDefined) {
-          contentCollectionService.shareItemsMatchingQuery(request.ctx.organization, q.get, id) match {
-            case Right(itemsAdded) => Ok(toJson(itemsAdded.size))
-            case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
-          }
-        } else {
-          BadRequest(Json.toJson(ApiError.ItemSharingError(Some("q is required parameter"))))
-        }
-
-      } else {
-        Forbidden(Json.toJson(ApiError.ItemSharingError(Some("permission not granted"))))
-      }
-      case None => BadRequest(Json.toJson(ApiError.ItemSharingError(Some("collection not found"))))
-    }
-  }
-  */
-  /*
- def unShareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
-    request =>
-      request.body.asJson match {
-        case Some(json) => {
-          if ((json \ "items").asOpt[Array[String]].isEmpty) {
-            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
-          } else {
-            val itemIds = (json \ "items").as[Seq[String]]
-            val versionedItemIds = itemIds.map(VersionedId(_)).flatten
-            contentCollectionService.unShareItems(request.ctx.organization, versionedItemIds, Seq(collectionId)) match {
-              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
-            }
-          }
-        }
-        case _ => jsonExpected
-      }
-  }
-
-   */
-  /*
-  def shareItemsWithCollection(collectionId: ObjectId) = ApiActionWrite {
-    request =>
-      request.body.asJson match {
-        case Some(json) => {
-          if ((json \ "items").asOpt[Array[String]].isEmpty) {
-            BadRequest(Json.toJson(ApiError.ItemSharingError(Some("no items could be found in request body json"))))
-          } else {
-            val itemIds = (json \ "items").as[Seq[String]]
-            val versionedItemIds = itemIds.map(VersionedId(_)).flatten
-            contentCollectionService.shareItems(request.ctx.organization, versionedItemIds, collectionId) match {
-              case Right(itemsAdded) => Ok(toJson(itemsAdded.map(versionedId => versionedId.id.toString)))
-              case Left(error) => InternalServerError(Json.toJson(ApiError.ItemSharingError(Some(error.message))))
-            }
-          }
-        }
-        case _ => jsonExpected
-      }
-  }*/
-  /*def deleteCollection(id: ObjectId) = ApiActionWrite { request =>
-  contentCollectionService.findOneById(id) match {
-    case Some(coll) => if (contentCollectionService.itemCount(id) == 0 && contentCollectionService.isAuthorized(request.ctx.organization, id, Permission.Write)) {
-      contentCollectionService.delete(id) match {
-        case Success(_) => Ok(Json.toJson(coll))
-        case Failure(error) => InternalServerError(Json.toJson(ApiError.DeleteCollection(Some(error.message))))
-      }
-    } else {
-      InternalServerError(Json.toJson(ApiError.DeleteCollection(Some("cannot delete collection that contains items"))))
-    }
-    case None => BadRequest(Json.toJson(ApiError.DeleteCollection))
-  }
-}*/
 
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {
 
@@ -217,6 +238,8 @@ class CollectionApi(
   }
 
   def updateCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
+
+    logger.info(s"[updateCollection] collectionId=$collectionId")
 
     lazy val organizationsNotSupported = noLongerSupported("'organizations' is no longer supported in the json request body to update collection")
 
@@ -240,22 +263,29 @@ class CollectionApi(
       .getOrElse(NotFound)
   }
 
+  @deprecated("who uses this?", "core-refactor")
   def listWithOrg(
+    orgId: ObjectId,
     q: Option[String] = None,
     f: Option[String] = None,
-    c: Boolean = false,
+    c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = list(q, f, c, sk, l, sort)
+    sort: Option[String] = None) = {
+    deprecatedMethod("listWithOrg")
+    list(q, f, c, sk, l, sort)
+  }
 
   /** Note: ignoring q,f,c,sk,sort and l for this 1st iteration */
   def list(
     q: Option[String] = None,
     f: Option[String] = None,
-    c: Boolean = false,
+    c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
     sort: Option[String] = None) = Action.async { request =>
+
+    logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
 
     Future {
       getOrgAndOptionsFn(request).map { identity =>

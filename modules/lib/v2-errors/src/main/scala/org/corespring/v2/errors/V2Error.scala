@@ -21,7 +21,7 @@ sealed abstract class V2Error(val title: String, val description: String, val me
 
   def json: JsObject = Json.obj("message" -> message, "errorType" -> errorType)
 
-  def asFailure: Failure[V2Error, _] = Failure(this)
+  def asFailure[A]: Failure[V2Error, A] = Failure(this)
 
 }
 

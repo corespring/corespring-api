@@ -3,9 +3,9 @@ package org.corespring.services.salat.item
 import com.mongodb.casbah
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.{ MongoDBObject }
+import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
-import com.novus.salat.dao.{ SalatDAOUpdateError }
+import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
@@ -15,13 +15,12 @@ import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
-import org.corespring.services.salat.OrganizationService
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.{ services => interface }
 import org.joda.time.DateTime
-import scala.concurrent.{ ExecutionContext }
+
 import scala.xml.Elem
 import scalaz._
-import org.corespring.{ services => interface }
 
 class ItemService(
   val dao: SalatVersioningDao[Item],
@@ -52,18 +51,16 @@ class ItemService(
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
     logger.debug(s"clone itemId=${item.id} result=$result")
     result match {
-      case Success(updatedItem) => {
-        dao.save(updatedItem, false)
+      case Success(updatedItem) =>
+        dao.save(updatedItem, createNewVersion = false)
         syncronousReindex(updatedItem.id)
         Some(updatedItem)
-      }
-      case Failure(files) => {
+      case Failure(files) =>
         files.foreach({
-          case CloneFileFailure(f, err) => err.printStackTrace
+          case CloneFileFailure(f, err) => err.printStackTrace()
           case _ => Unit
         })
         None
-      }
     }
   }
 
@@ -84,24 +81,22 @@ class ItemService(
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
-    val result = collection.update(vidToDbo(id), update, false)
+    val result = collection.update(vidToDbo(id), update, upsert = false)
     syncronousReindex(id)
     result.getLastError.ok
   }
 
   /**
    * save a new version of the item and set published to false
-   * @param id
-   * @return the VersionedId[ObjectId] of the new item
    */
   override def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]] = {
-    dao.get(id).map { item =>
+    dao.get(id).flatMap { item =>
       val update = item.copy(published = false)
-      save(update, true) match {
-        case Left(_) => None
-        case Right(id) => Some(id)
+      save(update, createNewVersion = true) match {
+        case Failure(_) => None
+        case Success(savedId) => Some(savedId)
       }
-    }.flatten
+    }
   }
 
   def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
@@ -127,7 +122,7 @@ class ItemService(
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
-    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, false, false)
+    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, upsert = false, multi = false)
     logger.trace(s"function=addFileToPlayerDefinition, itemId=${item.id}, docsChanged=${result.getN}")
     require(result.getN == 1, s"Exactly 1 document with id: ${item.id} must have been updated")
     if (result.getN != 1) {
@@ -137,37 +132,34 @@ class ItemService(
     }
   }
 
+  import org.corespring.services.salat.ValidationUtils._
+
   // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
-  override def save(item: Item, createNewVersion: Boolean = false): Either[PlatformServiceError, VersionedId[ObjectId]] = {
+  override def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
     import scala.language.implicitConversions
 
-    implicit def toServiceError[A](e: Either[String, A]): Either[PlatformServiceError, A] = {
+    implicit def toServiceError[A](e: Validation[String, A]): Validation[PlatformServiceError, A] = {
       e.fold(
-        err => Left(PlatformServiceError(err)),
-        (i) => Right(i))
+        err => Failure(PlatformServiceError(err)),
+        (i) => Success(i))
     }
 
-    val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion)
+    val savedVid = dao.save(item.copy(dateModified = Some(new DateTime())), createNewVersion).leftMap(e => GeneralError(e, None))
 
     if (createNewVersion) {
       val newItem = dao.findOneById(VersionedId(item.id.id)).get
       val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, newItem)
       result match {
-        case Success(updatedItem) => {
-          dao.save(updatedItem, false)
-        }
-        case Failure(files) => {
+        case Success(updatedItem) => dao.save(updatedItem, createNewVersion = false).leftMap(e => GeneralError(e, None))
+        case Failure(files) =>
           dao.revertToVersion(item.id)
           files.foreach {
-            case CloneFileSuccess(f, key) => {
-              assets.delete(key)
-            }
+            case CloneFileSuccess(f, key) => assets.delete(key)
             case _ => Unit
           }
-          Left(PlatformServiceError("Cloning of files failed"))
-        }
+          Failure(PlatformServiceError("Cloning of files failed"))
       }
     } else {
       savedVid
@@ -183,27 +175,27 @@ class ItemService(
     out
   }
 
-  override def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Either[PlatformServiceError, Unit] = try {
+  override def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Validation[PlatformServiceError, Unit] = try {
     val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-    Right(dao.update(itemId, update, false))
+    Success(dao.update(itemId, update, createNewVersion = false))
   } catch {
-    case e: SalatDAOUpdateError => Left(PlatformServiceError(s"Error adding collectionId $collectionId for item with id $itemId"))
+    case e: SalatDAOUpdateError => Failure(PlatformServiceError(s"Error adding collectionId $collectionId for item with id $itemId"))
   }
 
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Either[Seq[VersionedId[ObjectId]], Unit] = {
+  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[Seq[VersionedId[ObjectId]], Unit] = {
 
     val failedItems = itemIds.filterNot { vid =>
       try {
-        dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), false)
+        dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
         true
       } catch {
         case e: SalatDAOUpdateError => false
       }
     }
-    if (failedItems.size > 0) {
-      Left(failedItems)
+    if (failedItems.nonEmpty) {
+      Failure(failedItems)
     } else {
-      Right(Unit)
+      Success(Unit)
     }
   }
 
@@ -213,7 +205,7 @@ class ItemService(
 
   override def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveConfig.contentCollectionId.toString))
-    saveUsingDbo(id, update, false)
+    saveUsingDbo(id, update, createNewVersion = false)
     Some(archiveConfig.contentCollectionId.toString)
   }
 
@@ -235,17 +227,16 @@ class ItemService(
 
   /**
    * Delete collection reference from shared collections (defined in items)
-   * @param collectionId
    * @return
    */
-  override def deleteFromSharedCollections(collectionId: ObjectId): Either[PlatformServiceError, Unit] = {
+  override def deleteFromSharedCollections(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
     try {
       val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
       val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-      val result = dao.currentCollection.update(query, update, false, true)
-      if (result.getLastError.ok) Right() else Left(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
+      val result = dao.currentCollection.update(query, update, upsert = false, multi = true)
+      if (result.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
     } catch {
-      case e: SalatDAOUpdateError => Left(PlatformServiceError(e.getMessage))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
     }
   }
 
@@ -297,13 +288,12 @@ class ItemService(
           val idString = dbo.get("collectionId").asInstanceOf[String]
           Some(new ObjectId(idString))
         } catch {
-          case t: Throwable => {
+          case t: Throwable =>
             if (logger.isDebugEnabled) {
               t.printStackTrace()
             }
             logger.error(t.getMessage)
             None
-          }
         }
       }
   }

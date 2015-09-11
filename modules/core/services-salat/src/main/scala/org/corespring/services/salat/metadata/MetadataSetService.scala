@@ -10,6 +10,8 @@ import org.corespring.models.metadata.MetadataSet
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 
+import scalaz.{ Failure, Success, Validation }
+
 class MetadataSetService(
   val dao: SalatDAO[MetadataSet, ObjectId],
   implicit val context: Context,
@@ -17,12 +19,12 @@ class MetadataSetService(
 
   private lazy val logger: Logger = Logger(classOf[MetadataSetService])
 
-  override def update(set: MetadataSet): Either[String, MetadataSet] = {
+  override def update(set: MetadataSet): Validation[String, MetadataSet] = {
     val result = dao.save(set)
     if (result.getLastError.ok) {
-      Right(set)
+      Success(set)
     } else {
-      Left(s"Error saving medatadata set: $set")
+      Failure(s"Error saving medatadata set: $set")
     }
   }
 
@@ -41,7 +43,7 @@ class MetadataSetService(
 
   override def list(orgId: ObjectId): Seq[MetadataSet] = {
 
-    //logger.debug(s"[list]: $orgId")
+    logger.debug(s"[list] orgId=$orgId")
 
     orgService.findOneById(orgId).map {
       org =>
@@ -49,13 +51,10 @@ class MetadataSetService(
     }.getOrElse(Seq())
   }
 
-  override def create(orgId: ObjectId, set: MetadataSet): Either[String, MetadataSet] = {
+  override def create(orgId: ObjectId, set: MetadataSet): Validation[String, MetadataSet] = {
     dao.insert(set).map {
       oid =>
-        orgService.addMetadataSet(orgId, oid, false) match {
-          case Left(e) => Left(e)
-          case Right(ref) => Right(set.copy(id = oid))
-        }
-    }.getOrElse(Left("Error creating metadata set"))
+        orgService.addMetadataSet(orgId, oid, false).map(_ => set.copy(id = oid))
+    }.getOrElse(Failure("Error creating metadata set"))
   }
 }

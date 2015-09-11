@@ -1,11 +1,13 @@
 package org.corespring.services.salat.metadata
 
 import org.bson.types.ObjectId
-import org.corespring.models.Organization
+import org.corespring.models.{ MetadataSetRef, Organization }
 import org.corespring.models.metadata.{ MetadataSet, SchemaMetadata }
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
+
+import scalaz.Success
 
 class MetadataSetServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
@@ -41,10 +43,7 @@ class MetadataSetServiceTest extends ServicesSalatIntegrationTest with Mockito {
   "metadata set service" should {
 
     "create" in new SetWrapper {
-      service.create(orgId, newSet) match {
-        case Left(e) => failure(e)
-        case Right(set) => success
-      }
+      service.create(orgId, newSet) must equalTo(Success(newSet))
     }
 
     "list" in new SetWrapper {

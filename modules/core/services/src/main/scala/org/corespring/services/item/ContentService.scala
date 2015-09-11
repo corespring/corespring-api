@@ -6,9 +6,11 @@ import org.corespring.models.item.Content
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
+import scalaz.Validation
+
 trait BaseFindAndSaveService[ContentType <: Content[ID], ID] {
 
-  def save(i: ContentType, createNewVersion: Boolean = false): Either[PlatformServiceError, ID]
+  def save(i: ContentType, createNewVersion: Boolean = false): Validation[PlatformServiceError, ID]
 
   def findOneById(id: ID): Option[ContentType]
 }

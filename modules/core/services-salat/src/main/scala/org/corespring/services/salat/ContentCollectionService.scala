@@ -7,13 +7,15 @@ import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, Sa
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
-import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.ContentCollectionUpdate
 import org.corespring.services.errors.PlatformServiceError
+import org.corespring.{ services => interface }
 
-import scalaz.{ Failure, Validation }
+import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 class ContentCollectionService(
   val dao: SalatDAO[ContentCollection, ObjectId],
@@ -29,24 +31,31 @@ class ContentCollectionService(
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
 
-  override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Either[PlatformServiceError, ContentCollection] = {
+  /** Enable this collection for this org */
+  override def enableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
+    organizationService.enableCollection(orgId, collectionId)
+  }
+
+  /** Enable the collection for the org */
+  override def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
+    organizationService.disableCollection(orgId, collectionId)
+  }
+
+  override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Validation[PlatformServiceError, ContentCollection] = {
 
     //TODO: apply two-phase commit
     try {
       dao.insert(collection) match {
         case Some(_) => try {
           val reference = new ContentCollRef(collection.id, p.value, enabled)
-          organizationService.addCollectionReference(orgId, reference) match {
-            case Left(e) => Left(e)
-            case Right(_) => Right(collection)
-          }
+          organizationService.addCollectionReference(orgId, reference).map(_ => collection)
         } catch {
-          case e: SalatDAOUpdateError => Left(PlatformServiceError("failed to update organization with collection", e))
+          case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update organization with collection", e))
         }
-        case None => Left(PlatformServiceError("failed to insert content collection"))
+        case None => Failure(PlatformServiceError("failed to insert content collection"))
       }
     } catch {
-      case e: SalatInsertError => Left(PlatformServiceError("failed to insert content collection", e))
+      case e: SalatInsertError => Failure(PlatformServiceError("failed to insert content collection", e))
     }
   }
 
@@ -56,12 +65,8 @@ class ContentCollectionService(
    * - must ensure that the context org has read access to the items being added
    * TODO: Do we check perms here? or keep it outside of this scope?
    * We'll have to filter the individual item ids anyway
-   * @param orgId
-   * @param items
-   * @param collId
-   * @return
    */
-  override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Either[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     if (isAuthorized(orgId, collId, Permission.Write)) {
 
       if (items.isEmpty) {
@@ -76,33 +81,33 @@ class ContentCollectionService(
         val collectionsToAuth = item.collectionId +: item.sharedInCollections
         // does org have read access to any of these collections
         val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
-        collectionsAuthorized.size > 0
+        collectionsAuthorized.nonEmpty
       })
       if (itemsNotAuthorized.size <= 0) {
         // add collection id to item.sharedinCollections unless the collection is the owner collection for item
         val savedUnsavedItems = items.partition(item => {
           try {
             itemService.findOneById(item) match {
-              case Some(itemObj) if (collId.equals(itemObj)) => true
+              case Some(i) if collId.equals(i.collectionId) => true
               case _ => itemService.addCollectionIdToSharedCollections(item, collId).fold(_ => false, _ => true)
             }
           } catch {
             case e: SalatDAOUpdateError => false
           }
         })
-        if (savedUnsavedItems._2.size > 0) {
+        if (savedUnsavedItems._2.nonEmpty) {
           logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
-          Left(PlatformServiceError("failed to add items"))
+          Failure(PlatformServiceError("failed to add items"))
         } else {
           logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
-          Right(savedUnsavedItems._1)
+          Success(savedUnsavedItems._1)
         }
 
       } else {
-        Left(PlatformServiceError("items failed auth: " + itemsNotAuthorized.map(_.id)))
+        Failure(PlatformServiceError("items failed auth: " + itemsNotAuthorized.map(_.id)))
       }
     } else {
-      Left(PlatformServiceError("organization does not have write permission on collection"))
+      Failure(PlatformServiceError("organization does not have write permission on collection"))
     }
   }
 
@@ -111,21 +116,16 @@ class ContentCollectionService(
 
   /**
    * Unshare the specified items from the specified collections
-   *
-   * @param orgId
-   * @param items - sequence of items to be unshared from
-   * @param collIds - sequence of collections to have the items removed from
-   * @return
    */
-  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Either[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     // make sure org has auth for all the collIds
     val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
     if (authorizedCollIds.size != collIds.size) {
-      Left(PlatformServiceError("authorization failed on collection(s)"))
+      Failure(PlatformServiceError("authorization failed on collection(s)"))
     } else {
       itemService.removeCollectionIdsFromShared(items, collIds) match {
-        case Left(failedItems) => Left(PlatformServiceError("failed to unshare collections for items: " + failedItems))
-        case Right(_) => Right(items)
+        case Failure(failedItems) => Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
+        case Success(_) => Success(items)
       }
       /*val failedItems = items.filterNot(item => {
         try {
@@ -140,9 +140,9 @@ class ContentCollectionService(
         }*/
     } //)
     /*if (failedItems.size > 0) {
-        Left(PlatformServiceError("failed to unshare collections for items: " + failedItems))
+        Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
       } else {
-        Right(items)
+        Success(items)
       }*/
     //}
 
@@ -150,15 +150,13 @@ class ContentCollectionService(
 
   /**
    *
-   * @param orgs contains a sequence of (organization id -> permission) tuples
-   * @param collId
    * @return
+   * def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Validation[PlatformServiceError, Unit] = {
+   * val errors = orgs.map(org => organizationService.addCollection(org._1, collId, org._2)).filter(_.isLeft)
+   * if (errors.size > 0) Failure(errors(0).left.get)
+   * else Success(())
+   * }
    */
-  def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Either[PlatformServiceError, Unit] = {
-    val errors = orgs.map(org => organizationService.addCollection(org._1, collId, org._2)).filter(_.isLeft)
-    if (errors.size > 0) Left(errors(0).left.get)
-    else Right(())
-  }
 
   override def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
 
@@ -177,31 +175,29 @@ class ContentCollectionService(
     logger.trace(s"function=getContentCollRefs refsWithPermission=$out")
 
     if (p == Permission.Read) {
-      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, true))
+      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
     } else {
       out
     }
   }
 
-  override def getCollections(orgId: ObjectId, p: Permission): Either[PlatformServiceError, Seq[ContentCollection]] = {
-    val collectionIds = getCollectionIds(orgId, p, false)
-    Right(dao.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
+  override def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]] = {
+    val collectionIds = getCollectionIds(orgId, p, deep = false)
+    Success(dao.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
   }
 
   def isPublic(collectionId: ObjectId): Boolean = dao.findOneById(collectionId).exists(_.isPublic)
 
   /**
    * does the given organization have access to the given collection with given permissions?
-   * @param orgId
-   * @param collId
    */
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
     val orgCollectionIds = getCollectionIds(orgId, p)
-    val exists = orgCollectionIds.exists(_ == collId)
-    if (!exists) {
+    val hasId = orgCollectionIds.contains(collId)
+    if (!hasId) {
       logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
     }
-    exists
+    hasId
   }
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
@@ -215,8 +211,7 @@ class ContentCollectionService(
         //TODO: RF: Move to services
         dao.removeById(collId)
         organizationService.deleteCollectionFromAllOrganizations(collId)
-        import scalaz._
-        Validation.fromEither(itemService.deleteFromSharedCollections(collId))
+        itemService.deleteFromSharedCollections(collId)
         /*Organization.find(
           MongoDBObject(
             Organization.contentcolls + "." + ContentCollRef.collectionId -> collId))
@@ -246,22 +241,34 @@ class ContentCollectionService(
 
   override def getPublicCollections: Seq[ContentCollection] = dao.find(MongoDBObject(Keys.isPublic -> true)).toSeq
 
-  override def updateCollection(coll: ContentCollection): Either[PlatformServiceError, ContentCollection] = {
+  override def update(id: ObjectId, update: ContentCollectionUpdate): Validation[PlatformServiceError, ContentCollection] = {
     try {
-      dao.update(MongoDBObject("_id" -> coll.id), coll, false, false, dao.collection.writeConcern)
-      if (coll.isPublic) {
-        organizationService.addPublicCollectionToAllOrgs(coll.id)
+
+      val query = MongoDBObject("_id" -> id)
+
+      val updateDbo = {
+        val builder = MongoDBObject.newBuilder
+        update.isPublic.map(p => builder += "isPublic" -> p)
+        update.name.map(n => builder += "name" -> n)
+        builder.result()
       }
-      dao.findOneById(coll.id) match {
-        case Some(coll) => Right(coll)
-        case None => Left(PlatformServiceError("could not find the collection that was just updated"))
+
+      val result = dao.update(query, updateDbo, upsert = false, multi = false, dao.collection.writeConcern)
+
+      if (result.getN == 1) {
+        if (update.isPublic.exists(_ == true)) {
+          organizationService.addPublicCollectionToAllOrgs(id)
+        }
+        dao.findOneById(id).toSuccess(PlatformServiceError(s"Can't find collection with id: $id"))
+      } else {
+        Failure(PlatformServiceError(s"No update occurred for query: $id"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(PlatformServiceError("failed to update collection", e))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update collection", e))
     }
   }
 
-  /**
+  /*
    * Share the items returned by the query with the specified collection.
    *
    * @param orgId
@@ -288,16 +295,17 @@ class ContentCollectionService(
    * itemsList.size must beEqualTo(6)
    * }
    */
-  override def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Either[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+
+  override def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     //TODO: RF: implement - need to decide how to abstract search
-    Left(PlatformServiceError("shareItemsMatchingQuery is not supported"))
+    Failure(PlatformServiceError("shareItemsMatchingQuery is not supported"))
     //Original --
     /*val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
     val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
-    val parsedQuery: Either[SearchCancelled, DBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery))
+    val parsedQuery: Validation[SearchCancelled, DBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery))
 
     parsedQuery match {
-      case Right(searchQry) =>
+      case Success(searchQry) =>
         val cursor = ItemServiceWired.find(searchQry, MongoDBObject("_id" -> 1))
 
         val seq = cursor.toSeq
@@ -306,9 +314,9 @@ class ContentCollectionService(
         }
         val ids = seq.map(item => item.id)
         shareItems(orgId, ids, collId)
-      case Left(sc) => sc.error match {
-        case None => Right(Seq())
-        case Some(error) => Left(CorespringInternalError(error.clientOutput.getOrElse("error processing search")))
+      case Failure(sc) => sc.error match {
+        case None => Success(Seq())
+        case Some(error) => Failure(CorespringInternalError(error.clientOutput.getOrElse("error processing search")))
       }
     }*/
   }
@@ -325,4 +333,14 @@ class ContentCollectionService(
   override def findByDbo(dbo: Imports.DBObject, fields: Option[Imports.DBObject] = None, sort: Option[Imports.DBObject], skip: Int, limit: Int): Stream[ContentCollection] = {
     dao.find(dbo, fields.getOrElse(MongoDBObject.empty)).sort(sort.getOrElse(MongoDBObject.empty)).skip(skip).limit(limit).toStream
   }
+
+  private def todo = Failure(PlatformServiceError("todo"))
+
+  override def ownsCollection(org: Organization, collectionId: Imports.ObjectId): Validation[PlatformServiceError, Boolean] = todo
+
+  override def listCollectionsByOrg(orgId: Imports.ObjectId): Stream[ContentCollection] = Stream.empty
+
+  override def shareCollectionWithOrg(collectionId: Imports.ObjectId, orgId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = todo
+
+  override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = todo
 }

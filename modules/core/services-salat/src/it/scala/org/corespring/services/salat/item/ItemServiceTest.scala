@@ -36,10 +36,12 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     def mockAssets(succeed: Boolean) = {
       val m = mock[ItemAssetService]
 
-      m.cloneStoredFiles(any[Item], any[Item]).answers { (args) =>
+      m.cloneStoredFiles(any[Item], any[Item]).answers { (args, _) =>
         {
+          println(s" --> args:  $args")
           val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
             val arr = args.asInstanceOf[Array[Any]]
+            println(s" --> arr: $arr")
             Success(arr(1).asInstanceOf[Item])
           } else {
             Failure(Seq.empty[CloneFileResult])

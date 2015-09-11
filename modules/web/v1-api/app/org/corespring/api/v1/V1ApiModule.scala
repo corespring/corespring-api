@@ -9,7 +9,7 @@ import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.services.{ ContentCollectionService, OrganizationService }
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.mvc.Controller
-
+import org.corespring.v2
 trait V1ApiModule {
 
   import com.softwaremill.macwire.MacwireMacros._
@@ -31,6 +31,8 @@ trait V1ApiModule {
   def itemTransformer: ItemTransformer
 
   def sessionServices: SessionServices
+
+  def v2CollectionApi: v2.api.CollectionApi
 
   lazy val v1CollectionApi: Controller = wire[CollectionApi]
 

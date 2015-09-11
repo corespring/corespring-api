@@ -13,6 +13,16 @@ case class OrgAccess(orgId: ObjectId, permission: Permission)
 
 trait ContentCollectionService {
 
+  /** Enable this collection for this org */
+  def enableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
+
+  /** Enable the collection for the org */
+  def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
+
+  def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
+
+  def shareCollectionWithOrg(collectionId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef]
+
   def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection]
 
   def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection]
@@ -20,6 +30,7 @@ trait ContentCollectionService {
   def archiveCollectionId: ObjectId
 
   def findByDbo(dbo: DBObject, fields: Option[DBObject] = None, sort: Option[DBObject] = None, skip: Int = 0, limit: Int = 0): Stream[ContentCollection]
+
   def count(dbo: DBObject): Long
 
   def findOneById(id: ObjectId): Option[ContentCollection]
@@ -51,14 +62,6 @@ trait ContentCollectionService {
 
   /** Get a default collection from the set of ids */
   def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection]
-
-  /**
-   *
-   * @param orgs contains a sequence of (organization id -> permission) tuples
-   * @param collId
-   * @return
-   */
-  def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Validation[PlatformServiceError, Unit]
 
   /**
    * Share items to the collection specified.

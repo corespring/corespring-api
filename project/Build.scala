@@ -143,13 +143,6 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(playJson, rhino % "test"))
     .dependsOn(coreModels, coreServices, coreUtils, coreJson, qti, apiUtils, testLib % "test->compile")
 
-  lazy val v1Api = builders.web("v1-api")
-    .settings(
-      libraryDependencies ++= Seq(casbah, playS3),
-      templatesImport ++= TemplateImports.Ids,
-      routesImport ++= customImports)
-    .dependsOn(coreWeb, coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets, v2SessionDb)
-
   /**
    * Error types
    */
@@ -202,6 +195,13 @@ object Build extends sbt.Build {
       coreJson,
       qtiToV2,
       draftsApi)
+
+  lazy val v1Api = builders.web("v1-api")
+    .settings(
+      libraryDependencies ++= Seq(casbah, playS3),
+      templatesImport ++= TemplateImports.Ids,
+      routesImport ++= customImports)
+    .dependsOn(v2Api, coreWeb, coreModels, coreServices, coreJson, coreLegacy, qtiToV2, assets, v2SessionDb)
 
   object TemplateImports {
     lazy val Ids = Seq("org.bson.types.ObjectId", "org.corespring.platform.data.mongo.models.VersionedId")

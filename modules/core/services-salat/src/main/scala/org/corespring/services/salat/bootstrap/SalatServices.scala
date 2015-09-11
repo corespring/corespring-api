@@ -23,6 +23,8 @@ import org.corespring.services.salat.auth.{ ApiClientService, AccessTokenService
 import org.corespring.services.salat.metadata.{ MetadataSetService, MetadataService }
 import org.corespring.{ services => interface }
 
+import scalaz.{ Success, Failure }
+
 trait SalatServices extends interface.bootstrap.Services {
 
   def db: MongoDB
@@ -51,13 +53,13 @@ trait SalatServices extends interface.bootstrap.Services {
       ownerOrgId = archiveOrg.id)
 
     logger.debug(s"function=initArchive org=${archiveOrg} - inserting")
-    orgService.insert(archiveOrg, None) match {
-      case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
 
-      case Right(_) => {
+    orgService.insert(archiveOrg, None) match {
+      case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
+      case Success(_) => {
         logger.debug(s"function=initArchive collection=${coll} - inserting")
         contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
-          case Left(e) => throw new RuntimeException("Failed to Bootstrap - error inserting archive org")
+          case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
           case _ => logger.info("Archive org and content collection initialised")
         }
       }

@@ -1,10 +1,12 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ ContentCollRef, Organization }
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.models.{ MetadataSetRef, ContentCollRef, Organization }
+import org.corespring.services.errors.GeneralError
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
+
+import scalaz.{ Failure, Success }
 
 class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
@@ -26,17 +28,11 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   "addMetadataSet" should {
     "return an error string if the set doesn't exist" in new TestWrapper {
-      service.addMetadataSet(orgId, setId, true) match {
-        case Left(e) => e === "couldn't find the metadata set"
-        case Right(ref) => failure("didn't work")
-      }
+      service.addMetadataSet(orgId, setId, true) must equalTo(Failure("couldn't find the metadata set"))
     }
 
-    "not return an error string if the set doesn't exist but check existence is false" in new TestWrapper {
-      service.addMetadataSet(orgId, setId, false) match {
-        case Left(e) => failure("no error should be returned")
-        case Right(ref) => success
-      }
+    "returns the new ref - check existence is false" in new TestWrapper {
+      service.addMetadataSet(orgId, setId, false) must equalTo(Success(MetadataSetRef(setId, true)))
     }
 
     "add a metadataset" in new TestWrapper {
@@ -64,7 +60,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "return an error if no org is found" in new TestWrapper {
-      service.changeName(ObjectId.get, "update").left.get must haveClass[GeneralError]
+      service.changeName(ObjectId.get, "update").swap.toOption.get must haveClass[GeneralError]
     }
   }
 
@@ -78,7 +74,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   "setCollectionEnabledStatus" should {
     "set the status to true" in new TestWrapper {
-      service.setCollectionEnabledStatus(org.id, collectionId, true)
+      service.enableCollection(org.id, collectionId)
       service.findOneById(org.id).get
         .contentcolls
         .find(_.collectionId == collectionId)
@@ -86,8 +82,8 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "set the status to false" in new TestWrapper {
-      service.setCollectionEnabledStatus(org.id, collectionId, true)
-      service.setCollectionEnabledStatus(org.id, collectionId, false)
+      service.enableCollection(org.id, collectionId)
+      service.disableCollection(org.id, collectionId)
       service.findOneById(org.id).get
         .contentcolls
         .find(_.collectionId == collectionId)

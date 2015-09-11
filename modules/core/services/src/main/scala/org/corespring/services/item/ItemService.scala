@@ -1,7 +1,6 @@
 package org.corespring.services.item
 
 import com.mongodb.casbah.Imports._
-import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -56,7 +55,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
 
-  def save(item: Item, createNewVersion: Boolean = false): Either[PlatformServiceError, VersionedId[ObjectId]]
+  def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
   def insert(i: Item): Option[VersionedId[ObjectId]]
 
@@ -64,16 +63,16 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem]
 
-  def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Either[PlatformServiceError, Unit]
+  def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collId: Seq[ObjectId]): Either[Seq[VersionedId[ObjectId]], Unit]
+  def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collId: Seq[ObjectId]): Validation[Seq[VersionedId[ObjectId]], Unit]
 
   /**
    * Delete collection reference from shared collections (defined in items)
    * @param collectionId
    * @return
    */
-  def deleteFromSharedCollections(collectionId: ObjectId): Either[PlatformServiceError, Unit]
+  def deleteFromSharedCollections(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
   def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item]
 
