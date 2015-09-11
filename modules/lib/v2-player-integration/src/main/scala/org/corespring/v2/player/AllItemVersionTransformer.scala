@@ -4,14 +4,16 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSON
 import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.models.item.{ Item }
+import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.{ ItemTransformerConfig, ItemTransformer }
-import org.corespring.services.{ ContentCollectionService, StandardService }
-import org.corespring.services.item.{ ItemService, BaseFindAndSaveService }
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
-import play.api.{ Logger }
+import org.corespring.services.item.{ BaseFindAndSaveService, ItemService }
+import org.corespring.services.{ ContentCollectionService, StandardService }
+import play.api.Logger
+
+import scalaz.{ Failure, Success, Validation }
 
 /**
  * Note: Whilst we support v1 and v2 players, we need to allow the item transformer to save 'versioned' items (aka not the most recent item).
@@ -25,7 +27,7 @@ class TransformerItemService(underlying: ItemService, versionedCollection: Mongo
 
   override def findOneById(id: VersionedId[ObjectId]): Option[Item] = underlying.findOneById(id)
 
-  override def save(i: Item, createNewVersion: Boolean): Either[PlatformServiceError, VersionedId[ObjectId]] = {
+  override def save(i: Item, createNewVersion: Boolean): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
     import com.mongodb.casbah.Imports._
     import com.novus.salat._
     logger.debug(s"function=save id=${i.id}, id=${i.id.id} version=${i.id.version}")
@@ -55,11 +57,11 @@ class TransformerItemService(underlying: ItemService, versionedCollection: Mongo
     collectionToSaveIn.map { c =>
       val result = c.save(dbo)
       if (result.getLastError.ok) {
-        Right(i.id)
+        Success(i.id)
       } else {
-        Left(GeneralError(result.getLastError.getErrorMessage, None))
+        Failure(GeneralError(result.getLastError.getErrorMessage, None))
       }
-    }.getOrElse(Left(GeneralError("Can't find a collection to save in", None)))
+    }.getOrElse(Failure(GeneralError("Can't find a collection to save in", None)))
   }
 }
 

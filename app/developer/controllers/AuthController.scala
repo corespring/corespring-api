@@ -1,11 +1,11 @@
-package org.corespring.platform.core.controllers.auth
+package developer.controllers
 
+import com.mongodb.casbah.Imports._
 import common.db.ObjectIdParser
-import org.bson.types.ObjectId
-import org.corespring.api.v1.errors.ApiError
-import org.corespring.common.log.PackageLogging
-import org.corespring.models.User
 import org.corespring.models.auth.Permission
+import org.corespring.services.UserService
+import org.corespring.web.api.v1.errors.ApiError
+import play.api.Logger
 import play.api.data.Forms._
 import play.api.data._
 import play.api.data.validation._
@@ -13,15 +13,19 @@ import play.api.libs.json.{ JsBoolean, JsObject, Json }
 import play.api.mvc.{ Action, Controller }
 import securesocial.core.SecureSocial
 
-/**
- * A controller to handle the OAuth flow and consumer registration
- */
+import scalaz.{ Failure, Success }
 
-object AuthController extends Controller with SecureSocial with ObjectIdParser with PackageLogging {
+class AuthController(userService: UserService,
+  oAuthProvider: OAuthProvider)
+  extends Controller
+  with SecureSocial
+  with ObjectIdParser {
 
   case class AccessTokenRequest(grant_type: String, client_id: String, client_secret: String, scope: Option[String])
 
   val registerInfo = Form(OAuthConstants.Organization -> text)
+
+  private lazy val logger = Logger(classOf[AuthController])
 
   /**
    * grantType: The OAuth flow (client_credentials is the only supported flow for now)
@@ -62,10 +66,10 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
     registerInfo.bindFromRequest().value.map { orgStr =>
       val username = request.user.identityId.userId
       val orgId = new ObjectId(orgStr)
-      User.getUser(username) match {
+      userService.getUser(username) match {
         case Some(user) => if (user.org.orgId == orgId && (user.org.pval & Permission.Write.value) == Permission.Write.value) {
           try {
-            OAuthProvider.createApiClient(orgId).fold(
+            oAuthProvider.createApiClient(orgId).fold(
               error => BadRequest(Json.toJson(error)),
               client => Ok(Json.toJson(Map(OAuthConstants.ClientId -> client.clientId.toString, OAuthConstants.ClientSecret -> client.clientSecret))))
           } catch {
@@ -85,18 +89,19 @@ object AuthController extends Controller with SecureSocial with ObjectIdParser w
       accessTokenForm.bindFromRequest.fold(
         errors => BadRequest(errors.errorsAsJson),
         params =>
-          OAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_secret, params.scope) match {
-            case Right(token) =>
+          oAuthProvider.getAccessToken(params.grant_type, params.client_id, params.client_secret, params.scope) match {
+            case Success(token) =>
+              logger.debug(s"getAccessToken returns token: ${token.tokenId}")
               val result = Map(OAuthConstants.AccessToken -> token.tokenId) ++ token.scope.map(OAuthConstants.Scope -> _)
               Ok(Json.toJson(result))
-            case Left(error) => Forbidden(Json.toJson(error))
+            case Failure(error) => Forbidden(Json.toJson(error))
           }).as(JSON)
   }
 
   def isValid(token: String) = Action {
-    OAuthProvider.getAuthorizationContext(token) match {
-      case Right(context) => Ok(JsObject(Seq("valid" -> JsBoolean(true))))
-      case Left(error) => Forbidden(Json.toJson(error))
+    oAuthProvider.getAuthorizationContext(token) match {
+      case Success(context) => Ok(JsObject(Seq("valid" -> JsBoolean(true))))
+      case Failure(error) => Forbidden(Json.toJson(error))
     }
   }
 

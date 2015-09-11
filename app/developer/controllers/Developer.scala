@@ -1,21 +1,22 @@
 package developer.controllers
 
 import controllers.Assets
-import org.corespring.legacy.ServiceLookup
 import developer.controllers.routes.{ Developer => DeveloperRoutes }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.models.json.ObjectIdFormat
-import org.corespring.web.api.v1.errors.ApiError
+import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.{ ApiClient, Permission }
+import org.corespring.models.json.ObjectIdFormat
 import org.corespring.models.{ ContentCollection, Organization, User }
+import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json._
 import play.api.mvc._
+import securesocial.core.{ IdentityId, SecureSocial, SecuredRequest }
+
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
-import securesocial.core.{ SecuredRequest, IdentityId, SecureSocial }
-import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * TODO: remove magic strings
@@ -123,16 +124,12 @@ object Developer extends Controller with SecureSocial with PackageLogging {
           Organization(n, (json \ "parent_id").asOpt[ObjectId].toList)
       }
 
-      def makeApiClient(orgId: ObjectId): Option[ApiClient] = ServiceLookup.apiClientService.createForOrg(orgId) match {
-        case Left(e) => None
-        case Right(c) => Some(c)
+      def makeApiClient(orgId: ObjectId): Option[ApiClient] = {
+        ServiceLookup.apiClientService.getOrCreateForOrg(orgId).toOption
       }
 
       def setOrg(userId: ObjectId, orgId: ObjectId): Option[ObjectId] = {
-        ServiceLookup.userService.setOrganization(userId, orgId, Permission.Write) match {
-          case Left(e) => None
-          case _ => Some(userId)
-        }
+        ServiceLookup.userService.setOrganization(userId, orgId, Permission.Write).map(_ => userId).toOption
       }
 
       def createDefaultCollection(orgId: ObjectId) =
@@ -144,7 +141,7 @@ object Developer extends Controller with SecureSocial with PackageLogging {
         okUser <- if (hasRegisteredOrg(user)) Failure("Org already registered") else Success(user)
         json <- request.body.asJson.toSuccess("Json expected")
         orgToCreate <- makeOrg(json).toSuccess("Couldn't create org")
-        org <- ServiceLookup.orgService.insert(orgToCreate, None).right.toOption.toSuccess("Couldn't create org")
+        org <- ServiceLookup.orgService.insert(orgToCreate, None).leftMap(e => e.message)
         updatedIdentityId <- setOrg(okUser.id, org.id).toSuccess("Couldn't set org")
         // Ensure default collection is created for this organisation
         defaultCollection <- createDefaultCollection(org.id).right.toOption.toSuccess("Couldn't create default collection")
@@ -184,9 +181,9 @@ object Developer extends Controller with SecureSocial with PackageLogging {
           if (user.org.orgId == orgId) {
             ServiceLookup.orgService.findOneById(orgId) match {
               case Some(org) => {
-                ServiceLookup.apiClientService.createForOrg(org.id) match {
-                  case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
-                  case Left(error) => BadRequest(Json.toJson(error))
+                ServiceLookup.apiClientService.getOrCreateForOrg(org.id) match {
+                  case Success(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
+                  case Failure(error) => BadRequest(Json.toJson(error))
                 }
               }
               case None => InternalServerError("could not find organization, after authentication. this should never occur")

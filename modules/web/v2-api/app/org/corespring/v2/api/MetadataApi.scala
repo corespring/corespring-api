@@ -48,10 +48,9 @@ class MetadataApi(
     } catch {
       case e: Exception => None
     }) match {
-      case Some(metadataSet) => metadataSetService.create(identity.org.id, metadataSet) match {
-        case Left(error) => errorSaving(error).toResult
-        case Right(set) => Ok(Json.prettyPrint(set))
-      }
+      case Some(metadataSet) =>
+        metadataSetService.create(identity.org.id, metadataSet)
+          .fold(e => errorSaving(e).toResult, set => Ok(Json.toJson(set)))
       case _ => incorrectJsonFormat(json).toResult
     }
   }
@@ -63,10 +62,9 @@ class MetadataApi(
     } catch {
       case e: Exception => None
     }) match {
-      case Some(metadataSet) => metadataSetService.update(metadataSet) match {
-        case Left(error) => errorSaving(error).toResult
-        case Right(set) => Ok(Json.prettyPrint(set))
-      }
+      case Some(metadataSet) =>
+        metadataSetService.update(metadataSet)
+          .fold(e => errorSaving(e).toResult, set => Ok(Json.toJson(set)))
       case _ => incorrectJsonFormat(json).toResult
     }
   })

@@ -1,4 +1,4 @@
-package org.corespring.common.mongo
+package common.db
 
 import org.bson.types.ObjectId
 

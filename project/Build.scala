@@ -262,6 +262,7 @@ object Build extends sbt.Build {
     .settings(buildComponentsTask, (packagedArtifacts) <<= (packagedArtifacts) dependsOn buildComponents)
     .settings(Indexing.indexTask)
     .dependsOn(
+      apiUtils,
       coreModels,
       coreServices,
       coreServicesSalat,
@@ -279,6 +280,7 @@ object Build extends sbt.Build {
       itemImport,
       itemDrafts % "compile->compile;test->test;it->test")
     .aggregate(
+      apiUtils,
       coreModels,
       coreServices,
       coreServicesSalat,

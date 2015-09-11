@@ -7,7 +7,7 @@ import org.corespring.models.auth.Permission
 /**
  * A class that holds authorization information for an API call.  This is created in the BaseApi trait.
  */
-case class AuthorizationContext(organization: ObjectId,
+case class AuthorizationContext(orgId: ObjectId,
   user: Option[String] = None,
   org: Option[Organization] = None,
   permission: Permission) {

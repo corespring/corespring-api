@@ -9,7 +9,7 @@ class ContributorApi(itemService: ItemService) extends BaseApi {
 
   def getContributorsList = ApiAction {
     request =>
-      val contributors = itemService.contributorsForOrg(request.ctx.organization)
+      val contributors = itemService.contributorsForOrg(request.ctx.orgId)
         .map(c => (Json.obj("name" -> c)))
       Ok(toJson(contributors))
   }

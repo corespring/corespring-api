@@ -4,21 +4,18 @@ import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ CollectionHooks => ContainerCollectionHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ Organization, ContentCollection }
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.ContentCollectionService
+import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.{ RequestHeader }
+import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
-
-import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Validation
 
 class CollectionHooks(
   colService: ContentCollectionService,
@@ -49,7 +46,7 @@ class CollectionHooks(
   }
 
   private def findWritableCollections(org: Organization): Validation[V2Error, Seq[ContentCollection]] = {
-    Validation.fromEither(colService.getCollections(org.id, Permission.Write)).leftMap {
+    colService.getCollections(org.id, Permission.Write).leftMap {
       e => generalError(e.message)
     }
   }

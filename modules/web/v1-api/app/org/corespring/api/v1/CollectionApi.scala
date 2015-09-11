@@ -2,8 +2,9 @@ package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports.ObjectId
 import org.corespring.v2
+import play.api.mvc.Controller
 
-class CollectionApi(v2CollectionApi: v2.api.CollectionApi) {
+class CollectionApi(v2CollectionApi: v2.api.CollectionApi) extends Controller {
 
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = {
     v2CollectionApi.list(q, f, strToOption(c), sk, l, sort)

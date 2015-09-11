@@ -14,6 +14,10 @@ POST    /sessions/:sessionId/clone         @org.corespring.v2.api.ItemSessionApi
 PUT     /sessions/:sessionId/reopen        @org.corespring.v2.api.ItemSessionApi.reopen(sessionId: String)
 PUT     /sessions/:sessionId/complete      @org.corespring.v2.api.ItemSessionApi.complete(sessionId: String)
 
+
+## V1 Port to v2 (cms support)
+GET /organizations/with-shared-collection/:collId @org.corespring.v2.api.OrganizationApi.getOrgsWithSharedCollection(collId: ObjectId)
+
 ## Check a score
 ## Load the score based on the saved response
 GET  /sessions/:sessionId/score.json       @org.corespring.v2.api.ItemSessionApi.loadScore(sessionId:String)

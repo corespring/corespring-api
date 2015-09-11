@@ -1,7 +1,7 @@
 package web.controllers
 
+import common.db.ObjectIdParser
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
-import org.corespring.common.mongo.ObjectIdParser
 import org.corespring.platform.core.controllers.auth.BaseApi
 import org.corespring.platform.core.controllers.{ QtiResource, AssetResourceBase }
 import org.corespring.models.auth.Permission

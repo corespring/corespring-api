@@ -3,9 +3,15 @@ package org.corespring.services.auth
 import org.bson.types.ObjectId
 import org.corespring.models.auth.ApiClient
 
+import scalaz.Validation
+
 trait ApiClientService {
 
-  def createForOrg(orgId:ObjectId) : Either[String,ApiClient]
+  protected val KEY_LENGTH = 16
+  protected val KEY_RADIX = 36
+
+  def generateTokenId(keyLength: Int = KEY_LENGTH): String
+  def getOrCreateForOrg(orgId: ObjectId): Validation[String, ApiClient]
 
   def findByKey(key: String): Option[ApiClient]
 

@@ -1,13 +1,11 @@
 package tests.assets
 
-import org.corespring.test.BaseTest
+import org.corespring.it.IntegrationSpecification
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import scala.Some
 
-class LicenseTypesTest extends BaseTest{
-  def assertLicenseType(name:String): org.specs2.execute.Result = {
-    val fakeRequest = FakeRequest(GET, "/assets/images/licenseTypes/"+name)
+class LicenseTypesTest extends IntegrationSpecification {
+  def assertLicenseType(name: String): org.specs2.execute.Result = {
+    val fakeRequest = FakeRequest(GET, "/assets/images/licenseTypes/" + name)
     val Some(result) = route(fakeRequest)
     status(result) === OK
   }

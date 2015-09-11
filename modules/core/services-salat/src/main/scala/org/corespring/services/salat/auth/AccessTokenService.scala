@@ -6,17 +6,21 @@ import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
 import com.typesafe.config.ConfigFactory
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.models.Organization
 import org.corespring.models.appConfig.AccessTokenConfig
 import org.corespring.models.auth.AccessToken
-import org.corespring.models.{ Organization }
-import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
+import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
+
 class AccessTokenService(
   val dao: SalatDAO[AccessToken, ObjectId],
   val context: Context,
+  apiClientService: interface.auth.ApiClientService,
   config: AccessTokenConfig) extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
 
   private val logger = Logger[AccessTokenService]()
@@ -32,14 +36,14 @@ class AccessTokenService(
     MongoDBObject("tokenId" -> 1),
     MongoDBObject("organization" -> 1, "tokenId" -> 1, "creationDate" -> 1, "expirationDate" -> 1, "neverExpire" -> 1)).foreach(dao.collection.ensureIndex(_))
 
-  override def removeToken(tokenId: String): Either[PlatformServiceError, Unit] = {
+  override def removeToken(tokenId: String): Validation[PlatformServiceError, Unit] = {
     logger.info(s"function=removeToken tokenId=$tokenId")
 
     try {
       dao.remove(MongoDBObject(Keys.tokenId -> tokenId))
-      Right(())
+      Success(())
     } catch {
-      case e: SalatRemoveError => Left(PlatformServiceError("error removing token with id " + tokenId, e))
+      case e: SalatRemoveError => Failure(PlatformServiceError("error removing token with id " + tokenId, e))
     }
   }
 
@@ -55,8 +59,18 @@ class AccessTokenService(
 
   lazy val tokenDuration = ConfigFactory.load().getString("TOKEN_DURATION").toInt
 
-  override def getOrCreateToken(org: Organization): AccessToken = {
+  private def mkToken(orgId: ObjectId) = {
+    val creationTime = DateTime.now()
+    AccessToken(orgId, None, apiClientService.generateTokenId(), creationTime, creationTime.plusHours(24))
+  }
 
+  override def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken] = for {
+    apiClient <- apiClientService.findByIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
+    token <- Success(mkToken(apiClient.orgId))
+    insertedToken <- insertToken(token)
+  } yield insertedToken
+
+  override def getOrCreateToken(org: Organization): AccessToken = {
     dao.findOne(MongoDBObject("orgId" -> org.id)) match {
       case Some(t) if (!t.isExpired) => t
       case _ => {
@@ -71,7 +85,6 @@ class AccessTokenService(
         token
       }
     }
-
   }
 
   override def findByOrgId(orgId: ObjectId): Option[AccessToken] = {
@@ -89,21 +102,20 @@ class AccessTokenService(
         Some(token)
       }
     }
-
   }
 
-  override def insertToken(token: AccessToken): Either[PlatformServiceError, AccessToken] = {
+  override def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     try {
       //TODO: Just do a SAFE WriteConcern instead
       dao.insert(token) match {
         case Some(id) => dao.findOneById(id) match {
-          case Some(dbtoken) => Right(dbtoken)
-          case None => Left(PlatformServiceError("could not retrieve token that was just inserted"))
+          case Some(dbtoken) => Success(dbtoken)
+          case None => Failure(PlatformServiceError("could not retrieve token that was just inserted"))
         }
-        case None => Left(PlatformServiceError("error occurred during insert"))
+        case None => Failure(PlatformServiceError("error occurred during insert"))
       }
     } catch {
-      case e: SalatInsertError => Left(PlatformServiceError("error occurred during insert", e))
+      case e: SalatInsertError => Failure(PlatformServiceError("error occurred during insert", e))
     }
   }
 

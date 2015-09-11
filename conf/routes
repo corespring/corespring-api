@@ -17,6 +17,13 @@ GET         /developer/org/:orgid                                     developer.
 GET         /developer/home                                           developer.controllers.Developer.home
 GET         /developer/*file                                          developer.controllers.Developer.at(path="/public/developer", file)
 
+
+# Auth endpoints
+POST /auth/register                                                   @developer.controllers.AuthController.register
+POST /auth/access_token                                               @developer.controllers.AuthController.getAccessToken
+GET /auth/isvalid                                                     @developer.controllers.AuthController.isValid(token)
+
+
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /v2/player                                                v2Player.Routes

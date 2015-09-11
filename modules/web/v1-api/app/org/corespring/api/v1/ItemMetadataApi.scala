@@ -12,7 +12,7 @@ class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetS
 
   def get(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>
-      val sets: Seq[MetadataSet] = setService.list(request.ctx.organization)
+      val sets: Seq[MetadataSet] = setService.list(request.ctx.orgId)
       val metadata: Seq[Metadata] = metadataService.get(itemId, sets.map(_.metadataKey))
       val setAndData: Seq[(MetadataSet, Option[Metadata])] = sets.map(s => (s, metadata.find(_.key == s.metadataKey)))
       val json: Seq[JsValue] = setAndData.map(t => SetJson(t._1, t._2))

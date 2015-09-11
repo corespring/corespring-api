@@ -113,6 +113,11 @@ class OrganizationService(
     toggleCollectionEnabled(orgId, collectionId, false)
   }
 
+  override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
+    val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collectionId)))
+    dao.find(query).toStream
+  }
+
   override def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
     findOneById(childId) match {
       case Some(child) => {

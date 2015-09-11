@@ -12,6 +12,7 @@ import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
 import scala.concurrent.ExecutionContext
+import scalaz.Success
 
 class MetadataApiTest extends V2ApiSpec {
 
@@ -52,14 +53,14 @@ class MetadataApiTest extends V2ApiSpec {
       m.create(any[ObjectId], any[MetadataSet]) answers { (args, _) =>
         {
           val argArray = args.asInstanceOf[Array[Object]]
-          Right(argArray(1).asInstanceOf[MetadataSet])
+          Success(argArray(1).asInstanceOf[MetadataSet])
         }
       }
 
       m.update(any[MetadataSet]) answers { (args, _) =>
         {
           val argArray = args.asInstanceOf[Array[Object]]
-          Right(argArray(0).asInstanceOf[MetadataSet])
+          Success(argArray(0).asInstanceOf[MetadataSet])
         }
       }
       m

@@ -12,6 +12,8 @@ import play.api.libs.json.{ JsObject, JsString, Json, _ }
 import play.api.mvc._
 import securesocial.core.SecureSocial
 
+import scalaz.{ Failure, Success }
+
 object OAuthProvider {
 
   def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
@@ -50,7 +52,8 @@ trait BaseApi
   with SecureSocial
   with TokenReader {
 
-  private[BaseApi] lazy val logger = Logger(classOf[BaseApi])
+  protected lazy val logger = Logger(classOf[BaseApi])
+
   val contentCollection: ContentCollectionService = ServiceLookup.contentCollectionService
 
   val withoutArchive = MongoDBObject("collectionId" -> MongoDBObject("$ne" -> contentCollection.archiveCollectionId.toString))
@@ -159,8 +162,8 @@ trait BaseApi
     maybeOrg.map { org =>
 
       ServiceLookup.userService.getPermissions(username, org.id) match {
-        case Left(e) => BadRequest(e.message)
-        case Right(p) => {
+        case Failure(e) => BadRequest(e.message)
+        case Success(p) => {
           val ctx = new AuthorizationContext(org.id, Option(username), Some(org), p)
           f(ApiRequest(ctx, request, ""))
         }

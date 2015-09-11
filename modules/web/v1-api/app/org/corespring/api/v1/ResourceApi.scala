@@ -30,7 +30,7 @@ class ResourceApi(
 
   import jsonFormatting._
 
-  private[ResourceApi] val logger = Logger(classOf[ResourceApi])
+  override lazy val logger = Logger(classOf[ResourceApi])
 
   private val USE_ITEM_DATA_KEY: String = "__!data!__"
 
@@ -117,7 +117,7 @@ class ResourceApi(
 
   def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
-      if (contentCollectionService.isAuthorized(request.ctx.organization, new ObjectId(item.collectionId), Permission.Write)) {
+      if (contentCollectionService.isAuthorized(request.ctx.orgId, new ObjectId(item.collectionId), Permission.Write)) {
         if (sessionServices.main.sessionCount(item.id) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),

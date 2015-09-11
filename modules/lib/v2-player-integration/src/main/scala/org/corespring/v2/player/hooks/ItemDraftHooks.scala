@@ -181,10 +181,7 @@ class ItemDraftHooks(
     val result: Validation[V2Error, (String, String)] = for {
       identity <- getOrgAndUser(h)
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
-      vid <- itemService.save(item, false) match {
-        case Left(m) => Failure(generalError(m.message))
-        case Right(vid) => Success(vid)
-      }
+      vid <- itemService.save(item, false).leftMap(e => generalError(e.message))
       draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
     } yield (vid.toString, draft.id.toString)
 

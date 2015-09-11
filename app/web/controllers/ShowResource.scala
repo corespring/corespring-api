@@ -1,8 +1,8 @@
 package web.controllers
 
+import common.db.ObjectIdParser
 import org.corespring.legacy.ServiceLookup
 import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
-import org.corespring.common.mongo.ObjectIdParser
 import org.corespring.services.item.{ ItemService, ItemServiceClient }
 import play.api.mvc.{ AnyContent, Action, Controller }
 

@@ -5,11 +5,13 @@ import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.services.errors.PlatformServiceError
-import org.corespring.{ services => interface }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User, UserOrg }
+import org.corespring.services.errors.PlatformServiceError
+import org.corespring.{ services => interface }
 import org.joda.time.DateTime
+
+import scalaz.{ Failure, Success, Validation }
 
 class UserService(
   val dao: SalatDAO[User, ObjectId],
@@ -26,18 +28,18 @@ class UserService(
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  override def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean): Either[PlatformServiceError, User] = {
+  override def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean): Validation[PlatformServiceError, User] = {
     if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         val update = user.copy(org = UserOrg(orgId, p.value))
         dao.insert(update) match {
           case Some(id) => {
-            Right(user)
+            Success(user)
           }
-          case None => Left(PlatformServiceError("error inserting user"))
+          case None => Failure(PlatformServiceError("error inserting user"))
         }
-      } else Left(PlatformServiceError("user already exists"))
-    } else Left(PlatformServiceError("no organization found with given id"))
+      } else Failure(PlatformServiceError("user already exists"))
+    } else Failure(PlatformServiceError("no organization found with given id"))
   }
 
   /**
@@ -57,23 +59,23 @@ class UserService(
     dao.findOne(query)
   }
 
-  override def getPermissions(username: String, orgId: ObjectId): Either[PlatformServiceError, Permission] = {
+  override def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
     dao.findOne(MongoDBObject("userName" -> username, "org.orgId" -> orgId)) match {
       case Some(u) => getPermissions(u, orgId)
-      case None => Left(PlatformServiceError(s"could not find user $username with access to given organization: $orgId"))
+      case None => Failure(PlatformServiceError(s"could not find user $username with access to given organization: $orgId"))
     }
   }
 
-  private def getPermissions(user: User, orgId: ObjectId): Either[PlatformServiceError, Permission] = {
+  private def getPermissions(user: User, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
     Permission.fromLong(user.org.pval) match {
-      case Some(p) => Right(p)
-      case None => Left(PlatformServiceError("uknown permission retrieved"))
+      case Some(p) => Success(p)
+      case None => Failure(PlatformServiceError("uknown permission retrieved"))
     }
   }
 
-  override def getUsers(orgId: ObjectId): Either[PlatformServiceError, Seq[User]] = {
+  override def getUsers(orgId: ObjectId): Validation[PlatformServiceError, Seq[User]] = {
     val c: SalatMongoCursor[User] = dao.find(MongoDBObject("org.orgId" -> orgId))
-    val returnValue = Right(c.toSeq)
+    val returnValue = Success(c.toSeq)
     c.close()
     returnValue
   }
@@ -87,14 +89,14 @@ class UserService(
           MongoDBObject(
             field -> new DateTime())),
           false, false, dao.collection.writeConcern)
-        Right(user)
+        Success(user)
       }
-      case None => Left(PlatformServiceError("no user found to update " + field))
+      case None => Failure(PlatformServiceError("no user found to update " + field))
     }
 
   override def touchRegistration(userId: String) = touch(userId, "registrationDate")
 
-  override def updateUser(user: User): Either[PlatformServiceError, User] = {
+  override def updateUser(user: User): Validation[PlatformServiceError, User] = {
     try {
       dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
         MongoDBObject(
@@ -104,11 +106,11 @@ class UserService(
           "password" -> user.password)),
         false, false, dao.collection.writeConcern)
       getUser(user.id) match {
-        case Some(u) => Right(u)
-        case None => Left(PlatformServiceError("no user found that was just modified"))
+        case Some(u) => Success(u)
+        case None => Failure(PlatformServiceError("no user found that was just modified"))
       }
     } catch {
-      case e: SalatDAOUpdateError => Left(PlatformServiceError("failed to update user", e))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update user", e))
     }
   }
 
@@ -117,7 +119,7 @@ class UserService(
     org.flatMap(orgService.findOneById)
   }
 
-  override def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[PlatformServiceError, Unit] = {
+  override def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit] = {
     import com.novus.salat.grater
 
     val userOrg = UserOrg(orgId, p.value)
@@ -125,25 +127,25 @@ class UserService(
       dao.update(MongoDBObject("_id" -> userId),
         MongoDBObject("$set" -> MongoDBObject("org" -> grater[UserOrg].asDBObject(userOrg))),
         false, false, dao.collection.writeConcern)
-      Right(())
+      Success(())
     } catch {
-      case e: SalatDAOUpdateError => Left(PlatformServiceError("could add organization to user"))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError("could add organization to user"))
     }
   }
 
-  override def removeUser(username: String): Either[PlatformServiceError, Unit] = {
+  override def removeUser(username: String): Validation[PlatformServiceError, Unit] = {
     getUser(username) match {
       case Some(user) => removeUser(user.id)
-      case None => Left(PlatformServiceError("user could not be removed because it doesn't exist"))
+      case None => Failure(PlatformServiceError("user could not be removed because it doesn't exist"))
     }
   }
 
-  override def removeUser(userId: ObjectId): Either[PlatformServiceError, Unit] = {
+  override def removeUser(userId: ObjectId): Validation[PlatformServiceError, Unit] = {
     try {
       dao.removeById(userId)
-      Right(())
+      Success(())
     } catch {
-      case e: SalatRemoveError => Left(PlatformServiceError("error occurred while removing user", e))
+      case e: SalatRemoveError => Failure(PlatformServiceError("error occurred while removing user", e))
     }
   }
 

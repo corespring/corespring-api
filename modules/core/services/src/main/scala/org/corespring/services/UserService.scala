@@ -5,6 +5,8 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User }
 import org.corespring.services.errors.PlatformServiceError
 
+import scalaz.Validation
+
 trait UserService {
 
   /**
@@ -13,18 +15,18 @@ trait UserService {
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Either[PlatformServiceError, User]
+  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Validation[PlatformServiceError, User]
 
-  def removeUser(username: String): Either[PlatformServiceError, Unit]
+  def removeUser(username: String): Validation[PlatformServiceError, Unit]
 
-  def removeUser(userId: ObjectId): Either[PlatformServiceError, Unit]
+  def removeUser(userId: ObjectId): Validation[PlatformServiceError, Unit]
 
   def touchLastLogin(userId: String)
   def touchRegistration(userId: String)
 
-  def updateUser(user: User): Either[PlatformServiceError, User]
+  def updateUser(user: User): Validation[PlatformServiceError, User]
 
-  def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Either[PlatformServiceError, Unit]
+  def setOrganization(userId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit]
 
   def getOrg(user: User, p: Permission): Option[Organization]
 
@@ -39,10 +41,10 @@ trait UserService {
 
   def getUser(username: String, provider: String): Option[User]
 
-  def getUserByEmail(email:String) : Option[User]
+  def getUserByEmail(email: String): Option[User]
 
-  def getUsers(orgId: ObjectId): Either[PlatformServiceError, Seq[User]]
+  def getUsers(orgId: ObjectId): Validation[PlatformServiceError, Seq[User]]
 
-  def getPermissions(username: String, orgId: ObjectId): Either[PlatformServiceError, Permission]
+  def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission]
 }
 

@@ -1,14 +1,13 @@
-package api.v1
+package org.corespring.api.v1
 
 import org.bson.types.ObjectId
+import org.corespring.models.metadata.{ Metadata, MetadataSet, SchemaMetadata }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
+import org.corespring.test.JsonAssertions
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
-import org.corespring.test.{ JsonAssertions, PlaySingleton }
-import org.corespring.models.metadata.{ Metadata, SchemaMetadata, MetadataSet }
-import org.corespring.api.v1.ItemMetadataApi
 
 class ItemMetadataApiTest extends Specification with Mockito with JsonAssertions {
 

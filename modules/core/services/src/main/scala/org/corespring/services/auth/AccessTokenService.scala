@@ -5,10 +5,12 @@ import org.corespring.models.Organization
 import org.corespring.models.auth.AccessToken
 import org.corespring.services.errors.PlatformServiceError
 
-trait AccessTokenService {
-  def removeToken(tokenId: String): Either[PlatformServiceError, Unit]
+import scalaz.Validation
 
-  def insertToken(token: AccessToken): Either[PlatformServiceError, AccessToken]
+trait AccessTokenService {
+  def removeToken(tokenId: String): Validation[PlatformServiceError, Unit]
+
+  def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken]
 
   /**
    * Finds an access token by id
@@ -38,6 +40,12 @@ trait AccessTokenService {
 
   def findByOrgId(id: ObjectId): Option[AccessToken]
 
+  /**
+   * Creates an access token to invoke the APIs protected by BaseApi.
+   * @return The AccessToken or ApiError if something went wrong
+   *         Note: taken from legacy OAuthProvider
+   */
+  def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken]
   def getOrCreateToken(org: Organization): AccessToken
 
   def orgForToken(token: String): Option[Organization]

@@ -72,6 +72,9 @@ trait V2ApiModule
 
   private lazy val collectionApi: Controller = wire[CollectionApi]
 
+  //Expose this api so v1 api can use it
+  lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
+
   lazy val v2ApiControllers: Seq[Controller] = Seq(
     itemApi,
     itemSessionApi,

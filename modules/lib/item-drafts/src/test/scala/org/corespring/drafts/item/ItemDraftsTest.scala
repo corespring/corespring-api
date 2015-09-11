@@ -50,7 +50,7 @@ class ItemDraftsTest extends Specification with Mockito {
           val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
           val createNewVersion = arr(1).asInstanceOf[Boolean]
           println(s"createNewVersion: $createNewVersion")
-          Right(if (createNewVersion) bump(itemId) else itemId)
+          Success(if (createNewVersion) bump(itemId) else itemId)
       }
       m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
       m.isPublished(any[VersionedId[ObjectId]]) returns false
@@ -190,7 +190,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
         val draft = mkDraft(ed, item)
         itemService.save(any[Item], any[Boolean]) returns {
-          if (saveSuccess) Right(itemId) else Left(org.corespring.services.errors.GeneralError("Err", None))
+          if (saveSuccess) Success(itemId) else Failure(org.corespring.services.errors.GeneralError("Err", None))
         }
       }
 

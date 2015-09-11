@@ -1,21 +1,17 @@
-package org.corespring.wiring.apiTracking
+package org.corespring.api.tracking
 
-import org.corespring.models.auth.ApiClientService
-import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.services.TokenService
+import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 class ApiTrackingTest extends Specification with Mockito {
 
-  PlaySingleton.start()
-
   import org.corespring.container.client.controllers.apps.routes._
 
   class scope extends Scope {
 
-    val mockToken = mock[TokenService]
+    val mockToken = mock[AccessTokenService]
     val mockClient = mock[ApiClientService]
 
     val t = new ApiTracking(mockToken, mockClient)
