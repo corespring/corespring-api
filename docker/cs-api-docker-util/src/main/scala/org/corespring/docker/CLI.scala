@@ -54,7 +54,7 @@ object CLI extends App {
   def indexElasticSearch() = {
     import org.corespring.elasticsearch.ContentIndexer
     println(s"running content indexer for: ${Conf.elasticSearchUri()}")
-    ContentIndexer.reindex(new java.net.URL(Conf.elasticSearchUri()), Conf.mongoUri(), Conf.componentPath())
+    ContentIndexer.reindex(new java.net.URL(Conf.elasticSearchUri()), Conf.mongoUri())
     println("done.")
   }
 
