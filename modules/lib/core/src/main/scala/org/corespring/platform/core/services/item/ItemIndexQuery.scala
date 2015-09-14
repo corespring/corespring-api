@@ -12,6 +12,7 @@ case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
                           contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
                           collections: Seq[String] = ItemIndexQuery.Defaults.collections,
                           itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
+                          widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
                           gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
                           published: Option[Boolean] = ItemIndexQuery.Defaults.published,
                           workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
@@ -29,6 +30,7 @@ object Sort {
     "subject" -> "taskInfo.subjects.primary.subject",
     "gradeLevel" -> "taskInfo.gradeLevel",
     "itemType" -> "taskInfo.itemTypes",
+    "widget" -> "taskInfo.widgets",
     "standard" -> "taskInfo.standards.dotNotation",
     "contributor" -> "contributorDetails.contributor"
   )
@@ -69,6 +71,7 @@ object ItemIndexQuery {
     val contributors = Seq.empty[String]
     val collections = Seq.empty[String]
     val itemTypes = Seq.empty[String]
+    val widgets = Seq.empty[String]
     val gradeLevels = Seq.empty[String]
     val published = None
     val workflows = Seq.empty[String]
@@ -83,12 +86,14 @@ object ItemIndexQuery {
     val contributors = "contributors"
     val collections = "collections"
     val itemTypes = "itemTypes"
+    val widgets = "widgets"
     val gradeLevels = "gradeLevels"
     val published = "published"
     val workflows = "workflows"
     val requiredPlayerWidth = "requiredPlayerWidth"
     val sort = "sort"
-    val all = Set(offset, count, text, contributors, collections, itemTypes, gradeLevels, published, workflows, sort)
+    val all =
+      Set(offset, count, text, contributors, collections, itemTypes, widgets, gradeLevels, published, workflows, sort)
   }
 
   /**
@@ -106,6 +111,7 @@ object ItemIndexQuery {
         contributors = (json \ contributors).asOpt[Seq[String]].getOrElse(Defaults.contributors),
         collections = (json \ collections).asOpt[Seq[String]].getOrElse(Defaults.collections),
         itemTypes = (json \ itemTypes).asOpt[Seq[String]].getOrElse(Defaults.itemTypes),
+        widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
         gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
         published = (json \ published).asOpt[Boolean],
         workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows),
@@ -218,6 +224,7 @@ object ItemIndexQuery {
               terms("contributorDetails.contributor", contributors),
               terms("collectionId", collections),
               terms("taskInfo.itemTypes", itemTypes),
+              terms("taskInfo.widgets", widgets),
               terms("taskInfo.gradeLevel", gradeLevels),
               term("published", published),
               terms("workflow", workflows , Some("and")),

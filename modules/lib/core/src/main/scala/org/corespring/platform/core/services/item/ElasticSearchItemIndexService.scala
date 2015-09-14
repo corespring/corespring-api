@@ -87,6 +87,13 @@ class ElasticSearchItemIndexService(elasticSearchUrl: URL)(implicit ec: Executio
         case _ => None
       }).flatten).flatten.toMap))
 
+  lazy val widgetTypes: Future[Validation[Error, Map[String, String]]] =
+    distinct("taskInfo.widgets").map(result => result.map(itemTypes => itemTypes.map(itemType =>
+      components.componentMap.get(itemType).map(t => t.nonEmpty match {
+        case true => Some(t -> itemType)
+        case _ => None
+      }).flatten).flatten.toMap))
+
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
    */
