@@ -18,7 +18,7 @@ class AuthenticatedUrlTest extends Specification with AuthenticatedUrl {
   import play.api.Play.current
 
   def authorizationHeader(request: WSRequestHolder): Option[(String, Seq[String])] =
-    request.headers.find{ case(key, _) => key == "Authorization"}
+    request.headers.find { case (key, _) => key == "Authorization" }
 
   val route = "/search"
 
@@ -49,7 +49,7 @@ class AuthenticatedUrlTest extends Specification with AuthenticatedUrl {
         authorizationHeader(result) match {
           case Some((_, Seq(httpAuth))) =>
             httpAuth === s"Basic ${new String(encodeBase64(s"$username:$password".getBytes))}"
-          case _ => failure("did not contain authroization header")
+          case _ => ko("did not contain authorization header")
         }
       }
 

@@ -4,11 +4,11 @@ import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{BaseFile, StoredFile}
+import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.test.PlaySingleton
-import org.corespring.v2.auth.models.{OrgAndOpts, _}
+import org.corespring.v2.auth.models.{ OrgAndOpts, _ }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -46,7 +46,7 @@ class ItemFileConverterTest extends Specification with Mockito {
 
   object otherAlignments {
     val bloomsTaxonomy = "Analyzing"
-    val depthOfKnowledge = "Strategic Thinking & Reasoning"
+    val depthOfKnowledge = "3"
     val keySkills = Seq("Define", "Discuss", "Distinguish", "Choose", "Analyze", "Examine")
     val relatedCurriculum = "New Jersey Model Curriculum"
   }
@@ -221,10 +221,10 @@ class ItemFileConverterTest extends Specification with Mockito {
 
     "modules/web/item-import/test/resources/item" should {
 
-       val item: Item = result.asInstanceOf[Success[Error, Item]].getOrElse(throw new Exception("no item"))
+      val item: Item = result.asInstanceOf[Success[Error, Item]].getOrElse(throw new Exception("no item"))
 
-      "have correct collectionId" in { item.collectionId must be equalTo(Some(collectionId)) }
-      "have item as contentType" in { item.contentType must be equalTo(Item.contentType) }
+      "have correct collectionId" in { item.collectionId must be equalTo (Some(collectionId)) }
+      "have item as contentType" in { item.contentType must be equalTo (Item.contentType) }
 
       "contributorDetails" should {
         val itemContributorDetails = item.contributorDetails.getOrElse(throw new Exception("contributorDetails missing"))
@@ -235,13 +235,13 @@ class ItemFileConverterTest extends Specification with Mockito {
         "copyright" should {
           val itemCopyright = itemContributorDetails.copyright.getOrElse(throw new Exception("contributorDetails.copyright missing"))
 
-          "have correct owner" in { itemCopyright.owner must be equalTo(Some(contributorDetails.copyright.owner)) }
-          "have correct year" in { itemCopyright.year must be equalTo(Some(contributorDetails.copyright.year)) }
+          "have correct owner" in { itemCopyright.owner must be equalTo (Some(contributorDetails.copyright.owner)) }
+          "have correct year" in { itemCopyright.year must be equalTo (Some(contributorDetails.copyright.year)) }
         }
 
-        "have correct credentials" in { itemContributorDetails.credentials must be equalTo(Some(contributorDetails.credentials)) }
-        "have correct licenseType" in { itemContributorDetails.licenseType must be equalTo(Some(contributorDetails.licenseType)) }
-        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must be equalTo(Some(contributorDetails.sourceUrl)) }
+        "have correct credentials" in { itemContributorDetails.credentials must be equalTo (Some(contributorDetails.credentials)) }
+        "have correct licenseType" in { itemContributorDetails.licenseType must be equalTo (Some(contributorDetails.licenseType)) }
+        "have correct sourceUrl" in { itemContributorDetails.sourceUrl must be equalTo (Some(contributorDetails.sourceUrl)) }
 
       }
 
@@ -260,10 +260,10 @@ class ItemFileConverterTest extends Specification with Mockito {
         "have correct depthOfKnowledge" in { itemOtherAlignments.depthOfKnowledge must be equalTo Some(otherAlignments.depthOfKnowledge) }
       }
 
-      "have correct priorUse" in { item.priorUse must be equalTo(Some(priorUse)) }
-      "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo(priorGradeLevels) }
-      "have correct reviewsPassed" in { item.reviewsPassed must be equalTo(reviewsPassed) }
-      "have correct standards" in { item.standards must be equalTo(standards) }
+      "have correct priorUse" in { item.priorUse must be equalTo (Some(priorUse)) }
+      "have correct priorGradeLevels" in { item.priorGradeLevels must be equalTo (priorGradeLevels) }
+      "have correct reviewsPassed" in { item.reviewsPassed must be equalTo (reviewsPassed) }
+      "have correct standards" in { item.standards must be equalTo (standards) }
 
       "supportingMaterials" should {
         val itemSupportingMaterial = item.supportingMaterials.headOption.getOrElse(throw new Exception("supportingMaterial missing"))

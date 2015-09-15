@@ -131,7 +131,7 @@
         },
         "depthOfKnowledge" : {
           "type" : "string",
-          "pattern" : "Recall & Reproduction|Strategic Thinking & Reasoning|Skills & Concepts|Extended Thinking"
+          "pattern" : "1|2|3|4|None"
         },
         "relatedCurriculum" : {
           "type" : "string"

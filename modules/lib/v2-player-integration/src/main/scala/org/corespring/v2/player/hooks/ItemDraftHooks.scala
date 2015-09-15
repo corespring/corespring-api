@@ -22,16 +22,11 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait DraftHelper {
-  implicit def validationToEither[A](v: Validation[V2Error, A]): Either[StatusMessage, A] = v.leftMap { e => e.statusCode -> e.message }.toEither
-  implicit def validationToOption[A](v: Validation[V2Error, A]): Option[StatusMessage] = v.swap.map { e => e.statusCode -> e.message }.toOption
-}
-
 trait ItemDraftHooks
   extends containerHooks.CoreItemHooks
   with containerHooks.DraftHooks
   with LoadOrgAndOptions
-  with DraftHelper
+  with ContainerConverters
   with MakeDraftId {
 
   def backend: DraftsBackend
@@ -143,12 +138,9 @@ trait ItemDraftHooks
     } yield Json.obj("id" -> id)
   }
 
-  //DraftHook
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
-    savePartOfPlayerDef(draftId, json.as[JsObject])
+    update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
 
-
-  //DraftHook
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
       identity <- getOrgAndUser(h)
@@ -158,7 +150,6 @@ trait ItemDraftHooks
     } yield CommitJson(result)
   }
 
-  //DraftHook
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
       orgService.defaultCollection(u.org.id).map { c =>
