@@ -2,7 +2,6 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Answer, Assessment, Participant }
-import org.corespring.models.json.JsonFormatting
 import org.corespring.services.assessment.AssessmentService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -18,7 +17,7 @@ class AssessmentApiTest extends V2ApiSpec {
 
   import jsonFormatting._
 
-  case class apiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
+  class apiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     id: Option[ObjectId] = None,
     ids: List[ObjectId] = List.empty[ObjectId],
     authorId: Option[String] = None,
@@ -27,15 +26,15 @@ class AssessmentApiTest extends V2ApiSpec {
     def assessmentFor(id: ObjectId) =
       new Assessment(id = id, orgId = orgId, participants = participants.map(id => Participant(Seq(), id)))
     val assessments = ids.map(id => assessmentFor(id))
-    val allIds = (id match {
-      case Some(id) => ids :+ id
+    val allIds = id match {
+      case Some(i) => ids :+ i
       case _ => ids
-    })
+    }
 
     val assessmentService = {
       val m = mock[AssessmentService]
       orgId match {
-        case Some(orgId) => {
+        case Some(orgId) =>
           m.findByIds(any[List[ObjectId]], any[ObjectId]) returns assessments
           allIds.foreach(id => {
             m.findByIdAndOrg(id, orgId) returns Some(assessmentFor(id))
@@ -47,7 +46,6 @@ class AssessmentApiTest extends V2ApiSpec {
             }
             case _ => {}
           }
-        }
         case _ => {}
       }
       m.addParticipants(any[ObjectId], any[Seq[String]]) answers { (args, _) =>
@@ -88,35 +86,44 @@ class AssessmentApiTest extends V2ApiSpec {
 
   }
 
+  private val fr = FakeRequest()
+
   "create" should {
 
     "without identity" should {
 
-      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
-        status(assessmentApi.create()(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError)) {
+        val result = assessmentApi.create()(fr)
+        println(contentAsString(result))
+        status(result) === testError.statusCode
       }
-
     }
 
     "with identity" should {
 
-      "call assessmentService#create" in new apiScope() {
-        Await.result(assessmentApi.create()(FakeRequest()), Duration.Inf)
+      class create extends apiScope() {
+        val result = assessmentApi.create()(fr)
+        val resultJson = contentAsJson(result)
+        val resultStatus = status(result)
+      }
+
+      "call assessmentService#create" in new create {
+        Await.result(result, Duration.Inf)
         there was one(assessmentService).create(any[Assessment])
       }
 
-      "return 201" in new apiScope() {
-        status(assessmentApi.create()(FakeRequest())) must be equalTo (CREATED)
+      "return 201" in new create {
+        resultStatus === CREATED
       }
 
-      "return created Assessment as JSON" in new apiScope() {
-        val json = contentAsJson(assessmentApi.create()(FakeRequest()))
-        (json \ "id").asOpt[String] must not beEmpty;
-        (json \ "orgId").asOpt[String] must be equalTo (orgAndOpts.toOption.map(_.org.id.toString))
+      "return created Assessment id" in new create {
+        (resultJson \ "id").asOpt[String] must not beEmpty
       }
 
+      "return created Assessment orgId" in new create {
+        (resultJson \ "orgId").asOpt[String] === orgAndOpts.toOption.map(_.org.id.toString)
+      }
     }
-
   }
 
   "getByIds" should {
@@ -124,37 +131,38 @@ class AssessmentApiTest extends V2ApiSpec {
     val ids = List(new ObjectId(), new ObjectId())
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
-        status(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return error ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError)) {
+        status(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(fr)) === testError.statusCode
       }
     }
 
     "with identity" should {
 
-      "return 200" in new apiScope(ids = ids) {
-        status(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest())) must be equalTo (OK)
+      class getByIds(ids: List[ObjectId]) extends apiScope(ids = ids) {
+        val result = assessmentApi.getByIds(ids.map(_.toString).mkString(","))(fr)
+        lazy val resultJson = contentAsJson(result)
+        lazy val resultStatus = status(result)
       }
 
-      "return JSON for Assessments with each id" in new apiScope(ids = ids) {
-        val json = contentAsJson(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest()))
-        json.as[Seq[JsObject]].map(o => (o \ "id").as[String]) must be equalTo (ids.map(_.toString))
+      "return 200" in new getByIds(ids = ids) {
+        resultStatus === OK
+      }
+
+      "return JSON for Assessments with each id" in new getByIds(ids = ids) {
+        (resultJson \\ "id").map(_.as[String]) === ids.map(_.toString)
       }
 
       "with a single id" should {
 
-        "return 200" in new apiScope(ids = ids) {
-          status(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest())) must be equalTo (OK)
+        "return 200" in new getByIds(ids = ids.take(1)) {
+          resultStatus === OK
         }
 
-        "return single json object for id" in new apiScope(ids = List(ids.head)) {
-          val json = contentAsJson(assessmentApi.getByIds(ids.map(_.toString).mkString(","))(FakeRequest()))
-          (json.as[JsObject] \ "id").as[String] must be equalTo (ids.head.toString)
+        "return single json object for id" in new getByIds(ids = ids.take(1)) {
+          (resultJson.as[JsObject] \ "id").as[String] === ids.head.toString
         }
-
       }
-
     }
-
   }
 
   "get" should {
@@ -163,37 +171,34 @@ class AssessmentApiTest extends V2ApiSpec {
     val authorId = Some("abc123")
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
-        status(assessmentApi.get(None)(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError)) {
+        status(assessmentApi.get(None)(fr)) === testError.statusCode
       }
     }
 
     "with identity" should {
 
       "return 200" in new apiScope(ids = ids) {
-        status(assessmentApi.get(None)(FakeRequest())) must be equalTo (OK)
+        status(assessmentApi.get(None)(fr)) === OK
       }
 
       "return result of assessmentService#getAllByOrgId" in new apiScope(ids = ids) {
-        val json = contentAsJson(assessmentApi.get(None)(FakeRequest()))
+        val json = contentAsJson(assessmentApi.get(None)(fr))
         there was one(assessmentService).findAllByOrgId(orgId.get)
-        json must be equalTo (Json.toJson(assessments))
+        json === Json.toJson(assessments)
       }
 
       "with authorId" should {
 
         "return 200" in new apiScope(ids = ids, authorId = authorId) {
-          status(assessmentApi.get(authorId)(FakeRequest())) must be equalTo (OK)
+          status(assessmentApi.get(authorId)(fr)) === OK
         }
 
         "return result of assessmentService#getByAuthorId" in new apiScope(ids = ids, authorId = authorId) {
-          contentAsJson(assessmentApi.get(authorId)(FakeRequest())) must be equalTo (Json.toJson(assessments.map(_.copy(metadata = Map("author" -> authorId.get)))))
+          contentAsJson(assessmentApi.get(authorId)(fr)) === Json.toJson(assessments.map(_.copy(metadata = Map("author" -> authorId.get))))
         }
-
       }
-
     }
-
   }
 
   "update" should {
@@ -205,29 +210,27 @@ class AssessmentApiTest extends V2ApiSpec {
     val updateId = new ObjectId()
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(updateId)) {
-        status(assessmentApi.update(updateId)(FakeRequest().withJsonBody(jsonUpdate))) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError), id = Some(updateId)) {
+        status(assessmentApi.update(updateId)(fr.withJsonBody(jsonUpdate))) === testError.statusCode
       }
     }
 
     "with identity" should {
 
       "return 200" in new apiScope(id = Some(updateId)) {
-        status(assessmentApi.update(updateId)(FakeRequest().withJsonBody(jsonUpdate))) must be equalTo (OK)
+        status(assessmentApi.update(updateId)(fr.withJsonBody(jsonUpdate))) === OK
       }
 
       "call assessmentService#update" in new apiScope(id = Some(updateId)) {
-        val response = contentAsJson(assessmentApi.update(updateId)(FakeRequest().withJsonBody(jsonUpdate)))
+        val response = contentAsJson(assessmentApi.update(updateId)(fr.withJsonBody(jsonUpdate)))
         there was one(assessmentService).update(any[Assessment])
       }
 
       "return updated json" in new apiScope(id = Some(updateId)) {
-        val json = contentAsJson(assessmentApi.update(updateId)(FakeRequest().withJsonBody(jsonUpdate)))
-        (json \ "metadata").as[Map[String, String]] must be equalTo (metadataUpdate)
+        val json = contentAsJson(assessmentApi.update(updateId)(fr.withJsonBody(jsonUpdate)))
+        (json \ "metadata").as[Map[String, String]] === metadataUpdate
       }
-
     }
-
   }
 
   "delete" should {
@@ -235,28 +238,26 @@ class AssessmentApiTest extends V2ApiSpec {
     val deleteId = new ObjectId()
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(deleteId)) {
-        status(assessmentApi.delete(deleteId)(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError), id = Some(deleteId)) {
+        status(assessmentApi.delete(deleteId)(fr)) === testError.statusCode
       }
     }
 
     "with identity" should {
 
       "call assessmentService#delete" in new apiScope(id = Some(deleteId)) {
-        Await.result(assessmentApi.delete(deleteId)(FakeRequest()), Duration.Inf)
+        Await.result(assessmentApi.delete(deleteId)(fr), Duration.Inf)
         there was one(assessmentService).remove(assessmentFor(deleteId))
       }
 
       "return 200" in new apiScope(id = Some(deleteId)) {
-        status(assessmentApi.delete(deleteId)(FakeRequest())) must be equalTo (OK)
+        status(assessmentApi.delete(deleteId)(fr)) === OK
       }
 
       "return json of deleted resource" in new apiScope(id = Some(deleteId)) {
-        contentAsJson(assessmentApi.delete(deleteId)(FakeRequest())) must be equalTo (Json.toJson(assessmentFor(deleteId)))
+        contentAsJson(assessmentApi.delete(deleteId)(fr)) === Json.toJson(assessmentFor(deleteId))
       }
-
     }
-
   }
 
   "addParticipants" should {
@@ -267,24 +268,22 @@ class AssessmentApiTest extends V2ApiSpec {
       "ids" -> participantIds)
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId)) {
-        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId)) {
+        status(assessmentApi.addParticipants(assessmentId)(fr.withJsonBody(participantsJson))) === testError.statusCode
       }
     }
 
     "with identity" should {
 
       "return 200" in new apiScope(id = Some(assessmentId)) {
-        status(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson))) must be equalTo (OK)
+        status(assessmentApi.addParticipants(assessmentId)(fr.withJsonBody(participantsJson))) === OK
       }
 
       "return assessment json containing participants with ids" in new apiScope(id = Some(assessmentId)) {
-        val json = contentAsJson(assessmentApi.addParticipants(assessmentId)(FakeRequest().withJsonBody(participantsJson)))
-        (json \ "participants").as[Seq[JsObject]].map(j => (j \ "externalUid").as[String]) must be equalTo (participantIds)
+        val json = contentAsJson(assessmentApi.addParticipants(assessmentId)(fr.withJsonBody(participantsJson)))
+        (json \ "participants").as[Seq[JsObject]].map(j => (j \ "externalUid").as[String]) === participantIds
       }
-
     }
-
   }
 
   "addAnswer" should {
@@ -299,26 +298,25 @@ class AssessmentApiTest extends V2ApiSpec {
       "sessionId" -> answerSessionId)
 
     "without identity" should {
-      "return 401" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId), participants = participantIds) {
-        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson))) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError), id = Some(assessmentId), participants = participantIds) {
+        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(fr.withJsonBody(answerJson))) === testError.statusCode
       }
     }
 
     "with identity" should {
 
       "return 200" in new apiScope(id = Some(assessmentId), participants = participantIds) {
-        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson))) must be equalTo (OK)
+        status(assessmentApi.addAnswer(assessmentId, Some(participantId))(fr.withJsonBody(answerJson))) === OK
       }
 
       "return assessment json with provided answer in specified participant" in new apiScope(id = Some(assessmentId), participants = participantIds) {
-        val json = contentAsJson(assessmentApi.addAnswer(assessmentId, Some(participantId))(FakeRequest().withJsonBody(answerJson)))
+        val json = contentAsJson(assessmentApi.addAnswer(assessmentId, Some(participantId))(fr.withJsonBody(answerJson)))
+
         (json \ "participants").as[Seq[JsObject]]
-          .find(obj => (obj \ "externalUid").asOpt[String] == Some(participantId) && (obj \ "answers").as[Seq[JsObject]]
-            .find(answer => (answer \ "itemId").asOpt[String] == Some(answerItemId) && (answer \ "sessionId").asOpt[String] == Some(answerSessionId)).nonEmpty) must not beEmpty
+          .exists(obj => (obj \ "externalUid").asOpt[String] == Some(participantId) && (obj \ "answers").as[Seq[JsObject]]
+            .exists(answer => (answer \ "itemId").asOpt[String] == Some(answerItemId) && (answer \ "sessionId").asOpt[String] == Some(answerSessionId)).nonEmpty) === true
       }
-
     }
-
   }
 
 }

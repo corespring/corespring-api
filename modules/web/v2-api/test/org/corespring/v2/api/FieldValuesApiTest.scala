@@ -1,7 +1,6 @@
 package org.corespring.v2.api
 
 import org.corespring.itemSearch.ItemIndexService
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.mockito.Matchers
@@ -36,43 +35,39 @@ class FieldValuesApiTest extends V2ApiSpec {
   "contributors" should {
 
     "return 200" in new apiScope() {
-      status(fieldValuesApi.contributors()(FakeRequest())) must be equalTo (OK)
+      status(fieldValuesApi.contributors()(FakeRequest())) === OK
     }
 
     "return contributors from ItemIndexService" in new apiScope() {
       val json = contentAsJson(fieldValuesApi.contributors()(FakeRequest()))
-      json.as[Seq[String]] must be equalTo (contributorValues)
+      json.as[Seq[String]] === contributorValues
     }
 
     "user not authenticated" should {
 
-      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
-        status(fieldValuesApi.contributors()(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError)) {
+        status(fieldValuesApi.contributors()(FakeRequest())) === testError.statusCode
       }
-
     }
-
   }
 
   "gradeLevels" should {
 
     "return 200" in new apiScope() {
-      status(fieldValuesApi.gradeLevels()(FakeRequest())) must be equalTo (OK)
+      status(fieldValuesApi.gradeLevels()(FakeRequest())) === OK
     }
 
     "return gradeLevels from itemIndexService" in new apiScope() {
       val json = contentAsJson(fieldValuesApi.gradeLevels()(FakeRequest()))
-      json.as[Seq[String]] must be equalTo (gradeValues)
+      json.as[Seq[String]] === gradeValues
     }
 
     "user not authenticated" should {
 
-      "return 401" in new apiScope(orgAndOpts = Failure(testError)) {
-        status(fieldValuesApi.gradeLevels()(FakeRequest())) must be equalTo (UNAUTHORIZED)
+      s"return ${testError.statusCode}" in new apiScope(orgAndOpts = Failure(testError)) {
+        status(fieldValuesApi.gradeLevels()(FakeRequest())) === testError.statusCode
       }
-
     }
-
   }
 
 }
