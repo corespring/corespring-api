@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
@@ -76,8 +77,9 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
   "GraphicGapMatchInteractionTransformer" should {
 
     "transform interaction" in {
-      val out = new RuleTransformer(GraphicGapMatchInteractionTransformer).transform(interaction)
-      val componentsJson = GraphicGapMatchInteractionTransformer.interactionJs(interaction)
+      val out = new InteractionRuleTransformer(GraphicGapMatchInteractionTransformer).transform(interaction)
+      val componentsJson =
+        GraphicGapMatchInteractionTransformer.interactionJs(interaction, ItemTransformer.EmptyManifest)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (out \\ "p").head.child.mkString.trim === prompt
@@ -126,8 +128,10 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
     }
 
     "transform interaction with mapped correct response" in {
-      val out = new RuleTransformer(GraphicGapMatchInteractionTransformer).transform(interactionWithMappedValues)
-      val componentsJson = GraphicGapMatchInteractionTransformer.interactionJs(interactionWithMappedValues)
+      val out = new InteractionRuleTransformer(GraphicGapMatchInteractionTransformer)
+        .transform(interactionWithMappedValues)
+      val componentsJson = GraphicGapMatchInteractionTransformer
+        .interactionJs(interactionWithMappedValues, ItemTransformer.EmptyManifest)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
       val correctResponse = (q1 \ "correctResponse").as[Seq[JsObject]]

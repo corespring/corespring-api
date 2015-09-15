@@ -16,7 +16,7 @@ object TexTransformer extends InteractionTransformer {
 
   }
 
-  override def transform(node: Node) = {
+  override def transform(node: Node, manifest: Node) = {
     implicit val parent = node
     node match {
       case elem: Elem if elem.label == "tex" => elem.child.convertToTex
@@ -24,6 +24,6 @@ object TexTransformer extends InteractionTransformer {
     }
   }
 
-  override def interactionJs(qti: Node) = Map.empty[String, JsObject]
+  override def interactionJs(qti: Node, manifest: Node) = Map.empty[String, JsObject]
 
 }

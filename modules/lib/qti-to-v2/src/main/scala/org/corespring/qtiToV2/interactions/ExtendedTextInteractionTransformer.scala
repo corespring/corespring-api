@@ -6,7 +6,7 @@ import play.api.libs.json._
 
 object ExtendedTextInteractionTransformer extends InteractionTransformer {
 
-  override def interactionJs(qti: Node): Map[String, JsObject] =
+  override def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] =
     (qti \\ "extendedTextInteraction").map(implicit node => {
       (node \\ "@responseIdentifier").text -> Json.obj(
         "componentType" -> "corespring-extended-text-entry",
@@ -18,7 +18,7 @@ object ExtendedTextInteractionTransformer extends InteractionTransformer {
             "minStrings" -> optForAttr[JsNumber]("minStrings"))))
     }).toMap
 
-  override def transform(node: Node) = node match {
+  override def transform(node: Node, manifest: Node) = node match {
     case e: Elem if (e.label == "extendedTextInteraction") =>
       <corespring-extended-text-entry id={ (e \ "@responseIdentifier").text }></corespring-extended-text-entry>
     case _ => node

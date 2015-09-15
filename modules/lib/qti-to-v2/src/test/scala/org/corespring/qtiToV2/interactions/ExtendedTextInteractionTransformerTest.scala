@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 
 import scala.xml.transform.RuleTransformer
@@ -22,12 +23,12 @@ class ExtendedTextInteractionTransformerTest extends Specification {
 
   "ExtendedTextInteractionTransformer" should {
 
-    val componentsJson = ExtendedTextInteractionTransformer.interactionJs(qti)
+    val componentsJson = ExtendedTextInteractionTransformer.interactionJs(qti, ItemTransformer.EmptyManifest)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
-    val output = new RuleTransformer(ExtendedTextInteractionTransformer).transform(qti)
+    val output = new InteractionRuleTransformer(ExtendedTextInteractionTransformer).transform(qti)
 
     val config = interactionResult \ "model" \ "config"
 

@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
@@ -51,13 +52,14 @@ class PointInteractionTransformerTest extends Specification {
   "PointInteractionTransformer" should {
 
     val input = qti(correctResponses)
-    val output = new RuleTransformer(PointInteractionTransformer).transform(input)
+    val output = new InteractionRuleTransformer(PointInteractionTransformer).transform(input)
 
     val interactionResult =
-      PointInteractionTransformer.interactionJs(input).get(identifier)
+      PointInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest).get(identifier)
         .getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
-    val noConfigInteractionResult = PointInteractionTransformer.interactionJs(qtiNoConfig).get(anotherIdentifier)
+    val noConfigInteractionResult = PointInteractionTransformer
+      .interactionJs(qtiNoConfig, ItemTransformer.EmptyManifest).get(anotherIdentifier)
       .getOrElse(throw new RuntimeException(s"No component called $anotherIdentifier"))
 
     val config = (interactionResult \ "model" \ "config")

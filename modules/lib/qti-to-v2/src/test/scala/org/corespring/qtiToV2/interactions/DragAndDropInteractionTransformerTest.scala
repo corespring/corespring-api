@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json.{ JsArray, JsUndefined }
 
@@ -77,8 +78,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
       "3" -> "<img src='three.png'/>")
 
     val input = qti(responses, correctResponses)
-    val componentsJson = DragAndDropInteractionTransformer.interactionJs(input)
-    val output = new RuleTransformer(DragAndDropInteractionTransformer).transform(input)
+    val componentsJson = DragAndDropInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(DragAndDropInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
@@ -118,8 +119,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
     "returns shuffle value when present" in {
       Seq(true, false).map(shuffleValue => {
         val input = qti(responses, correctResponses, shuffle = Some(shuffleValue))
-        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
-          .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+          .get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
         (interactionResult \ "model" \ "config" \ "shuffle").as[Boolean] must be equalTo shuffleValue
       })
     }
@@ -127,8 +128,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
     "returns itemsPerRow value when present" in {
       Seq(1, 2, 3, 4).map(itemsPerRowValue => {
         val input = qti(responses, correctResponses, itemsPerRow = Some(itemsPerRowValue))
-        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
-          .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+        val interactionResult = DragAndDropInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+          .get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
         (interactionResult \ "model" \ "config" \ "itemsPerRow").as[Int] must be equalTo itemsPerRowValue
       })
     }
@@ -139,8 +140,8 @@ class DragAndDropInteractionTransformerTest extends Specification {
 
     "returns choicesPosition 'below' when landing places are first" in {
       val input = qti(responses, correctResponses, choicesFirst = false)
-      val interactionResult = DragAndDropInteractionTransformer.interactionJs(input).get(identifier)
-        .getOrElse(throw new RuntimeException(s"No component called $identifier"))
+      val interactionResult = DragAndDropInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+        .get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
       (interactionResult \ "model" \ "config" \ "choicesPosition").as[String] must be equalTo "below"
     }
 

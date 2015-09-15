@@ -1,10 +1,11 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ InteractionRuleTransformer, ItemTransformer }
 import org.specs2.mutable.Specification
 
 import scala.xml.XML
 import scala.xml.transform.RuleTransformer
-import play.api.libs.json.{JsBoolean, JsString, JsObject}
+import play.api.libs.json.{ JsBoolean, JsString, JsObject }
 import scala.util.matching.Regex
 
 class SelectTextInteractionTransformerTest extends Specification {
@@ -19,7 +20,7 @@ class SelectTextInteractionTransformerTest extends Specification {
       <responseDeclaration identifier="${identifier}">
       </responseDeclaration>
       <itemBody>
-        <selectTextInteraction responseIdentifier="${ identifier }" selectionType="${ selectionType }" checkIfCorrect="${ checkIfCorrect }" minSelections="${ minSelections.toString }" maxSelections="${ maxSelections.toString }">${ selectionText }"</selectTextInteraction>
+        <selectTextInteraction responseIdentifier="${identifier}" selectionType="${selectionType}" checkIfCorrect="${checkIfCorrect}" minSelections="${minSelections.toString}" maxSelections="${maxSelections.toString}">${selectionText}"</selectTextInteraction>
       </itemBody>
     </assessmentItem>
     """)
@@ -41,8 +42,8 @@ class SelectTextInteractionTransformerTest extends Specification {
   "SelectTextInteractionTransformer for word based select text" should {
 
     val input = qti(selectionTextWord, "word")
-    val componentsJson = SelectTextInteractionTransformer.interactionJs(input)
-    val output = new RuleTransformer(SelectTextInteractionTransformer).transform(input)
+    val componentsJson = SelectTextInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(SelectTextInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
@@ -57,12 +58,11 @@ class SelectTextInteractionTransformerTest extends Specification {
       val choicesSeq = choices.as[Seq[JsObject]]
       val correctChoices = List(2, 7)
       List.range(0, choicesSeq.length).diff(correctChoices).foreach(e => choicesSeq(e) \ "correct" must not be equalTo(JsBoolean(true)))
-      correctChoices.foreach(e => choicesSeq(e) \ "correct" must be equalTo(JsBoolean(true)))
-      choicesSeq(0) \ "data" must be equalTo(JsString("Lorem"))
-      choicesSeq(1) \ "data" must be equalTo(JsString("<b><i>ipsum</i></b>"))
-      choicesSeq(2) \ "data" must be equalTo(JsString("dolor"))
+      correctChoices.foreach(e => choicesSeq(e) \ "correct" must be equalTo (JsBoolean(true)))
+      choicesSeq(0) \ "data" must be equalTo (JsString("Lorem"))
+      choicesSeq(1) \ "data" must be equalTo (JsString("<b><i>ipsum</i></b>"))
+      choicesSeq(2) \ "data" must be equalTo (JsString("dolor"))
     }
-
 
     "return the correct config selectionUnit value" in {
       (config \ "selectionUnit").as[String] must be equalTo "word"
@@ -97,8 +97,8 @@ class SelectTextInteractionTransformerTest extends Specification {
   "SelectTextInteractionTransformer for sentence based select text" should {
 
     val input = qti(selectionTextSentence, "sentence")
-    val componentsJson = SelectTextInteractionTransformer.interactionJs(input)
-    val output = new RuleTransformer(SelectTextInteractionTransformer).transform(input)
+    val componentsJson = SelectTextInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(SelectTextInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
@@ -113,8 +113,8 @@ class SelectTextInteractionTransformerTest extends Specification {
       val choicesSeq = choices.as[Seq[JsObject]]
       val correctChoices = List(0, 2)
       List.range(0, choicesSeq.length).diff(correctChoices).foreach(e => choicesSeq(e) \ "correct" must not be equalTo(JsBoolean(true)))
-      correctChoices.foreach(e => choicesSeq(e) \ "correct" must be equalTo(JsBoolean(true)))
-      choicesSeq(0) \ "data" must be equalTo(JsString("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut\n       labore et dolore magna aliqua."))
+      correctChoices.foreach(e => choicesSeq(e) \ "correct" must be equalTo (JsBoolean(true)))
+      choicesSeq(0) \ "data" must be equalTo (JsString("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut\n       labore et dolore magna aliqua."))
     }
 
     "return the correct config selectionUnit value" in {

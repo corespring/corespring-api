@@ -7,7 +7,7 @@ import scala.xml._
 
 object GraphicGapMatchInteractionTransformer extends InteractionTransformer with NumberParsers {
 
-  override def transform(node: Node): Seq[Node] = {
+  override def transform(node: Node, manifest: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node match {
       case elem: Elem if elem.label == "graphicGapMatchInteraction" =>
@@ -21,7 +21,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
     }
   }
 
-  override def interactionJs(qti: Node) = (qti \\ "graphicGapMatchInteraction")
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "graphicGapMatchInteraction")
     .map(node => {
 
       val componentId = (node \ "@responseIdentifier").text.trim

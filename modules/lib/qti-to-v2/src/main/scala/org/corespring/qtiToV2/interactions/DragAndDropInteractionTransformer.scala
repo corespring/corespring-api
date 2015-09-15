@@ -32,7 +32,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
     val expandHorizontal = false
   }
 
-  override def interactionJs(qti: Node) = (qti \\ "dragAndDropInteraction").map(node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "dragAndDropInteraction").map(node => {
     (node \\ "@responseIdentifier").text -> Json.obj(
       "componentType" -> "corespring-drag-and-drop",
       "correctResponse" -> JsObject(
@@ -47,9 +47,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
             "moveOnDrag" -> (n.attributes.find(_.key.toLowerCase == "copyondrag") match {
               case Some(copyOnDragAttr) if (copyOnDragAttr.value.text.toLowerCase == "true") => Some(JsBoolean(false))
               case _ => Some(JsBoolean(true))
-            })
-          )
-        ))),
+            }))))),
         "answerArea" -> ((node \\ "answerArea") match {
           case empty: Seq[Node] if empty.isEmpty => None
           case _ => Some(JsString(
@@ -82,7 +80,7 @@ object DragAndDropInteractionTransformer extends InteractionTransformer with Nod
       "feedback" -> feedback(node, qti))
   }).toMap
 
-  override def transform(node: Node): Seq[Node] = node match {
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case e: Elem if e.label == "dragAndDropInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
       <corespring-drag-and-drop id={ identifier }></corespring-drag-and-drop>.withPrompt(node)
