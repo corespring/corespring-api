@@ -3,11 +3,11 @@ package org.corespring.qtiToV2.kds
 import org.apache.commons.lang3.StringEscapeUtils
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.SourceWrapper
-import org.corespring.qtiToV2.kds.interactions.{TableTransformer, MathNotationTransformer, PathTransformer}
-import play.api.libs.json.{JsObject, JsValue}
+import org.corespring.qtiToV2.kds.interactions.{ TableTransformer, MathNotationTransformer, PathTransformer }
+import play.api.libs.json.{ JsObject, JsValue }
 
 import scala.xml._
-import scala.xml.transform.{RuleTransformer, RewriteRule}
+import scala.xml.transform.{ RuleTransformer, RewriteRule }
 
 object ItemTransformer extends PassageTransformer {
 
@@ -16,7 +16,7 @@ object ItemTransformer extends PassageTransformer {
       val passageXml = manifestItem.resources.filter(_.resourceType == ManifestResourceType.Passage)
         .map(transformPassage(_)(sources).getOrElse("")).mkString
       val xml = TableTransformer.transform(PathTransformer.transform(xmlString.toXML(passageXml)))
-      QtiTransformer.transform(xml, sources)
+      QtiTransformer.transform(xml, sources, manifestItem.manifest)
     } catch {
       case e: Exception => {
         println(manifestItem.filename)
@@ -39,8 +39,8 @@ object ItemTransformer extends PassageTransformer {
       clearNamespace(new RuleTransformer(new RewriteRule {
         override def transform(n: Node): NodeSeq = n match {
           case n: Elem if (n.label == "itemBody") => passageXml.nonEmpty match {
-            case true => n.copy (child = stylesheets ++ XML.loadString (passageXml) ++ n.child)
-            case _ => n.copy (child = stylesheets ++ n.child)
+            case true => n.copy(child = stylesheets ++ XML.loadString(passageXml) ++ n.child)
+            case _ => n.copy(child = stylesheets ++ n.child)
           }
           case _ => n
         }

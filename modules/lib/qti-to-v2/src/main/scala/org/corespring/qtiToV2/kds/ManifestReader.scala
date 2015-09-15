@@ -1,6 +1,6 @@
 package org.corespring.qtiToV2.kds
 
-import org.corespring.qtiToV2.{EntityEscaper, SourceWrapper}
+import org.corespring.qtiToV2.{ EntityEscaper, SourceWrapper }
 import org.slf4j.LoggerFactory
 
 import scala.xml._
@@ -24,8 +24,7 @@ object ManifestReader extends ManifestFilter with PassageScrubber with EntityEsc
     val resourceLocators: Map[ManifestResourceType.Value, Node => Seq[String]] =
       Map(
         ManifestResourceType.Image -> (n => (n \\ "img").map(_ \ "@src").map(_.toString)),
-        ManifestResourceType.Video -> (n => (n \\ "video").map(_ \ "source").map(_ \ "@src").map(_.toString))
-      )
+        ManifestResourceType.Video -> (n => (n \\ "video").map(_ \ "source").map(_ \ "@src").map(_.toString)))
 
     QTIManifest(items =
       qtiResources.map(n => {
@@ -40,43 +39,48 @@ object ManifestReader extends ManifestFilter with PassageScrubber with EntityEsc
             }
           }
         }.flatten.map(node => {
-          resourceLocators.map{ case (resourceType, fn) => resourceType -> fn(node) }.toMap
-        }).getOrElse(Map.empty[ManifestResourceType.Value, Seq[String]]).map{ case(resourceType, filenames) => {
-          filenames.map(filename => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(filename, "$1"), resourceType = resourceType))
-        }}.flatten.toSeq
+          resourceLocators.map { case (resourceType, fn) => resourceType -> fn(node) }.toMap
+        }).getOrElse(Map.empty[ManifestResourceType.Value, Seq[String]]).map {
+          case (resourceType, filenames) => {
+            filenames.map(filename => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(filename, "$1"), resourceType = resourceType))
+          }
+        }.flatten.toSeq
 
         val resources = ((n \\ "file")
           .filterNot(f => (f \ "@href").text.toString == filename).map(f => {
-          val path = (f \ "@href").text.toString
-          ManifestResource(
-            path = path,
-            resourceType = ManifestResourceType.fromPath(path))
-        })) ++ files
+            val path = (f \ "@href").text.toString
+            ManifestResource(
+              path = path,
+              resourceType = ManifestResourceType.fromPath(path))
+          })) ++ files
 
         val passageResources: Seq[ManifestResource] = resources.filter(_.is(ManifestResourceType.Passage)).map(p =>
-          sources.find { case (path, _) => path == p.path.flattenPath}.map{case (filename, s) => {
-            try {
-              Some((XML.loadString(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))).map(xml => resourceLocators.map {
-                case(resourceType, fn) => (resourceType, fn(xml))}).flatten.map { case (resourceType, paths) =>
-                paths.map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = resourceType))
-              }.flatten)
-            } catch {
-              case e: Exception => {
-                println(s"Error reading: $filename")
-                println(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))
-                e.printStackTrace
-                None
+          sources.find { case (path, _) => path == p.path.flattenPath }.map {
+            case (filename, s) => {
+              try {
+                Some((XML.loadString(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))).map(xml => resourceLocators.map {
+                  case (resourceType, fn) => (resourceType, fn(xml))
+                }).flatten.map {
+                  case (resourceType, paths) =>
+                    paths.map(path => ManifestResource(path = """\.\/(.*)""".r.replaceAllIn(path, "$1"), resourceType = resourceType))
+                }.flatten)
+              } catch {
+                case e: Exception => {
+                  println(s"Error reading: $filename")
+                  println(scrub(escapeEntities(stripCDataTags(s.getLines.mkString))))
+                  e.printStackTrace
+                  None
+                }
               }
             }
-          }}.flatten
-        ).flatten.flatten
+          }.flatten).flatten.flatten
 
         val missingPassageResources = passageResources.map(_.path).filter(path => sources.get(path.flattenPath).isEmpty)
         if (missingPassageResources.nonEmpty) {
           missingPassageResources.foreach(f => logger.error(s"Missing file $f in uploaded import"))
         }
 
-        ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = resources ++ passageResources)
+        ManifestItem(id = (n \ "@identifier").text.toString, filename = filename, resources = resources ++ passageResources, n)
       }),
       otherFiles = resources.map(n => (n \ "@href").text.toString))
   }
@@ -84,10 +88,10 @@ object ManifestReader extends ManifestFilter with PassageScrubber with EntityEsc
 }
 
 case class QTIManifest(
-                        items: Seq[ManifestItem] = Seq.empty,
-                        otherFiles: Seq[String] = Seq.empty)
+  items: Seq[ManifestItem] = Seq.empty,
+  otherFiles: Seq[String] = Seq.empty)
 
-case class ManifestItem(id: String, filename: String, resources: Seq[ManifestResource] = Seq.empty)
+case class ManifestItem(id: String, filename: String, resources: Seq[ManifestResource] = Seq.empty, manifest: Node)
 
 case class ManifestResource(path: String, resourceType: ManifestResourceType.Value) {
   def is(resourceType: ManifestResourceType.Value) = this.resourceType == resourceType
@@ -99,21 +103,19 @@ object ManifestResourceType extends Enumeration {
 
   private val typeMap = Map(
     "imsqti_item_xmlv2p1" -> QTI,
-    "passage" -> Passage
-  )
+    "passage" -> Passage)
 
   private val extensionMap = Map(Seq("gif", "jpeg", "jpg", "png") -> Image)
   private val pathFunctions: Seq[String => Option[ManifestResourceType.Value]] = Seq(
     (path => path.startsWith("passages/") match {
       case true => Some(ManifestResourceType.Passage)
       case _ => None
-    })
-  )
+    }))
 
   private def fromPathString(path: String): ManifestResourceType.Value = {
     def getExtension(path: String) = path.split("\\.").lastOption.getOrElse("").toLowerCase
     pathFunctions.map(_(path)).find(_.nonEmpty).flatten.getOrElse(
-      extensionMap.find{ case(extensions, resourceType) => extensions.contains(getExtension(path)) }
+      extensionMap.find { case (extensions, resourceType) => extensions.contains(getExtension(path)) }
         .map(_._2).getOrElse(Unknown))
   }
 
