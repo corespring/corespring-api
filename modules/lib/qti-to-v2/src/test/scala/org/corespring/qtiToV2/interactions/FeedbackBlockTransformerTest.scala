@@ -1,11 +1,11 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ InteractionRuleTransformer, ItemTransformer }
 import org.specs2.execute.Failure
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsString, JsValue, JsArray, JsObject}
+import play.api.libs.json.{ JsString, JsValue, JsArray, JsObject }
 
-import scala.xml.{XML, Node}
-import scala.xml.transform.RuleTransformer
+import scala.xml.{ XML, Node }
 
 class FeedbackBlockTransformerTest extends Specification {
 
@@ -75,10 +75,11 @@ class FeedbackBlockTransformerTest extends Specification {
       correctFeedback = correctFeedback,
       incorrectFeedback = incorrectFeedback)
 
-    val componentsJson = FeedbackBlockTransformer.interactionJs(input) ++ FeedbackBlockTransformer.interactionJs(outcomeSpecificInput)
-    val output = new RuleTransformer(FeedbackBlockTransformer(input)).transform(input)
+    val componentsJson = FeedbackBlockTransformer.interactionJs(input, ItemTransformer.EmptyManifest) ++
+      FeedbackBlockTransformer.interactionJs(outcomeSpecificInput, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(FeedbackBlockTransformer(input)).transform(input)
     val outcomeSpecificOutput =
-      new RuleTransformer(FeedbackBlockTransformer(outcomeSpecificInput)).transform(outcomeSpecificInput)
+      new InteractionRuleTransformer(FeedbackBlockTransformer(outcomeSpecificInput)).transform(outcomeSpecificInput)
 
     def feedbackResult(identifier: String, outcomeIdentifier: String = null): JsObject = {
       Option(outcomeIdentifier) match {
@@ -100,18 +101,16 @@ class FeedbackBlockTransformerTest extends Specification {
       (feedbackResult(identifier) \ "weight").as[Int] must be equalTo 0
     }
 
-    def getFeedbackObjects( json : JsValue, key: String ) =
+    def getFeedbackObjects(json: JsValue, key: String) =
       (json \ "feedback" \ key).as[JsArray].value
 
-    def getFeedbackKeys( json : JsValue, key: String ) =
-      getFeedbackObjects(json, key).map((o : JsValue) => (o \ "input").as[String])
+    def getFeedbackKeys(json: JsValue, key: String) =
+      getFeedbackObjects(json, key).map((o: JsValue) => (o \ "input").as[String])
 
-    def getFeedback( json : JsValue, key: String, response: String ) =
+    def getFeedback(json: JsValue, key: String, response: String) =
       (getFeedbackObjects(json, key)
-        .find((o:JsValue) => (o \ "input") == JsString(response))
+        .find((o: JsValue) => (o \ "input") == JsString(response))
         .get \ "feedback").as[String]
-
-
 
     "return correct feedback for answers" in {
       correctResponses.map(response => {
@@ -123,7 +122,7 @@ class FeedbackBlockTransformerTest extends Specification {
       Seq(identifier, anotherIdentifier).map(id => {
 
         correctResponses.map(response => {
-          getFeedback(feedbackResult(id),"correct", response) must be equalTo s"$correctFeedback $id"
+          getFeedback(feedbackResult(id), "correct", response) must be equalTo s"$correctFeedback $id"
         })
       }).flatten
     }
@@ -148,19 +147,20 @@ class FeedbackBlockTransformerTest extends Specification {
     "return incorrect feedback" in {
       Seq(identifier, anotherIdentifier).map(id => {
         getFeedbackKeys(feedbackResult(id), "incorrect").contains("*") must beTrue
-        getFeedback(feedbackResult(id),"incorrect","*") must be equalTo s"$incorrectFeedback $id"
+        getFeedback(feedbackResult(id), "incorrect", "*") must be equalTo s"$incorrectFeedback $id"
       })
     }
 
     "replace all <feedbackBlock/>s with a <corespring-feedback-block/>" in {
-      val finalOutput = FeedbackBlockTransformer.transform(output.head)
+      val finalOutput = FeedbackBlockTransformer.transform(output.head, ItemTransformer.EmptyManifest)
       (finalOutput \ "feedbackBlock").toSeq.length must be equalTo 0
       (finalOutput \\ "corespring-feedback-block").toSeq match {
         case seq if seq.isEmpty => failure("Output did not contain corespring-feedback-block")
         case seq => (seq.head \\ "@id").text must be equalTo feedbackIdentifier(identifier)
       }
 
-      val finalOutcomeSpecificOutput = FeedbackBlockTransformer.transform(outcomeSpecificOutput.head)
+      val finalOutcomeSpecificOutput =
+        FeedbackBlockTransformer.transform(outcomeSpecificOutput.head, ItemTransformer.EmptyManifest)
 
       (finalOutcomeSpecificOutput \ "feedbackBlock").toSeq.length must be equalTo 0
       (finalOutcomeSpecificOutput \\ "corespring-feedback-block").toSeq match {
@@ -173,7 +173,7 @@ class FeedbackBlockTransformerTest extends Specification {
 
     "contain unique <corespring-feedback-block/> by id" in {
       Seq(identifier, anotherIdentifier).map(id => {
-        (FeedbackBlockTransformer.transform(output.head) \\ "corespring-feedback-block")
+        (FeedbackBlockTransformer.transform(output.head, ItemTransformer.EmptyManifest) \\ "corespring-feedback-block")
           .filter(n => (n \ "@id").text == feedbackIdentifier(id)).toSeq.length must be equalTo 1
       })
     }
@@ -200,12 +200,11 @@ class FeedbackBlockTransformerTest extends Specification {
 
       val input = qti(response, feedback)
 
-      val json = new FeedbackBlockTransformer(input).interactionJs(input).get("Q_01_feedback")
-        .getOrElse(throw new RuntimeException(s"No feedback component for Q_01"))
+      val json = new FeedbackBlockTransformer(input).interactionJs(input, ItemTransformer.EmptyManifest)
+        .get("Q_01_feedback").getOrElse(throw new RuntimeException(s"No feedback component for Q_01"))
 
-      getFeedback(json,"correct",response) === feedback
+      getFeedback(json, "correct", response) === feedback
     }
-
 
   }
 

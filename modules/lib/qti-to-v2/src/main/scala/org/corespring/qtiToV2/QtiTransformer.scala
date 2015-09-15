@@ -4,6 +4,7 @@ import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
 import org.corespring.qtiToV2.kds.CssSandboxer
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import play.api.libs.json._
 
 import scala.xml._
@@ -63,26 +64,27 @@ trait QtiTransformer extends XMLNamespaceClearer {
     }.getOrElse(Json.obj())
   }
 
-  def transform(qti: Elem, sources: Map[String, SourceWrapper] = Map.empty[String, SourceWrapper]): JsValue = {
+  def transform(qti: Elem, sources: Map[String, SourceWrapper] = Map.empty[String, SourceWrapper], manifest: Node = <div/>): JsValue = {
 
     val transformers = interactionTransformers(qti)
 
-    /** Need to pre-process Latex so that it is available for all JSON and XML transformations **/
-    val texProcessedQti = new RuleTransformer(TexTransformer).transform(qti)
+    /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
+    val texProcessedQti = new InteractionRuleTransformer(FontTransformer)
+      .transform(new InteractionRuleTransformer(TexTransformer).transform(qti, manifest), manifest)
 
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
-      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
+      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head, manifest))
 
-    val transformedHtml = new RuleTransformer (transformers: _*).transform(texProcessedQti)
-    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head.withClass("itemBody qti")))(
-      (html, transformer) => transformer.transform(html).head)
+    val transformedHtml = new InteractionRuleTransformer(transformers: _*).transform(texProcessedQti, manifest)
+    val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
+      (html, transformer) => transformer.transform(html, manifest).head)
 
     val finalHtml = new RuleTransformer(new RewriteRule {
       override def transform(node: Node) = node match {
         case node: Node if node.label == "stylesheet" =>
-          (sources.find{ case(file, source) => file == (node \ "@href").text.split("/").last }.map(_._2)) match {
+          (sources.find { case (file, source) => file == (node \ "@href").text.split("/").last }.map(_._2)) match {
             case Some(cssSource) =>
-              <style type="text/css">{CssSandboxer.sandbox(cssSource.getLines.mkString, ".qti")}</style>
+              <style type="text/css">{ CssSandboxer.sandbox(cssSource.getLines.mkString, ".qti") }</style>
             case _ => node
           }
         case _ => node

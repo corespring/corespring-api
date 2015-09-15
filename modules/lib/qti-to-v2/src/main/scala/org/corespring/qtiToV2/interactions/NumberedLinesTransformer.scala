@@ -6,14 +6,14 @@ import play.api.libs.json._
 
 case class NumberedLinesTransformer(qti: Node) extends InteractionTransformer {
 
-  override def transform(node: Node): Seq[Node] = node
-  override def interactionJs(qti: Node) = NumberedLinesTransformer.interactionJs(qti)
+  override def transform(node: Node, manifest: Node): Seq[Node] = node
+  override def interactionJs(qti: Node, manifest: Node) = NumberedLinesTransformer.interactionJs(qti, manifest)
 
 }
 
 object NumberedLinesTransformer extends Transformer {
 
-  def interactionJs(qti: Node) =
+  def interactionJs(qti: Node, manifest: Node) =
     (qti \\ "_").filter(isNumberedLinesNode(_)).zipWithIndex.map {
       case (node, index) => {
         id(index + 1) -> Json.obj(
@@ -24,7 +24,7 @@ object NumberedLinesTransformer extends Transformer {
       }
     }.toMap
 
-  override def transform(qti: Node): Node = {
+  override def transform(qti: Node, manifest: Node): Node = {
     var count: Int = 0
 
     def recurse(node: Node): Seq[Node] = node match {

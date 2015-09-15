@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 
 import scala.xml.transform.RuleTransformer
@@ -22,12 +23,12 @@ class ExtendedTextInteractionTransformerTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-    val componentsJson = ExtendedTextInteractionTransformer.interactionJs(qti)
+    val componentsJson = ExtendedTextInteractionTransformer.interactionJs(qti, ItemTransformer.EmptyManifest)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))
 
-    val output = new RuleTransformer(ExtendedTextInteractionTransformer).transform(qti)
+    val output = new InteractionRuleTransformer(ExtendedTextInteractionTransformer).transform(qti)
 
     val config = interactionResult \ "model" \ "config"
 
@@ -66,17 +67,17 @@ class ExtendedTextInteractionTransformerTest extends Specification {
         <responseDeclaration identifier="RESPONSE1" cardinality="single" baseType="string"/>
         <itemBody>
           <extendedTextInteraction responseIdentifier="RESPONSE1" expectedLength="5000">
-            <prompt visible="true">{prompt}</prompt>
+            <prompt visible="true">{ prompt }</prompt>
           </extendedTextInteraction>
         </itemBody>
       </assessmentItem>
 
-    val output = new RuleTransformer(ExtendedTextInteractionTransformer).transform(qti())
+    val output = new InteractionRuleTransformer(ExtendedTextInteractionTransformer).transform(qti())
 
     "add a <div class='prompt'/> when it contains a prompt" in {
       val promptNode = (output \\ "p").find(p => (p \ "@class").text.contains("prompt"))
         .getOrElse(failure("Prompt not found"))
-      promptNode.text must be equalTo(prompt)
+      promptNode.text must be equalTo (prompt)
     }
 
   }

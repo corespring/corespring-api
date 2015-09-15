@@ -1,10 +1,11 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 import scala.xml.transform.RuleTransformer
-import scala.xml.{NodeSeq, XML, Elem, Node}
+import scala.xml.{ NodeSeq, XML, Elem, Node }
 
 class ChoiceInteractionTransformerTest extends Specification {
 
@@ -43,7 +44,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
   def choiceInterationWithHTML(html: NodeSeq) =
     <choiceInteraction responseIdentifier="Q_01" shuffle="false" maxChoices="1">
-      {html}
+      { html }
       <simpleChoice identifier="A">Something</simpleChoice>
       <simpleChoice identifier="B">Something else</simpleChoice>
     </choiceInteraction>
@@ -82,8 +83,8 @@ class ChoiceInteractionTransformerTest extends Specification {
   "ChoiceInteractionTransformer" should {
 
     "transform choiceInteraction" in {
-      val out = new RuleTransformer(ChoiceInteractionTransformer).transform(singleChoice)
-      val componentsJson = ChoiceInteractionTransformer.interactionJs(singleChoice)
+      val out = new InteractionRuleTransformer(ChoiceInteractionTransformer).transform(singleChoice)
+      val componentsJson = ChoiceInteractionTransformer.interactionJs(singleChoice, ItemTransformer.EmptyManifest)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (out \\ "p").head.child.mkString === prompt
@@ -98,8 +99,8 @@ class ChoiceInteractionTransformerTest extends Specification {
 
     "transform inlineChoiceInteraction" in {
 
-      val out = new RuleTransformer(ChoiceInteractionTransformer).transform(inlineChoice)
-      val q1 = ChoiceInteractionTransformer.interactionJs(inlineChoice).get("Q_01")
+      val out = new InteractionRuleTransformer(ChoiceInteractionTransformer).transform(inlineChoice)
+      val q1 = ChoiceInteractionTransformer.interactionJs(inlineChoice, ItemTransformer.EmptyManifest).get("Q_01")
         .getOrElse(throw new RuntimeException("No component called Q_01"))
 
       (q1 \ "componentType").as[String] === "corespring-inline-choice"
@@ -112,7 +113,7 @@ class ChoiceInteractionTransformerTest extends Specification {
 
     "preserve and move choiceInteraction HTML nodes outside interaction" in {
       val html = <div>This is some text</div><img src="and/an/image.png"/>;
-      val out = new RuleTransformer(ChoiceInteractionTransformer).transform(choiceInterationWithHTML(html))
+      val out = new InteractionRuleTransformer(ChoiceInteractionTransformer).transform(choiceInterationWithHTML(html))
       out.containsSlice(html) must beTrue
     }
   }

@@ -21,7 +21,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
     }
   }
 
-  override def transform(node: Node): Seq[Node] = {
+  override def transform(node: Node, manifest: Node): Seq[Node] = {
     val identifier = (node \ "@responseIdentifier").text
     node.label match {
       case "graphicGapMatchInteraction" =>
@@ -33,7 +33,7 @@ object GraphicGapMatchInteractionTransformer extends InteractionTransformer with
     }
   }
 
-  override def interactionJs(qti: Node) = (qti \\ "graphicGapMatchInteraction")
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "graphicGapMatchInteraction")
     .map(node => {
 
       val componentId = (node \ "@responseIdentifier").text.trim
