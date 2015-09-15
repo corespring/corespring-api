@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.kds.interactions
 
+import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
@@ -12,22 +13,24 @@ class HottextInteractionTransformerTest extends Specification {
     val correctChoices = Seq("1")
 
     def qti(responseIdentifier: String = responseIdentifier,
-            choices: Map[String, String] = choices,
-            correctChoices: Seq[String] = correctChoices) =
+      choices: Map[String, String] = choices,
+      correctChoices: Seq[String] = correctChoices) =
       <assessmentItem>
-        <responseDeclaration identifier={responseIdentifier} cardinality="single" baseType="identifier">
-          <correctResponse>{ correctChoices.map(choice => <value>{choice}</value>) }</correctResponse>
+        <responseDeclaration identifier={ responseIdentifier } cardinality="single" baseType="identifier">
+          <correctResponse>{ correctChoices.map(choice => <value>{ choice }</value>) }</correctResponse>
         </responseDeclaration>
         <itemBody>
-          <hottextInteraction responseIdentifier={responseIdentifier} maxChoices="1">{
-              choices.map{case (identifier, text) => {
-                <hottext identifier={identifier}>{text}</hottext>
-              }}
+          <hottextInteraction responseIdentifier={ responseIdentifier } maxChoices="1">{
+            choices.map {
+              case (identifier, text) => {
+                <hottext identifier={ identifier }>{ text }</hottext>
+              }
+            }
           }</hottextInteraction>
         </itemBody>
       </assessmentItem>
 
-    val result = HottextInteractionTransformer.interactionJs(qti()).get(responseIdentifier)
+    val result = HottextInteractionTransformer.interactionJs(qti(), ItemTransformer.EmptyManifest).get(responseIdentifier)
       .getOrElse(throw new IllegalStateException(s"Missing result for $responseIdentifier"))
 
     "transform choices" in {

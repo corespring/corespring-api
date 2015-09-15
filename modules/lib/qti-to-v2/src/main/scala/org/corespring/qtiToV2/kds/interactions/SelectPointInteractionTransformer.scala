@@ -91,19 +91,16 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
         "maxPoints" -> ((node \ "@maxChoices") match {
           case n: NodeSeq if n.nonEmpty => Some(JsNumber(n.text.toInt))
           case _ => None
-        })
-      )
-    )
+        })))
   }
 
   private def property(name: String)(implicit node: Node): Option[String] =
     (node \ "object" \ "param").toSeq.find(p => (p \ "@name").text == name).map(p => (p \ "@value").text)
 
-
-  override def transform(node: Node) = node.label match {
+  override def transform(node: Node, manifest: Node) = node.label match {
     case "selectPointInteraction" => getType(node) match {
-      case Points => PointsInteractionTransformer.transform(node)
-      case Line => LineInteractionTransformer.transform(node)
+      case Points => PointsInteractionTransformer.transform(node, manifest)
+      case Line => LineInteractionTransformer.transform(node, manifest)
       case MultiLine => {
         println(s"${qti \ "@identifier"} - No support for multi-line interactions")
         node
@@ -113,33 +110,32 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
     case _ => node
   }
 
-  override def interactionJs(node: Node) =
-    PointsInteractionTransformer.interactionJs(node) ++ LineInteractionTransformer.interactionJs(node)
+  override def interactionJs(node: Node, manifest: Node) =
+    PointsInteractionTransformer.interactionJs(node, manifest) ++
+      LineInteractionTransformer.interactionJs(node, manifest)
 
   private object LineInteractionTransformer extends InteractionTransformer {
 
-    override def transform(node: Node) = {
+    override def transform(node: Node, manifest: Node) = {
       val identifier = (node \ "@responseIdentifier").text
       node match {
         case elem: Elem if (node.label == "selectPointInteraction") =>
           elem.child.filter(_.label != "object").map(n => n.label match {
-            case "prompt" => <p class="prompt">{n.child}</p>
+            case "prompt" => <p class="prompt">{ n.child }</p>
             case _ => n
-          }) ++ <corespring-line id={identifier}></corespring-line>
+          }) ++ <corespring-line id={ identifier }></corespring-line>
         case _ => node
       }
     }
 
-
-    override def interactionJs(qti: Node) = (qti \\ "selectPointInteraction").map(implicit node => {
+    override def interactionJs(qti: Node, manifest: Node) = (qti \\ "selectPointInteraction").map(implicit node => {
       getType(node) match {
         case Line => {
           Some((node \ "@responseIdentifier").text -> Json.obj(
             "componentType" -> "corespring-line",
             "correctResponse" -> (responseDeclaration(node, qti) \ "correctResponse" \ "value")
               .map(n => s"y=${(n \ "@slope").text}x+${(n \ "@yIntercept").text}").head,
-            "model" -> model(node)
-          ))
+            "model" -> model(node)))
         }
         case _ => None
       }
@@ -149,26 +145,25 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
   private object PointsInteractionTransformer extends InteractionTransformer {
 
-    override def transform(node: Node) = {
+    override def transform(node: Node, manifest: Node) = {
       val identifier = (node \ "@responseIdentifier").text
       node match {
         case elem: Elem if (node.label == "selectPointInteraction") =>
           elem.child.filter(_.label != "object").map(n => n.label match {
-            case "prompt" => <p class="prompt">{n.child}</p>
+            case "prompt" => <p class="prompt">{ n.child }</p>
             case _ => n
-          }) ++ <corespring-point-intercept id={identifier}></corespring-point-intercept>
+          }) ++ <corespring-point-intercept id={ identifier }></corespring-point-intercept>
         case _ => node
       }
     }
 
-    override def interactionJs(qti: Node) = (qti \\ "selectPointInteraction").map(implicit node => {
+    override def interactionJs(qti: Node, manifest: Node) = (qti \\ "selectPointInteraction").map(implicit node => {
       getType(node) match {
         case Points => {
           Some((node \ "@responseIdentifier").text -> Json.obj(
             "componentType" -> "corespring-point-intercept",
             "correctResponse" -> answers(qti)(node),
-            "model" -> model(node)
-          ))
+            "model" -> model(node)))
         }
         case _ => None
       }
@@ -176,7 +171,7 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
 
     private def answers(qti: Node)(implicit node: Node) =
       (responseDeclaration(node, qti) \ "correctResponse" \ "value").toSeq
-        .map(v =>  s"${(v \ "@xcoordinate").text},${(v \ "@ycoordinate").text}")
+        .map(v => s"${(v \ "@xcoordinate").text},${(v \ "@ycoordinate").text}")
 
   }
 

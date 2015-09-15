@@ -10,27 +10,27 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
 
   val isInstructions: Node => Boolean = n =>
     ((n.label == "partBlock") && Seq("@label", "@identifier").find(a => (n \ a).text == "teacherInstructions").nonEmpty) ||
-    (n.label == "teacherInstructions")
+      (n.label == "teacherInstructions")
 
   def teacherInstructionsId(node: Node) = s"teacher-instructions-${node.hashCode()}"
 
-  override def transform(node: Node) = node match {
+  override def transform(node: Node, manifest: Node) = node match {
     case node: Node if (isInstructions(node)) =>
-      <corespring-teacher-instructions id={teacherInstructionsId(node)}></corespring-teacher-instructions>
+      <corespring-teacher-instructions id={ teacherInstructionsId(node) }></corespring-teacher-instructions>
     case _ => node
   }
 
-  override def interactionJs(qti: Node): Map[String, JsObject] =
+  override def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] =
     qti.matching(isInstructions)
-      .zipWithIndex.map{case (teacherInstructions, index) => {
-        teacherInstructionsId(teacherInstructions) ->
-          Json.obj(
-            "componentType" -> "corespring-teacher-instructions",
-            "value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
-            .getOrElse(throw new Exception("Teacher instructions could not be converted"))
-          )
-      }
-    }.toMap
+      .zipWithIndex.map {
+        case (teacherInstructions, index) => {
+          teacherInstructionsId(teacherInstructions) ->
+            Json.obj(
+              "componentType" -> "corespring-teacher-instructions",
+              "value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
+                .getOrElse(throw new Exception("Teacher instructions could not be converted")))
+        }
+      }.toMap
 
   /**
    * Decorator for Node which adds a method to return all nodes matching a predicate function.

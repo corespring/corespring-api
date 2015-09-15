@@ -155,8 +155,10 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
     }
 
     "hotpsot coordinates are translated when background image is bigger than maximum allowed" in {
-      val out = new RuleTransformer(GraphicGapMatchInteractionTransformer).transform(interactionWiderThanMaxImageSize)
-      val componentsJson = GraphicGapMatchInteractionTransformer.interactionJs(interactionWiderThanMaxImageSize)
+      val out = new InteractionRuleTransformer(GraphicGapMatchInteractionTransformer)
+        .transform(interactionWiderThanMaxImageSize)
+      val componentsJson = GraphicGapMatchInteractionTransformer
+        .interactionJs(interactionWiderThanMaxImageSize, ItemTransformer.EmptyManifest)
       val q1 = componentsJson.get("Q_01").getOrElse(throw new RuntimeException("No component called Q_01"))
       val hotspots = (q1 \ "model" \ "hotspots").as[Seq[JsObject]]
       hotspots(0) === Json.obj("id" -> "HS-6031",
@@ -182,24 +184,27 @@ class GraphicGapMatchInteractionTransformerTest extends Specification {
       "undefined" should {
         "default to Defaults.choiceAreaPosition" in {
           val interaction = graphicGapMatchInteraction(responseIdentifier = responseIdentifier)
-          GraphicGapMatchInteractionTransformer.interactionJs(interaction).get(responseIdentifier) match {
-            case Some(jsObject) =>
-              (jsObject \ "model" \ "config" \ "choiceAreaPosition").as[String] must be equalTo (
-                GraphicGapMatchInteractionTransformer.Defaults.choiceAreaPosition)
-            case _ => failure(s"Transformer did not provide output for $responseIdentifier")
-          }
+          GraphicGapMatchInteractionTransformer.interactionJs(interaction, ItemTransformer.EmptyManifest)
+            .get(responseIdentifier) match {
+              case Some(jsObject) =>
+                (jsObject \ "model" \ "config" \ "choiceAreaPosition").as[String] must be equalTo (
+                  GraphicGapMatchInteractionTransformer.Defaults.choiceAreaPosition)
+              case _ => failure(s"Transformer did not provide output for $responseIdentifier")
+            }
         }
       }
 
       "defined" should {
         "set value to <choiceAreaPosition/> text" in {
           val choiceAreaPosition = "top"
-          val interaction = graphicGapMatchInteraction(responseIdentifier = responseIdentifier, choiceAreaPosition = Some(choiceAreaPosition))
-          GraphicGapMatchInteractionTransformer.interactionJs(interaction).get(responseIdentifier) match {
-            case Some(jsObject) =>
-              (jsObject \ "model" \ "config" \ "choiceAreaPosition").as[String] must be equalTo (choiceAreaPosition)
-            case _ => failure(s"Transformer did not provide output for $responseIdentifier")
-          }
+          val interaction =
+            graphicGapMatchInteraction(responseIdentifier = responseIdentifier, choiceAreaPosition = Some(choiceAreaPosition))
+          GraphicGapMatchInteractionTransformer.interactionJs(interaction, ItemTransformer.EmptyManifest)
+            .get(responseIdentifier) match {
+              case Some(jsObject) =>
+                (jsObject \ "model" \ "config" \ "choiceAreaPosition").as[String] must be equalTo (choiceAreaPosition)
+              case _ => failure(s"Transformer did not provide output for $responseIdentifier")
+            }
         }
       }
     }

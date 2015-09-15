@@ -7,14 +7,14 @@ import scala.xml.Node
 
 object HottextInteractionTransformer extends InteractionTransformer {
 
-  override def transform(node: Node) = node match {
+  override def transform(node: Node, manifest: Node) = node match {
     case node: Node if (node.label == "hottextInteraction") =>
-      <p class="prompt">{(node \ "prompt").map(_.child).flatten}</p> ++
-          <corespring-select-text id={(node \\ "@responseIdentifier").text}/>
+      <p class="prompt">{ (node \ "prompt").map(_.child).flatten }</p> ++
+        <corespring-select-text id={ (node \\ "@responseIdentifier").text }/>
     case _ => node
   }
 
-  override def interactionJs(qti: Node) = (qti \\ "hottextInteraction").map(node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "hottextInteraction").map(node => {
     (node \\ "@responseIdentifier").text ->
       Json.obj(
         "componentType" -> "corespring-select-text",
@@ -27,13 +27,11 @@ object HottextInteractionTransformer extends InteractionTransformer {
               .contains((v \ "@identifier").text.toString) match {
                 case true => Some(JsBoolean(true))
                 case _ => None
-            })
-          )),
+              }))),
           "config" -> Json.obj(
             "checkIfCorrect" -> true,
             "minSelections" -> 1,
-            "showFeedback" -> true)
-         ))
+            "showFeedback" -> true)))
   }).toMap
 
 }
