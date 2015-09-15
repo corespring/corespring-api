@@ -7,7 +7,6 @@ import org.corespring.models.item.PlayerDefinition
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.ApiClientService
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }

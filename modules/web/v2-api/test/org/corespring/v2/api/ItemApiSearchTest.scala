@@ -3,12 +3,10 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models._
 import org.corespring.v2.errors.Errors.invalidToken
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json._
-import play.api.test.Helpers._
 
 import scala.concurrent._
 import scalaz._

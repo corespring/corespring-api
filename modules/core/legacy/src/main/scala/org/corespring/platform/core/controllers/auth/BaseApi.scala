@@ -56,7 +56,7 @@ trait BaseApi
 
   val contentCollection: ContentCollectionService = ServiceLookup.contentCollectionService
 
-  val withoutArchive = MongoDBObject("collectionId" -> MongoDBObject("$ne" -> contentCollection.archiveCollectionId.toString))
+  lazy val withoutArchive = MongoDBObject("collectionId" -> MongoDBObject("$ne" -> contentCollection.archiveCollectionId.toString))
 
   def tokenFromRequest[A](request: Request[A]): Either[ApiError, String] = {
     getToken[ApiError](request, ApiError.InvalidToken, ApiError.MissingCredentials)

@@ -4,14 +4,11 @@ import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys._
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.mockito.{ Mockito => OrigMockito }
 import play.api.libs.json.Json
-import play.api.test.Helpers._
 
 import scalaz.{ Failure, Success, Validation }
 

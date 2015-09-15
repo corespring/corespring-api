@@ -2,11 +2,12 @@ package org.corespring.api.tracking
 
 import akka.actor.{ ActorRef, Props }
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
+import play.api.Mode.Mode
 import play.api.mvc.RequestHeader
-import play.api.{ Logger, Mode, Play }
+import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 
-class ApiTracking(tokenService: AccessTokenService, apiClientService: ApiClientService) {
+class ApiTracking(tokenService: AccessTokenService, apiClientService: ApiClientService)(config: Configuration, appMode: Mode) {
 
   private lazy val logger = Logger("org.corespring.ApiTrackingWiring")
 
@@ -24,7 +25,7 @@ class ApiTracking(tokenService: AccessTokenService, apiClientService: ApiClientS
       .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
 
   lazy val logRequests = {
-    val out = Play.current.configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
+    val out = config.getBoolean("api.log-requests").getOrElse(appMode == Mode.Dev)
     logger.info(s"Log api requests? ${out}")
     out
   }

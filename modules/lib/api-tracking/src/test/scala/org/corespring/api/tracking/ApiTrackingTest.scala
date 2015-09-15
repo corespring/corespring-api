@@ -4,6 +4,7 @@ import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import play.api.{ Mode, Configuration }
 
 class ApiTrackingTest extends Specification with Mockito {
 
@@ -14,7 +15,8 @@ class ApiTrackingTest extends Specification with Mockito {
     val mockToken = mock[AccessTokenService]
     val mockClient = mock[ApiClientService]
 
-    val t = new ApiTracking(mockToken, mockClient)
+    val config = Configuration.from(Map("api.log-requests" -> true))
+    val t = new ApiTracking(mockToken, mockClient)(config, Mode.Prod)
   }
 
   "isLoggable" should {
