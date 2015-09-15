@@ -1,10 +1,11 @@
-package tests.developer.controllers
+package developer.controllers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import developer.controllers.Developer
 import java.util.regex.Pattern
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
+import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.core.controllers.auth.AuthController
 import org.corespring.models.{ ContentCollection, User, Organization }
 import org.corespring.test.{ SecureSocialHelpers, TestModelHelpers, BaseTest }
@@ -14,9 +15,9 @@ import play.api.mvc.{ AnyContentAsFormUrlEncoded, AnyContentAsJson }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-class DeveloperTest extends BaseTest
-  with SecureSocialHelpers
-  with PackageLogging {
+class DeveloperTest extends IntegrationSpecification
+with SecureSocialHelpers
+with PackageLogging {
 
   sequential
 
@@ -134,3 +135,4 @@ class MockUser extends After with Before {
     ContentCollection.remove(MongoDBObject("ownerOrgId" -> oid))
   }
 }
+

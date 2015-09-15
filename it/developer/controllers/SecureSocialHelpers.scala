@@ -1,9 +1,8 @@
-package org.corespring.test
+package developer.controllers
 
 import org.corespring.models.User
 import org.joda.time.DateTime
 import play.api.mvc.Cookie
-import scala.Some
 import securesocial.core._
 import securesocial.core.providers.utils.PasswordHasher
 import play.api.cache.Cache
@@ -53,3 +52,4 @@ trait SecureSocialHelpers {
       passwordInfo = Some(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = u.password)))
   }
 }
+

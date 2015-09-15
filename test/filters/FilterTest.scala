@@ -1,14 +1,14 @@
-package tests.filters
+package filters
 
 import org.specs2.mutable.Specification
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.test.FakeHeaders
-import play.api.test.FakeRequest
+import play.api.test.{FakeHeaders, FakeRequest}
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-abstract class FilterTest(filter: EssentialFilter) extends Specification {
+private[filters] abstract class FilterTest(filter: EssentialFilter) extends Specification {
 
   val timeout = Duration(1000, SECONDS)
 

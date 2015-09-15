@@ -17,8 +17,14 @@ object Main extends Controller with securesocial.core.SecureSocial {
       val (dbServer, dbName) = getDbName(uri)
       val userId = request.user.identityId
       val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+      implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
+      import play.api.libs.json.Json._
       ServiceLookup.orgService.findOneById(user.org.orgId) match {
-        case Some(userOrg) => Ok(web.views.html.index(dbServer, dbName, user, userOrg))
+        case Some(userOrg) => Ok(web.views.html.index(
+            dbServer,
+            dbName,
+            user,
+            stringify(toJson(userOrg))))
         case None => InternalServerError("could not find organization of user")
       }
   }

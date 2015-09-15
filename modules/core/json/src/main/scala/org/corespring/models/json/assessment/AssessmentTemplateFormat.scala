@@ -4,7 +4,6 @@ import org.bson.types.ObjectId
 import org.corespring.models.assessment.{ Question, AssessmentTemplate }
 import org.corespring.models.assessment.AssessmentTemplate.Keys
 import org.corespring.models.json.JsonUtil
-import org.corespring.models.json.assessment.QuestionFormat
 import play.api.libs.json._
 
 object AssessmentTemplateFormat extends Format[AssessmentTemplate] with JsonUtil {

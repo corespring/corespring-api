@@ -1,6 +1,4 @@
-package tests.filters
-
-import filters.AjaxFilter
+package filters
 
 class AjaxFilterTest extends FilterTest(AjaxFilter) {
 

@@ -16,7 +16,7 @@ class UserEventListener(app: Application) extends EventListener {
     event match {
       case _: LoginEvent => ServiceLookup.userService.touchLastLogin(event.user.identityId.userId)
       case _: SignUpEvent => ServiceLookup.userService.touchRegistration(event.user.identityId.userId)
-      case _ => {}
+      case _ =>
     }
     Some(session)
   }

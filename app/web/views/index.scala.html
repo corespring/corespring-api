@@ -1,9 +1,8 @@
 @(dbServer : String,
 dbName : String,
 user:org.corespring.models.User,
-userOrg: org.corespring.models.Organization )
+orgJsonString: String)
 
-@import web.views.helpers.MainHelper
 
 <!DOCTYPE html>
 <html lang="en" ng-app="tagger" xmlns="http://www.w3.org/1999/html" ng-controller="RootController">
@@ -44,7 +43,7 @@ userOrg: org.corespring.models.Organization )
                     return {
                         userName: "@user.userName",
                         fullName: "@user.fullName",
-                        org: @MainHelper.toFullJson(userOrg)
+                        org: @Html(orgJsonString)
                     }
 
                 });

@@ -1,6 +1,4 @@
-package tests.filters
-
-import filters.AccessControlFilter
+package filters
 
 class AccessControlFilterTest extends FilterTest(AccessControlFilter) {
 
