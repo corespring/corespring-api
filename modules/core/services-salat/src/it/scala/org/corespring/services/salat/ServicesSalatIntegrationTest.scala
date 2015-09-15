@@ -6,7 +6,7 @@ import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.{ Bucket, ArchiveConfig, AccessTokenConfig }
 import org.corespring.services.salat.bootstrap._
-import org.corespring.it.mongo.DbSingleton
+import org.corespring.services.salat.it.DbSingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 

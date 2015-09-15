@@ -12,5 +12,5 @@ object NewGlobal
     IEHeaders)
   with ControllerInstanceResolver
   with GlobalSettings {
-  override def controllers: Seq[Controller] = Main.controllers
+  lazy val controllers: Seq[Controller] = Main.controllers
 }

@@ -48,5 +48,7 @@ trait AccessTokenService {
   def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken]
   def getOrCreateToken(org: Organization): AccessToken
 
+  def getOrCreateToken(orgId: ObjectId): AccessToken
+
   def orgForToken(token: String): Option[Organization]
 }

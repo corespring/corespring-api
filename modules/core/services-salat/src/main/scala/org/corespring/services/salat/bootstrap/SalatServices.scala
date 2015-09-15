@@ -10,20 +10,37 @@ import org.bson.types.ObjectId
 import org.corespring.models._
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.assessment.{ Assessment, AssessmentTemplate }
-import org.corespring.models.auth.{ ApiClient, AccessToken, Permission }
+import org.corespring.models.auth.{ AccessToken, ApiClient, Permission }
 import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.platform.data.mongo.SalatVersioningDao
-import org.corespring.services.salat.registration.RegistrationTokenService
-import org.corespring.services.salat.item.{ FieldValueService, ItemAssetService, ItemService }
 import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
-import org.corespring.services.salat.auth.{ ApiClientService, AccessTokenService }
-import org.corespring.services.salat.metadata.{ MetadataSetService, MetadataService }
+import org.corespring.services.salat.auth.{ AccessTokenService, ApiClientService }
+import org.corespring.services.salat.item.{ FieldValueService, ItemAssetService, ItemService }
+import org.corespring.services.salat.metadata.{ MetadataService, MetadataSetService }
+import org.corespring.services.salat.registration.RegistrationTokenService
 import org.corespring.{ services => interface }
 
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
+
+object CollectionNames {
+  val contentCollection = "contentcolls"
+  val organization = "orgs"
+  val accessToken = "accessTokens"
+  val assessmentTemplate = "content"
+  val assessment = "assessments"
+  val apiClient = "apiClients"
+  val user = "users"
+  val metadataSet = "metadataSets"
+  val registrationToken = "regTokens"
+  val standard = "standards"
+  val subject = "subjects"
+  val fieldValue = "fieldValues"
+  val item = "content"
+  val versionedItem = "versioned_content"
+}
 
 trait SalatServices extends interface.bootstrap.Services {
 
@@ -52,17 +69,17 @@ trait SalatServices extends interface.bootstrap.Services {
       id = archiveConfig.contentCollectionId,
       ownerOrgId = archiveOrg.id)
 
-    logger.debug(s"function=initArchive org=${archiveOrg} - inserting")
+    logger.debug(s"function=initArchive org=$archiveOrg - inserting")
 
     orgService.insert(archiveOrg, None) match {
       case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
-      case Success(_) => {
-        logger.debug(s"function=initArchive collection=${coll} - inserting")
+      case Success(_) =>
+        logger.debug(s"function=initArchive collection=$coll - inserting")
         contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
           case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
           case _ => logger.info("Archive org and content collection initialised")
         }
-      }
+
     }
   }
 
@@ -70,21 +87,18 @@ trait SalatServices extends interface.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  lazy val contentCollectionDao = new SalatDAO[ContentCollection, ObjectId](db("contentcolls")) {}
-
-  lazy val orgDao = new SalatDAO[Organization, ObjectId](db("orgs")) {}
-
-  lazy val tokenDao = new SalatDAO[AccessToken, ObjectId](db("accessTokens")) {}
-
-  lazy val assessmentTemplateDao = new SalatDAO[AssessmentTemplate, ObjectId](db("content")) {}
-  lazy val assessmentsDao = new SalatDAO[Assessment, ObjectId](db("assessments")) {}
-  lazy val apiClientDao = new SalatDAO[ApiClient, ObjectId](db("apiClients")) {}
-  lazy val userDao = new SalatDAO[User, ObjectId](db("users")) {}
-  lazy val metadataSetDao = new SalatDAO[MetadataSet, ObjectId](db("metadataSets")) {}
-  lazy val registrationTokenDao = new SalatDAO[RegistrationToken, ObjectId](db("regTokens")) {}
-  lazy val standardDao = new SalatDAO[Standard, ObjectId](db("standards")) {}
-  lazy val subjectDao = new SalatDAO[Subject, ObjectId](db("subjects")) {}
-  lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db("fieldValues")) {}
+  lazy val contentCollectionDao = new SalatDAO[ContentCollection, ObjectId](db(CollectionNames.contentCollection)) {}
+  lazy val orgDao = new SalatDAO[Organization, ObjectId](db(CollectionNames.organization)) {}
+  lazy val tokenDao = new SalatDAO[AccessToken, ObjectId](db(CollectionNames.accessToken)) {}
+  lazy val assessmentTemplateDao = new SalatDAO[AssessmentTemplate, ObjectId](db(CollectionNames.item)) {}
+  lazy val assessmentsDao = new SalatDAO[Assessment, ObjectId](db(CollectionNames.assessment)) {}
+  lazy val apiClientDao = new SalatDAO[ApiClient, ObjectId](db(CollectionNames.apiClient)) {}
+  lazy val userDao = new SalatDAO[User, ObjectId](db(CollectionNames.user)) {}
+  lazy val metadataSetDao = new SalatDAO[MetadataSet, ObjectId](db(CollectionNames.metadataSet)) {}
+  lazy val registrationTokenDao = new SalatDAO[RegistrationToken, ObjectId](db(CollectionNames.registrationToken)) {}
+  lazy val standardDao = new SalatDAO[Standard, ObjectId](db(CollectionNames.standard)) {}
+  lazy val subjectDao = new SalatDAO[Subject, ObjectId](db(CollectionNames.subject)) {}
+  lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db(CollectionNames.fieldValue)) {}
 
   lazy val itemDao = new SalatVersioningDao[Item] {
 

@@ -76,12 +76,11 @@ object Build extends sbt.Build {
       testOptions in IntegrationTest += Tests.Setup(() => println("---------> Setup Integration Test")),
       testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test")),
       testOptions in IntegrationTest += Tests.Setup((loader: java.lang.ClassLoader) => {
-        loader.loadClass("org.corespring.it.mongo.Setup").newInstance
+        loader.loadClass("org.corespring.services.salat.it.Setup").newInstance
       }),
       testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
-        loader.loadClass("org.corespring.it.mongo.Cleanup").newInstance
+        loader.loadClass("org.corespring.services.salat.it.Cleanup").newInstance
       }))
-    //specs2 % "it,test",
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 

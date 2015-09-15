@@ -6,7 +6,9 @@ object IntegrationTestSettings {
   val alwaysRunInTestOnly: String = " *TestOnlyPreRunTest*"
 
   lazy val settings = Defaults.itSettings ++ Seq(
+    libraryDependencies ++= Seq(Dependencies.scalaFaker % "it"),
     scalaSource in IntegrationTest <<= baseDirectory / "it",
+    scalacOptions in IntegrationTest ++= Seq("-Yrangepos"),
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
     Keys.logBuffered := false,
@@ -15,8 +17,14 @@ object IntegrationTestSettings {
      *
      */
     unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "modules/lib/qti-to-v2/src/test/resources",
-    testOptions in IntegrationTest += Tests.Setup(() => println("Setup Integration Test")),
-    testOptions in IntegrationTest += Tests.Cleanup(() => println("Cleanup Integration Test")),
+    testOptions in IntegrationTest += Tests.Setup((loader: java.lang.ClassLoader) => {
+      println("-------------> Corespring Api Integration Test::setup")
+      loader.loadClass("org.corespring.it.Setup").newInstance
+    }),
+    testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
+      println("-------------> Corespring Api Integration Test::cleanup")
+      loader.loadClass("org.corespring.it.Cleanup").newInstance
+    }),
 
     /**
      * Note: when running test-only for IT, the tests fail if the app isn't booted properly.

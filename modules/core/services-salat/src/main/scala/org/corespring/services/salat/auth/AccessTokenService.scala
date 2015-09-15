@@ -70,13 +70,13 @@ class AccessTokenService(
     insertedToken <- insertToken(token)
   } yield insertedToken
 
-  override def getOrCreateToken(org: Organization): AccessToken = {
-    dao.findOne(MongoDBObject("orgId" -> org.id)) match {
+  override def getOrCreateToken(orgId: ObjectId): AccessToken = {
+    dao.findOne(MongoDBObject("orgId" -> orgId)) match {
       case Some(t) if (!t.isExpired) => t
       case _ => {
         val now = DateTime.now()
         val token: AccessToken = new AccessToken(
-          organization = org.id,
+          organization = orgId,
           scope = None,
           tokenId = new ObjectId().toString,
           creationDate = now,
@@ -86,6 +86,8 @@ class AccessTokenService(
       }
     }
   }
+
+  override def getOrCreateToken(org: Organization): AccessToken = getOrCreateToken(org.id)
 
   override def findByOrgId(orgId: ObjectId): Option[AccessToken] = {
     find(orgId, None) match {

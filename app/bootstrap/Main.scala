@@ -6,18 +6,18 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
-import org.corespring.ap.v1.V1ApiModule
-import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.legacy.ServiceLookup
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
+import org.corespring.ap.v1.V1ApiModule
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.encryption.EncryptionModule
 import org.corespring.itemSearch.{ ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
+import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.item.{ ComponentType, FieldValue }
 import org.corespring.models.json.JsonFormatting
@@ -26,12 +26,12 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.salat.ServicesContext
 import org.corespring.services.salat.bootstrap._
-import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.api._
+import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.auth.V2AuthModule
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.hooks.{ StandardsTree }
+import org.corespring.v2.player.hooks.StandardsTree
 import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerModule }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.user.SecureSocial
