@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.it.helpers.models.V2SessionHelper
 import org.corespring.v2.player.scopes.orgWithAccessToken
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson

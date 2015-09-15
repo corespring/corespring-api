@@ -1,11 +1,10 @@
 package org.corespring.v2.api
 
+import developer.controllers.SecureSocialHelpers
 import org.corespring.it.IntegrationSpecification
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
 import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
-import play.api.test.{ PlaySpecification, FakeRequest }
+import play.api.test.PlaySpecification
 
 class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpecification {
 

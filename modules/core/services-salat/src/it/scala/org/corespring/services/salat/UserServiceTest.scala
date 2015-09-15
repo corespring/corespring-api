@@ -5,6 +5,8 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User, UserOrg }
 import org.specs2.mutable.After
 
+import scalaz.Success
+
 class UserServiceTest extends ServicesSalatIntegrationTest {
 
   class UserScoped(saveOrg: Boolean) extends After {
@@ -38,7 +40,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
 
     "get permissions works if the org is in the db" in new UserScoped(true) {
       services.userService.insertUser(user, org.id, Permission.Write)
-      services.userService.getPermissions(user.userName, org.id) === Right(Permission(3, "write"))
+      services.userService.getPermissions(user.userName, org.id) must_== Success(Permission(3, "write"))
     }
 
     "get permissions fails if there is no org in the db" in new UserScoped(false) {

@@ -1,6 +1,6 @@
 package org.corespring.it
 
-import org.corespring.test.SecureSocialHelpers
+import developer.controllers.SecureSocialHelpers
 import org.corespring.v2.player.scopes.user
 import play.api.mvc.{ SimpleResult, Call }
 import play.api.test.FakeRequest

@@ -1,26 +1,26 @@
 package developer.controllers
 
-import com.mongodb.casbah.commons.MongoDBObject
-import developer.controllers.Developer
 import java.util.regex.Pattern
+
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.controllers.auth.AuthController
-import org.corespring.models.{ ContentCollection, User, Organization }
-import org.corespring.test.{ SecureSocialHelpers, TestModelHelpers, BaseTest }
-import org.specs2.mutable.{ Before, After }
+import org.corespring.models.{ ContentCollection, Organization, User }
+import org.specs2.mutable.{ After, Before }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc.{ AnyContentAsFormUrlEncoded, AnyContentAsJson }
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
 
+/**
+ * Note: this is an old test moved to the it test package - so will need to be updated.
+ */
 class DeveloperTest extends IntegrationSpecification
-with SecureSocialHelpers
-with PackageLogging {
+  with SecureSocialHelpers
+  with PackageLogging {
 
   sequential
-
+  /*
   "Developer" should {
 
     "redirects to organization form when user belongs to demo org" in new MockUser {
@@ -109,8 +109,9 @@ with PackageLogging {
       status(result) === UNAUTHORIZED
     }
   }
+  */
 }
-
+/*
 class MockUser extends After with Before {
 
   lazy val oid = ObjectId.get()
@@ -135,4 +136,4 @@ class MockUser extends After with Before {
     ContentCollection.remove(MongoDBObject("ownerOrgId" -> oid))
   }
 }
-
+*/

@@ -1,31 +1,23 @@
 package org.corespring.drafts
 
-import java.util.concurrent.TimeUnit
-
 import com.amazonaws.services.s3.AmazonS3Client
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
-import org.corespring.drafts.errors.{ NothingToCommit, DraftIsOutOfDate }
+import org.corespring.drafts.errors.NothingToCommit
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ Conflict => ItemConflict, _ }
+import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.it.IntegrationSpecification
 import org.corespring.models.item.resource.StoredFile
-import org.corespring.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService, ItemServiceWired }
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.player.scopes.{ orgWithAccessTokenAndItem, ImageUtils, ImageUploader, userAndItem }
+import org.corespring.v2.player.scopes.{ ImageUploader, ImageUtils, userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
 import play.api.Play
-import play.api.libs.json.Json
-import play.api.mvc.AnyContentAsJson
-import play.api.test.{ FakeHeaders, FakeRequest }
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scalaz.{ Failure, Success }
 
 class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExample with Mockito {

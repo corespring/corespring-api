@@ -2,22 +2,26 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import com.amazonaws.auth.{ BasicAWSCredentials, AWSCredentials }
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
+import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
+import developer.controllers.SecureSocialHelpers
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{ SessionDbConfig, AppConfig }
+import org.corespring.common.config.{ AppConfig, SessionDbConfig }
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
+import org.corespring.it.helpers.models.AccessTokenHelper
+import org.corespring.it.helpers.models.ApiClientHelper
+import org.corespring.it.helpers.models.CollectionHelper
+import org.corespring.it.helpers.models.UserHelper
+import org.corespring.it.helpers.models._
+import org.corespring.models.Organization
 import org.corespring.models.item.resource.{ Resource, StoredFile }
-import org.corespring.models.{ mongoContext, Organization }
-import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
 import org.corespring.test.helpers.models._
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
@@ -174,8 +178,6 @@ package object scopes {
 
   object ImageUploader {
 
-    import mongoContext.context
-
     lazy val logger = Logger("v2player.test.ImageUploader")
 
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
@@ -230,7 +232,6 @@ package object scopes {
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
-      import org.corespring.models.mongoContext._
 
       super.before
       logger.debug(s"sessionId: $sessionId")
@@ -265,15 +266,13 @@ package object scopes {
     lazy val file = new File(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
-      import java.nio.file.Files
-      import java.nio.file.Paths
+      import java.nio.file.{ Files, Paths }
       val path = Paths.get(imagePath)
       Files.readAllBytes(path)
     }
     val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
     override def before: Any = {
-      import org.corespring.models.mongoContext._
 
       super.before
 
