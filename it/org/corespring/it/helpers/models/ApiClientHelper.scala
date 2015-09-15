@@ -1,0 +1,25 @@
+package org.corespring.it.helpers.models
+
+import org.corespring.models.auth.ApiClient
+import org.bson.types.ObjectId
+
+object ApiClientHelper extends AuthTokenGenerating {
+
+  def create(orgId: ObjectId): ApiClient = {
+
+    val oid = ObjectId.get
+    println(s"[ApiClientHelper] create api client with id: $oid")
+    val client = ApiClient(orgId, oid, generateToken())
+    ApiClient.insert(client)
+    client
+  }
+
+  def delete(client: ApiClient): Unit = {
+    println(s"[ApiClientHelper] delete api client with id: ${client.clientId}")
+    if (ApiClient.findByKey(client.clientId.toString).isEmpty) {
+      println(s"[ApiClientHelper] Can't find api client: $client")
+    }
+    ApiClient.remove(client)
+  }
+
+}
