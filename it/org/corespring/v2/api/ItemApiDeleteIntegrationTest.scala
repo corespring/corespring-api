@@ -1,22 +1,18 @@
 package org.corespring.v2.api
 
-import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.models.ContentCollection
-import org.corespring.models.item._
-import org.corespring.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.{ CollectionHelper, ItemHelper }
-import org.corespring.v2.player.scopes.{ orgWithAccessTokenAndItem, orgWithAccessToken }
+import org.corespring.it.helpers.ItemHelper
+import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
 import play.api.Logger
 import play.api.http.Writeable
-import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ItemApiDeleteIntegrationTest extends IntegrationSpecification {
 
   val routes = org.corespring.v2.api.routes.ItemApi
+
+  lazy val contentCollectionService = bootstrap.Main.contentCollectionService
 
   "V2 - ItemApi" should {
     "delete" should {
@@ -47,7 +43,7 @@ class ItemApiDeleteIntegrationTest extends IntegrationSpecification {
         route(r).map { result =>
           status(result) === OK
           val item = ItemHelper.get(itemId).get
-          item.collectionId.get === ContentCollection.archiveCollId.toString
+          item.collectionId === contentCollectionService.archiveCollectionId.toString
         }.getOrElse(failure("no route found"))
       }
 

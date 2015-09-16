@@ -1,6 +1,7 @@
 package org.corespring.it
 
 import akka.util.Timeout
+import grizzled.slf4j.Logger
 import org.specs2.execute.Results
 import play.api.test._
 
@@ -16,8 +17,8 @@ abstract class IntegrationSpecification
 
   sequential
 
-  protected def logger: grizzled.slf4j.Logger
+  protected def logger: grizzled.slf4j.Logger = Logger(this.getClass)
 
-  override implicit def defaultAwaitTimeout: Timeout = 60.seconds
+  override implicit def defaultAwaitTimeout: Timeout = 1.seconds
 }
 

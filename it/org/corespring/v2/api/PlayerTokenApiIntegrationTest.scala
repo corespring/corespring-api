@@ -1,19 +1,17 @@
 package org.corespring.v2.api
 
-import org.corespring.common.encryption.AESCrypto
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.encryption.{ ApiClientEncrypter, EncryptionSuccess }
+import org.corespring.it.scope.scopes.orgWithAccessToken
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.missingRequiredField
 import org.corespring.v2.errors.Field
-import org.corespring.v2.player.scopes.{ orgWithAccessToken }
 import play.api.libs.json.{ JsNull, JsValue, Json }
-import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
+import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
 
-  val encrypter = new ApiClientEncrypter(AESCrypto)
+  lazy val encryptionService = bootstrap.Main.apiClientEncryptionService
 
   "PlayerTokenApi" should {
     s"$UNAUTHORIZED - create a player token" in new token_createPlayerToken {
@@ -30,7 +28,7 @@ class PlayerTokenApiIntegrationTest extends IntegrationSpecification {
       val jsonResult = PlayerAccessSettings.permissiveRead(Json.obj("expires" -> 0))
       val settings = Json.stringify(Json.toJson(jsonResult.asOpt.get))
       val code = (json \ "playerToken").as[String]
-      val decrypted = encrypter.decrypt(apiClient, code)
+      val decrypted = encryptionService.decrypt(apiClient, code)
       decrypted === Some(settings)
     }
 

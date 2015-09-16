@@ -1,11 +1,9 @@
 package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item._
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }

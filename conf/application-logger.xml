@@ -34,6 +34,7 @@
     <logger name="VersionInfo" level="TRACE"/>
 
     <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="it.scopes" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>

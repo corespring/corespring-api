@@ -1,13 +1,11 @@
 package org.corespring.v2.api
 
-import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.models.item._
-import org.corespring.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.it.helpers.ItemHelper
+import org.corespring.it.scope.scopes.orgWithAccessToken
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.helpers.models.{ CollectionHelper, ItemHelper }
-import org.corespring.v2.player.scopes.{ orgWithAccessToken, orgWithAccessTokenAndItem }
+import org.specs2.execute.Result
+import org.specs2.matcher.MatchResult
 import play.api.http.Writeable
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
@@ -20,7 +18,7 @@ class ItemApiCreateIntegrationTest extends IntegrationSpecification {
   "V2 - ItemApi" should {
     "create" should {
 
-      def assertCall[A](r: FakeRequest[A], expectedStatus: Int = OK)(implicit wr: Writeable[A]) = {
+      def assertCall[A](r: FakeRequest[A], expectedStatus: Int = OK)(implicit wr: Writeable[A]): MatchResult[Any] = {
         route(r).map { result =>
 
           if (status(result) == OK) {
@@ -29,7 +27,7 @@ class ItemApiCreateIntegrationTest extends IntegrationSpecification {
           }
 
           status(result) === expectedStatus
-        }.getOrElse(failure("no route found"))
+        }.getOrElse(ko("no route found"))
       }
 
       def createRequest[B <: AnyContent](query: String = "", contentTypeHeader: Option[String] = None, json: Option[JsValue] = None): FakeRequest[B] = {

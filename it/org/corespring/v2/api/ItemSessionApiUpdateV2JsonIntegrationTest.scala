@@ -1,19 +1,19 @@
 package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.orgWithAccessTokenAndItem
+import org.corespring.it.helpers.ItemHelper
+import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
 import play.api.test.FakeRequest
 
 class ItemSessionApiUpdateV2JsonIntegrationTest extends IntegrationSpecification {
 
   class orgWithTokenAndTwoItems extends orgWithAccessTokenAndItem {
 
+    lazy val itemService = bootstrap.Main.itemService
     val secondItemId = {
       println(s"find: $itemId")
-      ItemServiceWired.findOneById(itemId).map { item =>
-        ItemServiceWired.save(item, true)
+      itemService.findOneById(itemId).map { item =>
+        itemService.save(item, true)
         val out = itemId.copy(itemId.id, itemId.version.map { v => v + 1 })
         println(s"new item id: $out")
         out
@@ -22,7 +22,7 @@ class ItemSessionApiUpdateV2JsonIntegrationTest extends IntegrationSpecification
       }
     }
 
-    val item = ItemServiceWired.findOneById(itemId).getOrElse {
+    val item = itemService.findOneById(itemId).getOrElse {
       throw new RuntimeException("Can't find item")
     }
 

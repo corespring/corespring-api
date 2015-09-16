@@ -9,17 +9,15 @@ private[helpers] trait CreateDelete[A <: AnyRef] {
 
   def mongoCollection: MongoCollection
   implicit def ctx: Context
-  implicit def m: Manifest[A] = manifest[A]
   def id(thing: A): ObjectId
 
-  val grate = com.novus.salat.grater[A]
-
-  def create(thing: A): ObjectId = {
+  def create(thing: A)(implicit m: Manifest[A]): ObjectId = {
+    val grate = com.novus.salat.grater[A]
     mongoCollection.save(grate.asDBObject(thing))
     id(thing)
   }
 
-  def create(things: A*): Seq[ObjectId] = {
+  def create(things: A*)(implicit m: Manifest[A]): Seq[ObjectId] = {
     things.map(create)
   }
 

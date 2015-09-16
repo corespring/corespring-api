@@ -82,7 +82,7 @@ object Main
   lazy val itemTransformerConfig = ItemTransformerConfig(
     configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false))
 
-  override def sessionDbConfig: SessionDbConfig = new SessionDbConfig(if (AppConfig.dynamoDbActivate) None else Some(AppConfig.envName))
+  override lazy val sessionDbConfig: SessionDbConfig = new SessionDbConfig(if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None)
 
   override lazy val awsCredentials: AWSCredentials = new AWSCredentials {
     override lazy val getAWSAccessKeyId: String = AppConfig.amazonKey

@@ -1,16 +1,18 @@
 package org.corespring.v2.api
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.models.V2SessionHelper
-import org.corespring.v2.player.scopes.orgWithAccessToken
+import org.corespring.it.scope.scopes.{ WithV2SessionHelper, orgWithAccessToken }
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
 
-  trait launchExternalAndLoadPlayer extends orgWithAccessToken {
+  override protected def logger: Logger = Logger(this.getClass)
+
+  trait launchExternalAndLoadPlayer extends orgWithAccessToken with WithV2SessionHelper {
 
     lazy val launchCall = org.corespring.v2.api.routes.ExternalModelLaunchApi.buildExternalLaunchSession()
     val json = Json.obj(
@@ -39,7 +41,7 @@ class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
 
     override def after = {
       super.after
-      V2SessionHelper.delete(new ObjectId(sessionId))
+      v2SessionHelper.delete(new ObjectId(sessionId))
     }
 
   }
@@ -51,4 +53,5 @@ class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
       (contentAsJson(loadItemAndSessionResult) \ "item" \ "xhtml").as[String] === "<h1>Hello World</h1>"
     }
   }
+
 }

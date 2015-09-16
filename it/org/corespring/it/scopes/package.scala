@@ -28,6 +28,11 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 package object scopes {
 
+  trait WithV2SessionHelper {
+    def usePreview: Boolean = false
+    lazy val v2SessionHelper = V2SessionHelper(bootstrap.Main.sessionDbConfig, usePreview)
+  }
+
   val logger = Logger("it.scopes")
 
   trait orgWithAccessToken extends BeforeAfter {
@@ -78,18 +83,18 @@ package object scopes {
     extends orgWithAccessTokenAndItem
     with HasSessionId
     with WithV2SessionHelper {
-    val sessionId = helper.create(itemId, orgId = Some(orgId))
+    val sessionId = v2SessionHelper.create(itemId, orgId = Some(orgId))
 
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")
-      helper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 
   trait sessionData extends orgWithAccessToken with WithV2SessionHelper {
     val collectionId = CollectionHelper.create(orgId)
     val itemId = ItemHelper.create(collectionId)
-    val sessionId: ObjectId = helper.create(itemId)
+    val sessionId: ObjectId = v2SessionHelper.create(itemId)
 
     override def before: Any = {
       super.before
@@ -99,7 +104,7 @@ package object scopes {
       super.after
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
-      helper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 
@@ -215,11 +220,6 @@ package object scopes {
 
   }
 
-  trait WithV2SessionHelper {
-    def usePreview: Boolean = false
-    lazy val helper = V2SessionHelper(bootstrap.Main.sessionDbConfig, usePreview)
-  }
-
   class AddImageAndItem(imagePath: String)
     extends userAndItem
     with SessionRequestBuilder
@@ -232,7 +232,7 @@ package object scopes {
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
-    lazy val sessionId = helper.create(itemId)
+    lazy val sessionId = v2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
@@ -250,7 +250,7 @@ package object scopes {
       } catch {
         case t: Throwable => t.printStackTrace()
       }
-      helper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 
@@ -269,7 +269,7 @@ package object scopes {
     lazy val client = new AmazonS3Client(credentials)
     implicit val ctx = bootstrap.Main.context
 
-    lazy val sessionId = helper.create(itemId)
+    lazy val sessionId = v2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
     lazy val file = new File(imagePath)
 
@@ -310,7 +310,7 @@ package object scopes {
       } catch {
         case t: Throwable => t.printStackTrace()
       }
-      helper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 
@@ -319,10 +319,10 @@ package object scopes {
     with HasSessionId
     with WithV2SessionHelper {
 
-    val sessionId = helper.create(itemId)
+    val sessionId = v2SessionHelper.create(itemId)
     override def after: Any = {
       super.after
-      helper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 
