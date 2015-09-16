@@ -11,7 +11,7 @@ import developer.controllers.SecureSocialHelpers
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{ AppConfig, SessionDbConfig }
+import org.corespring.common.config.AppConfig
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers.models.AccessTokenHelper
@@ -24,6 +24,7 @@ import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.helpers.models._
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
+import org.corespring.v2.sessiondb.SessionDbConfig
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ ContentTypeOf, Writeable }

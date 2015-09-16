@@ -4,7 +4,6 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 import org.bson.types.ObjectId
-import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
 import org.corespring.models.ContentCollection
 import org.corespring.models.item.resource.{ Resource, VirtualFile }
@@ -14,6 +13,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.test.helpers.models.{ V2SessionHelper, CollectionHelper, ItemHelper }
 import org.corespring.v2.player.scopes.orgWithAccessToken
+import org.corespring.v2.sessiondb.SessionDbConfig
 import org.corespring.wiring.sessiondb.SessionServiceFactoryImpl
 import play.api.{ Configuration, Play }
 import play.api.libs.json.{ JsObject, JsValue, Json }

@@ -119,18 +119,20 @@ class ItemService(
 
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
-  override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = {
+  override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
-    val result = collection.update(MongoDBObject("_id._id" -> item.id.id), update, upsert = false, multi = false)
-    logger.trace(s"function=addFileToPlayerDefinition, itemId=${item.id}, docsChanged=${result.getN}")
-    require(result.getN == 1, s"Exactly 1 document with id: ${item.id} must have been updated")
+    val result = collection.update(MongoDBObject("_id._id" -> itemId.id), update, upsert = false, multi = false)
+    logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result.getN}")
+    require(result.getN == 1, s"Exactly 1 document with id: $itemId must have been updated")
     if (result.getN != 1) {
-      Failure(s"Wrong number of documents updated for ${item.id}")
+      Failure(s"Wrong number of documents updated for $itemId")
     } else {
       Success(result.getN == 1)
     }
   }
+
+  override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = addFileToPlayerDefinition(item.id, file)
 
   import org.corespring.services.salat.ValidationUtils._
 

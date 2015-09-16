@@ -9,7 +9,7 @@ private[helpers] trait CreateDelete[A <: AnyRef] {
 
   def mongoCollection: MongoCollection
   implicit def ctx: Context
-  implicit def m: Manifest[A]
+  implicit def m: Manifest[A] = manifest[A]
   def id(thing: A): ObjectId
 
   val grate = com.novus.salat.grater[A]

@@ -4,15 +4,12 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.mongodb.casbah.MongoDB
-import org.corespring.common.config.AppConfig
 import org.corespring.v2.sessiondb.dynamo.DynamoSessionService
 import org.corespring.v2.sessiondb.mongo.MongoSessionService
 
-case class SessionDbConfig(useDynamo: Boolean)
-
 trait SessionDbModule {
 
-  def sessionDBConfig: SessionDbConfig
+  def sessionDbConfig: SessionDbConfig
 
   def db: MongoDB
 
@@ -22,17 +19,16 @@ trait SessionDbModule {
 
   private lazy val dynamoDB = new DynamoDB(dbClient)
 
-  private def mkService(name: String) = {
-    if (sessionDBConfig.useDynamo) {
-      val dynamoTable = s"${AppConfig.envName}.${name}"
-      new DynamoSessionService(dynamoDB.getTable(dynamoTable), dbClient)
+  private def mkService(table: String) = {
+    if (sessionDbConfig.useDynamo) {
+      new DynamoSessionService(dynamoDB.getTable(table), dbClient)
     } else {
-      new MongoSessionService(db(name))
+      new MongoSessionService(db(table))
     }
   }
 
-  lazy val previewSessionService: SessionService = mkService("v2.itemSessions_preview")
-  lazy val mainSessionService: SessionService = mkService("v2.itemSessions")
+  lazy val previewSessionService: SessionService = mkService(sessionDbConfig.previewSessionTable)
+  lazy val mainSessionService: SessionService = mkService(sessionDbConfig.sessionTable)
 
   lazy val sessionServices: SessionServices = SessionServices(previewSessionService, mainSessionService)
 }

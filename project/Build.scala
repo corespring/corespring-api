@@ -277,7 +277,8 @@ object Build extends sbt.Build {
       apiTracking,
       qtiToV2,
       itemImport,
-      itemDrafts % "compile->compile;test->test;it->test")
+      itemDrafts % "compile->compile;test->test;it->test",
+      v2SessionDb)
     .aggregate(
       apiUtils,
       coreModels,

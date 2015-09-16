@@ -53,6 +53,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def deleteUsingDao(id: VersionedId[ObjectId])
 
+  def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
+
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
 
   def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]]

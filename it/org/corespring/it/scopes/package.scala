@@ -4,16 +4,27 @@ import java.io.File
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.transfer.TransferManager
+import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
 import grizzled.slf4j.Logger
+import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
 import org.corespring.common.config.AppConfig
+import org.corespring.drafts.item.ItemDraftHelper
+import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
-import org.corespring.models.item.resource.StoredFile
+import org.corespring.models.Organization
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
+import org.corespring.services.salat.bootstrap.CollectionNames
+import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.specification.BeforeAfter
+import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.mvc._
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 package object scopes {
 
@@ -63,19 +74,22 @@ package object scopes {
     }
   }
 
-  trait orgWithAccessTokenItemAndSession extends orgWithAccessTokenAndItem with HasSessionId {
-    val sessionId = V2SessionHelper.create(itemId, orgId = Some(orgId))
+  trait orgWithAccessTokenItemAndSession
+    extends orgWithAccessTokenAndItem
+    with HasSessionId
+    with WithV2SessionHelper {
+    val sessionId = helper.create(itemId, orgId = Some(orgId))
 
     override def after: Any = {
       println("[orgWithAccessTokenAndItemAndSession] after")
-      V2SessionHelper.delete(sessionId)
+      helper.delete(sessionId)
     }
   }
 
-  trait sessionData extends orgWithAccessToken {
+  trait sessionData extends orgWithAccessToken with WithV2SessionHelper {
     val collectionId = CollectionHelper.create(orgId)
     val itemId = ItemHelper.create(collectionId)
-    val sessionId: ObjectId = V2SessionHelper.create(itemId)
+    val sessionId: ObjectId = helper.create(itemId)
 
     override def before: Any = {
       super.before
@@ -85,7 +99,7 @@ package object scopes {
       super.after
       CollectionHelper.delete(collectionId)
       ItemHelper.delete(itemId)
-      V2SessionHelper.delete(sessionId)
+      helper.delete(sessionId)
     }
   }
 
@@ -163,28 +177,27 @@ package object scopes {
 
   object ImageUploader {
 
+    lazy val itemService = bootstrap.Main.itemService
     lazy val logger = Logger("v2player.test.ImageUploader")
 
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
     lazy val bucketName = AppConfig.assetsBucket
-
+    implicit val ctx = bootstrap.Main.context
     def uploadImage(itemId: VersionedId[ObjectId], imagePath: String) = {
       val file = new File(imagePath)
       require(file.exists)
 
       val name = grizzled.file.util.basename(file.getCanonicalPath)
-      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/${name}"
+      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/$name"
       val sf = StoredFile(name = name, contentType = "image/png", storageKey = key)
       val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
 
-      ItemServiceWired.collection.update(
-        MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
-        MongoDBObject("$addToSet" -> MongoDBObject("data.files" -> dbo)))
+      itemService.addFileToPlayerDefinition(itemId, sf)
 
-      val reItem = ItemServiceWired.findOneById(itemId)
-      logger.debug(s"Saved item in mongo as: ${reItem}")
+      val updatedItem = itemService.findOneById(itemId)
+      logger.debug(s"Saved item in mongo as: $updatedItem")
 
       logger.debug(s"Uploading image...: ${file.getPath} -> $key")
       val upload: Upload = tm.upload(bucketName, key, file)
@@ -202,10 +215,16 @@ package object scopes {
 
   }
 
+  trait WithV2SessionHelper {
+    def usePreview: Boolean = false
+    lazy val helper = V2SessionHelper(bootstrap.Main.sessionDbConfig, usePreview)
+  }
+
   class AddImageAndItem(imagePath: String)
     extends userAndItem
     with SessionRequestBuilder
-    with SecureSocialHelpers
+    with SecureSocialHelper
+    with WithV2SessionHelper
     with S3Helper {
 
     lazy val logger = Logger("v2player.test")
@@ -213,7 +232,7 @@ package object scopes {
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
 
-    lazy val sessionId = V2SessionHelper.create(itemId, V2SessionHelper.v2ItemSessions)
+    lazy val sessionId = helper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
@@ -231,22 +250,26 @@ package object scopes {
       } catch {
         case t: Throwable => t.printStackTrace()
       }
-      V2SessionHelper.delete(sessionId)
+      helper.delete(sessionId)
     }
   }
 
   class AddSupportingMaterialImageAndItem(imagePath: String, val materialName: String)
     extends userAndItem
     with SessionRequestBuilder
-    with SecureSocialHelpers
-    with S3Helper {
+    with SecureSocialHelper
+    with S3Helper
+    with WithV2SessionHelper {
 
+    //TODO: Remove dependency on mongo collection - everything should be run via the service.
+    lazy val itemCollection = bootstrap.Main.db(CollectionNames.item)
     lazy val logger = Logger("v2player.test")
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
+    implicit val ctx = bootstrap.Main.context
 
-    lazy val sessionId = V2SessionHelper.create(itemId, V2SessionHelper.v2ItemSessions)
+    lazy val sessionId = helper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
     lazy val file = new File(imagePath)
 
@@ -270,7 +293,7 @@ package object scopes {
       val resource = Resource(name = materialName, files = Seq(sf))
       val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
 
-      ItemServiceWired.collection.update(
+      itemCollection.update(
         MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
         MongoDBObject("$addToSet" -> MongoDBObject("suportingMaterials" -> dbo)))
 
@@ -287,16 +310,19 @@ package object scopes {
       } catch {
         case t: Throwable => t.printStackTrace()
       }
-      V2SessionHelper.delete(sessionId)
+      helper.delete(sessionId)
     }
   }
 
-  trait userWithItemAndSession extends userAndItem with HasItemId with HasSessionId {
-    def collection = SessionDbConfig.sessionTable
-    val sessionId = V2SessionHelper.create(itemId, collection)
+  trait userWithItemAndSession extends userAndItem
+    with HasItemId
+    with HasSessionId
+    with WithV2SessionHelper {
+
+    val sessionId = helper.create(itemId)
     override def after: Any = {
       super.after
-      V2SessionHelper.delete(sessionId, collection)
+      helper.delete(sessionId)
     }
   }
 
@@ -324,7 +350,9 @@ package object scopes {
     def getCall(itemId: DraftId): Call
 
     lazy val itemDraftHelper = new ItemDraftHelper {
-      override implicit def context: Context = mongoContext.context
+      override implicit def context: Context = bootstrap.Main.context
+
+      override def itemService: ItemService = bootstrap.Main.itemService
     }
 
     lazy val draftName = scala.util.Random.alphanumeric.take(12).mkString
@@ -385,7 +413,7 @@ package object scopes {
     def requestBody: AnyContent = AnyContentAsEmpty
 
     override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
-      FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), body)
+      FakeRequest(call.method, s"${call.url}?access_token=$accessToken", FakeHeaders(), body)
     }
   }
 
@@ -393,7 +421,7 @@ package object scopes {
     override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = FakeRequest(call.method, call.url)
   }
 
-  trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
+  trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelper =>
 
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 

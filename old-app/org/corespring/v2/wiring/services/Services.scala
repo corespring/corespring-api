@@ -4,7 +4,7 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{ MongoCollection, MongoDB }
 import org.bson.types.ObjectId
-import org.corespring.common.config.{ SessionDbConfig, AppConfig }
+import org.corespring.common.config.AppConfig
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
@@ -31,7 +31,7 @@ import org.corespring.v2.auth.wired.{ ItemAuthWired, SessionAuthWired }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.Logger
-import org.corespring.v2.sessiondb.{ SessionService, SessionServiceFactory }
+import org.corespring.v2.sessiondb.{ SessionDbConfig, SessionService, SessionServiceFactory }
 import play.api.Configuration
 import play.api.mvc.RequestHeader
 import securesocial.core.{ Identity, SecureSocial }
