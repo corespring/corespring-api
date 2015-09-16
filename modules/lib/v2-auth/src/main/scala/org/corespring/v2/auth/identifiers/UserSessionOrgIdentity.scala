@@ -14,6 +14,8 @@ trait UserSessionOrgIdentity[B]
   extends OrgRequestIdentity[B]
   with UserSession {
 
+  override val name = "user-session-cookie"
+
   /** get the apiClient if available */
   override def headerToApiClientId(rh: RequestHeader): Option[String] = None
 

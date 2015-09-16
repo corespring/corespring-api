@@ -14,6 +14,8 @@ import scalaz.Validation
  */
 trait RequestIdentity[B] {
   def apply(rh: RequestHeader): Validation[V2Error, B]
+
+  def name: String
 }
 
 trait OrgRequestIdentity[B] extends RequestIdentity[B] {
