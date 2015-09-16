@@ -183,7 +183,7 @@ package object scopes {
   object ImageUploader {
 
     lazy val itemService = bootstrap.Main.itemService
-    lazy val logger = Logger("v2player.test.ImageUploader")
+    lazy val logger = Logger("it.ImageUploader")
 
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
@@ -220,14 +220,15 @@ package object scopes {
 
   }
 
-  class AddImageAndItem(imagePath: String)
+  trait AddImageAndItem
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
     with WithV2SessionHelper
     with S3Helper {
 
-    lazy val logger = Logger("v2player.test")
+    def imagePath: String
+    lazy val logger = Logger("it.add-image-and-item")
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
@@ -235,12 +236,10 @@ package object scopes {
     lazy val sessionId = v2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
 
-    override def before: Any = {
-
-      super.before
-      logger.debug(s"sessionId: $sessionId")
-      ImageUploader.uploadImage(itemId, imagePath)
-    }
+    logger.info("[before]")
+    logger.debug(s"[before] sessionId: $sessionId")
+    logger.info(s"[before] uploading image: $imagePath, $itemId")
+    ImageUploader.uploadImage(itemId, imagePath)
 
     override def after: Any = {
       super.after

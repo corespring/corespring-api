@@ -20,6 +20,7 @@ object FieldValueWrites extends Writes[FieldValue] {
     iseq = iseq :+ (LicenseTypes -> JsArray(fieldValue.licenseTypes.map(Json.toJson(_))))
     iseq = iseq :+ (PriorUses -> JsArray(fieldValue.priorUses.map(Json.toJson(_))))
     iseq = iseq :+ (Credentials -> JsArray(fieldValue.credentials.map(Json.toJson(_))))
+    iseq = iseq :+ (MediaType -> JsArray(fieldValue.mediaType.map(Json.toJson(_))))
     iseq = iseq :+ (BloomsTaxonomy -> JsArray(fieldValue.bloomsTaxonomy.map(Json.toJson(_))))
     iseq = iseq :+ (DepthOfKnowledge -> JsArray(fieldValue.depthOfKnowledge.map(Json.toJson(_))))
     JsObject(iseq)

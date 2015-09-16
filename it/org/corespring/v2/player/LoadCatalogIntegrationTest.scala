@@ -1,5 +1,6 @@
 package org.corespring.v2.player
 
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
@@ -8,7 +9,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.generalError
-import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -18,7 +18,7 @@ class LoadCatalogIntegrationTest
 
   import org.corespring.container.client.controllers.apps.routes.Catalog
 
-  override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-catalog")
+  override protected val logger = Logger("it.load-catalog")
 
   "showing catalog" should {
 

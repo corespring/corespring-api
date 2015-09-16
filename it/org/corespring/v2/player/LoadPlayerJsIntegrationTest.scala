@@ -2,6 +2,7 @@ package org.corespring.v2.player
 
 import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.scope.scopes.{ IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken, HasItemId }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
@@ -63,7 +64,14 @@ class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
     }
   }
 
-  class queryString_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndPlayerTokenRequestBuilder {}
-  class queryStringWithOptions_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndOptionsRequestBuilder {}
+  class queryString_loadJs(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with HasPlayerJsResult
+    with IdAndPlayerTokenRequestBuilder
+
+  class queryStringWithOptions_loadJs(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with HasPlayerJsResult
+    with IdAndOptionsRequestBuilder
 
 }

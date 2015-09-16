@@ -1,14 +1,14 @@
 package org.corespring.v2.player
 
+import grizzled.slf4j.Logger
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ SecureSocialHelper, IntegrationHelpers }
+import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
 import org.corespring.it.scope.scopes._
 import org.corespring.models.Organization
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.generalError
-import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -18,7 +18,7 @@ class LoadEditorIntegrationTest
 
   import org.corespring.container.client.controllers.apps.routes.DraftEditor
 
-  override val logger: org.slf4j.Logger = LoggerFactory.getLogger("it.load-editor")
+  override val logger = Logger("it.load-editor")
 
   "the editor" should {
 

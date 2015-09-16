@@ -47,7 +47,8 @@ class DataQueryHooks(
       case _ => {
         implicit val fv = jsonFormatting.writesFieldValue
         val fieldValueJson = Json.toJson(jsonFormatting.fieldValue).as[JsObject]
-        logger.trace(s"function=list, fieldValueJson.fields=${fieldValueJson.fields.map(_._1)}")
+        logger.debug(s"function=list, topic=$topic, fieldValueJson.fields=${fieldValueJson.fields.map(_._1)}")
+        logger.trace(s"function=list topic=$topic, fieldValues: ${Json.prettyPrint(fieldValueJson)}")
         if (fieldValueJson.fields.map(_._1).contains(topic)) {
           Right((fieldValueJson \ topic).as[JsArray])
         } else {

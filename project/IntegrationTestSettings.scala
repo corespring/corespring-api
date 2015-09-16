@@ -24,14 +24,14 @@ object IntegrationTestSettings {
     testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
       println("-------------> Corespring Api Integration Test::cleanup")
       loader.loadClass("org.corespring.it.Cleanup").newInstance
-    }),
+    })) //,
 
-    /**
-     * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
-     * This is a workaround that *always* calls an empty Integration test first.
-     * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
-     */
-    testOnly in IntegrationTest := {
-      (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
-    })
+  /**
+   * Note: when running test-only for IT, the tests fail if the app isn't booted properly.
+   * This is a workaround that *always* calls an empty Integration test first.
+   * see: https://www.pivotaltracker.com/s/projects/880382/stories/65191542
+   * testOnly in IntegrationTest := {
+   * (testOnly in IntegrationTest).partialInput(alwaysRunInTestOnly).evaluated
+   * })
+   */
 }

@@ -35,16 +35,11 @@ class Defaults(
 
       import org.corespring.models.json.item.FieldValueWrites
 
-      val json: JsValue = (FieldValueWrites.writes(fv) match {
-        case obj: JsObject => {
-          val itemTypeJson = Json.obj("v2ItemTypes" ->
-            itemTypes.map { it => Json.obj("key" -> it.componentType, "value" -> it.label) })
-
-          obj.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson))
-        }
-        case value: JsValue => value
-      })
-      Json.stringify(json)
+      val json: JsObject = FieldValueWrites.writes(fv)
+      val itemTypeJson = Json.obj("v2ItemTypes" ->
+        itemTypes.map { it => Json.obj("key" -> it.componentType, "value" -> it.label) })
+      val out = json.deepMerge(Json.obj("v2ItemTypes" -> itemTypeJson))
+      Json.stringify(out)
     }
     case _ => "{}"
   }

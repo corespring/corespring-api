@@ -1,5 +1,6 @@
 package org.corespring.it.helpers
 
+import grizzled.slf4j.Logger
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.models.auth.ApiClient
 import org.corespring.v2.auth.models.PlayerAccessSettings
@@ -13,7 +14,7 @@ import scala.concurrent.Future
 
 trait IntegrationHelpers extends PlaySpecification {
 
-  val logger = LoggerFactory.getLogger("it.helpers")
+  protected val logger = Logger("it.helpers")
 
   def makeRequest(call: Call, c: Seq[Cookie]): Request[AnyContentAsEmpty.type] = {
     val req = FakeRequest(call.method, call.url)

@@ -1,25 +1,43 @@
 package org.corespring.v2.player
 
-import org.corespring.container.client.controllers.DataQuery
 import org.corespring.it.IntegrationSpecification
-import org.specs2.specification.Scope
+import org.corespring.models.item.{ FieldValue, ListKeyValue, StringKeyValue }
+import org.specs2.mutable.After
 import play.api.libs.json.{ JsArray, JsObject, JsValue }
 import play.api.mvc.SimpleResult
 import play.api.test.FakeRequest
-import play.api.{ GlobalSettings, Play }
 
 import scala.concurrent.Future
 
 class DataQueryIntegrationTest extends IntegrationSpecification {
 
-  class listScope extends Scope {
-    protected def global: GlobalSettings = Play.current.global
+  trait listScope extends After {
+
+    lazy val fieldValueService = bootstrap.Main.fieldValueService
+    val dummy = StringKeyValue("dummy", "dummy")
+    val dummyList = ListKeyValue("dummy", Seq.empty)
+    val fieldValue = FieldValue(
+      gradeLevels = Seq(dummy),
+      reviewsPassed = Seq(dummy),
+      mediaType = Seq(dummy),
+      keySkills = Seq(dummyList),
+      itemTypes = Seq(dummyList),
+      licenseTypes = Seq(dummy),
+      priorUses = Seq(dummy),
+      depthOfKnowledge = Seq(dummy),
+      credentials = Seq(dummy),
+      bloomsTaxonomy = Seq(dummy))
+    val id = fieldValueService.insert(fieldValue).toOption
 
     def listResult(topic: String): Future[SimpleResult] = {
-      val dataQuery = global.getControllerInstance(classOf[DataQuery])
-      val list = dataQuery.list(topic)
-      list(FakeRequest("", ""))
+      import org.corespring.container.client.controllers.routes.DataQuery
+      val call = DataQuery.list(topic)
+      route(FakeRequest(call.method, call.url)).getOrElse {
+        throw new RuntimeException("data-query list failed")
+      }
     }
+
+    override def after: Any = fieldValueService.delete(id.get)
   }
 
   "data query" should {
@@ -41,12 +59,8 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
           "standards")) { (topic: String) =>
           val r = listResult(topic)
           contentAsJson(r) match {
-            case obj: JsObject => {
-              failure((obj \ "error").as[String])
-            }
-            case arr: JsArray => {
-              (arr.as[Seq[JsValue]].length > 0) === true
-            }
+            case obj: JsObject => ko((obj \ "error").as[String])
+            case arr: JsArray => arr.as[Seq[JsValue]].nonEmpty === true
             case _ => ko("??")
           }
         }

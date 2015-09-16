@@ -10,7 +10,7 @@ case class FieldValue(
   version: Option[String] = None,
   gradeLevels: Seq[StringKeyValue] = Seq(),
   reviewsPassed: Seq[StringKeyValue] = Seq(),
-  mediaTypes: Seq[StringKeyValue] = Seq(),
+  mediaType: Seq[StringKeyValue] = Seq(),
   keySkills: Seq[ListKeyValue] = Seq(),
   itemTypes: Seq[ListKeyValue] = Seq(),
   licenseTypes: Seq[StringKeyValue] = Seq(),
@@ -23,7 +23,7 @@ case class FieldValue(
 object FieldValue {
   val Version = "version"
   val KeySkills = "keySkills"
-  val MediaTypes = "mediaTypes"
+  val MediaType = "mediaType"
   val GradeLevel = "gradeLevels"
   val ReviewsPassed = "reviewsPassed"
   val ItemTypes = "itemTypes"
