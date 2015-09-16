@@ -31,4 +31,6 @@ abstract class TokenOrgIdentity[B](
 
   /** get the apiClient if available */
   override def headerToApiClientId(rh: RequestHeader): Option[String] = None
+
+  override def name: String = "access-token-in-query-string"
 }

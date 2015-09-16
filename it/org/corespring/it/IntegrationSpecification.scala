@@ -2,10 +2,14 @@ package org.corespring.it
 
 import akka.util.Timeout
 import org.specs2.execute.Results
-import org.specs2.specification.Fragments
 import play.api.test._
+
 import scala.concurrent.duration._
 
+/**
+ * Note: We don't make use of BeforeAfterAll as our specs2 version (2.2.1) doesn't have it.
+ * Instead we use sbt Test.Setup/Test.Cleanup for the time being.
+ */
 abstract class IntegrationSpecification
   extends PlaySpecification
   with Results {
@@ -15,20 +19,5 @@ abstract class IntegrationSpecification
   protected def logger: grizzled.slf4j.Logger
 
   override implicit def defaultAwaitTimeout: Timeout = 60.seconds
-
-}
-
-trait ServerSpec {
-
-  implicit val app: FakeApplication = FakeApplication(
-
-    additionalPlugins = Seq("se.radley.plugin.salat.SalatPlugin"),
-    additionalConfiguration = Map(
-      "logger" -> Map("play" -> "OFF", "application" -> "OFF"),
-      "api.log-requests" -> false))
-
-  implicit def port: Port = Helpers.testServerPort
-
-  val server = TestServer(port, app)
 }
 

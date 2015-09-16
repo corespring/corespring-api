@@ -32,6 +32,8 @@
     <logger name="org.corespring.platform.core.models" level="DEBUG"/>
     -->
     <logger name="VersionInfo" level="TRACE"/>
+
+    <logger name="ch.qos.logback" level="WARN"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>
@@ -50,9 +52,7 @@
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
     -->
-    <logger name="org.corespring.v2" level="TRACE"/>
-    <logger name="org.corespring.services" level="TRACE"/>
-    <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
+    <logger name="org.corespring.v2.auth.identifiers.WithRequestIdentitySequence" level="TRACE"/>
     <!--
     <logger name="com.mongodb" level="TRACE"/>
     <logger name="org.corespring.platform.core.files" level="TRACE"/>

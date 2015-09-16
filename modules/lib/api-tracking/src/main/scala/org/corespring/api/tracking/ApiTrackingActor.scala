@@ -29,7 +29,7 @@ class ApiTrackingActor(trackingService: TrackingService,
       val clientId = rh.queryString.get("apiClient").map(_.head)
 
       val orgId: Option[ObjectId] = {
-        token.map { tokenService.orgForToken(_).map(_.id) }.getOrElse {
+        token.map { tokenService.orgForToken(_).toOption.map(_.id) }.getOrElse {
           clientId.map { cid =>
             apiClientService.findByKey(cid).map(_.orgId)
           }.getOrElse(None)

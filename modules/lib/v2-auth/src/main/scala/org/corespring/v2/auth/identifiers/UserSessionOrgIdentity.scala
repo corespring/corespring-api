@@ -24,5 +24,6 @@ trait UserSessionOrgIdentity[B]
     org <- orgService.findOneById(u.org.orgId).toSuccess(cantFindOrgWithId(u.org.orgId))
   } yield (org, Some(u))
 
+  override def name: String = "user-session-cookie"
 }
 

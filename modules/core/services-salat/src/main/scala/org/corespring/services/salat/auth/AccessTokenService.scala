@@ -21,6 +21,7 @@ class AccessTokenService(
   val dao: SalatDAO[AccessToken, ObjectId],
   val context: Context,
   apiClientService: interface.auth.ApiClientService,
+  orgService: interface.OrganizationService,
   config: AccessTokenConfig) extends interface.auth.AccessTokenService with HasDao[AccessToken, ObjectId] {
 
   private val logger = Logger[AccessTokenService]()
@@ -135,5 +136,17 @@ class AccessTokenService(
     dao.findOne(query.result())
   }
 
-  override def orgForToken(token: String): Option[Organization] = ???
+  private def invalidToken(t: String) = GeneralError(s"Invalid token: $t", None)
+  private def expiredToken(t: AccessToken) = GeneralError(s"Expired token: ${t.expirationDate}", None)
+  private def noOrgForToken(t: AccessToken) = GeneralError(s"Expired token: ${t.expirationDate}", None)
+
+  override def orgForToken(token: String): Validation[PlatformServiceError, Organization] = for {
+    accessToken <- findByTokenId(token).toSuccess(invalidToken(token))
+    _ = logger.debug(s"function=orgForToken, tokenString=$token")
+    unexpiredToken <- if (accessToken.isExpired) Failure(expiredToken(accessToken)) else Success(accessToken)
+    _ = logger.trace(s"function=orgForToken, accessToken=$accessToken - is an unexpired token")
+    org <- orgService.findOneById(unexpiredToken.organization).toSuccess(noOrgForToken(accessToken))
+    _ = logger.trace(s"function=orgForToken, accessToken=$accessToken org=$org")
+  } yield org
+
 }

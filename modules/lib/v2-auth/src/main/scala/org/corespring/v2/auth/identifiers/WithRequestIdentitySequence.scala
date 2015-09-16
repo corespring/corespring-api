@@ -23,32 +23,34 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
     import WithRequestIdentitySequence.emptySequenceErrorMessage
 
-    identifiers.foldLeft[Validation[V2Error, B]](Failure(generalError(emptySequenceErrorMessage, INTERNAL_SERVER_ERROR))) { (acc, tf) =>
+    val identificationResult = identifiers.foldLeft[Validation[V2Error, B]](Failure(generalError(emptySequenceErrorMessage, INTERNAL_SERVER_ERROR))) { (acc, tf) =>
       val out = acc match {
         case Success(d) => {
-          logger.trace(s"identity is successful")
+          logger.trace(s"identification was successful")
           Success(d)
         }
         case Failure(e) => {
-          logger.trace(s"convert to identity: with $tf")
+          logger.trace(s"convert to identity with ${tf.name}")
           tf(rh)
         }
       }
+      out
+    }
 
-      out.leftMap { e =>
+    identificationResult.leftMap { e =>
 
-        logger.trace(s"Building compound error - rerun all identifiers")
-        val errs: Seq[Validation[V2Error, B]] = identifiers.distinct.map { tf =>
-          tf(rh)
-        }
-
-        compoundError(
-          WithRequestIdentitySequence.errorMessage,
-          errs.filter(_.isFailure).map(_.toEither).map(_.left.get),
-          UNAUTHORIZED)
+      logger.trace(s"Building compound error - rerun all identifiers")
+      val errs: Seq[Validation[V2Error, B]] = identifiers.distinct.map { tf =>
+        tf(rh)
       }
+
+      compoundError(
+        WithRequestIdentitySequence.errorMessage,
+        errs.filter(_.isFailure).map(_.toEither).map(_.left.get),
+        UNAUTHORIZED)
     }
   }
 
+  override def name: String = s"multiple-identifiers-in-a-sequence:(${identifiers.map(_.name).mkString(",")})"
 }
 

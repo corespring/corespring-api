@@ -2,19 +2,17 @@ package org.corespring.v2.auth.services.caching
 
 import org.corespring.models.Organization
 import org.corespring.services.auth.AccessTokenService
-import org.corespring.v2.errors.Errors.generalError
-import org.corespring.v2.errors.V2Error
+import org.corespring.services.errors.PlatformServiceError
 import play.api.Logger
-import play.api.mvc.RequestHeader
 import spray.caching.Cache
 
-import scala.concurrent.Await
+import scala.concurrent.{ ExecutionContext, Await }
 import scala.concurrent.duration._
-import scalaz.{ Failure, Validation }
+import scalaz.Validation
 
 trait CachingTokenService extends AccessTokenService {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  implicit def ec: ExecutionContext
 
   private val logger = Logger(classOf[CachingTokenService])
 
@@ -24,9 +22,9 @@ trait CachingTokenService extends AccessTokenService {
 
   private def timeToLive: Duration = timeToLiveInMinutes.minutes
 
-  private val cache: Cache[Option[Organization]] = spray.caching.LruCache(timeToLive = timeToLive)
+  private val cache: Cache[Validation[PlatformServiceError, Organization]] = spray.caching.LruCache(timeToLive = timeToLive)
 
-  override def orgForToken(token: String): Option[Organization] = {
+  override def orgForToken(token: String): Validation[PlatformServiceError, Organization] = {
 
     def callUnderlying = {
       logger.debug(s"token=$token - call underlying service")

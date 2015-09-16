@@ -50,5 +50,5 @@ trait AccessTokenService {
 
   def getOrCreateToken(orgId: ObjectId): AccessToken
 
-  def orgForToken(token: String): Option[Organization]
+  def orgForToken(token: String): Validation[PlatformServiceError, Organization]
 }

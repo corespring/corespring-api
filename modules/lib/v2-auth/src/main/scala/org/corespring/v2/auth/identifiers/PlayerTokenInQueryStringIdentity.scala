@@ -128,5 +128,6 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     result
   }
 
+  override def name: String = "player-token-in-query-string"
 }
 
