@@ -19,9 +19,9 @@ object CalculatorWidgetTransformer extends InteractionTransformer {
     case _ => node
   }
 
-  private def calculatorNode = <corespring-calculator id={ id }></corespring-calculator>
+  def calculatorNode = <corespring-calculator id={ id }></corespring-calculator>
 
-  private def calculatorOfType(calculatorType: String) = Map(id -> Json.obj(
+  def calculatorOfType(calculatorType: String) = Map(id -> Json.obj(
     "weight" -> 0,
     "clean" -> true,
     "title" -> "Calculator",
@@ -31,9 +31,9 @@ object CalculatorWidgetTransformer extends InteractionTransformer {
       "config" -> Json.obj(
         "type" -> calculatorType))))
 
-  private def getCalculatorType(manifest: NodeSeq) = ((manifest \\ "mathTools" \ "calculator").text match {
-    case "" => None
-    case calculatorType => Some(calculatorType)
+  private def getCalculatorType(manifest: NodeSeq) = ((manifest \\ "mathTools" \ "calculator").text.toLowerCase match {
+    case calculatorType if (Seq("basic", "scientific").contains(calculatorType)) => Some(calculatorType)
+    case _ => None
   })
 
 }
