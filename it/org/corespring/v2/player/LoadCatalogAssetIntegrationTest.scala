@@ -1,8 +1,8 @@
 package org.corespring.v2.player
 
-import org.corespring.it.IntegrationSpecification
-import org.corespring.v2.player.scopes.AddSupportingMaterialImageAndItem
 import org.corespring.container.client.controllers.apps.routes.Catalog
+import org.corespring.it.IntegrationSpecification
+import org.corespring.it.scope.scopes.AddSupportingMaterialImageAndItem
 import play.api.test.FakeRequest
 
 class LoadCatalogAssetIntegrationTest extends IntegrationSpecification {

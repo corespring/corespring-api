@@ -35,6 +35,7 @@
 
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="it.scopes" level="TRACE"/>
+    <logger name="it.helpers" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>

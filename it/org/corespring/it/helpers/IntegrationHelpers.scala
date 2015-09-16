@@ -1,20 +1,19 @@
-package org.corespring.it
-
-import org.corespring.v2.auth.models.PlayerAccessSettings
-
-import scala.concurrent.Future
+package org.corespring.it.helpers
 
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.models.auth.ApiClient
+import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.slf4j.LoggerFactory
 import play.api.http.Writeable
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.test.{ FakeRequest, PlaySpecification }
 
+import scala.concurrent.Future
+
 trait IntegrationHelpers extends PlaySpecification {
 
-  val logger = LoggerFactory.getLogger("it.spec.helper")
+  val logger = LoggerFactory.getLogger("it.helpers")
 
   def makeRequest(call: Call, c: Seq[Cookie]): Request[AnyContentAsEmpty.type] = {
     val req = FakeRequest(call.method, call.url)

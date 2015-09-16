@@ -2,11 +2,9 @@ package org.corespring.v2.player
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.scope.scopes._
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.player.scopes._
-import org.corespring.v2.sessiondb.SessionDbConfig
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
@@ -55,18 +53,17 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
     }
   }
 
-  class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder {}
+  class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder
 
-  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {
-    override def collection = SessionDbConfig.previewSessionTable
-  }
+  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelper
 
-  class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {}
-  class clientId_loadSession(val playerToken: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId {
-    override lazy val sessionId: ObjectId = V2SessionHelper.create(itemId)
+  class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder
+
+  class clientId_loadSession(val playerToken: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId with WithV2SessionHelper {
+    override lazy val sessionId: ObjectId = v2SessionHelper.create(itemId)
 
     override def after = {
-      V2SessionHelper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 

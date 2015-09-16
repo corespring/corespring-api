@@ -1,7 +1,7 @@
 package org.corespring.v2.player
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.v2.player.scopes.AddImageAndItem
+import org.corespring.it.scope.scopes.AddImageAndItem
 
 class LoadImageIntegrationTest extends IntegrationSpecification {
 

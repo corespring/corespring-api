@@ -2,8 +2,8 @@ package org.corespring.v2.player
 
 import org.apache.commons.codec.net.URLCodec
 import org.corespring.it.IntegrationSpecification
-import org.corespring.v2.player.scopes.{ ImageUtils, ImageUploader, orgWithAccessTokenAndItem }
-import play.api.mvc.{ AnyContentAsEmpty, RawBuffer, AnyContentAsRaw }
+import org.corespring.it.scope.scopes.{ ImageUploader, ImageUtils, orgWithAccessTokenAndItem }
+import play.api.mvc.{ AnyContentAsEmpty, AnyContentAsRaw, RawBuffer }
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class UploadImageTest extends IntegrationSpecification {

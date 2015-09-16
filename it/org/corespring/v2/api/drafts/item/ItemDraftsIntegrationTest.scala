@@ -1,12 +1,10 @@
 package org.corespring.v2.api.drafts.item
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.scope.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.mvc.AnyContentAsEmpty
-import play.api.test.{ FakeRequest, PlaySpecification }
+import play.api.test.PlaySpecification
 
 class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecification {
 
@@ -15,7 +13,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
   "ItemDrafts" should {
     "commit" should {
 
-      trait commitWithContentType extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
+      trait commitWithContentType extends userAndItem with SessionRequestBuilder with SecureSocialHelper {
 
         val contentType: String = ""
 

@@ -47,7 +47,7 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
             case arr: JsArray => {
               (arr.as[Seq[JsValue]].length > 0) === true
             }
-            case _ => failure("??")
+            case _ => ko("??")
           }
         }
 

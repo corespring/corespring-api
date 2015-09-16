@@ -1,19 +1,16 @@
 package org.corespring.v2.player
 
-import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.DraftId
-import org.corespring.it.{ IntegrationHelpers, IntegrationSpecification }
+import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.{ SecureSocialHelper, IntegrationHelpers }
+import org.corespring.it.scope.scopes._
 import org.corespring.models.Organization
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.errors.Errors.{ generalError, noOrgIdAndOptions }
-import org.corespring.v2.player.scopes._
+import org.corespring.v2.errors.Errors.generalError
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.test.FakeRequest
 
 class LoadEditorIntegrationTest
   extends IntegrationSpecification
@@ -67,11 +64,12 @@ class LoadEditorIntegrationTest
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
   }
 
-  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelpers {
+  class user_editItemLoader extends userAndItem with SessionRequestBuilder with itemDraftLoader with SecureSocialHelper {
     override lazy val draftName = user.userName
+    lazy val orgService = bootstrap.Main.orgService
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
 
-    override def organization: Organization = Organization.findOneById(user.org.orgId).get
+    override def organization: Organization = orgService.findOneById(user.org.orgId).get
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {

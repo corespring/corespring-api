@@ -4,7 +4,6 @@ import org.corespring.container.client.controllers.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.player.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
 import play.api.mvc._
