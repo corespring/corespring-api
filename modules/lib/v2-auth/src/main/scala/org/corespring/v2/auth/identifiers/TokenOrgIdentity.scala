@@ -14,6 +14,8 @@ trait TokenOrgIdentity[B]
   extends OrgRequestIdentity[B]
   with TokenReader {
 
+  override val name = "access-token-in-query-string"
+
   def tokenService: TokenService
 
   override lazy val logger = V2LoggerFactory.getLogger("auth", "TokenOrgIdentity")
