@@ -12,6 +12,7 @@ import org.corespring.platform.core.models.item._
 import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.fakes.Fakes
+import org.corespring.test.fakes.Fakes.withMockCollection
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mock.mockito.ArgumentCapture
@@ -419,8 +420,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
     "addFileToChangeSet" should {
 
-      class __(n: Int = 1) extends Scope with MockItemDrafts {
-        val mockCollection = new Fakes.MongoCollection(n)
+      class __(n: Int = 1) extends Scope with MockItemDrafts with withMockCollection {
         mockDraftService.collection returns mockCollection
       }
 
@@ -434,10 +434,11 @@ class ItemDraftsTest extends Specification with Mockito {
           val file = StoredFile("test.png", "image/png", false)
           addFileToChangeSet(draft, file)
           val expectedQuery = ItemDraftDbUtils.idToDbo(draft.id)
-          mockCollection.queryObj === expectedQuery
+          val (q, u) = captureUpdate
+          q.value === expectedQuery
           val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
           val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
-          mockCollection.updateObj === expectedUpdate
+          u.value === expectedUpdate
         }
       }
     }

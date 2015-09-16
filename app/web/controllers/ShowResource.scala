@@ -38,11 +38,8 @@ object ShowResource
       import web.controllers.routes.javascript.{Partials => PartialsJs}
       Ok(
         Routes.javascriptRouter("WebRoutes")(
-          ShowResourceJs.getResourceFile,
-          PartialsJs.createItem,
           PartialsJs.editItem,
-          PartialsJs.home,
-          PartialsJs.viewItem)).as("text/javascript")
+          ShowResourceJs.getResourceFile)).as("text/javascript")
   }
 
   /**

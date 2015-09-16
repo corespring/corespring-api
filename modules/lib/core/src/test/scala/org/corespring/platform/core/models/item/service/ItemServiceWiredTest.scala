@@ -17,6 +17,7 @@ import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import org.corespring.test.fakes.Fakes
+import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.test.utils.mocks.MockS3Service
 import org.specs2.execute.Result
 import org.specs2.mock.Mockito
@@ -45,7 +46,7 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
 
   val service = new ItemServiceWired(s3, DefaultItemSession, dao, itemIndexService)
 
-  class serviceScope(val item: Item) extends Scope {
+  class serviceScope(val item: Item) extends Scope with withMockCollection {
 
     val mockS3 = {
       val m = mock[CorespringS3Service]
@@ -53,9 +54,8 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       m
     }
 
-    val mockCollection = new Fakes.MongoCollection(1)
-
     val mockSession = mock[ItemSessionCompanion]
+
     val mockDao = {
       val m = mock[SalatVersioningDao[Item]]
       m.save(any[Item], any[Boolean]) returns Right(VersionedId(ObjectId.get, Some(0)))
@@ -63,6 +63,7 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       m.currentCollection returns mockCollection
       m
     }
+
     val mockIndex = {
       val m = mock[ItemIndexService]
       m.reindex(any[VersionedId[ObjectId]]) returns Future { Success("") }
@@ -180,10 +181,11 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(item, file)
       val expectedQuery = MongoDBObject("_id._id" -> item.id.id)
-      mockCollection.queryObj === expectedQuery
+      val (q, u) = captureUpdate
+      q.value === expectedQuery
       val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
       val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> fileDbo))
-      mockCollection.updateObj === expectedUpdate
+      u.value === expectedUpdate
     }
   }
 }

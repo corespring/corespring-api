@@ -124,7 +124,7 @@
     function V1() {
 
       this.edit = function(item) {
-        $location.url('/old/edit/' + item.id);
+        $location.url('/edit/' + item.id);
       };
 
       this.cloneItem = function(item) {
@@ -136,7 +136,7 @@
         }, function(itemData) {
           itemData.clone(
             function success(newItem) {
-              $location.url('/old/edit/' + newItem.id);
+              $location.url('/edit/' + newItem.id);
             },
             function error(err) {
               alert('cloneItem:', JSON.stringify(err));

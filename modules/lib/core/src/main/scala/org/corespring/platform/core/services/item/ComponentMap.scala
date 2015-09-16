@@ -1,10 +1,17 @@
 package org.corespring.platform.core.services.item
 
-import org.corespring.container.components.loader.{FileComponentLoader, ComponentLoader}
-import play.api.{Mode, Configuration, Play}
+import org.corespring.container.components.loader._
+import play.api._
 import play.api.libs.json._
 
 class ComponentMap(application: play.api.Application) {
+
+  /**
+   * Component type key + description pairs that are not strictly item types, but represent other descriptions related
+   * to the type of items.
+   */
+  private val metaItemTypes = Map(
+    "multiple-interactions" -> "Multiple Interactions")
 
   def componentLoader: ComponentLoader = {
     val containerConfig = {
@@ -28,10 +35,12 @@ class ComponentMap(application: play.api.Application) {
   }
 
   def componentMap: Map[String, String] =
-    componentLoader.all.map(c => c.componentType -> c.packageInfo).filter{ case(k, v) => v match {
-      case obj: JsObject => (obj \ "title").asOpt[String].nonEmpty
-      case _ => false
-    } }.map{ case(k, v) => k -> (v.asInstanceOf[JsObject] \ "title").as[String] }.toMap
+    (componentLoader.all.map(c => c.componentType -> c.packageInfo).filter {
+      case (k, v) => v match {
+        case obj: JsObject => (obj \ "title").asOpt[String].nonEmpty
+        case _ => false
+      }
+    }.map { case (k, v) => k -> (v.asInstanceOf[JsObject] \ "title").as[String] } ++ metaItemTypes.toSeq).toMap
 
 }
 

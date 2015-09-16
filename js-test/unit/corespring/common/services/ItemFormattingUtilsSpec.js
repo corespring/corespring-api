@@ -160,6 +160,28 @@ describe('common.ItemFormattingUtils', function () {
       expect(out).toBe("ELA: Blah");
     });
 
+    describe('showItemType', function() {
+      var fieldValues = window.fieldValues;
+      beforeEach(function() {
+        window.fieldValues = {
+          v2ItemTypes: [
+            {
+              key: 'multiple-interactions',
+              value: 'Multiple Interactions'
+            }
+          ]
+        }
+      });
+
+      it('should not include multiple-interactions', function() {
+        expect(scope.showItemType({itemTypes: ['multiple-interactions']}).indexOf('Multiple Interactions')).toBe(-1);
+      });
+
+      afterEach(function() {
+        window.fieldValues = fieldValues;
+      });
+    });
+
     it('should show item type', function(){
        var out = scope.showItemType({ itemType : "Other", itemTypeOther: "Blah"});
        expect(out).toBeUndefined();

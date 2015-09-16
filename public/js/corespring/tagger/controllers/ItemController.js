@@ -376,7 +376,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.showProgressModal = true;
     $scope.itemData.clone(function onCloneSuccess(data) {
       $scope.showProgressModal = false;
-      $location.path('/old/edit/' + data.id);
+      $location.path('/edit/' + data.id);
     }, function onError(error) {
       $scope.showProgressModal = false;
       alert("Error cloning item: " + JSON.stringify(error))

@@ -110,7 +110,7 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     mocks.logger = {
       info: function(){},
-      log: function(){}
+      debug: function(){}
     };
 
     jQueryFunctions = {
@@ -150,9 +150,9 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.hasChanges);
     });
     
-    it('returns a message if saveState == in-progress', function(){
-      scope.showProgressModal = true;
-      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.saveInProgress);
+    it('returns a message if commitInProgress', function(){
+      scope.commitInProgress = true;
+      expect(bindHandlers.beforeunload[0]()).toEqual(scope.unloadMessages.commitInProgress);
     });
     
     it('returns undefined hasChanges == false', function(){
@@ -396,7 +396,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
             draftName: jasmine.any(String),
             devEditor: showEditorFn === 'showDevEditor',
             onItemChanged: scope.onItemChanged,
-            autosizeEnabled: false
+            autosizeEnabled: false,
+            hideSaveButton: true
           },
           jasmine.any(Function));
       };
