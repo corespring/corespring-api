@@ -16,7 +16,7 @@ object ProtractorWidgetTransformer extends InteractionTransformer {
 
   override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if (elem.label == "itemBody" && hasProtractor(manifest)) =>
-      elem.copy(child = protractorNode +: elem.child)
+      elem.copy(child = protractorNode ++ elem.child)
     case _ => node
   }
 
@@ -30,7 +30,7 @@ object ProtractorWidgetTransformer extends InteractionTransformer {
     "model" -> Json.obj(
       "config" -> Json.obj())))
 
-  def protractorNode = <corespring-protractor id={ id }></corespring-protractor>
+  def protractorNode = <corespring-protractor id={ id }></corespring-protractor><br/><br/>
 
   private def hasProtractor(manifest: Node) =
     (manifest \\ "mathTools" \ "mathTool").map(_.text.toLowerCase).contains("protractor")

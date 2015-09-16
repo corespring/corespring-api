@@ -15,11 +15,11 @@ object CalculatorWidgetTransformer extends InteractionTransformer {
 
   override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if (elem.label == "itemBody" && getCalculatorType(manifest).nonEmpty) =>
-      elem.copy(child = calculatorNode +: elem.child)
+      elem.copy(child = calculatorNode ++ elem.child)
     case _ => node
   }
 
-  def calculatorNode = <corespring-calculator id={ id }></corespring-calculator>
+  def calculatorNode = <corespring-calculator id={ id }></corespring-calculator><br/><br/>
 
   def calculatorOfType(calculatorType: String) = Map(id -> Json.obj(
     "weight" -> 0,

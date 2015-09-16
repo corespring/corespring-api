@@ -22,11 +22,11 @@ object RulerWidgetTransformer extends InteractionTransformer {
 
   override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if (elem.label == "itemBody" && getRuler(manifest).nonEmpty) =>
-      elem.copy(child = rulerNode +: elem.child)
+      elem.copy(child = rulerNode ++ elem.child)
     case _ => node
   }
 
-  def rulerNode = <corespring-ruler id={ id }></corespring-ruler>
+  def rulerNode = <corespring-ruler id={ id }></corespring-ruler><br/><br/>
 
   private def getRuler(manifest: Node): Option[JsObject] = (manifest \\ "mathTools" \ "ruler").headOption.map(ruler =>
     Json.obj(
