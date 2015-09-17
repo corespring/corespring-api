@@ -253,16 +253,19 @@ package object scopes {
     }
   }
 
-  class AddSupportingMaterialImageAndItem(imagePath: String, val materialName: String)
+  trait AddSupportingMaterialImageAndItem
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
     with S3Helper
     with WithV2SessionHelper {
 
+    def imagePath: String
+    def materialName: String
+
     //TODO: Remove dependency on mongo collection - everything should be run via the service.
     lazy val itemCollection = bootstrap.Main.db(CollectionNames.item)
-    lazy val logger = Logger("v2player.test")
+    lazy val logger = Logger("it.add-supporting-material-image-and-item")
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
@@ -279,27 +282,22 @@ package object scopes {
     }
     val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
-    override def before: Any = {
+    logger.debug(s"sessionId: $sessionId")
 
-      super.before
+    require(file.exists)
 
-      logger.debug(s"sessionId: $sessionId")
+    val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/materials/$materialName/$fileName"
+    val sf = StoredFile(name = fileName, contentType = "image/png", storageKey = key)
+    val resource = Resource(name = materialName, files = Seq(sf))
+    val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
 
-      require(file.exists)
+    itemCollection.update(
+      MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
+      MongoDBObject("$addToSet" -> MongoDBObject("suportingMaterials" -> dbo)))
 
-      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/materials/$materialName/$fileName"
-      val sf = StoredFile(name = fileName, contentType = "image/png", storageKey = key)
-      val resource = Resource(name = materialName, files = Seq(sf))
-      val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
-
-      itemCollection.update(
-        MongoDBObject("_id._id" -> itemId.id, "_id.version" -> itemId.version.getOrElse(0)),
-        MongoDBObject("$addToSet" -> MongoDBObject("suportingMaterials" -> dbo)))
-
-      logger.debug(s"Uploading image...: ${file.getPath} -> $key")
-      val upload: Upload = tm.upload(bucketName, key, file)
-      upload.waitForUploadResult()
-    }
+    logger.debug(s"Uploading image...: ${file.getPath} -> $key")
+    val upload: Upload = tm.upload(bucketName, key, file)
+    upload.waitForUploadResult()
 
     override def after: Any = {
       super.after

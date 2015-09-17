@@ -10,7 +10,10 @@ class LoadCatalogAssetIntegrationTest extends IntegrationSpecification {
   "Load catalog asset" should {
 
     "load a supporting material asset" in
-      new AddSupportingMaterialImageAndItem("it/org/corespring/v2/player/load-image/puppy.png", "Rubric") {
+      new AddSupportingMaterialImageAndItem {
+        override lazy val imagePath = "it/org/corespring/v2/player/load-image/puppy.png"
+        override lazy val materialName = "Rubric"
+
         val call = Catalog.getSupportingMaterialFile(itemId.toString, s"$materialName/$fileName")
         route(FakeRequest(call.method, call.url)).map {
           result =>
