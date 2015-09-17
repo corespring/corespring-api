@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.{ User, Organization }
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.AccessTokenService
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.v2.errors.Errors.{ noToken }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
@@ -26,9 +27,11 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     m
   }
 
+  def testError = GeneralError("testError", None)
+
   "TokenBasedRequestTransformer" should {
 
-    class scope[A](val org: Option[Organization] = None,
+    class scope[A](val org: Validation[PlatformServiceError, Organization] = Failure(testError),
       val defaultCollection: Option[ObjectId] = None) extends Scope {
 
       lazy val tokenService: AccessTokenService = {
@@ -40,7 +43,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
       lazy val orgService: OrganizationService = {
         val m = mock[OrganizationService]
         m.defaultCollection(any[Organization]) returns defaultCollection
-        m.findOneById(any[ObjectId]) returns org
+        m.findOneById(any[ObjectId]) returns org.toOption
         m
       }
 
@@ -61,7 +64,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
-      Some(mockOrg),
+      Success(mockOrg),
       Some(ObjectId.get)) {
       transformer.apply(FakeRequest("", "?access_token=blah")) must_== Success("Worked")
     }

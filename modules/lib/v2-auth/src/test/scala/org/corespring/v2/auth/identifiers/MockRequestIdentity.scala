@@ -29,4 +29,5 @@ class MockRequestIdentity(
     o
   }
 
+  override def name: String = "mock"
 }
