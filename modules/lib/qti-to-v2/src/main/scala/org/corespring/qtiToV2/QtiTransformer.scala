@@ -44,7 +44,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
     override def transform(node: Node): Seq[Node] = {
       node match {
         case elem: Elem if elem.label == "itemBody" => {
-          <div class="item-body">{ elem.child }</div>
+          <div class="item-body qti">{ elem.child }</div>
         }
         case _ => node
       }
