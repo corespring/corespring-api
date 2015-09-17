@@ -18,6 +18,7 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
     }
 
     "work for logged in user" in new user_loadSession() {
+      println(contentAsString(result))
       status(result) ==== OK
     }
 
@@ -55,7 +56,9 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
 
   class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder
 
-  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelper
+  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelper {
+    override lazy val usePreview = true
+  }
 
   class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder
 
