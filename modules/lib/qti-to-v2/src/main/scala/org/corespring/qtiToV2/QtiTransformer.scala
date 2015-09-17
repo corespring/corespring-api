@@ -89,7 +89,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
           }
         case _ => node
       }
-    }).transform(html).head.toString
+    }, ItemBodyTransformer).transform(html).head.toString
 
     Json.obj(
       "xhtml" -> finalHtml,
