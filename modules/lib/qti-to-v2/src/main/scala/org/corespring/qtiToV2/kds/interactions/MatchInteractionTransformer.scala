@@ -2,6 +2,7 @@ package org.corespring.qtiToV2.kds.interactions
 
 import org.corespring.qtiToV2.interactions.InteractionTransformer
 import play.api.libs.json._
+import scala.collection.immutable.TreeMap
 import scala.xml._
 
 object MatchInteractionTransformer extends InteractionTransformer {
@@ -41,16 +42,22 @@ object MatchInteractionTransformer extends InteractionTransformer {
           }
           case _ => throw new IllegalArgumentException("Whoa")
         }
-      }.map { case (row, cols) => Json.obj("id" -> row, "matchSet" -> columns.keySet.map(cols.contains(_))) }.toSeq
+      }.map {
+        case (row, cols) => {
+          Json.obj("id" -> row, "matchSet" -> columns.keySet.toSeq.map(cols.contains(_)))
+        }
+      }.toSeq
   }
 
-  private def filter(regex: String, comparator: (Seq[Node], Seq[Node]) => Boolean)(implicit node: Node) =
-    (node \ "simpleMatchSet").find(matchSet =>
-      (matchSet \ "simpleAssociableChoice").find(choice => regexMatch(regex, (choice \ "@identifier").text)).nonEmpty).map(_ \ "simpleAssociableChoice").getOrElse((node \ "simpleMatchSet").foldLeft(Seq.empty[Node])((acc, n) =>
-      (n \ "simpleAssociableChoice") match {
-        case choices if comparator(choices, acc) => choices
-        case _ => acc
-      })).map(choice => (choice \ "@identifier").text -> choice.child.mkString).toMap
+  private def filter(regex: String, comparator: (Seq[Node], Seq[Node]) => Boolean)(implicit node: Node): Map[String, String] =
+    TreeMap((node \ "simpleMatchSet").find(matchSet =>
+      (matchSet \ "simpleAssociableChoice").find(choice =>
+        regexMatch(regex, (choice \ "@identifier").text)).nonEmpty).map(_ \ "simpleAssociableChoice")
+      .getOrElse((node \ "simpleMatchSet").foldLeft(Seq.empty[Node])((acc, n) =>
+        (n \ "simpleAssociableChoice") match {
+          case choices if comparator(choices, acc) => choices
+          case _ => acc
+        })).map(choice => (choice \ "@identifier").text -> choice.child.mkString).toMap.toArray: _*)
 
   private def regexMatch(regex: String, string: String) = {
     val regexX = regex.r
