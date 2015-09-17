@@ -3,7 +3,7 @@ package org.corespring.v2.player
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
-import org.corespring.it.scope.scopes._
+import org.corespring.it.scopes._
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json

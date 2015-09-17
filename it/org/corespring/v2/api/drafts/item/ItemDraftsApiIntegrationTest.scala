@@ -2,11 +2,11 @@ package org.corespring.v2.api.drafts.item
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
-import org.corespring.it.scope.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.PlaySpecification
 
-class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecification {
+class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpecification {
 
   val routes = org.corespring.v2.api.drafts.item.routes.ItemDrafts
 
@@ -34,4 +34,5 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with PlaySpecif
       }
     }
   }
+
 }

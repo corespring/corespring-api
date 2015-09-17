@@ -10,7 +10,7 @@ import org.corespring.container.components.model.Component
 import org.corespring.container.components.processing.PlayerItemPreProcessor
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
-import org.corespring.it.scope.scopes._
+import org.corespring.it.scopes._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.specs2.mock.Mockito

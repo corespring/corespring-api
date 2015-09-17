@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ StandardHelper, CollectionHelper, ItemHelper }
-import org.corespring.it.scope.scopes.orgWithAccessToken
+import org.corespring.it.scopes.orgWithAccessToken
 import org.corespring.models.Standard
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, VirtualFile }

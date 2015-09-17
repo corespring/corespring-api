@@ -2,7 +2,7 @@ package org.corespring.v2.player
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scope.scopes._
+import org.corespring.it.scopes._
 import org.corespring.v2.auth.models.{ AuthMode, PlayerAccessSettings }
 import play.api.libs.json.{ JsNumber, JsObject, JsString, Json }
 import play.api.mvc.{ AnyContentAsJson, Request }

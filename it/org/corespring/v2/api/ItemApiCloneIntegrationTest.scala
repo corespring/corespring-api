@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ SecureSocialHelper, ItemHelper }
-import org.corespring.it.scope.scopes.{ SessionRequestBuilder, userAndItem }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.test.PlaySpecification
 

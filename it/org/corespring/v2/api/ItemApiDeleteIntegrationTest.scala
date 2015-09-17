@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
-import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
+import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import play.api.Logger
 import play.api.http.Writeable
 import play.api.mvc.AnyContentAsEmpty

@@ -113,8 +113,8 @@ trait SalatServices extends interface.bootstrap.Services {
     override def checkCurrentCollectionIntegrity: Boolean = false
   }
 
-  lazy val copyFiles: (String, String) => Unit = s3.copyObject(bucket.bucket, _, bucket.bucket, _)
-  lazy val deleteFiles: (String) => Unit = s3.deleteObject(bucket.bucket, _)
+  //lazy val copyFiles: (String, String) => Unit = s3.copyObject(bucket.bucket, _, bucket.bucket, _)
+  //lazy val deleteFiles: (String) => Unit = s3.deleteObject(bucket.bucket, _)
 
   lazy val itemAssetService: interface.item.ItemAssetService = new ItemAssetService(
     s3.copyObject(bucket.bucket, _, bucket.bucket, _),

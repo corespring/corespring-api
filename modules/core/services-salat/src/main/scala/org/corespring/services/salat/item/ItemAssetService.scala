@@ -6,7 +6,7 @@ import org.corespring.models.item.resource._
 import org.corespring.{ services => interface }
 import scalaz.{ Failure, Success, Validation }
 
-class ItemAssetService(copyAsset: (String,String) => Unit, deleteFn: (String) => Unit) extends interface.item.ItemAssetService {
+class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) => Unit) extends interface.item.ItemAssetService {
 
   private val logger = Logger(classOf[ItemAssetService])
   /**
@@ -26,6 +26,7 @@ class ItemAssetService(copyAsset: (String,String) => Unit, deleteFn: (String) =>
       val r = try {
         val fromKey = StoredFile.storageKey(from.id.id, from.id.version.get, "data", f.name)
         val toKey = StoredFile.storageKey(to.id.id, to.id.version.get, "data", f.name)
+        logger.trace(s"function=copyAsset, from=$fromKey, to=$toKey")
         copyAsset(fromKey, toKey)
         CloneFileSuccess(f, toKey)
       } catch {
@@ -88,6 +89,7 @@ class ItemAssetService(copyAsset: (String,String) => Unit, deleteFn: (String) =>
    *         Success -> the updated item
    */
   override def cloneStoredFiles(from: Item, to: Item): Validation[Seq[CloneFileResult], Item] = {
+    logger.trace(s"function=cloneStoredFiles, from=${from.id}, to=${to.id}")
     require(from.id.version.isDefined, s"from item id.version must be defined: ${from.id}")
     require(to.id.version.isDefined, s"to item id.version must be defined: ${from.id}")
     val v1FileResults: Seq[CloneFileResult] = cloneV1Files(from, to)

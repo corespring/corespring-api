@@ -1,7 +1,7 @@
 package org.corespring.v2.player
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scope.scopes.AddImageAndItem
+import org.corespring.it.scopes.AddImageAndItem
 import org.specs2.matcher.Matcher
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.mvc.{ AnyContent, Request }

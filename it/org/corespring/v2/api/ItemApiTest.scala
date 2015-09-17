@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import grizzled.slf4j.Logger
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
+import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import play.api.test.FakeRequest
 
 class ItemApiTest extends IntegrationSpecification {

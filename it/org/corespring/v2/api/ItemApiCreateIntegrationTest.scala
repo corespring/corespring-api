@@ -2,7 +2,7 @@ package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
-import org.corespring.it.scope.scopes.orgWithAccessToken
+import org.corespring.it.scopes.orgWithAccessToken
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
 import org.specs2.matcher.MatchResult

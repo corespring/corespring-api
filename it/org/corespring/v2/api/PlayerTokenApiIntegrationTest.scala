@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scope.scopes.orgWithAccessToken
+import org.corespring.it.scopes.orgWithAccessToken
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.missingRequiredField
 import org.corespring.v2.errors.Field

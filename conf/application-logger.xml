@@ -35,6 +35,7 @@
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="it" level="TRACE"/>
     <logger name="org.corespring.v2.auth" level="TRACE"/>
+    <logger name="org.corespring.services" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>

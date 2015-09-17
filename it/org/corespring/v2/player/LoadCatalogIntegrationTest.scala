@@ -4,7 +4,7 @@ import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
-import org.corespring.it.scope.scopes._
+import org.corespring.it.scopes._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings

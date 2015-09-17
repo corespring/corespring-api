@@ -140,6 +140,8 @@ class ItemService(
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   override def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
+    logger.trace(s"function=save, createNewVersion=$createNewVersion, item=$item")
+
     import scala.language.implicitConversions
 
     implicit def toServiceError[A](e: Validation[String, A]): Validation[PlatformServiceError, A] = {

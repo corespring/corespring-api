@@ -1,71 +1,33 @@
 package org.corespring.drafts
 
-import com.amazonaws.services.s3.AmazonS3Client
-import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.commons.MongoDBObject
-import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors.NothingToCommit
 import org.corespring.drafts.item._
-import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
-import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.item.models._
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.scopes.{ ImageUploader, ImageUtils, userAndItem }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.player.scopes.{ ImageUploader, ImageUtils, userAndItem }
 import org.specs2.mock.Mockito
 import org.specs2.specification.BeforeExample
-import play.api.Play
 
 import scalaz.{ Failure, Success }
 
 class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExample with Mockito {
 
-  sequential
-
-  lazy val db = Db.salatDb()(Play.current)
+  lazy val itemService = bootstrap.Main.itemService
+  lazy val draftService = bootstrap.Main.draftService
 
   def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
-
-  override protected def before: Any = {
-    println(s"--> dropping it.drafts.item and it.drafts.item_commits")
-
-    db("it.drafts.item").drop()
-    db("it.drafts.item_commits").drop()
-  }
-
-  lazy val draftService = new ItemDraftService {
-    override def collection: MongoCollection = db("it.drafts.item")
-  }
-
-  lazy val commitService = new CommitService {
-    override def collection: MongoCollection = db("it.drafts.item_commits")
-  }
 
   trait orgAndUserAndItem extends userAndItem {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
 
-    lazy val item = ItemServiceWired.findOneById(itemId).get
+    lazy val item = itemService.findOneById(itemId).get
 
-    lazy val drafts = new ItemDrafts {
-      override val itemService: ItemService with ItemPublishingService = ItemServiceWired
-
-      override val draftService: ItemDraftService = ItemDraftsIntegrationTest.this.draftService
-
-      override val commitService: CommitService = ItemDraftsIntegrationTest.this.commitService
-
-      val assets = new S3ItemDraftAssets {
-        override def bucket: String = ImageUtils.bucket
-
-        override def s3: AmazonS3Client = ImageUtils.client
-      }
-
-      /** Check that the user may create the draft for the given src id */
-      override protected def userCanCreateDraft(id: ObjectId, user: OrgAndUser): Boolean = true
-
-      override protected def userCanDeleteDrafts(id: ObjectId, user: OrgAndUser): Boolean = true
-    }
+    lazy val drafts = bootstrap.Main.itemDrafts
   }
 
   def updateTitle(item: Item, title: String): Item = {
@@ -104,7 +66,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         val draft = drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)).toOption.get
         val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("Change"))))
         drafts.save(orgAndUser)(update)
-        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
+        itemService.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
         drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser), true) match {
           case Success(d) => {
             d.parent.data.playerDefinition must_== None
@@ -119,9 +81,9 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("change 1"))))
         drafts.commit(orgAndUser)(update)
 
-        ItemServiceWired.findOneById(itemId).map { i =>
+        itemService.findOneById(itemId).map { i =>
           val itemUpdate = i.copy(playerDefinition = Some(PlayerDefinition("change 1 - from another draft")))
-          ItemServiceWired.save(itemUpdate)
+          itemService.save(itemUpdate)
         }
 
         drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)) match {
@@ -139,9 +101,9 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("Change"))))
         drafts.save(orgAndUser)(update)
 
-        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
+        itemService.save(item.copy(playerDefinition = Some(PlayerDefinition("hello!"))))
 
-        val updatedItem = ItemServiceWired.findOneById(item.id).get
+        val updatedItem = itemService.findOneById(item.id).get
 
         drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)) match {
           case Success(d) => failure("should have failed")
@@ -171,21 +133,21 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
       "return an ItemDraftIsOutOfDate error commit if the parent does not match the item" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)).toOption.get
         val update = draft.mkChange(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+        itemService.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(itemService.findOneById(itemId).get)))
       }
 
       "allow a forced commit of a conflicted item" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)).toOption.get
         val update = draft.mkChange(draft.change.data.copy(playerDefinition = Some(PlayerDefinition("!!"))))
-        ItemServiceWired.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
-        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(ItemServiceWired.findOneById(itemId).get)))
+        itemService.save(item.copy(playerDefinition = Some(PlayerDefinition("change"))))
+        drafts.commit(orgAndUser)(update) must_== Failure(ItemDraftIsOutOfDate(update, ItemSrc(itemService.findOneById(itemId).get)))
         drafts.commit(orgAndUser)(update, true) match {
           case Success(commit) => success
           case _ => failure("should have been successful")
         }
         update.change.data.playerDefinition.map(_.xhtml) must_== Some("!!")
-        ItemServiceWired.findOneById(itemId).get.playerDefinition.map(_.xhtml) must_== Some("!!")
+        itemService.findOneById(itemId).get.playerDefinition.map(_.xhtml) must_== Some("!!")
       }
 
       "updates the draft parent so subsequent commits will work" in new orgAndUserAndItem {
@@ -224,7 +186,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
       "return a conflict" in new orgAndUserAndItem {
         val draft = drafts.loadOrCreate(orgAndUser)(draftIdFromItemIdAndUser(itemId, orgAndUser)).toOption.get
         val updatedItem = item.copy(playerDefinition = Some(PlayerDefinition("change")))
-        ItemServiceWired.save(updatedItem)
+        itemService.save(updatedItem)
         drafts.conflict(orgAndUser)(draft.id) match {
           case Success(Some(c)) => success
           case _ => failure("should have been successful")
@@ -253,7 +215,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         val draft = drafts.loadOrCreate(orgAndUser)(draftId)
         val file = StoredFile("test.png", "image/png", false)
         drafts.addFileToChangeSet(draft.toOption.get, file)
-        drafts.draftService.load(draftId).map { dbDraft =>
+        draftService.load(draftId).map { dbDraft =>
           dbDraft.change.data.playerDefinition.map(_.files.find(_.name == "test.png").headOption).flatten must_== Some(file)
         }.getOrElse(failure("should have loaded the draft"))
       }
@@ -270,6 +232,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         drafts.listForOrg(orgAndUser.org.id).length === 2
       }
     }
-
   }
+
+  override protected def before: Any = {}
 }

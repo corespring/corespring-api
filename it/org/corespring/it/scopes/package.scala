@@ -1,4 +1,4 @@
-package org.corespring.it.scope
+package org.corespring.it
 
 import java.io.File
 

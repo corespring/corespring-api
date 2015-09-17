@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scope.scopes.orgWithAccessTokenAndItem
+import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.item.PlayerDefinition
 import play.api.libs.json.{ JsValue, Json }
