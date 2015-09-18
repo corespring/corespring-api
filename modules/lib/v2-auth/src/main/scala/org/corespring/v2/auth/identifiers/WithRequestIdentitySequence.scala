@@ -6,7 +6,7 @@ import org.corespring.v2.log.V2LoggerFactory
 import play.api.http.Status._
 import play.api.mvc.RequestHeader
 
-import scalaz.{ Failure, Validation }
+import scalaz.{ Success, Failure, Validation }
 
 object WithRequestIdentitySequence {
   val errorMessage = "Failed to identify an Organization from the request"
@@ -15,7 +15,7 @@ object WithRequestIdentitySequence {
 
 trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
-  override lazy val name = s"multiple-identifiers-in-a-sequence:(${identifiers.map(_.name).mkString(", ")})"
+  override val name = s"multiple-identifiers-in-a-sequence:(${identifiers.map(_.name).mkString(", ")})"
 
   lazy val logger = V2LoggerFactory.getLogger("auth.WithRequestIdentitySequence")
 
@@ -27,23 +27,31 @@ trait WithRequestIdentitySequence[B] extends RequestIdentity[B] {
 
     if (identifiers.nonEmpty) {
 
-      /**
-       * return either Seq(Success()) or Seq(Failure(), Failure()...)
-       */
-      val t = identifiers.foldLeft[Seq[Validation[V2Error, B]]](Seq.empty) { (acc, tf) =>
-        acc.find(_.isSuccess).map { success =>
-          Seq(success)
-        }.getOrElse {
-          acc :+ tf(rh)
+      val foldError = Failure(generalError("All identifiers failed"))
+
+      val identificationResult = identifiers.foldLeft[Validation[V2Error, B]](foldError) { (acc, tf) =>
+        acc match {
+          case Success(d) =>
+            logger.trace(s"identity is successful")
+            Success(d)
+          case Failure(e) =>
+            logger.trace(s"convert to identity: with ${tf.name}")
+            tf(rh)
         }
       }
 
-      t.find(_.isSuccess).headOption.getOrElse {
-        val e = compoundError(
+      identificationResult.leftMap { e =>
+
+        logger.trace(s"Building compound error - rerun all identifiers")
+
+        val errs: Seq[Validation[V2Error, B]] = identifiers.distinct.map { tf =>
+          tf(rh)
+        }
+
+        compoundError(
           WithRequestIdentitySequence.errorMessage,
-          t.filter(_.isFailure).map(_.swap.toOption.get),
+          errs.filter(_.isFailure).map(_.toEither).map(_.left.get),
           UNAUTHORIZED)
-        Failure(e)
       }
     } else {
       Failure(generalError(emptySequenceErrorMessage, INTERNAL_SERVER_ERROR))
