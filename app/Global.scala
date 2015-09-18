@@ -1,15 +1,18 @@
 import actors.reporting.ReportActor
 import akka.actor.Props
+import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import filters.{AccessControlFilter, AjaxFilter, Headers, IEHeaders}
+import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
-import org.corespring.web.common.controllers.deployment.{AssetsLoaderImpl, LocalAssetsLoaderImpl}
+import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+import org.corespring.web.common.views.helpers.Defaults
 import org.corespring.wiring.AppWiring
 import org.corespring.wiring.sessiondb.SessionDbInitialiser
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.http.ContentTypes
 import play.api.libs.concurrent.Akka
@@ -17,7 +20,8 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
-import scala.concurrent.Future
+import org.corespring.container.client.filters.ComponentSetsFilter
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
 object Global
@@ -28,6 +32,21 @@ object Global
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  lazy val componentSetFilter = new ComponentSetsFilter {
+    override implicit def ec: ExecutionContext = ExecutionContext.global
+
+    override lazy val bucket: String = AppConfig.assetsBucket
+
+    override def appVersion: String = Defaults.commitHashShort
+
+    override def s3: AmazonS3 = AppWiring.playS3.getClient
+
+    override lazy val enabled: Boolean = AppConfig.componentFilteringEnabled
+  }
+
+  override def doFilter(a: EssentialAction): EssentialAction = {
+    Filters(super.doFilter(a), Seq(componentSetFilter): _*)
+  }
 
   def controllers: Seq[Controller] = AppWiring.controllers
 
@@ -110,6 +129,5 @@ object Global
     val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
     Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
   }
-
 
 }
