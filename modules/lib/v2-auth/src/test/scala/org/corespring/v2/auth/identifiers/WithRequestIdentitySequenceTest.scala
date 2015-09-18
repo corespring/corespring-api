@@ -52,12 +52,12 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
     }
 
     "return the first success in a sequence" in new scope {
-      override val identifiers = Seq(failure("one"), success("one"))
+      override lazy val identifiers = Seq(failure("one"), success("one"))
       result must_== Success("one")
     }
 
     "return a compound error if all identifiers failed" in new scope {
-      override val identifiers = Seq(failure("one"), failure("two"))
+      override lazy val identifiers = Seq(failure("one"), failure("two"))
       result must_== Failure(compoundError(
         errorMessage,
         Seq(generalError("one"), generalError("two")),
@@ -73,14 +73,14 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
       }
 
       "only calls the first identifier if successful" in new callScope {
-        override val identifiers = Seq(successOne, failOne)
+        override lazy val identifiers = Seq(successOne, failOne)
         result.isSuccess must_== true
         there was one(successOne).apply(fr)
         there was no(failOne).apply(any[RequestHeader])
       }
 
       "only calls each identifier once until a success has occurred" in new callScope {
-        override val identifiers = Seq(failOne, successOne, failTwo)
+        override lazy val identifiers = Seq(failOne, successOne, failTwo)
         result.isSuccess must_== true
         there was one(failOne).apply(fr)
         there was one(successOne).apply(fr)
@@ -88,7 +88,7 @@ class WithRequestIdentitySequenceTest extends Specification with IdentitySpec wi
       }
 
       "only calls each identifier once if identification fails" in new callScope {
-        override val identifiers = Seq(failOne, failTwo)
+        override lazy val identifiers = Seq(failOne, failTwo)
         result.isFailure must_== true
         there was one(failOne).apply(fr)
         there was one(failTwo).apply(fr)
