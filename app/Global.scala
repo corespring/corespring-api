@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
-import org.corespring.container.client.filters.{ BlockingFutureRunner, CheckS3CacheFilter }
+import org.corespring.container.client.filters.{ CheckS3CacheFilter }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
@@ -44,8 +44,6 @@ object Global
     override def intercept(path: String) = {
       path.contains("component-sets") && AppConfig.componentFilteringEnabled
     }
-    /** the use of a val is important here */
-    override val blockingRunner: BlockingFutureRunner = new BlockingFutureRunner
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
