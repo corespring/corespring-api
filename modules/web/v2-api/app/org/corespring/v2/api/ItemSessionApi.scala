@@ -59,23 +59,28 @@ trait ItemSessionApi extends V2Api {
    *      adding `apiClient` and `playerToken` query parameter to the call
    *
    */
-  def create(itemId: VersionedId[ObjectId]) = Action(parse.empty) { implicit request =>
-    {
-      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = Json.obj(
-        "_id" -> Json.obj(
-          "$oid" -> JsString(ObjectId.get.toString)),
-        "itemId" -> JsString(vid.toString))
+  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
 
-      sessionCreatedForItem(itemId)
+    def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = Json.obj(
+      "_id" -> Json.obj(
+        "$oid" -> JsString(ObjectId.get.toString)),
+      "itemId" -> JsString(vid.toString))
 
+    //TODO Remove this call once we decide to convert items upfront
+    //This sends a message to an actor which transforms the item
+    //Once we decide to do the conversion externally, we can remove it
+    sessionCreatedForItem(itemId)
+
+    Future {
       val result: Validation[V2Error, JsValue] = for {
         identity <- getOrgAndOptions(request)
         canCreate <- sessionAuth.canCreate(itemId.toString)(identity)
-        json <- Success(createSessionJson(itemId, identity))
-        sessionId <- if (canCreate)
+        sessionId <- if (canCreate) {
+          val json = createSessionJson(itemId, identity)
           sessionAuth.create(json)(identity)
-        else
+        } else {
           Failure(generalError("creation failed"))
+        }
       } yield Json.obj("id" -> sessionId.toString)
 
       validationToResult[JsValue](Ok(_))(result)
