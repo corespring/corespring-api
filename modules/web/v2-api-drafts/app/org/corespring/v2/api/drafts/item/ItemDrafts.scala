@@ -39,7 +39,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftList <- Success(drafts.listByItemAndOrgId(vid, user.org.id))
       } yield {
-        val seq = draftList.map(ItemDraftJson.simple)
+        val seq = draftList.map(ItemDraftJson.header)
         Json.toJson(seq)
       }
     }
@@ -61,7 +61,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftName <- Success(mkDraftName(user.user.map(_.userName).getOrElse("unknown_user")))
         draft <- drafts.create(DraftId(vid.id, draftName, user.org.id), user, expires).leftMap { e => generalDraftApiError(e.msg) }
-      } yield ItemDraftJson.simple(draft)
+      } yield ItemDraftJson.header(draft.toHeader)
     }
   }
 
@@ -126,7 +126,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         user <- toOrgAndUser(request)
       } yield {
         val orgDrafts = drafts.listForOrg(user.org.id)
-        Json.toJson(orgDrafts.map { ItemDraftJson.header })
+        Json.toJson(orgDrafts.map(ItemDraftJson.header))
       }
     }
   }

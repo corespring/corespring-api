@@ -1,7 +1,7 @@
 package org.corespring.test.fakes
 
 import com.mongodb._
-import com.mongodb.casbah.{ Imports, MongoCollection => CasbahMongoCollection }
+import com.mongodb.casbah.{ MongoCollection => CasbahMongoCollection, MongoCursor, Imports }
 import org.specs2.mock.Mockito
 import org.specs2.mock.mockito.ArgumentCapture
 
@@ -17,12 +17,32 @@ object Fakes extends Mockito {
     def findOneResult: DBObject = null
     def findAndModifyResult: DBObject = null
 
+    lazy val findResultSeq: Seq[DBObject] = Seq.empty
+
+    lazy val findResult: MongoCursor = {
+      val m = mock[MongoCursor]
+      m.limit(any[Int]) returns m
+      m.skip(any[Int]) returns m
+      m.map(any[DBObject => Any]).answers((a: Any) => {
+        val fn = a.asInstanceOf[DBObject => Any]
+        findResultSeq.toIterator.map(fn)
+      })
+      m
+    }
+
     def updateResult: WriteResult = mockWriteResultWithN(1)
 
     def mockWriteResultWithN(n: Int) = {
       val m = mock[WriteResult]
       m.getN returns n
       m
+    }
+
+    def captureFind: (ArgumentCapture[DBObject], ArgumentCapture[DBObject]) = {
+      val q = capture[DBObject]
+      val f = capture[DBObject]
+      there was one(mockCollection).find(q.capture, f.capture)(any[A2DBO], any[A2DBO])
+      (q, f)
     }
 
     def captureFindOne: (ArgumentCapture[DBObject], ArgumentCapture[DBObject]) = {
@@ -75,6 +95,8 @@ object Fakes extends Mockito {
       val m = mock[CasbahMongoCollection]
 
       m.customEncoderFactory returns None
+
+      m.find(any[Any], any[Any])(any[A2DBO], any[A2DBO]) returns findResult
 
       m.update(
         any[Any],

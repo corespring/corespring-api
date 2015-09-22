@@ -114,17 +114,6 @@ describe('tagger.controllers.new.HomeController', function() {
 
   describe('v2', function() {
 
-    describe('edit', function() {
-
-      beforeEach(function() {
-        scope.orgDrafts = [{
-          id: 'd1',
-          itemId: '1'
-        }];
-      });
-
-    });
-
     describe('publish', function() {
 
       var item;
@@ -134,10 +123,6 @@ describe('tagger.controllers.new.HomeController', function() {
           id: 'a',
           apiVersion: 2
         };
-        scope.orgDrafts = [{
-          id: 'da',
-          itemId: 'a'
-        }];
       });
 
       it('calls the underlying v2 publish if apiVersion is anything but 1', function() {
@@ -152,7 +137,6 @@ describe('tagger.controllers.new.HomeController', function() {
 
       beforeEach(function() {
         scope.items = [];
-        scope.orgDrafts = [];
       });
 
       it('calls V2ItemService.clone', function() {
