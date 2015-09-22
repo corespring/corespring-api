@@ -21,6 +21,8 @@ case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
   def toIdString = s"$itemId~$name"
 }
 
+case class ItemDraftHeader(id: DraftId, created: DateTime, expires: DateTime, userName: Option[String])
+
 case class ItemDraft(
   val id: DraftId,
   val user: OrgAndUser,

@@ -1,6 +1,6 @@
 package org.corespring.v2.api.drafts.item.json
 
-import org.corespring.drafts.item.models.{ Conflict, ItemDraft }
+import org.corespring.drafts.item.models.{ ItemDraftHeader, Conflict, ItemDraft }
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.json.ItemView
@@ -16,6 +16,18 @@ object ItemDraftJson {
   private def timeJson(d: DateTime): JsValue = Json.obj(
     "readable" -> longDateTime.print(d.withZone(DateTimeZone.UTC)),
     "timestamp" -> d.getMillis())
+
+  def header(h: ItemDraftHeader): JsValue = {
+    Json.obj(
+      "id" -> h.id.toString,
+      "itemId" -> s"${h.id.itemId.toString}",
+      "orgId" -> h.id.orgId.toString,
+      "created" -> timeJson(h.created),
+      "expires" -> timeJson(h.expires)) ++
+      h.userName
+      .map(n => Json.obj("user" -> n))
+      .getOrElse(Json.obj())
+  }
 
   def simple(d: ItemDraft): JsValue = {
     Json.obj(

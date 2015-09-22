@@ -124,8 +124,10 @@ trait ItemDrafts extends Controller with MakeDraftId {
     Future {
       for {
         user <- toOrgAndUser(request)
-        orgDrafts <- Success(drafts.listForOrg(user.org.id))
-      } yield Json.toJson(orgDrafts.map { ItemDraftJson.simple })
+      } yield {
+        val orgDrafts = drafts.listForOrg(user.org.id)
+        Json.toJson(orgDrafts.map { ItemDraftJson.header })
+      }
     }
   }
 
@@ -136,7 +138,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
   }
 
-  private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent )(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =
+  private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent)(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =
     Action.async(parser) { implicit request =>
       Future {
         for {
