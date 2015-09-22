@@ -103,16 +103,44 @@ class SelectPointInteractionTransformerTest extends Specification {
         (jsonOutput() \ "model" \ "config" \ "graphHeight").as[String] must be equalTo (getSetting("gridHeightInPixels"))
       }
 
-      "contain domain" in {
-        (jsonOutput() \ "model" \ "config" \ "domain").as[Int] must be equalTo (getSetting("xAxisMaxValue").toInt)
+      "contain domainMin" in {
+        (jsonOutput() \ "model" \ "config" \ "domainMin").as[Int] must be equalTo (getSetting("xAxisMinValue").toInt)
       }
 
-      "contain range" in {
-        (jsonOutput() \ "model" \ "config" \ "range").as[Int] must be equalTo (getSetting("yAxisMaxValue").toInt)
+      "contain domainMax" in {
+        (jsonOutput() \ "model" \ "config" \ "domainMax").as[Int] must be equalTo (getSetting("xAxisMaxValue").toInt)
+      }
+
+      "contain domainStepValue" in {
+        (jsonOutput() \ "model" \ "config" \ "domainStepValue").as[Int] must be equalTo (getSetting("xAxisStepValue").toInt)
+      }
+
+      "contain domainLabelFrequency" in {
+        (jsonOutput() \ "model" \ "config" \ "domainLabelFrequency").as[Int] must be equalTo (getSetting("xAxisLabelPattern").toInt)
+      }
+
+      "contain rangeMin" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeMin").as[Int] must be equalTo (getSetting("yAxisMinValue").toInt)
+      }
+
+      "contain rangeMax" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeMax").as[Int] must be equalTo (getSetting("yAxisMaxValue").toInt)
+      }
+
+      "contain rangeStepValue" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeStepValue").as[Int] must be equalTo (getSetting("yAxisStepValue").toInt)
+      }
+
+      "contain rangeLabelFrequency" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeLabelFrequency").as[Int] must be equalTo (getSetting("yAxisLabelPattern").toInt)
       }
 
       "contain maxPoints" in {
         (jsonOutput() \ "model" \ "config" \ "maxPoints").as[Int] must be equalTo (maxChoices)
+      }
+
+      "contain graphPadding" in {
+        (jsonOutput() \ "model" \ "config" \ "graphPadding").as[Int] must be equalTo (50)
       }
 
     }
@@ -215,12 +243,40 @@ class SelectPointInteractionTransformerTest extends Specification {
         (jsonOutput() \ "model" \ "config" \ "graphHeight").as[String] must be equalTo (getSetting("gridHeightInPixels"))
       }
 
-      "contain domain" in {
-        (jsonOutput() \ "model" \ "config" \ "domain").as[Int] must be equalTo (getSetting("xAxisMaxValue").toInt)
+      "contain domainMin" in {
+        (jsonOutput() \ "model" \ "config" \ "domainMin").as[Int] must be equalTo (getSetting("xAxisMinValue").toInt)
       }
 
-      "contain range" in {
-        (jsonOutput() \ "model" \ "config" \ "range").as[Int] must be equalTo (getSetting("yAxisMaxValue").toInt)
+      "contain domainMax" in {
+        (jsonOutput() \ "model" \ "config" \ "domainMax").as[Int] must be equalTo (getSetting("xAxisMaxValue").toInt)
+      }
+
+      "contain domainStepValue" in {
+        (jsonOutput() \ "model" \ "config" \ "domainStepValue").as[Int] must be equalTo (getSetting("xAxisStepValue").toInt)
+      }
+
+      "contain domainLabelFrequency" in {
+        (jsonOutput() \ "model" \ "config" \ "domainLabelFrequency").as[Int] must be equalTo (getSetting("xAxisLabelPattern").toInt)
+      }
+
+      "contain rangeMin" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeMin").as[Int] must be equalTo (getSetting("yAxisMinValue").toInt)
+      }
+
+      "contain rangeMax" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeMax").as[Int] must be equalTo (getSetting("yAxisMaxValue").toInt)
+      }
+
+      "contain rangeStepValue" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeStepValue").as[Int] must be equalTo (getSetting("yAxisStepValue").toInt)
+      }
+
+      "contain rangeLabelFrequency" in {
+        (jsonOutput() \ "model" \ "config" \ "rangeLabelFrequency").as[Int] must be equalTo (getSetting("yAxisLabelPattern").toInt)
+      }
+
+      "contain graphPadding" in {
+        (jsonOutput() \ "model" \ "config" \ "graphPadding").as[Int] must be equalTo (50)
       }
 
       "contain correctResponse in y=mx+b format" in {
