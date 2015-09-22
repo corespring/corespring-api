@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models._
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.joda.time.DateTime
@@ -121,6 +122,22 @@ class ItemDraftServiceTest extends Specification {
       service.remove(draftId)
       val r = captureRemoveQueryOnly
       r.value === ItemDraftDbUtils.idToDbo(draftId)
+    }
+  }
+
+  "removeByItemId" should {
+    "call collection.remove with _id.itemId in the query" in new scope {
+      service.removeByItemId(itemId)
+      val r = captureRemoveQueryOnly
+      r.value === MongoDBObject("_id.itemId" -> itemId)
+    }
+  }
+
+  "listByOrgAndVid" should {
+    "call collection.find with org and versionedid.id in the query" in new scope {
+      service.listByOrgAndVid(orgId, VersionedId(itemId))
+      val q = captureFindQueryOnly
+      q.value === MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId)
     }
   }
 }

@@ -53,6 +53,12 @@ object Fakes extends Mockito {
       (q, f)
     }
 
+    def captureFindQueryOnly: ArgumentCapture[DBObject] = {
+      val q = capture[DBObject]
+      there was one(mockCollection).find(q.capture)(any[Any => DBObject])
+      q
+    }
+
     def captureFindOneQueryOnly: ArgumentCapture[DBObject] = {
       val q = capture[DBObject]
       there was one(mockCollection).findOne(q.capture)(any[Any => DBObject])
@@ -110,6 +116,7 @@ object Fakes extends Mockito {
 
       m.customEncoderFactory returns None
 
+      m.find(any[Any])(any[A2DBO]) returns findResult
       m.find(any[Any], any[Any])(any[A2DBO], any[A2DBO]) returns findResult
 
       m.remove(any[Any], any[WriteConcern])(any[A2DBO]) returns removeResult
