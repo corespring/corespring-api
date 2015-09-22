@@ -6,6 +6,7 @@ import com.novus.salat.Context
 import org.corespring.drafts.item.models.OrgAndUser
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, S3ItemDraftAssets, ItemDraftAssets }
+import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.{ ItemService }
@@ -35,6 +36,8 @@ trait ItemDraftsModule {
   }
 
   def s3: AmazonS3
+  def bucket: Bucket
+
   def assets: ItemDraftAssets = wire[S3ItemDraftAssets]
 
   def itemDrafts: DraftsBackend = wire[DraftsBackend]

@@ -199,7 +199,9 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
         ImageUploader.uploadImage(itemId, "it/org/corespring/v2/player/load-image/puppy.png")
         val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
         val draft = drafts.loadOrCreate(orgAndUser)(draftId)
-        ImageUtils.exists(S3Paths.draftFile(draftId, "puppy.png")) must_== true
+        val expectedPath = S3Paths.draftFile(draftId, "puppy.png")
+        println(s"expectedPath: $expectedPath")
+        ImageUtils.exists(expectedPath) must_== true
         drafts.cloneDraft(orgAndUser)(draftId) match {
           case Success(r) => {
             ImageUtils.exists(S3Paths.draftFile(r.draftId, "puppy.png")) must_== true
