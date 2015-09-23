@@ -96,11 +96,11 @@ class SelectPointInteractionTransformerTest extends Specification {
       }
 
       "contain graphWidth" in {
-        (jsonOutput() \ "model" \ "config" \ "graphWidth").as[String] must be equalTo (getSetting("gridWidthInPixels"))
+        (jsonOutput() \ "model" \ "config" \ "graphWidth").as[Int] must be equalTo (550)
       }
 
       "contain graphHeight" in {
-        (jsonOutput() \ "model" \ "config" \ "graphHeight").as[String] must be equalTo (getSetting("gridHeightInPixels"))
+        (jsonOutput() \ "model" \ "config" \ "graphHeight").as[Int] must be equalTo (550)
       }
 
       "contain domainMin" in {
@@ -236,11 +236,11 @@ class SelectPointInteractionTransformerTest extends Specification {
       }
 
       "contain graphWidth" in {
-        (jsonOutput() \ "model" \ "config" \ "graphWidth").as[String] must be equalTo (getSetting("gridWidthInPixels"))
+        (jsonOutput() \ "model" \ "config" \ "graphWidth").as[Int] must be equalTo (550)
       }
 
       "contain graphHeight" in {
-        (jsonOutput() \ "model" \ "config" \ "graphHeight").as[String] must be equalTo (getSetting("gridHeightInPixels"))
+        (jsonOutput() \ "model" \ "config" \ "graphHeight").as[Int] must be equalTo (550)
       }
 
       "contain domainMin" in {

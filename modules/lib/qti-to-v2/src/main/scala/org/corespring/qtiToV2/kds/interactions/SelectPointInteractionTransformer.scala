@@ -81,8 +81,8 @@ case class SelectPointInteractionTransformer(qti: Node) extends InteractionTrans
       "config" -> partialObj(
         "domainLabel" -> property("xAxisTitle").map(JsString(_)),
         "rangeLabel" -> property("yAxisTitle").map(JsString(_)),
-        "graphWidth" -> property("gridWidthInPixels").map(JsString(_)),
-        "graphHeight" -> property("gridHeightInPixels").map(JsString(_)),
+        "graphWidth" -> Some(JsNumber(550)),
+        "graphHeight" -> Some(JsNumber(550)),
         "graphPadding" -> Some(JsNumber(50)),
         "domainMin" -> property("xAxisMinValue").map(propertyNumber),
         "domainMax" -> property("xAxisMaxValue").map(propertyNumber),
