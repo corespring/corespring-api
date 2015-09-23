@@ -2,6 +2,7 @@ package org.corespring.it
 
 import java.io.File
 
+import com.mongodb.casbah.{ MongoClientURI, MongoClient }
 import play.api.Play
 import play.api.test.FakeApplication
 
@@ -27,7 +28,33 @@ private object PlaySingleton {
   def start() = Play.maybeApplication.map(_ => Unit).getOrElse {
     log(s"starting app ${new File(".").getAbsolutePath}")
 
-    val config = Map("logger" -> Map("play" -> "OFF", "application" -> "OFF"), "api.log-requests" -> false)
+    val mongoUri = {
+      val envUri = System.getenv("IT_MONGO_URI")
+      if (envUri == null) {
+        "mongodb://localhost/api-it-tests"
+      } else {
+        envUri
+      }
+    }
+
+    println(s"mongoUri: $mongoUri")
+
+    val uri = MongoClientURI(mongoUri)
+    val client = MongoClient(MongoClientURI(mongoUri))
+    client.dropDatabase(uri.database.get)
+    client.close()
+
+    val bucket = {
+
+    }
+
+    val config = Map(
+      "mongodb.default.uri" -> mongoUri,
+      "AMAZON_ASSETS_BUCKET" -> bucket,
+      "logger" -> Map(
+        "play" -> "OFF",
+        "application" -> "OFF"),
+      "api.log-requests" -> false)
 
     val app: FakeApplication = FakeApplication(
       additionalPlugins = Seq("se.radley.plugin.salat.SalatPlugin"),
