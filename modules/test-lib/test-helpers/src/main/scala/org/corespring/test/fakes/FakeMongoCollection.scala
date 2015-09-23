@@ -19,7 +19,14 @@ object Fakes extends Mockito {
 
     lazy val findResultSeq: Seq[DBObject] = Seq.empty
 
-    lazy val removeResult: WriteResult = mock[WriteResult]
+    lazy val removeResult: WriteResult = {
+      val m = mock[WriteResult]
+      m.getN returns 1
+      val result = mock[CommandResult].ok returns true
+      m.getLastError(any[WriteConcern]) returns result
+      m.getLastError() returns result
+      m
+    }
 
     lazy val findResult: MongoCursor = {
       val m = mock[MongoCursor]
@@ -42,7 +49,7 @@ object Fakes extends Mockito {
 
     def captureRemoveQueryOnly: ArgumentCapture[DBObject] = {
       val q = capture[DBObject]
-      there was one(mockCollection).remove(q, any[WriteConcern])(any[A2DBO])
+      there was one(mockCollection).remove(q.capture, any[WriteConcern])(any[A2DBO], any[DBEncoder])
       q
     }
 
@@ -119,7 +126,8 @@ object Fakes extends Mockito {
       m.find(any[Any])(any[A2DBO]) returns findResult
       m.find(any[Any], any[Any])(any[A2DBO], any[A2DBO]) returns findResult
 
-      m.remove(any[Any], any[WriteConcern])(any[A2DBO]) returns removeResult
+      m.remove(any[Any], any[WriteConcern])(any[A2DBO], any[DBEncoder]) returns removeResult
+
       m.update(
         any[Any],
         any[Any],

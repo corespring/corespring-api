@@ -20,8 +20,22 @@ class ItemDraftServiceTest extends Specification {
 
     val orgId = ObjectId.get
     val itemId = ObjectId.get
-
     val draftId = DraftId(itemId, "name", orgId)
+    val created = DateTime.now
+    val expires = created.plusHours(24)
+
+    def mkHeaderDbo = {
+      val idDbo = MongoDBObject(
+        "itemId" -> itemId,
+        "orgId" -> orgId,
+        "name" -> "name")
+
+      MongoDBObject(
+        "_id" -> idDbo,
+        "created" -> created.toDate,
+        "expires" -> expires.toDate,
+        "user" -> MongoDBObject("user" -> MongoDBObject("userName" -> "name")))
+    }
 
     def mkUser(userName: String) = SimpleUser(ObjectId.get, userName, "full name", "provider", orgId)
 
@@ -53,19 +67,7 @@ class ItemDraftServiceTest extends Specification {
 
     "return ItemDraftHeaders" in new scope {
 
-      val idDbo = MongoDBObject(
-        "itemId" -> itemId,
-        "orgId" -> orgId,
-        "name" -> "name")
-
-      val created = DateTime.now
-      val expires = created.plusHours(24)
-
-      override lazy val findResultSeq = Seq(MongoDBObject(
-        "_id" -> idDbo,
-        "created" -> created.toDate,
-        "expires" -> expires.toDate,
-        "user" -> MongoDBObject("user" -> MongoDBObject("userName" -> "name"))))
+      override lazy val findResultSeq = Seq(mkHeaderDbo)
 
       val result = service.listForOrg(orgId)
 
@@ -138,6 +140,32 @@ class ItemDraftServiceTest extends Specification {
       service.listByOrgAndVid(orgId, VersionedId(itemId))
       val q = captureFindQueryOnly
       q.value === MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId)
+    }
+
+    "returns draft" in new scope {
+      override lazy val findResultSeq = Seq(ItemDraftDbUtils.toDbo(itemDraft))
+      val result = service.listByOrgAndVid(orgId, VersionedId(itemId))
+      result.toSeq.headOption.map(_.id) === Some(draftId)
+    }
+  }
+
+  "listByItemAndOrgId" should {
+    "call collection.find with query containing orgId and itemid" in new scope {
+      service.listByItemAndOrgId(VersionedId(itemId), orgId)
+      val (q, f) = captureFind
+      q.value === MongoDBObject("_id.orgId" -> orgId, "_id.itemId" -> itemId)
+      f.value === MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
+    }
+
+    "returns header" in new scope {
+      override lazy val findResultSeq = Seq(mkHeaderDbo)
+      val result = service.listByItemAndOrgId(VersionedId(itemId), orgId)
+      val firstItem = result.seq.headOption
+      firstItem.map(_.id.itemId) must_== Some(itemId)
+      firstItem.map(_.id.orgId) must_== Some(orgId)
+      firstItem.map(_.created) === Some(created)
+      firstItem.map(_.expires) === Some(expires)
+      firstItem.map(_.userName).flatten === Some("name")
     }
   }
 }
