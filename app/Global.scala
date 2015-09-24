@@ -6,6 +6,7 @@ import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
+import org.corespring.container.client.filters.CheckS3CacheFilter
 import org.corespring.play.utils._
 import org.corespring.reporting.services.ReportGenerator
 import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
@@ -20,7 +21,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
-import org.corespring.container.client.filters.{ CheckS3CacheFilter }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
@@ -41,9 +41,8 @@ object Global
 
     override def s3: AmazonS3 = AppWiring.playS3.getClient
 
-    override def intercept(path: String) = {
-      path.contains("component-sets") && AppConfig.componentFilteringEnabled
-    }
+    override def intercept(path: String) = path.contains("component-sets")
+
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
