@@ -147,6 +147,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         maybeSessionId = Some(ObjectId.get)) {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "").withBody(Some()))
         status(result) === OK
+        (contentAsJson(result) \ "_id").asOpt[JsValue] must beNone
         contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
       }
 
@@ -156,6 +157,7 @@ class ItemSessionApiTest extends Specification with Mockito with MockFactory {
         val result = api.create(VersionedId(ObjectId.get))(FakeRequest("", "")
           .withHeaders(("Content-Type", "application/json")).withBody(None))
         status(result) === OK
+        (contentAsJson(result) \ "_id").asOpt[JsValue] must beNone
         contentAsJson(result) === Json.obj("id" -> maybeSessionId.get.toString)
       }
     }
