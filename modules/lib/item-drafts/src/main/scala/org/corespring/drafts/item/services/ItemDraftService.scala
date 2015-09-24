@@ -92,10 +92,10 @@ trait ItemDraftService {
     }
 
     val id = grater[DraftId].asObject(idDbo)
-    val created = dbo.get("created").asInstanceOf[Date]
-    val expires = dbo.get("expires").asInstanceOf[Date]
+    val created = dbo.get("created").asInstanceOf[DateTime]
+    val expires = dbo.get("expires").asInstanceOf[DateTime]
     val userName = dbo.expand[String]("user.user.userName")
-    ItemDraftHeader(id, new DateTime(created), new DateTime(expires), userName)
+    ItemDraftHeader(id, created, expires, userName)
   }
 
   def listForOrg(orgId: ObjectId, limit: Int = 0, skip: Int = 0): Seq[ItemDraftHeader] = {

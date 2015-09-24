@@ -32,8 +32,8 @@ class ItemDraftServiceTest extends Specification {
 
       MongoDBObject(
         "_id" -> idDbo,
-        "created" -> created.toDate,
-        "expires" -> expires.toDate,
+        "created" -> created,
+        "expires" -> expires,
         "user" -> MongoDBObject("user" -> MongoDBObject("userName" -> "name")))
     }
 
