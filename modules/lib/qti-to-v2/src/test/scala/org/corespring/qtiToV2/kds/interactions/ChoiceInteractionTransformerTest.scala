@@ -61,15 +61,15 @@ class ChoiceInteractionTransformerTest extends Specification {
     val multipleChoiceResult = ChoiceInteractionTransformer.interactionJs(multipleChoiceQti(), ItemTransformer.EmptyManifest)
     val inlineChoiceResult = ChoiceInteractionTransformer.interactionJs(inlineChoiceQti(), ItemTransformer.EmptyManifest)
 
-    "transform rationales" in {
+    "transform rationales for multiple choice" in {
       val json = multipleChoiceResult.values.headOption.getOrElse(throw new Exception("There was no result"))
-      val rationaleResult = (json \ "model" \ "choices").as[Seq[JsObject]].map(f => (f \ "value").as[String] -> (f \ "rationale").as[String]).toMap
+      val rationaleResult = (json \ "rationales").as[Seq[JsObject]].map(f => (f \ "choice").as[String] -> (f \ "rationale").as[String]).toMap
       rationaleResult must be equalTo (rationales)
     }
 
-    "transform rationales" in {
+    "transform rationales inline choice" in {
       val json = inlineChoiceResult.values.headOption.getOrElse(throw new Exception("There was no result"))
-      val rationaleResult = (json \ "model" \ "choices").as[Seq[JsObject]].map(f => (f \ "value").as[String] -> (f \ "rationale").as[String]).toMap
+      val rationaleResult = (json \ "rationales").as[Seq[JsObject]].map(f => (f \ "choice").as[String] -> (f \ "rationale").as[String]).toMap
       rationaleResult must be equalTo (rationales)
     }
 

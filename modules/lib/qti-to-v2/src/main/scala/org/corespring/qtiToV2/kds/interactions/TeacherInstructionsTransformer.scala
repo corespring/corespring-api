@@ -27,7 +27,7 @@ object TeacherInstructionsTransformer extends InteractionTransformer with XHTMLC
           teacherInstructionsId(teacherInstructions) ->
             Json.obj(
               "componentType" -> "corespring-teacher-instructions",
-              "value" -> teacherInstructions.convertNonXHTMLElements.map(_.child.mkString)
+              "teacherInstructions" -> teacherInstructions.convertNonXHTMLElements.map(_.text)
                 .getOrElse(throw new Exception("Teacher instructions could not be converted")))
         }
       }.toMap
