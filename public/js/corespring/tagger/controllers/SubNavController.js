@@ -9,16 +9,17 @@
       $scope.gradeLevelDataProvider = defaultsFactory.buildNgDataProvider('gradeLevels');
       $scope.itemTypeDataProvider = defaultsFactory.buildNgDataProvider('v2ItemTypes');
       $scope.flatItemTypeDataProvided = $scope.itemTypeDataProvider;
+      $scope.widgetDataProvider = defaultsFactory.buildNgDataProvider('widgets');
 
       $scope.statuses = [
-        { label: 'Setup', key: 'setup' }, 
-        { label: 'Tagged', key: 'tagged' }, 
-        { label: 'Standards Aligned', key: 'standardsAligned' }, 
+        { label: 'Setup', key: 'setup' },
+        { label: 'Tagged', key: 'tagged' },
+        { label: 'Standards Aligned', key: 'standardsAligned' },
         { label: 'QA Review', key: 'qaReview' },
         { label: 'Exact Match', key: 'exactMatch' }];
-      
+
       $scope.publishStatuses = [
-        { label: 'Live', key: 'published' }, 
+        { label: 'Live', key: 'published' },
         { label: 'Draft', key: 'draft' } ];
     }
 
@@ -27,7 +28,7 @@
       $scope.$watch(
         function() {
           return CollectionManager.sortedCollections;
-        }, 
+        },
         function(newValue, oldValue) {
           if (newValue) {
             $scope.sortedCollections = newValue;
@@ -36,14 +37,14 @@
             }
             $scope.search();
           }
-        }, 
+        },
         true);
 
       CollectionManager.init();
     }
 
     function loadContributors() {
-      Contributor.get({}, 
+      Contributor.get({},
         function(data) {
           $scope.contributors = data;
         },

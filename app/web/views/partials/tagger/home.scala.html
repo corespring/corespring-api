@@ -9,7 +9,7 @@
         </div>
     </div>
     <div ng-show="viewState == 'org'">
-      
+
         <div class="header-holder">
             <!-- org collections -->
             <table class="table header">
@@ -45,7 +45,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <div class="footer">
              <input type="text" id="newcollection" ui-keypress="{13:'createCollection(newcolname)'}" placeholder="type collection name..." ng-model="newcolname">
              <button class="btn btn-primary" ng-click="createCollection(newcolname)">add</button>
@@ -110,7 +110,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         <div class="footer">
             Organization ID: <input type="text" id="sharedOrgIdInput" ui-keypress="{13:'shareCollection(sharedOrgId, activeCollection)'}" placeholder="enter org id..." ng-model="sharedOrgId">
             <button class="btn btn-primary" ng-click="shareCollection(sharedOrgId, activeCollection)">share</button>
@@ -133,7 +133,7 @@
                     <div id="preloader" class="preloader" style="height: 600px">
                     </div>
                     <span profile-player="" id='player' style="display: block; width: 1024px; margin-left:-5px; min-height: 400px" item-id="{{previewingId}}" on-item-load="onItemLoad()" style='display: none'/></span>
-                      
+
                 </div>
             </div>
         </div>
@@ -156,8 +156,8 @@
                   multi-uid="id"
                   multi-model="searchParams.collection">
                   <div class="summary">
-                    <div class="multi-title-text collection"> COLLECTION <span class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    
+                    <div class="multi-title-text collection"> Collection <span class="selected-multi-options collection" ng-bind-html-unsafe="getCollectionSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
                   </div>
 
                   <!-- note: we are overriding the default repeater here  - see multi-select.coffee in corespring-ng-components for more info -->
@@ -185,8 +185,8 @@
                   multi-uid="name"
                   multi-model="searchParams.contributor">
                   <div class="summary">
-                    <div class="multi-title-text collection"> CONTRIBUTOR <span class="selected-multi-options collection" ng-bind-html-unsafe="getContributorSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    
+                    <div class="multi-title-text collection"> Contributor <span class="selected-multi-options collection" ng-bind-html-unsafe="getContributorSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
                   </div>
                 </span>
             </td>
@@ -198,8 +198,8 @@
                   multi-change="search"
                   multi-model="searchParams.gradeLevel">
                   <div class="summary">
-                    <div class="multi-title-text grade-level">GRADE LEVEL <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    
+                    <div class="multi-title-text grade-level">Grade Level <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
                   </div>
                 </span>
             </td>
@@ -211,8 +211,19 @@
                   multi-change="search"
                   multi-model="searchParams.itemType">
                   <div class="summary">
-                    <div class="multi-title-text grade-level">TYPE <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    
+                    <div class="multi-title-text grade-level">Type <span class="selected-multi-options grade-level" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
+                  </div>
+                </span>
+            </td>
+            <td>
+                <span multi-select
+                  multi-get-title="getLabel"
+                  multi-options="widgetDataProvider"
+                  multi-change="search"
+                  multi-model="searchParams.widgets">
+                  <div class="summary">
+                    <div class="multi-title-text">Other Features <span class="selected-multi-options" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
                   </div>
                 </span>
             </td>
@@ -223,8 +234,8 @@
                   multi-change="search"
                   multi-model="searchParams.statuses">
                   <div class="summary">
-                    <div class="multi-title-text collection"> WORKFLOW <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                    
+                    <div class="multi-title-text collection"> Workflow <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
                   </div>
                 </span>
             </td>
@@ -236,8 +247,8 @@
                       multi-change="search"
                       multi-model="searchParams.publishStatuses">
                   <div class="summary">
-                      <div class="multi-title-text collection"> STATUS <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
-                      
+                      <div class="multi-title-text collection"> Status <span class="selected-multi-options collection" ng-bind-html-unsafe="getSelectedTitle(selected)"></span><span ng-class="{true:'caret',false:'caret-right'}[showChooser]"></span></div>
+
                   </div>
                 </span>
             </td>
