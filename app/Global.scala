@@ -41,9 +41,8 @@ object Global
 
     override def s3: AmazonS3 = AppWiring.playS3.getClient
 
-    override def intercept(path: String) = {
-      path.contains("component-sets") && AppConfig.componentFilteringEnabled
-    }
+    override def intercept(path: String) = path.contains("component-sets")
+
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
