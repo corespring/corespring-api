@@ -23,7 +23,7 @@ class RemoteSessionService(host: String, bucket: Option[String], authToken: Stri
     new SessionServiceClient(host = host, bucket = bucket, authToken = authToken)
 
   override def create(data: JsValue): Option[ObjectId] = Await.result(client.create(data), REMOTE_TIMEOUT) match {
-    case Success(json) => (json \ "id").asOpt[String].map(new ObjectId(_))
+    case Success(json) => (json \ "_id" \ "$oid").asOpt[String].map(new ObjectId(_))
     case Failure(error) => None
   }
 
