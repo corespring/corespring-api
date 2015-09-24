@@ -8,6 +8,7 @@ object IntegrationTestSettings {
   lazy val settings = Defaults.itSettings ++ Seq(
     libraryDependencies ++= Seq(Dependencies.scalaFaker % "it"),
     scalaSource in IntegrationTest <<= baseDirectory / "it",
+    resourceDirectory in IntegrationTest <<= baseDirectory / "it-resources",
     scalacOptions in IntegrationTest ++= Seq("-Yrangepos"),
     Keys.parallelExecution in IntegrationTest := false,
     Keys.fork in IntegrationTest := false,
