@@ -2,19 +2,19 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import com.amazonaws.auth.{ BasicAWSCredentials, AWSCredentials }
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
+import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{ SessionDbConfig, AppConfig }
+import org.corespring.common.config.{ AppConfig, SessionDbConfig }
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
-import org.corespring.platform.core.models.{ mongoContext, Organization }
+import org.corespring.platform.core.models.{ Organization, mongoContext }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
@@ -104,7 +104,8 @@ package object scopes {
 
   trait user extends BeforeAfter {
 
-    val orgId = OrganizationHelper.create("my-org")
+    val organization = OrganizationHelper.createAndReturnOrg("my-org")
+    val orgId = organization.id
     val user = UserHelper.create(orgId)
     val collectionId = CollectionHelper.create(orgId)
 
@@ -232,7 +233,6 @@ package object scopes {
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
 
       super.before
       logger.debug(s"sessionId: $sessionId")
@@ -271,8 +271,7 @@ package object scopes {
     lazy val file = new File(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
-      import java.nio.file.Files
-      import java.nio.file.Paths
+      import java.nio.file.{ Files, Paths }
       val path = Paths.get(imagePath)
       Files.readAllBytes(path)
     }
@@ -280,7 +279,6 @@ package object scopes {
     lazy val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
 
       super.before
 
@@ -291,6 +289,8 @@ package object scopes {
       val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/materials/$materialName/$fileName"
       val sf = StoredFile(name = fileName, contentType = "image/png", storageKey = key)
       val resource = Resource(name = materialName, files = Seq(sf))
+      implicit val context = mongoContext.context
+
       val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
 
       ItemServiceWired.collection.update(

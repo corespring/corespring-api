@@ -129,7 +129,7 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
     class addFileScope[F <: BaseFile](val resource: Resource = defaultResource, val file: F = virtualFile) extends scope {
       val resourceDbo = grt.asDBObject(resource)
-      override val findOneResult = MongoDBObject("supportingMaterials" -> MongoDBList(resourceDbo))
+      override lazy val findOneResult = MongoDBObject("supportingMaterials" -> MongoDBList(resourceDbo))
     }
 
     "when calling collection.findAndModify" should {
@@ -166,7 +166,7 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
       resource = defaultResource.copy(files = Seq.empty)) {
       val updatedResource = resource.copy(files = resource.files :+ file)
       val mockUpdate = grt.asDBObject(updatedResource)
-      override val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(mockUpdate))
+      override lazy val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(mockUpdate))
       addFile(vid, defaultResource.name, file, Array.empty)
       there was one(assets).upload(vid, updatedResource, file, Array.empty)
     }
@@ -180,7 +180,7 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
       resource = defaultResource.copy(files = Seq.empty)) {
       val updatedResource = resource.copy(files = resource.files :+ file)
       val mockUpdate = grt.asDBObject(updatedResource)
-      override val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(mockUpdate))
+      override lazy val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(mockUpdate))
       val result = addFile(vid, defaultResource.name, file, Array.empty)
       result must_== Success(updatedResource)
     }
@@ -196,7 +196,7 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
     class deleteScope(val r: Resource = defaultResource, otherResources: Seq[Resource] = Seq.empty) extends scope {
       val allResources: Seq[DBObject] = (otherResources :+ r).map(grt.asDBObject)
-      override val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(allResources: _*))
+      override lazy val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(allResources: _*))
       val result = delete(vid, r.name)
     }
 
@@ -243,14 +243,14 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
     "fail if it cant load the files" in new scope {
       val dbo = MongoDBObject("supportingMaterials" -> MongoDBList.empty)
-      override val findOneResult = dbo
+      override lazy val findOneResult = dbo
       val result = updateFileContent(vid, "material", "filename", "hi")
       result must_== Failure(cantLoadFiles(dbo))
     }
 
     "calls collection.findAndModify with the update" in new scope {
       val dbo = MongoDBObject("supportingMaterials" -> materialsDboList)
-      override val findOneResult = dbo
+      override lazy val findOneResult = dbo
       val result = updateFileContent(vid, "material", "index.html", update.content)
       val (_, _, u, _) = captureFindAndModify
       u.value must_== $set("supportingMaterials.$.files" ->
@@ -260,8 +260,8 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
 
     "returns the updated resource" in new scope {
       val dbo = MongoDBObject("supportingMaterials" -> materialsDboList)
-      override val findOneResult = dbo
-      override val findAndModifyResult = dbo
+      override lazy val findOneResult = dbo
+      override lazy val findAndModifyResult = dbo
       val result = updateFileContent(vid, "material", "index.html", update.content)
       result must_== Success(Resource(name = "my-material", files = Seq(update)))
     }
@@ -285,7 +285,7 @@ class MongoSupportingMaterialsServiceTest extends Specification with Mockito {
   "removeFile" should {
 
     class removeFileScope(r: Resource = defaultResource, fileToDelete: String = virtualFile.name) extends scope {
-      override val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(grt.asDBObject(r)))
+      override lazy val findAndModifyResult = MongoDBObject("supportingMaterials" -> MongoDBList(grt.asDBObject(r)))
       val result = removeFile(vid, r.name, fileToDelete)
     }
 

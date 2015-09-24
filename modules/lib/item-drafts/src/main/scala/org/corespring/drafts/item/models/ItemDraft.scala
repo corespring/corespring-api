@@ -21,6 +21,8 @@ case class DraftId(itemId: ObjectId, name: String, orgId: ObjectId) {
   def toIdString = s"$itemId~$name"
 }
 
+case class ItemDraftHeader(id: DraftId, created: DateTime, expires: DateTime, userName: Option[String])
+
 case class ItemDraft(
   val id: DraftId,
   val user: OrgAndUser,
@@ -35,6 +37,9 @@ case class ItemDraft(
    */
   override def mkChange(d: Item): ItemDraft = this.copy(change = change.copy(data = d), created = this.created, expires = this.expires)
 
+  def toHeader: ItemDraftHeader = {
+    ItemDraftHeader(id, created, expires, user.user.map(_.userName))
+  }
 }
 
 case class Conflict(draft: ItemDraft, item: Item)
