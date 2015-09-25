@@ -1,11 +1,11 @@
 package org.corespring.qtiToV2.kds.interactions
 
-import org.corespring.qtiToV2.interactions.{ ChoiceInteractionTransformer => CorespringChoiceInteractionTransformer, InteractionTransformer }
+import org.corespring.qtiToV2.interactions.{ChoiceInteractionTransformer => CorespringChoiceInteractionTransformer, InteractionTransformer}
 import org.corespring.qtiToV2.kds.XHTMLCleaner
 import play.api.libs.json._
 
-import scala.xml.{ NodeSeq, Node }
-import scala.xml.transform.{ RewriteRule, RuleTransformer }
+import scala.xml.{NodeSeq, Node}
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCleaner {
 
@@ -26,13 +26,13 @@ object ChoiceInteractionTransformer extends InteractionTransformer with XHTMLCle
             }))
           case _ => None
         }),
-        "model" -> Some(Json.obj("shuffle" -> false,
-          "choices" -> (json \ "model" \ "choices").asOpt[Seq[JsObject]].map(_.map(choice => {
-            choice.deepMerge(
-              partialObj("rationale" -> (choice \ "value").asOpt[String]
-                .map(choiceId => rationale(qti, id, choiceId)).flatten))
-          })).getOrElse(throw new Exception(s"choiceInteraction $id was missing choices"))))))
-    }.toMap
+        "rationales" -> Some(JsArray((json \ "model" \ "choices").as[Seq[JsObject]].map(c => Json.obj(
+          "choice" -> Some(c \ "value"),
+          "rationale" -> rationale(qti, id, (c \ "value").as[String])
+        )))),
+        "model" -> Some(Json.obj("shuffle" -> false)))
+      )
+    }
 
   private def rationale(qti: Node, id: String, choiceId: String): Option[JsString] =
     (qti \\ "choiceRationales" ++ qti \\ "inlineChoiceRationales").find(c => (c \ "@responseIdentifier").text == id)
