@@ -39,12 +39,6 @@ class CatalogAssetHelper(itemService: ItemService, val s3Service: S3Service, val
       getAssetFromItemId(S3Paths.itemFile(vid, path))
     }.getOrElse(play.api.mvc.Results.BadRequest(s"Invalid versioned id: $id"))
 
-  override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-    versionedIdFromString(itemService, id).map { vid =>
-      getAssetFromItemId(S3Paths.itemSupportingMaterialFile(vid, path))
-    }.getOrElse(play.api.mvc.Results.BadRequest(s"Invalid versioned id: $id"))
-  }
-
   override def bucket: String = bucketConfig.bucket
 }
 

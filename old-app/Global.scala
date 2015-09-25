@@ -1,11 +1,20 @@
 import actors.reporting.ReportActor
 import akka.actor.Props
+import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
 import org.bson.types.ObjectId
+import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
+import org.corespring.container.client.filters.CheckS3CacheFilter
 import org.corespring.play.utils._
+<<<<<<< HEAD:old-app/Global.scala
 import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+=======
+import org.corespring.reporting.services.ReportGenerator
+import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
+import org.corespring.web.common.views.helpers.Defaults
+>>>>>>> develop:app/Global.scala
 import org.corespring.wiring.AppWiring
 import org.corespring.wiring.sessiondb.SessionDbInitialiser
 import org.joda.time.{ DateTime, DateTimeZone }
@@ -16,7 +25,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
 
 object Global
@@ -27,6 +36,26 @@ object Global
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
+<<<<<<< HEAD:old-app/Global.scala
+=======
+  lazy val componentSetFilter = new CheckS3CacheFilter {
+    override implicit def ec: ExecutionContext = ExecutionContext.global
+
+    override lazy val bucket: String = AppConfig.assetsBucket
+
+    override def appVersion: String = Defaults.commitHashShort
+
+    override def s3: AmazonS3 = AppWiring.playS3.getClient
+
+    override def intercept(path: String) = path.contains("component-sets")
+
+  }
+
+  override def doFilter(a: EssentialAction): EssentialAction = {
+    Filters(super.doFilter(a), Seq(componentSetFilter): _*)
+  }
+
+>>>>>>> develop:app/Global.scala
   def controllers: Seq[Controller] = AppWiring.controllers
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
@@ -100,4 +129,16 @@ object Global
       .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
   }
 
+<<<<<<< HEAD:old-app/Global.scala
+=======
+  private def reportingDaemon(app: Application) = {
+    import scala.language.postfixOps
+
+    Logger.info("Scheduling the reporting daemon")
+
+    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
+    Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
+  }
+
+>>>>>>> develop:app/Global.scala
 }

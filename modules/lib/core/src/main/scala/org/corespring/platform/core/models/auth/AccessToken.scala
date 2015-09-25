@@ -3,7 +3,12 @@ package org.corespring.platform.core.models.auth
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
+<<<<<<< HEAD
 import org.corespring.models.Organization
+=======
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.Organization
+>>>>>>> develop
 import org.joda.time.DateTime
 import play.api.Play.current
 import se.radley.plugin.salat._
@@ -31,7 +36,7 @@ trait AccessTokenService {
   def findByToken(token: String): Option[AccessToken]
 }
 
-object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService {
+object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessTokenService with PackageLogging {
   val organization = "organization"
   val scope = "scope"
   val tokenId = "tokenId"
@@ -67,7 +72,6 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
     } catch {
       case e: SalatInsertError => Left(CorespringInternalError("error occurred during insert", e))
     }
-
   }
   /**
    * Finds an access token by id
@@ -114,5 +118,36 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
       }
     }
 
+  }
+
+  override def insert(token: AccessToken) = {
+
+    def waitUntilTokenInDb(id: ObjectId): Option[ObjectId] = {
+      var timeout = 60
+      while(timeout > 0 && !tokenInDb(id)){
+        logger.warn("waiting for token to appear in db")
+        Thread.sleep(1000)
+        timeout -= 1
+      }
+      if(timeout > 0){
+        Some(id)
+      } else {
+        logger.error(s"timeout waiting for token $id")
+        None
+      }
+    }
+
+    def tokenInDb(id: ObjectId): Boolean = {
+      AccessToken.findOneById(id) match {
+        case Some(dbtoken) => true
+        case None => false
+      }
+    }
+
+    logger.debug(s"inserting ${token.tokenId}")
+    super.insert(token) match {
+      case Some(id) => waitUntilTokenInDb(id)
+      case None => None
+    }
   }
 }

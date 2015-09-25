@@ -13,8 +13,9 @@ import scalaz.Validation
  * @tparam B the identity type
  */
 trait RequestIdentity[B] {
-  def name: String
   def apply(rh: RequestHeader): Validation[V2Error, B]
+
+  def name: String
 }
 
 trait OrgRequestIdentity[B] extends RequestIdentity[B] {

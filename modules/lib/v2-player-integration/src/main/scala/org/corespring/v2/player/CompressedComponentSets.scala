@@ -5,6 +5,7 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
 import org.corespring.container.client.CompressedAndMinifiedComponentSets
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.container.components.model.dependencies.DependencyResolver
@@ -14,7 +15,8 @@ import play.api.{ Mode, Play, Configuration }
 class CompressedComponentSets(
   val rootConfig: Configuration,
   val componentLoader: ComponentLoader,
-  val mode: Mode) extends CompressedAndMinifiedComponentSets {
+  val mode: Mode,
+  implicit val ec : ContainerExecutionContext) extends CompressedAndMinifiedComponentSets {
 
   import play.api.Play.current
 
@@ -55,4 +57,5 @@ class CompressedComponentSets(
     IOUtils.closeQuietly(input)
     content
   }
+
 }

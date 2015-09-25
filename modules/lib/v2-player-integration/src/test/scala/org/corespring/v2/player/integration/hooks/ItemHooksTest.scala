@@ -11,17 +11,18 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
+import org.corespring.v2.auth.models.{AuthMode, OrgAndOpts}
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec
-import org.specs2.matcher.{ Expectable, Matcher }
+import org.corespring.v2.player.integration.hooks.beErrorCodeMessage
+import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 class ItemHooksTest extends V2PlayerIntegrationSpec {
 
@@ -39,7 +40,7 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
   val defaultOrgAndOpts = mockOrgAndOpts()
 
-  private[ItemHooksTest] abstract class baseContext[ERR, RES](
+  private abstract class baseContext[ERR, RES](
     val itemId: String = ObjectId.get.toString,
     val authResult: Validation[V2Error, Item] = Failure(defaultFailure),
     val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(defaultOrgAndOpts)) extends Scope {
@@ -161,12 +162,47 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
 
     val orgAndOptsForSpec = mockOrgAndOpts(AuthMode.AccessToken)
 
+//<<<<<<< HEAD
     class baseScope(override val orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
       extends baseContext with withMockCollection {
 
       def orgAndOptsErr = orgAndOptsResult.toEither.left.get
 
       itemAuth.canWrite(any[String])(any[OrgAndOpts]) returns Success(true)
+//=======
+//    class baseScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOptsForSpec))
+//      extends Scope
+//      with ItemHooks with withMockCollection {
+//
+//      def orgAndOptsErr = orgAndOptsResult.toEither.left.get
+//
+//      lazy val vid = {
+//        val o = VersionedId(ObjectId.get, Some(0))
+//        o
+//      }
+//
+//      lazy val mockItemService = {
+//        val m = mock[ItemService]
+//        m.collection returns mockCollection
+//        m
+//      }
+//
+//      lazy val mockItemAuth = {
+//        val m = mock[ItemAuth[OrgAndOpts]]
+//        m.canWrite(any[String])(any[OrgAndOpts]) returns Success(true)
+//        m
+//      }
+//
+//      override def transform: (Item) => JsValue = i => Json.obj()
+//
+//      override def itemService: ItemService = mockItemService
+//
+//      override def auth: ItemAuth[OrgAndOpts] = mockItemAuth
+//
+//      override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
+//
+//      def waitFor[A](f: Future[A]) = Await.result(f, Duration(1, TimeUnit.SECONDS))
+//>>>>>>> develop
 
     }
 
@@ -179,6 +215,12 @@ class ItemHooksTest extends V2PlayerIntegrationSpec {
       itemService.saveUsingDbo(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) returns true
       val r = waitFor(fn(hooks)(vid.toString))
       there was one(itemService).saveUsingDbo(vid, MongoDBObject("$set" -> expectedSet), false)
+//=======
+//      waitFor(fn(this)(vid.toString))
+//      val (q, u) = captureUpdate
+//      q.value === expectedQuery
+//      u.value === MongoDBObject("$set" -> expectedSet)
+//>>>>>>> develop
     }
 
     "save returns orgAndOpts error" in new baseScope(Failure(TestError("org-and-opts"))) {

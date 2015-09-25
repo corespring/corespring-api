@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
+import org.corespring.container.client.hooks.CoreItemHooks
 import org.corespring.container.client.{ VersionInfo }
 import org.corespring.container.client.integration.{ ContainerExecutionContext, DefaultIntegration }
 import org.corespring.container.components.loader.ComponentLoader
@@ -82,7 +83,7 @@ trait V2PlayerModule extends DefaultIntegration {
 
   override lazy val playerLauncherHooks: client.hooks.PlayerLauncherHooks = wire[PlayerLauncherHooks]
 
-  override lazy val itemDraftHooks: client.hooks.DraftHooks = wire[ItemDraftHooks]
+  override lazy val itemDraftHooks: client.hooks.DraftHooks with client.hooks.CoreItemHooks = wire[ItemDraftHooks]
 
   override lazy val itemHooks: client.hooks.ItemHooks = wire[ItemHooks]
 
@@ -91,4 +92,8 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
 
   override lazy val componentSets: client.controllers.ComponentSets = wire[CompressedComponentSets]
+
+  override lazy val itemDraftSupportingMaterialHooks: client.hooks.SupportingMaterialHooks = wire[ItemDraftSupportingMaterialHooks]
+  override lazy val itemSupportingMaterialHooks: client.hooks.SupportingMaterialHooks = wire[ItemSupportingMaterialHooks]
+
 }

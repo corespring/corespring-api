@@ -151,7 +151,9 @@ object User extends ModelCompanion[User, ObjectId] with Searchable with ClassLog
     logger.debug(s"[getUser]: $username, $provider")
     val query = MongoDBObject(User.userName -> username, User.provider -> provider)
     logger.trace(s"${User.count(query)}")
-    User.findOne(query)
+    val user = User.findOne(query)
+    logger.trace(s"found user: $user")
+    user
   }
 
   def getUsers(orgId: ObjectId): Either[CorespringInternalError, Seq[User]] = {

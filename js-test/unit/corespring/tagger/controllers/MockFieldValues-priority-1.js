@@ -77,10 +77,11 @@ window.fieldValues = {"version":"0.0.1", "gradeLevels":[
     {"key":"Summative", "value":"Summative"},
     {"key":"Other", "value":"Other"}
 ], "depthOfKnowledge":[
-    {"key":"Recall & Reproduction", "value":"Recall & Reproduction"},
-    {"key":"Strategic Thinking & Reasoning", "value":"Strategic Thinking & Reasoning"},
-    {"key":"Skills & Concepts", "value":"Skills & Concepts"},
-    {"key":"Extended Thinking", "value":"Extended Thinking"}
+    {"key":"1", "value":"Recall & Reproduction"},
+    {"key":"3", "value":"Strategic Thinking & Reasoning"},
+    {"key":"2", "value":"Skills & Concepts"},
+    {"key":"4", "value":"Extended Thinking"},
+    {"key":"None", "value":"None"}
 ], "credentials":[
     {"key":"Assessment Developer", "value":"Assessment Developer"},
     {"key":"Test Item Writer", "value":"Test Item Writer"},

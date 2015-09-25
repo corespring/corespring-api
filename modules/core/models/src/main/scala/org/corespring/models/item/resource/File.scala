@@ -1,9 +1,12 @@
 package org.corespring.models.item.resource
 
+import java.io.InputStream
+
 import com.novus.salat.annotations.Salat
 import org.bson.types.ObjectId
-import org.corespring.platform.data.mongo.models.VersionedId
 
+
+//TODO - remove this
 @Salat
 abstract class BaseFile(
   val name: String,
@@ -81,8 +84,9 @@ object StoredFile {
   def storageKey(id: ObjectId, version: Long, resourceName: String, filename: String): String = {
     (Seq(id, version.toString) ++ Seq(resourceName, filename)).mkString("/")
   }
-
 }
+
+case class StoredFileDataStream(name: String, stream: InputStream, contentLength: Long, contentType: String, metadata: Map[String, String])
 
 case class CloneResourceResult(files: Seq[CloneFileResult])
 

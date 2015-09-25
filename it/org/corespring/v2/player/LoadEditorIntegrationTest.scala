@@ -3,9 +3,8 @@ package org.corespring.v2.player
 import grizzled.slf4j.Logger
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
+import org.corespring.it.helpers.{IntegrationHelpers, SecureSocialHelper}
 import org.corespring.it.scopes._
-import org.corespring.models.Organization
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.generalError
@@ -68,8 +67,6 @@ class LoadEditorIntegrationTest
     override lazy val draftName = user.userName
     lazy val orgService = bootstrap.Main.orgService
     override def getCall(draftId: DraftId): Call = DraftEditor.load(draftId.toIdString)
-
-    override def organization: Organization = orgService.findOneById(user.org.orgId).get
   }
 
   class clientIdAndPlayerToken_editItemLoader(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with itemDraftLoader {

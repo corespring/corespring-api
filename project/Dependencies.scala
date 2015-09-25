@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.45.0-expand-types-SNAPSHOT"
+  val containerVersion = "0.48.0-expand-types-SNAPSHOT"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
@@ -63,7 +63,7 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.17.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.18.0"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
@@ -73,7 +73,7 @@ object Dependencies {
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
-  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.15-PLAY22").exclude("org.mongodb", "mongo-java-driver")
+  val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.16-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
 
   object Resolvers {

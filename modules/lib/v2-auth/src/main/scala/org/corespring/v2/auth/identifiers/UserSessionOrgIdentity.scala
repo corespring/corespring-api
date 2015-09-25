@@ -14,6 +14,8 @@ trait UserSessionOrgIdentity[B]
   extends OrgRequestIdentity[B]
   with UserFromRequest {
 
+  override val name = "user-session-cookie"
+
   /** get the apiClient if available */
   override def headerToApiClientId(rh: RequestHeader): Option[String] = None
 
@@ -24,6 +26,5 @@ trait UserSessionOrgIdentity[B]
     org <- orgService.findOneById(u.org.orgId).toSuccess(cantFindOrgWithId(u.org.orgId))
   } yield (org, Some(u))
 
-  override def name: String = "user-session-cookie"
 }
 

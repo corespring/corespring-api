@@ -1,16 +1,16 @@
 package org.corespring.v2.api.drafts.item
 
-import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
-import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
-import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.drafts.errors.{DraftError, NothingToCommit}
+import org.corespring.drafts.item.models.{DraftId, OrgAndUser}
+import org.corespring.drafts.item.{ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId}
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{CommitJson, DraftCloneResultJson, ItemDraftJson}
 import org.joda.time.DateTime
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 class ItemDrafts(
   drafts: DraftsBackend,
@@ -38,7 +38,7 @@ class ItemDrafts(
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftList <- Success(drafts.listByItemAndOrgId(vid, user.org.id))
       } yield {
-        val seq = draftList.map(itemDraftJson.simple)
+        val seq = draftList.map(itemDraftJson.header)
         Json.toJson(seq)
       }
     }
@@ -60,7 +60,7 @@ class ItemDrafts(
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftName <- Success(mkDraftName(user.user.map(_.userName).getOrElse("unknown_user")))
         draft <- drafts.create(DraftId(vid.id, draftName, user.org.id), user, expires).leftMap { e => generalDraftApiError(e.msg) }
-      } yield itemDraftJson.simple(draft)
+      } yield itemDraftJson.header(draft.toHeader)
     }
   }
 
@@ -123,8 +123,10 @@ class ItemDrafts(
     Future {
       for {
         user <- toOrgAndUser(request)
-        orgDrafts <- Success(drafts.listForOrg(user.org.id))
-      } yield Json.toJson(orgDrafts.map { itemDraftJson.simple })
+      } yield {
+        val orgDrafts = drafts.listForOrg(user.org.id)
+        Json.toJson(orgDrafts.map(itemDraftJson.header))
+      }
     }
   }
 

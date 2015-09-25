@@ -109,8 +109,8 @@ package object scopes {
   }
 
   trait user extends BeforeAfter {
-
-    val orgId = OrganizationHelper.create("my-org")
+    val organization = OrganizationHelper.createAndReturnOrg("my-org")
+    val orgId = organization.id
     val user = UserHelper.create(orgId)
     val collectionId = CollectionHelper.create(orgId)
 

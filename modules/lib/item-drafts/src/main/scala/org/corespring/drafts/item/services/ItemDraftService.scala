@@ -1,11 +1,9 @@
 package org.corespring.drafts.item.services
 
-import com.mongodb.casbah.MongoCollection
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.{ DBObject, WriteResult }
-import org.bson.types.ObjectId
-import org.corespring.drafts.item.models.{ DraftId, ItemDraft, OrgAndUser }
+import com.mongodb.casbah.Imports._
+import org.corespring.drafts.item.models.{ ItemDraftHeader, DraftId, ItemDraft, OrgAndUser }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.joda.time.DateTime
 
 private [drafts] trait ItemDraftDbUtils {
   implicit def context : com.novus.salat.Context
@@ -36,6 +34,9 @@ trait ItemDraftService extends ItemDraftDbUtils {
   }
 
   def collection: MongoCollection
+
+  collection.ensureIndex(IdKeys.orgId)
+  collection.ensureIndex(IdKeys.itemId)
 
   import scala.language.implicitConversions
 
@@ -73,11 +74,31 @@ trait ItemDraftService extends ItemDraftDbUtils {
     collection.find(query).map(toDraft)
   }
 
-  def listForOrg(orgId: ObjectId) = collection.find(MongoDBObject(IdKeys.orgId -> orgId)).toSeq.map(toDraft)
+  private def toHeader(dbo: DBObject): ItemDraftHeader = {
+    import com.novus.salat.grater
 
-  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
+    val idDbo: BasicDBObject = dbo.expand[BasicDBObject]("_id").getOrElse {
+      throw new RuntimeException(s"Not a db object: ${dbo.get("_id")}")
+    }
+
+    val id = grater[DraftId].asObject(idDbo)
+    val created = dbo.get("created").asInstanceOf[DateTime]
+    val expires = dbo.get("expires").asInstanceOf[DateTime]
+    val userName = dbo.expand[String]("user.user.userName")
+    ItemDraftHeader(id, created, expires, userName)
+  }
+
+  def listForOrg(orgId: ObjectId, limit: Int = 0, skip: Int = 0): Seq[ItemDraftHeader] = {
+    val query = MongoDBObject(IdKeys.orgId -> orgId)
+    val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
+    val dbos = collection.find(query, fields).skip(0).limit(0)
+    dbos.map(toHeader).toSeq
+  }
+
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId): Seq[ItemDraftHeader] = {
     val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id)
-    collection.find(query).map(toDraft)
+    val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
+    collection.find(query, fields).map(toHeader).toSeq
   }
 
 }

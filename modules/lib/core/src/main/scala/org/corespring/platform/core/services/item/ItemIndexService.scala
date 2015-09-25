@@ -15,5 +15,6 @@ trait ItemIndexService {
   def refresh(): Future[Validation[Error, String]]
 
   def componentTypes: Future[Validation[Error, Map[String, String]]]
+  def widgetTypes: Future[Validation[Error, Map[String, String]]]
 
 }

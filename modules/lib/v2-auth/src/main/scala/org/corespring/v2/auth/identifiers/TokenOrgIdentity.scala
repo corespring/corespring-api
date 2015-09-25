@@ -18,6 +18,7 @@ abstract class TokenOrgIdentity[B](
   with TokenReader {
 
   override lazy val logger = Logger(classOf[TokenOrgIdentity[B]])
+  override val name = "access-token-in-query-string"
 
   override def headerToOrgAndMaybeUser(rh: RequestHeader): Validation[V2Error, (Organization, Option[User])] = {
     def onToken(token: String) = tokenService.orgForToken(token).map { o =>
@@ -32,5 +33,4 @@ abstract class TokenOrgIdentity[B](
   /** get the apiClient if available */
   override def headerToApiClientId(rh: RequestHeader): Option[String] = None
 
-  override def name: String = "access-token-in-query-string"
 }

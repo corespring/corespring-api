@@ -24,4 +24,19 @@ trait ItemDraftHelper {
       draft.id
     }.getOrElse { throw new RuntimeException(s"no item with id $itemId") }
   }
+
+  def delete(id: DraftId) = {
+    println(s"[ItemDraftHelper] delete: $id")
+    collection.remove(MongoDBObject("_id.itemId" -> id.itemId))
+  }
+
+  def get(id: DraftId): Option[ItemDraft] = {
+    collection
+      .findOne(MongoDBObject("_id.itemId" -> id.itemId))
+      .map { dbo =>
+        val out = com.novus.salat.grater[ItemDraft].asObject(dbo)
+        println(s"[ItemDraftHelper] draft: $out")
+        out
+      }
+  }
 }

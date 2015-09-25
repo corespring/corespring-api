@@ -42,18 +42,18 @@ class ItemTest extends BaseTest {
       val item = Item(
         otherAlignments = Some(
           Alignments(
-            depthOfKnowledge = Some("Recall & Reproduction"),
+            depthOfKnowledge = Some("1"),
             bloomsTaxonomy = Some("Applying"))))
 
       val json = Json.toJson(item)
 
       import Alignments.Keys
-      (json \ Keys.depthOfKnowledge).asOpt[String] === Some("Recall & Reproduction")
+      (json \ Keys.depthOfKnowledge).asOpt[String] === Some("1")
       (json \ Keys.bloomsTaxonomy).asOpt[String] === Some("Applying")
 
       val parsed = json.as[Item]
 
-      parsed.otherAlignments.get.depthOfKnowledge must equalTo(Some("Recall & Reproduction"))
+      parsed.otherAlignments.get.depthOfKnowledge must equalTo(Some("1"))
       parsed.otherAlignments.get.bloomsTaxonomy must equalTo(Some("Applying"))
     }
 
@@ -196,7 +196,7 @@ class ItemTest extends BaseTest {
 
       itemService.findOneById(clonedItem.get.id) match {
         case Some(fromDb) => clonedItem.get.collectionId === fromDb.collectionId
-        case _ => failure("couldn't find cloned item")
+        case _ => ko("couldn't find cloned item")
       }
     }
 

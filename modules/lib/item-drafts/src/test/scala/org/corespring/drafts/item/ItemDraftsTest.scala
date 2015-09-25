@@ -13,6 +13,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.salat.config.SalatContext
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
+import org.corespring.test.fakes.Fakes
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
@@ -449,6 +450,7 @@ class ItemDraftsTest extends Specification with Mockito {
         val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)
         val expectedUpdate = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> fileDbo))
         u.value === expectedUpdate
+
       }
     }
   }

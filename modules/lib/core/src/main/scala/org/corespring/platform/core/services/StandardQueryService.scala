@@ -1,13 +1,19 @@
 package org.corespring.platform.core.services
 
+<<<<<<< HEAD
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
 import org.corespring.models.{ Standard, Subject }
 import play.api.libs.json.{ JsObject, JsSuccess, JsValue, Json }
+=======
+import org.bson.types.ObjectId
+import org.corespring.common.log.PackageLogging
+import org.corespring.platform.core.models.{ Standard }
+>>>>>>> develop
 
-object StandardQueryService extends QueryService[Standard] with PackageLogging {
+object StandardQueryService extends QueryService[Standard] with StandardQueryBuilder with PackageLogging {
 
   override def findOne(id: String): Option[Standard] = if (ObjectId.isValid(id)) {
     logger.trace(s"findOne: $id")
@@ -30,6 +36,7 @@ object StandardQueryService extends QueryService[Standard] with PackageLogging {
     getStandardByDotNotationQuery(raw).orElse(getStandardBySearchQuery(raw))
   }
 
+<<<<<<< HEAD
   private def getStandardByDotNotationQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
     dotNotation <- (json \ "dotNotation").asOpt[String]
@@ -52,4 +59,6 @@ object StandardQueryService extends QueryService[Standard] with PackageLogging {
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
+=======
+>>>>>>> develop
 }

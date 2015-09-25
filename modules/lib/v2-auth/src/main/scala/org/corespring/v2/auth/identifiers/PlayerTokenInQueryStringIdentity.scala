@@ -27,6 +27,8 @@ object PlayerTokenInQueryStringIdentity {
 trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override lazy val logger = Logger(classOf[PlayerTokenInQueryStringIdentity])
+  override val name = "player-token-in-query-string"
+
 
   override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {
     toAccessSettings(org.id, rh).map { tuple: (PlayerAccessSettings, Option[V2Warning]) =>
@@ -128,6 +130,5 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     result
   }
 
-  override def name: String = "player-token-in-query-string"
 }
 

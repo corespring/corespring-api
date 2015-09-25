@@ -116,7 +116,7 @@ object Build extends sbt.Build {
 
   lazy val itemSearch = builders.lib("item-search")
     .settings(
-      libraryDependencies ++= Seq(salatVersioningDao, playJson, elasticsearchPlayWS, commonsCodec, grizzledLog, macWireMacro))
+      libraryDependencies ++= Seq(salatVersioningDao, playJson, playFramework, elasticsearchPlayWS, commonsCodec, grizzledLog, macWireMacro))
     .dependsOn(coreModels, coreJson)
 
   lazy val commonViews = builders.web("common-views")
@@ -223,7 +223,7 @@ object Build extends sbt.Build {
       testLib,
       v2Auth % "test->test;compile->compile",
       coreModels,
-      coreServices,
+      coreServicesSalat,
       itemDrafts)
     .dependsOn(v2Api)
 

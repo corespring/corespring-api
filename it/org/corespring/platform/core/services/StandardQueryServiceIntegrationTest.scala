@@ -6,7 +6,7 @@ import org.corespring.models.{ Standard }
 import org.specs2.mutable.BeforeAfter
 import play.api.libs.json.Json
 
-class standardServiceIntegrationTest extends IntegrationSpecification {
+class StandardServiceIntegrationTest extends IntegrationSpecification {
 
   lazy val standardService = bootstrap.Main.standardService
 

@@ -15,6 +15,8 @@ class MockRequestIdentity(
   val org: Validation[V2Error, (Organization, Option[User])] = Failure(generalError("?")),
   val apiClientId: Option[String] = None) extends OrgRequestIdentity[String] with Mockito {
 
+  override val name = "mock-identifier"
+
   override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]) = Success("Worked")
 
   /** get the apiClient if available */

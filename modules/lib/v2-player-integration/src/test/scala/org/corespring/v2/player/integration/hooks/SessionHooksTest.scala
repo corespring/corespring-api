@@ -54,18 +54,6 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
 
   }
 
-  case class returnStatusMessage[D](expectedStatus: Int, body: String) extends Matcher[Either[(Int, String), D]] {
-    def apply[S <: Either[(Int, String), D]](s: Expectable[S]) = {
-
-      println(s" --> ${s.value}")
-      def callResult(success: Boolean) = result(success, s"${s.value} matches $expectedStatus & $body", s"${s.value} doesn't match $expectedStatus & $body", s)
-      s.value match {
-        case Left((code, msg)) => callResult(code == expectedStatus && msg == body)
-        case Right(_) => callResult(false)
-      }
-    }
-  }
-
   class IdentificationFailureContext extends SessionContext {
     override def getOrgAndOptionsResult = Failure(invalidToken(mock[RequestHeader]))
     override def authSaveSessionResult = Success((s: String, session: Session) => Some(mock[Session]))
@@ -101,14 +89,14 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
     "return error if can't resolve identity" in new IdentificationFailureContext {
 
       hooks.loadItemAndSession("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
           getOrgAndOptionsResult.toEither.left.get.message)
     }
 
     "return error if can't authenticate" in new AuthenticationFailureContext {
 
       hooks.loadItemAndSession("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(authLoadForReadResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(authLoadForReadResult.toEither.left.get.statusCode,
           authLoadForReadResult.toEither.left.get.message)
     }
 
@@ -126,14 +114,14 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
     "return error if can't resolve identity" in new IdentificationFailureContext {
 
       hooks.loadOutcome("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
           getOrgAndOptionsResult.toEither.left.get.message)
     }
 
     "return error if can't authenticate" in new AuthenticationFailureContext {
 
       hooks.loadOutcome("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(authLoadForReadResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(authLoadForReadResult.toEither.left.get.statusCode,
           authLoadForReadResult.toEither.left.get.message)
     }
 
@@ -151,14 +139,14 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
     "return error if can't resolve identity" in new IdentificationFailureContext {
 
       hooks.getScore("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
           getOrgAndOptionsResult.toEither.left.get.message)
     }
 
     "return error if can't authenticate" in new AuthenticationFailureContext {
 
       hooks.getScore("test_session_id")(mock[RequestHeader]) must
-        returnStatusMessage(authLoadForReadResult.toEither.left.get.statusCode,
+        beErrorCodeMessage(authLoadForReadResult.toEither.left.get.statusCode,
           authLoadForReadResult.toEither.left.get.message)
     }
 
@@ -181,14 +169,14 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
           val futureResult = hooks.save("test_session_id")(mock[RequestHeader])
 
           futureResult must
-            returnStatusMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
+            beErrorCodeMessage(getOrgAndOptionsResult.toEither.left.get.statusCode,
               getOrgAndOptionsResult.toEither.left.get.message).await
         }
 
         "return error if can't authenticate" in new AuthenticationFailureContext {
 
           hooks.save("test_session_id")(mock[RequestHeader]) must
-            returnStatusMessage(authLoadForReadResult.toEither.left.get.statusCode,
+            beErrorCodeMessage(authLoadForReadResult.toEither.left.get.statusCode,
               authLoadForReadResult.toEither.left.get.message).await
         }
 
@@ -200,7 +188,7 @@ class SessionHooksTest extends V2PlayerIntegrationSpec {
               s.value match {
                 case Right(SaveSession(item, session, secure, isComplete)) =>
                   result(true, "result matches the SaveSession", "result doesnt match SaveSession", s)
-                case Left(_) => result(false, " ", " result dosent match SaveSession ", s)
+                case Left(_) => result(false, " ", " result doesnt match SaveSession ", s)
               }
             }
           }.await

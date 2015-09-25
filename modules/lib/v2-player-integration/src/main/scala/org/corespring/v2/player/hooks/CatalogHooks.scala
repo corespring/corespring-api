@@ -19,7 +19,6 @@ import scalaz._
 
 trait CatalogAssets {
   def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult
-  def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult
 }
 
 class CatalogHooks(
@@ -58,10 +57,6 @@ class CatalogHooks(
       case Success(item) => None
       case Failure(e) => Some((UNAUTHORIZED, e.message))
     }
-  }
-
-  override def loadSupportingMaterialFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {
-    catalogAssets.loadSupportingMaterialFile(id, path)(request)
   }
 
   override def loadFile(id: String, path: String)(request: Request[AnyContent]): SimpleResult = {

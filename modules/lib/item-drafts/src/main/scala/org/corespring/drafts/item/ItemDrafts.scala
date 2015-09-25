@@ -76,7 +76,7 @@ class ItemDrafts(
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
-  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId).toSeq
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId)
 
   def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
     if (draftService.owns(user, draftId)) {

@@ -2,14 +2,14 @@ package org.corespring.v2.player.item
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ ItemHelper, SecureSocialHelper }
+import org.corespring.it.helpers.{ItemHelper, SecureSocialHelper}
 import org.corespring.it.scopes.user
 import org.corespring.models.User
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.identifiers.WithRequestIdentitySequence
-import org.corespring.v2.errors.Errors.{ orgCantAccessCollection, propertyNotFoundInJson }
-import play.api.libs.json.{ JsValue, Json }
+import org.corespring.v2.errors.Errors.{orgCantAccessCollection, propertyNotFoundInJson}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Cookie
 import play.api.test.FakeRequest
 

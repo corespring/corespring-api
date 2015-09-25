@@ -1,5 +1,7 @@
 package org.corespring.platform.core.models.item.resource
 
+import java.io.InputStream
+
 import com.novus.salat.annotations.raw.Salat
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -107,7 +109,13 @@ object VirtualFile {
 /**
  * A File that has been stored in a file storage service.
  */
-case class StoredFile(override val name: String, override val contentType: String, override val isMain: Boolean = false, var storageKey: String = "") extends BaseFile(name, contentType, isMain)
+case class StoredFile(
+  override val name: String,
+  override val contentType: String,
+  override val isMain: Boolean = false,
+  var storageKey: String = "") extends BaseFile(name, contentType, isMain)
+
+case class StoredFileDataStream(name: String, stream: InputStream, contentLength: Long, contentType: String, metadata: Map[String, String])
 
 object StoredFile {
 

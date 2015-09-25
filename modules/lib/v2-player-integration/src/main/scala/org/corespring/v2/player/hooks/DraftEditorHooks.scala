@@ -31,7 +31,7 @@ class DraftEditorHooks(
   override implicit val ec: ContainerExecutionContext)
   extends ContainerDraftEditorHooks
   with LoadOrgAndOptions
-  with DraftHelper
+  with ContainerConverters
   with MakeDraftId {
 
   import play.api.http.Status._

@@ -1,8 +1,9 @@
 package org.corespring.web.common.views.helpers
 
-import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.models.item.{ ComponentType, FieldValue }
+
+import com.typesafe.config.{Config, ConfigFactory}
+import org.corespring.models.item.{ComponentType, FieldValue}
 import play.api.Play
 import play.api.Play.current
 import play.api.libs.json._

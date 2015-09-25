@@ -2,6 +2,7 @@ package org.corespring.web.common.controllers.deployment
 
 import com.ee.assets.Loader
 import com.ee.assets.deployment.Deployer
+import org.apache.commons.lang3.StringUtils
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.{Mode, Logger, Play}
@@ -15,6 +16,8 @@ object AssetsLoader {
   private val configuration = Play.current.configuration
   private def isProd: Boolean = play.api.Play.current.mode == Mode.Prod
 
+  val bucketNameLengthMax = 63
+
   lazy val loader: Loader = if(isProd) {
 
     lazy val branch: String = if (BuildInfo.branch.isEmpty || BuildInfo.branch == "?") "no-branch" else BuildInfo.branch
@@ -26,11 +29,18 @@ object AssetsLoader {
       BuildInfo.commitHashShort
     }
 
+
     val bucketName: String = {
       val publicAssets = "corespring-public-assets"
-      val env = configuration.getString("ENV_NAME").getOrElse("")
-      val bucketCompliantBranchName = branch.replaceAll("/", "-")
-      Seq(publicAssets, env, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
+      if (isProd) {
+        val envName = configuration.getString("ENV_NAME").getOrElse("")
+        val bucketCompliantBranchName = branch.replaceAll("feature", "").replaceAll("hotfix", "").replaceAll("/", "-")
+        val raw = Seq(publicAssets, envName, bucketCompliantBranchName).filterNot(_.isEmpty).mkString("-").toLowerCase
+        val trimmed = raw.take(bucketNameLengthMax)
+        StringUtils.substringBeforeLast(trimmed, "-")
+      } else {
+        "corespring-dev-tmp-assets"
+      }
     }
 
     lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)

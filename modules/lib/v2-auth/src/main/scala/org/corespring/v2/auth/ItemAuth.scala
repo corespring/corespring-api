@@ -28,6 +28,7 @@ object SessionAuth {
 
 trait SessionAuth[IDENTITY, CONTENT] {
   def loadForRead(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, (Session, CONTENT)]
+  def loadForSave(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, Session]
   def loadForWrite(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, (Session, CONTENT)]
   def loadWithIdentity(sessionId: String)(implicit identity: IDENTITY): Validation[V2Error, (Session, CONTENT)]
   def canCreate(itemId: String)(implicit identity: IDENTITY): Validation[V2Error, Boolean]
