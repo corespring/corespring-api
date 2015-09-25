@@ -15,7 +15,7 @@ object Build extends sbt.Build {
 
   object Dependencies {
     val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-69e5abf"
-    val elasticsearch = "org.corespring" %% "elasticsearch-play-ws" % "0.0.9-PLAY22"
+    val elasticsearch = "org.corespring" %% "elasticsearch-play-ws" % "0.0.16-PLAY22"
     val scallop = "org.rogach" %% "scallop" % "0.9.5"
     val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
     val jsoup = "org.jsoup" % "jsoup" % "1.8.1"

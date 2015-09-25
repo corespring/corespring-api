@@ -1,7 +1,7 @@
 package org.corespring.test.fakes
 
 import com.mongodb._
-import com.mongodb.casbah.{ Imports, MongoCollection => CasbahMongoCollection }
+import com.mongodb.casbah.{ MongoCollection => CasbahMongoCollection, MongoCursor, Imports }
 import org.specs2.mock.Mockito
 import org.specs2.mock.mockito.ArgumentCapture
 
@@ -14,8 +14,30 @@ object Fakes extends Mockito {
 
     type A2DBO = Any => DBObject
 
-    def findOneResult: DBObject = null
-    def findAndModifyResult: DBObject = null
+    lazy val findOneResult: DBObject = null
+    lazy val findAndModifyResult: DBObject = null
+
+    lazy val findResultSeq: Seq[DBObject] = Seq.empty
+
+    lazy val removeResult: WriteResult = {
+      val m = mock[WriteResult]
+      m.getN returns 1
+      val result = mock[CommandResult].ok returns true
+      m.getLastError(any[WriteConcern]) returns result
+      m.getLastError() returns result
+      m
+    }
+
+    lazy val findResult: MongoCursor = {
+      val m = mock[MongoCursor]
+      m.limit(any[Int]) returns m
+      m.skip(any[Int]) returns m
+      m.map(any[DBObject => Any]).answers((a: Any) => {
+        val fn = a.asInstanceOf[DBObject => Any]
+        findResultSeq.toIterator.map(fn)
+      })
+      m
+    }
 
     def updateResult: WriteResult = mockWriteResultWithN(1)
 
@@ -23,6 +45,31 @@ object Fakes extends Mockito {
       val m = mock[WriteResult]
       m.getN returns n
       m
+    }
+
+    def captureRemoveQueryOnly: ArgumentCapture[DBObject] = {
+      val q = capture[DBObject]
+      there was one(mockCollection).remove(q.capture, any[WriteConcern])(any[A2DBO], any[DBEncoder])
+      q
+    }
+
+    def captureFind: (ArgumentCapture[DBObject], ArgumentCapture[DBObject]) = {
+      val q = capture[DBObject]
+      val f = capture[DBObject]
+      there was one(mockCollection).find(q.capture, f.capture)(any[A2DBO], any[A2DBO])
+      (q, f)
+    }
+
+    def captureFindQueryOnly: ArgumentCapture[DBObject] = {
+      val q = capture[DBObject]
+      there was one(mockCollection).find(q.capture)(any[Any => DBObject])
+      q
+    }
+
+    def captureFindOneQueryOnly: ArgumentCapture[DBObject] = {
+      val q = capture[DBObject]
+      there was one(mockCollection).findOne(q.capture)(any[Any => DBObject])
+      q
     }
 
     def captureFindOne: (ArgumentCapture[DBObject], ArgumentCapture[DBObject]) = {
@@ -76,6 +123,11 @@ object Fakes extends Mockito {
 
       m.customEncoderFactory returns None
 
+      m.find(any[Any])(any[A2DBO]) returns findResult
+      m.find(any[Any], any[Any])(any[A2DBO], any[A2DBO]) returns findResult
+
+      m.remove(any[Any], any[WriteConcern])(any[A2DBO], any[DBEncoder]) returns removeResult
+
       m.update(
         any[Any],
         any[Any],
@@ -83,6 +135,8 @@ object Fakes extends Mockito {
         any[Boolean],
         any[WriteConcern])(
           any[A2DBO], any[A2DBO], any[DBEncoder]) returns updateResult
+
+      m.findOne(any[Any])(any[A2DBO]) returns nullToOption[DBObject](findOneResult)
 
       m.findOne(
         any[Any],

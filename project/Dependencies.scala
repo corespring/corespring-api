@@ -5,7 +5,7 @@ object Dependencies {
   val playVersion = "2.2.1"
 
   //V2 Player
-  val containerVersion = "0.47.0-SNAPSHOT-remove-synchronous-calls"
+  val containerVersion = "0.48.0-SNAPSHOT"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
