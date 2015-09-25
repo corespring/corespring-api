@@ -7,18 +7,20 @@ import org.corespring.container.client.integration.{ ContainerExecutionContext, 
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
 import org.corespring.drafts.item.ItemDrafts
+import org.corespring.drafts.item.models.DraftId
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services._
-import org.corespring.services.item.ItemService
+import org.corespring.services.item.{ SupportingMaterialsService, ItemService }
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.assets.{ PlayerAssetHelper, CatalogAssetHelper }
 import org.corespring.v2.player.hooks._
 import org.corespring.container.client
+import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService, ItemSupportingMaterialsService }
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.Mode.Mode
 import play.api.libs.json.JsObject
@@ -63,12 +65,26 @@ trait V2PlayerModule extends DefaultIntegration {
 
   def sessionServices: SessionServices
 
+  def v2PlayerExecutionContext: V2PlayerExecutionContext
+
   lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
   lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
 
   def componentLoader: ComponentLoader
 
   override def components: Seq[Component] = componentLoader.all
+
+  def itemSupportingMaterialsService: ItemSupportingMaterialsService
+
+  def draftSupportingMaterialsService: DraftSupportingMaterialsService
+
+  override lazy val itemDraftSupportingMaterialHooks: client.hooks.ItemDraftSupportingMaterialHooks = {
+    wire[ItemDraftSupportingMaterialHooks]
+  }
+
+  override lazy val itemSupportingMaterialHooks: client.hooks.ItemSupportingMaterialHooks = {
+    wire[ItemSupportingMaterialHooks]
+  }
 
   override lazy val versionInfo: JsObject = VersionInfo(configuration)
 
@@ -92,8 +108,5 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val dataQueryHooks: client.hooks.DataQueryHooks = wire[DataQueryHooks]
 
   override lazy val componentSets: client.controllers.ComponentSets = wire[CompressedComponentSets]
-
-  override lazy val itemDraftSupportingMaterialHooks: client.hooks.SupportingMaterialHooks = wire[ItemDraftSupportingMaterialHooks]
-  override lazy val itemSupportingMaterialHooks: client.hooks.SupportingMaterialHooks = wire[ItemSupportingMaterialHooks]
 
 }
