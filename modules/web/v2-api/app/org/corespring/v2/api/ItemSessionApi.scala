@@ -61,10 +61,8 @@ trait ItemSessionApi extends V2Api {
    */
   def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
     Future {
-      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = Json.obj(
-        "_id" -> Json.obj(
-          "$oid" -> JsString(ObjectId.get.toString)),
-        "itemId" -> JsString(vid.toString))
+      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = 
+        Json.obj("itemId" -> JsString(vid.toString))
 
       sessionCreatedForItem(itemId)
 
