@@ -75,6 +75,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       Json.obj(),
       "",
       None)
+
     "can create" should {
       "fail" in new authScope() {
         auth.canCreate("") must_== Failure(defaultItemFailure)
@@ -86,11 +87,11 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
     }
 
     def run(fn: (SessionAuthWired) => Validation[V2Error, (JsValue, PlayerDefinition)], serviceName: String) = {
-      "fail if theres no session" in new authScope() {
+      "fail if there is no session" in new authScope() {
         fn(auth) must_== Failure(cantLoadSession(""))
       }
 
-      "fail if theres a session with no item id" in new authScope(session = Some(Json.obj())) {
+      "fail if there is a session with no item id" in new authScope(session = Some(Json.obj())) {
         fn(auth) must_== Failure(noItemIdInSession(""))
       }
 
@@ -117,7 +118,42 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
     }
 
+    def runSave(fn: (SessionAuthWired) => Validation[V2Error, JsValue], serviceName: String) = {
+      "fail if there is no session" in new authScope() {
+        fn(auth) must_== Failure(cantLoadSession(""))
+      }
+
+      "find the definition in the session" in new authScope(session = Some(
+        Json.obj("item" -> Json.obj(
+          "xhtml" -> "<h1>Hello World</h1>",
+          "components" -> Json.obj())))) {
+
+        val Success(rSession) = fn(auth)
+        (rSession \ "item").asOpt[JsObject] must_== None
+      }
+
+      "succeed" in new authScope(
+        playerDefinition = Some(getEmptyPlayerDefinition),
+        session = Some(Json.obj("itemId" -> "itemId"))) {
+        val Success(rSession) = fn(auth)
+        rSession.as[JsObject] - "service" must_== session.get
+        (rSession \ "service").as[String] must_== serviceName
+      }
+    }
+
     def opts(m: AuthMode, clientId: Option[String] = None) = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, m, clientId)
+
+    "load for save - user session - uses preview service" should {
+      runSave(b => b.loadForSave("")(opts(AuthMode.UserSession)), "preview")
+    }
+
+    "load for save - access token - uses main service" should {
+      runSave(b => b.loadForSave("")(opts(AuthMode.AccessToken)), "main")
+    }
+
+    "load for save - access token - uses main service" should {
+      runSave(b => b.loadForSave("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
+    }
 
     "load for write - user session - uses preview service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.UserSession)), "preview")
