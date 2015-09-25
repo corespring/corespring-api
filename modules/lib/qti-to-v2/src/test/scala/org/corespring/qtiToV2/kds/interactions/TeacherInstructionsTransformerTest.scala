@@ -7,7 +7,7 @@ class TeacherInstructionsTransformerTest extends Specification {
 
   "TeacherInstructionsTransformer" should {
 
-    "version 1" should {
+    "<partBlock label=\"teacherInstructions\"/>" should {
       val teacherInstructions = "Don't let the kids run wild."
       def qti(teacherInstructions: String) =
         <assessmentItem>
@@ -39,7 +39,7 @@ class TeacherInstructionsTransformerTest extends Specification {
       }
     }
 
-    "version 2" should {
+    "<teacherInstructions/>" should {
 
       val teacherInstructions = "<![CDATA[<strong>TEACHER READS:</strong><br /><br />Read and complete the task that follows.]]>"
       val xml = <assessmentItem>
