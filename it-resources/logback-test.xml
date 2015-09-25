@@ -8,6 +8,8 @@
             <pattern>%coloredLevel %logger{55} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
+
+
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>

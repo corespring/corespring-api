@@ -1,6 +1,7 @@
 package org.corespring.services.salat
 
 import com.mongodb.DBObject
+import com.mongodb.casbah.WriteConcern
 import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
@@ -60,4 +61,8 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
   override def count(query: DBObject): Long = dao.count(query)
 
   override def find(dbo: DBObject): Stream[Subject] = dao.find(dbo).toStream
+
+  override def insert(s: Subject): Option[ObjectId] = dao.insert(s)
+
+  override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
 }

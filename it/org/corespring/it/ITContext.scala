@@ -75,7 +75,10 @@ object ITContext {
 
     if (s3.doesBucketExist(s3Bucket)) {
       logger.info(s"rm objects from bucket $s3Bucket")
-      rmListing(s3.listObjects(bucket))
+      val initialListing = s3.listObjects(s3Bucket)
+      if (initialListing.getObjectSummaries.size > 0) {
+        rmListing(initialListing)
+      }
     } else {
       logger.info(s"create bucket $s3Bucket")
       s3.createBucket(s3Bucket)

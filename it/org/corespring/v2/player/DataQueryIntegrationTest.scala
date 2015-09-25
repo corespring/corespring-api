@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.corespring.it.IntegrationSpecification
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ FieldValue, ListKeyValue, StringKeyValue }
 import org.specs2.mutable.After
 import play.api.libs.json.{ JsArray, JsObject, JsValue }
@@ -14,6 +15,10 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
   trait listScope extends After {
 
     lazy val fieldValueService = bootstrap.Main.fieldValueService
+    lazy val subjectService = bootstrap.Main.subjectService
+
+    lazy val standardService = bootstrap.Main.standardService
+
     val dummy = StringKeyValue("dummy", "dummy")
     val dummyList = ListKeyValue("dummy", Seq.empty)
     val fieldValue = FieldValue(
@@ -29,6 +34,9 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
       bloomsTaxonomy = Seq(dummy))
     val id = fieldValueService.insert(fieldValue).toOption
 
+    val subjectId = subjectService.insert(Subject("Subject", Some("Category")))
+    val standardId = standardService.insert(Standard(Some("DOT.NOTATION")))
+
     def listResult(topic: String): Future[SimpleResult] = {
       import org.corespring.container.client.controllers.routes.DataQuery
       val call = DataQuery.list(topic)
@@ -37,7 +45,11 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
       }
     }
 
-    override def after: Any = fieldValueService.delete(id.get)
+    override def after: Any = {
+      fieldValueService.delete(id.get)
+      standardService.delete(standardId.get)
+      subjectService.delete(subjectId.get)
+    }
   }
 
   "data query" should {
@@ -58,6 +70,9 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
           "subjects.related",
           "standards")) { (topic: String) =>
           val r = listResult(topic)
+
+          println(s"topic: $topic")
+          println(contentAsString(r))
           contentAsJson(r) match {
             case obj: JsObject => ko((obj \ "error").as[String])
             case arr: JsArray => arr.as[Seq[JsValue]].nonEmpty === true

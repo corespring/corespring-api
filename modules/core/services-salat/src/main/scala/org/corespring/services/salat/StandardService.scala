@@ -109,4 +109,9 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
   override def count(query: DBObject): Long = dao.count(query)
 
   override def find(dbo: DBObject): Stream[Standard] = dao.find(dbo).toStream
+
+  override def insert(standard: Standard): Option[ObjectId] = dao.insert(standard)
+
+  override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
+
 }

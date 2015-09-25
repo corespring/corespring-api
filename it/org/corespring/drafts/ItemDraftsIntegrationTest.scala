@@ -10,24 +10,29 @@ import org.corespring.it.scopes.{ ImageUploader, ImageUtils, userAndItem }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.specs2.mock.Mockito
-import org.specs2.specification.BeforeExample
+import org.specs2.mutable.After
 
 import scalaz.{ Failure, Success }
 
-class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExample with Mockito {
+class ItemDraftsIntegrationTest extends IntegrationSpecification {
 
   lazy val itemService = bootstrap.Main.itemService
   lazy val draftService = bootstrap.Main.draftService
 
   def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
-  trait orgAndUserAndItem extends userAndItem {
+  trait orgAndUserAndItem extends userAndItem with After {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
 
     lazy val item = itemService.findOneById(itemId).get
 
     lazy val drafts = bootstrap.Main.itemDrafts
+
+    override def after: Any = {
+      super.after
+      println(s"[userAndItem] dropping the collection")
+      draftService.collection.dropCollection()
+    }
   }
 
   def updateTitle(item: Item, title: String): Item = {
@@ -236,5 +241,4 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification with BeforeExam
     }
   }
 
-  override protected def before: Any = {}
 }

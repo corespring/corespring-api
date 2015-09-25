@@ -6,6 +6,10 @@ import org.corespring.models.{ Standard }
 
 trait StandardService extends QueryService[Standard] {
 
+  def delete(id: ObjectId): Boolean
+
+  def insert(standard: Standard): Option[ObjectId]
+
   def count(query: DBObject): Long
 
   def findOneById(id: ObjectId): Option[Standard]
