@@ -10,7 +10,7 @@ import org.corespring.it.scopes.{ ImageUploader, ImageUtils, userAndItem }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.specs2.mutable.After
+import org.specs2.mutable.BeforeAfter
 
 import scalaz.{ Failure, Success }
 
@@ -21,16 +21,21 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
 
   def bump(vid: VersionedId[ObjectId], count: Int = 1) = vid.copy(version = vid.version.map(_ + count))
 
-  trait orgAndUserAndItem extends userAndItem with After {
+  trait orgAndUserAndItem extends userAndItem with BeforeAfter {
     lazy val orgAndUser: OrgAndUser = OrgAndUser(SimpleOrg(user.org.orgId, "?"), Some(SimpleUser.fromUser(user)))
 
     lazy val item = itemService.findOneById(itemId).get
 
     lazy val drafts = bootstrap.Main.itemDrafts
 
+    override def before: Any = {
+      super.before
+      println(s"[userAndItem] dropping the collection")
+      draftService.collection.dropCollection()
+    }
+
     override def after: Any = {
       super.after
-      println(s"[userAndItem] dropping the collection")
       draftService.collection.dropCollection()
     }
   }

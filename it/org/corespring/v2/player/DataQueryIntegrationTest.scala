@@ -54,7 +54,7 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
 
   "data query" should {
 
-    "work" in new listScope {
+    "list should return a list for every topic" in new listScope {
       forall(
         Seq(
           "licenseTypes",
@@ -70,9 +70,6 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
           "subjects.related",
           "standards")) { (topic: String) =>
           val r = listResult(topic)
-
-          println(s"topic: $topic")
-          println(contentAsString(r))
           contentAsJson(r) match {
             case obj: JsObject => ko((obj \ "error").as[String])
             case arr: JsArray => arr.as[Seq[JsValue]].nonEmpty === true

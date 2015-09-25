@@ -20,10 +20,12 @@ private[helpers] trait CreateDelete[A <: AnyRef] {
     id(thing)
   }
 
+  //TODO: @deprecated("Instead use the entity service.create directly", "")
   def create(things: A*)(implicit m: Manifest[A]): Seq[ObjectId] = {
     things.map(create)
   }
 
+  //TODO: @deprecated("Instead use the entity service.delete directly", "")
   def delete(ids: Seq[ObjectId]) = {
     logger.info(s"deleting standards")
     val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))

@@ -2,9 +2,9 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ StandardHelper, CollectionHelper, ItemHelper }
+import org.corespring.it.helpers.{ SubjectHelper, StandardHelper, CollectionHelper, ItemHelper }
 import org.corespring.it.scopes.orgWithAccessToken
-import org.corespring.models.Standard
+import org.corespring.models.{ Subject, Standard }
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import org.specs2.matcher.MatchResult
@@ -26,6 +26,10 @@ class ItemApiGetIntegrationTest extends IntegrationSpecification {
 
         val collectionId = CollectionHelper.create(orgId)
 
+        val artHistory = Subject("AP Art History", id = ObjectId.get)
+        val englishLit = Subject("AP English Literature", id = ObjectId.get)
+        val subjectIds = SubjectHelper.create(artHistory, englishLit)
+
         val qtiXmlTemplate = "<assessmentItem><itemBody>::version::</itemBody></assessmentItem>"
         val qti = VirtualFile("qti.xml", "text/xml", true, qtiXmlTemplate)
         val data: Resource = Resource(name = "data", files = Seq(qti))
@@ -41,9 +45,8 @@ class ItemApiGetIntegrationTest extends IntegrationSpecification {
           taskInfo = Some(new TaskInfo(
             title = Some("Title"),
             subjects = Some(new Subjects(
-              primary = Some(new ObjectId("4ffb535f6bb41e469c0bf2aa")), //AP Art History
-              related = Seq(new ObjectId("4ffb535f6bb41e469c0bf2ae")) //AP English Literature
-              )),
+              primary = Some(artHistory.id),
+              related = Seq(englishLit.id))),
             gradeLevel = Seq("GradeLevel1", "GradeLevel2"),
             itemType = Some("ItemType"))),
           standards = Seq("RL.1.5", "RI.5.8"),
@@ -58,6 +61,7 @@ class ItemApiGetIntegrationTest extends IntegrationSpecification {
           super.after
           CollectionHelper.delete(collectionId)
           ItemHelper.delete(itemId)
+          SubjectHelper.delete(subjectIds)
         }
       }
 
