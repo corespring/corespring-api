@@ -10,11 +10,12 @@ import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.ap.v1.V1ApiModule
-import org.corespring.assets.CorespringS3ServiceExtended
+import org.corespring.assets.{ ItemAssetKeys, AssetKeys, CorespringS3ServiceExtended }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
-import org.corespring.drafts.item.models.{ OrgAndUser, SimpleOrg, SimpleUser }
+import org.corespring.drafts.item.DraftAssetKeys
+import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.encryption.EncryptionModule
 import org.corespring.itemSearch.{ ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
@@ -22,6 +23,7 @@ import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucke
 import org.corespring.models.item.{ ComponentType, FieldValue }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
+import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.salat.ServicesContext
@@ -32,7 +34,8 @@ import org.corespring.v2.auth.V2AuthModule
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.hooks.StandardsTree
-import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerModule }
+import org.corespring.v2.player.services.item.{ MongoDraftSupportingMaterialsService, MongoItemSupportingMaterialsService, ItemSupportingMaterialsService, DraftSupportingMaterialsService }
+import org.corespring.v2.player.{ V2PlayerExecutionContext, AllItemVersionTransformer, TransformerItemService, V2PlayerModule }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.user.SecureSocial
 import play.api.Mode.{ Mode => PlayMode }
@@ -56,7 +59,8 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.Implicits.global)
+  override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
+  override lazy val v2PlayerExecutionContext: V2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
@@ -219,4 +223,19 @@ object Main
 
   override def ec: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 
+  lazy val itemAssetKeys = ItemAssetKeys
+  lazy val draftAssetKeys = DraftAssetKeys
+
+  lazy val itemSupportingMaterialAssets: SupportingMaterialsAssets[VersionedId[ObjectId]] = wire[SupportingMaterialsAssets[VersionedId[ObjectId]]]
+  lazy val draftSupportingMaterialAssets: SupportingMaterialsAssets[DraftId] = wire[SupportingMaterialsAssets[DraftId]]
+
+  override lazy val itemSupportingMaterialsService: ItemSupportingMaterialsService = new MongoItemSupportingMaterialsService(
+    db(CollectionNames.item),
+    bucket,
+    itemSupportingMaterialAssets)(context)
+
+  override lazy val draftSupportingMaterialsService: DraftSupportingMaterialsService = new MongoDraftSupportingMaterialsService(
+    db("drafts.items"),
+    bucket,
+    draftSupportingMaterialAssets)(context)
 }

@@ -8,4 +8,5 @@ class SalatContext(classLoader: ClassLoader)
   override val typeHintStrategy = StringTypeHintStrategy(when = TypeHintFrequency.WhenNecessary, typeHint = "_t")
   registerGlobalKeyOverride(remapThis = "id", toThisInstead = "_id")
   registerClassLoader(classLoader)
+  com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers()
 }

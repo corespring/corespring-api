@@ -3,14 +3,17 @@ package org.corespring.platform.core.services.item
 import java.io.ByteArrayInputStream
 
 import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.{DeleteObjectsRequest, ObjectMetadata, S3Object}
+import com.amazonaws.services.s3.model.{ DeleteObjectsRequest, ObjectMetadata, S3Object }
 import grizzled.slf4j.Logger
 import org.corespring.assets.AssetKeys
-import org.corespring.models.item.resource.{Resource, StoredFile}
+import org.corespring.models.appConfig.Bucket
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
-class SupportingMaterialsAssets[A](s3: AmazonS3, bucket: String, assetKeys: AssetKeys[A]) {
+class SupportingMaterialsAssets[A](s3: AmazonS3, bucketHolder: Bucket, assetKeys: AssetKeys[A]) {
+
+  val bucket = bucketHolder.bucket
 
   private lazy val logger = Logger(classOf[SupportingMaterialsAssets[A]])
 

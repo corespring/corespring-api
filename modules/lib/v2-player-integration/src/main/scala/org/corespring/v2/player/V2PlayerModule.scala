@@ -31,7 +31,7 @@ import scalaz.Validation
 
 case class AllComponents(components: Seq[Component])
 
-class V2PlayerExecutionContext(underlying: ExecutionContext) extends ExecutionContext {
+case class V2PlayerExecutionContext(underlying: ExecutionContext) extends ExecutionContext {
   override def execute(runnable: Runnable): Unit = underlying.execute(runnable)
 
   override def reportFailure(t: Throwable): Unit = underlying.reportFailure(t)

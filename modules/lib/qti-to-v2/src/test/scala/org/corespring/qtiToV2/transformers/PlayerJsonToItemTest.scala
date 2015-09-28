@@ -3,7 +3,7 @@ package org.corespring.qtiToV2.transformers
 import org.bson.types.ObjectId
 import org.corespring.models.item.{ AdditionalCopyright, Copyright, Item }
 import org.specs2.mutable.Specification
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{ JsString, Json }
 
 class PlayerJsonToItemTest extends Specification {
 
@@ -16,9 +16,7 @@ class PlayerJsonToItemTest extends Specification {
         "xhtml" -> JsString("joseph"),
         "components" -> Json.obj(
           "1" -> Json.obj(
-            "componentType" -> "test-component"
-          )
-        ),
+            "componentType" -> "test-component")),
         "profile" -> Json.obj(
           "standards" -> Json.arr(
             Json.obj("dotNotation" -> "ST1"),
@@ -61,19 +59,15 @@ class PlayerJsonToItemTest extends Specification {
           "otherAlignments" -> Json.obj(
             "bloomsTaxonomy" -> "BT",
             "keySkills" -> Json.arr("KS1", "KS2"),
-            "depthOfKnowledge" -> "DOK")
-        )
-      )
+            "depthOfKnowledge" -> "DOK")))
 
-      val item = Item()
+      val item = Item(collectionId = ObjectId.get.toString)
       val update = PlayerJsonToItem.wholeItem(item, json)
 
       update.playerDefinition.get.xhtml must_== "joseph"
       update.playerDefinition.get.components must_== Json.obj(
         "1" -> Json.obj(
-          "componentType" -> "test-component"
-        )
-      )
+          "componentType" -> "test-component"))
 
       update.standards === Seq("ST1", "ST2")
 

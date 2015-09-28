@@ -2,22 +2,22 @@ package org.corespring.drafts.item.services
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.commons.MongoDBObject
+import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models._
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.PlaySingleton
+import org.corespring.salat.config.SalatContext
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import org.corespring.platform.core.models.item.Item
 
 class ItemDraftServiceTest extends Specification {
 
-  PlaySingleton.start()
-
   private trait scope extends Scope with withMockCollection {
 
+    val collectionId = ObjectId.get.toString
     val orgId = ObjectId.get
     val itemId = ObjectId.get
     val draftId = DraftId(itemId, "name", orgId)
@@ -41,13 +41,19 @@ class ItemDraftServiceTest extends Specification {
 
     val itemDraft = ItemDraft(
       draftId,
-      Item(),
+      Item(collectionId = collectionId),
       OrgAndUser(
         SimpleOrg(orgId, "org-name"),
         None))
 
-    val service = new ItemDraftService {
-      override def collection: Imports.MongoCollection = mockCollection
+    lazy val service = new ItemDraftService {
+      override lazy val collection: Imports.MongoCollection = mockCollection
+
+      override implicit val context: Context = {
+        val c = new SalatContext(this.getClass.getClassLoader)
+        c
+      }
+
     }
   }
 
@@ -84,11 +90,14 @@ class ItemDraftServiceTest extends Specification {
     "call collection.findOne" in new scope {
       service.load(draftId)
       val q = captureFindOneQueryOnly
-      q.value === ItemDraftDbUtils.idToDbo(draftId)
+      q.value === service.idToDbo(draftId)
     }
 
     "return a draft" in new scope {
-      override lazy val findOneResult = ItemDraftDbUtils.toDbo(itemDraft)
+      val dbo = service.toDbo(itemDraft)
+      println(s"in scope dbo: $dbo")
+      override val findOneResult = dbo //service.toDbo(itemDraft)
+      println(s"in scope findOnResult: $findOneResult")
       service.load(draftId) === Some(itemDraft)
     }
   }
@@ -123,7 +132,7 @@ class ItemDraftServiceTest extends Specification {
     "call collection.remove" in new scope {
       service.remove(draftId)
       val r = captureRemoveQueryOnly
-      r.value === ItemDraftDbUtils.idToDbo(draftId)
+      r.value === service.idToDbo(draftId)
     }
   }
 
@@ -143,7 +152,7 @@ class ItemDraftServiceTest extends Specification {
     }
 
     "returns draft" in new scope {
-      override lazy val findResultSeq = Seq(ItemDraftDbUtils.toDbo(itemDraft))
+      override lazy val findResultSeq = Seq(service.toDbo(itemDraft))
       val result = service.listByOrgAndVid(orgId, VersionedId(itemId))
       result.toSeq.headOption.map(_.id) === Some(draftId)
     }

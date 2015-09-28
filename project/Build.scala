@@ -133,7 +133,7 @@ object Build extends sbt.Build {
   lazy val itemDrafts = builders.lib("item-drafts")
     .settings(
       libraryDependencies ++= Seq(containerClientWeb, specs2 % "test", salatVersioningDao, macWireMacro))
-    .dependsOn(coreSalatConfig, coreModels, coreServices, drafts, testLib)
+    .dependsOn(coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
   /** Qti -> v2 transformers */
