@@ -5,13 +5,13 @@ import java.io.File
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion
-import com.amazonaws.services.s3.model.{ ObjectListing, DeleteObjectsRequest }
-import com.mongodb.casbah.{ MongoClientURI, MongoClient }
+import com.amazonaws.services.s3.model.{ DeleteObjectsRequest, ObjectListing }
+import com.mongodb.casbah.{ MongoClient, MongoClientURI }
 import grizzled.slf4j.Logger
-import play.api.{ Configuration, Play }
 import play.api.test.FakeApplication
+import play.api.{ Configuration, Play }
 
-import scala.util.{ Try, Random }
+import scala.util.Random
 
 object ITContext {
 
@@ -112,9 +112,7 @@ private object PlaySingleton {
     val config = Map(
       "mongodb.default.uri" -> mongoUri,
       "AMAZON_ASSETS_BUCKET" -> bucket,
-      "logger" -> Map(
-        "play" -> "OFF",
-        "application" -> "OFF"),
+      "logger" -> Map("resource" -> "/logback.xml"),
       "api.log-requests" -> false)
 
     val app: FakeApplication = FakeApplication(

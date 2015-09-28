@@ -2,6 +2,7 @@ package org.corespring.assets
 
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.specs2.mutable.Specification
 
 class AssetKeysTest extends Specification {
 

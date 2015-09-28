@@ -5,7 +5,7 @@ import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.SecureSocialHelper
-import org.corespring.it.scopes.{SessionRequestBuilder, userAndItem}
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.services.item.ItemService
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.PlaySpecification
@@ -53,6 +53,7 @@ class ItemDraftsApiIntegrationTest extends IntegrationSpecification with PlaySpe
         val call = routes.listByItem(itemId.toString)
         val request = makeRequest(call)
         route(request)(writeable).map { r =>
+          logger.debug(s"result=${contentAsString(r)}")
           (contentAsJson(r) \\ "itemId").map(_.as[String]) === Seq(itemId.id.toString)
           status(r) === OK
         }.getOrElse(ko)

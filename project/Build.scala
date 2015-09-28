@@ -49,7 +49,10 @@ object Build extends sbt.Build {
   lazy val coreJson = builders.lib("json", "core").dependsOn(coreModels)
     .settings(libraryDependencies ++= Seq(specs2 % "test"))
 
-  lazy val coreServices = builders.lib("services", "core").dependsOn(coreModels)
+  lazy val coreServices = builders.lib("services", "core")
+    .settings(
+      libraryDependencies ++= Seq(specs2 % "test"))
+    .dependsOn(coreModels)
 
   lazy val coreUtils = builders.lib("utils", "core")
 

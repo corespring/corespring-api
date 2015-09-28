@@ -31,7 +31,8 @@ class ItemDrafts(
   assets: ItemDraftAssets,
   implicit val context: com.novus.salat.Context)
 
-  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate]
+  with ItemDraftDbUtils {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
@@ -39,11 +40,6 @@ class ItemDrafts(
 
   protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
   protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
-
-  //TODO: Move out?
-  val utils = new ItemDraftDbUtils {
-    override implicit def context: Context = ItemDrafts.this.context
-  }
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
@@ -76,7 +72,10 @@ class ItemDrafts(
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
-  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId)
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
+    logger.trace(s"function=listByItemAndOrgId, itemId=$itemId, orgId=$orgId")
+    draftService.listByItemAndOrgId(itemId, orgId)
+  }
 
   def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
     if (draftService.owns(user, draftId)) {
@@ -237,8 +236,7 @@ class ItemDrafts(
   }
 
   def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
-
-    val query = utils.idToDbo(draft.id)
+    val query = idToDbo(draft.id)
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))
     val result = draftService.collection.update(query, update, false, false)

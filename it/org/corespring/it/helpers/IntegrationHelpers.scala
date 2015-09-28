@@ -14,8 +14,6 @@ import scala.concurrent.Future
 
 trait IntegrationHelpers extends PlaySpecification {
 
-  protected val logger = Logger("it.helpers")
-
   def makeRequest(call: Call, c: Seq[Cookie]): Request[AnyContentAsEmpty.type] = {
     val req = FakeRequest(call.method, call.url)
     req.withCookies(c: _*)
@@ -28,6 +26,8 @@ trait IntegrationHelpers extends PlaySpecification {
   }
 
   def getResultFor[T](request: Request[T])(implicit writable: Writeable[T]): Option[Future[SimpleResult]] = {
+
+    val logger = Logger(classOf[IntegrationHelpers])
 
     logger.debug(s"[getResultFor] ${request.method}, ${request.path}")
 

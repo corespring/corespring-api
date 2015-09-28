@@ -10,8 +10,6 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class ExternalModelLaunchApiIntegrationTest extends IntegrationSpecification {
 
-  override protected def logger: Logger = Logger(this.getClass)
-
   trait launchExternalAndLoadPlayer extends orgWithAccessToken with WithV2SessionHelper {
 
     lazy val launchCall = org.corespring.v2.api.routes.ExternalModelLaunchApi.buildExternalLaunchSession()

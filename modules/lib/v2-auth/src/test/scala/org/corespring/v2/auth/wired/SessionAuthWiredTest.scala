@@ -172,7 +172,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
 
       "succeed" in new authScope(
-        playerDefinition = Some(getEmptyPlayerDefinition),
+        playerDefinition = getEmptyPlayerDefinition,
         session = Some(Json.obj("itemId" -> "itemId"))) {
         val Success(rSession) = fn(auth)
         rSession.as[JsObject] - "service" must_== session.get

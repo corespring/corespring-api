@@ -2,10 +2,11 @@ package org.corespring.drafts.item
 
 import com.mongodb.CommandResult
 import com.mongodb.casbah.Imports._
+import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, CommitService, ItemDraftService }
 import org.corespring.models.auth.Permission
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, StoredFile }
@@ -30,6 +31,13 @@ class ItemDraftsTest extends Specification with Mockito {
   val gwen = OrgAndUser(SimpleOrg(ObjectId.get, "gwen-org"), None)
   val item = Item(id = itemId, collectionId = collectionId.toString)
 
+  import scala.language.reflectiveCalls
+
+  val utils = new ItemDraftDbUtils {
+    override implicit def context: Context = new SalatContext(this.getClass.getClassLoader)
+    def convertToDbo(id: DraftId) = idToDbo(id)
+  }
+
   private def mockWriteResult(ok: Boolean = true, err: String = "mock mongo error"): WriteResult = {
     val m = mock[WriteResult]
     m.getLastError.returns {
@@ -50,7 +58,6 @@ class ItemDraftsTest extends Specification with Mockito {
         (obj, mock) =>
           val arr: Array[Any] = obj.asInstanceOf[Array[Any]]
           val createNewVersion = arr(1).asInstanceOf[Boolean]
-          println(s"createNewVersion: $createNewVersion")
           Success(if (createNewVersion) bump(itemId) else itemId)
       }
       m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
@@ -444,7 +451,7 @@ class ItemDraftsTest extends Specification with Mockito {
         val draft = mkDraft(ed, item)
         val file = StoredFile("test.png", "image/png", false)
         itemDrafts.addFileToChangeSet(draft, file)
-        val expectedQuery = itemDrafts.utils.idToDbo(draft.id)
+        val expectedQuery = utils.convertToDbo(draft.id)
         val (q, u) = captureUpdate
         q.value === expectedQuery
         val fileDbo = com.novus.salat.grater[StoredFile].asDBObject(file)

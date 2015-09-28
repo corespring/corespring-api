@@ -3,7 +3,7 @@ package org.corespring.v2.player
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes.AddSupportingMaterialImageAndItem
 import org.specs2.time.NoTimeConversions
-import play.api.mvc.{AnyContentAsEmpty, Codec}
+import play.api.mvc.{ Request, AnyContentAsEmpty, Codec }
 
 class LoadCatalogAssetIntegrationTest extends IntegrationSpecification with NoTimeConversions {
 
@@ -17,7 +17,7 @@ class LoadCatalogAssetIntegrationTest extends IntegrationSpecification with NoTi
       import org.corespring.container.client.controllers.resources.routes.Item
       val call = Item.getAssetFromSupportingMaterial(itemId.toString, materialName, fileName)
       val r = makeRequest(call, AnyContentAsEmpty)
-      val future = route(r)(writeableOf_AnyContentAsEmpty(Codec.utf_8))
+      val future = route(r.asInstanceOf[Request[AnyContentAsEmpty.type]])(writeableOf_AnyContentAsEmpty(Codec.utf_8))
       future.map {
         result =>
           status(result) must_== OK

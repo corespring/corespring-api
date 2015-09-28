@@ -15,8 +15,9 @@ import org.specs2.specification.Scope
 
 class ItemDraftServiceTest extends Specification {
 
-  private trait scope extends Scope with withMockCollection {
+  private trait scope extends Scope with withMockCollection with ItemDraftDbUtils {
 
+    override implicit def context: Context = new SalatContext(this.getClass.getClassLoader)
     val collectionId = ObjectId.get.toString
     val orgId = ObjectId.get
     val itemId = ObjectId.get
@@ -90,14 +91,12 @@ class ItemDraftServiceTest extends Specification {
     "call collection.findOne" in new scope {
       service.load(draftId)
       val q = captureFindOneQueryOnly
-      q.value === service.idToDbo(draftId)
+      q.value === idToDbo(draftId)
     }
 
     "return a draft" in new scope {
-      val dbo = service.toDbo(itemDraft)
-      println(s"in scope dbo: $dbo")
-      override val findOneResult = dbo //service.toDbo(itemDraft)
-      println(s"in scope findOnResult: $findOneResult")
+      val dbo = toDbo(itemDraft)
+      override lazy val findOneResult = dbo
       service.load(draftId) === Some(itemDraft)
     }
   }
@@ -132,7 +131,7 @@ class ItemDraftServiceTest extends Specification {
     "call collection.remove" in new scope {
       service.remove(draftId)
       val r = captureRemoveQueryOnly
-      r.value === service.idToDbo(draftId)
+      r.value === idToDbo(draftId)
     }
   }
 
@@ -152,7 +151,7 @@ class ItemDraftServiceTest extends Specification {
     }
 
     "returns draft" in new scope {
-      override lazy val findResultSeq = Seq(service.toDbo(itemDraft))
+      override lazy val findResultSeq = Seq(toDbo(itemDraft))
       val result = service.listByOrgAndVid(orgId, VersionedId(itemId))
       result.toSeq.headOption.map(_.id) === Some(draftId)
     }

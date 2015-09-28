@@ -23,6 +23,8 @@ import org.corespring.services.salat.bootstrap.CollectionNames
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.specification.BeforeAfter
 import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.libs.Files
+import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
@@ -402,28 +404,38 @@ package object scopes {
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-    def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent]
+    def requestBody: AnyContent = AnyContentAsEmpty
+    def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A]
   }
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       FakeRequest(call.method, s"${call.url}?access_token=$accessToken", FakeHeaders(), body)
     }
   }
 
   trait PlainRequestBuilder extends RequestBuilder {
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = FakeRequest(call.method, call.url)
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = FakeRequest(call.method, call.url, FakeHeaders(), body)
   }
 
   trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelper =>
 
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
-      FakeRequest(call.method, call.url).withCookies(cookies: _*)
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withBody(body)
+    }
+
+    def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withMultipartFormDataBody(form)
+    }
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withJsonBody(json)
+    }
+
+    def makeTextRequest(call: Call, text: String): Request[AnyContentAsText] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withTextBody(text)
     }
 
     def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType: String = "application/json"): Request[AnyContent] = {
@@ -435,11 +447,9 @@ package object scopes {
 
     import PlayerTokenInQueryStringIdentity.Keys
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl, FakeHeaders(), body)

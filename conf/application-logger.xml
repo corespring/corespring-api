@@ -4,7 +4,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
+            <pattern>app.. %d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
 
@@ -56,11 +56,6 @@
     <logger name="js.processing" level="TRACE"/>
     <logger name="session" level="TRACE"/>
     <logger name="org.corespring.api.tracking" level="INFO"/>
-<<<<<<< HEAD
-    -->
-    <!--
-=======
->>>>>>> develop
     <logger name="com.mongodb" level="TRACE"/>
     <logger name="org.corespring.platform.core.files" level="TRACE"/>
     <logger name="org.corespring.drafts" level="TRACE"/>
@@ -72,13 +67,7 @@
     <logger name="ItemApi" level="TRACE"/>
     <logger name="org.corespring.container.AssetUtils" level="TRACE" />
     -->
-<<<<<<< HEAD
-    <root level="WARN">
-=======
-    <logger name="org.corespring.platform.core.services.item" level="TRACE" />
-
     <root level="INFO">
->>>>>>> develop
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

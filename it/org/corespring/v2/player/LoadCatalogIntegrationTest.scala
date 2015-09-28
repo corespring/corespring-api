@@ -1,6 +1,5 @@
 package org.corespring.v2.player
 
-import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.{ IntegrationHelpers, SecureSocialHelper }
@@ -17,8 +16,6 @@ class LoadCatalogIntegrationTest
   with IntegrationHelpers {
 
   import org.corespring.container.client.controllers.apps.routes.Catalog
-
-  override protected val logger = Logger("it.load-catalog")
 
   "showing catalog" should {
 

@@ -14,7 +14,7 @@ object Fakes extends Mockito {
 
     type A2DBO = Any => DBObject
 
-    val findOneResult: DBObject = null
+    lazy val findOneResult: DBObject = null
     lazy val findAndModifyResult: DBObject = null
 
     lazy val findResultSeq: Seq[DBObject] = Seq.empty
@@ -120,7 +120,6 @@ object Fakes extends Mockito {
 
     lazy val mockCollection = {
 
-      println("--- init mock collection!!!!!!!")
       val m = mock[CasbahMongoCollection]
 
       m.customEncoderFactory returns None
@@ -139,7 +138,6 @@ object Fakes extends Mockito {
           any[A2DBO], any[A2DBO], any[DBEncoder]) returns updateResult
 
       m.findOne(any[Any])(any[A2DBO]) returns {
-        println(s"findOne(any[Any])(any[A2DBO) -> return $findOneResult")
         nullToOption[DBObject](findOneResult)
       }
 

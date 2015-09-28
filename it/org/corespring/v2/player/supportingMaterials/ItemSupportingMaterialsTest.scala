@@ -1,11 +1,10 @@
 package org.corespring.v2.player.supportingMaterials
 
+import org.corespring.assets.ItemAssetKeys
+import org.corespring.it.helpers.{ ItemHelper, SecureSocialHelper }
+import org.corespring.it.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.services.item.ItemAssetKeys
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.models.item.resource.Resource
 import org.specs2.execute.Result
 import org.specs2.time.NoTimeConversions
 import play.api.mvc.{ Call, SimpleResult }
@@ -19,7 +18,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
   trait scope extends userAndItem
     with SessionRequestBuilder
-    with SecureSocialHelpers
+    with SecureSocialHelper
     with Helpers.requestToFuture
     with testDefaults {
 

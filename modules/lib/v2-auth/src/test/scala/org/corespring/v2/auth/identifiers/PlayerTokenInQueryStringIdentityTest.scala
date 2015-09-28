@@ -58,8 +58,6 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
           val arr = (err.json \ "json-errors").as[JsArray]
           ((arr(0) \ "errors")(0) \ "message").as[String] must_== "Missing 'expires'"
           err.message must_== incorrectJsonFormat(Json.obj("itemId" -> "*")).message
-          true must_== true
-          success
         }
       }
 
@@ -73,7 +71,6 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
       result match {
         case Success(OrgAndOpts(_, _, _, _, _, warnings)) => {
           warnings(0) === deprecatedQueryStringParameter(options, playerToken)
-          success
         }
         case _ => ko("didn't find warning")
       }
@@ -89,7 +86,6 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
         case Success(OrgAndOpts(org, _, _, _, _, warnings)) => {
           warnings.length === 0
           org === this.org
-          success
         }
         case _ => ko("didn't find warning")
       }

@@ -7,8 +7,6 @@ import play.api.test.FakeRequest
 
 class ItemApiTest extends IntegrationSpecification {
 
-  override protected def logger: Logger = grizzled.slf4j.Logger(this.getClass)
-
   "GET /:itemId" should {
 
     s"return $UNAUTHORIZED for request with no access token" in new orgWithAccessTokenAndItem {

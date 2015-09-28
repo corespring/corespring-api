@@ -28,7 +28,7 @@ private[player] class V2PlayerIntegrationSpec extends Specification with Mockito
 
   def DraftTestError(msg: String) = GeneralError(msg)
 
-  private[player] trait StubJsonFormatting {
+  private[corespring] trait StubJsonFormatting {
 
     val jsonFormatting = new JsonFormatting {
       override def fieldValue: FieldValue = FieldValue()

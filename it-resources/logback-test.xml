@@ -1,16 +1,5 @@
 <configuration>
-    <!-- for integration tests -->
-
-    <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%coloredLevel %logger{55} - %message%n%xException{5}</pattern>
-        </encoder>
-    </appender>
-
-
-    <root level="debug">
-        <appender-ref ref="STDOUT" />
+    <!-- this is to suppress logback initial logging -->
+    <root level="OFF">
     </root>
 </configuration>

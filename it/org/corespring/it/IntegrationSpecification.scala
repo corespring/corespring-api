@@ -17,7 +17,7 @@ abstract class IntegrationSpecification
 
   sequential
 
-  protected def logger: grizzled.slf4j.Logger = Logger(this.getClass)
+  val logger: grizzled.slf4j.Logger = Logger(this.getClass)
 
   override implicit def defaultAwaitTimeout: Timeout = 3.seconds
 }
