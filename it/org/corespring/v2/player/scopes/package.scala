@@ -2,19 +2,19 @@ package org.corespring.v2.player
 
 import java.io.File
 
-import com.amazonaws.auth.{ BasicAWSCredentials, AWSCredentials }
+import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.transfer.{ Upload, TransferManager }
+import com.amazonaws.services.s3.transfer.{ TransferManager, Upload }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{ SessionDbConfig, AppConfig }
+import org.corespring.common.config.{ AppConfig, SessionDbConfig }
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
-import org.corespring.platform.core.models.{ mongoContext, Organization }
+import org.corespring.platform.core.models.{ Organization, mongoContext }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.SecureSocialHelpers
@@ -23,6 +23,8 @@ import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.specs2.mutable.BeforeAfter
 import play.api.Logger
 import play.api.http.{ ContentTypeOf, Writeable }
+import play.api.libs.Files
+import play.api.libs.json.JsValue
 import play.api.mvc._
 import play.api.test.{ FakeHeaders, FakeRequest }
 
@@ -102,7 +104,8 @@ package object scopes {
 
   trait user extends BeforeAfter {
 
-    val orgId = OrganizationHelper.create("my-org")
+    val organization = OrganizationHelper.createAndReturnOrg("my-org")
+    val orgId = organization.id
     val user = UserHelper.create(orgId)
     val collectionId = CollectionHelper.create(orgId)
 
@@ -230,7 +233,6 @@ package object scopes {
     lazy val bucketName = AppConfig.assetsBucket
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
 
       super.before
       logger.debug(s"sessionId: $sessionId")
@@ -249,13 +251,17 @@ package object scopes {
     }
   }
 
-  class AddSupportingMaterialImageAndItem(imagePath: String, val materialName: String)
+  trait AddSupportingMaterialImageAndItem
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelpers
     with S3Helper {
 
+    def imagePath: String
+    def materialName: String
+
     lazy val logger = Logger("v2player.test")
+
     lazy val credentials: AWSCredentials = AwsUtil.credentials()
     lazy val tm: TransferManager = new TransferManager(credentials)
     lazy val client = new AmazonS3Client(credentials)
@@ -265,15 +271,14 @@ package object scopes {
     lazy val file = new File(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
-      import java.nio.file.Files
-      import java.nio.file.Paths
+      import java.nio.file.{ Files, Paths }
       val path = Paths.get(imagePath)
       Files.readAllBytes(path)
     }
-    val fileName = grizzled.file.util.basename(file.getCanonicalPath)
+
+    lazy val fileName = grizzled.file.util.basename(file.getCanonicalPath)
 
     override def before: Any = {
-      import org.corespring.platform.core.models.mongoContext._
 
       super.before
 
@@ -284,6 +289,8 @@ package object scopes {
       val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/materials/$materialName/$fileName"
       val sf = StoredFile(name = fileName, contentType = "image/png", storageKey = key)
       val resource = Resource(name = materialName, files = Seq(sf))
+      implicit val context = mongoContext.context
+
       val dbo = com.novus.salat.grater[Resource].asDBObject(resource)
 
       ItemServiceWired.collection.update(
@@ -393,28 +400,38 @@ package object scopes {
   trait RequestBuilder {
     implicit val ct: ContentTypeOf[AnyContent] = new ContentTypeOf[AnyContent](None)
     val writeable: Writeable[AnyContent] = Writeable[AnyContent]((c: AnyContent) => Array[Byte]())
-    def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent]
+    def requestBody: AnyContent = AnyContentAsEmpty
+    def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A]
   }
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       FakeRequest(call.method, s"${call.url}?access_token=${accessToken}", FakeHeaders(), body)
     }
   }
 
   trait PlainRequestBuilder extends RequestBuilder {
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = FakeRequest(call.method, call.url)
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = FakeRequest(call.method, call.url, FakeHeaders(), body)
   }
 
   trait SessionRequestBuilder extends RequestBuilder { self: userAndItem with SecureSocialHelpers =>
 
     lazy val cookies: Seq[Cookie] = Seq(secureSocialCookie(Some(user)).get)
 
-    override def makeRequest(call: Call, body: AnyContent = AnyContentAsEmpty): Request[AnyContent] = {
-      FakeRequest(call.method, call.url).withCookies(cookies: _*)
+    override def makeRequest[A <: AnyContent](call: Call, body: A = AnyContentAsEmpty): Request[A] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withBody(body)
+    }
+
+    def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withMultipartFormDataBody(form)
+    }
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withJsonBody(json)
+    }
+
+    def makeTextRequest(call: Call, text: String): Request[AnyContentAsText] = {
+      FakeRequest(call.method, call.url).withCookies(cookies: _*).withTextBody(text)
     }
 
     def makeRequestWithContentType(call: Call, body: AnyContent = AnyContentAsEmpty, contentType: String = "application/json"): Request[AnyContent] = {
@@ -426,11 +443,9 @@ package object scopes {
 
     import PlayerTokenInQueryStringIdentity.Keys
 
-    def requestBody: AnyContent = AnyContentAsEmpty
-
     def skipDecryption: Boolean
 
-    override def makeRequest(call: Call, body: AnyContent = requestBody): Request[AnyContent] = {
+    override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       val basicUrl = s"${call.url}?${Keys.apiClient}=$clientId&${Keys.playerToken}=$playerToken"
       val finalUrl = if (skipDecryption) s"$basicUrl&${Keys.skipDecryption}=true" else basicUrl
       FakeRequest(call.method, finalUrl, FakeHeaders(), body)

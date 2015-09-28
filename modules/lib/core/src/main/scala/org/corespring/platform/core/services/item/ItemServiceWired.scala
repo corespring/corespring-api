@@ -25,12 +25,24 @@ import scala.xml.Elem
 import scalaz._
 import se.radley.plugin.salat.SalatPlugin
 
+private[corespring] trait IdConverters {
+  def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
+    val base = MongoDBObject("_id._id" -> vid.id)
+    vid.version.map { v =>
+      base ++ MongoDBObject("_id.version" -> v)
+    }.getOrElse(base)
+  }
+}
+
 class ItemServiceWired(
   val s3service: CorespringS3Service,
   sessionCompanion: ItemSessionCompanion,
   val itemDao: SalatVersioningDao[Item],
   itemIndexService: ItemIndexService)(implicit executionContext: ExecutionContext)
-  extends ItemService with ItemFiles with ItemPublishingService {
+  extends ItemService
+  with ItemFiles
+  with ItemPublishingService
+  with IdConverters {
 
   import com.mongodb.casbah.commons.conversions.scala._
   import org.corespring.platform.core.models.mongoContext.context
@@ -67,13 +79,6 @@ class ItemServiceWired(
         None
       }
     }
-  }
-
-  def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
-    val base = MongoDBObject("_id._id" -> vid.id)
-    vid.version.map { v =>
-      base ++ MongoDBObject("_id.version" -> v)
-    }.getOrElse(base)
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {

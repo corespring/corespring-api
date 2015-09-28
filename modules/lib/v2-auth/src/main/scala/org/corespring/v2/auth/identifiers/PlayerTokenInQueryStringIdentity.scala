@@ -26,6 +26,8 @@ object PlayerTokenInQueryStringIdentity {
 
 trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
+  override val name = "player-token-in-query-string"
+
   override lazy val logger = V2LoggerFactory.getLogger("auth", "PlayerTokenInQueryStringIdentity")
 
   override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {

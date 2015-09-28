@@ -20,7 +20,7 @@ import scala.concurrent.Future
 trait DraftEditorHooks
   extends ContainerEditorHooks
   with LoadOrgAndOptions
-  with DraftHelper
+  with ContainerConverters
   with MakeDraftId {
 
   import play.api.http.Status._

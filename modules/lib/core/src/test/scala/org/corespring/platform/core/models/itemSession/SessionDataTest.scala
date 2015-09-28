@@ -128,7 +128,7 @@ class SessionDataTest extends Specification {
 
       SessionData(qti, s)(false).feedbackContents.get("cs_1") match {
         case Some(fb) => fb must equalTo("Super!")
-        case _ => failure("couldn't find feedback")
+        case _ => ko("couldn't find feedback")
       }
     }
 
@@ -139,7 +139,7 @@ class SessionDataTest extends Specification {
 
       SessionData(qti, s)(false).feedbackContents.get("cs_2") match {
         case Some(fb) => fb must equalTo(MockXml.incorrectResponseFeedback)
-        case _ => failure("couldn't find feedback")
+        case _ => ko("couldn't find feedback")
       }
     }
 

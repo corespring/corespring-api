@@ -196,7 +196,7 @@ class ItemTest extends BaseTest {
 
       itemService.findOneById(clonedItem.get.id) match {
         case Some(fromDb) => clonedItem.get.collectionId === fromDb.collectionId
-        case _ => failure("couldn't find cloned item")
+        case _ => ko("couldn't find cloned item")
       }
     }
 

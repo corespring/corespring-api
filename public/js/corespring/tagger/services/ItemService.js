@@ -135,13 +135,6 @@ angular.module('tagger.services')
           .error(onError);
       };
 
-      this.getDraftsForOrg = function(onSuccess, onError){
-        var url = '/api/v2/items/drafts';
-        $http.get(url)
-          .success(onSuccess)
-          .error(onError);
-      };
-
       this.deleteByItemId = function(id, onSuccess, onError){
         this.deleteDraft(id, onSuccess, onError, true);
       };
