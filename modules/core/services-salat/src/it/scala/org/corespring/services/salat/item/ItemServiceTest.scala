@@ -17,6 +17,10 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
   lazy val itemService = services.itemService
 
+  "contributorsForOrg" should {
+    "work" in pending
+  }
+
   "cloning" should {
 
     "create a new item in the db" in {

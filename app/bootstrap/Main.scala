@@ -20,6 +20,7 @@ import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, Simpl
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
+import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.item.{ ComponentType, FieldValue }
