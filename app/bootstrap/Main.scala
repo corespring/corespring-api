@@ -19,7 +19,7 @@ import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
-import org.corespring.itemSearch.{ElasticSearchConfig, ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule}
+import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.item.{ ComponentType, FieldValue }
@@ -77,9 +77,12 @@ object Main
 
   lazy val configuration = current.configuration
 
-  override lazy val elasticSearchConfig : ElasticSearchConfig = ElasticSearchConfig(AppConfig.elasticSearchUrl, AppConfig.mongoUri, AppConfig.componentsPath)
+  override lazy val elasticSearchConfig = ElasticSearchConfig(
+    AppConfig.elasticSearchUrl,
+    AppConfig.mongoUri,
+    AppConfig.componentsPath)
 
-  override lazy val elasticSearchExecutionContext: ElasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
+  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val transformerItemService = new TransformerItemService(itemService,
     db("versioned_content"),
@@ -104,7 +107,7 @@ object Main
 
   override lazy val componentTypes: Seq[ComponentType] = {
 
-    def toComponentType(c:Component) = {
+    def toComponentType(c: Component) = {
       val label = (c.packageInfo \ "title").asOpt[String].getOrElse(c.componentType)
       ComponentType(c.componentType, label)
     }

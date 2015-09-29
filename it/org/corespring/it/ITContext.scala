@@ -13,6 +13,7 @@ import play.api.{ Configuration, Play }
 
 import scala.util.Random
 
+//TODO: Seed field values for ItemApiIntegrationTest?
 object ITContext {
 
   System.setProperty("org.xml.sax.driver", "com.sun.org.apache.xerces.internal.parsers.SAXParser")
@@ -23,6 +24,8 @@ object ITContext {
     sys.env.get("IT_MONGO_URI").getOrElse(
       "mongodb://localhost/api-it-tests")
   }
+
+  println(s"[ITContext] > mongoUri=$mongoUri")
 
   private def dropDb = {
     logger.info(s"drop db: $mongoUri")

@@ -1,5 +1,0 @@
-<configuration>
-    <!-- this is to suppress logback initial logging -->
-    <root level="OFF">
-    </root>
-</configuration>
