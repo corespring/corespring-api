@@ -36,6 +36,8 @@ trait JsonFormatting {
     override def itemCount(id: ObjectId): Long = countItemsInCollection(id)
   }
 
+  implicit lazy val writeStandardDomains: Writes[StandardDomains] = StandardDomainsWrites
+
   implicit lazy val formatBaseFile: Format[BaseFile] = BaseFileFormat
 
   implicit lazy val writeOrg: Writes[Organization] = new OrganizationWrites(rootOrgId)

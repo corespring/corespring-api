@@ -66,6 +66,8 @@ PUT     /collections/:id/share-with-org/:orgId          @org.corespring.v2.api.C
 
 GET  /item-types                           @org.corespring.v2.api.ItemApi.getItemTypes()
 
+GET /field_values/domain                   @org.corespring.v2.api.FieldValuesApi.domain()
+
 GET  /contributors                         @org.corespring.v2.api.FieldValuesApi.contributors()
 
 GET  /grade-levels                         @org.corespring.v2.api.FieldValuesApi.gradeLevels()
