@@ -14,11 +14,12 @@ import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
+import org.corespring.container.components.model.Component
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
-import org.corespring.itemSearch.{ ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
+import org.corespring.itemSearch.{ElasticSearchConfig, ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule}
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.models.item.{ ComponentType, FieldValue }
@@ -76,7 +77,7 @@ object Main
 
   lazy val configuration = current.configuration
 
-  override lazy val elasticSearchUrl: ElasticSearchUrl = ElasticSearchUrl(AppConfig.elasticSearchUrl)
+  override lazy val elasticSearchConfig : ElasticSearchConfig = ElasticSearchConfig(AppConfig.elasticSearchUrl, AppConfig.mongoUri, AppConfig.componentsPath)
 
   override lazy val elasticSearchExecutionContext: ElasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
@@ -101,8 +102,16 @@ object Main
       Actors.itemTransformerActor ! UpdateItem(itemId)
   }
 
-  override lazy val componentTypes: Seq[ComponentType] = componentLoader.all.map {
-    c => ComponentType(c.componentType, (c.packageInfo \ "title").asOpt[String].getOrElse(c.componentType))
+  override lazy val componentTypes: Seq[ComponentType] = {
+
+    def toComponentType(c:Component) = {
+      val label = (c.packageInfo \ "title").asOpt[String].getOrElse(c.componentType)
+      ComponentType(c.componentType, label)
+    }
+
+    componentLoader.all
+      .filterNot(_.componentType == "corespring-feedback-block")
+      .map(toComponentType) :+ ComponentType("multiple-interactions", "Multiple Interactions")
   }
 
   override lazy val itemSessionApiExecutionContext: ItemSessionApiExecutionContext = ItemSessionApiExecutionContext(ExecutionContext.Implicits.global)
@@ -174,6 +183,7 @@ object Main
     ServiceLookup.orgService = orgService
     ServiceLookup.registrationTokenService = registrationTokenService
     ServiceLookup.userService = userService
+    ServiceLookup.fieldValueService = fieldValueService
   }
 
   override def s3Service: S3Service = wire[CorespringS3ServiceExtended]

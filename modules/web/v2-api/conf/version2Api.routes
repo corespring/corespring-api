@@ -42,7 +42,7 @@ PUT /items/:itemId/publish                 @org.corespring.v2.api.ItemApi.publis
 
 PUT /items/:itemId/save-new-version        @org.corespring.v2.api.ItemApi.saveNewVersion(itemId)
 
-GET  /items                                @org.corespring.v2.api.ItemApi.search(q: Option[String] ?= None)
+GET  /items                                @org.corespring.v2.api.ItemApi.search(query: Option[String] ?= None)
 
 POST /launch-item                          @org.corespring.v2.api.ExternalModelLaunchApi.buildExternalLaunchSession()
 

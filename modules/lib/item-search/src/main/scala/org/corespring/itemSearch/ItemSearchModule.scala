@@ -6,9 +6,11 @@ trait ItemSearchModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def elasticSearchUrl: ElasticSearchUrl
   def componentTypes: Seq[ComponentType]
   def elasticSearchExecutionContext: ElasticSearchExecutionContext
+  def elasticSearchConfig : ElasticSearchConfig
 
   lazy val itemIndexService: ItemIndexService = wire[ElasticSearchItemIndexService]
+  lazy val itemType : ItemType =  wire[ItemType]
+  lazy val widgetType : WidgetType =  wire[WidgetType]
 }

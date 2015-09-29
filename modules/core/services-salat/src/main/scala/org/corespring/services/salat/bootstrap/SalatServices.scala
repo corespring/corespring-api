@@ -55,6 +55,15 @@ trait SalatServices extends interface.bootstrap.Services {
 
   RegisterJodaTimeConversionHelpers()
 
+  def init = {
+
+    logger.debug(s"function=init - check to see if it's already inited")
+    orgService.findOneById(archiveConfig.orgId).getOrElse{
+      logger.debug(s"function=init - call initArchive")
+      initArchive()
+    }
+  }
+
   /**
    * Init the archive org and contentcollection
    */
@@ -112,9 +121,6 @@ trait SalatServices extends interface.bootstrap.Services {
 
     override def checkCurrentCollectionIntegrity: Boolean = false
   }
-
-  //lazy val copyFiles: (String, String) => Unit = s3.copyObject(bucket.bucket, _, bucket.bucket, _)
-  //lazy val deleteFiles: (String) => Unit = s3.deleteObject(bucket.bucket, _)
 
   lazy val itemAssetService: interface.item.ItemAssetService = new ItemAssetService(
     s3.copyObject(bucket.bucket, _, bucket.bucket, _),

@@ -32,7 +32,8 @@ class AppConfig(config: Configuration) {
   lazy val archiveContentCollectionId: ObjectId = new ObjectId(getString("archive.contentCollectionId"))
   lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
   lazy val publicSite = config.getString("publicSiteUrl").getOrElse("//www.corespring.org")
-
+  lazy val mongoUri = getString("mongodb.default.uri")
+  lazy val componentsPath = getString("container.components.path")
   private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 }
 

@@ -4,7 +4,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>app.. %d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %coloredLevel %logger{55} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
 
@@ -33,12 +33,14 @@
     -->
     <logger name="VersionInfo" level="OFF"/>
     <logger name="ch.qos.logback" level="WARN"/>
-    <logger name="it" level="TRACE"/>
-    <logger name="org.corespring.v2.auth" level="INFO"/>
-    <logger name="org.corespring.services" level="INFO"/>
-    <logger name="org.corespring.drafts.item" level="INFO"/>
-    <logger name="org.corespring.container.client.AssetUtils" level="WARN"/>
-    <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
+    <!--<logger name="it" level="TRACE"/>-->
+    <!--<logger name="org.corespring.v2.api" level="TRACE"/>-->
+    <logger name="org.corespring.itemSearch" level="TRACE"/>
+    <!--<logger name="org.corespring.v2.auth" level="INFO"/>-->
+    <!--<logger name="org.corespring.services" level="INFO"/>-->
+    <!--<logger name="org.corespring.drafts.item" level="INFO"/>-->
+    <!--<logger name="org.corespring.container.client.AssetUtils" level="WARN"/>-->
+    <!--<logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>-->
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>

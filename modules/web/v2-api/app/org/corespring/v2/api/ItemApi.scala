@@ -93,12 +93,6 @@ class ItemApi(
     }
   }
 
-  /*
-  {"sort":{"title":"asc"},"contributors":[],"collections":["5008248ee4b071cb5ef78ee0","504e70d1e4b07f3e2e43236b","5058ba1ce4b0b16db41bc80f","50b38ac7e4b0e4cc08f53c8f","51d2d327e4b057cc5caa07c8","532258c5827533a417427f71","532258c6827533a417427f72","532258c6827533a417427f73","5453b4e4e4b05f38dd6440a8","551d90f8e4b0b1cdd9dbba0a","558960f5e4b0acf781ff0561","55a83757e4b090e8adcb2e03"],"gradeLevels":[],"itemTypes":[],"workflows":[],"offset":50}
-  */
-
-  import Organization._
-
   private def searchWithQuery(q: ItemIndexQuery,
     accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
@@ -142,6 +136,9 @@ class ItemApi(
   }
 
   def search(query: Option[String]) = Action.async { implicit request =>
+
+    logger.debug(s"function=search, query=$query")
+
     val queryString = query.getOrElse("{}")
 
     getOrgAndOptions(request) match {

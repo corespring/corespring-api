@@ -5,7 +5,7 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.assessment.{ AssessmentTemplateService, AssessmentService }
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
-import org.corespring.services.item.ItemService
+import org.corespring.services.item.{FieldValueService, ItemService}
 import org.corespring.services._
 import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
 
@@ -14,6 +14,8 @@ import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
  * inject dependencies.
  */
 object ServiceLookup {
+
+  var fieldValueService : FieldValueService = null
 
   var itemTransformer: ItemTransformer = null
   var s3Service: S3Service = null

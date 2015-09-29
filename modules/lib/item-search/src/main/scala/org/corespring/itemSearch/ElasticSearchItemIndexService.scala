@@ -11,8 +11,13 @@ import org.corespring.models.item.ComponentType
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
 import play.api.libs.ws.WS
+
 import scala.concurrent._
 import scalaz._
+
+case class ElasticSearchUrl(url: URL)
+case class ElasticSearchExecutionContext(context: ExecutionContext)
+case class ElasticSearchConfig(url:URL, mongoUri:String, componentPath:String)
 
 /**
  * An ItemIndexService based on Elastic Search.
@@ -21,28 +26,25 @@ import scalaz._
  * service. When we upgrade ot Play 2.3.x, we should use [play-mockws](https://github.com/leanovate/play-mockws) to
  * test this exhaustively.
  */
-case class ElasticSearchUrl(url: URL)
-case class ElasticSearchExecutionContext(context: ExecutionContext)
-
-class ElasticSearchItemIndexService(elasticSearchUrl: ElasticSearchUrl,
-  rawTypes: Seq[ComponentType],
-  executionContext: ElasticSearchExecutionContext)
+class ElasticSearchItemIndexService(config: ElasticSearchConfig,
+                                    rawTypes: Seq[ComponentType],
+                                    executionContext: ElasticSearchExecutionContext)
   extends ItemIndexService with AuthenticatedUrl {
 
   implicit def ec: ExecutionContext = executionContext.context
 
   private val logger = Logger(classOf[ElasticSearchItemIndexService])
 
-  implicit val url = elasticSearchUrl.url
+  implicit val url = config.url
 
-  private val contentIndex = ElasticSearchClient(elasticSearchUrl.url).index("content")
+  private val contentIndex = ElasticSearchClient(config.url).index("content")
 
   def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
-      authed("/content/_search")
+      authed("/content/_search")(url, ec)
         .post(Json.toJson(query))
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
@@ -57,7 +59,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: ElasticSearchUrl,
     try {
       implicit val AggregationWrites = ItemIndexAggregation.Writes
       val agg = ItemIndexAggregation(field = field, collectionIds = collectionIds)
-      authed("/content/_search")
+      authed("/content/_search")(url, ec)
         .post(Json.toJson(agg))
         .map(result => {
           Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]
@@ -81,33 +83,29 @@ class ElasticSearchItemIndexService(elasticSearchUrl: ElasticSearchUrl,
 
   def refresh() = contentIndex.refresh()
 
-  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] = {
-    val types: Future[Validation[Error, Seq[String]]] = distinct("taskInfo.itemTypes")
+
+  private def getTypes(key:String) = {
+    val types: Future[Validation[Error, Seq[String]]] = distinct(key)
 
     types.map { v =>
       v.map { itemTypes =>
         val comps = rawTypes.filter(c => itemTypes.contains(c.componentType))
-        comps.map(_.tuple).toMap
+        val out = comps.map(_.tuple).toMap
+        logger.debug(s"function=getTypes, out=$out")
+        out
       }
     }
   }
+
+  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
+  lazy val widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
    */
   private object Indexer {
 
-    val contentDenormalizer = {
-
-      val cfg = play.api.Play.current.configuration
-      val uri = cfg.getString("mongodb.default.uri")
-      val componentPath = cfg.getString("container.components.path")
-
-      require(uri.isDefined, "Cannot connect to MongoDB without URI")
-      require(componentPath.isDefined, "Cannot use content denormalizer without component path")
-
-      new ContentDenormalizer(uri.get, componentPath.get)
-    }
+    val contentDenormalizer = new ContentDenormalizer(config.mongoUri, config.componentPath)
 
     def reindex(id: VersionedId[ObjectId]): Future[Validation[Error, String]] = {
       contentDenormalizer.withCollection("content", collection => {
@@ -122,6 +120,7 @@ class ElasticSearchItemIndexService(elasticSearchUrl: ElasticSearchUrl,
   }
 
 }
+
 
 trait AuthenticatedUrl {
 
@@ -143,3 +142,4 @@ trait AuthenticatedUrl {
   }
 
 }
+

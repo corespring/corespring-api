@@ -3,20 +3,25 @@ package org.corespring.services.salat
 import com.amazonaws.services.s3.AmazonS3
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.models.appConfig.{ Bucket, ArchiveConfig, AccessTokenConfig }
+import org.corespring.models.appConfig.{AccessTokenConfig, ArchiveConfig, Bucket}
 import org.corespring.services.salat.bootstrap._
 import org.corespring.services.salat.it.DbSingleton
+import org.specs2.execute.{AsResult, Result}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{Around, Specification}
 
-class ServicesSalatIntegrationTest extends Specification with Mockito {
+trait ServicesSalatIntegrationTest extends Specification with Mockito with Around{
 
   sequential
 
   val contentCollectionId = ObjectId.get
   val orgId = ObjectId.get
 
+  private val logger = Logger(classOf[ServicesSalatIntegrationTest])
+
+  logger.trace("!!!! --->.")
   lazy val s3 = mock[AmazonS3]
 
   lazy val services = new SalatServices {
@@ -31,6 +36,12 @@ class ServicesSalatIntegrationTest extends Specification with Mockito {
     override def accessTokenConfig: AccessTokenConfig = AccessTokenConfig()
 
     override implicit def context: Context = new ServicesContext(this.getClass.getClassLoader)
+  }
+
+  override def around[T](r: => T)(implicit toResult: AsResult[T]): Result = {
+    logger.debug(s"function=around - dropping db")
+    DbSingleton.db.dropDatabase()
+    AsResult(r)
   }
 
 }

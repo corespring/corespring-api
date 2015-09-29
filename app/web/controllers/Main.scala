@@ -2,13 +2,26 @@ package web.controllers
 
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.{ User }
+import play.api.libs.json.JsObject
 import play.api.mvc._
+import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
 
 object Main extends Controller with securesocial.core.SecureSocial {
 
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
+
+
+  lazy val defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
+    implicit val writeFieldValue = ServiceLookup.jsonFormatting.writesFieldValue
+    val fvJson = toJson(fv).as[JsObject]
+    val values = fvJson.deepMerge(obj(
+      "v2ItemTypes" -> bootstrap.Main.itemType.all,
+      "widgetTypes" -> bootstrap.Main.widgetType.all)
+    )
+    stringify(values)
+  }
 
   def index = SecuredAction {
     implicit request: SecuredRequest[AnyContent] =>
@@ -18,14 +31,16 @@ object Main extends Controller with securesocial.core.SecureSocial {
       val userId = request.user.identityId
       val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
       implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
-      import play.api.libs.json.Json._
-      ServiceLookup.orgService.findOneById(user.org.orgId) match {
-        case Some(userOrg) => Ok(web.views.html.index(
-            dbServer,
-            dbName,
-            user,
-            stringify(toJson(userOrg))))
-        case None => InternalServerError("could not find organization of user")
+
+      (for {
+        fv <- defaultValues
+        org <- ServiceLookup.orgService.findOneById(user.org.orgId)
+      } yield {
+        val userOrgString = stringify(toJson(org))
+        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv)
+        Ok(html)
+      }).getOrElse{
+        InternalServerError("could not find organization of user")
       }
   }
 

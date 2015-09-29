@@ -3,7 +3,7 @@
         <encoder><pattern>%level [%logger{50}] %message%n%xException{5}</pattern></encoder>
     </appender>
 
-    <logger name="org.corespring.services.salat.OrganizationService" level="TRACE" />
+    <logger name="org.corespring.services.salat" level="TRACE" />
     <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
 
     <root level="WARN">

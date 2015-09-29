@@ -1,11 +1,9 @@
 package org.corespring.services.salat
 
-import com.mongodb.casbah.Imports
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import grizzled.slf4j.Logger
-import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
@@ -324,23 +322,34 @@ class ContentCollectionService(
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
 
-  override def findOneById(id: Imports.ObjectId): Option[ContentCollection] = dao.findOneById(id)
+  override def findOneById(id: ObjectId): Option[ContentCollection] = dao.findOneById(id)
 
-  override def archiveCollectionId: Imports.ObjectId = archiveConfig.contentCollectionId
+  override def archiveCollectionId: ObjectId = archiveConfig.contentCollectionId
 
-  override def count(dbo: Imports.DBObject): Long = dao.count(dbo)
+  override def count(dbo: DBObject): Long = dao.count(dbo)
 
-  override def findByDbo(dbo: Imports.DBObject, fields: Option[Imports.DBObject] = None, sort: Option[Imports.DBObject], skip: Int, limit: Int): Stream[ContentCollection] = {
+  override def findByDbo(dbo: DBObject, fields: Option[DBObject] = None, sort: Option[DBObject], skip: Int, limit: Int): Stream[ContentCollection] = {
     dao.find(dbo, fields.getOrElse(MongoDBObject.empty)).sort(sort.getOrElse(MongoDBObject.empty)).skip(skip).limit(limit).toStream
   }
 
   private def todo = Failure(PlatformServiceError("todo"))
 
-  override def ownsCollection(org: Organization, collectionId: Imports.ObjectId): Validation[PlatformServiceError, Boolean] = todo
+  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = todo
 
-  override def listCollectionsByOrg(orgId: Imports.ObjectId): Stream[ContentCollection] = Stream.empty
+  override def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
+    val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
 
-  override def shareCollectionWithOrg(collectionId: Imports.ObjectId, orgId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = todo
+    logger.trace(s"function=listCollectionsByOrg, refs=$refs")
+    val query = ("_id" $in refs)
+    logger.trace(s"function=listCollectionsByOrg, query=$query")
+    logger.trace(s"function=listCollectionsByOrg, count=${dao.count()}")
+    dao.find(query).toStream
+  }
 
-  override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = todo
+  override def shareCollectionWithOrg(collectionId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = todo
+
+  override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
+    val collection = ContentCollection(name = name, ownerOrgId = org.id)
+    insertCollection(org.id, collection, Permission.Write, true)
+  }
 }
