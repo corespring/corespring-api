@@ -1,17 +1,16 @@
 package org.corespring.services.salat.item
 
-import com.novus.salat.Context
 import org.bson.types.ObjectId
-import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
-import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.corespring.models.item.{ Item, ItemStandards, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrganizationService, ContentCollectionService }
+import org.corespring.services.ContentCollectionService
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
+import org.specs2.mutable.After
 
-import scalaz.{ Success, Failure, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
@@ -19,6 +18,25 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
   "contributorsForOrg" should {
     "work" in pending
+  }
+
+  "findItemStandards" should {
+    trait scope extends After {
+
+      lazy val item = Item(
+        collectionId = ObjectId.get.toString,
+        taskInfo = Some(TaskInfo(title = Some("title"))),
+        standards = Seq("S1", "S2"))
+      lazy val itemId = services.itemService.insert(item).get
+
+      override def after: Any = {
+        services.itemService.purge(itemId)
+      }
+    }
+
+    "return an item standard" in new scope {
+      services.itemService.findItemStandards(itemId) must_== Some(ItemStandards("title", Seq("S1", "S2"), itemId))
+    }
   }
 
   "cloning" should {
@@ -101,7 +119,4 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
   }
 
-  "session count" should {
-    "count" in pending("session count to be moved")
-  }
 }

@@ -22,6 +22,7 @@ import org.corespring.services.salat.item.{ FieldValueService, ItemAssetService,
 import org.corespring.services.salat.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services.salat.registration.RegistrationTokenService
 import org.corespring.{ services => interface }
+import org.joda.time.DateTime
 
 import scalaz.{ Failure, Success }
 
@@ -50,6 +51,8 @@ trait SalatServices extends interface.bootstrap.Services {
   def archiveConfig: ArchiveConfig
   def accessTokenConfig: AccessTokenConfig
   def s3: AmazonS3
+
+  def mostRecentDateModifiedForSessions: Seq[ObjectId] => Option[DateTime]
 
   private val logger = Logger(classOf[SalatServices])
 

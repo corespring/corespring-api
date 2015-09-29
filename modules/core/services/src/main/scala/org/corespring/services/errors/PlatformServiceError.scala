@@ -1,5 +1,8 @@
 package org.corespring.services.errors
 
+/**
+ * The base class for Service errors.
+ */
 abstract class PlatformServiceError(val message: String, val throwable: Option[Throwable] = None)
 
 case class GeneralError(msg: String, t: Option[Throwable]) extends PlatformServiceError(msg, t)

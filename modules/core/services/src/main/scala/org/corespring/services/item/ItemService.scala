@@ -1,7 +1,7 @@
 package org.corespring.services.item
 
 import com.mongodb.casbah.Imports._
-import org.corespring.models.item.Item
+import org.corespring.models.item.{ ItemStandards, Item }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
@@ -14,6 +14,9 @@ trait ItemServiceClient {
 }
 
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
+
+  def findItemStandards(itemId: VersionedId[ObjectId]): Option[ItemStandards]
+
   def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId]
 
   def countItemsInCollection(collectionId: ObjectId): Long
@@ -51,7 +54,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean
 
-  def deleteUsingDao(id: VersionedId[ObjectId])
+  /** Completely remove the item from the system. */
+  def purge(id: VersionedId[ObjectId]): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
   def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 

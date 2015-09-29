@@ -69,6 +69,6 @@ object ItemHelper {
    */
   def publicCount: Int = count(Some(CollectionHelper.public))
 
-  def delete(itemId: VersionedId[ObjectId]) = itemService.deleteUsingDao(itemId)
+  def delete(itemId: VersionedId[ObjectId]) = itemService.purge(itemId)
 
 }

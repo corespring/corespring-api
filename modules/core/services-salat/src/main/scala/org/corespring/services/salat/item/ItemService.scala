@@ -10,7 +10,7 @@ import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.Item
+import org.corespring.models.item.{ ItemStandards, Item }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.platform.data.mongo.SalatVersioningDao
@@ -99,25 +99,25 @@ class ItemService(
     }
   }
 
-  def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
+  override def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
 
-  def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
+  override def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
   override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): Stream[Item] = dao.findCurrent(baseQuery ++ query, fields).toStream
+  override def find(query: DBObject, fields: DBObject = new BasicDBObject()): Stream[Item] = dao.findCurrent(baseQuery ++ query, fields).toStream
 
-  def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
+  override def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
-  def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
+  override def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
 
-  def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
+  override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
     val result = dao.update(id, dbo, createNewVersion)
     syncronousReindex(id)
     result.isRight
   }
 
-  def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
+  override def purge(id: VersionedId[ObjectId]) = dao.delete(id)
 
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
@@ -275,7 +275,7 @@ class ItemService(
     val filter = MongoDBObject(
       "contentType" -> "item",
       "collectionId" -> MongoDBObject("$in" -> readableCollectionIds))
-    //TODO - include versioned content?
+    //TODO: RF - include versioned content?
 
     logger.trace(s"distinct.filter=$filter")
     dao.currentCollection.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
@@ -300,5 +300,17 @@ class ItemService(
             None
         }
       }
+  }
+
+  override def findItemStandards(itemId: VersionedId[Imports.ObjectId]): Option[ItemStandards] = {
+    val fields = MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)
+    for {
+      dbo <- dao.findDbo(itemId, fields)
+      _ <- Some(logger.debug(s"function=findItemStandards, dbo=$dbo"))
+      title <- dbo.expand[String]("taskInfo.title")
+      _ <- Some(logger.trace(s"function=findItemStandards, title=$title"))
+      standards <- dbo.expand[Seq[String]]("standards")
+      _ <- Some(logger.trace(s"function=findItemStandards, standards=$standards"))
+    } yield ItemStandards(title, standards, itemId)
   }
 }

@@ -1,11 +1,11 @@
 package org.corespring.models.json.item
 
 import org.bson.types.ObjectId
-import org.corespring.models.item._
 import org.corespring.models.item.Item.Keys
+import org.corespring.models.item._
 import org.corespring.models.item.resource.Resource
-import org.corespring.models.json.{ ValueGetter, VersionedIdFormat, JsonValidationException }
-import org.corespring.models.{ item => model, Standard }
+import org.corespring.models.json.{ JsonValidationException, ValueGetter, VersionedIdFormat }
+import org.corespring.models.{ Standard, item => model }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
 
@@ -40,8 +40,6 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
     val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
     out.tail.foldRight(out.head)(_ ++ _)
-    //TODO: RF: What's this for - and can it be removed now that v1 search is gone?
-    //itemView.searchFields.map(stripFields(jsObject, _)).getOrElse(jsObject)
   }
 
   def writeMainItem(item: Item): JsObject = {

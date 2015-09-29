@@ -5,19 +5,37 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
-import org.corespring.models.assessment.{ Participant, Answer, Question, Assessment }
-import org.corespring.models.item.TaskInfo
+import org.corespring.models.assessment.{ Answer, Assessment, Participant, Question }
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
+import org.joda.time.DateTime
+
 /**
  * Note: Assessments were using the old v1 itemSession.
  * Need to glue in the new item session instead.
  */
+/**
+ * TODO: RF - implement mostRecentDateModifiedForSessions
+ * //      assessment.copy(participants = assessment.participants.map(
+ * //        participant => {
+ * //          val sessions = ??? //loaditemSessionService.findMultiple(participant.answers.map(_.sessionId))
+ * //          val timestamps = sessions.map(_.dateModified)
+ * //          timestamps.nonEmpty match {
+ * //            case true => participant.copy(lastModified = timestamps.max)
+ * //            case _ => participant
+ * //          }
+ * //        }))
+ * @param dao
+ * @param itemService
+ * @param context
+ */
 class AssessmentService(
-                       val dao : SalatDAO[Assessment,ObjectId],
-                       val itemService: interface.item.ItemService,
-                       val context : Context
-                         ) extends interface.assessment.AssessmentService with HasDao[Assessment, ObjectId] {
+  val dao: SalatDAO[Assessment, ObjectId],
+  val itemService: interface.item.ItemService,
+  val mostRecentDateModifiedForSessions: Seq[ObjectId] => Option[DateTime],
+  val context: Context)
+  extends interface.assessment.AssessmentService
+  with HasDao[Assessment, ObjectId] {
 
   private object Keys {
     val orgId = "orgId"
@@ -25,17 +43,11 @@ class AssessmentService(
   }
 
   def bindItemToQuestion(question: Question): Question = {
-    //TODO: RF: The look up here trimmed the fields to speed up the serialization - worth exposing on itemService?
-    itemService.findOneById(question.itemId) match {
-      case Some(item) => {
-        val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
-        val standards = item.standards
-        question.copy(
-          title = title,
-          standards = standards)
-      }
-      case _ => question
-    }
+    itemService.findItemStandards(question.itemId).map { itemStandards =>
+      question.copy(
+        title = Some(itemStandards.title),
+        standards = itemStandards.standards)
+    }.getOrElse(question)
   }
 
   /** Bind Item title and standards to the question */
@@ -122,30 +134,29 @@ class AssessmentService(
 
   def findByAuthor(authorId: String): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId)
-    //withParticipantTimestamps(dao.find(query).toList)
-    dao.find(query).toList
+    withParticipantTimestamps(dao.find(query).toList)
   }
 
   def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId, Keys.orgId -> organizationId)
     dao.find(query).toList
-    //withParticipantTimestamps(dao.find(query).toList)
+    withParticipantTimestamps(dao.find(query).toList)
   }
 
-  /*private def withParticipantTimestamps(assessments: List[Assessment]): List[Assessment] = {
+  private def withParticipantTimestamps(assessments: List[Assessment]): List[Assessment] = {
 
     implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+
     assessments.map(assessment => {
-      assessment.copy(participants = assessment.participants.map(
-        participant => {
-          val sessions = itemSessionService.findMultiple(participant.answers.map(_.sessionId))
-          val timestamps = sessions.map(_.dateModified)
-          timestamps.nonEmpty match {
-            case true => participant.copy(lastModified = timestamps.max)
-            case _ => participant
-          }
-        }))
+
+      def addTimestamp(p: Participant) = {
+        val dateModified = mostRecentDateModifiedForSessions(p.answers.map(_.sessionId))
+        p.copy(lastModified = dateModified.orElse(p.lastModified))
+      }
+
+      val updatedParticipants = assessment.participants.map(addTimestamp)
+      assessment.copy(participants = updatedParticipants)
     })
-  }*/
+  }
 }
 

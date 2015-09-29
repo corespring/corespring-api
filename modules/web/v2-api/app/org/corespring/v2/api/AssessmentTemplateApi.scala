@@ -57,7 +57,7 @@ class AssessmentTemplateApi(
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
-        //TODO: RF: could $set or update work here?
+        //TODO: RF: Low-Priority: could $set or update work here?
         assessmentTemplateService.findOne(query, MongoDBObject.empty) match {
           case Some(dbResult) => {
             val updatedAssessment = dbResult.merge(jsonAssessment)

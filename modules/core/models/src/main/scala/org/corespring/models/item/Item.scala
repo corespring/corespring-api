@@ -5,6 +5,8 @@ import org.corespring.models.item.resource.Resource
 import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 
+case class ItemStandards(title: String, standards: Seq[String], id: VersionedId[ObjectId])
+
 case class Item(
   collectionId: String,
   contentType: String = Item.contentType,
@@ -29,7 +31,7 @@ case class Item(
   taskInfo: Option[TaskInfo] = None,
   workflow: Option[Workflow] = None)
 
-    extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
+  extends Content[VersionedId[ObjectId]] with EntityWithVersionedId[ObjectId] {
 
   def cloneItem: Item = {
     val taskInfoCopy = taskInfo.getOrElse(TaskInfo(title = Some(""))).cloneInfo("[copy]")
