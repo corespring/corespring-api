@@ -58,7 +58,7 @@ trait SalatServices extends interface.bootstrap.Services {
   def init = {
 
     logger.debug(s"function=init - check to see if it's already inited")
-    orgService.findOneById(archiveConfig.orgId).getOrElse{
+    orgService.findOneById(archiveConfig.orgId).getOrElse {
       logger.debug(s"function=init - call initArchive")
       initArchive()
     }
@@ -92,7 +92,7 @@ trait SalatServices extends interface.bootstrap.Services {
     }
   }
 
-  initArchive()
+  init
 
   import com.softwaremill.macwire.MacwireMacros._
 

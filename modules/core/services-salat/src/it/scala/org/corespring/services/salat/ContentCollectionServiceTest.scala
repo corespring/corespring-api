@@ -1,16 +1,16 @@
 package org.corespring.services.salat
 
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ContentCollRef, ContentCollection, Organization}
-import org.specs2.mutable.{BeforeAfter, Specification}
-import org.specs2.specification.{After, Scope}
+import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.specs2.mutable.{ BeforeAfter, Specification }
+import org.specs2.specification.{ After, Scope }
 
 import scalaz.Success
 
 class ContentCollectionServiceTest
   extends ServicesSalatIntegrationTest {
 
-  def calling(n:String) = s"when calling $n"
+  def calling(n: String) = s"when calling $n"
 
   "ContentCollectionService" should {
 
@@ -18,15 +18,7 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
-    calling("shareItems") should {
-      "work" in pending
-    }
-
     calling("getDefaultCollection") should {
-      "work" in pending
-    }
-
-    calling("unShareItems") should {
       "work" in pending
     }
 
@@ -66,10 +58,21 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
+    calling("shareItems") should {
+      "work" in pending
+    }
+
+    calling("unShareItems") should {
+      "work" in pending
+    }
+
+    calling("shareItemsMatchingQuery") should {
+      "work" in pending
+    }
 
     "listCollectionsByOrg" should {
 
-      trait scope extends After{
+      trait scope extends After {
 
         val service = services.contentCollectionService
         val org = services.orgService.insert(Organization("test-org"), None).toOption.get
@@ -82,7 +85,7 @@ class ContentCollectionServiceTest
         }
       }
 
-      "list 1 collection for the new org" in new scope{
+      "list 1 collection for the new org" in new scope {
         service.listCollectionsByOrg(org.id).length must_== 1
         service.listCollectionsByOrg(org.id).toSeq must_== Seq(collection)
       }
