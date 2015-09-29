@@ -8,15 +8,12 @@ import com.mongodb.casbah.Imports._
  *
  */
 case class ContentCollection(
-    name: String,
-    ownerOrgId: ObjectId,
-    isPublic: Boolean = false,
-    id: ObjectId = new ObjectId()) {
+  name: String,
+  ownerOrgId: ObjectId,
+  isPublic: Boolean = false,
+  id: ObjectId = new ObjectId())
 
-  //TODO: RF: itemCount is now on ContentCollectionService
-}
-
-object ContentCollection{
+object ContentCollection {
   val Default = "default"
 }
 

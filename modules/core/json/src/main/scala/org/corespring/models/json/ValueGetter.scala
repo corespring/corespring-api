@@ -26,5 +26,5 @@ trait ValueGetter {
     makeObject(vals)
   }
 
-  def fieldValues: FieldValue //TODO: RF: Plug this in = FieldValue.current
+  def fieldValues: FieldValue
 }

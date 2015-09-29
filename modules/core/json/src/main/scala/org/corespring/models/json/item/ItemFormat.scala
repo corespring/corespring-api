@@ -40,7 +40,7 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
     val out = Seq(Some(mainItem), details, taskInfo, alignments).flatten
     out.tail.foldRight(out.head)(_ ++ _)
-    //TODO: RF: What's this for?
+    //TODO: RF: What's this for - and can it be removed now that v1 search is gone?
     //itemView.searchFields.map(stripFields(jsObject, _)).getOrElse(jsObject)
   }
 
@@ -128,8 +128,7 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
       sharedInCollections = (json \ Keys.sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty),
       standards = (json \ Keys.standards).asOpt[Seq[String]].getOrElse(Seq()),
       data = (json \ Keys.data).asOpt[Resource],
-      published = (json \ Keys.published).asOpt[Boolean].getOrElse(false)
-    )
+      published = (json \ Keys.published).asOpt[Boolean].getOrElse(false))
 
     try {
       val withId = item.copy(id =

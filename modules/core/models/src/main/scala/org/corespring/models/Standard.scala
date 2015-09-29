@@ -2,7 +2,6 @@ package org.corespring.models
 
 import com.mongodb.casbah.Imports._
 
-//TODO: RF: Remove vars
 case class Standard(dotNotation: Option[String] = None,
   guid: Option[String] = None,
   subject: Option[String] = None,
