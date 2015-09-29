@@ -47,7 +47,7 @@ Reports is disabled
 
 ## find the todos in the code
 
-Search for: `//TODO: RF`
+Search for: `TODO: RF`
 
 ## add tests
 

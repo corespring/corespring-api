@@ -40,11 +40,12 @@ class ItemService(
    * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is
    * needed so that the client can be assured that when they re-query the index after update that the changes will be
    * available in search results.
-   * TODO: RF: To be removed - outside the scope of this library
+   * private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
+   * Success("")
+   * }
+   * TODO: RF: Connect indexing to itemService.
+   * To be removed - outside the scope of this library
    */
-  private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-    Success("")
-  }
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
@@ -53,7 +54,7 @@ class ItemService(
     result match {
       case Success(updatedItem) =>
         dao.save(updatedItem, createNewVersion = false)
-        syncronousReindex(updatedItem.id)
+        //syncronousReindex(updatedItem.id)
         Some(updatedItem)
       case Failure(files) =>
         files.foreach({
@@ -82,7 +83,7 @@ class ItemService(
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
     val result = collection.update(vidToDbo(id), update, upsert = false)
-    syncronousReindex(id)
+    //syncronousReindex(id)
     result.getLastError.ok
   }
 
