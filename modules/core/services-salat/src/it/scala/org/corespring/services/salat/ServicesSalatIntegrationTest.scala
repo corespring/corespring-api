@@ -13,6 +13,8 @@ import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Around, Specification }
 
+import scala.concurrent.ExecutionContext
+
 trait ServicesSalatIntegrationTest extends Specification with Mockito with Around {
 
   sequential
@@ -20,7 +22,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   val contentCollectionId = ObjectId.get
   val orgId = ObjectId.get
 
-  private val logger = Logger(classOf[ServicesSalatIntegrationTest])
+  protected val logger = Logger(classOf[ServicesSalatIntegrationTest])
 
   lazy val s3 = mock[AmazonS3]
 
@@ -38,6 +40,8 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
     override implicit def context: Context = new ServicesContext(this.getClass.getClassLoader)
 
     override def mostRecentDateModifiedForSessions: (Seq[ObjectId]) => Option[DateTime] = _ => None
+
+    override def salatServicesExecutionContext: SalatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
   }
 
   override def around[T](r: => T)(implicit toResult: AsResult[T]): Result = {

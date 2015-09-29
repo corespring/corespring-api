@@ -6,7 +6,7 @@ case class Domain(name: String, standards: Seq[String])
 object Domain {
 
   private def toDomain(key: String, standards: Seq[Standard]) = {
-    Domain(key, standards.map(_.dotNotation).flatten)
+    Domain(key, standards.map(_.dotNotation).flatten.sorted)
   }
 
   def fromStandards(standards: Seq[Standard], getDomain: Standard => Option[String]): Seq[Domain] = {

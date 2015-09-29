@@ -6,21 +6,26 @@ import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.{ Domain, StandardDomains, Standard }
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class StandardService(val dao: SalatDAO[Standard, ObjectId],
+  val servicesExecutionContext: SalatServicesExecutionContext,
   val context: Context) extends org.corespring.services.StandardService with HasDao[Standard, ObjectId] {
+
+  private implicit val ec: ExecutionContext = servicesExecutionContext.ctx
 
   private val logger = Logger(classOf[StandardService])
 
   override def findOneById(id: ObjectId): Option[Standard] = dao.findOneById(id)
 
-  private def getDomains(subjects: String*): Future[Seq[Domain]] = Future {
-    import Standard.{ Keys }
-    val query = Keys.Subject $in subjects
+  private def getDomains(getDomain: Standard => Option[String], subjects: String*): Future[Seq[Domain]] = Future {
+    val query = Standard.Keys.Subject $in subjects
+    logger.trace(s"function=getDomains, query=$query")
     val standards = dao.find(query)
+    logger.trace(s"function=getDomains, standards=$standards")
     Domain.fromStandards(standards.toSeq, _.subCategory)
   }
 
@@ -28,8 +33,8 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
   override lazy val domains: Future[StandardDomains] = {
     import Standard.{ Subjects }
     for {
-      ela <- getDomains(Subjects.ELA, Subjects.ELALiteracy)
-      math <- getDomains(Subjects.Math)
+      ela <- getDomains(_.subCategory, Subjects.ELA, Subjects.ELALiteracy)
+      math <- getDomains(_.category, Subjects.Math)
     } yield {
       StandardDomains(ela, math)
     }

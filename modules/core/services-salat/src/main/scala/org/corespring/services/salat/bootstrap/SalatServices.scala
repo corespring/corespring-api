@@ -24,6 +24,7 @@ import org.corespring.services.salat.registration.RegistrationTokenService
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
+import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success }
 
 object CollectionNames {
@@ -36,15 +37,18 @@ object CollectionNames {
   val user = "users"
   val metadataSet = "metadataSets"
   val registrationToken = "regTokens"
-  val standard = "standards"
+  val standard = "ccstandards"
   val subject = "subjects"
   val fieldValue = "fieldValues"
   val item = "content"
   val versionedItem = "versioned_content"
 }
 
+case class SalatServicesExecutionContext(ctx: ExecutionContext)
+
 trait SalatServices extends interface.bootstrap.Services {
 
+  def salatServicesExecutionContext: SalatServicesExecutionContext
   def db: MongoDB
   implicit def context: Context
   def bucket: Bucket

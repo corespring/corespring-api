@@ -27,3 +27,5 @@ POST    /items/:itemId/data/:filename/upload   @org.corespring.api.v1.ResourceAp
 DELETE  /items/:itemId/data/:filename         @org.corespring.api.v1.ResourceApi.deleteDataFile(itemId:String, filename:String, force:Boolean ?= false)
 
 GET     /contributors                    @org.corespring.api.v1.ContributorApi.getContributorsList()
+
+GET     /field_values/domain          @org.corespring.api.v1.FieldValuesApi.domain()

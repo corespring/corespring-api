@@ -114,11 +114,14 @@ class ItemService(
 
   override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
     val result = dao.update(id, dbo, createNewVersion)
-    syncronousReindex(id)
+    //syncronousReindex(id)
     result.isRight
   }
 
-  override def purge(id: VersionedId[ObjectId]) = dao.delete(id)
+  override def purge(id: VersionedId[ObjectId]) = {
+    dao.delete(id)
+    Success(id)
+  }
 
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)

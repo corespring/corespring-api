@@ -41,6 +41,7 @@ import org.corespring.v2.player.services.item.{ DraftSupportingMaterialsService,
 import org.corespring.v2.player.{ AllItemVersionTransformer, TransformerItemService, V2PlayerExecutionContext, V2PlayerModule }
 import org.corespring.v2.sessiondb._
 import org.corespring.web.user.SecureSocial
+import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
@@ -64,6 +65,7 @@ object Main
 
   override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
   override lazy val v2PlayerExecutionContext: V2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
+  override lazy val salatServicesExecutionContext: SalatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
@@ -253,4 +255,7 @@ object Main
     db(ItemDraftConfig.CollectionNames.itemDrafts),
     bucket,
     draftSupportingMaterialAssets)(context)
+
+  //TODO: RF: Plugin in session service
+  override def mostRecentDateModifiedForSessions: (Seq[ObjectId]) => Option[DateTime] = _ => None
 }

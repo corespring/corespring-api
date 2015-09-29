@@ -74,6 +74,7 @@ trait V2ApiModule
 
   //Expose this api so v1 api can use it
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
+  lazy val v2FieldValuesApi: FieldValuesApi = fieldValuesApi.asInstanceOf[FieldValuesApi]
 
   lazy val v2ApiControllers: Seq[Controller] = Seq(
     itemApi,
