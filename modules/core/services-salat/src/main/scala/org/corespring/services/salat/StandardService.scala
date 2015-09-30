@@ -24,17 +24,21 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
   private def getDomains(getDomain: Standard => Option[String], subjects: String*): Future[Seq[Domain]] = Future {
     val query = Standard.Keys.Subject $in subjects
     logger.trace(s"function=getDomains, query=$query")
-    val standards = dao.find(query)
-    logger.trace(s"function=getDomains, standards=$standards")
-    Domain.fromStandards(standards.toSeq, _.subCategory)
+    val standards = dao.find(query).toSeq
+    logger.trace(s"function=getDomains, query=$query, standards=$standards")
+    Domain.fromStandards(standards, _.subCategory)
   }
 
   //Core Refactor: From Standard.Domains
   override lazy val domains: Future[StandardDomains] = {
     import Standard.{ Subjects }
+
+    val elaFuture = getDomains(_.subCategory, Subjects.ELA, Subjects.ELALiteracy)
+    val mathFuture = getDomains(_.category, Subjects.Math)
+
     for {
-      ela <- getDomains(_.subCategory, Subjects.ELA, Subjects.ELALiteracy)
-      math <- getDomains(_.category, Subjects.Math)
+      ela <- elaFuture
+      math <- mathFuture
     } yield {
       StandardDomains(ela, math)
     }

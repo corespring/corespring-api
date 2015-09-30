@@ -10,7 +10,7 @@ object Domain {
   }
 
   def fromStandards(standards: Seq[Standard], getDomain: Standard => Option[String]): Seq[Domain] = {
-    val grouped = standards.groupBy(s => getDomain(s).getOrElse("no-category"))
+    val grouped = standards.groupBy(s => getDomain(s).filterNot(_.isEmpty).getOrElse("no-category"))
     grouped.toSeq.map(Function.tupled(toDomain)).sortBy(_.name)
   }
 }
