@@ -19,6 +19,8 @@ Filtering and skipping etc is disabled - I don't think we need it - but check th
 The item calls need to be checked that they are still working
 - resource api calls
 
+- check w/ ev about motion math
+
 
 ### CMS and ItemApi
 
@@ -35,9 +37,26 @@ Failing links:
 
 ### Error - This is not the current version of this item (v1 editor)
 
+Open the v1 editor and click the interaction tab and you should see the warning.
+
+
 #### v1 item api search -> v2 search interface
 
 Check if this is doable w/ ben
+
+ben says it's tricky .. so the options are maintain v1 search in it's own module, or do the mapping
+
+queries from log entries: 
+
+path=/.*api\/v1\/collections.*&access_token=(.*)/ ==> 0 results
+path=/.*api\/v1\/organizations.*&access_token=(.*)/ ==> 0 results
+path=/.*api\/v1\/users.*&access_token=(.*)/ ==> 0 results
+path=/.*api\/v1\/assessments.*&access_token=(.*)/ ==> 0 results
+path=/.*api\/v1\/items.*&access_token=(.*)/ ==> lots of results results
+
+TODO - find out who is using v1 search and get them to try v2
+
+In the last 24 hours of 30.9.15 @ 16.26 GMT Motion Math made 253 search requests.
 
 ## sharing/unsharing
 
@@ -54,8 +73,12 @@ Search for: `TODO: RF`
 ## add tests
 
 Moving the business logic out has shown that we are missing alot of tests for the core business logic. Add some.
+Search for `in pending` in the project.
+
 
 ## indexing needs to be re-hooked into itemService save
 
 * extend the main ItemService and hook it in there?
+
+
 

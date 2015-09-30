@@ -66,6 +66,7 @@ object Main
   override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
   override lazy val v2PlayerExecutionContext: V2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext: SalatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
+  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
@@ -84,8 +85,6 @@ object Main
     AppConfig.elasticSearchUrl,
     AppConfig.mongoUri,
     AppConfig.componentsPath)
-
-  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val transformerItemService = new TransformerItemService(itemService,
     db("versioned_content"),
