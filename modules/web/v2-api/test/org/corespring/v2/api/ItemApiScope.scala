@@ -12,6 +12,7 @@ import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionService
 import org.specs2.matcher.{ Expectable, MatchResult, Matcher }
 import org.specs2.specification.Scope
 import play.api.http.HeaderNames
@@ -105,6 +106,11 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
     m
   }
 
+  lazy val sessionService = {
+    val m = mock[SessionService]
+    m
+  }
+
   var itemTypes = Seq.empty[ComponentType]
 
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
@@ -118,5 +124,6 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
     mockScoreService,
     jsonFormatting,
     apiContext,
+    sessionService,
     getOrgAndOptionsFn)
 }

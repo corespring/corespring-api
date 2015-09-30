@@ -2,13 +2,16 @@ package org.corespring.services.salat
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.models.{ Domain, StandardDomains, Standard }
-import org.specs2.mutable.After
+import org.specs2.mutable.{ BeforeAfter, After }
+import org.specs2.time.NoTimeConversions
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
-class StandardServiceTest extends ServicesSalatIntegrationTest {
+class StandardServiceTest extends ServicesSalatIntegrationTest with NoTimeConversions {
 
   "domains" should {
 
-    trait scope extends After {
+    trait scope extends BeforeAfter {
 
       def addStandard(subject: String, category: String, dotNotation: String): Standard = {
         val s: Standard = Standard(
@@ -20,16 +23,21 @@ class StandardServiceTest extends ServicesSalatIntegrationTest {
         s.copy(id = id)
       }
 
-      import Standard.Subjects._
-      val four = addStandard(ELA, "ela-1", "C.1.2")
-      val one = addStandard(ELA, "ela-1", "C.1")
-      val two = addStandard(ELA, "ela-1", "C.1.1")
-      val three = addStandard(ELA, "ela-2", "C.2")
-
       override def after: Any = {
 
       }
 
+      override def before: Any = {
+        import Standard.Subjects._
+        addStandard(ELA, "ela-1", "C.1.2")
+        addStandard(ELA, "ela-1", "C.1")
+        addStandard(ELA, "ela-1", "C.1.1")
+        addStandard(ELA, "ela-2", "C.2")
+        println(s"Insertion complete")
+
+        //val all = services.standardService.find(MongoDBObject.empty)
+        //println(all)
+      }
     }
 
     "return domains" in new scope {
@@ -40,7 +48,13 @@ class StandardServiceTest extends ServicesSalatIntegrationTest {
           Domain("ela-2", Seq("C.2"))),
         Seq.empty[Domain])
 
-      services.standardService.domains must equalTo(expected).await
+      val result = services.standardService.domains
+
+      val inner = Await.result(result, 2.seconds)
+
+      println(s"inner result : $inner")
+
+      result must equalTo(expected).await(timeout = 10.seconds)
     }
   }
 }

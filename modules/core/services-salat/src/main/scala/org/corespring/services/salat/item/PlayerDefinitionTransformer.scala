@@ -2,12 +2,9 @@ package org.corespring.services.salat.item
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.commons.Logger
-import com.novus.salat.Context
 import com.novus.salat.transformers.CustomTransformer
 import org.corespring.models.item.PlayerDefinition
-import org.corespring.models.item.resource.BaseFile
 import org.corespring.services.salat.serialization.{ ToJsValue, ToDBObject }
-import org.slf4j.LoggerFactory
 import com.mongodb.casbah.Imports._
 import play.api.libs.json.{ Json, JsValue }
 
@@ -16,11 +13,9 @@ case class PlayerDefinitionTransformerException(e: Throwable) extends RuntimeExc
 /**
  * A transformer to help salat to (de)serialize - jsvalue to and from mongo db
  */
-class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[PlayerDefinition, DBObject] {
+class PlayerDefinitionTransformer(fileTransformer: FileTransformer) extends CustomTransformer[PlayerDefinition, DBObject] {
 
   lazy val logger = Logger(classOf[PlayerDefinitionTransformer])
-
-  import com.novus.salat.grater
 
   override def serialize(a: PlayerDefinition): DBObject = try {
     logger.trace(s"serialize: ${a}")
@@ -28,7 +23,7 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     val builder = MongoDBObject.newBuilder
 
     val preppedFiles: Seq[DBObject] = a.files.map {
-      f => grater[BaseFile](ctx, manifest[BaseFile]).asDBObject(f)
+      f => fileTransformer.serialize(f)
     }
 
     builder += "files" -> MongoDBList(preppedFiles: _*)
@@ -60,7 +55,8 @@ class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[Pl
     } else {
       val list = b.get("files").asInstanceOf[BasicDBList]
       list.toList.map {
-        dbo => grater[BaseFile](ctx, manifest[BaseFile]).asObject(dbo.asInstanceOf[DBObject])
+        dbo =>
+          fileTransformer.deserialize(dbo.asInstanceOf[DBObject])
       }
     }
 

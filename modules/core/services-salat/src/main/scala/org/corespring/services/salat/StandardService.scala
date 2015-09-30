@@ -21,26 +21,23 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def findOneById(id: ObjectId): Option[Standard] = dao.findOneById(id)
 
-  private def getDomains(getDomain: Standard => Option[String], subjects: String*): Future[Seq[Domain]] = Future {
+  private def getDomains(getDomain: Standard => Option[String], subjects: String*): Future[Seq[Domain]] = {
     val query = Standard.Keys.Subject $in subjects
     logger.trace(s"function=getDomains, query=$query")
-    val standards = dao.find(query).toSeq
-    logger.trace(s"function=getDomains, query=$query, standards=$standards")
-    Domain.fromStandards(standards, _.subCategory)
+    val standards = Future { dao.find(query).toSeq }
+    standards.map { s =>
+      logger.trace(s"function=getDomains, query=$query, standards=$s, size=${s.size}")
+      Domain.fromStandards(s, _.subCategory)
+    }
   }
 
   //Core Refactor: From Standard.Domains
   override lazy val domains: Future[StandardDomains] = {
     import Standard.{ Subjects }
-
-    val elaFuture = getDomains(_.subCategory, Subjects.ELA, Subjects.ELALiteracy)
-    val mathFuture = getDomains(_.category, Subjects.Math)
-
-    for {
-      ela <- elaFuture
-      math <- mathFuture
-    } yield {
-      StandardDomains(ela, math)
+    Future.sequence(Seq(
+      getDomains(_.subCategory, Subjects.ELA, Subjects.ELALiteracy),
+      getDomains(_.category, Subjects.Math))).map { results =>
+      StandardDomains(results(0), results(1))
     }
   }
 
@@ -95,7 +92,7 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def find(dbo: DBObject): Stream[Standard] = dao.find(dbo).toStream
 
-  override def insert(standard: Standard): Option[ObjectId] = dao.insert(standard)
+  override def insert(standard: Standard): Option[ObjectId] = dao.insert(standard, WriteConcern.Safe)
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
 
