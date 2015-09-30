@@ -110,7 +110,8 @@ class ContentCollectionService(
   }
 
   /** Get a default collection from the set of ids */
-  override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] = dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
+  override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] =
+    dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
 
   /**
    * Unshare the specified items from the specified collections

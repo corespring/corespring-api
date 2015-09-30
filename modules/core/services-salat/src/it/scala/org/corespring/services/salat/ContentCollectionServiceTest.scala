@@ -14,12 +14,44 @@ class ContentCollectionServiceTest
 
   "ContentCollectionService" should {
 
-    calling("insertCollection") should {
-      "work" in pending
+    trait BaseScope extends After {
+      val service = services.contentCollectionService
+      val org = services.orgService.insert(Organization("test-org"), None).toOption.get
     }
 
-    calling("getDefaultCollection") should {
+    calling("insertCollection") should {
       "work" in pending
+      //what does two phase commit mean?
+      //what should happen if organizationService fails to add a ref to the collection?
+    }
+
+    "getDefaultCollection" should {
+
+      class withCollections(collectionNames:String*) extends BaseScope {
+
+        val collections = collectionNames.map( name => {
+          val collection = ContentCollection(name, org.id)
+          service.insertCollection(org.id, collection, Permission.Read)
+          collection
+        })
+        val collectionIds = collections.map(c => c.id)
+
+
+        override def after: Any = {
+          services.orgService.delete(org.id)
+          for( id <- collectionIds) {
+            service.delete(id)
+          }
+        }
+      }
+
+      "return default collection" in new withCollections("a", "b", "c", "default") {
+        service.getDefaultCollection(collectionIds) === Some(collections(3))
+      }
+
+      "return None" in new withCollections("a", "b", "c") {
+        service.getDefaultCollection(collectionIds) === None
+      }
     }
 
     calling("getContentCollRefs") should {
@@ -34,12 +66,70 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
-    calling("isPublic") should {
-      "work" in pending
+    "isPublic" should {
+
+      class withIsPublic(isPublic:Boolean) extends BaseScope {
+
+        val collection = ContentCollection("test-col", org.id, isPublic )
+        service.insertCollection(org.id, collection, Permission.Read)
+
+        override def after: Any = {
+          services.orgService.delete(org.id)
+          service.delete(collection.id)
+        }
+      }
+
+      "return true when collection is public" in new withIsPublic(true){
+        service.isPublic(collection.id) === true
+      }
+
+      "return false when collection is not public" in new withIsPublic(false){
+        service.isPublic(collection.id) === false
+      }
     }
 
-    calling("isAuthorized") should {
-      "work" in pending
+    "isAuthorized" should {
+
+      class withPermission(p:Permission) extends BaseScope {
+
+        val collection = ContentCollection("test-col", org.id, false )
+        service.insertCollection(org.id, collection, p)
+
+        def canRead() = {
+          service.isAuthorized(org.id, collection.id, Permission.Read)
+        }
+
+        def canWrite() = {
+          service.isAuthorized(org.id, collection.id, Permission.Write)
+        }
+
+        def canNone() = {
+          service.isAuthorized(org.id, collection.id, Permission.None)
+        }
+
+        override def after: Any = {
+          services.orgService.delete(org.id)
+          service.delete(collection.id)
+        }
+      }
+
+      "work on a collection with read permission" in new withPermission(Permission.Read) {
+        canRead() === true
+        canWrite() === false
+        canNone() === true
+      }
+
+      "work on a collection with write permission" in new withPermission(Permission.Write) {
+        canRead() === true
+        canWrite() === true
+        canNone() === true
+      }
+
+      "work on a collection with none permission" in new withPermission(Permission.None) {
+        canRead() === false
+        canWrite() === false
+        canNone() === true
+      }
     }
 
     calling("delete") should {
@@ -72,10 +162,8 @@ class ContentCollectionServiceTest
 
     "listCollectionsByOrg" should {
 
-      trait scope extends After {
+      trait scope extends BaseScope {
 
-        val service = services.contentCollectionService
-        val org = services.orgService.insert(Organization("test-org"), None).toOption.get
         val collection = ContentCollection("test-coll", org.id)
         service.insertCollection(org.id, collection, Permission.Read)
 
@@ -93,8 +181,8 @@ class ContentCollectionServiceTest
 
     "create" should {
 
-      trait scope extends After {
-        lazy val org = services.orgService.insert(Organization("test-org"), None).toOption.get
+      trait scope extends BaseScope {
+
         override def after: Any = {
           services.orgService.delete(org.id)
         }
