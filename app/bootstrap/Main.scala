@@ -26,6 +26,7 @@ import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
+import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
@@ -181,9 +182,9 @@ object Main
     }
   }
 
-  override lazy val itemDao: SalatVersioningDao[Item] = {
+  override lazy val itemDao: VersioningDao[Item, VersionedId[ObjectId]] = {
     logger.debug(s"initializing itemDao to be ItemIndexingDao")
-    new ItemIndexingDao(db, context, CollectionNames.item, itemIndexService, ExecutionContext.global)
+    new ItemIndexingDao(salatItemDao, itemIndexService, ExecutionContext.global)
   }
 
   def initServiceLookup() = {

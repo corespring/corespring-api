@@ -13,7 +13,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ ItemStandards, Item }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
-import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.{ services => interface }
@@ -23,7 +23,7 @@ import scala.xml.Elem
 import scalaz._
 
 class ItemService(
-  val dao: SalatVersioningDao[Item],
+  val dao: VersioningDao[Item, VersionedId[ObjectId]],
   assets: interface.item.ItemAssetService,
   contentCollectionService: => interface.ContentCollectionService,
   implicit val context: Context,
@@ -33,8 +33,6 @@ class ItemService(
   protected val logger = Logger(classOf[ItemService])
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
-
-  private lazy val collection = dao.currentCollection
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
@@ -223,8 +221,11 @@ class ItemService(
     try {
       val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
       val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-      val result = dao.currentCollection.update(query, update, upsert = false, multi = true)
-      if (result.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
+      dao.update(query, update, upsert = false, multi = true) match {
+        case Left(e) => Failure(PlatformServiceError(e))
+        case Right(wr) =>
+          if (wr.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
+      }
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
     }
@@ -264,7 +265,7 @@ class ItemService(
     //TODO: RF - include versioned content?
 
     logger.trace(s"distinct.filter=$filter")
-    dao.currentCollection.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
+    dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
 
   override def countItemsInCollection(collectionId: Imports.ObjectId): Long = {

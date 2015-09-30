@@ -14,7 +14,9 @@ import org.corespring.models.auth.{ AccessToken, ApiClient, Permission }
 import org.corespring.models.item.{ FieldValue, Item }
 import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.registration.RegistrationToken
+import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.SalatVersioningDao
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
 import org.corespring.services.salat.auth.{ AccessTokenService, ApiClientService }
@@ -116,7 +118,11 @@ trait SalatServices extends interface.bootstrap.Services {
   lazy val subjectDao = new SalatDAO[Subject, ObjectId](db(CollectionNames.subject)) {}
   lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db(CollectionNames.fieldValue)) {}
 
-  lazy val itemDao = new SalatVersioningDao[Item] {
+  def itemDao: VersioningDao[Item, VersionedId[ObjectId]] = {
+    salatItemDao
+  }
+
+  lazy val salatItemDao = new SalatVersioningDao[Item] {
 
     def db: MongoDB = SalatServices.this.db
 

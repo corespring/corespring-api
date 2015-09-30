@@ -251,7 +251,7 @@ object Build extends sbt.Build {
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
-      moduleConfigurations ++= Seq( /*Dependencies.ModuleConfigurations.snapshots, */ Dependencies.ModuleConfigurations.releases, Dependencies.ModuleConfigurations.localSnapshots),
+      moduleConfigurations ++= Builders.moduleConfig,
 
       /**
        * Warning: Don't enable this for now:
