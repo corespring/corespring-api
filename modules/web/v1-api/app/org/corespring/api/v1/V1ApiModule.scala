@@ -36,6 +36,10 @@ trait V1ApiModule {
 
   def v2FieldValuesApi: v2.api.FieldValuesApi
 
+  def v2ItemApi: v2.api.ItemApi
+
+  lazy val v1ItemApi: Controller = wire[org.corespring.api.v1.ItemApi]
+
   lazy val v1FieldValuesApi: Controller = wire[org.corespring.api.v1.FieldValuesApi]
   lazy val v1CollectionApi: Controller = wire[CollectionApi]
 
@@ -50,5 +54,6 @@ trait V1ApiModule {
     v1ContributorApi,
     v1ItemMetadataApi,
     v1ResourceApi,
-    v1FieldValuesApi)
+    v1FieldValuesApi,
+    v1ItemApi)
 }

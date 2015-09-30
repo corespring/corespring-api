@@ -1,29 +1,28 @@
 package org.corespring.v2.api
 
 import com.mongodb.casbah.Imports._
-import org.corespring.itemSearch.{ ItemIndexSearchResult, ItemIndexQuery, ItemIndexService }
-import org.corespring.models.item.{ Item, ComponentType }
-import org.corespring.models.json.{ JsonFormatting, JsonUtil }
-import org.corespring.models.{ ContentCollRef, Organization }
+import org.bson.types.ObjectId
+import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
+import org.corespring.models.ContentCollRef
 import org.corespring.models.item.Item.Keys._
-import org.corespring.services.bootstrap.Services
-import org.corespring.services.{ SubjectService, StandardService, OrganizationService }
+import org.corespring.models.item.{ ComponentType, Item }
+import org.corespring.models.json.{ JsonFormatting, JsonUtil }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
-import org.bson.types.ObjectId
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.auth.models.OrgAndOpts
-
-import scala.concurrent._
-
 import org.corespring.v2.auth.ItemAuth
-import org.corespring.v2.errors.V2Error
-import play.api.Logger
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
+import org.corespring.v2.errors.V2Error
+import org.corespring.v2.sessiondb.SessionService
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
-import scalaz.{ Failure, Success, Validation }
+
+import scala.concurrent._
 import scalaz.Scalaz._
+import scalaz.{ Failure, Success, Validation }
 
 case class ItemApiExecutionContext(context: ExecutionContext)
 
@@ -36,6 +35,7 @@ class ItemApi(
   scoreService: ScoreService,
   val jsonFormatting: JsonFormatting,
   apiContext: ItemApiExecutionContext,
+  sessionService: SessionService,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api with JsonUtil {
 
   implicit val itemFormat = jsonFormatting.item
@@ -97,10 +97,10 @@ class ItemApi(
     accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
     val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
-    val scopedQuery = (collections.isEmpty match {
+    val scopedQuery = collections.isEmpty match {
       case true => q.copy(collections = accessibleCollectionStrings)
       case _ => q.copy(collections = collections)
-    })
+    }
     itemIndexService.search(scopedQuery).map(result => result match {
       case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
       case Failure(error) => BadRequest(error.getMessage)
@@ -270,6 +270,13 @@ class ItemApi(
       } yield Json.obj("id" -> newId.toString)
 
       validationToResult[JsValue](i => Ok(i))(out)
+    }
+  }
+
+  def legacyCountSessions(itemId: VersionedId[ObjectId]) = Action.async { implicit request =>
+    Future {
+      val count = sessionService.sessionCount(itemId)
+      Ok(Json.obj("sessionCount" -> count))
     }
   }
 

@@ -1,6 +1,7 @@
 package org.corespring.services.salat.item
 
 import com.mongodb.DBObject
+import com.mongodb.casbah.commons.Logger
 import com.novus.salat.Context
 import com.novus.salat.transformers.CustomTransformer
 import org.corespring.models.item.PlayerDefinition
@@ -17,7 +18,7 @@ case class PlayerDefinitionTransformerException(e: Throwable) extends RuntimeExc
  */
 class PlayerDefinitionTransformer(val ctx: Context) extends CustomTransformer[PlayerDefinition, DBObject] {
 
-  lazy val logger = LoggerFactory.getLogger(this.getClass.getName)
+  lazy val logger = Logger(classOf[PlayerDefinitionTransformer])
 
   import com.novus.salat.grater
 

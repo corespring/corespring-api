@@ -11,6 +11,13 @@ PUT     /collections/:id/share-filtered-items                            @org.co
 PUT     /collections/:id/set-enabled-status/:enabled                     @org.corespring.api.v1.CollectionApi.setEnabledStatus(id: ObjectId, enabled: Boolean)
 PUT     /collections/:id/share-with-org/:orgId                           @org.corespring.api.v1.CollectionApi.shareCollection(id: ObjectId, orgId: ObjectId)
 
+
+GET     /items/:itemId/sessions/count     @org.corespring.api.v1.ItemApi.countSessions(itemId:VersionedId[ObjectId])
+
+GET     /metadata/item/:id                @org.corespring.api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
+
+GET     /items/:id                        @org.corespring.api.v1.ItemApi.get(id: VersionedId[ObjectId], detail : Option[String] ?= Some("normal"))
+
 # Resource api
 GET     /items/:itemId/materials          @org.corespring.api.v1.ResourceApi.getSupportingMaterials(itemId:String)
 POST    /items/:itemId/materials          @org.corespring.api.v1.ResourceApi.createSupportingMaterial(itemId:String)

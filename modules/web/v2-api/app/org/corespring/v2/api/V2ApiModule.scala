@@ -10,7 +10,7 @@ import org.corespring.v2.api.services.{ PlayerTokenService, ScoreService }
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.sessiondb.SessionServices
+import org.corespring.v2.sessiondb.{ SessionService, SessionServices }
 import play.api.mvc.{ Controller, RequestHeader }
 
 import scala.concurrent.ExecutionContext
@@ -23,6 +23,8 @@ trait V2ApiModule
   with org.corespring.services.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def mainSessionService: SessionService
 
   def itemIndexService: ItemIndexService
 
@@ -73,6 +75,7 @@ trait V2ApiModule
   private lazy val collectionApi: Controller = wire[CollectionApi]
 
   //Expose this api so v1 api can use it
+  lazy val v2ItemApi: ItemApi = itemApi.asInstanceOf[ItemApi]
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
   lazy val v2FieldValuesApi: FieldValuesApi = fieldValuesApi.asInstanceOf[FieldValuesApi]
 

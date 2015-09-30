@@ -1,13 +1,8 @@
 package org.corespring.models.item.resource
 
 import java.io.InputStream
-
-import com.novus.salat.annotations.Salat
 import org.bson.types.ObjectId
 
-
-//TODO - remove this
-@Salat
 abstract class BaseFile(
   val name: String,
   val contentType: String,

@@ -29,9 +29,11 @@ Do we update the cms to use v2 api calls instead? or do we proxy the calls
 3. remove proxy calls
 
 Failing links:
-http://localhost:9000/api/v1/metadata/item/50ee136ee4b00448c0368e0e:0
-http://localhost:9000/api/v1/field_values/domain
-http://localhost:9000/api/v1/items/50ee136ee4b00448c0368e0e:0
+~~http://localhost:9000/api/v1/metadata/item/50ee136ee4b00448c0368e0e:0~~
+~~http://localhost:9000/api/v1/field_values/domain~~
+~~http://localhost:9000/api/v1/items/50ee136ee4b00448c0368e0e:0~~
+
+### Error - This is not the current version of this item (v1 editor)
 
 #### v1 item api search -> v2 search interface
 
