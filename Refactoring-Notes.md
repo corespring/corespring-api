@@ -13,7 +13,7 @@ Most of the v1 api endpoints have been stripped out, with the exception of:
 
 ### CollectionApi
 All the collection calls now go through to v2 CollectionApi.
-
+Filtering and skipping etc is disabled - I don't think we need it - but check the logs to be sure.
 
 ### ItemApi
 The item calls need to be checked that they are still working

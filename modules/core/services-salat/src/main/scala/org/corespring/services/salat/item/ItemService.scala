@@ -36,17 +36,6 @@ class ItemService(
 
   private lazy val collection = dao.currentCollection
 
-  /**
-   * Used for operations such as cloning and deleting, where we want the index to be updated synchronously. This is
-   * needed so that the client can be assured that when they re-query the index after update that the changes will be
-   * available in search results.
-   * private def syncronousReindex(id: VersionedId[ObjectId]): Validation[Error, String] = {
-   * Success("")
-   * }
-   * TODO: RF: Connect indexing to itemService.
-   * To be removed - outside the scope of this library
-   */
-
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
     val result: Validation[Seq[CloneFileResult], Item] = assets.cloneStoredFiles(item, itemClone)
@@ -54,7 +43,6 @@ class ItemService(
     result match {
       case Success(updatedItem) =>
         dao.save(updatedItem, createNewVersion = false)
-        //syncronousReindex(updatedItem.id)
         Some(updatedItem)
       case Failure(files) =>
         files.foreach({
@@ -81,10 +69,10 @@ class ItemService(
   }
 
   override def publish(id: VersionedId[ObjectId]): Boolean = {
+    logger.trace(s"function=publish, id=$id")
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
-    val result = collection.update(vidToDbo(id), update, upsert = false)
-    //syncronousReindex(id)
-    result.getLastError.ok
+    val result = dao.update(id, update, false)
+    result.isRight
   }
 
   /**
@@ -114,7 +102,6 @@ class ItemService(
 
   override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
     val result = dao.update(id, dbo, createNewVersion)
-    //syncronousReindex(id)
     result.isRight
   }
 
@@ -126,14 +113,9 @@ class ItemService(
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
-    val result = collection.update(MongoDBObject("_id._id" -> itemId.id), update, upsert = false, multi = false)
-    logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result.getN}")
-    require(result.getN == 1, s"Exactly 1 document with id: $itemId must have been updated")
-    if (result.getN != 1) {
-      Failure(s"Wrong number of documents updated for $itemId")
-    } else {
-      Success(result.getN == 1)
-    }
+    val result = dao.update(itemId, update, false)
+    logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result}")
+    Validation.fromEither(result).map(id => true)
   }
 
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = addFileToPlayerDefinition(item.id, file)

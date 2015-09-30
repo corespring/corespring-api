@@ -19,14 +19,14 @@ import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
-import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ElasticSearchUrl, ItemSearchModule }
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
-import org.corespring.models.item.{ ComponentType, FieldValue }
+import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
+import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.salat.ServicesContext
@@ -179,6 +179,11 @@ object Main
     override def countItemsInCollection(collectionId: ObjectId): Long = {
       itemService.countItemsInCollection(collectionId)
     }
+  }
+
+  override lazy val itemDao: SalatVersioningDao[Item] = {
+    logger.debug(s"initializing itemDao to be ItemIndexingDao")
+    new ItemIndexingDao(db, context, CollectionNames.item, itemIndexService, ExecutionContext.global)
   }
 
   def initServiceLookup() = {
