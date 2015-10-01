@@ -76,9 +76,13 @@ Moving the business logic out has shown that we are missing alot of tests for th
 Search for `in pending` in the project.
 
 
-## indexing needs to be re-hooked into itemService save
+~~## indexing needs to be re-hooked into itemService save~~
 
 * extend the main ItemService and hook it in there?
 
+## /developer/... routes 
+
+They don't really work on prod - can we remove them? get requirements from ev
+Same goes for /signup/... /reset/... and /auth/...
 
 
