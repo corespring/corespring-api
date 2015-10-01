@@ -243,7 +243,6 @@ class ContentCollectionServiceTest
       }
     }
 
-
     "delete" should {
 
       "remove the collection from the collections" in new testScope {
@@ -269,7 +268,6 @@ class ContentCollectionServiceTest
         val res = service.delete(col.id)
         findCollection(childOrg, col) === None
         findCollection(rootOrg, col) === None
-
       }
 
       "remove the collection from shared collections" in pending
