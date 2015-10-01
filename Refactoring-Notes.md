@@ -55,6 +55,8 @@ path=/.*api\/v1\/organizations.*&access_token=(.*)/ ==> 0 results
 path=/.*api\/v1\/users.*&access_token=(.*)/ ==> 0 results
 path=/.*api\/v1\/assessments.*&access_token=(.*)/ ==> 0 results
 path=/.*api\/v1\/items.*&access_token=(.*)/ ==> lots of results results
+path=/.*api\/v1\/items\/query.*/ ==> 0
+
 
 TODO - find out who is using v1 search and get them to try v2
 
