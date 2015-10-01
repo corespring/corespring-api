@@ -1,11 +1,10 @@
 package bootstrap
 
-import com.mongodb.CommandResult
 import com.mongodb.casbah.Imports._
 import org.corespring.itemSearch.ItemIndexService
 import org.corespring.models.item.Item
+import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.salat.ServicesContext
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -37,136 +36,168 @@ class ItemIndexingDaoTest extends Specification with Mockito {
       m
     }
 
-    type A2DBO = Any => DBObject
-    lazy val mockCollection = {
-      val m = mock[MongoCollection]
-
-      val cr: CommandResult = mock[CommandResult].ok() returns true
-      val wr: WriteResult = {
-        val m = mock[WriteResult]
-        m.getCachedLastError.returns(cr)
-        m.getLastError.returns(cr)
-        m
+    lazy val underlyingDao = {
+      val m = mock[VersioningDao[Item, VersionedId[ObjectId]]]
+      m.update(any[VersionedId[ObjectId]], any[DBObject], any[Boolean]) answers { (args, _) =>
+        val argArray = args.asInstanceOf[Array[Object]]
+        val id = argArray(0).asInstanceOf[VersionedId[ObjectId]]
+        Right(id)
       }
-      m.remove(any[Any], any[WriteConcern])(any[A2DBO], any[DBEncoder]) returns wr
-      m
-    }
-    lazy val db = {
-      val m = mock[MongoDB]
-      m.apply(any[String]) returns mock[MongoCollection]
+      m.revertToVersion(any[VersionedId[ObjectId]]) answers { (args, _) =>
+        val argArray = args.asInstanceOf[Array[Object]]
+        argArray(0).asInstanceOf[VersionedId[ObjectId]]
+      }
+      m.save(any[Item], any[Boolean]) returns Right(itemId)
+      m.insert(any[Item]) returns Some(itemId)
+      m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
+      m.delete(any[VersionedId[ObjectId]]) returns true
       m
     }
 
-    lazy val context = new ServicesContext(this.getClass.getClassLoader)
-
-    val itemIndexingDao = new ItemIndexingDao(
-      db,
-      context,
-      "content",
+    val dao = new ItemIndexingDao(
+      underlyingDao,
       itemIndexService,
       ExecutionContext.global)
-
   }
-  /*
+
   "update" should {
 
-    "trigger reindex" in new scope {
-      itemIndexingDao.update(itemId, query, true)
+    trait update extends scope {
+      dao.update(itemId, query, true)
+    }
+
+    "trigger reindex" in new update {
       there was one(itemIndexService).reindex(itemId)
     }
 
-    "trigger index refresh" in new scope {
-      itemIndexingDao.update(itemId, query, true)
+    "trigger index refresh" in new update {
       there was one(itemIndexService).refresh()
+    }
+
+    "call update on dao" in new update {
+      there was one(underlyingDao).update(itemId, query, createNewVersion)
     }
 
   }
 
   "revertToVersion" should {
 
-    "trigger reindex" in new scope {
-      itemIndexingDao.revertToVersion(itemId)
+    trait revertToVersion extends scope {
+      dao.revertToVersion(itemId)
+    }
+
+    "trigger reindex" in new revertToVersion {
       there was one(itemIndexService).reindex(itemId)
     }
 
-    "trigger index refresh" in new scope {
-      itemIndexingDao.revertToVersion(itemId)
+    "trigger index refresh" in new revertToVersion {
       there was one(itemIndexService).refresh()
+    }
+
+    "call revertToVersion on dao" in new revertToVersion {
+      there was one(underlyingDao).revertToVersion(itemId)
     }
 
   }
 
   "save" should {
 
-    "trigger reindex" in new scope {
-      itemIndexingDao.save(item, createNewVersion)
+    trait save extends scope {
+      dao.save(item, createNewVersion)
+    }
+
+    "trigger reindex" in new save {
       there was one(itemIndexService).reindex(item.id)
     }
 
-    "trigger index refresh" in new scope {
-      itemIndexingDao.save(item, createNewVersion)
+    "trigger index refresh" in new save {
       there was one(itemIndexService).refresh()
+    }
+
+    "call save on dao" in new save {
+      there was one(underlyingDao).save(item, createNewVersion)
     }
 
   }
 
   "insert" should {
 
-    "trigger reindex" in new scope {
-      itemIndexingDao.insert(item)
+    trait insert extends scope {
+      dao.insert(item)
+    }
+
+    "trigger reindex" in new insert {
       there was one(itemIndexService).reindex(item.id)
     }
 
-    "trigger index refresh" in new scope {
-      itemIndexingDao.insert(item)
+    "trigger index refresh" in new insert {
       there was one(itemIndexService).refresh()
+    }
+
+    "call insert on dao" in new insert {
+      there was one(underlyingDao).insert(item)
     }
 
   }
 
   "findOneById" should {
 
-    "not trigger reindex" in new scope {
-      itemIndexingDao.findOneById(itemId)
+    trait findOneById extends scope {
+      dao.findOneById(itemId)
+    }
+
+    "not trigger reindex" in new findOneById {
       there was no(itemIndexService).reindex(any[VersionedId[ObjectId]])
     }
 
-    "not trigger index refresh" in new scope {
-      itemIndexingDao.findOneById(itemId)
+    "not trigger index refresh" in new findOneById {
       there was no(itemIndexService).refresh()
+    }
+
+    "call findOneById on dao" in new findOneById {
+      there was one(underlyingDao).findOneById(itemId)
     }
 
   }
 
   "findOneCurrent" should {
 
-    "not trigger reindex" in new scope {
-      itemIndexingDao.findOneCurrent(query)
+    trait findOneCurrent extends scope {
+      dao.findOneCurrent(query)
+    }
+
+    "not trigger reindex" in new findOneCurrent {
       there was no(itemIndexService).reindex(any[VersionedId[ObjectId]])
     }
 
-    "not trigger index refresh" in new scope {
-      itemIndexingDao.findOneCurrent(query)
+    "not trigger index refresh" in new findOneCurrent {
       there was no(itemIndexService).refresh()
+    }
+
+    "call findOneById on dao" in new findOneCurrent {
+      there was one(underlyingDao).findOneCurrent(query)
     }
 
   }
 
   "delete" should {
 
-    "not trigger reindex" in new scope {
-      itemIndexingDao.delete(itemId)
+    trait delete extends scope {
+      dao.delete(itemId)
+    }
+
+    "not trigger reindex" in new delete {
       there was no(itemIndexService).reindex(any[VersionedId[ObjectId]])
     }
 
-    "not trigger index refresh" in new scope {
-      itemIndexingDao.delete(itemId)
+    "not trigger index refresh" in new delete {
       there was no(itemIndexService).refresh()
     }
 
+    "call delete on dao" in new delete {
+      there was one(underlyingDao).delete(itemId)
+    }
+
   }
-
-  */
-
 }
 
