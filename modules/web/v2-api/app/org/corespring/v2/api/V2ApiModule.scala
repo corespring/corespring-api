@@ -74,10 +74,13 @@ trait V2ApiModule
 
   private lazy val collectionApi: Controller = wire[CollectionApi]
 
+  private lazy val organizationApi: Controller = wire[OrganizationApi]
+
   //Expose this api so v1 api can use it
   lazy val v2ItemApi: ItemApi = itemApi.asInstanceOf[ItemApi]
   lazy val v2CollectionApi: CollectionApi = collectionApi.asInstanceOf[CollectionApi]
   lazy val v2FieldValuesApi: FieldValuesApi = fieldValuesApi.asInstanceOf[FieldValuesApi]
+  lazy val v2OrganizationApi: OrganizationApi = organizationApi.asInstanceOf[OrganizationApi]
 
   lazy val v2ApiControllers: Seq[Controller] = Seq(
     itemApi,
@@ -89,6 +92,7 @@ trait V2ApiModule
     metadataApi,
     playerTokenApi,
     utilsApi,
-    collectionApi)
+    collectionApi,
+    organizationApi)
 
 }

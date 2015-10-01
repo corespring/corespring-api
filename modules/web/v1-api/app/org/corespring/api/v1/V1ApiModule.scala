@@ -42,6 +42,8 @@ trait V1ApiModule {
 
   def v2ItemApi: v2.api.ItemApi
 
+  def v2OrganizationApi: v2.api.OrganizationApi
+
   def apiClientService: ApiClientService
 
   def tokenService: AccessTokenService
@@ -63,6 +65,7 @@ trait V1ApiModule {
   lazy val v1ContributorApi: Controller = wire[ContributorApi]
   lazy val v1ItemMetadataApi: Controller = wire[ItemMetadataApi]
   lazy val v1ResourceApi: Controller = wire[ResourceApi]
+  lazy val v1OrganizationApi: Controller = wire[OrganizationApi]
 
   lazy val v1ApiControllers: Seq[Controller] = Seq(
     v1CollectionApi,
