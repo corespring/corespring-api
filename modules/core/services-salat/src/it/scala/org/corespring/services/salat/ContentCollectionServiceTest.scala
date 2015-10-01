@@ -18,7 +18,7 @@ class ContentCollectionServiceTest
 
   "ContentCollectionService" should {
 
-    trait xScope extends After {
+    trait testScope extends After {
       val service = services.contentCollectionService
 
       val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
@@ -107,7 +107,7 @@ class ContentCollectionServiceTest
 
     "listCollectionsByOrg" should {
 
-      "list 3 collections for the childOrg" in new xScope {
+      "list 3 collections for the childOrg" in new testScope {
         val cols = service.listCollectionsByOrg(childOrg.id).toSeq
         cols.length === 3
         cols.find(_.id == readableChildOrgCollection.id) !== None
@@ -118,7 +118,7 @@ class ContentCollectionServiceTest
 
     "getPublicCollections" should {
 
-      "return seq with public collection" in new xScope {
+      "return seq with public collection" in new testScope {
         service.getPublicCollections === Seq(publicCollection)
       }
     }
@@ -126,21 +126,21 @@ class ContentCollectionServiceTest
     "getContentCollRefs" should {
 
       "with Permission.Write" should {
-        "should return CCRs for all nested orgs by default" in new xScope {
+        "should return CCRs for all nested orgs by default" in new testScope {
           var refs = service.getContentCollRefs(rootOrg.id, Permission.Write)
           refs.find(_.collectionId == writableCollection.id) !== None
           refs.find(_.collectionId == writableChildOrgCollection.id) !== None
           refs.length === 2
         }
 
-        "should return CCRs for nested orgs when deep = true" in new xScope {
+        "should return CCRs for nested orgs when deep = true" in new testScope {
           var refs = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = true)
           refs.find(_.collectionId == writableCollection.id) !== None
           refs.find(_.collectionId == writableChildOrgCollection.id) !== None
           refs.length === 2
         }
 
-        "should return CCRs for a single org when deep = false" in new xScope {
+        "should return CCRs for a single org when deep = false" in new testScope {
           var refs = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = false)
           refs.find(_.collectionId == writableCollection.id) !== None
           refs.length === 1
@@ -149,7 +149,7 @@ class ContentCollectionServiceTest
 
       "with permission = Read" should {
 
-        "return all readable collections for rootOrg" in new xScope {
+        "return all readable collections for rootOrg" in new testScope {
           var refs = service.getContentCollRefs(rootOrg.id, Permission.Read)
 
           refs.find(_.collectionId == writableCollection.id) !== None
@@ -162,7 +162,7 @@ class ContentCollectionServiceTest
           refs.length === 6
         }
 
-        "return all readable collections for childOrg" in new xScope {
+        "return all readable collections for childOrg" in new testScope {
           var refs = service.getContentCollRefs(childOrg.id, Permission.Read)
 
           refs.find(_.collectionId == writableChildOrgCollection.id) !== None
@@ -185,23 +185,23 @@ class ContentCollectionServiceTest
 
     "itemCount" should {
 
-      "work" in new xScope {
+      "work" in new testScope {
         service.itemCount(writableCollection.id) === 1
       }
 
-      "work" in new xScope {
+      "work" in new testScope {
         service.itemCount(readableCollection.id) === 0
       }
     }
 
     "getDefaultCollection" should {
 
-      "return default collection" in new xScope {
+      "return default collection" in new testScope {
         val collectionIds = Seq(readableCollection, writableCollection, defaultCollection).map(_.id)
         service.getDefaultCollection(collectionIds) === Some(defaultCollection)
       }
 
-      "return None" in new xScope {
+      "return None" in new testScope {
         val collectionIds = Seq(readableCollection, writableCollection).map(_.id)
         service.getDefaultCollection(collectionIds) === None
       }
@@ -209,34 +209,34 @@ class ContentCollectionServiceTest
 
     "isPublic" should {
 
-      "return true when collection is public" in new xScope {
+      "return true when collection is public" in new testScope {
         service.isPublic(publicCollection.id) === true
       }
 
-      "return false when collection is not public" in new xScope {
+      "return false when collection is not public" in new testScope {
         service.isPublic(readableCollection.id) === false
       }
 
-      "return false when collection does not exist" in new xScope {
+      "return false when collection does not exist" in new testScope {
         service.isPublic(ObjectId.get) === false
       }
     }
 
     "isAuthorized" should {
 
-      "work on a collection with read permission" in new xScope {
+      "work on a collection with read permission" in new testScope {
         service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read) === true
         service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write) === false
         service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None) === true
       }
 
-      "work on a collection with write permission" in new xScope {
+      "work on a collection with write permission" in new testScope {
         service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read) === true
         service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write) === true
         service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None) === true
       }
 
-      "work on a collection with no permission" in new xScope {
+      "work on a collection with no permission" in new testScope {
         service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read) === false
         service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write) === false
         service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None) === true
@@ -246,23 +246,23 @@ class ContentCollectionServiceTest
 
     "delete" should {
 
-      "remove the collection from the collections" in new xScope {
+      "remove the collection from the collections" in new testScope {
         val col = service.create("my-new-collection", rootOrg).toOption.get
         service.findOneById(col.id) !== None
         service.delete(col.id)
         service.findOneById(col.id) === None
       }
 
-      "return an error if collection has items" in new xScope {
+      "return an error if collection has items" in new testScope {
         service.delete(writableCollection.id).isFailure === true
       }
 
-      "not remove the collection if it has items" in new xScope {
+      "not remove the collection if it has items" in new testScope {
         service.delete(writableCollection.id).isFailure === true
         service.findOneById(writableCollection.id) !== None
       }
 
-      "remove the collection from all organizations" in new xScope {
+      "remove the collection from all organizations" in new testScope {
         val col = ContentCollection("test-col", rootOrg.id)
         service.insertCollection(rootOrg.id, col, Permission.Read)
         service.insertCollection(childOrg.id, col, Permission.Read)
@@ -289,7 +289,7 @@ class ContentCollectionServiceTest
 
     "create" should {
 
-      "create a new collection" in new xScope {
+      "create a new collection" in new testScope {
         val col = service.create("my-new-collection", rootOrg).toOption.get
         service.getCollections(rootOrg.id, Permission.Write).isSuccess === true
         service.delete(col.id)
