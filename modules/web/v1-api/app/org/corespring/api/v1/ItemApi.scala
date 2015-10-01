@@ -12,7 +12,7 @@ import org.corespring.common.log.{ ClassLogging }
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.platform.core.controllers.auth.ApiRequest
+import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -40,6 +40,7 @@ class ItemApi(
   orgService: OrganizationService,
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
+  val oAuthProvider: OAuthProvider,
   implicit val context: Context)
   extends ContentApi[Item](
     salatService,

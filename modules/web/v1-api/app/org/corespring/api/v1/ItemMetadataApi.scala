@@ -11,7 +11,7 @@ import play.api.libs.json.{ Json, JsValue }
 class ItemMetadataApi(
   metadataService: MetadataService,
   setService: MetadataSetService,
-  val oauthProvider: OAuthProvider) extends BaseApi {
+  val oAuthProvider: OAuthProvider) extends BaseApi {
 
   def get(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>

@@ -26,7 +26,7 @@ class ResourceApi(
   contentCollectionService: ContentCollectionService,
   jsonFormatting: JsonFormatting,
   sessionServices: SessionServices,
-  val oauthProvider: OAuthProvider)
+  val oAuthProvider: OAuthProvider)
   extends BaseApi {
 
   import jsonFormatting._

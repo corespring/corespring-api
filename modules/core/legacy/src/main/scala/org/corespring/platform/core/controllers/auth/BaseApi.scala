@@ -36,7 +36,7 @@ trait BaseApi
   with SecureSocial
   with TokenReader {
 
-  def oauthProvider: OAuthProvider
+  def oAuthProvider: OAuthProvider
 
   protected lazy val logger = Logger(classOf[BaseApi])
 
@@ -77,7 +77,7 @@ trait BaseApi
 
           def onError(apiError: ApiError) = BadRequest(Json.toJson(apiError))
 
-          def onToken(token: String) = oauthProvider.getAuthorizationContext(token).fold(
+          def onToken(token: String) = oAuthProvider.getAuthorizationContext(token).fold(
             error => {
               logger.debug("Error getting authorization context")
               Forbidden(Json.toJson(error)).as(JSON)
@@ -111,7 +111,7 @@ trait BaseApi
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }
         }).getOrElse(tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
-          oauthProvider.getAuthorizationContext(token).fold(
+          oAuthProvider.getAuthorizationContext(token).fold(
             error => Forbidden(Json.toJson(error)).as(JSON),
             ctx => {
               ctx.permission.has(access)

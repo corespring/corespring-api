@@ -3,8 +3,9 @@ package org.corespring.api.v1
 import org.bson.types.ObjectId
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.Organization
-import org.corespring.models.auth.AccessToken
+import org.corespring.models.auth.{ Permission, AccessToken }
 import org.corespring.models.metadata.{ Metadata, MetadataSet, SchemaMetadata }
+import org.corespring.platform.core.controllers.auth.{ AuthorizationContext, OAuthProvider }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.{ OrganizationService, ContentCollectionService }
 import org.corespring.services.auth.AccessTokenService
@@ -18,6 +19,7 @@ import play.api.GlobalSettings
 import play.api.test.{ PlaySpecification, FakeApplication, FakeRequest }
 
 import scala.collection.mutable
+import scalaz.Success
 
 class ItemMetadataApiTest
   extends PlaySpecification
@@ -48,21 +50,7 @@ class ItemMetadataApiTest
     m
   }
 
-  private trait scope extends Scope with BeforeAfter {
-    override def after: Any = {
-      ServiceLookup.contentCollectionService = originals.get("contentCollection").get.asInstanceOf[ContentCollectionService]
-      ServiceLookup.accessTokenService = originals.get("accessToken").get.asInstanceOf[AccessTokenService]
-    }
-
-    override def before: Any = {
-      originals.put("contentCollection", ServiceLookup.contentCollectionService)
-      originals.put("accessToken", ServiceLookup.accessTokenService)
-      originals.put("org", ServiceLookup.orgService)
-      ServiceLookup.contentCollectionService = mockContentCollectionService
-      ServiceLookup.accessTokenService = mockAccessTokenService
-      ServiceLookup.orgService = mockOrgService
-    }
-  }
+  private trait scope extends Scope
 
   val mockGlobal = new GlobalSettings {}
 
@@ -78,15 +66,19 @@ class ItemMetadataApiTest
         val set = MetadataSet("key", "url", "label", false, Seq(SchemaMetadata("schema_key")), setId)
         val setService: MetadataSetService = mock[MetadataSetService]
 
-        import org.mockito.Matchers._
-
-        setService.list(anyObject()) returns Seq(set)
+        setService.list(any[ObjectId]) returns Seq(set)
 
         val metadata = Metadata("demo_key", Map("schema_key" -> "schema_value"))
         val metadataService: MetadataService = mock[MetadataService]
-        metadataService.get(anyObject(), anyObject()) returns Seq(metadata)
+        metadataService.get(any[VersionedId[ObjectId]], any[Seq[String]]) returns Seq(metadata)
 
-        val api: ItemMetadataApi = new ItemMetadataApi(metadataService, setService)
+        val oAuthProvider = {
+          val m = mock[OAuthProvider]
+          m.getAuthorizationContext(any[String]) returns Success(
+            AuthorizationContext(orgId, None, None, Permission.Write, false))
+        }
+
+        val api: ItemMetadataApi = new ItemMetadataApi(metadataService, setService, oAuthProvider)
 
         val json = api.get(itemId)(FakeRequest("", "?access_token=test_token"))
 

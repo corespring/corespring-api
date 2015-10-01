@@ -3,6 +3,7 @@ package developer.controllers
 import com.mongodb.casbah.Imports._
 import common.db.ObjectIdParser
 import org.corespring.models.auth.Permission
+import org.corespring.platform.core.controllers.auth.OAuthProvider
 import org.corespring.services.UserService
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.Logger

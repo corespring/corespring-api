@@ -7,7 +7,7 @@ import play.api.libs.json.Json._
 
 class ContributorApi(
   itemService: ItemService,
-  val oauthProvider: OAuthProvider) extends BaseApi {
+  val oAuthProvider: OAuthProvider) extends BaseApi {
 
   def getContributorsList = ApiAction {
     request =>

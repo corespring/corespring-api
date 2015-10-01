@@ -9,7 +9,7 @@ import common.db.Db
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.ap.v1.V1ApiModule
+import org.corespring.api.v1.V1ApiModule
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.integration.ContainerExecutionContext
