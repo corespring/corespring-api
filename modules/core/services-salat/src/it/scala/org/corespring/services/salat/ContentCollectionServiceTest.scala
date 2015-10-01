@@ -2,10 +2,12 @@ package org.corespring.services.salat
 
 import com.mongodb.DBObject
 import com.mongodb.casbah.Imports._
+import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.specs2.mutable.{ BeforeAfter, Specification }
-import org.specs2.specification.{ After, Scope }
+import org.specs2.mutable.{ After }
 
 import scalaz.{ Failure, Success }
 
@@ -16,35 +18,59 @@ class ContentCollectionServiceTest
 
   "ContentCollectionService" should {
 
-    trait baseScope extends After {
+    trait xScope extends After {
       val service = services.contentCollectionService
-      val org = services.orgService.insert(Organization("test-org"), None).toOption.get
 
-      override def after: Any = {
-        services.orgService.delete(org.id)
+      val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
+      val childOrg = service.orgService.insert(Organization("child-org"), Some(rootOrg.id)).toOption.get
+      val publicOrg = services.orgService.insert(Organization("public-org"), None).toOption.get
+
+      val readableCollection = ContentCollection("readable-col", rootOrg.id)
+      service.insertCollection(rootOrg.id, readableCollection, Permission.Read)
+
+      val writableCollection = ContentCollection("writable-col", rootOrg.id)
+      service.insertCollection(rootOrg.id, writableCollection, Permission.Write)
+
+      val defaultCollection = ContentCollection("default", rootOrg.id)
+      service.insertCollection(rootOrg.id, defaultCollection, Permission.Read)
+
+      val noPermissionCollection = ContentCollection("no-permission-col", rootOrg.id)
+      service.insertCollection(rootOrg.id, noPermissionCollection, Permission.None)
+
+      val readableChildOrgCollection = ContentCollection("readable-child-org-col", childOrg.id)
+      service.insertCollection(childOrg.id, readableChildOrgCollection, Permission.Read)
+
+      val writableChildOrgCollection = ContentCollection("writable-child-org-col", childOrg.id)
+      service.insertCollection(childOrg.id, writableChildOrgCollection, Permission.Write)
+
+      val publicCollection = ContentCollection("public-org-col", publicOrg.id, isPublic = true)
+      service.insertCollection(publicOrg.id, publicCollection, Permission.Write)
+
+      val item = Item(
+        collectionId = writableCollection.id.toString,
+        taskInfo = Some(TaskInfo(title = Some("title"))),
+        standards = Seq("S1", "S2"))
+      val itemId = services.itemService.insert(item).get
+
+      def findCollection(org: Organization, col: ContentCollection) = {
+        service.getContentCollRefs(org.id, Permission.Read).find(
+          _.collectionId == col.id)
       }
-    }
-
-    trait withSpies {
-
-      var serviceSpy = spy(services.contentCollectionService)
-
-      val orgServiceSpy = spy(serviceSpy.orgService)
-      serviceSpy.orgService returns orgServiceSpy
-
-      val itemServiceSpy = spy(serviceSpy.itemService)
-      serviceSpy.itemService returns itemServiceSpy
-    }
-
-    class withCollection(
-      isPublic: Boolean = false,
-      permission: Permission = Permission.Read) extends baseScope {
-      val collection = ContentCollection("test-col", org.id, isPublic)
-      service.insertCollection(org.id, collection, permission)
 
       override def after: Any = {
-        service.delete(collection.id)
-        super.after
+        services.itemService.purge(itemId)
+
+        service.delete(readableCollection.id)
+        service.delete(writableCollection.id)
+        service.delete(defaultCollection.id)
+        service.delete(noPermissionCollection.id)
+        service.delete(readableChildOrgCollection.id)
+        service.delete(writableChildOrgCollection.id)
+        service.delete(publicCollection.id)
+
+        services.orgService.delete(childOrg.id)
+        services.orgService.delete(publicOrg.id)
+        services.orgService.delete(rootOrg.id)
       }
     }
 
@@ -79,163 +105,174 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
-    "getContentCollRefs" should {
-      class scope extends withCollection with withSpies
+    "listCollectionsByOrg" should {
 
-      "search deeply for orgs by default" in new scope {
-        serviceSpy.getContentCollRefs(org.id, Permission.Read)
-        there was one(orgServiceSpy).orgsWithPath(org.id, true)
-      }
-      "pass deep to orgService" in new scope {
-        serviceSpy.getContentCollRefs(org.id, Permission.Read, deep=false)
-        there was one(orgServiceSpy).orgsWithPath(org.id, false)
-      }
-
-      "with permission = Read" should {
-        "return readable collections only" in pending
-        "add public collections" in pending
-
-      }
-      "with permission = Write" should {
-        "return writable collections only" in pending
-        "not add public collections" in pending
-      }
-      "with permission = None" should {
-        //TODO Is Permission = None a valid scenario?
-        "work" in pending
+      "list 3 collections for the childOrg" in new xScope {
+        val cols = service.listCollectionsByOrg(childOrg.id).toSeq
+        cols.length === 3
+        cols.find(_.id == readableChildOrgCollection.id) !== None
+        cols.find(_.id == writableChildOrgCollection.id) !== None
+        cols.find(_.id == publicCollection.id) !== None
       }
     }
 
-
     "getPublicCollections" should {
 
-      "return empty seq" in new withCollection(isPublic=false) {
-        service.getPublicCollections === Seq.empty
+      "return seq with public collection" in new xScope {
+        service.getPublicCollections === Seq(publicCollection)
+      }
+    }
+
+    "getContentCollRefs" should {
+
+      "with Permission.Write" should {
+        "should return CCRs for all nested orgs by default" in new xScope {
+          var refs = service.getContentCollRefs(rootOrg.id, Permission.Write)
+          refs.find(_.collectionId == writableCollection.id) !== None
+          refs.find(_.collectionId == writableChildOrgCollection.id) !== None
+          refs.length === 2
+        }
+
+        "should return CCRs for nested orgs when deep = true" in new xScope {
+          var refs = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = true)
+          refs.find(_.collectionId == writableCollection.id) !== None
+          refs.find(_.collectionId == writableChildOrgCollection.id) !== None
+          refs.length === 2
+        }
+
+        "should return CCRs for a single org when deep = false" in new xScope {
+          var refs = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = false)
+          refs.find(_.collectionId == writableCollection.id) !== None
+          refs.length === 1
+        }
       }
 
-      "return seq with collection" in new withCollection(isPublic=true) {
-        service.getPublicCollections === Seq(collection)
+      "with permission = Read" should {
+
+        "return all readable collections for rootOrg" in new xScope {
+          var refs = service.getContentCollRefs(rootOrg.id, Permission.Read)
+
+          refs.find(_.collectionId == writableCollection.id) !== None
+          refs.find(_.collectionId == writableChildOrgCollection.id) !== None
+          refs.find(_.collectionId == readableCollection.id) !== None
+          refs.find(_.collectionId == readableChildOrgCollection.id) !== None
+          refs.find(_.collectionId == defaultCollection.id) !== None
+          refs.find(_.collectionId == publicCollection.id) !== None
+
+          refs.length === 6
+        }
+
+        "return all readable collections for childOrg" in new xScope {
+          var refs = service.getContentCollRefs(childOrg.id, Permission.Read)
+
+          refs.find(_.collectionId == writableChildOrgCollection.id) !== None
+          refs.find(_.collectionId == readableChildOrgCollection.id) !== None
+          refs.find(_.collectionId == publicCollection.id) !== None
+
+          refs.find(_.collectionId == writableCollection.id) === None
+          refs.find(_.collectionId == readableCollection.id) === None
+          refs.find(_.collectionId == defaultCollection.id) === None
+
+          refs.length === 3
+        }
+      }
+
+      //TODO Is Permission.None a valid scenario?
+      "with permission none" should {
+        "work" in pending
       }
     }
 
     "itemCount" should {
 
-      class scope extends withCollection with withSpies
+      "work" in new xScope {
+        service.itemCount(writableCollection.id) === 1
+      }
 
-      "delegate to itemService.count" in new scope {
-        serviceSpy.itemCount(collection.id)
-        there was one(itemServiceSpy).count(
-          MongoDBObject("collectionId" -> collection.id.toString), None)
+      "work" in new xScope {
+        service.itemCount(readableCollection.id) === 0
       }
     }
 
     "getDefaultCollection" should {
 
-      class withCollections(collectionNames: String*) extends baseScope {
-
-        val collections = collectionNames.map(name => {
-          val collection = ContentCollection(name, org.id)
-          service.insertCollection(org.id, collection, Permission.Read)
-          collection
-        })
-        val collectionIds = collections.map(_.id)
-
-        override def after: Any = {
-          for (id <- collectionIds) {
-            service.delete(id)
-          }
-          super.after
-        }
+      "return default collection" in new xScope {
+        val collectionIds = Seq(readableCollection, writableCollection, defaultCollection).map(_.id)
+        service.getDefaultCollection(collectionIds) === Some(defaultCollection)
       }
 
-      "return default collection" in new withCollections("a", "b", "c", "default") {
-        service.getDefaultCollection(collectionIds) === Some(collections(3))
-      }
-
-      "return None" in new withCollections("a", "b", "c") {
+      "return None" in new xScope {
+        val collectionIds = Seq(readableCollection, writableCollection).map(_.id)
         service.getDefaultCollection(collectionIds) === None
       }
     }
 
     "isPublic" should {
 
-      class withIsPublic(isPublic: Boolean) extends withCollection(isPublic)
-
-      "return true when collection is public" in new withIsPublic(true) {
-        service.isPublic(collection.id) === true
+      "return true when collection is public" in new xScope {
+        service.isPublic(publicCollection.id) === true
       }
 
-      "return false when collection is not public" in new withIsPublic(false) {
-        service.isPublic(collection.id) === false
+      "return false when collection is not public" in new xScope {
+        service.isPublic(readableCollection.id) === false
+      }
+
+      "return false when collection does not exist" in new xScope {
+        service.isPublic(ObjectId.get) === false
       }
     }
 
     "isAuthorized" should {
 
-      class withPermission(p: Permission) extends withCollection(isPublic=false, p) {
-
-        def canRead() = {
-          service.isAuthorized(org.id, collection.id, Permission.Read)
-        }
-
-        def canWrite() = {
-          service.isAuthorized(org.id, collection.id, Permission.Write)
-        }
-
-        def canNone() = {
-          service.isAuthorized(org.id, collection.id, Permission.None)
-        }
+      "work on a collection with read permission" in new xScope {
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read) === true
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write) === false
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None) === true
       }
 
-      "work on a collection with read permission" in new withPermission(Permission.Read) {
-        canRead() === true
-        canWrite() === false
-        canNone() === true
+      "work on a collection with write permission" in new xScope {
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read) === true
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write) === true
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None) === true
       }
 
-      "work on a collection with write permission" in new withPermission(Permission.Write) {
-        canRead() === true
-        canWrite() === true
-        canNone() === true
-      }
-
-      "work on a collection with none permission" in new withPermission(Permission.None) {
-        canRead() === false
-        canWrite() === false
-        canNone() === true
+      "work on a collection with no permission" in new xScope {
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read) === false
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write) === false
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None) === true
       }
     }
 
+
     "delete" should {
 
-      class scope extends withCollection with withSpies
-
-      "remove the collection from the collections" in new scope() {
-        service.findOneById(collection.id) !== None
-        service.delete(collection.id)
-        service.findOneById(collection.id) === None
+      "remove the collection from the collections" in new xScope {
+        val col = service.create("my-new-collection", rootOrg).toOption.get
+        service.findOneById(col.id) !== None
+        service.delete(col.id)
+        service.findOneById(col.id) === None
       }
 
-      "remove the collection from all organizations" in new scope() {
-        serviceSpy.delete(collection.id)
-        there was one(orgServiceSpy).deleteCollectionFromAllOrganizations(collection.id)
+      "return an error if collection has items" in new xScope {
+        service.delete(writableCollection.id).isFailure === true
       }
 
-      "remove the collection from shared collections" in new scope() {
-        serviceSpy.delete(collection.id)
-        there was one(itemServiceSpy).deleteFromSharedCollections(collection.id)
+      "not remove the collection if it has items" in new xScope {
+        service.delete(writableCollection.id).isFailure === true
+        service.findOneById(writableCollection.id) !== None
       }
 
-      "return an error if collection has items" in new scope() {
-        serviceSpy.itemCount(collection.id) returns 1
-        serviceSpy.delete(collection.id).isFailure === true
+      "remove the collection from all organizations" in new xScope {
+        val col = ContentCollection("test-col", rootOrg.id)
+        service.insertCollection(rootOrg.id, col, Permission.Read)
+        service.insertCollection(childOrg.id, col, Permission.Read)
+        val res = service.delete(col.id)
+        findCollection(childOrg, col) === None
+        findCollection(rootOrg, col) === None
+
       }
 
-      "not remove the collection if it has items" in new scope() {
-        serviceSpy.itemCount(collection.id) returns 1
-        serviceSpy.delete(collection.id)
-        serviceSpy.findOneById(collection.id) !== None
-      }
+      "remove the collection from shared collections" in pending
 
       //TODO difficult to throw an error
       "return an error when service calls return SalatRemoveError" in pending
@@ -250,29 +287,14 @@ class ContentCollectionServiceTest
       "roll back when items could not be updated" in pending
     }
 
-    "listCollectionsByOrg" should {
-
-      class scope extends withCollection
-
-      "list 1 collection for the new org" in new scope {
-        service.listCollectionsByOrg(org.id).length === 1
-        service.listCollectionsByOrg(org.id).toSeq === Seq(collection)
-      }
-    }
-
     "create" should {
 
-      class scope extends baseScope {
-
-        override def after: Any = {
-          services.orgService.delete(org.id)
-        }
-      }
-
-      "create a new collection" in new scope {
-        services.contentCollectionService.create("my-new-collection", org)
-        services.contentCollectionService.getCollections(org.id, Permission.Write).isSuccess === true
+      "create a new collection" in new xScope {
+        val col = service.create("my-new-collection", rootOrg).toOption.get
+        service.getCollections(rootOrg.id, Permission.Write).isSuccess === true
+        service.delete(col.id)
       }
     }
+
   }
 }

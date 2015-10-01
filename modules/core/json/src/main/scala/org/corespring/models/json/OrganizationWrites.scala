@@ -31,7 +31,7 @@ class OrganizationWrites(rootOrgId:ObjectId) extends BasicWrites {
   override def writes(org: Organization) = {
     val jsObject = super.writes(org)
     jsObject ++ Json.obj(
-      "collections" -> Json.toJson(org.contentcolls),
+      "contentcolls" -> Json.toJson(org.contentcolls),
       "isRoot" -> (org.id == rootOrgId)
     )
   }

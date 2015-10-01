@@ -166,15 +166,11 @@ class ContentCollectionService(
 
     val orgs = orgService.orgsWithPath(orgId, deep)
 
-    logger.trace(s"function=getContentCollRefs orgId=$orgId p=$p org=$orgs")
-
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
       acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
 
     val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
-
-    logger.trace(s"function=getContentCollRefs refsWithPermission=$out")
 
     if (p == Permission.Read) {
       out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
@@ -322,11 +318,7 @@ class ContentCollectionService(
 
   override def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
     val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
-
-    logger.trace(s"function=listCollectionsByOrg, refs=$refs")
     val query = ("_id" $in refs)
-    logger.trace(s"function=listCollectionsByOrg, query=$query")
-    logger.trace(s"function=listCollectionsByOrg, count=${dao.count()}")
     dao.find(query).toStream
   }
 

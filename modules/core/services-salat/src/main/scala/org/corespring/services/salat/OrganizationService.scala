@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import com.mongodb.casbah.WriteConcern
 import com.mongodb.{ DBObject, BasicDBList }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.{ Context, grater }
@@ -346,9 +347,8 @@ class OrganizationService(
 
     def removeCollectionIdFromOrg(): Validation[String, Unit] = {
       val query = MongoDBObject(Keys.contentcolls + "." + Keys.collectionId -> collId)
-      val update = MongoDBObject("$pull" -> MongoDBObject(Keys.contentcolls -> collId))
+      val update = MongoDBObject("$pull" -> MongoDBObject(Keys.contentcolls -> MongoDBObject(Keys.collectionId -> collId)))
       val result = dao.update(query, update, false, true)
-      logger.trace(s"function=removeCollectionIdFromOrg, result=$result")
       if (result.getLastError.ok) Success() else Failure(s"remove collectionId $collId from orgs failed")
     }
 
@@ -365,7 +365,6 @@ class OrganizationService(
   override def addCollectionReference(orgId: ObjectId, reference: ContentCollRef): Validation[PlatformServiceError, Unit] = {
     val query = MongoDBObject("_id" -> orgId)
     val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.contentcolls -> com.novus.salat.grater[ContentCollRef].asDBObject(reference)))
-    logger.trace(s"function=addCollectionReference update=update")
     val result = dao.update(query, update, false, false)
     if (result.getLastError.ok) Success() else Failure(PlatformServiceError(s"Error adding collection reference to org: $orgId, reference: $reference"))
   }
@@ -402,7 +401,6 @@ class OrganizationService(
           Permission.None
         }
       }
-
     }.getOrElse {
       logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
       Permission.None
