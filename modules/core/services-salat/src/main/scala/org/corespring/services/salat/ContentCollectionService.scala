@@ -22,6 +22,9 @@ class ContentCollectionService(
   val itemService: interface.item.ItemService,
   archiveConfig: ArchiveConfig) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
 
+  //to be able to stub
+  def orgService = organizationService
+
   object Keys {
     val isPublic = "isPublic"
     val sharedInCollections = "sharedInCollections"
@@ -31,12 +34,12 @@ class ContentCollectionService(
 
   /** Enable this collection for this org */
   override def enableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    organizationService.enableCollection(orgId, collectionId)
+    orgService.enableCollection(orgId, collectionId)
   }
 
   /** Enable the collection for the org */
   override def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    organizationService.disableCollection(orgId, collectionId)
+    orgService.disableCollection(orgId, collectionId)
   }
 
   override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Validation[PlatformServiceError, ContentCollection] = {
@@ -46,7 +49,7 @@ class ContentCollectionService(
       dao.insert(collection) match {
         case Some(_) => try {
           val reference = new ContentCollRef(collection.id, p.value, enabled)
-          organizationService.addCollectionReference(orgId, reference).map(_ => collection)
+          orgService.addCollectionReference(orgId, reference).map(_ => collection)
         } catch {
           case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update organization with collection", e))
         }
@@ -151,7 +154,7 @@ class ContentCollectionService(
    *
    * @return
    * def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Validation[PlatformServiceError, Unit] = {
-   * val errors = orgs.map(org => organizationService.addCollection(org._1, collId, org._2)).filter(_.isLeft)
+   * val errors = orgs.map(org => orgService.addCollection(org._1, collId, org._2)).filter(_.isLeft)
    * if (errors.size > 0) Failure(errors(0).left.get)
    * else Success(())
    * }
@@ -161,7 +164,7 @@ class ContentCollectionService(
 
   override def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
 
-    val orgs = organizationService.orgsWithPath(orgId, deep)
+    val orgs = orgService.orgsWithPath(orgId, deep)
 
     logger.trace(s"function=getContentCollRefs orgId=$orgId p=$p org=$orgs")
 
@@ -207,7 +210,7 @@ class ContentCollectionService(
         Failure(PlatformServiceError(s"Can't delete this collection it has $collectionItemCount item(s) in it."))
       } else {
         dao.removeById(collId)
-        organizationService.deleteCollectionFromAllOrganizations(collId)
+        orgService.deleteCollectionFromAllOrganizations(collId)
         itemService.deleteFromSharedCollections(collId)
       }
     } catch {
@@ -234,7 +237,7 @@ class ContentCollectionService(
 
       if (result.getN == 1) {
         if (update.isPublic.exists(_ == true)) {
-          organizationService.addPublicCollectionToAllOrgs(id)
+          orgService.addPublicCollectionToAllOrgs(id)
         }
         dao.findOneById(id).toSuccess(PlatformServiceError(s"Can't find collection with id: $id"))
       } else {
@@ -299,7 +302,9 @@ class ContentCollectionService(
   }
 
   /** How many items are associated with this collectionId */
-  override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
+  override def itemCount(collectionId: ObjectId): Long = {
+    itemService.count(MongoDBObject("collectionId" -> collectionId.toString))
+  }
 
   override def findOneById(id: ObjectId): Option[ContentCollection] = dao.findOneById(id)
 

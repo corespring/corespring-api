@@ -4,8 +4,10 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.specs2.mutable.{ BeforeAfter, Specification }
 import org.specs2.specification.{ After, Scope }
+import com.mongodb.DBObject
+import org.mockito.Matchers._
 
-import scalaz.Success
+import scalaz.{Failure, Success}
 
 class ContentCollectionServiceTest
   extends ServicesSalatIntegrationTest {
@@ -27,19 +29,18 @@ class ContentCollectionServiceTest
 
     "getDefaultCollection" should {
 
-      class withCollections(collectionNames:String*) extends BaseScope {
+      class withCollections(collectionNames: String*) extends BaseScope {
 
-        val collections = collectionNames.map( name => {
+        val collections = collectionNames.map(name => {
           val collection = ContentCollection(name, org.id)
           service.insertCollection(org.id, collection, Permission.Read)
           collection
         })
         val collectionIds = collections.map(c => c.id)
 
-
         override def after: Any = {
           services.orgService.delete(org.id)
-          for( id <- collectionIds) {
+          for (id <- collectionIds) {
             service.delete(id)
           }
         }
@@ -68,9 +69,9 @@ class ContentCollectionServiceTest
 
     "isPublic" should {
 
-      class withIsPublic(isPublic:Boolean) extends BaseScope {
+      class withIsPublic(isPublic: Boolean) extends BaseScope {
 
-        val collection = ContentCollection("test-col", org.id, isPublic )
+        val collection = ContentCollection("test-col", org.id, isPublic)
         service.insertCollection(org.id, collection, Permission.Read)
 
         override def after: Any = {
@@ -79,20 +80,20 @@ class ContentCollectionServiceTest
         }
       }
 
-      "return true when collection is public" in new withIsPublic(true){
+      "return true when collection is public" in new withIsPublic(true) {
         service.isPublic(collection.id) === true
       }
 
-      "return false when collection is not public" in new withIsPublic(false){
+      "return false when collection is not public" in new withIsPublic(false) {
         service.isPublic(collection.id) === false
       }
     }
 
     "isAuthorized" should {
 
-      class withPermission(p:Permission) extends BaseScope {
+      class withPermission(p: Permission) extends BaseScope {
 
-        val collection = ContentCollection("test-col", org.id, false )
+        val collection = ContentCollection("test-col", org.id, isPublic = false)
         service.insertCollection(org.id, collection, p)
 
         def canRead() = {
@@ -132,8 +133,67 @@ class ContentCollectionServiceTest
       }
     }
 
-    calling("delete") should {
-      "work" in pending
+    "delete" should {
+
+      class withCollection() extends BaseScope {
+
+        var serviceSpy = spy(service)
+
+        val orgServiceSpy = spy(service.orgService)
+        serviceSpy.orgService returns orgServiceSpy
+
+        val itemServiceSpy = spy(service.itemService)
+        serviceSpy.itemService returns itemServiceSpy
+
+        val collection = ContentCollection("test-col", org.id)
+        service.insertCollection(org.id, collection, Permission.Read)
+
+        override def after: Any = {
+          services.orgService.delete(org.id)
+          service.delete(collection.id)
+        }
+      }
+
+      "remove the collection from the collections" in new withCollection() {
+        service.findOneById(collection.id) !== None
+        service.delete(collection.id)
+        service.findOneById(collection.id) === None
+      }
+
+      "remove the collection from all organizations" in new withCollection(){
+        serviceSpy.delete(collection.id)
+        there was one(orgServiceSpy).deleteCollectionFromAllOrganizations(collection.id)
+      }
+
+      "remove the collection from shared collections" in new withCollection(){
+        serviceSpy.delete(collection.id)
+        there was one(itemServiceSpy).deleteFromSharedCollections(collection.id)
+      }
+
+      "return an error if collection has items" in new withCollection(){
+        serviceSpy.itemCount(collection.id) returns 1
+        serviceSpy.delete(collection.id).isFailure === true
+      }
+
+      "not remove the collection if it has items" in new withCollection(){
+        serviceSpy.itemCount(collection.id) returns 1
+        serviceSpy.delete(collection.id)
+        serviceSpy.findOneById(collection.id) !== None
+      }
+
+      "return an error when organizations could not be updated" in new withCollection(){
+
+      }
+      "roll back when organization could not be updated" in new withCollection(){
+
+      }
+      "return an error when items could not be updated" in new withCollection(){
+
+      }
+      "roll back when items could not be updated" in new withCollection(){
+
+      }
+
     }
 
     calling("getPublicCollections") should {
