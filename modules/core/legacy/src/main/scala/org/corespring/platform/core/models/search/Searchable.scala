@@ -74,7 +74,6 @@ trait Searchable {
     if (searchableFields.contains(field._1)) formatSortField(field._1, field._2)
     else Left(CorespringInternalError("invalid sort key: " + field._1))
   }
-
   final def toSearchObj(query: AnyRef, optInitSearch: Option[DBObject] = None, parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]] = Map()): Either[SearchCancelled, DBObject] = {
     query match {
       case strquery: String => {

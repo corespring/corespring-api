@@ -7,7 +7,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
+import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.ContentCollectionService
@@ -25,7 +25,8 @@ class ResourceApi(
   itemService: ItemService,
   contentCollectionService: ContentCollectionService,
   jsonFormatting: JsonFormatting,
-  sessionServices: SessionServices)
+  sessionServices: SessionServices,
+  val oauthProvider: OAuthProvider)
   extends BaseApi {
 
   import jsonFormatting._

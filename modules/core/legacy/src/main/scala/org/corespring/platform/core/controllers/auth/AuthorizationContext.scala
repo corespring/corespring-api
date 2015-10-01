@@ -10,5 +10,6 @@ import org.corespring.models.auth.Permission
 case class AuthorizationContext(orgId: ObjectId,
   user: Option[String] = None,
   org: Option[Organization] = None,
-  permission: Permission) {
+  permission: Permission,
+  isLoggedInUser: Boolean) {
 }

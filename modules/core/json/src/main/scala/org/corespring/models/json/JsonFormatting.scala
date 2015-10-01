@@ -81,7 +81,7 @@ trait JsonFormatting {
     override def fieldValues: FieldValue = JsonFormatting.this.fieldValue
   }
 
-  implicit lazy val formatTaskInfo: Format[TaskInfo] = new TaskInfoFormat {
+  implicit lazy val formatTaskInfo: TaskInfoFormat = new TaskInfoFormat {
 
     override implicit def sf: Format[Subjects] = JsonFormatting.this.formatSubjects
 

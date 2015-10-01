@@ -3,12 +3,15 @@ package org.corespring.api.v1
 import org.bson.types.ObjectId
 import org.corespring.models.json.metadata.SetJson
 import org.corespring.models.metadata.{ Metadata, MetadataSet }
-import org.corespring.platform.core.controllers.auth.BaseApi
+import org.corespring.platform.core.controllers.auth.{ OAuthProvider, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
 import play.api.libs.json.{ Json, JsValue }
 
-class ItemMetadataApi(metadataService: MetadataService, setService: MetadataSetService) extends BaseApi {
+class ItemMetadataApi(
+  metadataService: MetadataService,
+  setService: MetadataSetService,
+  val oauthProvider: OAuthProvider) extends BaseApi {
 
   def get(itemId: VersionedId[ObjectId]) = ApiAction {
     request =>

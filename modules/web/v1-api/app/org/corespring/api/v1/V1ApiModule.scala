@@ -1,12 +1,17 @@
 package org.corespring.ap.v1
 
+import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.api.v1.{ ResourceApi, ItemMetadataApi, ContributorApi, CollectionApi }
+import org.corespring.api.v1._
+import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
+import org.corespring.platform.core.controllers.auth.OAuthProvider
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.services.auth.{AccessTokenService, ApiClientService}
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.{ MetadataSetService, MetadataService }
-import org.corespring.services.{ ContentCollectionService, OrganizationService }
+import org.corespring.services.{UserService, ContentCollectionService, OrganizationService}
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.mvc.Controller
 import org.corespring.v2
@@ -37,6 +42,17 @@ trait V1ApiModule {
   def v2FieldValuesApi: v2.api.FieldValuesApi
 
   def v2ItemApi: v2.api.ItemApi
+
+  def apiClientService:ApiClientService
+
+  def accessTokenService: AccessTokenService
+
+  def userService:UserService
+
+  lazy val salatContentService = //new SalatContentService[Item,VersionedId[ObjectId]] {
+
+  //}
+  lazy val oauthProvider = wire[OAuthProvider]
 
   lazy val v1ItemApi: Controller = wire[org.corespring.api.v1.ItemApi]
 

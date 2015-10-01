@@ -4,7 +4,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.Organization
-import org.corespring.models.auth.{ Permission, AccessToken }
+import org.corespring.models.auth.{ Permission }
 import org.corespring.services.ContentCollectionService
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.Logger
@@ -14,22 +14,6 @@ import securesocial.core.SecureSocial
 
 import scalaz.{ Failure, Success }
 
-object OAuthProvider {
-
-  def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
-    ServiceLookup.accessTokenService.findById(t) match {
-      case Some(token: AccessToken) =>
-        if (token.isExpired) {
-          Left(ApiError.ExpiredToken.format(token.expirationDate.toString))
-        } else {
-          val org = ServiceLookup.orgService.findOneById(token.organization)
-          val context = new AuthorizationContext(token.organization, token.scope, org, Permission.Write)
-          Right(context)
-        }
-      case _ => Left(ApiError.InvalidToken)
-    }
-  }
-}
 /**
  * A class that adds an AuthorizationContext to the Request object
  * @param ctx - the AuthorizationContext
@@ -51,6 +35,8 @@ trait BaseApi
   extends Controller
   with SecureSocial
   with TokenReader {
+
+  def oauthProvider: OAuthProvider
 
   protected lazy val logger = Logger(classOf[BaseApi])
 
@@ -91,7 +77,7 @@ trait BaseApi
 
           def onError(apiError: ApiError) = BadRequest(Json.toJson(apiError))
 
-          def onToken(token: String) = OAuthProvider.getAuthorizationContext(token).fold(
+          def onToken(token: String) = oauthProvider.getAuthorizationContext(token).fold(
             error => {
               logger.debug("Error getting authorization context")
               Forbidden(Json.toJson(error)).as(JSON)
@@ -125,7 +111,7 @@ trait BaseApi
             else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization(Some("your registered organization does not have acces to this request"))))
           }
         }).getOrElse(tokenFromRequest(request).fold(error => BadRequest(Json.toJson(error)), token =>
-          OAuthProvider.getAuthorizationContext(token).fold(
+          oauthProvider.getAuthorizationContext(token).fold(
             error => Forbidden(Json.toJson(error)).as(JSON),
             ctx => {
               ctx.permission.has(access)
@@ -164,7 +150,7 @@ trait BaseApi
       ServiceLookup.userService.getPermissions(username, org.id) match {
         case Failure(e) => BadRequest(e.message)
         case Success(p) => {
-          val ctx = new AuthorizationContext(org.id, Option(username), Some(org), p)
+          val ctx = new AuthorizationContext(org.id, Option(username), Some(org), p, true)
           f(ApiRequest(ctx, request, ""))
         }
       }

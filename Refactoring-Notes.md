@@ -21,6 +21,8 @@ The item calls need to be checked that they are still working
 
 - check w/ ev about motion math
 
+- who/where is POST /api/v1/items being called - this shouldn't be running anymore.
+in the last 30 days there were 34 calls to it..
 
 ### CMS and ItemApi
 

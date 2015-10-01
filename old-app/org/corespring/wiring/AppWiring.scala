@@ -4,7 +4,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import common.db.Db
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.{ S3Service, ConcreteS3Service }
-import org.corespring.api.v1.{ CollectionApi, ItemApi }
+import org.corespring.api.v1.{ CollectionApi, ItemApiStripped }
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }

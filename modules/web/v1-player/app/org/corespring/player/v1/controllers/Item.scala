@@ -10,7 +10,7 @@ import play.api.mvc._
 
 class Item(auth: TokenizedRequestActionBuilder[RequestedAccess]) extends Controller with SimpleJsRoutes {
 
-  import org.corespring.api.v1.ItemApi
+  import org.corespring.api.v1.ItemApiStripped
 
   def getDetail(itemId: VersionedId[ObjectId]) = auth.ValidatedAction(
     RequestedAccess.asRead(Some(itemId))) { r: TokenizedRequest[AnyContent] => ItemApi.getDetail(itemId)(r) }
