@@ -1,8 +1,10 @@
 package org.corespring.it
 
 import akka.util.Timeout
+import bootstrap.Main
 import grizzled.slf4j.Logger
-import org.specs2.execute.Results
+import org.specs2.execute.{ Result, AsResult, Results }
+import org.specs2.mutable.Around
 import play.api.test._
 
 import scala.concurrent.duration._
@@ -13,12 +15,19 @@ import scala.concurrent.duration._
  */
 abstract class IntegrationSpecification
   extends PlaySpecification
-  with Results {
+  with Results
+  with Around {
 
   sequential
 
-  val logger: grizzled.slf4j.Logger = Logger(this.getClass)
+  lazy val logger: grizzled.slf4j.Logger = Logger(this.getClass)
 
   override implicit def defaultAwaitTimeout: Timeout = 3.seconds
+
+  override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
+    logger.debug(s"function=around - dropping db")
+    Main.db.dropDatabase()
+    AsResult(t)
+  }
 }
 

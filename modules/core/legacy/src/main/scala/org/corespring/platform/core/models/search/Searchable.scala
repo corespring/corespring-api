@@ -224,7 +224,7 @@ case class SearchFields(var dbfields: DBObject = DBObject(), var jsfields: Seq[S
    */
   def processJson(json: JsObject): JsObject = {
 
-    def addToJson(key: String, acc: JsObject): JsObject = if ((Seq("format") ++ jsfields).contains(key)) {
+    def addToJson(key: String, acc: JsObject): JsObject = if ((Seq("format", "id") ++ jsfields).contains(key)) {
       acc ++ Json.obj(key -> (json \ key))
     } else {
       acc

@@ -41,11 +41,12 @@ class ItemApi(
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   val oAuthProvider: OAuthProvider,
-  implicit val context: Context)
+  override implicit val context: Context)
   extends ContentApi[Item](
     salatService,
     contentCollectionService,
     orgService,
+    context,
     ItemView.Writes) {
 
   import jsonFormatting.item

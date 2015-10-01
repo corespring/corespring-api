@@ -411,7 +411,8 @@ package object scopes {
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
     override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
-      FakeRequest(call.method, s"${call.url}?access_token=$accessToken", FakeHeaders(), body)
+      val separator = if (call.url.contains("?")) "&" else "?"
+      FakeRequest(call.method, s"${call.url}${separator}access_token=$accessToken", FakeHeaders(), body)
     }
   }
 

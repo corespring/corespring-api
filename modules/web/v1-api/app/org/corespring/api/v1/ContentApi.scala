@@ -1,10 +1,11 @@
 package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports._
+import com.novus.salat.Context
 import com.novus.salat.dao.SalatMongoCursor
 import org.corespring.models.auth.Permission
 import org.corespring.models.error.CorespringInternalError
-import org.corespring.models.item.{ Alignments, TaskInfo, Content => CsContent }
+import org.corespring.models.item.{ Content => CsContent, Item, Alignments, TaskInfo }
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
@@ -24,6 +25,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](
   service: SalatContentService[ContentType, _],
   contentCollectionService: ContentCollectionService,
   orgService: OrganizationService,
+  implicit val context: Context,
   implicit val writes: Writes[ContentView[ContentType]]) extends BaseApi {
 
   import org.corespring.models.item.Item.Keys._
@@ -169,8 +171,9 @@ abstract class ContentApi[ContentType <: CsContent[_]](
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
         logger.debug(s"query=${com.mongodb.util.JSON.serialize(query)}")
-        logger.debug(s"fields=${fields.fieldsToReturn}")
-        val cursor = service.find(query, fields.fieldsToReturn)
+        val fieldsWithCollectionId = MongoDBObject(collectionId -> 1) ++ fields.fieldsToReturn
+        logger.debug(s"fields=${fieldsWithCollectionId}")
+        val cursor = service.find(query, fieldsWithCollectionId)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)

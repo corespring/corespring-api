@@ -12,6 +12,7 @@ object ItemSearch extends Searchable {
 
   lazy val standardService = ServiceLookup.standardService
   lazy val subjectService = ServiceLookup.subjectService
+  println(s"------> StandardService? $standardService")
 
   override protected def toFieldsObjInternal(dbfields: BasicDBObject, method: Int): Either[CorespringInternalError, SearchFields] = {
     def toSearchFieldObj(searchFields: SearchFields, field: (String, AnyRef), addToFieldsObj: Boolean = true, dbkey: String = ""): Either[CorespringInternalError, SearchFields] = {
@@ -147,6 +148,7 @@ object ItemSearch extends Searchable {
       case Left(sc) => Left(sc)
     }
   }
+
   override protected def toSearchObjInternal(dbquery: BasicDBObject, optInitSearch: Option[DBObject])(implicit parseFields: Map[String, (AnyRef) => Either[CorespringInternalError, AnyRef]]): Either[SearchCancelled, DBObject] = {
     preParseStandards(dbquery) match {
       case Right(query1) => preParseSubjects(dbquery) match {

@@ -195,6 +195,8 @@ object Main
     ServiceLookup.registrationTokenService = registrationTokenService
     ServiceLookup.userService = userService
     ServiceLookup.fieldValueService = fieldValueService
+    ServiceLookup.standardService = standardService
+    ServiceLookup.subjectService = subjectService
   }
 
   override def s3Service: S3Service = wire[CorespringS3ServiceExtended]

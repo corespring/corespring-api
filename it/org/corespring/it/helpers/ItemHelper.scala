@@ -9,6 +9,7 @@ import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat.bootstrap.CollectionNames
+import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 
 /**
@@ -16,6 +17,8 @@ import play.api.libs.json.{ JsValue, Json }
  * collection. This creates a leaky abstraction, and so this should be refactored to use the collection directly.
  */
 object ItemHelper {
+
+  val logger = Logger(ItemHelper.getClass)
 
   lazy val itemService = Main.itemService
   lazy val itemCollection = Main.db(CollectionNames.item)
@@ -43,7 +46,10 @@ object ItemHelper {
 
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {
     itemService.insert(item.copy(collectionId = collectionId.toString)) match {
-      case Some(versionedId) => versionedId
+      case Some(versionedId) => {
+        logger.trace(s"function=create, dbo=${Main.salatItemDao.currentCollection.findOne(MongoDBObject("_id._id" -> versionedId.id)).toString}")
+        versionedId
+      }
       case _ => throw new Exception("Error creating item")
     }
   }
