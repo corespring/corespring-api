@@ -1,14 +1,13 @@
 package org.corespring.services.salat.item
 
-import com.novus.salat.Context
 import com.novus.salat.transformers.CustomTransformer
 import grizzled.slf4j.Logger
 import com.mongodb.casbah.Imports._
 import org.corespring.models.item.resource.{ StoredFile, VirtualFile, BaseFile }
 
-class FileTransformer(ctx: Context) extends CustomTransformer[BaseFile, DBObject] {
+class FileTransformer extends CustomTransformer[BaseFile, DBObject] {
 
-  lazy val logger = Logger(classOf[PlayerDefinitionTransformer])
+  lazy val logger = Logger(classOf[FileTransformer])
 
   override def deserialize(b: DBObject): BaseFile = {
 
@@ -34,6 +33,7 @@ class FileTransformer(ctx: Context) extends CustomTransformer[BaseFile, DBObject
   }
 
   override def serialize(a: BaseFile): DBObject = {
+    logger.trace(s"function=serialize, a=$a")
     val builder = MongoDBObject.newBuilder
 
     builder += ("name" -> a.name)
@@ -45,6 +45,8 @@ class FileTransformer(ctx: Context) extends CustomTransformer[BaseFile, DBObject
       case StoredFile(_, _, _, storageKey) => builder += ("storageKey" -> storageKey)
     }
 
-    builder.result
+    val out = builder.result
+    logger.trace(s"function=serialize, out=$out")
+    out
   }
 }

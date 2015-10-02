@@ -44,6 +44,10 @@ object BaseFile {
     "json" -> ContentTypes.JSON,
     "js" -> ContentTypes.JS)
 
+  def isValidContentType(t: String): Boolean = {
+    (BaseFile.ContentTypes.binaryTypes ++ BaseFile.ContentTypes.textTypes).contains(t)
+  }
+
   def getContentType(filename: String): String = {
     val split = filename.split("\\.").toList
     val suffix = split.last.toLowerCase

@@ -97,6 +97,7 @@ class ContentCollectionServiceTest
     }
 
     calling("shareItems") should {
+
       "work" in pending
     }
 
@@ -310,14 +311,14 @@ class ContentCollectionServiceTest
     }
 
     "delete" should {
-      
+
       trait scope extends testScope {
         def assertCollectionHasBeenRemoved(org: Organization, col: ContentCollection) = {
           service.getContentCollRefs(org.id, Permission.Read).find(
             _.collectionId == col.id) match {
-            case None =>
-            case _ => failure(s"Collection has not been removed: ${col.name} ${col.id}")
-          }
+              case None =>
+              case _ => failure(s"Collection has not been removed: ${col.name} ${col.id}")
+            }
         }
       }
 

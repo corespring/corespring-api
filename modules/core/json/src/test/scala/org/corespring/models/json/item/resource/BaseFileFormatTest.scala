@@ -7,11 +7,16 @@ import play.api.libs.json.{ Format, Json }
 
 class BaseFileFormatTest extends Specification {
 
+  implicit val format: Format[BaseFile] = BaseFileFormat
+
   "reads" should {
 
-    "read json for stored file with content incorrectly set" in {
+    "validates the contentType defined in the json and falls back to a known contentType if that validation fails" in {
+      val json = Json.obj("name" -> "test.txt", "contentType" -> "blah", "isMain" -> false, "content" -> "hi")
+      json.as[BaseFile] === VirtualFile("test.txt", "text/txt", false, "hi")
+    }
 
-      implicit val format: Format[BaseFile] = BaseFileFormat
+    "read json for stored file with content incorrectly set" in {
 
       def matchType(fn: PartialFunction[BaseFile, Result])(t: (String, String)) = {
         val f = Json.obj("name" -> s"file.${t._1}", "content" -> "", "contentType" -> t._2)
