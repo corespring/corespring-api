@@ -110,7 +110,8 @@ class ContentCollectionService(
   }
 
   /** Get a default collection from the set of ids */
-  override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] = dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
+  override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] =
+    dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
 
   /**
    * Unshare the specified items from the specified collections
@@ -162,15 +163,11 @@ class ContentCollectionService(
 
     val orgs = organizationService.orgsWithPath(orgId, deep)
 
-    logger.trace(s"function=getContentCollRefs orgId=$orgId p=$p org=$orgs")
-
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
       acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
 
     val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
-
-    logger.trace(s"function=getContentCollRefs refsWithPermission=$out")
 
     if (p == Permission.Read) {
       out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
@@ -298,7 +295,9 @@ class ContentCollectionService(
   }
 
   /** How many items are associated with this collectionId */
-  override def itemCount(collectionId: ObjectId): Long = dao.count(MongoDBObject("collectionId" -> collectionId.toString))
+  override def itemCount(collectionId: ObjectId): Long = {
+    itemService.count(MongoDBObject("collectionId" -> collectionId.toString))
+  }
 
   override def findOneById(id: ObjectId): Option[ContentCollection] = dao.findOneById(id)
 
@@ -316,11 +315,7 @@ class ContentCollectionService(
 
   override def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
     val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
-
-    logger.trace(s"function=listCollectionsByOrg, refs=$refs")
     val query = ("_id" $in refs)
-    logger.trace(s"function=listCollectionsByOrg, query=$query")
-    logger.trace(s"function=listCollectionsByOrg, count=${dao.count()}")
     dao.find(query).toStream
   }
 

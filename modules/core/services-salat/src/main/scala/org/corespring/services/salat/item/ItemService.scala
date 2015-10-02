@@ -86,7 +86,7 @@ class ItemService(
     }
   }
 
-  override def count(query: DBObject, fields: Option[String] = None): Int = dao.countCurrent(baseQuery ++ query).toInt
+  override def count(query: DBObject, fields: Option[String] = None): Long = dao.countCurrent(baseQuery ++ query)
 
   override def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
