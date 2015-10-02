@@ -79,13 +79,10 @@ class ContentCollectionService(
       val notAuthorizedItems = itemService.findMultipleById(objectIds: _*).filterNot(item => {
         println(s"++++++++++++++++ ${item}")
         // get the collections to test auth on (owner collection for item, and shared-in collections)
-        val sharedInCollections = item.sharedInCollections.map( _ + "")
-        println(s"++++++++++++++++ ${sharedInCollections}")
-        val collectionsToAuth = item.collectionId +: sharedInCollections
+        val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
         // does org have read access to any of these collections
         val collectionsAuthorized = collectionsToAuth.
-          filter(collectionId =>
-            isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
+          filter(collectionId =>isAuthorized(orgId, collectionId, Permission.Read))
         collectionsAuthorized.nonEmpty
       })
       if(notAuthorizedItems.length > 0){

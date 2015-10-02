@@ -34,6 +34,9 @@ class ContentCollectionServiceTest
       val writableCollection = ContentCollection("writable-col", rootOrg.id)
       service.insertCollection(rootOrg.id, writableCollection, Permission.Write)
 
+      val writableCollectionWithItem = ContentCollection("writable-with-item-col", rootOrg.id)
+      service.insertCollection(rootOrg.id, writableCollectionWithItem, Permission.Write)
+
       val defaultCollection = ContentCollection("default", rootOrg.id)
       service.insertCollection(rootOrg.id, defaultCollection, Permission.Read)
 
@@ -51,19 +54,21 @@ class ContentCollectionServiceTest
       val publicCollection = ContentCollection("public-org-col", publicOrg.id, isPublic = true)
       service.insertCollection(publicOrg.id, publicCollection, Permission.Write)
 
-      //rootOrgs writableCollection contains one item
+      //rootOrg's writableCollection contains one item
       val item = Item(
         id = VersionedId(ObjectId.get(), Some(0)),
-        collectionId = writableCollection.id.toString(),
+        collectionId = writableCollectionWithItem.id.toString,
         taskInfo = Some(TaskInfo(title = Some("title"))),
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
+
 
       override def after: Any = {
         services.itemService.purge(itemId)
 
         service.delete(readableCollection.id)
         service.delete(writableCollection.id)
+        service.delete(writableCollectionWithItem.id)
         service.delete(defaultCollection.id)
         service.delete(noPermissionCollection.id)
         service.delete(readableChildOrgCollection.id)
@@ -100,36 +105,51 @@ class ContentCollectionServiceTest
     }
 
     "shareItems" should {
-      "return error" should {
-        "when org cannot write into collection" in new testScope {
-          val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
-          res match {
-            case Success(x) => failure("Expected to fail with error")
-            case Failure(y) => y.message === "organization does not have write permission on collection"
-          }
+
+      "return error when org cannot write into collection" in new testScope {
+        val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
+        res match {
+          case Success(x) => failure("Expected to fail with error")
+          case Failure(y) => y.message === "organization does not have write permission on collection"
         }
-        "when org cannot read all items" in new testScope {
+      }
+
+      "return error when org cannot read all items" in new testScope {
+        val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+        res match {
+          case Success(x) => failure("Expected to fail with error")
+          case Failure(y) => y.message === "items failed auth"
+        }
+      }
+
+      "return error when items cannot be saved" in new testScope {
+
+        def makeAddingItemFail(block: => Any) = {
+          implicit val serviceSpy = spy(service)
+          var itemServiceSpy = spy(serviceSpy.itemService)
+          serviceSpy.itemService returns itemServiceSpy
+          itemServiceSpy.addCollectionIdToSharedCollections(item.id,
+            writableChildOrgCollection.id) returns Failure(PlatformServiceError("mock"))
+
+          block
+        }
+
+        makeAddingItemFail { implicit service: ContentCollectionService =>
           val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
           res match {
             case Success(x) => failure("Expected to fail with error")
-            case Failure(y) => y.message === "items failed auth"
-          }
-        }
-        "when items cannot be saved" in new testScope {
-          val serviceSpy = spy(service)
-          var itemServiceSpy = spy(serviceSpy.itemService)
-          serviceSpy.itemService returns itemServiceSpy
-          itemServiceSpy.addCollectionIdToSharedCollections(item.id, writableChildOrgCollection.id) returns Failure(PlatformServiceError("mock"))
-
-          val res = serviceSpy.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
-          res match {
-            case Success(x) => failure("Expected to fail with error")
-            case Failure(y) => y.message === "items failed auth"
+            case Failure(y) => y.message === "failed to add items"
           }
         }
       }
-      "work" in pending
 
+      "work" in new testScope {
+        val res = service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+        res match {
+          case Success(x) =>
+          case Failure(y) => failure(s"Unexpected failure: $y")
+        }
+      }
     }
 
     "getCollectionIds" should {
@@ -137,7 +157,7 @@ class ContentCollectionServiceTest
       trait scope extends testScope {
         def assertResult(ids: Seq[ObjectId], cols: ContentCollection*) = {
           cols.map { col =>
-            ids.find(_ == col.id) match {
+            ids.find(_.equals(col.id)) match {
               case None => failure(s"CollectionId not found: ${col.name} ${col.id}")
               case _ =>
             }
@@ -151,17 +171,25 @@ class ContentCollectionServiceTest
       "with Permission.Write" should {
         "should return CCRs for all nested orgs by default" in new scope {
           var res = service.getCollectionIds(rootOrg.id, Permission.Write)
-          assertResult(res, writableCollection, writableChildOrgCollection)
+          assertResult(res,
+            writableCollection,
+            writableCollectionWithItem,
+            writableChildOrgCollection)
         }
 
         "should return CCRs for nested orgs when deep = true" in new scope {
           var res = service.getCollectionIds(rootOrg.id, Permission.Write, deep = true)
-          assertResult(res, writableCollection, writableChildOrgCollection)
+          assertResult(res,
+            writableCollection,
+            writableCollectionWithItem,
+            writableChildOrgCollection)
         }
 
         "should return CCRs for a single org when deep = false" in new scope {
           var res = service.getCollectionIds(rootOrg.id, Permission.Write, deep = false)
-          assertResult(res, writableCollection)
+          assertResult(res,
+            writableCollection,
+            writableCollectionWithItem )
         }
       }
 
@@ -171,6 +199,7 @@ class ContentCollectionServiceTest
           var res = service.getCollectionIds(rootOrg.id, Permission.Read)
           assertResult(res,
             writableCollection,
+            writableCollectionWithItem,
             writableChildOrgCollection,
             readableCollection,
             readableChildOrgCollection,
@@ -193,7 +222,7 @@ class ContentCollectionServiceTest
       trait scope extends testScope {
         def assertResult(res: Seq[ContentCollection], cols: ContentCollection*) = {
           cols.map { col =>
-            res.find(_.id == col.id) match {
+            res.find(_.id.equals(col.id)) match {
               case None => failure(s"CollectionId not found: ${col.name} ${col.id}")
               case _ =>
             }
@@ -225,7 +254,7 @@ class ContentCollectionServiceTest
       trait scope extends testScope {
         def assertResult(refs: Seq[ContentCollRef], cols: ContentCollection*) = {
           cols.map { col =>
-            refs.find(_.collectionId == col.id) match {
+            refs.find(_.collectionId.equals(col.id)) match {
               case None => failure(s"Collection not found: ${col.name} ${col.id}")
               case _ =>
             }
@@ -239,17 +268,23 @@ class ContentCollectionServiceTest
       "with Permission.Write" should {
         "should return CCRs for all nested orgs by default" in new scope {
           var res = service.getContentCollRefs(rootOrg.id, Permission.Write)
-          assertResult(res, writableCollection, writableChildOrgCollection)
+          assertResult(res,
+            writableCollection,
+            writableCollectionWithItem,
+            writableChildOrgCollection)
         }
 
         "should return CCRs for nested orgs when deep = true" in new scope {
           var res = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = true)
-          assertResult(res, writableCollection, writableChildOrgCollection)
+          assertResult(res,
+            writableCollection,
+            writableCollectionWithItem,
+            writableChildOrgCollection)
         }
 
         "should return CCRs for a single org when deep = false" in new scope {
           var res = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = false)
-          assertResult(res, writableCollection)
+          assertResult(res, writableCollection, writableCollectionWithItem)
         }
       }
 
@@ -259,6 +294,7 @@ class ContentCollectionServiceTest
           var res = service.getContentCollRefs(rootOrg.id, Permission.Read)
           assertResult(res,
             writableCollection,
+            writableCollectionWithItem,
             writableChildOrgCollection,
             readableCollection,
             readableChildOrgCollection,
@@ -284,7 +320,7 @@ class ContentCollectionServiceTest
     "itemCount" should {
 
       "work" in new testScope {
-        service.itemCount(writableCollection.id) === 1
+        service.itemCount(writableCollectionWithItem.id) === 1
       }
 
       "work" in new testScope {
@@ -346,7 +382,7 @@ class ContentCollectionServiceTest
       trait scope extends testScope {
         def assertCollectionHasBeenRemoved(org: Organization, col: ContentCollection) = {
           service.getContentCollRefs(org.id, Permission.Read).find(
-            _.collectionId == col.id) match {
+            _.collectionId.equals(col.id)) match {
             case None =>
             case _ => failure(s"Collection has not been removed: ${col.name} ${col.id}")
           }
@@ -361,12 +397,12 @@ class ContentCollectionServiceTest
       }
 
       "return an error if collection has items" in new testScope {
-        service.delete(writableCollection.id).isFailure === true
+        service.delete(writableCollectionWithItem.id).isFailure === true
       }
 
       "not remove the collection if it has items" in new testScope {
-        service.delete(writableCollection.id).isFailure === true
-        service.findOneById(writableCollection.id) !== None
+        service.delete(writableCollectionWithItem.id).isFailure === true
+        service.findOneById(writableCollectionWithItem.id) !== None
       }
 
       "remove the collection from all organizations" in new scope {
