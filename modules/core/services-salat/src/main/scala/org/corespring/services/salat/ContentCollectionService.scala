@@ -65,48 +65,62 @@ class ContentCollectionService(
    * We'll have to filter the individual item ids anyway
    */
   override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    if (isAuthorized(orgId, collId, Permission.Write)) {
 
-      if (items.isEmpty) {
-        logger.warn("[shareItems] items is empty")
+    def allowedToWriteCollection: Validation[PlatformServiceError, Unit] = {
+      isAuthorized(orgId, collId, Permission.Write) match {
+        case true => Success()
+        case _ => Failure(PlatformServiceError("organization does not have write permission on collection"))
       }
+    }
 
+    def allowedToReadItems: Validation[PlatformServiceError, Unit] = {
       val objectIds = items.map(i => i.id)
-
       // get a list of any items that were not authorized to be added
-      val itemsNotAuthorized = itemService.findMultipleById(objectIds: _*).filterNot(item => {
+      val notAuthorizedItems = itemService.findMultipleById(objectIds: _*).filterNot(item => {
+        println(s"++++++++++++++++ ${item}")
         // get the collections to test auth on (owner collection for item, and shared-in collections)
-        val collectionsToAuth = item.collectionId +: item.sharedInCollections
+        val sharedInCollections = item.sharedInCollections.map( _ + "")
+        println(s"++++++++++++++++ ${sharedInCollections}")
+        val collectionsToAuth = item.collectionId +: sharedInCollections
         // does org have read access to any of these collections
-        val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
+        val collectionsAuthorized = collectionsToAuth.
+          filter(collectionId =>
+            isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
         collectionsAuthorized.nonEmpty
       })
-      if (itemsNotAuthorized.size <= 0) {
-        // add collection id to item.sharedinCollections unless the collection is the owner collection for item
-        val savedUnsavedItems = items.partition(item => {
-          try {
-            itemService.findOneById(item) match {
-              case Some(i) if collId.equals(i.collectionId) => true
-              case _ => itemService.addCollectionIdToSharedCollections(item, collId).fold(_ => false, _ => true)
-            }
-          } catch {
-            case e: SalatDAOUpdateError => false
-          }
-        })
-        if (savedUnsavedItems._2.nonEmpty) {
-          logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
-          Failure(PlatformServiceError("failed to add items"))
-        } else {
-          logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
-          Success(savedUnsavedItems._1)
-        }
-
+      if(notAuthorizedItems.length > 0){
+        logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
+        Failure(PlatformServiceError("items failed auth"))
       } else {
-        Failure(PlatformServiceError("items failed auth: " + itemsNotAuthorized.map(_.id)))
+        Success()
       }
-    } else {
-      Failure(PlatformServiceError("organization does not have write permission on collection"))
     }
+
+    def saveUnsavedItems: Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+      val savedUnsavedItems = items.partition(item => {
+        try {
+          itemService.findOneById(item) match {
+            case Some(i) if collId.equals(i.collectionId) => true
+            case _ => itemService.addCollectionIdToSharedCollections(item, collId).fold(_ => false, _ => true)
+          }
+        } catch {
+          case e: SalatDAOUpdateError => false
+        }
+      })
+      if (savedUnsavedItems._2.nonEmpty) {
+        logger.warn(s"[saveUnsavedItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
+        Failure(PlatformServiceError("failed to add items"))
+      } else {
+        logger.trace(s"[saveUnsavedItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
+        Success(savedUnsavedItems._1)
+      }
+    }
+
+    for {
+      canWriteToCollection <- allowedToWriteCollection
+      canReadAllItems <- allowedToReadItems
+      sharedItems <- saveUnsavedItems
+    } yield sharedItems
   }
 
   /** Get a default collection from the set of ids */

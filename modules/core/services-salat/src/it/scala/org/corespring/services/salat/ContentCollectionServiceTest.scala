@@ -6,6 +6,8 @@ import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.errors.PlatformServiceError
 import org.specs2.mutable._
 import org.specs2.matcher._
 
@@ -51,7 +53,8 @@ class ContentCollectionServiceTest
 
       //rootOrgs writableCollection contains one item
       val item = Item(
-        collectionId = writableCollection.id.toString,
+        id = VersionedId(ObjectId.get(), Some(0)),
+        collectionId = writableCollection.id.toString(),
         taskInfo = Some(TaskInfo(title = Some("title"))),
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
@@ -96,8 +99,37 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
-    calling("shareItems") should {
+    "shareItems" should {
+      "return error" should {
+        "when org cannot write into collection" in new testScope {
+          val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
+          res match {
+            case Success(x) => failure("Expected to fail with error")
+            case Failure(y) => y.message === "organization does not have write permission on collection"
+          }
+        }
+        "when org cannot read all items" in new testScope {
+          val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+          res match {
+            case Success(x) => failure("Expected to fail with error")
+            case Failure(y) => y.message === "items failed auth"
+          }
+        }
+        "when items cannot be saved" in new testScope {
+          val serviceSpy = spy(service)
+          var itemServiceSpy = spy(serviceSpy.itemService)
+          serviceSpy.itemService returns itemServiceSpy
+          itemServiceSpy.addCollectionIdToSharedCollections(item.id, writableChildOrgCollection.id) returns Failure(PlatformServiceError("mock"))
+
+          val res = serviceSpy.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+          res match {
+            case Success(x) => failure("Expected to fail with error")
+            case Failure(y) => y.message === "items failed auth"
+          }
+        }
+      }
       "work" in pending
+
     }
 
     "getCollectionIds" should {
