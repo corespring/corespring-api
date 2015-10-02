@@ -6,7 +6,8 @@ import org.corespring.drafts.errors.NothingToCommit
 import org.corespring.drafts.item._
 import org.corespring.drafts.item.models._
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scopes.{ ImageUploader, ImageUtils, userAndItem }
+import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
+import org.corespring.it.scopes.userAndItem
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -206,7 +207,10 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
 
     "clone" should {
       "copy the assets over to the new draft" in new orgAndUserAndItem {
-        ImageUploader.uploadImage(itemId, "it/org/corespring/v2/player/load-image/puppy.png")
+        PlayerDefinitionImageUploader.uploadImageAndAddToPlayerDefinition(
+          itemId,
+          "it/test-images/puppy.png")
+
         val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
         val draft = drafts.loadOrCreate(orgAndUser)(draftId)
         val expectedPath = S3Paths.draftFile(draftId, "puppy.png")

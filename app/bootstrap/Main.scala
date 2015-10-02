@@ -47,6 +47,7 @@ import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
 import play.api.{ Configuration, Logger, Play }
+import web.controllers.ShowResource
 
 import scala.concurrent.ExecutionContext
 import scalaz.Validation
@@ -72,12 +73,15 @@ object Main
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
 
+  //Old cms v1 controller
+  lazy val showResource = new ShowResource(itemService, s3Service)
+
   private lazy val logger = Logger(Main.getClass)
 
   logger.debug("bootstrapping...")
 
   override lazy val controllers: Seq[Controller] = {
-    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers ++ v1ApiControllers
+    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers ++ v1ApiControllers :+ showResource
   }
 
   lazy val configuration = current.configuration

@@ -54,7 +54,7 @@ class ContentCollectionServiceTest
       val publicCollection = ContentCollection("public-org-col", publicOrg.id, isPublic = true)
       service.insertCollection(publicOrg.id, publicCollection, Permission.Write)
 
-      //rootOrg's writableCollection contains one item
+      //rootOrg's writableCollectionWithItem contains one item
       val item = Item(
         id = VersionedId(ObjectId.get(), Some(0)),
         collectionId = writableCollectionWithItem.id.toString,

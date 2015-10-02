@@ -17,11 +17,15 @@ object BaseFileFormat extends JsonUtil with Format[BaseFile] {
   def reads(json: JsValue): JsResult[BaseFile] = {
 
     val name = (json \ "name").asOpt[String].getOrElse("unknown")
-    val contentType = (json \ "contentType").asOpt[String].getOrElse(BaseFile.getContentType(name))
-    val isMain = (json \ "isMain").asOpt[Boolean].getOrElse(false)
+    val contentType = (json \ "contentType")
+      .asOpt[String]
+      .filter(BaseFile.isValidContentType(_))
+      .getOrElse(BaseFile.getContentType(name))
+
+    //TODO: "default" is the old name, check that it's no longer sent in json then remove.
+    val isMain = (json \ "isMain").asOpt[Boolean].orElse((json \ "default").asOpt[Boolean]).getOrElse(false)
 
     val isTextType = BaseFile.ContentTypes.textTypes.contains(contentType)
-
     JsSuccess(
       if (isTextType) {
         VirtualFile(name, contentType, isMain, (json \ "content").asOpt[String].getOrElse(""))

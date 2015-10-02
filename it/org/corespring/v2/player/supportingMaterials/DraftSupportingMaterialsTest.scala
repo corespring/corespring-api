@@ -3,8 +3,9 @@ package org.corespring.v2.player.supportingMaterials
 import com.novus.salat.Context
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.drafts.item.{ DraftAssetKeys, ItemDraftHelper }
+import org.corespring.it.assets.ImageUtils
 import org.corespring.it.helpers.SecureSocialHelper
-import org.corespring.it.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
 import org.corespring.models.item.resource.Resource
 import org.corespring.services.item.ItemService
@@ -72,7 +73,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      def filePath: String = s"it/test-images/puppy.small.jpg"
       lazy val key = DraftAssetKeys.supportingMaterialFile(draftId, "binary-material", filename)
 
       override def after = {

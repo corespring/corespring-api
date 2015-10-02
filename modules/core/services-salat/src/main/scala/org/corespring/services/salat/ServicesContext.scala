@@ -6,7 +6,7 @@ import org.corespring.services.salat.item.{ FileTransformer, PlayerDefinitionTra
 class ServicesContext(classLoader: ClassLoader)
   extends SalatContext(classLoader) {
 
-  val fileTransformer = new FileTransformer(this)
+  val fileTransformer = new FileTransformer()
   val playerDefinitionTransformer = new PlayerDefinitionTransformer(fileTransformer)
   registerCustomTransformer(fileTransformer)
   registerCustomTransformer(playerDefinitionTransformer)

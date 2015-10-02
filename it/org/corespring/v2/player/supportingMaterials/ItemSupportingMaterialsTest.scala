@@ -2,7 +2,8 @@ package org.corespring.v2.player.supportingMaterials
 
 import org.corespring.assets.ItemAssetKeys
 import org.corespring.it.helpers.{ ItemHelper, SecureSocialHelper }
-import org.corespring.it.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
 import org.corespring.models.item.resource.Resource
 import org.specs2.execute.Result
@@ -50,7 +51,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      def filePath: String = s"it/test-images/puppy.small.jpg"
       lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", filename)
 
       override def after = {
