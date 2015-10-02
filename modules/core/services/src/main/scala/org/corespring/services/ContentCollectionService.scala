@@ -104,6 +104,6 @@ trait ContentCollectionService {
    * @param orgId
    * @param collId
    */
-  def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean
+  def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit]
 
 }

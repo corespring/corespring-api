@@ -7,7 +7,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.errors.{ItemUpdateError, ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError}
 import org.specs2.mutable._
 import org.specs2.matcher._
 
@@ -110,7 +110,7 @@ class ContentCollectionServiceTest
         val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
         res match {
           case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y.message === "organization does not have write permission on collection"
+          case Failure(y) => y must haveClass[CollectionAuthorizationError]
         }
       }
 
@@ -118,7 +118,7 @@ class ContentCollectionServiceTest
         val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
         res match {
           case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y.message === "items failed auth"
+          case Failure(y) => y must haveClass[ItemAuthorizationError]
         }
       }
 
@@ -138,7 +138,7 @@ class ContentCollectionServiceTest
           val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
           res match {
             case Success(x) => failure("Expected to fail with error")
-            case Failure(y) => y.message === "failed to add items"
+            case Failure(y) => y must haveClass[ItemUpdateError]
           }
         }
       }
@@ -359,21 +359,21 @@ class ContentCollectionServiceTest
     "isAuthorized" should {
 
       "work on a collection with read permission" in new testScope {
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read) === true
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write) === false
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None) === true
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read).isSuccess === true
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write).isFailure === true
+        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None).isSuccess === true
       }
 
       "work on a collection with write permission" in new testScope {
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read) === true
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write) === true
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None) === true
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read).isSuccess === true
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write).isSuccess === true
+        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None).isSuccess === true
       }
 
       "work on a collection with no permission" in new testScope {
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read) === false
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write) === false
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None) === true
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read).isFailure === true
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write).isFailure === true
+        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None).isSuccess === true
       }
     }
 

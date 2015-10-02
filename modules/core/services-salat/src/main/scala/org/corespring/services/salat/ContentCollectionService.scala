@@ -9,7 +9,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
-import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.errors.{ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError}
 import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }
@@ -67,10 +67,7 @@ class ContentCollectionService(
   override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
 
     def allowedToWriteCollection: Validation[PlatformServiceError, Unit] = {
-      isAuthorized(orgId, collId, Permission.Write) match {
-        case true => Success()
-        case _ => Failure(PlatformServiceError("organization does not have write permission on collection"))
-      }
+      isAuthorized(orgId, collId, Permission.Write)
     }
 
     def allowedToReadItems: Validation[PlatformServiceError, Unit] = {
@@ -82,12 +79,12 @@ class ContentCollectionService(
         val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
         // does org have read access to any of these collections
         val collectionsAuthorized = collectionsToAuth.
-          filter(collectionId =>isAuthorized(orgId, collectionId, Permission.Read))
+          filter(collectionId => isAuthorized(orgId, collectionId, Permission.Read).isSuccess)
         collectionsAuthorized.nonEmpty
       })
       if(notAuthorizedItems.length > 0){
         logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
-        Failure(PlatformServiceError("items failed auth"))
+        Failure(ItemAuthorizationError(orgId, Permission.Read,notAuthorizedItems.map(_.id):_*))
       } else {
         Success()
       }
@@ -129,7 +126,7 @@ class ContentCollectionService(
    */
   override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     // make sure org has auth for all the collIds
-    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
+    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write).isSuccess)
     if (authorizedCollIds.size != collIds.size) {
       Failure(PlatformServiceError("authorization failed on collection(s)"))
     } else {
@@ -197,13 +194,15 @@ class ContentCollectionService(
   /**
    * does the given organization have access to the given collection with given permissions?
    */
-  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit] = {
     val orgCollectionIds = getCollectionIds(orgId, p)
-    val hasId = orgCollectionIds.contains(collId)
-    if (!hasId) {
-      logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+    orgCollectionIds.contains(collId) match {
+      case false => {
+        logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+        Failure(CollectionAuthorizationError(orgId,p, collId))
+      }
+      case _ => Success()
     }
-    hasId
   }
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {

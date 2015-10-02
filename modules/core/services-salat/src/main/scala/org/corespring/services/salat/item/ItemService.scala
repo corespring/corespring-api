@@ -15,7 +15,7 @@ import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.services.errors.{ItemNotFoundError, ItemAuthorizationError, GeneralError, PlatformServiceError}
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
@@ -231,18 +231,18 @@ class ItemService(
     }
   }
 
-  override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean = {
+  override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     dao.findDbo(contentId, MongoDBObject("collectionId" -> 1)).map { dbo =>
       val collectionId = dbo.get("collectionId").asInstanceOf[String]
       if (ObjectId.isValid(collectionId)) {
         contentCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
-        false
+        Failure(ItemNotFoundError(orgId, p, contentId))
       }
     }.getOrElse {
       logger.debug("isAuthorized: can't find item with id: " + contentId)
-      false
+      Failure(ItemNotFoundError(orgId, p, contentId))
     }
   }
 
