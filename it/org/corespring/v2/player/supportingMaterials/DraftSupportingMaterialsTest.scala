@@ -73,7 +73,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      def filePath: String = s"it/test-images/puppy.small.jpg"
       lazy val key = DraftAssetKeys.supportingMaterialFile(draftId, "binary-material", filename)
 
       override def after = {

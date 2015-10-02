@@ -1,16 +1,19 @@
 package web.controllers
 
+import java.io.File
+
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.assets.ImageUtils
 import org.corespring.it.helpers.ItemHelper
-import org.corespring.it.scopes.{ AddImageAndItem, userAndItem }
-import org.specs2.specification.Scope
+import org.corespring.it.scopes.{ userAndItem, AddImageAndItem }
 
 class ShowResourceIntegrationTest extends IntegrationSpecification {
 
-  trait scope extends AddImageAndItem {
-    override lazy val imagePath = "it/org/corespring/v2/player/load-image/puppy.png"
+  trait scope extends userAndItem {
 
-    val item = ItemHelper.get(itemId).get
+    //val img = new File("it/test-images/ervin.png")
+    //ImageUtils.upload(img, s3Path)
+    //val item = ItemHelper.get(itemId).get
 
     //item.copy
   }

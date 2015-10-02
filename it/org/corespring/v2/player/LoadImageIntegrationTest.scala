@@ -20,7 +20,7 @@ class LoadImageIntegrationTest extends IntegrationSpecification {
   "load image" should {
 
     "return 200" in new AddImageAndItem {
-      override lazy val imagePath = "it/org/corespring/v2/player/load-image/puppy.png"
+      override lazy val imagePath = "it/test-images/puppy.png"
       import org.corespring.container.client.controllers.apps.routes.Player
       val call = Player.getFile(sessionId.toString, "puppy.png")
       val r = makeRequest(call)
@@ -30,7 +30,7 @@ class LoadImageIntegrationTest extends IntegrationSpecification {
     import org.corespring.container.client.controllers.apps.routes.Player
 
     "return 200 when imagePath is encoded" in new AddImageAndItem {
-      override lazy val imagePath = "it/org/corespring/v2/player/load-image/pup%20py.png"
+      override lazy val imagePath = "it/test-images/pup%20py.png"
       logger.debug(s" in 'return 200 when imagePath is encoded' itemId $itemId")
       val call = Player.getFile(sessionId.toString, "pup%20py.png")
       val r = makeRequest(call)
@@ -38,7 +38,7 @@ class LoadImageIntegrationTest extends IntegrationSpecification {
     }
 
     "return 200 when imagePath is not encoded" in new AddImageAndItem {
-      override lazy val imagePath = "it/org/corespring/v2/player/load-image/pup py.png"
+      override lazy val imagePath = "it/test-images/pup py.png"
       logger.debug(s" in 'return 200 when imagePath is encoded' itemId $itemId")
       val call = Player.getFile(sessionId.toString, "pup py.png")
       val r = makeRequest(call)

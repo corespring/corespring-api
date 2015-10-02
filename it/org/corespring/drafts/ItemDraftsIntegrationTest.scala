@@ -209,7 +209,7 @@ class ItemDraftsIntegrationTest extends IntegrationSpecification {
       "copy the assets over to the new draft" in new orgAndUserAndItem {
         PlayerDefinitionImageUploader.uploadImageAndAddToPlayerDefinition(
           itemId,
-          "it/org/corespring/v2/player/load-image/puppy.png")
+          "it/test-images/puppy.png")
 
         val draftId = draftIdFromItemIdAndUser(itemId, orgAndUser)
         val draft = drafts.loadOrCreate(orgAndUser)(draftId)

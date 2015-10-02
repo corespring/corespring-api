@@ -11,7 +11,7 @@ class LoadCatalogAssetIntegrationTest extends IntegrationSpecification with NoTi
 
     "load a supporting material asset" in new AddSupportingMaterialImageAndItem {
       //Note: the `lazy` is important here - otherwise there'll be a NPE in <AddSupportingMaterialImageAndItem>.
-      override lazy val imagePath = "it/org/corespring/v2/player/load-image/puppy.png"
+      override lazy val imagePath = "it/test-images/puppy.png"
       override lazy val materialName = "Rubric"
 
       import org.corespring.container.client.controllers.resources.routes.Item

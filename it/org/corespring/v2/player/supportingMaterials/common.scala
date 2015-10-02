@@ -26,7 +26,7 @@ trait addFileScope extends withUploadFile with Helpers.requestToFuture {
 
   import MultipartFormDataWriteable.writeableOf_multipartFormData
 
-  def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+  def filePath: String = s"it/test-images/puppy.small.jpg"
 
   def addFileCall: Call
   def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData]
