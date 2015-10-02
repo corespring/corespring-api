@@ -20,7 +20,7 @@ object ImageUtils {
 
   def upload(file: File, s3Path: String) = {
     require(file.exists)
-    logger.debug(s"Uploading image...: ${file.getPath} -> $s3Path")
+    logger.debug(s"Uploading image, bucket=$bucket, file=${file.getPath}, key=$s3Path")
     val upload: Upload = tm.upload(bucket, s3Path, file)
     upload.waitForUploadResult()
     s3Path
