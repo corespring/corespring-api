@@ -14,6 +14,7 @@ case class ItemIndexHit(id: String,
                         title: Option[String],
                         description: Option[String],
                         apiVersion: Option[Int],
+                        interactionCount: Int,
                         itemTypes: Seq[String])
 
 object ItemIndexHit {
@@ -51,6 +52,7 @@ object ItemIndexHit {
         title = (json \ "_source" \ "taskInfo" \ "title").asOpt[String],
         description = (json \ "_source" \ "taskInfo" \ "description").asOpt[String],
         apiVersion = (json \ "_source" \ "apiVersion").asOpt[Int],
+        interactionCount = (json \ "_source" \ "interactionCount").asOpt[Int].getOrElse(0),
         itemTypes = (json \ "_source" \ "taskInfo" \ "itemTypes").asOpt[Seq[String]].getOrElse(Seq.empty)
       ))
     } catch {
@@ -73,6 +75,7 @@ object ItemIndexHit {
         "title" -> title,
         "description" -> description,
         "apiVersion" -> apiVersion,
+        "interactionCount" -> interactionCount,
         "itemTypes" -> itemTypes
       )
     }
