@@ -51,11 +51,11 @@ GET         /web                                                      web.contro
 # Item Preview
 GET         /web/partials/editItem                                    web.controllers.Partials.editItem
 GET         /web/views/*path                                          web.controllers.Partials.loadFromPath(path:String)
-GET         /web/javascripts/routes                                   web.controllers.ShowResource.javascriptRoutes
+GET         /web/javascripts/routes                                   @web.controllers.ShowResource.javascriptRoutes
 
-GET         /web/show-resource/:itemId/:resourceName/main             web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
-GET         /web/show-resource/:itemId/:resourceName/:filename        web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
-GET         /web/print-resource/:itemId/data/main                     web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
+GET         /web/show-resource/:itemId/:resourceName/main             @web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
+GET         /web/show-resource/:itemId/:resourceName/:filename        @web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
+GET         /web/print-resource/:itemId/data/main                     @web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
 
 
 GET         /password                                                 securesocial.controllers.PasswordChange.page

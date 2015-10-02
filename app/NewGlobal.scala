@@ -1,12 +1,13 @@
 import bootstrap.Main
 import com.amazonaws.services.s3.AmazonS3
-import filters.{AccessControlFilter, AjaxFilter, IEHeaders}
+import filters.{ AccessControlFilter, AjaxFilter, IEHeaders }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.filters.CheckS3CacheFilter
-import org.corespring.play.utils.{CallBlockOnHeaderFilter, ControllerInstanceResolver}
+import org.corespring.play.utils.{ CallBlockOnHeaderFilter, ControllerInstanceResolver }
 import org.corespring.web.common.views.helpers.BuildInfo
 import play.api.GlobalSettings
-import play.api.mvc.{Controller, EssentialAction, Filters, WithFilters}
+import play.api.mvc.{ Controller, EssentialAction, Filters, WithFilters }
+import web.controllers.ShowResource
 
 import scala.concurrent.ExecutionContext
 
@@ -18,8 +19,8 @@ object NewGlobal
     IEHeaders)
   with ControllerInstanceResolver
   with GlobalSettings {
-  lazy val controllers: Seq[Controller] = Main.controllers
 
+  lazy val controllers: Seq[Controller] = Main.controllers
 
   lazy val componentSetFilter = new CheckS3CacheFilter {
     override implicit def ec: ExecutionContext = ExecutionContext.global

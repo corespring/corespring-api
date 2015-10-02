@@ -62,7 +62,7 @@ object ItemHelper {
     println(s"[publish] query result : $result")
   }
 
-  def count(collectionIds: Option[Seq[ObjectId]] = None): Int = {
+  def count(collectionIds: Option[Seq[ObjectId]] = None): Long = {
     collectionIds match {
       case Some(ids) =>
         itemService.count(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString))))
@@ -73,7 +73,7 @@ object ItemHelper {
   /**
    * Provides a count of all items in public collections
    */
-  def publicCount: Int = count(Some(CollectionHelper.public))
+  def publicCount: Long = count(Some(CollectionHelper.public))
 
   def delete(itemId: VersionedId[ObjectId]) = itemService.purge(itemId)
 

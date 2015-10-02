@@ -2,14 +2,15 @@ package org.corespring.v2.player
 
 import org.apache.commons.codec.net.URLCodec
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.scopes.{ ImageUploader, ImageUtils, orgWithAccessTokenAndItem }
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.scopes.orgWithAccessTokenAndItem
 import play.api.mvc.{ AnyContentAsEmpty, AnyContentAsRaw, RawBuffer }
 import play.api.test.{ FakeHeaders, FakeRequest }
 
 class UploadImageTest extends IntegrationSpecification {
 
   lazy val path = "it/org/corespring/v2/player/load-image/puppy.small.jpg"
-  lazy val data = ImageUploader.imageData(path)
+  lazy val data = ImageUtils.imageData(path)
 
   "ItemEditor" should {
 

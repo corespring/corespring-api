@@ -15,6 +15,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.drafts.item.ItemDraftHelper
 import org.corespring.drafts.item.models.DraftId
 import org.corespring.it.helpers._
+import org.corespring.it.assets.{ ImageUtils, PlayerDefinitionImageUploader }
 import org.corespring.models.Organization
 import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -135,119 +136,27 @@ package object scopes {
     }
   }
 
-  trait S3Helper {
-    def client: AmazonS3Client
-    def bucketName: String
-    def logger: Logger
-
-    def rmAssets(key: String) = {
-      import scala.collection.JavaConversions._
-      client.listObjects(bucketName, key).getObjectSummaries.foreach { k =>
-        logger.debug(s"rm key=${k.getKey}")
-        client.deleteObject(bucketName, k.getKey)
-      }
-      client.deleteObject(bucketName, key)
-    }
-  }
-
-  object ImageUtils {
-
-    lazy val credentials: AWSCredentials = AwsUtil.credentials()
-    lazy val client = new AmazonS3Client(credentials)
-    lazy val bucket = AppConfig.assetsBucket
-
-    def exists(path: String): Boolean = {
-      try {
-        val o = client.getObject(bucket, path)
-        println(o.getKey)
-        true
-      } catch {
-        case _: Throwable => false
-      }
-    }
-
-    def list(path: String): Seq[String] = {
-      import scala.collection.JavaConversions._
-      val l = client.listObjects(bucket, path)
-      l.getObjectSummaries.map { s => s.getKey }
-    }
-
-    def delete(path: String) = {
-      list(path).foreach { key =>
-        println(s"[delete] $key")
-        client.deleteObject(bucket, key)
-      }
-      println(s"[delete] $path")
-      client.deleteObject(bucket, path)
-    }
-  }
-
-  object ImageUploader {
-
-    lazy val itemService = bootstrap.Main.itemService
-    lazy val logger = Logger("it.ImageUploader")
-
-    lazy val credentials: AWSCredentials = AwsUtil.credentials()
-    lazy val tm: TransferManager = new TransferManager(credentials)
-    lazy val client = new AmazonS3Client(credentials)
-    lazy val bucketName = AppConfig.assetsBucket
-    implicit val ctx = bootstrap.Main.context
-    def uploadImage(itemId: VersionedId[ObjectId], imagePath: String) = {
-      val file = new File(imagePath)
-      require(file.exists)
-
-      val name = grizzled.file.util.basename(file.getCanonicalPath)
-      val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/$name"
-      val sf = StoredFile(name = name, contentType = "image/png", storageKey = key)
-      val dbo = com.novus.salat.grater[StoredFile].asDBObject(sf)
-
-      itemService.addFileToPlayerDefinition(itemId, sf)
-
-      val updatedItem = itemService.findOneById(itemId)
-      logger.debug(s"Saved item in mongo as: $updatedItem")
-
-      logger.debug(s"Uploading image...: ${file.getPath} -> $key")
-      val upload: Upload = tm.upload(bucketName, key, file)
-      upload.waitForUploadResult()
-      itemId
-    }
-
-    def imageData(imagePath: String): Array[Byte] = {
-      val file = new File(imagePath)
-      require(file.exists)
-      require(Seq("jpg", "png").exists(s => file.getName.endsWith(s)))
-      val bytes = IOUtils.toByteArray(file.toURI)
-      bytes
-    }
-
-  }
-
   trait AddImageAndItem
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
-    with WithV2SessionHelper
-    with S3Helper {
+    with WithV2SessionHelper {
 
     def imagePath: String
     lazy val logger = Logger("it.add-image-and-item")
-    lazy val credentials: AWSCredentials = AwsUtil.credentials()
-    lazy val tm: TransferManager = new TransferManager(credentials)
-    lazy val client = new AmazonS3Client(credentials)
-
     lazy val sessionId = v2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
 
     logger.info("[before]")
     logger.debug(s"[before] sessionId: $sessionId")
     logger.info(s"[before] uploading image: $imagePath, $itemId")
-    ImageUploader.uploadImage(itemId, imagePath)
+    PlayerDefinitionImageUploader.uploadImageAndAddToPlayerDefinition(itemId, imagePath)
 
     override def after: Any = {
       super.after
       logger.debug(s"[after]: delete bucket $bucketName, itemId: $itemId, session: $sessionId")
       try {
-        rmAssets(itemId.id.toString)
+        ImageUtils.delete(itemId.id.toString)
       } catch {
         case t: Throwable => t.printStackTrace()
       }
@@ -259,7 +168,6 @@ package object scopes {
     extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
-    with S3Helper
     with WithV2SessionHelper {
 
     def imagePath: String
@@ -268,9 +176,6 @@ package object scopes {
     //TODO: Remove dependency on mongo collection - everything should be run via the service.
     lazy val itemCollection = bootstrap.Main.db(CollectionNames.item)
     lazy val logger = Logger("it.add-supporting-material-image-and-item")
-    lazy val credentials: AWSCredentials = AwsUtil.credentials()
-    lazy val tm: TransferManager = new TransferManager(credentials)
-    lazy val client = new AmazonS3Client(credentials)
     implicit val ctx = bootstrap.Main.context
 
     lazy val sessionId = v2SessionHelper.create(itemId)
@@ -298,14 +203,14 @@ package object scopes {
       MongoDBObject("$addToSet" -> MongoDBObject("suportingMaterials" -> dbo)))
 
     logger.debug(s"Uploading image...: ${file.getPath} -> $key")
-    val upload: Upload = tm.upload(bucketName, key, file)
-    upload.waitForUploadResult()
+
+    ImageUtils.upload(file, key)
 
     override def after: Any = {
       super.after
       logger.debug(s"[after]: delete bucket $bucketName, itemId: $itemId, session: $sessionId")
       try {
-        rmAssets(itemId.id.toString)
+        ImageUtils.delete(itemId.id.toString)
       } catch {
         case t: Throwable => t.printStackTrace()
       }
