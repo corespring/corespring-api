@@ -6,6 +6,7 @@ import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
 import org.corespring.models.{ Domain, StandardDomains, Standard }
+import org.corespring.services.StandardQuery
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import play.api.libs.json.{ JsObject, JsValue, Json }
 
@@ -53,7 +54,11 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     dao.find(MongoDBObject.empty).toStream
   }
 
-  override def query(raw: String): Stream[Standard] = {
+  override def queryDotNotation(dotNotation: String, l: Int, sk: Int): Stream[Standard] = {
+    ???
+  }
+
+  override def query(raw: StandardQuery, l: Int = 50, sk: Int = 0): Stream[Standard] = {
     getQuery(raw).map(query => {
       logger.trace(s"mongo query: ${query}")
       dao.find(query).toStream
@@ -69,6 +74,9 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     dotNotation <- (json \ "dotNotation").asOpt[String]
   } yield MongoDBObject("dotNotation" -> dotNotation)
 
+  private def buildQuery(t: String) = {
+
+  }
   private def getStandardBySearchQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
     searchTerm <- (json \ "searchTerm").asOpt[String]

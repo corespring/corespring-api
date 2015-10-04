@@ -6,7 +6,15 @@ import org.corespring.models.{ StandardDomains, Standard }
 
 import scala.concurrent.Future
 
-trait StandardService extends QueryService[Standard] {
+case class StandardQuery(term: String,
+  standard: Option[String],
+  subject: Option[String],
+  category: Option[String],
+  subCategory: Option[String]) extends Query
+
+trait StandardService extends QueryService[Standard, StandardQuery] {
+
+  def queryDotNotation(dotNotation: String, l: Int = 50, sk: Int = 0): Stream[Standard]
 
   def delete(id: ObjectId): Boolean
 

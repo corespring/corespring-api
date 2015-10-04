@@ -8,7 +8,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsArray, JsString, Json }
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scalaz.{ Failure, Success, Validation }
 
 class FieldValuesApi(
@@ -36,7 +36,23 @@ class FieldValuesApi(
       })
   }
 
-  def domain = futureWithIdentity { (identity, _) =>
+  def standard(q : Option[String] = None, l : Int = 50, sk : Int = 0) = futureWithIdentity{ (_, request) =>
+
+    val query = q.getOrElse("{}")
+
+    for {
+      queryObject <- Validation.fromTryCatch(com.mongodb..parse(query))
+      _ <- standardService.find()
+    } yield ???
+
+    Future(Ok(""))
+//    request.getQueryString("q").map{ q =>
+//
+//    }.getOrElse{
+//
+//    }
+  }
+  def domain = futureWithIdentity { (_, _) =>
     import jsonFormatting.writeStandardDomains
     standardService.domains.map { sd =>
       Ok(Json.toJson(sd))
