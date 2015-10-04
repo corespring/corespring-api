@@ -4,7 +4,9 @@ import com.mongodb.DBObject
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
 
-trait SubjectService extends QueryService[Subject] {
+case class SubjectQuery(term: String, subject: Option[String], category: Option[String]) extends Query
+
+trait SubjectService extends QueryService[Subject, SubjectQuery] {
 
   def delete(id: ObjectId): Boolean
 

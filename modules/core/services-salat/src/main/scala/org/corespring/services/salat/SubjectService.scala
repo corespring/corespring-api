@@ -9,6 +9,7 @@ import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
 import org.corespring.services
+import org.corespring.services.SubjectQuery
 import play.api.libs.json.{ JsValue, Json }
 
 class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends services.SubjectService {
@@ -25,6 +26,30 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
   override def list(): Stream[Subject] = {
     logger.trace(s"list")
     dao.find(MongoDBObject.empty).toStream
+  }
+
+  private def toDbo(q: SubjectQuery): DBObject = {
+
+    val base = MongoDBObject(
+      List(q.category.map("category" -> _),
+        q.subject.map("subject" -> _)).flatten)
+
+    def invert(key: String, value: Option[String]): Option[DBObject] = {
+      if (value.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
+    }
+
+    val orObject = List(
+      invert("category", q.category),
+      invert("subject", q.subject)).flatten
+
+    import com.mongodb.casbah.Imports._
+
+    base ++ $or(orObject)
+  }
+
+  override def query(term: SubjectQuery, l: Int, sk: Int): Stream[Subject] = {
+    val query = toDbo(term)
+    dao.find(query).skip(sk).limit(l).toStream
   }
 
   override def query(raw: String): Stream[Subject] = {
@@ -65,4 +90,5 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
   override def insert(s: Subject): Option[ObjectId] = dao.insert(s)
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
+
 }

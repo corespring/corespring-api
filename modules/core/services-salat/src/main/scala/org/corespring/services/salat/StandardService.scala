@@ -55,43 +55,71 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
   }
 
   override def queryDotNotation(dotNotation: String, l: Int, sk: Int): Stream[Standard] = {
-    ???
+    val query = MongoDBObject("dotNotation" -> dotNotation)
+    dao.find(query).skip(sk).limit(l).toStream
   }
 
-  override def query(raw: StandardQuery, l: Int = 50, sk: Int = 0): Stream[Standard] = {
-    getQuery(raw).map(query => {
-      logger.trace(s"mongo query: ${query}")
-      dao.find(query).toStream
-    }).getOrElse(Stream.empty[Standard])
+  private def toDbo(q: StandardQuery): DBObject = {
+
+    val l = List(
+      q.category.map("category" -> _),
+      q.subject.map("subject" -> _),
+      q.standard.map("standard" -> _),
+      q.subCategory.map("subCategory" -> _)).flatten
+
+    val query = MongoDBObject(l)
+
+    def invert(key: String, k: Option[String]): Option[DBObject] = {
+      if (k.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
+    }
+
+    val queryList = List(
+      Some(MongoDBObject("dotNotation" -> q.term)),
+      invert("category", q.category),
+      invert("subject", q.subject),
+      invert("standard", q.standard),
+      invert("subCategory", q.subCategory)).flatten
+    import com.mongodb.casbah.Imports._
+    val or = $or(queryList)
+    query ++ or
   }
 
-  def getQuery(raw: String) = {
-    getStandardByDotNotationQuery(raw).orElse(getStandardBySearchQuery(raw))
+  override def query(q: StandardQuery, l: Int = 50, sk: Int = 0): Stream[Standard] = {
+    dao.find(toDbo(q)).limit(l).skip(sk).toStream
   }
 
-  private def getStandardByDotNotationQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    dotNotation <- (json \ "dotNotation").asOpt[String]
-  } yield MongoDBObject("dotNotation" -> dotNotation)
+  @deprecated("use 'query(Query) instead", "core-refactor")
+  override def query(term: String): Stream[Standard] = {
 
-  private def buildQuery(t: String) = {
+    lazy val standardByDotNotationQuery: Option[DBObject] = for {
+      json <- Json.parse(term).asOpt[JsValue]
+      dotNotation <- (json \ "dotNotation").asOpt[String]
+    } yield MongoDBObject("dotNotation" -> dotNotation)
 
-  }
-  private def getStandardBySearchQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    searchTerm <- (json \ "searchTerm").asOpt[String]
-  } yield addFilters(MongoDBObject("$or" -> MongoDBList(
-    MongoDBObject("standard" -> toRegex(searchTerm)),
-    MongoDBObject("subject" -> toRegex(searchTerm)),
-    MongoDBObject("category" -> toRegex(searchTerm)),
-    MongoDBObject("subCategory" -> toRegex(searchTerm)),
-    MongoDBObject("dotNotation" -> toRegex(searchTerm)))), (json \ "filters").asOpt[JsObject])
+    lazy val standardBySearchQuery: Option[DBObject] = for {
+      json <- Json.parse(term).asOpt[JsValue]
+      searchTerm <- (json \ "searchTerm").asOpt[String]
+    } yield addFilters(MongoDBObject("$or" -> MongoDBList(
+      MongoDBObject("standard" -> toRegex(searchTerm)),
+      MongoDBObject("subject" -> toRegex(searchTerm)),
+      MongoDBObject("category" -> toRegex(searchTerm)),
+      MongoDBObject("subCategory" -> toRegex(searchTerm)),
+      MongoDBObject("dotNotation" -> toRegex(searchTerm)))), (json \ "filters").asOpt[JsObject])
 
-  private def addFilters(query: DBObject, json: Option[JsObject]): DBObject = {
-    json.map(filters => for ((k, v) <- filters.fields) {
-      query.put(k, v.as[String])
-    })
-    query
+    lazy val queryObject = {
+      standardByDotNotationQuery.orElse(standardBySearchQuery)
+    }
+
+    def addFilters(query: DBObject, json: Option[JsObject]): DBObject = {
+      json.map(filters => for ((k, v) <- filters.fields) {
+        query.put(k, v.as[String])
+      })
+      query
+    }
+
+    queryObject.map { q =>
+      dao.find(q).toStream
+    }.getOrElse(Stream.empty[Standard])
   }
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
