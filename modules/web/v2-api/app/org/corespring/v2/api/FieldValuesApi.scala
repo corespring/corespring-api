@@ -8,7 +8,7 @@ import org.corespring.v2.errors.V2Error
 import play.api.libs.json.{ JsArray, JsString, Json }
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ Future, ExecutionContext }
 import scalaz.{ Failure, Success, Validation }
 
 class FieldValuesApi(
@@ -41,6 +41,14 @@ class FieldValuesApi(
     standardService.domains.map { sd =>
       Ok(Json.toJson(sd))
     }
+  }
+
+  def subject = futureWithIdentity { (identity, _) =>
+    Future(NotImplemented)
+  }
+
+  def standard = futureWithIdentity { (identity, _) =>
+    Future(NotImplemented)
   }
 
 }
