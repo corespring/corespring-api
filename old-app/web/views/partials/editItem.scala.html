@@ -248,16 +248,9 @@
                    </div>
                 </div>
 
-                <div ng-show="isV1()">
-                    <a ng-click="launchV1Player()">Refresh &nbsp;&nbsp;</a>
-
-                    <a href="{{fullPreviewUrl}}" target="_blank" >Preview in new window</a>
-                </div>
-
                 <div class="preview-container" ng-class="{'v2': isV2()}" id="item-preview-target"></div>
             </div>
         </div>
-        <a class="other-version" ng-click="changePlayerVersion()">v{{otherPlayerVersion()}} player</a>
     </div>
 
 </div>

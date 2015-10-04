@@ -103,14 +103,6 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
   }
 
-  $scope.launchV1Player = function(){
-    new com.corespring.players.ItemPlayer("#item-preview-target", {
-        mode : "preview",
-        itemId : $scope.itemData.id,
-        omitSubmitButton: false
-      }
-    );
-  };
 
   $scope.launchV2Player = function(){
 
@@ -162,22 +154,9 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
-
   $scope.launchV2Preview = function() {
     $scope.v2CatalogUrl = '/v2/player/catalog/' + $scope.itemData.id + '/index.html'
     $scope.showV2Preview = true;
-  };
-
-  function isV2() {
-    return $scope.versionOverride ? $scope.versionOverride === 2 : $('.preview').data('version') === 2;
-  }
-
-  $scope.isV1 = function() {
-    return !isV2();
-  };
-
-  $scope.isV2 = function() {
-    return isV2();
   };
 
   $scope.devUrl = function() {
@@ -185,27 +164,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
   }
 
-  $scope.changePlayerVersion = function() {
-    $scope.versionOverride = $scope.versionOverride === 1 ? 2 : 1;
-    if (isV2()) {
-      $scope.launchV2Player();
-    } else {
-      $scope.launchV1Player();
-    }
-  };
-
-  $scope.otherPlayerVersion = function() {
-    return isV2() ? 1 : 2;
-  };
-
   $scope.togglePreview = function () {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
-    if (isV2()) {
-      $scope.launchV2Player();
-    } else {
-      $scope.launchV1Player();
-    }
+    $scope.launchV2Player();
   };
 
   $scope.$watch("previewVisible", function (newValue) {

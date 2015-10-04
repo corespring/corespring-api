@@ -90,3 +90,6 @@ They don't really work on prod - can we remove them? get requirements from ev
 Same goes for /signup/... /reset/... and /auth/...
 
 
+## supporting materials editor $on('enterEditor') isn't being fired and urls isn't set - also on develop branch
+
+> Need to look at querying for standards and subjects

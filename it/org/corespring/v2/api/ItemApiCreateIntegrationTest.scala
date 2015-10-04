@@ -3,6 +3,7 @@ package org.corespring.v2.api
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.helpers.ItemHelper
 import org.corespring.it.scopes.orgWithAccessToken
+import org.corespring.models.item.FieldValue
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.execute.Result
 import org.specs2.matcher.MatchResult
@@ -58,6 +59,8 @@ class ItemApiCreateIntegrationTest extends IntegrationSpecification {
       }
 
       s"$OK - for token based request with json header - with json body" in new orgWithAccessToken {
+
+        bootstrap.Main.fieldValueService.insert(FieldValue())
         assertCall(
           createRequest[AnyContentAsJson](s"access_token=$accessToken", Some("application/json"), Some(Json.obj())),
           OK)
