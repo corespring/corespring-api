@@ -36,6 +36,9 @@ object ItemHelper {
     itemCollection.update(MongoDBObject("_id._id" -> itemId.id), dbo, upsert = false, multi = false)
   }
 
+  def update(item: Item) = {
+    itemService.save(item, false)
+  }
   def get(id: VersionedId[ObjectId]): Option[Item] = {
     itemService.findOneById(id)
   }
