@@ -55,7 +55,6 @@ class ContentCollectionServiceTest
 
       //rootOrg's writableCollectionWithItem contains one item
       val item = Item(
-        id = VersionedId(ObjectId.get(), Some(0)),
         collectionId = writableCollectionWithItem.id.toString,
         taskInfo = Some(TaskInfo(title = Some("title"))),
         standards = Seq("S1", "S2"))
@@ -137,12 +136,13 @@ class ContentCollectionServiceTest
 
     "unShareItems" should {
 
-      "work" in new testScope {
+
+      "remove shared item from collection" in new testScope {
         service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
         val res = service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id)
         res match {
-          case Success(x) =>
-          case Failure(y) => failure(s"Unexpected failure: $y")
+          case Success(items) => service.isItemSharedWith(itemId, writableCollection.id) === false
+          case Failure(error) => failure(s"Unexpected failure: $error")
         }
       }
 
@@ -175,11 +175,11 @@ class ContentCollectionServiceTest
 
     "shareItems" should {
 
-      "work" in new testScope {
+      "add the item to collection" in new testScope {
         val res = service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
         res match {
-          case Success(x) =>
-          case Failure(y) => failure(s"Unexpected failure: $y")
+          case Success(items) => service.isItemSharedWith(items(0), writableCollection.id) === true
+          case Failure(error) => failure(s"Unexpected failure: $error")
         }
       }
 

@@ -96,4 +96,11 @@ trait ContentCollectionService {
    */
   def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit]
 
+  /**
+   * Is the item shared by the collection
+   * @param itemId
+   * @param collId
+   * @return
+   */
+  def isItemSharedWith(itemId: VersionedId[ObjectId], collId: ObjectId): Boolean
 }

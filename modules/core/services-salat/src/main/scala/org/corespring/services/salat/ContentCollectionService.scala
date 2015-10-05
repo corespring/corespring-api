@@ -6,6 +6,7 @@ import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, Sa
 import grizzled.slf4j.Logger
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
@@ -306,8 +307,7 @@ class ContentCollectionService(
     Failure(PlatformServiceError("Not implemented"))
   }
 
-  //new api, not used yet
-  def isItemSharedWith(org: ObjectId, item: VersionedId[ObjectId], collection: ObjectId): Validation[PlatformServiceError, Unit] = {
-    Failure(PlatformServiceError("Not implemented"))
+  override def isItemSharedWith(itemId: VersionedId[ObjectId], collId: ObjectId): Boolean = {
+    itemService.findOneById(itemId).map(_.sharedInCollections.contains(collId)).getOrElse(false)
   }
 }
