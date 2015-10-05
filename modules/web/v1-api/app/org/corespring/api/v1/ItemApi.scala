@@ -65,7 +65,7 @@ class ItemApi(
 
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
-      if (contentCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
+      if (contentCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read).isSuccess) {
         val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
         contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
           case Left(apiError) =>
@@ -171,7 +171,7 @@ class ItemApi(
   private def ItemApiAction(id: VersionedId[ObjectId], p: Permission)(block: ApiRequest[AnyContent] => Result): Action[AnyContent] =
     ApiAction {
       request =>
-        if (service.isAuthorized(request.ctx.orgId, id, p)) {
+        if (service.isAuthorized(request.ctx.orgId, id, p).isSuccess) {
           block(request)
         } else {
           //orgService.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")
