@@ -12,22 +12,22 @@ abstract class PlatformServiceError(val message: String, val throwable: Option[T
 case class GeneralError(msg: String, t: Option[Throwable]) extends PlatformServiceError(msg, t)
 
 case class CollectionAuthorizationError(val org: ObjectId, val p: Permission, val collection:ObjectId* )
-  extends PlatformServiceError("not authorized")
+  extends PlatformServiceError(s"Org $org cannot access collection(s) ${collection} with permission $p.")
 
 case class ItemAuthorizationError(val org: ObjectId, val p: Permission, val item:VersionedId[ObjectId]* )
-  extends PlatformServiceError("not authorized")
+  extends PlatformServiceError(s"Org $org cannot access item(s) ${item} with permission $p.")
 
 case class ItemNotFoundError(val org: ObjectId, val p: Permission, val item:VersionedId[ObjectId]* )
-  extends PlatformServiceError("item not found")
+  extends PlatformServiceError(s"Org $org cannot find item(s) ${item} with permission $p.")
 
 case class ItemUpdateError(val org: ObjectId, val p: Permission, val item:VersionedId[ObjectId]* )
-  extends PlatformServiceError("update failed")
+  extends PlatformServiceError(s"Org $org cannot update item(s) ${item} with permission $p.")
 
 case class ItemIdError(val id:VersionedId[ObjectId]* )
-  extends PlatformServiceError("id not valid")
+  extends PlatformServiceError(s"Id not valid: $id")
 
 case class ObjectIdError(val id:ObjectId* )
-  extends PlatformServiceError("id not valid")
+  extends PlatformServiceError(s"ObjectId not valid: $id")
 
 
 object PlatformServiceError {
