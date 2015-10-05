@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.WriteConcern
 import com.mongodb.{ DBObject, BasicDBList }
 import com.mongodb.casbah.commons.MongoDBObject
@@ -345,14 +346,14 @@ class OrganizationService(
 
   override def deleteCollectionFromAllOrganizations(collId: ObjectId): Validation[String, Unit] = {
 
-    def removeCollectionIdFromOrg(): Validation[String, Unit] = {
+    def removeCollectionIdFromOrg() = {
       val query = MongoDBObject(Keys.contentcolls + "." + Keys.collectionId -> collId)
       val update = MongoDBObject("$pull" -> MongoDBObject(Keys.contentcolls -> MongoDBObject(Keys.collectionId -> collId)))
       val result = dao.update(query, update, false, true)
       if (result.getLastError.ok) Success() else Failure(s"remove collectionId $collId from orgs failed")
     }
 
-    def removeCollectionIdFromItem(): Validation[String, Unit] = {
+    def removeCollectionIdFromItem()= {
       itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
     }
 

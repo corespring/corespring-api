@@ -79,32 +79,61 @@ class ContentCollectionServiceTest
       }
     }
 
-    calling("insertCollection") should {
-      "work" in pending
-      //TODO what does two phase commit mean?
-      //TODO what should happen if organizationService fails to add a ref to the collection?
+    "insertCollection" should {
+
+      trait scope extends testScope {
+
+        val newCollection = ContentCollection("child-org-col-2", childOrg.id, isPublic = false)
+
+        def isEnabled(p: Permission) = {
+          service.getContentCollRefs(childOrg.id, p, deep = false)
+            .find(_.collectionId == newCollection.id).map(_.enabled).getOrElse(false)
+        }
+
+        def getPermissions() = {
+          service.getContentCollRefs(childOrg.id, Permission.Read, deep = false)
+            .find(_.collectionId == newCollection.id).map(_.pval).getOrElse(false)
+        }
+
+        override def after: Any = {
+          service.delete(newCollection.id)
+          super.after
+        }
+      }
+
+      "insert newCollection as enabled by default" in new scope {
+        service.insertCollection(childOrg.id, newCollection, Permission.Write)
+        isEnabled(Permission.Write) === true
+      }
+
+      "be able to insert newCollection as enabled" in new scope {
+        service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = true)
+        isEnabled(Permission.Write) === true
+      }
+
+      "be able to insert newCollection as disabled" in new scope {
+        service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = false)
+        isEnabled(Permission.Write) === false
+      }
+
+      "be able to insert newCollection as writable" in new scope {
+        service.insertCollection(childOrg.id, newCollection, Permission.Write)
+        getPermissions() === Permission.Write.value
+      }
+
+      "be able to insert newCollection as readable" in new scope {
+        service.insertCollection(childOrg.id, newCollection, Permission.Read)
+        getPermissions() === Permission.Read.value
+      }
+
+      //TODO cannot easily be tested without mocking
+      "return error if newCollection cannot be inserted" in pending
+
+      //TODO cannot easily be tested without mocking
+      "return error if newCollection cannot be added to organisation" in pending
+
     }
 
-    calling("addOrganizations") should {
-      //TODO is commented out in the service, is it needed ?
-      "work" in pending
-    }
-
-    "shareItemWithCollection" should {
-      "work" in pending //does not exist yet, add in an effort to clean up the api
-    }
-
-    "isItemSharedWith" should {
-      "work" in pending //does not exist yet, add in an effort to clean up the api
-    }
-
-    calling("shareItemsMatchingQuery") should {
-      "work" in pending
-    }
-
-    calling("shareItemsMatchingQuery") should {
-      "work" in pending
-    }
 
     "unShareItems" should {
 
@@ -127,13 +156,16 @@ class ContentCollectionServiceTest
 
       "return error when items cannot be unshared" in new testScope {
 
-        val serviceSpy = spy(service)
-        var itemServiceSpy = spy(serviceSpy.itemService)
-        serviceSpy.itemService returns itemServiceSpy
-        itemServiceSpy.removeCollectionIdsFromShared(
-          Seq(item.id), Seq(writableChildOrgCollection.id)) returns Failure(ItemUnShareError(Seq(item.id), Seq(writableChildOrgCollection.id)))
+        def makeItemServiceReturnError(service:ContentCollectionService) = {
+          val serviceSpy = spy(service)
+          var itemServiceSpy = spy(serviceSpy.itemService)
+          serviceSpy.itemService returns itemServiceSpy
+          itemServiceSpy.removeCollectionIdsFromShared(
+            Seq(item.id), Seq(writableChildOrgCollection.id)) returns Failure(ItemUnShareError(Seq(item.id), Seq(writableChildOrgCollection.id)))
+          serviceSpy
+        }
 
-        val res = serviceSpy.unShareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+        val res = makeItemServiceReturnError(service).unShareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
         res match {
           case Success(x) => failure("Expected to fail with error")
           case Failure(y) => y must haveClass[ItemUnShareError]
@@ -168,14 +200,16 @@ class ContentCollectionServiceTest
       }
 
       "return error when items cannot be shared" in new testScope {
+        def makeItemServiceReturnError(service:ContentCollectionService) = {
+          val serviceSpy = spy(service)
+          var itemServiceSpy = spy(serviceSpy.itemService)
+          serviceSpy.itemService returns itemServiceSpy
+          itemServiceSpy.addCollectionIdToSharedCollections(Seq(item.id),
+            writableChildOrgCollection.id) returns Failure(ItemShareError(Seq(item.id), writableChildOrgCollection.id))
+          serviceSpy
+        }
 
-        val serviceSpy = spy(service)
-        var itemServiceSpy = spy(serviceSpy.itemService)
-        serviceSpy.itemService returns itemServiceSpy
-        itemServiceSpy.addCollectionIdToSharedCollections(Seq(item.id),
-          writableChildOrgCollection.id) returns Failure(ItemShareError(Seq(item.id), writableChildOrgCollection.id))
-
-        val res = serviceSpy.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+        val res = makeItemServiceReturnError(service).shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
         res match {
           case Success(x) => failure("Expected to fail with error")
           case Failure(y) => y must haveClass[ItemShareError]
@@ -276,7 +310,10 @@ class ContentCollectionServiceTest
     "getPublicCollections" should {
 
       "return seq with public collection" in new testScope {
-        service.getPublicCollections === Seq(publicCollection)
+        service.getPublicCollections match {
+          case Nil => failure("Should have found a public collection")
+          case seq => seq.length === 1 && seq(0).id === publicCollection.id
+        }
       }
     }
 

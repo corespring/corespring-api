@@ -163,7 +163,7 @@ class ItemService(
     out
   }
 
-  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     itemIds.filterNot { vid =>
       try {
         val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
@@ -173,13 +173,13 @@ class ItemService(
         case e: SalatDAOUpdateError => false
       }
     } match {
-      case Nil => Success(Unit)
+      case Nil => Success(itemIds)
       case failedItems => Failure(ItemShareError(failedItems, collectionId))
     }
   }
 
 
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Unit] = {
+  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     itemIds.filterNot { vid =>
       try {
         dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
@@ -188,7 +188,7 @@ class ItemService(
         case e: SalatDAOUpdateError => false
       }
     } match {
-      case Nil => Success(Unit)
+      case Nil => Success(itemIds)
       case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
     }
   }
