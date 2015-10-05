@@ -73,7 +73,7 @@ trait ContentCollectionService {
    * @param collId
    * @return
    */
-  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
+  def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Unit]
 
   /**
    * Share the items returned by the query with the specified collection.
@@ -93,9 +93,9 @@ trait ContentCollectionService {
    * @param collIds - sequence of collections to have the items removed from
    * @return
    */
-  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Unit]
 
-  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     unShareItems(orgId, items, Seq(collId))
   }
 

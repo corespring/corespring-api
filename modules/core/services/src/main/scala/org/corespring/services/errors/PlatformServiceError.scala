@@ -1,6 +1,6 @@
 package org.corespring.services.errors
 
-import org.bson.types.ObjectId
+import com.mongodb.casbah.Imports._
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 
@@ -22,6 +22,12 @@ case class ItemNotFoundError(val org: ObjectId, val p: Permission, val item:Vers
 
 case class ItemUpdateError(val org: ObjectId, val p: Permission, val item:VersionedId[ObjectId]* )
   extends PlatformServiceError(s"Org $org cannot update item(s) ${item} with permission $p.")
+
+case class ItemShareError(val items:Seq[VersionedId[ObjectId]], collection: ObjectId)
+  extends PlatformServiceError(s"Error adding item(s) $items to collection $collection.")
+
+case class ItemUnShareError(val failedItems:Seq[VersionedId[ObjectId]], collection: Seq[ObjectId])
+  extends PlatformServiceError(s"Error removing item(s) $failedItems from collection $collection.")
 
 case class ItemIdError(val id:VersionedId[ObjectId]* )
   extends PlatformServiceError(s"Id not valid: $id")

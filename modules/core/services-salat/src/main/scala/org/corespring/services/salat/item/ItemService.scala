@@ -15,7 +15,7 @@ import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ItemNotFoundError, ItemAuthorizationError, GeneralError, PlatformServiceError}
+import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
@@ -163,27 +163,33 @@ class ItemService(
     out
   }
 
-  override def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Validation[PlatformServiceError, Unit] = try {
-    val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-    Success(dao.update(itemId, update, createNewVersion = false))
-  } catch {
-    case e: SalatDAOUpdateError => Failure(PlatformServiceError(s"Error adding collectionId $collectionId for item with id $itemId"))
+  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+    itemIds.filterNot { vid =>
+      try {
+        val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
+        dao.update(vid, update, createNewVersion = false)
+        true
+      } catch {
+        case e: SalatDAOUpdateError => false
+      }
+    } match {
+      case Nil => Success(Unit)
+      case failedItems => Failure(ItemShareError(failedItems, collectionId))
+    }
   }
 
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[Seq[VersionedId[ObjectId]], Unit] = {
 
-    val failedItems = itemIds.filterNot { vid =>
+  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Unit] = {
+    itemIds.filterNot { vid =>
       try {
         dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
         true
       } catch {
         case e: SalatDAOUpdateError => false
       }
-    }
-    if (failedItems.nonEmpty) {
-      Failure(failedItems)
-    } else {
-      Success(Unit)
+    } match {
+      case Nil => Success(Unit)
+      case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
     }
   }
 

@@ -1,15 +1,14 @@
 package org.corespring.services.salat
 
-import com.mongodb.DBObject
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ItemUpdateError, ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError}
+import org.corespring.services.errors._
 import org.specs2.mutable._
-import org.specs2.matcher._
+
 
 import scalaz.{ Failure, Success }
 
@@ -62,7 +61,6 @@ class ContentCollectionServiceTest
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
 
-
       override def after: Any = {
         services.itemService.purge(itemId)
 
@@ -92,19 +90,66 @@ class ContentCollectionServiceTest
       "work" in pending
     }
 
-    calling("shareItemsMatchingQuery") should {
-      "work" in pending
+    "shareItemWithCollection" should {
+      "work" in pending //does not exist yet, add in an effort to clean up the api
+    }
+
+    "isItemSharedWith" should {
+      "work" in pending //does not exist yet, add in an effort to clean up the api
     }
 
     calling("shareItemsMatchingQuery") should {
       "work" in pending
     }
 
-    calling("unShareItems") should {
+    calling("shareItemsMatchingQuery") should {
       "work" in pending
+    }
+
+    "unShareItems" should {
+
+      "work" in new testScope {
+        service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+        val res = service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+        res match {
+          case Success(x) =>
+          case Failure(y) => failure(s"Unexpected failure: $y")
+        }
+      }
+
+      "return error when org cannot write into all collections" in new testScope {
+        val res = service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id))
+        res match {
+          case Success(x) => failure("Expected to fail with error")
+          case Failure(y) => y must haveClass[CollectionAuthorizationError]
+        }
+      }
+
+      "return error when items cannot be unshared" in new testScope {
+
+        val serviceSpy = spy(service)
+        var itemServiceSpy = spy(serviceSpy.itemService)
+        serviceSpy.itemService returns itemServiceSpy
+        itemServiceSpy.removeCollectionIdsFromShared(
+          Seq(item.id), Seq(writableChildOrgCollection.id)) returns Failure(ItemUnShareError(Seq(item.id), Seq(writableChildOrgCollection.id)))
+
+        val res = serviceSpy.unShareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
+        res match {
+          case Success(x) => failure("Expected to fail with error")
+          case Failure(y) => y must haveClass[ItemUnShareError]
+        }
+      }
     }
 
     "shareItems" should {
+
+      "work" in new testScope {
+        val res = service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+        res match {
+          case Success(x) =>
+          case Failure(y) => failure(s"Unexpected failure: $y")
+        }
+      }
 
       "return error when org cannot write into collection" in new testScope {
         val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
@@ -122,32 +167,18 @@ class ContentCollectionServiceTest
         }
       }
 
-      "return error when items cannot be saved" in new testScope {
+      "return error when items cannot be shared" in new testScope {
 
-        def makeAddingItemFail(block: => Any) = {
-          implicit val serviceSpy = spy(service)
-          var itemServiceSpy = spy(serviceSpy.itemService)
-          serviceSpy.itemService returns itemServiceSpy
-          itemServiceSpy.addCollectionIdToSharedCollections(item.id,
-            writableChildOrgCollection.id) returns Failure(PlatformServiceError("mock"))
+        val serviceSpy = spy(service)
+        var itemServiceSpy = spy(serviceSpy.itemService)
+        serviceSpy.itemService returns itemServiceSpy
+        itemServiceSpy.addCollectionIdToSharedCollections(Seq(item.id),
+          writableChildOrgCollection.id) returns Failure(ItemShareError(Seq(item.id), writableChildOrgCollection.id))
 
-          block
-        }
-
-        makeAddingItemFail { implicit service: ContentCollectionService =>
-          val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
-          res match {
-            case Success(x) => failure("Expected to fail with error")
-            case Failure(y) => y must haveClass[ItemUpdateError]
-          }
-        }
-      }
-
-      "work" in new testScope {
-        val res = service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+        val res = serviceSpy.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
         res match {
-          case Success(x) =>
-          case Failure(y) => failure(s"Unexpected failure: $y")
+          case Success(x) => failure("Expected to fail with error")
+          case Failure(y) => y must haveClass[ItemShareError]
         }
       }
     }
@@ -189,7 +220,7 @@ class ContentCollectionServiceTest
           var res = service.getCollectionIds(rootOrg.id, Permission.Write, deep = false)
           assertResult(res,
             writableCollection,
-            writableCollectionWithItem )
+            writableCollectionWithItem)
         }
       }
 
@@ -378,14 +409,14 @@ class ContentCollectionServiceTest
     }
 
     "delete" should {
-      
+
       trait scope extends testScope {
         def assertCollectionHasBeenRemoved(org: Organization, col: ContentCollection) = {
           service.getContentCollRefs(org.id, Permission.Read).find(
             _.collectionId.equals(col.id)) match {
-            case None =>
-            case _ => failure(s"Collection has not been removed: ${col.name} ${col.id}")
-          }
+              case None =>
+              case _ => failure(s"Collection has not been removed: ${col.name} ${col.id}")
+            }
         }
       }
 

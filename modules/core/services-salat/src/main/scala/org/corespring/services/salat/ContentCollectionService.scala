@@ -9,7 +9,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
-import org.corespring.services.errors.{ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError}
+import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }
@@ -64,7 +64,7 @@ class ContentCollectionService(
    * TODO: Do we check perms here? or keep it outside of this scope?
    * We'll have to filter the individual item ids anyway
    */
-  override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Unit] = {
 
     def allowedToWriteCollection: Validation[PlatformServiceError, Unit] = {
       isAuthorized(orgId, collId, Permission.Write)
@@ -73,7 +73,7 @@ class ContentCollectionService(
     def allowedToReadItems: Validation[PlatformServiceError, Unit] = {
       val objectIds = items.map(i => i.id)
       // get a list of any items that were not authorized to be added
-      val notAuthorizedItems = itemService.findMultipleById(objectIds: _*).filterNot(item => {
+      itemService.findMultipleById(objectIds: _*).filterNot(item => {
         println(s"++++++++++++++++ ${item}")
         // get the collections to test auth on (owner collection for item, and shared-in collections)
         val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
@@ -81,33 +81,17 @@ class ContentCollectionService(
         val collectionsAuthorized = collectionsToAuth.
           filter(collectionId => isAuthorized(orgId, collectionId, Permission.Read).isSuccess)
         collectionsAuthorized.nonEmpty
-      })
-      if(notAuthorizedItems.length > 0){
-        logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
-        Failure(ItemAuthorizationError(orgId, Permission.Read,notAuthorizedItems.map(_.id):_*))
-      } else {
-        Success()
+      }) match {
+        case Stream.Empty => Success()
+        case notAuthorizedItems => {
+          logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
+          Failure(ItemAuthorizationError(orgId, Permission.Read,notAuthorizedItems.map(_.id):_*))
+        }
       }
     }
 
-    def saveUnsavedItems: Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-      val savedUnsavedItems = items.partition(item => {
-        try {
-          itemService.findOneById(item) match {
-            case Some(i) if collId.equals(i.collectionId) => true
-            case _ => itemService.addCollectionIdToSharedCollections(item, collId).fold(_ => false, _ => true)
-          }
-        } catch {
-          case e: SalatDAOUpdateError => false
-        }
-      })
-      if (savedUnsavedItems._2.nonEmpty) {
-        logger.warn(s"[saveUnsavedItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
-        Failure(PlatformServiceError("failed to add items"))
-      } else {
-        logger.trace(s"[saveUnsavedItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
-        Success(savedUnsavedItems._1)
-      }
+    def saveUnsavedItems: Validation[PlatformServiceError, Unit] = {
+      itemService.addCollectionIdToSharedCollections(items, collId)
     }
 
     for {
@@ -124,36 +108,25 @@ class ContentCollectionService(
   /**
    * Unshare the specified items from the specified collections
    */
-  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    // make sure org has auth for all the collIds
-    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write).isSuccess)
-    if (authorizedCollIds.size != collIds.size) {
-      Failure(PlatformServiceError("authorization failed on collection(s)"))
-    } else {
-      itemService.removeCollectionIdsFromShared(items, collIds) match {
-        case Failure(failedItems) => Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
-        case Success(_) => Success(items)
-      }
-      /*val failedItems = items.filterNot(item => {
-        try {
-          itemService.findOneById(item) match {
-            case _ =>
-              itemService.removeCollectionIdsFromShared(collId)
-              //saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)), false)
-              true
-          }
-        } catch {
-          case e: SalatDAOUpdateError => false
-        }*/
-    } //)
-    /*if (failedItems.size > 0) {
-        Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
-      } else {
-        Success(items)
-      }*/
-    //}
+  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Unit] = {
 
+    def allowedToWriteCollections(): Validation[PlatformServiceError, Seq[ObjectId]] = {
+      collIds.filter(id => isAuthorized(orgId, id, Permission.Write).isFailure) match {
+        case Nil => Success(collIds)
+        case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
+      }
+    }
+
+    def removeCollectionIdsFromShared(): Validation[PlatformServiceError, Unit] = {
+      itemService.removeCollectionIdsFromShared(items, collIds)
+    }
+
+    for {
+      canUpdateAllCollections <- allowedToWriteCollections()
+      successfullyRemovedItems <- removeCollectionIdsFromShared()
+    } yield successfullyRemovedItems
   }
+
 
   /**
    *
@@ -207,19 +180,28 @@ class ContentCollectionService(
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
-    try {
-      val collectionItemCount = itemCount(collId)
-      if (collectionItemCount != 0) {
-        Failure(PlatformServiceError(s"Can't delete this collection it has $collectionItemCount item(s) in it."))
-      } else {
+
+    def isEmptyCollection = itemCount(collId) match {
+      case 0 => Success()
+      case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
+    }
+
+    def applyUpdates() = {
+      try {
         dao.removeById(collId)
         organizationService.deleteCollectionFromAllOrganizations(collId)
         itemService.deleteFromSharedCollections(collId)
+        Success()
+      } catch {
+        case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to transfer collection to archive", e))
+        case e: SalatRemoveError => Failure(PlatformServiceError(e.getMessage))
       }
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to transfer collection to archive", e))
-      case e: SalatRemoveError => Failure(PlatformServiceError(e.getMessage))
     }
+
+    for {
+      collectionIsEmpty <- isEmptyCollection
+      success <- applyUpdates
+    } yield ()
   }
 
   override def getPublicCollections: Seq[ContentCollection] = dao.find(MongoDBObject(Keys.isPublic -> true)).toSeq
@@ -334,5 +316,17 @@ class ContentCollectionService(
   override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
     val collection = ContentCollection(name = name, ownerOrgId = org.id)
     insertCollection(org.id, collection, Permission.Write, true)
+  }
+
+  //new api, not used yet
+  def shareItemWithCollection(org: ObjectId, item: VersionedId[ObjectId], collection: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
+    for {
+      itemList <- shareItems(org, Seq(item), collection)
+    } yield item
+  }
+
+  //new api, not used yet
+  def isItemSharedWith(org: ObjectId, item: VersionedId[ObjectId], collection: ObjectId): Validation[PlatformServiceError, Unit] = {
+    Failure(PlatformServiceError("Not implemented"))
   }
 }
