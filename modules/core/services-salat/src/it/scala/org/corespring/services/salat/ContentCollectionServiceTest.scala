@@ -125,10 +125,10 @@ class ContentCollectionServiceTest
         getPermissions() === Permission.Read.value
       }
 
-      //TODO cannot easily be tested without mocking
+      ///TODO add Unit test, cannot be tested without mocking
       "return error if newCollection cannot be inserted" in pending
 
-      //TODO cannot easily be tested without mocking
+      //TODO add Unit test, cannot be tested without mocking
       "return error if newCollection cannot be added to organisation" in pending
 
     }
@@ -154,23 +154,8 @@ class ContentCollectionServiceTest
         }
       }
 
-      "return error when items cannot be unshared" in new testScope {
-
-        def makeItemServiceReturnError(service:ContentCollectionService) = {
-          val serviceSpy = spy(service)
-          var itemServiceSpy = spy(serviceSpy.itemService)
-          serviceSpy.itemService returns itemServiceSpy
-          itemServiceSpy.removeCollectionIdsFromShared(
-            Seq(item.id), Seq(writableChildOrgCollection.id)) returns Failure(ItemUnShareError(Seq(item.id), Seq(writableChildOrgCollection.id)))
-          serviceSpy
-        }
-
-        val res = makeItemServiceReturnError(service).unShareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[ItemUnShareError]
-        }
-      }
+      //TODO add Unit test, cannot be tested without mocking
+      "return error when items cannot be unshared" in pending
     }
 
     "shareItems" should {
@@ -199,22 +184,8 @@ class ContentCollectionServiceTest
         }
       }
 
-      "return error when items cannot be shared" in new testScope {
-        def makeItemServiceReturnError(service:ContentCollectionService) = {
-          val serviceSpy = spy(service)
-          var itemServiceSpy = spy(serviceSpy.itemService)
-          serviceSpy.itemService returns itemServiceSpy
-          itemServiceSpy.addCollectionIdToSharedCollections(Seq(item.id),
-            writableChildOrgCollection.id) returns Failure(ItemShareError(Seq(item.id), writableChildOrgCollection.id))
-          serviceSpy
-        }
-
-        val res = makeItemServiceReturnError(service).shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[ItemShareError]
-        }
-      }
+      //TODO add Unit test, cannot be tested without mocking
+      "return error when items cannot be shared" in pending
     }
 
     "getCollectionIds" should {
@@ -485,10 +456,10 @@ class ContentCollectionServiceTest
       //TODO implement and test sharing a collection
       "remove the collection from shared collections" in pending
 
-      //TODO difficult to throw an error
+      ///TODO add Unit test, cannot be tested without mocking
       "return an error when service calls return SalatRemoveError" in pending
 
-      //TODO difficult to throw an error
+      //TODO add Unit test, cannot be tested without mocking
       "return an error when service calls return SalatDAOUpdateError" in pending
 
       //TODO roll back not implemented in service
