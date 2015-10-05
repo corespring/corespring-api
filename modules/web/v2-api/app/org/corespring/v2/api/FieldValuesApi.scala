@@ -1,27 +1,36 @@
 package org.corespring.v2.api
 
 import org.corespring.itemSearch.ItemIndexService
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.StandardService
+import org.corespring.services._
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsArray, JsString, Json }
-import play.api.mvc.RequestHeader
+import play.api.libs.json._
+import play.api.mvc.{ Action, RequestHeader }
 
 import scala.concurrent.{ Future, ExecutionContext }
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 class FieldValuesApi(
   indexService: ItemIndexService,
   v2ApiContext: V2ApiExecutionContext,
   standardService: StandardService,
+  subjectService: SubjectService,
   jsonFormatting: JsonFormatting,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
+
+  import jsonFormatting._
 
   override implicit def ec: ExecutionContext = v2ApiContext.context
 
   def contributors() = get(Keys.contributor)
   def gradeLevels() = get(Keys.gradeLevel)
+
+  implicit val readSubjectQuery = Json.reads[SubjectQuery]
+
+  implicit val readStandardQuery = Json.reads[StandardQuery]
 
   private object Keys {
     val contributor = "contributorDetails.contributor"
@@ -36,26 +45,27 @@ class FieldValuesApi(
       })
   }
 
-  def standard(q: Option[String] = None, l: Int = 50, sk: Int = 0) = futureWithIdentity { (_, request) =>
+  private def queryAction[Q <: Query, S](fn: (Q, Int, Int) => Seq[S])(q: Option[String] = None, l: Int = 50, sk: Int = 0)(implicit r: Reads[Q], w: Writes[S]) = Action.async { _ =>
+    Future {
+      val out = for {
+        queryString <- q.toSuccess("no query provided")
+        json <- Validation.fromTryCatch(Json.parse(queryString)).leftMap(t => t.getMessage)
+        query <- Validation.fromEither(json.validate[Q].asEither)
+          .leftMap(errors => errors.map(_._2).mkString(","))
+      } yield {
+        val list = fn(query, l, sk)
+        Ok(Json.toJson(list))
+      }
 
-    val query = q.getOrElse("{}")
-
-    //    for {
-    //      queryObject <- Validation.fromTryCatch(com.mongodb..parse(query))
-    //      _ <- standardService.find()
-    //    } yield ???
-
-    Future(Ok(""))
-    //    request.getQueryString("q").map{ q =>
-    //
-    //    }.getOrElse{
-    //
-    //    }
+      out match {
+        case Success(r) => r
+        case Failure(e) => BadRequest(e)
+      }
+    }
   }
 
-  def subject(q: Option[String] = None) = futureWithIdentity { (_, _) =>
-    Future(NotImplemented(""))
-  }
+  val subject = queryAction[SubjectQuery, Subject](subjectService.query)(_, _, _)
+  val standard = queryAction[StandardQuery, Standard](standardService.query)(_, _, _)
 
   def domain = futureWithIdentity { (_, _) =>
     import jsonFormatting.writeStandardDomains

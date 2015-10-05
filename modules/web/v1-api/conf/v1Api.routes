@@ -42,5 +42,5 @@ DELETE  /items/:itemId/data/:filename         @org.corespring.api.v1.ResourceApi
 GET     /contributors                    @org.corespring.api.v1.ContributorApi.getContributorsList()
 
 GET     /field_values/domain          @org.corespring.api.v1.FieldValuesApi.domain()
-GET     /field_values/subject         @org.corespring.api.v1.FieldValuesApi.subject()
-GET     /field_values/cc-standard     @org.corespring.api.v1.FieldValuesApi.standard()
+GET     /field_values/subject         @org.corespring.api.v1.FieldValuesApi.subject(q:Option[String], l:Int ?= 0, sk:Int ?= 0)
+GET     /field_values/cc-standard     @org.corespring.api.v1.FieldValuesApi.standard(q:Option[String], l:Int ?= 0, sk:Int ?= 0)

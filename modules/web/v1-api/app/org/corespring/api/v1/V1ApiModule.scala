@@ -14,9 +14,16 @@ import org.corespring.services.{ ContentCollectionService, OrganizationService, 
 import org.corespring.v2
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.mvc.Controller
+
+import scala.concurrent.ExecutionContext
+
+case class V1ApiExecutionContext(context: ExecutionContext)
+
 trait V1ApiModule {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def v1ApiExecutionContext: V1ApiExecutionContext
 
   def orgService: OrganizationService
 
