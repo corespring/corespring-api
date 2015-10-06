@@ -46,7 +46,7 @@ class ContentCollectionService(
       try {
         dao.insert(collection) match {
           case Some(_) => Success(collection)
-          case _ => Failure(CollectionInsertError(collection, None))
+          case None => Failure(CollectionInsertError(collection, None))
         }
       } catch {
         case e: SalatInsertError =>
