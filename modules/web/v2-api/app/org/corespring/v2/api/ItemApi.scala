@@ -15,6 +15,7 @@ import org.corespring.v2.auth.identifiers.RequestIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import play.api.libs.iteratee.Iteratee
 
+import scala.concurrent
 import scala.concurrent._
 
 import org.corespring.platform.core.models.item.{ ItemType, Item }
@@ -123,7 +124,11 @@ trait ItemApi extends V2Api with JsonUtil {
     }
   }
 
-  def getItemTypes() = Action { Ok(Json.prettyPrint(itemType.all)) }
+  def getItemTypes() = Action.async {
+    implicit request => Future {
+      Ok(Json.prettyPrint(itemType.all))
+    }
+  }
 
   def delete(itemId: String) = Action.async { implicit request =>
     import scalaz.Scalaz._

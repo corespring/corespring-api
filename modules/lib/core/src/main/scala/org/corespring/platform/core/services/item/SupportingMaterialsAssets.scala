@@ -7,7 +7,7 @@ import com.amazonaws.services.s3.model.{ ObjectMetadata, DeleteObjectsRequest, S
 import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
 import play.api.Logger
 
-import scalaz.{ Validation }
+import scalaz.{ Success, Failure, Validation }
 
 class SupportingMaterialsAssets[A](s3: AmazonS3, bucket: String, assetKeys: AssetKeys[A]) {
 
@@ -37,15 +37,29 @@ class SupportingMaterialsAssets[A](s3: AmazonS3, bucket: String, assetKeys: Asse
     Some(s3.getObject(bucket, key))
   }
 
-  def upload(id: A, resource: Resource, file: StoredFile, bytes: Array[Byte]): Validation[String, StoredFile] = Validation.fromTryCatch {
+  def upload(id: A, resource: Resource, file: StoredFile, bytes: Array[Byte]): Validation[String, StoredFile] = {
     logger.debug(s"[upload] id=$id, resource=${resource.name}, file=${file.name}")
     val key = assetKeys.supportingMaterialFile(id, resource.name, file.name)
     val metadata = new ObjectMetadata()
     metadata.setContentType(file.contentType)
     metadata.setContentLength(bytes.length.toLong)
-    s3.putObject(bucket, key, new ByteArrayInputStream(bytes), metadata)
-    file
-  }.leftMap(_.getMessage)
+    val stream = new ByteArrayInputStream(bytes)
+    try {
+      s3.putObject(bucket, key, stream, metadata)
+      Success(file)
+    } catch {
+      case t: Throwable => {
+        logger.warn(s"function=upload, bucket=$bucket, key=$key - Error uploading: ${t.getMessage}")
+
+        if (logger.isDebugEnabled) {
+          t.printStackTrace()
+        }
+        Failure(s"An error occurred: ${t.getMessage}")
+      }
+    } finally {
+      stream.close()
+    }
+  }
 
   def deleteFile(id: A, resource: Resource, filename: String): Validation[String, String] = Validation.fromTryCatch {
     logger.debug(s"[deleteFile] id=$id, resource=${resource.name}, file=${filename}")

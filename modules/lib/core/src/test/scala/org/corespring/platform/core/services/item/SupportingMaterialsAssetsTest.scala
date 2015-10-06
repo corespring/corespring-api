@@ -1,6 +1,6 @@
 package org.corespring.platform.core.services.item
 
-import java.io.ByteArrayInputStream
+import java.io.{ InputStream, ByteArrayInputStream }
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._
@@ -9,7 +9,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.Success
+import scalaz.{ Failure, Success }
 
 class SupportingMaterialsAssetsTest extends Specification with Mockito {
 
@@ -90,6 +90,13 @@ class SupportingMaterialsAssetsTest extends Specification with Mockito {
     "set the metadata" in new uploadScope {
       metadataCaptor.value.getContentLength === 0
       metadataCaptor.value.getContentType === "image/png"
+    }
+
+    "an s3 error returns a Failure" in new scope {
+      mockS3.putObject(any[String], any[String], any[InputStream], any[ObjectMetadata]).throws {
+        new RuntimeException("S3-Error")
+      }
+      assets.upload("id", resource, file, Array.empty) must_== Failure("An error occurred: S3-Error")
     }
   }
 

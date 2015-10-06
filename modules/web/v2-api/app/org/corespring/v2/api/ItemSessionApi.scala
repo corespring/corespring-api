@@ -59,12 +59,10 @@ trait ItemSessionApi extends V2Api {
    *      adding `apiClient` and `playerToken` query parameter to the call
    *
    */
-  def create(itemId: VersionedId[ObjectId]) = Action(parse.empty) { implicit request =>
-    {
-      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = Json.obj(
-        "_id" -> Json.obj(
-          "$oid" -> JsString(ObjectId.get.toString)),
-        "itemId" -> JsString(vid.toString))
+  def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
+    Future {
+      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = 
+        Json.obj("itemId" -> JsString(vid.toString))
 
       sessionCreatedForItem(itemId)
 

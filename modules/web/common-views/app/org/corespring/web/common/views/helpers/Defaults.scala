@@ -3,7 +3,7 @@ package org.corespring.web.common.views.helpers
 import com.mongodb.casbah.commons.MongoDBObject
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.util.Properties
-import org.corespring.platform.core.models.item.{ ItemType, FieldValue }
+import org.corespring.platform.core.models.item.{WidgetType, ItemType, FieldValue}
 import org.corespring.platform.core.services.item._
 import play.api.Play
 import play.api.Play.current
@@ -32,7 +32,7 @@ class Defaults(itemIndexService: ItemIndexService) {
       implicit val writes = Json.writes[FieldValue]
 
       val json: JsValue = (writes.writes(fv) match {
-        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes))
+        case obj: JsObject => obj.deepMerge(Json.obj("v2ItemTypes" -> v2ItemTypes, "widgetTypes" -> widgetTypes))
         case value: JsValue => value
       })
       Json.stringify(json)
@@ -64,6 +64,7 @@ class Defaults(itemIndexService: ItemIndexService) {
   }
 
   lazy val v2ItemTypes = ItemType.all
+  lazy val widgetTypes = WidgetType.all
 
 }
 

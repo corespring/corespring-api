@@ -70,15 +70,6 @@
     function init() {
       $scope.userName = UserInfo.userName;
       $scope.org = UserInfo.org;
-      loadDraftsForOrg();
-    }
-
-    function loadDraftsForOrg() {
-      ItemDraftService.getDraftsForOrg(function(drafts) {
-        $scope.orgDrafts = drafts;
-      }, function error(err) {
-        console.warn('error: getDraftsForOrg', err);
-      });
     }
 
     function edit(item) {
