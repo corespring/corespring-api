@@ -5,7 +5,7 @@ import org.corespring.services.{ StandardQuery, StandardService, QueryService, S
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.mock.Mockito
 import org.specs2.specification.{ Fragment, Scope }
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{ JsObject, Json }
 import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
 
