@@ -45,27 +45,32 @@ class FieldValuesApi(
       })
   }
 
-  private def queryAction[Q <: Query, S](fn: (Q, Int, Int) => Seq[S])(q: Option[String] = None, l: Int = 50, sk: Int = 0)(implicit r: Reads[Q], w: Writes[S]) = Action.async { _ =>
+  private def queryAction[Q <: Query, S](service: QueryService[S, Q])(q: Option[String] = None, l: Int = 50, sk: Int = 0)(implicit r: Reads[Q], w: Writes[S]) = Action.async { _ =>
     Future {
-      val out = for {
-        queryString <- q.toSuccess("no query provided")
-        json <- Validation.fromTryCatch(Json.parse(queryString)).leftMap(t => t.getMessage)
-        query <- Validation.fromEither(json.validate[Q].asEither)
-          .leftMap(errors => errors.map(_._2).mkString(","))
-      } yield {
-        val list = fn(query, l, sk)
-        Ok(Json.toJson(list))
-      }
 
-      out match {
-        case Success(r) => r
-        case Failure(e) => BadRequest(e)
+      q.map { queryString =>
+
+        val out = for {
+          json <- Validation.fromTryCatch(Json.parse(queryString)).leftMap(t => t.getMessage)
+          query <- Validation.fromEither(json.validate[Q].asEither)
+            .leftMap(errors => s"Json can't be read as a query: $queryString")
+        } yield {
+          val list = service.query(query, l, sk)
+          Ok(Json.toJson(list))
+        }
+
+        out match {
+          case Success(r) => r
+          case Failure(e) => BadRequest(e)
+        }
+      }.getOrElse {
+        Ok(Json.toJson(service.list()))
       }
     }
   }
 
-  val subject = queryAction[SubjectQuery, Subject](subjectService.query)(_, _, _)
-  val standard = queryAction[StandardQuery, Standard](standardService.query)(_, _, _)
+  val subject = queryAction[SubjectQuery, Subject](subjectService)(_, _, _)
+  val standard = queryAction[StandardQuery, Standard](standardService)(_, _, _)
 
   def domain = futureWithIdentity { (_, _) =>
     import jsonFormatting.writeStandardDomains
