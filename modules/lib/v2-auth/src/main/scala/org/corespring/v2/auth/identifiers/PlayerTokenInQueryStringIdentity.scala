@@ -20,6 +20,7 @@ object PlayerTokenInQueryStringIdentity {
     /** deprecated("Still supported but is going to be removed", "1.1") */
     val options = "options"
     val playerToken = "playerToken"
+    val editorToken = "editorToken"
     val skipDecryption = "skipDecryption"
   }
 }
@@ -51,14 +52,17 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   /**
    * read the player token from the request header
-   * Checks 'playerToken' param first and falls back to the deprecated 'options' param.
+   * Checks 'playerToken'/'editorToken' params first and falls back to the deprecated 'options' param.
    * If using the deprecated param a V2Warning will be included.
    * @param rh
    * @return
    */
   def playerToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
 
-    val token = rh.getQueryString(Keys.playerToken)
+    val token = rh.getQueryString(Keys.playerToken) match {
+      case Some(token) => Some(token)
+      case _ => rh.getQueryString(Keys.editorToken)
+    }
 
     token.map(t => (t, None)).orElse {
       val deprecatedOptions = rh.getQueryString(Keys.options)
