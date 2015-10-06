@@ -22,6 +22,11 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   val contentCollectionId = ObjectId.get
   val orgId = ObjectId.get
 
+  protected def clearDb() = {
+    logger.debug(s"function=clearDb - dropping db")
+    DbSingleton.db.dropDatabase()
+  }
+
   protected val logger = Logger(classOf[ServicesSalatIntegrationTest])
 
   lazy val s3 = mock[AmazonS3]
@@ -46,7 +51,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
   override def around[T](r: => T)(implicit toResult: AsResult[T]): Result = {
     logger.debug(s"function=around - dropping db")
-    DbSingleton.db.dropDatabase()
+    clearDb()
     AsResult(r)
   }
 

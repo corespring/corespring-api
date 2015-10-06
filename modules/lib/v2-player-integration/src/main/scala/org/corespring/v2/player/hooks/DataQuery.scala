@@ -38,7 +38,9 @@ class DataQueryHooks(
     jso <- json.asOpt[JsObject].toSuccess("json isn't a js object")
     term <- (json \ "searchTerm").asOpt[String].toSuccess("no 'searchTerm' in json")
   } yield {
-    SubjectQuery(term, (json \ "subject").asOpt[String], (json \ "category").asOpt[String])
+    SubjectQuery(term,
+      (json \ "filters" \ "subject").asOpt[String],
+      (json \ "filters" \ "category").asOpt[String])
   }
 
   private def toStandardQuery(json: JsValue): Validation[String, StandardQuery] = for {
@@ -47,10 +49,10 @@ class DataQueryHooks(
   } yield {
     StandardQuery(
       term,
-      (json \ "standard").asOpt[String],
-      (json \ "subject").asOpt[String],
-      (json \ "category").asOpt[String],
-      (json \ "subCategory").asOpt[String])
+      (json \ "filters" \ "standard").asOpt[String],
+      (json \ "filters" \ "subject").asOpt[String],
+      (json \ "filters" \ "category").asOpt[String],
+      (json \ "filters" \ "subCategory").asOpt[String])
   }
 
   override def list(topic: String, query: Option[String])(implicit header: RequestHeader): Future[Either[(Int, String), JsArray]] = Future {

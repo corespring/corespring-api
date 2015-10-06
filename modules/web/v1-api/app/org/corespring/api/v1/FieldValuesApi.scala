@@ -69,7 +69,7 @@ class FieldValuesApi(
     }
   }
 
-  def standard(q: Option[String], l: Int = 0, sk: Int = 0) = {
+  def standard(q: Option[String], l: Int = 0, sk: Int = 0) = Action.async { request =>
 
     def mkStandardQuery(term: String, oldJson: JsObject): StandardQuery = {
       StandardQuery(term,

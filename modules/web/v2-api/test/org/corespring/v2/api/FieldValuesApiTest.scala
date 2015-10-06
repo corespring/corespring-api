@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.corespring.itemSearch.ItemIndexService
-import org.corespring.services.StandardService
+import org.corespring.services.{ SubjectService, StandardService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.mockito.Matchers
@@ -32,10 +32,16 @@ class FieldValuesApiTest extends V2ApiSpec {
       m
     }
 
+    lazy val subjectService = {
+      val m = mock[SubjectService]
+      m
+    }
+
     val fieldValuesApi = new FieldValuesApi(
       itemIndexService,
       v2ApiContext,
       standardService,
+      subjectService,
       jsonFormatting,
       getOrgAndOptionsFn)
   }

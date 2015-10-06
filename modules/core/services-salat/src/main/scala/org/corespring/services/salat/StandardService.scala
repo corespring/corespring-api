@@ -118,6 +118,7 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     }
 
     queryObject.map { q =>
+      logger.trace(s"function=query(String), query=$q")
       dao.find(q).toStream
     }.getOrElse(Stream.empty[Standard])
   }
