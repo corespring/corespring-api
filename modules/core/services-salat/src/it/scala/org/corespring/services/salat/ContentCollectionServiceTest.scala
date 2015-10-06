@@ -84,8 +84,13 @@ class ContentCollectionServiceTest
 
         val newCollection = ContentCollection("child-org-col-2", childOrg.id, isPublic = false)
 
-        def isEnabled(p: Permission) = {
-          service.getContentCollRefs(childOrg.id, p, deep = false)
+        override def after: Any = {
+          service.delete(newCollection.id)
+          super.after
+        }
+
+        def isEnabled() = {
+          service.getContentCollRefs(childOrg.id, Permission.Write, deep = false)
             .find(_.collectionId == newCollection.id).map(_.enabled).getOrElse(false)
         }
 
@@ -93,26 +98,21 @@ class ContentCollectionServiceTest
           service.getContentCollRefs(childOrg.id, Permission.Read, deep = false)
             .find(_.collectionId == newCollection.id).map(_.pval).getOrElse(false)
         }
-
-        override def after: Any = {
-          service.delete(newCollection.id)
-          super.after
-        }
       }
 
       "insert newCollection as enabled by default" in new scope {
         service.insertCollection(childOrg.id, newCollection, Permission.Write)
-        isEnabled(Permission.Write) === true
+        isEnabled() === true
       }
 
       "be able to insert newCollection as enabled" in new scope {
         service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = true)
-        isEnabled(Permission.Write) === true
+        isEnabled() === true
       }
 
       "be able to insert newCollection as disabled" in new scope {
         service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = false)
-        isEnabled(Permission.Write) === false
+        isEnabled() === false
       }
 
       "be able to insert newCollection as writable" in new scope {
@@ -124,13 +124,6 @@ class ContentCollectionServiceTest
         service.insertCollection(childOrg.id, newCollection, Permission.Read)
         getPermissions() === Permission.Read.value
       }
-
-      ///TODO add Unit test, cannot be tested without mocking
-      "return error if newCollection cannot be inserted" in pending
-
-      //TODO add Unit test, cannot be tested without mocking
-      "return error if newCollection cannot be added to organisation" in pending
-
     }
 
 
@@ -146,16 +139,13 @@ class ContentCollectionServiceTest
         }
       }
 
-      "return error when org cannot write into all collections" in new testScope {
+      "return error when org does not have write permissions for all collections" in new testScope {
         val res = service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id))
         res match {
           case Success(x) => failure("Expected to fail with error")
           case Failure(y) => y must haveClass[CollectionAuthorizationError]
         }
       }
-
-      //TODO add Unit test, cannot be tested without mocking
-      "return error when items cannot be unshared" in pending
     }
 
     "shareItems" should {
@@ -183,9 +173,6 @@ class ContentCollectionServiceTest
           case Failure(y) => y must haveClass[ItemAuthorizationError]
         }
       }
-
-      //TODO add Unit test, cannot be tested without mocking
-      "return error when items cannot be shared" in pending
     }
 
     "getCollectionIds" should {
@@ -349,11 +336,6 @@ class ContentCollectionServiceTest
             publicCollection)
         }
       }
-
-      //TODO Is Permission.None a valid scenario?
-      "with permission none" should {
-        "work" in pending
-      }
     }
 
     "itemCount" should {
@@ -453,14 +435,26 @@ class ContentCollectionServiceTest
         assertCollectionHasBeenRemoved(rootOrg, col)
       }
 
-      //TODO implement and test sharing a collection
-      "remove the collection from shared collections" in pending
+      "remove the collection from shared collections" in new testScope {
+        def addCollectionToSharedCollectionsOfItem() = {
+          services.itemService.addCollectionIdToSharedCollections(Seq(item.id), writableCollection.id)
+        }
 
-      ///TODO add Unit test, cannot be tested without mocking
-      "return an error when service calls return SalatRemoveError" in pending
+        def isCollectionInSharedCollections():Boolean = {
+          services.itemService.findOneById(item.id) match {
+            case Some(itm) => itm.sharedInCollections.contains(writableCollection.id)
+            case None => {
+              failure("Item not found")
+              false
+            }
+          }
+        }
 
-      //TODO add Unit test, cannot be tested without mocking
-      "return an error when service calls return SalatDAOUpdateError" in pending
+        addCollectionToSharedCollectionsOfItem()
+        isCollectionInSharedCollections() === true
+        service.delete(writableCollection.id)
+        isCollectionInSharedCollections() === false
+      }
 
       //TODO roll back not implemented in service
       "roll back when organization could not be updated" in pending
