@@ -7,11 +7,11 @@ import org.corespring.models.{ Standard, Subject }
 import org.corespring.services.{ StandardService, StandardQuery, SubjectQuery, QueryService }
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.{ SimpleResult, RequestHeader }
+import play.api.mvc.{ RequestHeader }
 import play.api.http.Status._
 
 import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Success, Validation }
 import scalaz.Scalaz._
 
 case class StandardsTree(json: JsArray)
@@ -98,7 +98,6 @@ class DataQueryHooks(
       v.toEither.map(list => Json.arr(list.toSeq.map(Json.toJson(_))))
     }
 
-    import play.api.libs.json.Json.toJson
     topic match {
       case "subjects.primary" => toResult(subjectQueryResult)
       case "subjects.related" => toResult(subjectQueryResult)
