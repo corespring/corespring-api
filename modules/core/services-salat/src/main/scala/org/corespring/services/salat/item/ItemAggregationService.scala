@@ -1,74 +1,68 @@
 package org.corespring.services.salat.item
 
+import com.mongodb.casbah.Imports._
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.models.item.Item
-import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
 
 import scala.concurrent.Future
 
-//See: https://github.com/corespring/corespring-api/commit/a48aeeecc6df2e5ca852ee2b9956701d0044ab30
-/*
-val fieldValueMap = Map(
-  "itemType" -> "taskInfo.itemType",
-  "contributor" -> "contributorDetails.contributor")
-
-def fieldValuesByFrequency(collectionIds: String, fieldName: String) = ApiActionRead { request =>
-
-  import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
-
-  fieldValueMap.get(fieldName) match {
-    case Some(field) => {
-      // Expand "one.two" into Seq("this.one", "this.one.two") for checks down path in a JSON object
-      val fieldCheck =
-        field.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
-          acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
-      val cmd = MapReduceCommand(
-        input = "content",
-        map = s"""
-          function() {
-            if (${fieldCheck}) {
-              emit(this.$field, 1);
-            }
-          }""",
-        reduce = s"""
-          function(previous, current) {
-            var count = 0;
-            for (index in current) {
-              count += current[index];
-            }
-            return count;
-          }""",
-        query = Some(DBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.split(",").toSeq))),
-        output = MapReduceInlineOutput)
-
-      ItemServiceWired.collection.mapReduce(cmd) match {
-        case result: MapReduceInlineResult => {
-          val fieldValueMap = result.map(_ match {
-            case dbo: DBObject => {
-              Some(dbo.get("_id").toString -> dbo.get("value").asInstanceOf[Double])
-            }
-            case _ => None
-          }).flatten.toMap
-          Ok(Json.prettyPrint(Json.toJson(fieldValueMap)))
-        }
-        case _ => BadRequest(Json.toJson(ApiError.InvalidField))
-      }
-    }
-    case _ => BadRequest(Json.toJson(ApiError.InvalidField))
-  }
-}*/
-
-class ItemAggregationService(itemDao: SalatVersioningDao[Item], ec: SalatServicesExecutionContext) extends interface.item.ItemAggregationService {
+/**
+ * Port of the logic from CollectionApi
+ * See: https://github.com/corespring/corespring-api/commit/a48aeeecc6df2e5ca852ee2b9956701d0044ab30
+ */
+class ItemAggregationService(collection: MongoCollection, ec: SalatServicesExecutionContext) extends interface.item.ItemAggregationService {
 
   implicit val executionContext = ec.ctx
 
-  override def contributorCounts(collectionIds: Seq[ObjectId]): Future[Map[String, Int]] = Future {
-    Map.empty
+  private lazy val logger = Logger(classOf[ItemAggregationService])
+
+  private def mkPropertyTest(field: String) = {
+    val parts = field.split("\\.")
+    def addBits(acc: Seq[String], str: String) = acc :+ s"${acc.last}.$str"
+    val added = parts.foldLeft(Seq("this"))(addBits).drop(1)
+    added.mkString(" && ")
   }
 
-  override def taskInfoItemTypeCounts(collectionIds: Seq[ObjectId]): Future[Map[String, Int]] = Future {
-    Map.empty
+  private def propertyCounts(key: String, collectionIds: Seq[ObjectId]): Future[Map[String, Double]] = Future {
+
+    val map = s"""function() {
+                    if (${mkPropertyTest(key)}) {
+                      emit(this.$key, 1);
+                    }
+                  }"""
+
+    val reduce = s"""function(previous, current) {
+                       var count = 0;
+                       for (index in current) {
+                         count += current[index];
+                       }
+                       return count;
+                     }"""
+
+    val query = "collectionId" $in collectionIds.map(_.toString)
+    val cmd = MapReduceCommand("content", map, reduce, MapReduceInlineOutput, Some(query))
+
+    def mkKeyValue(dbo: DBObject) = for {
+      key <- dbo.expand[String]("_id")
+      value <- dbo.expand[Double]("value")
+    } yield key -> value
+
+    collection.mapReduce(cmd) match {
+      case inline: MapReduceInlineResult => {
+        logger.trace(s"function=propertyCounts, result=$inline")
+        inline.flatMap(mkKeyValue).toMap
+      }
+      case _ => Map.empty
+    }
+  }
+
+  override def contributorCounts(collectionIds: Seq[ObjectId]): Future[Map[String, Double]] = {
+    propertyCounts("contributorDetails.contributor", collectionIds)
+  }
+
+  override def taskInfoItemTypeCounts(collectionIds: Seq[ObjectId]): Future[Map[String, Double]] = {
+    propertyCounts("taskInfo.itemType", collectionIds)
   }
 }

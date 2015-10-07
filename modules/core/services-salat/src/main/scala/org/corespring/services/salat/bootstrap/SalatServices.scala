@@ -126,7 +126,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
     def db: MongoDB = SalatServices.this.db
 
-    protected def collectionName: String = "content"
+    protected def collectionName: String = CollectionNames.item
 
     protected implicit def entityManifest: Manifest[Item] = Manifest.classType(classOf[Item])
 
@@ -167,7 +167,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
   override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, contentCollectionService, context, archiveConfig)
 
-  override lazy val itemAggregationService: interface.item.ItemAggregationService = wire[ItemAggregationService]
+  override lazy val itemAggregationService: interface.item.ItemAggregationService = new ItemAggregationService(db(CollectionNames.item), salatServicesExecutionContext)
 
   override lazy val assessmentService: interface.assessment.AssessmentService = wire[AssessmentService]
 

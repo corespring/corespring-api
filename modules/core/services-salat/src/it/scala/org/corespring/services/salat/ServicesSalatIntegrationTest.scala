@@ -12,10 +12,12 @@ import org.joda.time.DateTime
 import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ Around, Specification }
+import org.specs2.time.NoTimeConversions
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ Future, Await, ExecutionContext }
+import scala.concurrent.duration._
 
-trait ServicesSalatIntegrationTest extends Specification with Mockito with Around {
+trait ServicesSalatIntegrationTest extends Specification with Mockito with Around with NoTimeConversions {
 
   sequential
 
@@ -28,6 +30,8 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   }
 
   protected val logger = Logger(classOf[ServicesSalatIntegrationTest])
+
+  protected def waitFor[A](f: Future[A]): A = Await.result(f, 1.second)
 
   lazy val s3 = mock[AmazonS3]
 

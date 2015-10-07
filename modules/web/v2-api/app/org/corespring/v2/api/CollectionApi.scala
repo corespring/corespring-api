@@ -1,11 +1,12 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.commons.TypeImports._
+import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.item.ItemAggregationService
 import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
@@ -21,6 +22,7 @@ import scalaz.{ Failure, Success, Validation }
 
 class CollectionApi(
   contentCollectionService: ContentCollectionService,
+  itemAggregationService: ItemAggregationService,
   v2ApiContext: V2ApiExecutionContext,
   jsonFormatting: JsonFormatting,
   override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
@@ -34,9 +36,19 @@ class CollectionApi(
 
   import jsonFormatting.writeContentCollection
 
-  def fieldValuesByFrequency(ids: String, field: String) = Action {
-    //TODO: Plugin in ItemAggregationService
-    NotImplemented("Not ready yet!")
+  def fieldValuesByFrequency(ids: String, field: String) = Action.async { request =>
+
+    def toObjectId(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
+
+    val collectionIds = ids.split(",").flatMap(toObjectId)
+    val futureMap = field match {
+      case "itemType" => itemAggregationService.taskInfoItemTypeCounts(collectionIds)
+      case "contributor" => itemAggregationService.contributorCounts(collectionIds)
+    }
+
+    futureMap.map { m =>
+      Ok(Json.toJson(m))
+    }
   }
 
   private def canRead(collectionId: ObjectId)(fn: OrgAndOpts => SimpleResult): Action[AnyContent] = Action.async { r =>
