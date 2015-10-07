@@ -68,7 +68,7 @@ class DataQueryHooks(
         }
         result.leftMap { e => (BAD_REQUEST -> e) }
       }.getOrElse {
-        Success(subjectQueryService.list)
+        Success(subjectQueryService.list(0, 0))
       }
     }
 
@@ -90,7 +90,7 @@ class DataQueryHooks(
             }
         }
       }.getOrElse {
-        Success(standardQueryService.list)
+        Success(standardQueryService.list(0, 0))
       }
     }
 
@@ -109,7 +109,9 @@ class DataQueryHooks(
         logger.debug(s"function=list, topic=$topic, fieldValueJson.fields=${fieldValueJson.fields.map(_._1)}")
         logger.trace(s"function=list topic=$topic, fieldValues: ${Json.prettyPrint(fieldValueJson)}")
         if (fieldValueJson.fields.map(_._1).contains(topic)) {
-          Right((fieldValueJson \ topic).as[JsArray])
+          val out = (fieldValueJson \ topic)
+          logger.trace(s"function=list, topic=$topic, out: $out")
+          Right(out.as[JsArray])
         } else {
           Left(404, s"Can't find $topic")
         }

@@ -49,9 +49,9 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     dao.findOneById(new ObjectId(id))
   } else None
 
-  override def list(): Stream[Standard] = {
+  override def list(l: Int = 0, sk: Int = 0): Stream[Standard] = {
     logger.trace(s"list")
-    dao.find(MongoDBObject.empty).toStream
+    dao.find(MongoDBObject.empty).limit(l).skip(sk).toStream
   }
 
   override def queryDotNotation(dotNotation: String, l: Int, sk: Int): Stream[Standard] = {
@@ -86,41 +86,6 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def query(q: StandardQuery, l: Int = 50, sk: Int = 0): Stream[Standard] = {
     dao.find(toDbo(q)).limit(l).skip(sk).toStream
-  }
-
-  @deprecated("use 'query(Query) instead", "core-refactor")
-  override def query(term: String): Stream[Standard] = {
-
-    lazy val standardByDotNotationQuery: Option[DBObject] = for {
-      json <- Json.parse(term).asOpt[JsValue]
-      dotNotation <- (json \ "dotNotation").asOpt[String]
-    } yield MongoDBObject("dotNotation" -> dotNotation)
-
-    lazy val standardBySearchQuery: Option[DBObject] = for {
-      json <- Json.parse(term).asOpt[JsValue]
-      searchTerm <- (json \ "searchTerm").asOpt[String]
-    } yield addFilters(MongoDBObject("$or" -> MongoDBList(
-      MongoDBObject("standard" -> toRegex(searchTerm)),
-      MongoDBObject("subject" -> toRegex(searchTerm)),
-      MongoDBObject("category" -> toRegex(searchTerm)),
-      MongoDBObject("subCategory" -> toRegex(searchTerm)),
-      MongoDBObject("dotNotation" -> toRegex(searchTerm)))), (json \ "filters").asOpt[JsObject])
-
-    lazy val queryObject = {
-      standardByDotNotationQuery.orElse(standardBySearchQuery)
-    }
-
-    def addFilters(query: DBObject, json: Option[JsObject]): DBObject = {
-      json.map(filters => for ((k, v) <- filters.fields) {
-        query.put(k, v.as[String])
-      })
-      query
-    }
-
-    queryObject.map { q =>
-      logger.trace(s"function=query(String), query=$q")
-      dao.find(q).toStream
-    }.getOrElse(Stream.empty[Standard])
   }
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")

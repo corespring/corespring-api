@@ -18,10 +18,7 @@ trait QueryService[A, Q <: Query] {
    */
   def query(term: Q, l: Int = 50, sk: Int = 0): Stream[A]
 
-  @deprecated("use 'query(Query) instead", "core-refactor")
-  def query(term: String): Stream[A]
-
-  def list(): Stream[A]
+  def list(l: Int = 0, sk: Int = 0): Stream[A]
 
   def findOne(id: String): Option[A]
 }

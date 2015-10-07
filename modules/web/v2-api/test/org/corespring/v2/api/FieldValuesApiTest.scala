@@ -33,14 +33,14 @@ class FieldValuesApiTest extends V2ApiSpec {
 
     lazy val standardService = {
       val m = mock[StandardService]
-      m.list returns Stream.empty[Standard]
+      m.list(any[Int], any[Int]) returns Stream.empty[Standard]
       m.query(any[StandardQuery], any[Int], any[Int]) returns Stream.empty[Standard]
       m
     }
 
     lazy val subjectService = {
       val m = mock[SubjectService]
-      m.list returns Stream.empty[Subject]
+      m.list(any[Int], any[Int]) returns Stream.empty[Subject]
       m.query(any[SubjectQuery], any[Int], any[Int]) returns Stream.empty[Subject]
       m
     }

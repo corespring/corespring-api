@@ -23,9 +23,9 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
     dao.findOneById(new ObjectId(id))
   } else None
 
-  override def list(): Stream[Subject] = {
+  override def list(l: Int = 0, sk: Int = 0): Stream[Subject] = {
     logger.trace(s"list")
-    dao.find(MongoDBObject.empty).toStream
+    dao.find(MongoDBObject.empty).limit(l).skip(sk).toStream
   }
 
   private def toDbo(q: SubjectQuery): DBObject = {
@@ -52,42 +52,13 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
     dao.find(query).skip(sk).limit(l).toStream
   }
 
-  override def query(raw: String): Stream[Subject] = {
-    getQuery(raw).map(query => {
-      logger.trace(s"mongo query: ${query}")
-      dao.find(query).toStream
-    }).getOrElse(Stream.empty[Subject])
-  }
-
-  def getQuery(raw: String) = {
-    getSimpleSubjectQuery(raw).orElse(getSubjectByCategoryAndSubjectQuery(raw))
-  }
-
-  private def getSimpleSubjectQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    searchTerm <- (json \ "searchTerm").asOpt[String]
-  } yield MongoDBObject("$or" -> MongoDBList(
-    MongoDBObject("subject" -> toRegex(searchTerm)),
-    MongoDBObject("category" -> toRegex(searchTerm))))
-
-  private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    filters <- (json \ "filters").asOpt[JsValue]
-    category <- (filters \ "category").asOpt[String]
-  } yield addOptional(MongoDBObject("category" -> category), (filters \ "subject").asOpt[String])
-
-  def addOptional(query: DBObject, json: Option[String]): DBObject = {
-    json.map(s => query.put("subject", s))
-    query
-  }
-
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
   override def count(query: DBObject): Long = dao.count(query)
 
   override def find(dbo: DBObject): Stream[Subject] = dao.find(dbo).toStream
 
-  override def insert(s: Subject): Option[ObjectId] = dao.insert(s)
+  override def insert(s: Subject): Option[ObjectId] = dao.insert(s, WriteConcern.Safe)
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
 

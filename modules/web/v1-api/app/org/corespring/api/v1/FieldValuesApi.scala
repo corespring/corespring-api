@@ -78,7 +78,7 @@ class FieldValuesApi(
       }
 
     }.getOrElse {
-      Future(Ok(Json.toJson(subjectService.list)))
+      Future(Ok(Json.toJson(subjectService.list(l, sk))))
     }
   }
 

@@ -46,7 +46,7 @@ import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Logger, Play }
+import play.api.{ Mode, Configuration, Logger, Play }
 import web.controllers.ShowResource
 
 import scala.concurrent.ExecutionContext
@@ -175,7 +175,13 @@ object Main
   override lazy val jsonFormatting: JsonFormatting = new JsonFormatting {
     override lazy val findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation(_)
 
-    override lazy val fieldValue: FieldValue = fieldValueService.get.get
+    private lazy val fieldValueLoadedOnce = fieldValueService.get.get
+
+    override def fieldValue: FieldValue = if (Play.current.mode == Mode.Prod) {
+      fieldValueLoadedOnce
+    } else {
+      fieldValueService.get.get
+    }
 
     override lazy val findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById(_)
 

@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.corespring.models.{ Standard, Subject }
-import org.corespring.services.{ StandardQuery, StandardService, QueryService, SubjectQuery }
+import org.corespring.services._
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.mock.Mockito
 import org.specs2.specification.{ Fragment, Scope }
@@ -20,14 +20,14 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
     val subjectQueryService = {
       val m = mock[QueryService[Subject, SubjectQuery]]
       m.query(any[SubjectQuery], any[Int], any[Int]) returns Stream.empty[Subject]
-      m.list returns Stream.empty[Subject]
+      m.list(any[Int], any[Int]) returns Stream.empty[Subject]
       m
     }
 
     val standardService = {
       val m = mock[StandardService]
       m.query(any[StandardQuery], any[Int], any[Int]) returns Stream.empty[Standard]
-      m.list returns Stream.empty[Standard]
+      m.list(any[Int], any[Int]) returns Stream.empty[Standard]
       m
     }
 
@@ -44,6 +44,21 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
   }
 
   "list" should {
+
+    def assertBasics(topic: String, fn: scope => QueryService[_, _ <: Query]) = {
+
+      s"$topic: call list if there's no query" in new scope {
+        val future = hooks.list(topic, None)
+        val result = wait(future)
+        there was one(fn(this)).list(any[Int], any[Int])
+      }
+
+      s"return an error if it's bad json for $topic" in new scope {
+        val future = hooks.list(topic, Some("BAD-JSON"))
+        val result = wait(future)
+        result === Left(BAD_REQUEST, _: String)
+      }
+    }
 
     "when listing subjects" should {
 
@@ -70,17 +85,7 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
           override lazy val key = s"subjects.$subjectKey"
         }
 
-        "call list if there's no query" in new scope {
-          val future = hooks.list(s"subjects.$subjectKey", None)
-          val result = wait(future)
-          there was one(subjectQueryService).list()
-        }
-
-        s"return an error if it's bad json for subjects.$subjectKey" in new scope {
-          val future = hooks.list(s"subjects.$subjectKey", Some("BAD-JSON"))
-          val result = wait(future)
-          result === Left(BAD_REQUEST, _: String)
-        }
+        assertBasics(s"subjects.$subjectKey", h => h.subjectQueryService)
 
         s"call subjectQueryService.query for subjects.$subjectKey" in new s(
           Some(Json.obj("searchTerm" -> "a")),
@@ -89,7 +94,6 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
         s"call subjectQueryService.query for subjects.$subjectKey with filters" in new s(
           Some(jsonWithFilters),
           SubjectQuery("a", Some("History"), Some("Humanities")))
-
       }
 
       "when listing subjects.primary" should assert("primary")
@@ -112,17 +116,7 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
         there was one(standardService).query(expected, 0, 0)
       }
 
-      "call list if there's no query" in new scope {
-        val future = hooks.list("standards", None)
-        val result = wait(future)
-        there was one(standardService).list()
-      }
-
-      "return an error if it's bad json" in new scope {
-        val future = hooks.list("standards", Some("BAD-JSON"))
-        val result = wait(future)
-        result === Left(BAD_REQUEST, _: String)
-      }
+      assertBasics("standards", h => h.standardService)
 
       "call standardService.query" in new standards(
         Some(Json.obj("searchTerm" -> "a")),

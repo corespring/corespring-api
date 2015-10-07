@@ -9,6 +9,7 @@ import org.corespring.test.JsonAssertions
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
+import play.api.mvc.{ AnyContent, Action }
 import play.api.test.{ FakeRequest, PlaySpecification }
 import scala.concurrent.duration._
 
@@ -28,14 +29,14 @@ class FieldValuesApiTest
     val standardService = {
       val m = mock[StandardService]
       m.query(any[StandardQuery], any[Int], any[Int]) returns Stream.empty[Standard]
-      m.list() returns Stream.empty[Standard]
+      m.list(any[Int], any[Int]) returns Stream.empty[Standard]
       m
     }
 
     val subjectService = {
       val m = mock[SubjectService]
       m.query(any[SubjectQuery], any[Int], any[Int]) returns Stream.empty[Subject]
-      m.list() returns Stream.empty[Subject]
+      m.list(any[Int], any[Int]) returns Stream.empty[Subject]
       m
     }
 
@@ -61,13 +62,30 @@ class FieldValuesApiTest
     def regex(s: String) = Json.obj("$regex" -> s"\\\\b$s")
   }
 
-  "subject" should {
+  def assertBasics(fn: FieldValuesApi => (Option[String], Int, Int) => Action[AnyContent]) = {
 
     "call list if there's no query" in new scope {
-      val result = api.subject(None, 0, 0)(req)
+      val result = fn(api)(None, 0, 0)(req)
       wait(result)
-      there was one(subjectService).list()
+      there was one(subjectService).list(any[Int], any[Int])
     }
+
+    "return an error if the $or has different values" in new scope {
+
+      override val queryJson = Some(Json.obj(
+        "$or" -> Json.arr(
+          Json.obj("subject" -> Json.obj("$regex" -> "\\\\bApple")),
+          Json.obj("standard" -> Json.obj("$regex" -> "\\\\bBanana")))))
+      val result = api.standard(queryString, 0, 0)(req)
+      status(result) === BAD_REQUEST
+      //Note: this should never happen and is temporary so hard coding the error string is ok.
+      contentAsString(result) === "The regex values differ: \\\\bApple, \\\\bBanana"
+    }
+  }
+
+  "subject" should {
+
+    assertBasics(api => api.subject)
 
     "map the old json format to a SubjectQuery" in new scope {
 
@@ -85,23 +103,7 @@ class FieldValuesApiTest
 
   "standard" should {
 
-    "call list if there's no query" in new scope {
-      val result = api.standard(None, 0, 0)(req)
-      wait(result)
-      there was one(standardService).list()
-    }
-
-    "return an error if the $or has different values" in new scope {
-
-      override val queryJson = Some(Json.obj(
-        "$or" -> Json.arr(
-          Json.obj("subject" -> Json.obj("$regex" -> "\\\\bApple")),
-          Json.obj("standard" -> Json.obj("$regex" -> "\\\\bBanana")))))
-      val result = api.standard(queryString, 0, 0)(req)
-      status(result) === BAD_REQUEST
-      //Note: this should never happen and is temporary so hard coding the error string is ok.
-      contentAsString(result) === "The regex values differ: \\\\bApple, \\\\bBanana"
-    }
+    assertBasics(api => api.subject)
 
     "map the old json format to a SubjectQuery" in new scope {
 

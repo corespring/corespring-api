@@ -64,7 +64,7 @@ class FieldValuesApi(
           case Failure(e) => BadRequest(e)
         }
       }.getOrElse {
-        Ok(Json.toJson(service.list()))
+        Ok(Json.toJson(service.list(l, sk)))
       }
     }
   }

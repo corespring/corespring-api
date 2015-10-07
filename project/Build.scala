@@ -247,6 +247,8 @@ object Build extends sbt.Build {
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
+      //disable publishing of the root project
+      packagedArtifacts := Map.empty,
       libraryDependencies ++= Seq(playMemcached, assetsLoader),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
