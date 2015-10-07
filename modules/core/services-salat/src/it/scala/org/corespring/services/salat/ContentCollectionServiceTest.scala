@@ -379,22 +379,52 @@ class ContentCollectionServiceTest
 
     "isAuthorized" should {
 
-      "work on a collection with read permission" in new testScope {
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read).isSuccess === true
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write).isFailure === true
-        service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None).isSuccess === true
+      "with read permission" should {
+        "return success when collection is readable" in new testScope {
+          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read).isSuccess === true
+        }
+        "return success when collection is writable" in new testScope {
+          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read).isSuccess === true
+        }
+        "return failure when collection has permission none" in new testScope {
+          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read).isFailure === true
+        }
+        "return failure when one collection is not readable" in new testScope {
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, noPermissionCollection.id),Permission.Read).isFailure === true
+        }
+        "return success when all collections are readable" in new testScope {
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id),Permission.Read).isSuccess === true
+        }
       }
 
-      "work on a collection with write permission" in new testScope {
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read).isSuccess === true
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write).isSuccess === true
-        service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None).isSuccess === true
+      "with write permission" should {
+        "return failure when collection is readable" in new testScope {
+          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write).isFailure === true
+        }
+        "return success when collection is writable" in new testScope {
+          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write).isSuccess === true
+        }
+        "return failure when collection has permission none" in new testScope {
+          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write).isFailure === true
+        }
+        "return failure when one collection is not writable" in new testScope {
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id),Permission.Write).isFailure === true
+        }
+        "return success when all collections are writable" in new testScope {
+          service.isAuthorized(rootOrg.id, Seq(writableCollectionWithItem.id, writableCollection.id),Permission.Write).isSuccess === true
+        }
       }
 
-      "work on a collection with no permission" in new testScope {
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read).isFailure === true
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write).isFailure === true
-        service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None).isSuccess === true
+      "with none permission" should {
+        "return failure when collection is readable" in new testScope {
+          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None).isSuccess === true
+        }
+        "return failure when collection is writable" in new testScope {
+          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None).isSuccess === true
+        }
+        "return failure when collection has permission none" in new testScope {
+          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None).isSuccess === true
+        }
       }
     }
 
