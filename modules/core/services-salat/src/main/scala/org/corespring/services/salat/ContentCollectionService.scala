@@ -6,10 +6,11 @@ import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, Sa
 import grizzled.slf4j.Logger
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
-import org.corespring.services.errors.PlatformServiceError
+import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }
@@ -41,20 +42,37 @@ class ContentCollectionService(
 
   override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Validation[PlatformServiceError, ContentCollection] = {
 
-    //TODO: apply two-phase commit
-    try {
-      dao.insert(collection) match {
-        case Some(_) => try {
-          val reference = new ContentCollRef(collection.id, p.value, enabled)
-          organizationService.addCollectionReference(orgId, reference).map(_ => collection)
-        } catch {
-          case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update organization with collection", e))
+    def addCollectionToDb() = {
+      try {
+        dao.insert(collection) match {
+          case Some(_) => Success(collection)
+          case None => Failure(CollectionInsertError(collection, None))
         }
-        case None => Failure(PlatformServiceError("failed to insert content collection"))
+      } catch {
+        case e: SalatInsertError =>
+          Failure(CollectionInsertError(collection, Some(e)))
       }
-    } catch {
-      case e: SalatInsertError => Failure(PlatformServiceError("failed to insert content collection", e))
     }
+
+    def addCollectionToOrg(collection: ContentCollection) = {
+      try {
+        val reference = new ContentCollRef(collection.id, p.value, enabled)
+        organizationService.addCollectionReference(orgId, reference) match {
+          case Success(_) => Success(collection)
+          case _ => Failure(OrganizationAddCollectionError(orgId, collection.id, p, None))
+        }
+      } catch {
+        case e: SalatDAOUpdateError => {
+          Failure(OrganizationAddCollectionError(orgId, collection.id, p, Some(e)))
+        }
+      }
+    }
+
+    //TODO: apply two-phase commit
+    for {
+      addedCollection <- addCollectionToDb()
+      updatedCollection <- addCollectionToOrg(addedCollection)
+    } yield updatedCollection
   }
 
   /**
@@ -65,48 +83,40 @@ class ContentCollectionService(
    * We'll have to filter the individual item ids anyway
    */
   override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    if (isAuthorized(orgId, collId, Permission.Write)) {
 
-      if (items.isEmpty) {
-        logger.warn("[shareItems] items is empty")
-      }
-
-      val objectIds = items.map(i => i.id)
-
-      // get a list of any items that were not authorized to be added
-      val itemsNotAuthorized = itemService.findMultipleById(objectIds: _*).filterNot(item => {
-        // get the collections to test auth on (owner collection for item, and shared-in collections)
-        val collectionsToAuth = item.collectionId +: item.sharedInCollections
-        // does org have read access to any of these collections
-        val collectionsAuthorized = collectionsToAuth.filter(collectionId => isAuthorized(orgId, new ObjectId(collectionId), Permission.Read))
-        collectionsAuthorized.nonEmpty
-      })
-      if (itemsNotAuthorized.size <= 0) {
-        // add collection id to item.sharedinCollections unless the collection is the owner collection for item
-        val savedUnsavedItems = items.partition(item => {
-          try {
-            itemService.findOneById(item) match {
-              case Some(i) if collId.equals(i.collectionId) => true
-              case _ => itemService.addCollectionIdToSharedCollections(item, collId).fold(_ => false, _ => true)
-            }
-          } catch {
-            case e: SalatDAOUpdateError => false
-          }
-        })
-        if (savedUnsavedItems._2.nonEmpty) {
-          logger.warn(s"[addItems] failed to add items: ${savedUnsavedItems._2.map(_.id).mkString(",")}")
-          Failure(PlatformServiceError("failed to add items"))
-        } else {
-          logger.trace(s"[addItems] added items: ${savedUnsavedItems._1.map(_.id).mkString(",")}")
-          Success(savedUnsavedItems._1)
-        }
-
-      } else {
-        Failure(PlatformServiceError("items failed auth: " + itemsNotAuthorized.map(_.id)))
-      }
-    } else {
-      Failure(PlatformServiceError("organization does not have write permission on collection"))
+    def allowedToWriteCollection = {
+      isAuthorized(orgId, collId, Permission.Write)
     }
+
+    def allowedToReadItems = {
+      val objectIds = items.map(i => i.id)
+      // get a list of any items that were not authorized to be added
+      itemService.findMultipleById(objectIds: _*).filterNot(item => {
+        println(s"++++++++++++++++ ${item}")
+        // get the collections to test auth on (owner collection for item, and shared-in collections)
+        val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
+        // does org have read access to any of these collections
+        val collectionsAuthorized = collectionsToAuth.
+          filter(collectionId => isAuthorized(orgId, collectionId, Permission.Read).isSuccess)
+        collectionsAuthorized.nonEmpty
+      }) match {
+        case Stream.Empty => Success()
+        case notAuthorizedItems => {
+          logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
+          Failure(ItemAuthorizationError(orgId, Permission.Read, notAuthorizedItems.map(_.id): _*))
+        }
+      }
+    }
+
+    def saveUnsavedItems = {
+      itemService.addCollectionIdToSharedCollections(items, collId)
+    }
+
+    for {
+      canWriteToCollection <- allowedToWriteCollection
+      canReadAllItems <- allowedToReadItems
+      sharedItems <- saveUnsavedItems
+    } yield sharedItems
   }
 
   /** Get a default collection from the set of ids */
@@ -117,45 +127,11 @@ class ContentCollectionService(
    * Unshare the specified items from the specified collections
    */
   override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    // make sure org has auth for all the collIds
-    val authorizedCollIds = collIds.filter(id => isAuthorized(orgId, id, Permission.Write))
-    if (authorizedCollIds.size != collIds.size) {
-      Failure(PlatformServiceError("authorization failed on collection(s)"))
-    } else {
-      itemService.removeCollectionIdsFromShared(items, collIds) match {
-        case Failure(failedItems) => Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
-        case Success(_) => Success(items)
-      }
-      /*val failedItems = items.filterNot(item => {
-        try {
-          itemService.findOneById(item) match {
-            case _ =>
-              itemService.removeCollectionIdsFromShared(collId)
-              //saveUsingDbo(item, MongoDBObject("$pullAll" -> MongoDBObject(Item.Keys.sharedInCollections -> collIds)), false)
-              true
-          }
-        } catch {
-          case e: SalatDAOUpdateError => false
-        }*/
-    } //)
-    /*if (failedItems.size > 0) {
-        Failure(PlatformServiceError("failed to unshare collections for items: " + failedItems))
-      } else {
-        Success(items)
-      }*/
-    //}
-
+    for {
+      canUpdateAllCollections <- isAuthorized(orgId, collIds, Permission.Write)
+      successfullyRemovedItems <- itemService.removeCollectionIdsFromShared(items, collIds)
+    } yield successfullyRemovedItems
   }
-
-  /**
-   *
-   * @return
-   * def addOrganizations(orgs: Seq[(ObjectId, Permission)], collId: ObjectId): Validation[PlatformServiceError, Unit] = {
-   * val errors = orgs.map(org => organizationService.addCollection(org._1, collId, org._2)).filter(_.isLeft)
-   * if (errors.size > 0) Failure(errors(0).left.get)
-   * else Success(())
-   * }
-   */
 
   override def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
 
@@ -186,30 +162,46 @@ class ContentCollectionService(
   /**
    * does the given organization have access to the given collection with given permissions?
    */
-  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit] = {
+    isAuthorized(orgId, Seq(collId), p)
+  }
+
+  /**
+   * does the given organization have access to all the given collections with given permissions?
+   */
+  override def isAuthorized(orgId: ObjectId, collIds: Seq[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     val orgCollectionIds = getCollectionIds(orgId, p)
-    val hasId = orgCollectionIds.contains(collId)
-    if (!hasId) {
-      logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
+
+    collIds.filterNot(id => orgCollectionIds.contains(id)) match {
+      case Nil => Success(collIds)
+      case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
     }
-    hasId
   }
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
-    try {
-      val collectionItemCount = itemCount(collId)
-      if (collectionItemCount != 0) {
-        Failure(PlatformServiceError(s"Can't delete this collection it has $collectionItemCount item(s) in it."))
-      } else {
+
+    def isEmptyCollection = itemCount(collId) match {
+      case 0 => Success()
+      case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
+    }
+
+    def doDelete() = {
+      try {
         dao.removeById(collId)
         organizationService.deleteCollectionFromAllOrganizations(collId)
         itemService.deleteFromSharedCollections(collId)
+        Success()
+      } catch {
+        case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to transfer collection to archive", e))
+        case e: SalatRemoveError => Failure(PlatformServiceError(e.getMessage))
       }
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to transfer collection to archive", e))
-      case e: SalatRemoveError => Failure(PlatformServiceError(e.getMessage))
     }
+
+    for {
+      canBeDeleted <- isEmptyCollection
+      success <- doDelete
+    } yield ()
   }
 
   override def getPublicCollections: Seq[ContentCollection] = dao.find(MongoDBObject(Keys.isPublic -> true)).toSeq
@@ -269,31 +261,6 @@ class ContentCollectionService(
    * }
    */
 
-  override def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    //TODO: RF: implement - need to decide how to abstract search
-    Failure(PlatformServiceError("shareItemsMatchingQuery is not supported"))
-    //Original --
-    /*val acessibleCollections = ContentCollection.getCollectionIds(orgId, Permission.Read)
-    val collectionsQuery: DBObject = ItemServiceWired.createDefaultCollectionsQuery(acessibleCollections, orgId)
-    val parsedQuery: Validation[SearchCancelled, DBObject] = ItemSearch.toSearchObj(query, Some(collectionsQuery))
-
-    parsedQuery match {
-      case Success(searchQry) =>
-        val cursor = ItemServiceWired.find(searchQry, MongoDBObject("_id" -> 1))
-
-        val seq = cursor.toSeq
-        if (seq.size == 0) {
-          logger.warn(s"[shareItemsMatchingQuery] didn't find any items: ${cursor.size}: query: ${JSON.serialize(searchQry)}")
-        }
-        val ids = seq.map(item => item.id)
-        shareItems(orgId, ids, collId)
-      case Failure(sc) => sc.error match {
-        case None => Success(Seq())
-        case Some(error) => Failure(CorespringInternalError(error.clientOutput.getOrElse("error processing search")))
-      }
-    }*/
-  }
-
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = {
     itemService.count(MongoDBObject("collectionId" -> collectionId.toString))
@@ -324,5 +291,14 @@ class ContentCollectionService(
   override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
     val collection = ContentCollection(name = name, ownerOrgId = org.id)
     insertCollection(org.id, collection, Permission.Write, true)
+  }
+
+  //new api, not used yet
+  def shareItemWithCollection(org: ObjectId, item: VersionedId[ObjectId], collection: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
+    Failure(PlatformServiceError("Not implemented"))
+  }
+
+  override def isItemSharedWith(itemId: VersionedId[ObjectId], collId: ObjectId): Boolean = {
+    itemService.findOneById(itemId).map(_.sharedInCollections.contains(collId)).getOrElse(false)
   }
 }

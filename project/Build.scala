@@ -76,14 +76,14 @@ object Build extends sbt.Build {
       Keys.parallelExecution in IntegrationTest := false,
       Keys.fork in IntegrationTest := false,
       Keys.logBuffered := false,
-      testOptions in IntegrationTest += Tests.Setup(() => println("---------> Setup Integration Test")),
-      testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test")),
       testOptions in IntegrationTest += Tests.Setup((loader: java.lang.ClassLoader) => {
         loader.loadClass("org.corespring.services.salat.it.Setup").newInstance
       }),
       testOptions in IntegrationTest += Tests.Cleanup((loader: java.lang.ClassLoader) => {
         loader.loadClass("org.corespring.services.salat.it.Cleanup").newInstance
-      }))
+      }),
+      testOptions in IntegrationTest += Tests.Setup(() => println("---------> Setup Integration Test")),
+      testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test")))
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 

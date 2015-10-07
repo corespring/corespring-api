@@ -69,9 +69,9 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem]
 
-  def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Validation[PlatformServiceError, Unit]
+  def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
 
-  def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collId: Seq[ObjectId]): Validation[Seq[VersionedId[ObjectId]], Unit]
+  def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collId: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
 
   /**
    * Delete collection reference from shared collections (defined in items)

@@ -126,7 +126,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](
       case Some((key, dblist)) => if (key == "$in") {
         if (dblist.isInstanceOf[BasicDBList]) {
           try {
-            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => contentCollectionService.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read)))
+            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => contentCollectionService.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read).isSuccess))
               Right(value)
             else Left(CorespringInternalError("attempted to access a collection that you are not authorized to"))
           } catch {

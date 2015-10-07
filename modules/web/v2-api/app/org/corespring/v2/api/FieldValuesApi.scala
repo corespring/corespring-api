@@ -79,4 +79,12 @@ class FieldValuesApi(
     }
   }
 
+  def subject = futureWithIdentity { (identity, _) =>
+    Future(NotImplemented)
+  }
+
+  def standard = futureWithIdentity { (identity, _) =>
+    Future(NotImplemented)
+  }
+
 }

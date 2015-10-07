@@ -25,7 +25,7 @@ case class Item(
   published: Boolean = false,
   reviewsPassed: Seq[String] = Seq(),
   reviewsPassedOther: Option[String] = None,
-  sharedInCollections: Seq[String] = Seq(),
+  sharedInCollections: Seq[ObjectId] = Seq(),
   standards: Seq[String] = Seq(),
   supportingMaterials: Seq[Resource] = Seq(),
   taskInfo: Option[TaskInfo] = None,

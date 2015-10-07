@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item._
 import org.corespring.models.item.resource.Resource
-import org.corespring.models.json.{ JsonValidationException, ValueGetter, VersionedIdFormat }
+import org.corespring.models.json.{ ObjectIdFormat, JsonValidationException, ValueGetter, VersionedIdFormat }
 import org.corespring.models.{ Standard, item => model }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._
@@ -91,6 +91,8 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
 
   def reads(json: JsValue) = {
 
+    implicit val oidf = ObjectIdFormat
+
     def areAllGradeLevelsValid(gradeLevels: Seq[String]): Boolean = {
       println(s"gradeLevels: $gradeLevels")
       println(s"fv.gradeLevels: ${fieldValues.gradeLevels.map(_.key)}")
@@ -123,7 +125,7 @@ trait ItemFormat extends Format[model.Item] with ValueGetter {
       },
       reviewsPassed = (json \ Keys.reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty),
       reviewsPassedOther = (json \ Keys.reviewsPassedOther).asOpt[String],
-      sharedInCollections = (json \ Keys.sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty),
+      sharedInCollections = (json \ Keys.sharedInCollections).asOpt[Seq[ObjectId]].getOrElse(Seq.empty),
       standards = (json \ Keys.standards).asOpt[Seq[String]].getOrElse(Seq()),
       data = (json \ Keys.data).asOpt[Resource],
       published = (json \ Keys.published).asOpt[Boolean].getOrElse(false))
