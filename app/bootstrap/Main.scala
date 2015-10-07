@@ -9,7 +9,7 @@ import common.db.Db
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
-import org.corespring.api.v1.V1ApiModule
+import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.AppConfig
 import org.corespring.container.client.integration.ContainerExecutionContext
@@ -46,7 +46,7 @@ import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{ Configuration, Logger, Play }
+import play.api.{ Mode, Configuration, Logger, Play }
 import web.controllers.ShowResource
 
 import scala.concurrent.ExecutionContext
@@ -65,9 +65,10 @@ object Main
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
 
-  override lazy val v2ApiExecutionContext: V2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
-  override lazy val v2PlayerExecutionContext: V2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
-  override lazy val salatServicesExecutionContext: SalatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
+  override lazy val v2ApiExecutionContext = V2ApiExecutionContext(ExecutionContext.global)
+  override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
+  override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
+  override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
@@ -174,7 +175,13 @@ object Main
   override lazy val jsonFormatting: JsonFormatting = new JsonFormatting {
     override lazy val findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation(_)
 
-    override lazy val fieldValue: FieldValue = fieldValueService.get.get
+    private lazy val fieldValueLoadedOnce = fieldValueService.get.get
+
+    override def fieldValue: FieldValue = if (Play.current.mode == Mode.Prod) {
+      fieldValueLoadedOnce
+    } else {
+      fieldValueService.get.get
+    }
 
     override lazy val findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById(_)
 

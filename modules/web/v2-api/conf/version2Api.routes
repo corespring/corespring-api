@@ -71,6 +71,8 @@ GET /field_values/domain                   @org.corespring.v2.api.FieldValuesApi
 GET  /contributors                         @org.corespring.v2.api.FieldValuesApi.contributors()
 
 GET  /grade-levels                         @org.corespring.v2.api.FieldValuesApi.gradeLevels()
+GET  /subject                              @org.corespring.v2.api.FieldValuesApi.subject(q:Option[String], l:Int ?= 0, sk:Int ?= 0)
+GET  /standard                             @org.corespring.v2.api.FieldValuesApi.standard(q:Option[String], l:Int ?= 0, sk:Int ?= 0)
 
 GET  /internal/flush-caches                @org.corespring.v2.api.Utils.flushCaches
 

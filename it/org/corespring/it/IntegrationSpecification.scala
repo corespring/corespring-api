@@ -24,9 +24,13 @@ abstract class IntegrationSpecification
 
   override implicit def defaultAwaitTimeout: Timeout = 3.seconds
 
+  protected def dropDb() = {
+    logger.debug(s"function=dropDb - dropping db")
+    Main.db.dropDatabase()
+  }
   override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
     logger.debug(s"function=around - dropping db")
-    Main.db.dropDatabase()
+    dropDb()
     AsResult(t)
   }
 }

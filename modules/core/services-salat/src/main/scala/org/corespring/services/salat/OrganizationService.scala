@@ -353,7 +353,7 @@ class OrganizationService(
       if (result.getLastError.ok) Success() else Failure(s"remove collectionId $collId from orgs failed")
     }
 
-    def removeCollectionIdFromItem()= {
+    def removeCollectionIdFromItem() = {
       itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
     }
 

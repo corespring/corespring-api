@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item._
 import org.corespring.models.item.resource.Resource
-import org.corespring.models.json.{ObjectIdFormat, JsonValidationException, ValueGetter, VersionedIdFormat}
+import org.corespring.models.json.{ ObjectIdFormat, JsonValidationException, ValueGetter, VersionedIdFormat }
 import org.corespring.models.{ Standard, item => model }
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json._

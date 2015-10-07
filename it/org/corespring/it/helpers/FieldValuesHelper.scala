@@ -21,11 +21,11 @@ object FieldValuesHelper {
     credentials = Seq(dummy),
     bloomsTaxonomy = Seq(dummy))
 
-  def init():Option[ObjectId] = {
+  def init(): Option[ObjectId] = {
     fieldValueService.insert(fieldValue).toOption
   }
 
-  def cleanup(id:Option[ObjectId]) = {
+  def cleanup(id: Option[ObjectId]) = {
     fieldValueService.delete(id.get)
   }
 }

@@ -178,7 +178,6 @@ class ItemService(
     }
   }
 
-
   override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
     itemIds.filterNot { vid =>
       try {

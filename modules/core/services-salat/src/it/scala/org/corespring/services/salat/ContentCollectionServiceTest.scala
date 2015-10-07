@@ -9,7 +9,6 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors._
 import org.specs2.mutable._
 
-
 import scalaz.{ Failure, Success }
 
 class ContentCollectionServiceTest
@@ -126,9 +125,7 @@ class ContentCollectionServiceTest
       }
     }
 
-
     "unShareItems" should {
-
 
       "remove shared item from collection" in new testScope {
         service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
@@ -390,10 +387,10 @@ class ContentCollectionServiceTest
           service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read).isFailure === true
         }
         "return failure when one collection is not readable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, noPermissionCollection.id),Permission.Read).isFailure === true
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, noPermissionCollection.id), Permission.Read).isFailure === true
         }
         "return success when all collections are readable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id),Permission.Read).isSuccess === true
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id), Permission.Read).isSuccess === true
         }
       }
 
@@ -408,10 +405,10 @@ class ContentCollectionServiceTest
           service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write).isFailure === true
         }
         "return failure when one collection is not writable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id),Permission.Write).isFailure === true
+          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id), Permission.Write).isFailure === true
         }
         "return success when all collections are writable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(writableCollectionWithItem.id, writableCollection.id),Permission.Write).isSuccess === true
+          service.isAuthorized(rootOrg.id, Seq(writableCollectionWithItem.id, writableCollection.id), Permission.Write).isSuccess === true
         }
       }
 
@@ -470,7 +467,7 @@ class ContentCollectionServiceTest
           services.itemService.addCollectionIdToSharedCollections(Seq(item.id), writableCollection.id)
         }
 
-        def isCollectionInSharedCollections():Boolean = {
+        def isCollectionInSharedCollections(): Boolean = {
           services.itemService.findOneById(item.id) match {
             case Some(itm) => itm.sharedInCollections.contains(writableCollection.id)
             case None => {

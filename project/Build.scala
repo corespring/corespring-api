@@ -83,8 +83,7 @@ object Build extends sbt.Build {
         loader.loadClass("org.corespring.services.salat.it.Cleanup").newInstance
       }),
       testOptions in IntegrationTest += Tests.Setup(() => println("---------> Setup Integration Test")),
-      testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test"))
-    )
+      testOptions in IntegrationTest += Tests.Cleanup(() => println("-----------> Cleanup Integration Test")))
     .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, specs2 % "it,test", aws))
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 
@@ -248,6 +247,8 @@ object Build extends sbt.Build {
     .settings(sbt.Keys.fork in Test := false)
     .settings(NewRelic.settings: _*)
     .settings(
+      //disable publishing of the root project
+      packagedArtifacts := Map.empty,
       libraryDependencies ++= Seq(playMemcached, assetsLoader),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,

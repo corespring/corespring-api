@@ -2,10 +2,10 @@ package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
-import com.novus.salat.dao.{SalatRemoveError, SalatDAOUpdateError, SalatInsertError, SalatDAO}
+import com.novus.salat.dao.{ SalatRemoveError, SalatDAOUpdateError, SalatInsertError, SalatDAO }
 import org.bson.types.ObjectId
 import org.corespring.models.item.Item
-import org.corespring.models.{ContentCollRef, ContentCollection}
+import org.corespring.models.{ ContentCollRef, ContentCollection }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -15,7 +15,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
-import scalaz.{Failure, Success}
+import scalaz.{ Failure, Success }
 
 class ContentCollectionServiceTest extends Specification with Mockito {
 
@@ -75,7 +75,7 @@ class ContentCollectionServiceTest extends Specification with Mockito {
   "unShareItems" should {
     "should fail when itemService fails removing collectionsIds from shared" in new scope {
       val spyService = spy(service)
-      doAnswer(_=>Success()).when(spyService).isAuthorized(any[ObjectId], any[Seq[ObjectId]], any[Permission])
+      doAnswer(_ => Success()).when(spyService).isAuthorized(any[ObjectId], any[Seq[ObjectId]], any[Permission])
       itemService.removeCollectionIdsFromShared(any[Seq[VersionedId[ObjectId]]], any[Seq[ObjectId]]) returns Failure(PlatformServiceError("test"))
 
       spyService.unShareItems(orgId, Seq(item.id), Seq(collection.id)) match {
@@ -89,9 +89,9 @@ class ContentCollectionServiceTest extends Specification with Mockito {
   "shareItems" should {
     "should fail when itemService cannot add collectionId to shared" in new scope {
       val spyService = spy(service)
-      doAnswer(_=>Success()).when(spyService).isAuthorized(any[ObjectId], any[Seq[ObjectId]], any[Permission])
+      doAnswer(_ => Success()).when(spyService).isAuthorized(any[ObjectId], any[Seq[ObjectId]], any[Permission])
       itemService.findMultipleById(any[ObjectId]) returns Stream.Empty
-      itemService.addCollectionIdToSharedCollections(any[Seq[VersionedId[ObjectId]]],any[ObjectId]) returns Failure(PlatformServiceError("test"))
+      itemService.addCollectionIdToSharedCollections(any[Seq[VersionedId[ObjectId]]], any[ObjectId]) returns Failure(PlatformServiceError("test"))
 
       spyService.shareItems(orgId, Seq(item.id), collection.id) match {
         case Success(value) => failure("Expected to fail with error")
@@ -119,12 +119,5 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       }
     }
   }
-
-
-
-
-
-
-
 
 }

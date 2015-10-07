@@ -24,24 +24,9 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
 
   import jsonFormatting._
 
-  /*def fieldValue: FieldValue
-
-  override def findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById _
-
-  override def findStandardByDotNotation: (String) => Option[Standard] = standardService.findOneByDotNotation _*/
-
-  //def configuration: Configuration
-
-  //def checkModelIsUpToDate: Boolean = configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false)
 
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
 
-  //TODO: Remove service - transform should only transform. see: CA-2085
-  //def itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]]
-
-  //def standardService: StandardService
-
-  //def subjectService: SubjectService
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {

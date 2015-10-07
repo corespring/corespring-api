@@ -9,6 +9,7 @@ import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
 import org.corespring.services
+import org.corespring.services.SubjectQuery
 import play.api.libs.json.{ JsValue, Json }
 
 class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends services.SubjectService {
@@ -22,38 +23,33 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
     dao.findOneById(new ObjectId(id))
   } else None
 
-  override def list(): Stream[Subject] = {
+  override def list(l: Int = 0, sk: Int = 0): Stream[Subject] = {
     logger.trace(s"list")
-    dao.find(MongoDBObject.empty).toStream
+    dao.find(MongoDBObject.empty).limit(l).skip(sk).toStream
   }
 
-  override def query(raw: String): Stream[Subject] = {
-    getQuery(raw).map(query => {
-      logger.trace(s"mongo query: ${query}")
-      dao.find(query).toStream
-    }).getOrElse(Stream.empty[Subject])
+  private def toDbo(q: SubjectQuery): DBObject = {
+
+    val base = MongoDBObject(
+      List(q.category.map("category" -> _),
+        q.subject.map("subject" -> _)).flatten)
+
+    def invert(key: String, value: Option[String]): Option[DBObject] = {
+      if (value.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
+    }
+
+    val orObject = List(
+      invert("category", q.category),
+      invert("subject", q.subject)).flatten
+
+    import com.mongodb.casbah.Imports._
+
+    base ++ $or(orObject)
   }
 
-  def getQuery(raw: String) = {
-    getSimpleSubjectQuery(raw).orElse(getSubjectByCategoryAndSubjectQuery(raw))
-  }
-
-  private def getSimpleSubjectQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    searchTerm <- (json \ "searchTerm").asOpt[String]
-  } yield MongoDBObject("$or" -> MongoDBList(
-    MongoDBObject("subject" -> toRegex(searchTerm)),
-    MongoDBObject("category" -> toRegex(searchTerm))))
-
-  private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
-    json <- Json.parse(raw).asOpt[JsValue]
-    filters <- (json \ "filters").asOpt[JsValue]
-    category <- (filters \ "category").asOpt[String]
-  } yield addOptional(MongoDBObject("category" -> category), (filters \ "subject").asOpt[String])
-
-  def addOptional(query: DBObject, json: Option[String]): DBObject = {
-    json.map(s => query.put("subject", s))
-    query
+  override def query(term: SubjectQuery, l: Int, sk: Int): Stream[Subject] = {
+    val query = toDbo(term)
+    dao.find(query).skip(sk).limit(l).toStream
   }
 
   private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
@@ -62,7 +58,8 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
 
   override def find(dbo: DBObject): Stream[Subject] = dao.find(dbo).toStream
 
-  override def insert(s: Subject): Option[ObjectId] = dao.insert(s)
+  override def insert(s: Subject): Option[ObjectId] = dao.insert(s, WriteConcern.Safe)
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
+
 }

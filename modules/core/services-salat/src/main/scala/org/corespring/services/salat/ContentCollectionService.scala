@@ -54,7 +54,7 @@ class ContentCollectionService(
       }
     }
 
-    def addCollectionToOrg(collection:ContentCollection) = {
+    def addCollectionToOrg(collection: ContentCollection) = {
       try {
         val reference = new ContentCollRef(collection.id, p.value, enabled)
         organizationService.addCollectionReference(orgId, reference) match {
@@ -103,7 +103,7 @@ class ContentCollectionService(
         case Stream.Empty => Success()
         case notAuthorizedItems => {
           logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
-          Failure(ItemAuthorizationError(orgId, Permission.Read,notAuthorizedItems.map(_.id):_*))
+          Failure(ItemAuthorizationError(orgId, Permission.Read, notAuthorizedItems.map(_.id): _*))
         }
       }
     }
@@ -292,8 +292,6 @@ class ContentCollectionService(
     val collection = ContentCollection(name = name, ownerOrgId = org.id)
     insertCollection(org.id, collection, Permission.Write, true)
   }
-
-
 
   //new api, not used yet
   def shareItemWithCollection(org: ObjectId, item: VersionedId[ObjectId], collection: ObjectId): Validation[PlatformServiceError, VersionedId[ObjectId]] = {

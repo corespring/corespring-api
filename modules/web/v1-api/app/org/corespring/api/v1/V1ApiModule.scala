@@ -10,13 +10,20 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
-import org.corespring.services.{ ContentCollectionService, OrganizationService, UserService }
+import org.corespring.services._
 import org.corespring.v2
 import org.corespring.v2.sessiondb.SessionServices
 import play.api.mvc.Controller
+
+import scala.concurrent.ExecutionContext
+
+case class V1ApiExecutionContext(context: ExecutionContext)
+
 trait V1ApiModule {
 
   import com.softwaremill.macwire.MacwireMacros._
+
+  def v1ApiExecutionContext: V1ApiExecutionContext
 
   def orgService: OrganizationService
 
@@ -49,6 +56,10 @@ trait V1ApiModule {
   def tokenService: AccessTokenService
 
   def userService: UserService
+
+  def standardService: StandardService
+
+  def subjectService: SubjectService
 
   //Not ideal to expose this but will get the ItemApi running.
   def salatItemDao: SalatVersioningDao[Item]
