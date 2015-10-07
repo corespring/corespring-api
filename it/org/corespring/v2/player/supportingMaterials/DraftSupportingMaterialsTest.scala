@@ -23,7 +23,6 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
   trait scope extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
-    with Helpers.requestToFuture
     with testDefaults {
 
     val helper = new ItemDraftHelper {
@@ -49,7 +48,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     def createHtmlMaterial: Future[SimpleResult] = {
       val call = Routes.createSupportingMaterial(draftId.itemId.toString)
       val createMaterial = makeJsonRequest(call, json)
-      futureResult(createMaterial)
+      route(createMaterial)(writeableOf_AnyContentAsJson).get
     }
 
     override def after: Any = {
@@ -113,7 +112,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
       def deleteMaterial(name: String) = {
         val call = Routes.deleteSupportingMaterial(draftId.itemId.toString, name)
         val req = makeRequest(call)
-        futureResult(req)
+        route(req).get
       }
     }
 
@@ -132,7 +131,7 @@ class DraftSupportingMaterialsTest extends IntegrationSpecification with NoTimeC
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
         val updateContent = Routes.updateSupportingMaterialContent(draftId.itemId.toString, materialName, "index.html")
-        futureResult(makeTextRequest(updateContent, content))
+        route(makeTextRequest(updateContent, content))(writeableOf_AnyContentAsText).get
       }
     }
 

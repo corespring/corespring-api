@@ -92,7 +92,6 @@ class ContentCollectionService(
       val objectIds = items.map(i => i.id)
       // get a list of any items that were not authorized to be added
       itemService.findMultipleById(objectIds: _*).filterNot(item => {
-        println(s"++++++++++++++++ ${item}")
         // get the collections to test auth on (owner collection for item, and shared-in collections)
         val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
         // does org have read access to any of these collections

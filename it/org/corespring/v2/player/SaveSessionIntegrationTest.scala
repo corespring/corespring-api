@@ -42,7 +42,7 @@ class SaveSessionIntegrationTest extends IntegrationSpecification {
       val call = Session.saveSession(sessionId.toString)
       val request = makeRequest(call).asInstanceOf[Request[AnyContentAsJson]]
       logger.trace(s"load session make request: ${request.uri}")
-      route(request).getOrElse(throw new RuntimeException("Error routing Session.loadEverything"))
+      route(request)(writeableOf_AnyContentAsJson).getOrElse(throw new RuntimeException("Error routing Session.loadEverything"))
     }
   }
 

@@ -20,7 +20,6 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
   trait scope extends userAndItem
     with SessionRequestBuilder
     with SecureSocialHelper
-    with Helpers.requestToFuture
     with testDefaults {
 
     def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
@@ -33,7 +32,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     def createHtmlMaterial: Future[SimpleResult] = {
       val call = ItemRoutes.createSupportingMaterial(itemId.toString)
       val createMaterial = makeJsonRequest(call, json)
-      futureResult(createMaterial)
+      route(createMaterial)(writeableOf_AnyContentAsJson).get
     }
   }
 
@@ -41,8 +40,8 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a html based supporting material" in new scope {
       val result = createHtmlMaterial
+      logger.debug(s"create a html based material result: ${contentAsString(result)}")
       status(result) === CREATED
-
       getHeadResource match {
         case Some(Resource(_, materialName, Some("Rubric"), _)) => success
         case _ => failure("expected to get the head resource from supporting materials ")
@@ -91,7 +90,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
       def deleteMaterial(name: String) = {
         val call = ItemRoutes.deleteSupportingMaterial(itemId.toString, name)
         val req = makeRequest(call)
-        futureResult(req)
+        route(req).get
       }
     }
 
@@ -110,7 +109,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
         val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
-        futureResult(makeTextRequest(updateContent, content))
+        route(makeTextRequest(updateContent, content))(writeableOf_AnyContentAsText).get
       }
     }
 
@@ -147,7 +146,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         r <- addFile
       } yield r
 
-      println(contentAsString(result))
+      logger.debug(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>
@@ -188,7 +187,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         r <- removeFile
       } yield r
 
-      println(contentAsString(result))
+      logger.debug(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>
