@@ -15,7 +15,7 @@ import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
@@ -163,27 +163,33 @@ class ItemService(
     out
   }
 
-  override def addCollectionIdToSharedCollections(itemId: VersionedId[ObjectId], collectionId: ObjectId): Validation[PlatformServiceError, Unit] = try {
-    val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-    Success(dao.update(itemId, update, createNewVersion = false))
-  } catch {
-    case e: SalatDAOUpdateError => Failure(PlatformServiceError(s"Error adding collectionId $collectionId for item with id $itemId"))
+  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+    itemIds.filterNot { vid =>
+      try {
+        val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
+        dao.update(vid, update, createNewVersion = false)
+        true
+      } catch {
+        case e: SalatDAOUpdateError => false
+      }
+    } match {
+      case Nil => Success(itemIds)
+      case failedItems => Failure(ItemShareError(failedItems, collectionId))
+    }
   }
 
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[Seq[VersionedId[ObjectId]], Unit] = {
 
-    val failedItems = itemIds.filterNot { vid =>
+  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+    itemIds.filterNot { vid =>
       try {
         dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
         true
       } catch {
         case e: SalatDAOUpdateError => false
       }
-    }
-    if (failedItems.nonEmpty) {
-      Failure(failedItems)
-    } else {
-      Success(Unit)
+    } match {
+      case Nil => Success(itemIds)
+      case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
     }
   }
 
@@ -231,18 +237,18 @@ class ItemService(
     }
   }
 
-  override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean = {
+  override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     dao.findDbo(contentId, MongoDBObject("collectionId" -> 1)).map { dbo =>
       val collectionId = dbo.get("collectionId").asInstanceOf[String]
       if (ObjectId.isValid(collectionId)) {
         contentCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
-        false
+        Failure(ItemNotFoundError(orgId, p, contentId))
       }
     }.getOrElse {
       logger.debug("isAuthorized: can't find item with id: " + contentId)
-      false
+      Failure(ItemNotFoundError(orgId, p, contentId))
     }
   }
 

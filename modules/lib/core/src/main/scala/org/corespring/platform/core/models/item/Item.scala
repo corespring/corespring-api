@@ -2,6 +2,7 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
+import org.corespring.models.item._
 import org.corespring.models.{ Domain, Standard }
 import org.corespring.models.item.json.ContentView
 import org.corespring.models.item.resource.Resource
@@ -28,7 +29,7 @@ case class Item(
   var published: Boolean = false,
   var reviewsPassed: Seq[String] = Seq(),
   var reviewsPassedOther: Option[String] = None,
-  var sharedInCollections: Seq[String] = Seq(),
+  var sharedInCollections: Seq[ObjectId] = Seq(),
   var standards: Seq[String] = Seq(),
   var supportingMaterials: Seq[Resource] = Seq(),
   var taskInfo: Option[TaskInfo] = None,
@@ -164,7 +165,7 @@ object Item {
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.reviewsPassedOther = (json \ reviewsPassedOther).asOpt[String]
-      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[ObjectId]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)

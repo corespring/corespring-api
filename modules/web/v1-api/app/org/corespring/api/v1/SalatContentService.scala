@@ -25,7 +25,7 @@ class ItemApiContentService(underlying: BaseContentService[Item, VersionedId[Obj
 
   override def insert(i: Item): Option[VersionedId[ObjectId]] = underlying.insert(i)
 
-  override def isAuthorized(orgId: Imports.ObjectId, contentId: VersionedId[Imports.ObjectId], p: Permission): Boolean = {
+  override def isAuthorized(orgId: Imports.ObjectId, contentId: VersionedId[Imports.ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     underlying.isAuthorized(orgId, contentId, p)
   }
 

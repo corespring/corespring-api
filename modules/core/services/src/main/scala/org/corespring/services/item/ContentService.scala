@@ -29,6 +29,6 @@ trait BaseContentService[ContentType <: Content[ID], ID] extends BaseFindAndSave
 
   def insert(i: ContentType): Option[ID]
 
-  def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Boolean
+  def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit]
 
 }
