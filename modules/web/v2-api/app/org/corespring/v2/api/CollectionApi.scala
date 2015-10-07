@@ -35,59 +35,8 @@ class CollectionApi(
   import jsonFormatting.writeContentCollection
 
   def fieldValuesByFrequency(ids: String, field: String) = Action {
+    //TODO: Plugin in ItemAggregationService
     NotImplemented("Not ready yet!")
-
-    //TODO: move to a service
-    /*
-    val fieldValueMap = Map(
-      "itemType" -> "taskInfo.itemType",
-      "contributor" -> "contributorDetails.contributor")
-
-    def fieldValuesByFrequency(collectionIds: String, fieldName: String) = ApiActionRead { request =>
-
-      import com.mongodb.casbah.map_reduce.MapReduceInlineOutput
-
-      fieldValueMap.get(fieldName) match {
-        case Some(field) => {
-          // Expand "one.two" into Seq("this.one", "this.one.two") for checks down path in a JSON object
-          val fieldCheck =
-            field.split("\\.").foldLeft(Seq.empty[String])((acc, str) =>
-              acc :+ (if (acc.isEmpty) s"this.$str" else s"${acc.last}.$str")).mkString(" && ")
-          val cmd = MapReduceCommand(
-            input = "content",
-            map = s"""
-              function() {
-                if (${fieldCheck}) {
-                  emit(this.$field, 1);
-                }
-              }""",
-            reduce = s"""
-              function(previous, current) {
-                var count = 0;
-                for (index in current) {
-                  count += current[index];
-                }
-                return count;
-              }""",
-            query = Some(DBObject("collectionId" -> MongoDBObject("$in" -> collectionIds.split(",").toSeq))),
-            output = MapReduceInlineOutput)
-
-          ItemServiceWired.collection.mapReduce(cmd) match {
-            case result: MapReduceInlineResult => {
-              val fieldValueMap = result.map(_ match {
-                case dbo: DBObject => {
-                  Some(dbo.get("_id").toString -> dbo.get("value").asInstanceOf[Double])
-                }
-                case _ => None
-              }).flatten.toMap
-              Ok(Json.prettyPrint(Json.toJson(fieldValueMap)))
-            }
-            case _ => BadRequest(Json.toJson(ApiError.InvalidField))
-          }
-        }
-        case _ => BadRequest(Json.toJson(ApiError.InvalidField))
-      }
-    }*/
   }
 
   private def canRead(collectionId: ObjectId)(fn: OrgAndOpts => SimpleResult): Action[AnyContent] = Action.async { r =>
@@ -207,21 +156,6 @@ class CollectionApi(
     collectionId,
     contentCollectionService.unShareItems,
     idsFromRequest)
-
-  /**
-   * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
-   * @param q - the query to select items to add to the collection
-   * @param collectionId  - collection to add the items to
-   * @return  - json with success or error response
-   */
-  def shareFilteredItemsWithCollection(collectionId: ObjectId, q: Option[String]) = {
-    handleShare[String](collectionId, contentCollectionService.shareItemsMatchingQuery, (r) => {
-      q match {
-        case Some(str) => Success(str)
-        case _ => propertyNotFoundInJson("q").asFailure
-      }
-    })
-  }
 
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {
 

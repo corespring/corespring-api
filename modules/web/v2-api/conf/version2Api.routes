@@ -59,7 +59,6 @@ PUT     /collections/:id                                @org.corespring.v2.api.C
 DELETE  /collections/:id                                @org.corespring.v2.api.CollectionApi.deleteCollection(id: ObjectId)
 PUT     /collections/:id/share-items                    @org.corespring.v2.api.CollectionApi.shareItemsWithCollection(id: ObjectId)
 PUT     /collections/:id/un-share-items                 @org.corespring.v2.api.CollectionApi.unShareItemsWithCollection(id: ObjectId)
-PUT     /collections/:id/share-filtered-items           @org.corespring.v2.api.CollectionApi.shareFilteredItemsWithCollection(id: ObjectId, q: Option[String] ?= None)
 PUT     /collections/:id/set-enabled-status/:enabled    @org.corespring.v2.api.CollectionApi.setEnabledStatus(id: ObjectId, enabled: Boolean)
 PUT     /collections/:id/share-with-org/:orgId          @org.corespring.v2.api.CollectionApi.shareCollection(id: ObjectId, orgId: ObjectId)
 

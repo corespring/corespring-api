@@ -6,6 +6,7 @@ import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
+import scala.concurrent.Future
 import scala.xml.Elem
 import scalaz.Validation
 

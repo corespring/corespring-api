@@ -173,7 +173,7 @@ class ContentCollectionService(
     val orgCollectionIds = getCollectionIds(orgId, p)
 
     collIds.filterNot(id => orgCollectionIds.contains(id)) match {
-      case Nil => Success(collIds)
+      case Nil => Success()
       case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
     }
   }

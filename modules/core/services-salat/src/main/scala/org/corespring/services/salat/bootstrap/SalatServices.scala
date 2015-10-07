@@ -20,7 +20,7 @@ import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
 import org.corespring.services.salat.auth.{ AccessTokenService, ApiClientService }
-import org.corespring.services.salat.item.{ FieldValueService, ItemAssetService, ItemService }
+import org.corespring.services.salat.item.{ ItemAggregationService, FieldValueService, ItemAssetService, ItemService }
 import org.corespring.services.salat.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services.salat.registration.RegistrationTokenService
 import org.corespring.{ services => interface }
@@ -166,6 +166,8 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
 
   override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, contentCollectionService, context, archiveConfig)
+
+  override lazy val itemAggregationService: interface.item.ItemAggregationService = wire[ItemAggregationService]
 
   override lazy val assessmentService: interface.assessment.AssessmentService = wire[AssessmentService]
 
