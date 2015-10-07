@@ -76,16 +76,6 @@ trait ContentCollectionService {
   def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
 
   /**
-   * Share the items returned by the query with the specified collection.
-   *
-   * @param orgId
-   * @param query
-   * @param collId
-   * @return
-   */
-  def shareItemsMatchingQuery(orgId: ObjectId, query: String, collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
-
-  /**
    * Unshare the specified items from the specified collections
    *
    * @param orgId
@@ -104,6 +94,20 @@ trait ContentCollectionService {
    * @param orgId
    * @param collId
    */
-  def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean
+  def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit]
 
+  /**
+   * does the given organization have access to all the given collections with given permissions?
+   * @param orgId
+   * @param collIds
+   */
+  def isAuthorized(orgId: ObjectId, collIds: Seq[ObjectId], p: Permission): Validation[PlatformServiceError, Unit]
+
+  /**
+   * Is the item shared by the collection
+   * @param itemId
+   * @param collId
+   * @return
+   */
+  def isItemSharedWith(itemId: VersionedId[ObjectId], collId: ObjectId): Boolean
 }
