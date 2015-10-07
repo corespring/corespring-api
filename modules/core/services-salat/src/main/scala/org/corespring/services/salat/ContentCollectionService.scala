@@ -127,21 +127,9 @@ class ContentCollectionService(
    * Unshare the specified items from the specified collections
    */
   override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-
-    def allowedToWriteCollections = {
-      collIds.filter(id => isAuthorized(orgId, id, Permission.Write).isFailure) match {
-        case Nil => Success(collIds)
-        case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
-      }
-    }
-
-    def removeCollectionIdsFromShared = {
-      itemService.removeCollectionIdsFromShared(items, collIds)
-    }
-
     for {
-      canUpdateAllCollections <- allowedToWriteCollections
-      successfullyRemovedItems <- removeCollectionIdsFromShared
+      canUpdateAllCollections <- isAuthorized(orgId, collIds, Permission.Write)
+      successfullyRemovedItems <- itemService.removeCollectionIdsFromShared(items, collIds)
     } yield successfullyRemovedItems
   }
 
@@ -175,13 +163,18 @@ class ContentCollectionService(
    * does the given organization have access to the given collection with given permissions?
    */
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit] = {
+    isAuthorized(orgId, Seq(collId), p)
+  }
+
+  /**
+   * does the given organization have access to all the given collections with given permissions?
+   */
+  override def isAuthorized(orgId: ObjectId, collIds: Seq[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     val orgCollectionIds = getCollectionIds(orgId, p)
-    orgCollectionIds.contains(collId) match {
-      case false => {
-        logger.debug(s"[isAuthorized] == false : orgId: $orgId, collection id: $collId isn't in: ${orgCollectionIds.mkString(",")}")
-        Failure(CollectionAuthorizationError(orgId,p, collId))
-      }
-      case _ => Success()
+
+    collIds.filterNot(id => orgCollectionIds.contains(id)) match {
+      case Nil => Success(collIds)
+      case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
     }
   }
 

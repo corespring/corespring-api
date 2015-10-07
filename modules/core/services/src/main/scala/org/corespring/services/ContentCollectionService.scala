@@ -97,6 +97,13 @@ trait ContentCollectionService {
   def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Unit]
 
   /**
+   * does the given organization have access to all the given collections with given permissions?
+   * @param orgId
+   * @param collIds
+   */
+  def isAuthorized(orgId: ObjectId, collIds: Seq[ObjectId], p: Permission): Validation[PlatformServiceError, Unit]
+
+  /**
    * Is the item shared by the collection
    * @param itemId
    * @param collId
