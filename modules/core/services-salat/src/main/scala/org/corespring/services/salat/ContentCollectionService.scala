@@ -276,17 +276,29 @@ class ContentCollectionService(
     dao.find(dbo, fields.getOrElse(MongoDBObject.empty)).sort(sort.getOrElse(MongoDBObject.empty)).skip(skip).limit(limit).toStream
   }
 
-  private def todo = Failure(PlatformServiceError("todo"))
+  def getCollection(collectionId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
+    findOneById(collectionId) match {
+      case Some(collection) => Success(collection)
+      case _ => Failure(PlatformServiceError(s"Collection not found: $collectionId"))
+    }
+  }
 
-  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = todo
+  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+    for {
+      collection <- getCollection(collectionId)
+      result <- if (collection.ownerOrgId == org.id) Success() else Failure(PlatformServiceError(s"Organisation ${org.name} does not own collection: $collectionId."))
+    } yield result
+  }
+
+  override def shareCollectionWithOrg(collectionId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = {
+    organizationService.addCollection(orgId, collectionId, p)
+  }
 
   override def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
     val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
     val query = ("_id" $in refs)
     dao.find(query).toStream
   }
-
-  override def shareCollectionWithOrg(collectionId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = todo
 
   override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
     val collection = ContentCollection(name = name, ownerOrgId = org.id)

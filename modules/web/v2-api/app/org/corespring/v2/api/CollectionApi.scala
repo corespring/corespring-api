@@ -157,6 +157,21 @@ class CollectionApi(
     contentCollectionService.unShareItems,
     idsFromRequest)
 
+  /**
+   * Add the items retrieved by the given query (see ItemApi.list for similar query) to the specified collection
+   * @param q - the query to select items to add to the collection
+   * @param collectionId  - collection to add the items to
+   * @return  - json with success or error response
+   */
+  def shareFilteredItemsWithCollection(collectionId: ObjectId, q: Option[String]) = Action.async {
+    implicit request =>
+      {
+        Future {
+          NotImplemented
+        }
+      }
+  }
+
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {
 
     val o = for {
