@@ -222,10 +222,10 @@ class OrganizationService(
     try {
       val collRef = new ContentCollRef(collId, p.value)
       if (!hasCollRef(orgId, collRef)) {
-        dao.update(MongoDBObject("_id" -> orgId),
-          MongoDBObject("$addToSet" -> MongoDBObject(contentcolls -> grater[ContentCollRef].asDBObject(collRef))),
-          false, false, dao.collection.writeConcern)
-        Success(collRef)
+        addCollectionReference(orgId, collRef) match {
+          case Success(_) => Success(collRef)
+          case Failure(e) => Failure(e)
+        }
       } else {
         Failure(PlatformServiceError("collection reference already exists"))
       }

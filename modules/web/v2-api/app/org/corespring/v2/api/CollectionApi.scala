@@ -214,13 +214,13 @@ class CollectionApi(
    * @param collectionId  - collection to add the items to
    * @return  - json with success or error response
    */
-  def shareFilteredItemsWithCollection(collectionId: ObjectId, q: Option[String]) = {
-    handleShare[String](collectionId, contentCollectionService.shareItemsMatchingQuery, (r) => {
-      q match {
-        case Some(str) => Success(str)
-        case _ => propertyNotFoundInJson("q").asFailure
+  def shareFilteredItemsWithCollection(collectionId: ObjectId, q: Option[String]) = Action.async {
+    implicit request =>
+      {
+        Future {
+          NotImplemented
+        }
       }
-    })
   }
 
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {

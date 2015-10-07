@@ -82,6 +82,7 @@ trait V1ApiModule {
     v1CollectionApi,
     v1ContributorApi,
     v1ItemMetadataApi,
+    v1OrganizationApi,
     v1ResourceApi,
     v1FieldValuesApi,
     v1ItemApi)

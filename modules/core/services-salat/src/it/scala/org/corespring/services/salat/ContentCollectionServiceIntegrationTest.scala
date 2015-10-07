@@ -11,7 +11,7 @@ import org.specs2.mutable._
 
 import scalaz.{ Failure, Success }
 
-class ContentCollectionServiceTest
+class ContentCollectionServiceIntegrationTest
   extends ServicesSalatIntegrationTest {
 
   def calling(n: String) = s"when calling $n"
@@ -74,6 +74,28 @@ class ContentCollectionServiceTest
         services.orgService.delete(childOrg.id)
         services.orgService.delete(publicOrg.id)
         services.orgService.delete(rootOrg.id)
+      }
+    }
+
+    "ownsCollection" should {
+      "should return Success when org owns collection" in new testScope {
+        service.ownsCollection(rootOrg, writableCollection.id).isSuccess === true
+      }
+
+      "should return Failure when org does not own collection" in new testScope {
+        service.ownsCollection(childOrg, writableCollection.id).isFailure === true
+      }
+
+      "should return Failure when collection does not exist" in new testScope {
+        service.ownsCollection(childOrg, ObjectId.get).isFailure === true
+      }
+    }
+
+    "shareCollectionWithOrg" should {
+      "should work" in new testScope {
+        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) === false
+        service.shareCollectionWithOrg(writableCollection.id, childOrg.id, Permission.Read)
+        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) === true
       }
     }
 

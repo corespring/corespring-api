@@ -4,8 +4,6 @@ import com.mongodb.casbah.Imports.ObjectId
 import org.corespring.v2
 import play.api.mvc.Controller
 
-import scala.concurrent.Future
-
 class CollectionApi(v2CollectionApi: v2.api.CollectionApi) extends Controller {
 
   def list(q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = {
@@ -34,6 +32,6 @@ class CollectionApi(v2CollectionApi: v2.api.CollectionApi) extends Controller {
 
   def unShareItemsWithCollection(collectionId: ObjectId) = v2CollectionApi.unShareItemsWithCollection(collectionId)
 
-  def shareFilteredItemsWithCollection(id: ObjectId, q: Option[String]) = Future(NotImplemented)
+  def shareFilteredItemsWithCollection(id: ObjectId, q: Option[String]) = v2CollectionApi.shareFilteredItemsWithCollection(id, q)
 
 }

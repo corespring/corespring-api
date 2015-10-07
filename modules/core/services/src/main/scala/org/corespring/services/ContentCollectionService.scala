@@ -19,7 +19,7 @@ trait ContentCollectionService {
   /** Enable the collection for the org */
   def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
 
-  def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
+  def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
   def shareCollectionWithOrg(collectionId: ObjectId, orgId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef]
 
