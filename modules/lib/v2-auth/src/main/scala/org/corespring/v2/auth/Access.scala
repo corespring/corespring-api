@@ -2,6 +2,7 @@ package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
 import org.corespring.drafts.item.models.ItemDraft
+import org.corespring.platform.core.models.ContentCollection
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.services.organization.OrganizationService
@@ -50,10 +51,11 @@ trait ItemAccess extends Access[Item, OrgAndOpts] {
   override def grant(identity: OrgAndOpts, permission: Permission, item: Item): Validation[V2Error, Boolean] = {
 
     def orgCanAccess(collectionId: String) = orgService.canAccessCollection(identity.org, new ObjectId(collectionId), permission)
+    def isArchived(collectionId: String) = collectionId == ContentCollection.archiveCollId.toString
 
     for {
       collectionId <- item.collectionId.toSuccess(noCollectionIdForItem(item.id))
-      canAccess <- if (orgCanAccess(collectionId))
+      canAccess <- if (orgCanAccess(collectionId) || isArchived(collectionId))
         Success(true)
       else
         Failure(orgCantAccessCollection(identity.org.id, item.collectionId.getOrElse("?"), permission.name))
