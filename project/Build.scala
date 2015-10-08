@@ -43,6 +43,7 @@ object Build extends sbt.Build {
     .dependsOn(apiUtils)
 
   /** Core data model */
+
   val core = builders.lib("core")
     .settings(
       libraryDependencies ++= Seq(
@@ -53,12 +54,14 @@ object Build extends sbt.Build {
         httpClient,
         jsoup,
         mockito,
+        cssParser,
         playFramework,
         playS3,
         playTest % "test",
         salatPlay,
         salatVersioningDao,
         scalaFaker,
+        simplecsv,
         securesocial,
         specs2 % "test",
         sprayCaching))
@@ -99,6 +102,7 @@ object Build extends sbt.Build {
     .aggregate(core, drafts)
 
   /** Qti -> v2 transformers */
+
   val qtiToV2 = builders.lib("qti-to-v2")
     .settings(
       libraryDependencies ++= Seq(playJson, rhino % "test"))
@@ -139,7 +143,7 @@ object Build extends sbt.Build {
 
   val itemImport = builders.web("item-import")
     .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
-    .dependsOn(v2Auth, testLib % "test->compile", core % "test->compile;test->test", core)
+    .dependsOn(v2Auth, qtiToV2, testLib % "test->compile", core % "test->compile;test->test", core)
 
   val draftsApi = builders.web("v2-api-drafts")
     .dependsOn(itemDrafts, testLib % "test->test")
@@ -213,8 +217,6 @@ object Build extends sbt.Build {
     .aggregate(commonViews)
 
   val reports = builders.web("reports")
-    .settings(
-      libraryDependencies ++= Seq(simplecsv))
     .dependsOn(commonViews, core % "compile->compile;test->test")
 
   val scormWeb = builders.web("scorm-web")

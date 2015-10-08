@@ -1,9 +1,9 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import org.specs2.mutable.Specification
 
 import scala.xml.Node
-import scala.xml.transform.RuleTransformer
 
 class FoldableInteractionTransformerTest extends Specification {
 
@@ -18,7 +18,7 @@ class FoldableInteractionTransformerTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-    def output = new RuleTransformer(FoldableInteractionTransformer).transform(qti)
+    def output = new InteractionRuleTransformer(FoldableInteractionTransformer).transform(qti)
     def corespringFoldables = (output \\ "div").filter(n => (n \ "@corespring-foldable").text == "corespring-foldable")
 
     "should remove <foldable/>" in {

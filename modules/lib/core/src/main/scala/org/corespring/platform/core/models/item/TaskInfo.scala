@@ -12,6 +12,7 @@ case class TaskInfo(extended: Map[String, BasicDBObject] = Map(),
     gradeLevel: Seq[String] = Seq(),
     title: Option[String] = None,
     description: Option[String] = None,
+    sourceId: Option[String] = None,
     itemType: Option[String] = None,
     domains: Set[String] = Set()) {
 
@@ -30,6 +31,7 @@ object TaskInfo extends ValueGetter {
     val gradeLevel = "gradeLevel"
     val itemType = "itemType"
     val subjects = "subjects"
+    val sourceId = "sourceId"
     val extended = "extended"
     val domains = "domains"
   }
@@ -51,6 +53,7 @@ object TaskInfo extends ValueGetter {
       val infoJson = JsObject(Seq(
         if (info.gradeLevel.isEmpty) None else Some((gradeLevel -> JsArray(info.gradeLevel.map(JsString(_))))),
         info.title.map((title -> JsString(_))),
+        info.sourceId.map((sourceId -> JsString(_))),
         info.description.map((description -> JsString(_))),
         info.itemType.map((itemType -> JsString(_))),
         Some(domains -> JsArray(info.domains.toSeq.map(d => JsString(d)))),
@@ -98,7 +101,10 @@ object TaskInfo extends ValueGetter {
           val (metadataKey, jsprops) = jsmetadata
           val optprops: Either[JsError, Map[String, String]] = (jsprops match {
             case JsObject(fields) => Right(fields.foldRight[Map[String, String]](Map())((field, acc) => {
-              acc + (field._1 -> field._2.toString())
+              acc + (field._1 -> (field._2 match {
+                case jsString: JsString => jsString.value
+                case _ => field._2.toString
+              }))
             }))
             case JsUndefined() => Right(Map[String, String]())
             case _ => Left(JsError(__ \ metadataKey, ValidationError("incorrect format", "props must be a JSON object")))
@@ -127,6 +133,7 @@ object TaskInfo extends ValueGetter {
     getGradeLevel and
     (__ \ Keys.title).readNullable[String] and
     (__ \ Keys.description).readNullable[String] and
+    (__ \ Keys.sourceId).readNullable[String] and
     (__ \ Keys.itemType).readNullable[String] and
     getDomains)(TaskInfo.apply _)
 }

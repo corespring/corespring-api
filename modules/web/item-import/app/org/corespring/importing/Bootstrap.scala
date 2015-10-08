@@ -22,7 +22,9 @@ class Bootstrap(itemAuth: ItemAuth[OrgAndOpts],
     override def itemService = ItemServiceWired
   }
 
-  lazy val itemImportController = new ItemImportController(itemFileConverter, userSession, orgService)
+  protected val itemImporterExporter = new ItemImporterExporter()
+
+  lazy val itemImportController = new ItemImportController(itemImporterExporter, itemFileConverter, userSession, orgService)
 
   lazy val controllers: Seq[Controller] = Seq(itemImportController)
 

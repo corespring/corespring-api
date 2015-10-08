@@ -3,6 +3,7 @@ package org.corespring.qtiToV2.interactions
 import org.corespring.qtiToV2.interactions.equation.DomainParser
 
 import org.corespring.qtiToV2.interactions.FeedbackBlockTransformer.belongsToTextEntry
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 
 import scala.xml._
 import scala.xml.transform.RuleTransformer
@@ -11,8 +12,8 @@ import play.api.libs.json._
 
 object TextEntryInteractionTransformer extends Transformer {
 
-  def transform(qti: Node): Node =
-    new RuleTransformer(new TextEntryInteractionTransformer(qti)).transform(qti).head
+  def transform(qti: Node, manifest: Node): Node =
+    new InteractionRuleTransformer(new TextEntryInteractionTransformer(qti)).transform(qti, manifest).head
 
 }
 
@@ -31,20 +32,19 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
     }
   }
 
-  override def interactionJs(qti: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "textEntryInteraction").map(implicit node => {
     val responseDeclarationNode = responseDeclaration(node, qti)
     val fbBlocks = feedbackBlocks(node, qti)
     val popupFeedback = (node \ "@popupFeedback").text == "true"
     val correctFeedbacks = popupFeedback match {
       case true => fbBlocks.filter(_.attribute("incorrectResponse").isEmpty).map(fb => Json.obj(
         "answer" -> (fb \ "@identifier").text,
-        "feedback" -> fb.child.mkString.trim
-      ))
+        "feedback" -> fb.child.mkString.trim))
       case false => Seq[JsObject]()
     }
 
     val incorrectFeedback = popupFeedback match {
-      case true =>  fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.child.mkString.trim)
+      case true => fbBlocks.find(!_.attribute("incorrectResponse").isEmpty).map(fb => fb.child.mkString.trim)
       case false => Some("")
     }
 
@@ -65,8 +65,7 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
         "incorrectFeedbackType" -> JsString(if (popupFeedback) "default" else "none"))),
       isEquation(node, qti) match {
         case true => "correctResponse" -> Some(Json.obj(
-          "equation" -> JsString(correctResponses.head)
-        ) ++ equationConfig(responseDeclarationNode).getOrElse(Json.obj()))
+          "equation" -> JsString(correctResponses.head)) ++ equationConfig(responseDeclarationNode).getOrElse(Json.obj()))
         case _ => "correctResponses" -> Some(Json.obj(
           "award" -> 100,
           "values" -> JsArray(correctResponses.map(JsString(_)).toSeq),
@@ -74,23 +73,19 @@ case class TextEntryInteractionTransformer(qti: Node) extends InteractionTransfo
           "ignoreCase" -> true,
           "feedback" -> Json.obj(
             "type" -> (if (popupFeedback) "default" else "none"),
-            "specific" -> correctFeedbacks
-          )
-        ))
+            "specific" -> correctFeedbacks)))
       },
       "incorrectResponses" -> Some(Json.obj(
         "award" -> 0,
         "feedback" -> Json.obj(
           "type" -> (if (popupFeedback) "default" else "none"),
-          "value" -> incorrectFeedback
-        )
-      )))
+          "value" -> incorrectFeedback))))
   }).toMap
 
-  override def transform(node: Node): Seq[Node] = node match {
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case e: Elem if e.label == "textEntryInteraction" => isEquation(node, qti) match {
-      case true => <corespring-function-entry id={(node \ "@responseIdentifier").text} class={if ((node \ "@popupFeedback").text == "true") "popupFeedback" else ""}></corespring-function-entry>
-      case false => <corespring-text-entry id={(node \ "@responseIdentifier").text} class={if ((node \ "@popupFeedback").text == "true") "popupFeedback" else ""}></corespring-text-entry>
+      case true => <corespring-function-entry id={ (node \ "@responseIdentifier").text } class={ if ((node \ "@popupFeedback").text == "true") "popupFeedback" else "" }></corespring-function-entry>
+      case false => <corespring-text-entry id={ (node \ "@responseIdentifier").text } class={ if ((node \ "@popupFeedback").text == "true") "popupFeedback" else "" }></corespring-text-entry>
     }
 
     case e: Elem if e.label == "feedbackBlock" => belongsToTextEntry(node, qti) match {

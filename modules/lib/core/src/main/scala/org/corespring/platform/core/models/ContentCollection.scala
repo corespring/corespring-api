@@ -157,6 +157,8 @@ trait ContentCollectionImpl
     Right(ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
   }
 
+  def get(ids: Seq[ObjectId]) = ContentCollection.find(MongoDBObject("_id" -> MongoDBObject("$in" -> ids))).toSeq
+
   def getPublicCollections: Seq[ContentCollection] = ContentCollection.find(MongoDBObject(isPublic -> true)).toSeq
 
   def isPublic(collectionId: ObjectId): Boolean = findOneById(collectionId).exists(_.isPublic)

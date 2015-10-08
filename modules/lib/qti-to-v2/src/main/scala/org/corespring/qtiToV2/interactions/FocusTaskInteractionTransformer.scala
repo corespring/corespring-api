@@ -6,7 +6,7 @@ import play.api.libs.json._
 
 object FocusTaskInteractionTransformer extends InteractionTransformer {
 
-  override def interactionJs(qti: Node) = (qti \\ "focusTaskInteraction").map(implicit node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "focusTaskInteraction").map(implicit node => {
     (node \\ "@responseIdentifier").text ->
       Json.obj(
         "componentType" -> "corespring-focus-task",
@@ -26,7 +26,7 @@ object FocusTaskInteractionTransformer extends InteractionTransformer {
                 "value" -> (choiceNode \ "@identifier").text))))))
   }).toMap
 
-  override def transform(node: Node): Seq[Node] = node match {
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case e: Elem if e.label == "focusTaskInteraction" => {
       val identifier = (e \ "@responseIdentifier").text
       <corespring-focus-task id={ identifier }></corespring-focus-task>.withPrompt(node)

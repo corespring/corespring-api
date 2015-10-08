@@ -6,7 +6,7 @@ import play.api.libs.json._
 
 object LineInteractionTransformer extends InteractionTransformer {
 
-  override def interactionJs(qti: Node) = (qti \\ "lineInteraction").map(implicit node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "lineInteraction").map(implicit node => {
 
     val exhibit = booleanFor("locked", default = false)
 
@@ -43,6 +43,7 @@ object LineInteractionTransformer extends InteractionTransformer {
             case _ => None
           }),
           "exhibitOnly" -> Some(JsBoolean(exhibit)),
+          "showCoordinates" -> Some(JsBoolean(false)),
           "showInputs" -> Some(JsBoolean(booleanFor("show-inputs") && !exhibit)),
           "showFeedback" -> Some(JsBoolean(false)), // Don't show internal feedback in v1 originated items
           "showLabels" -> Some(JsBoolean(booleanFor("show-labels") && !exhibit)))))
@@ -50,7 +51,7 @@ object LineInteractionTransformer extends InteractionTransformer {
     (node \\ "@responseIdentifier").text -> (main ++ correctResponse)
   }).toMap
 
-  override def transform(node: Node): Seq[Node] = node match {
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "lineInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
       <corespring-line id={ identifier }></corespring-line>

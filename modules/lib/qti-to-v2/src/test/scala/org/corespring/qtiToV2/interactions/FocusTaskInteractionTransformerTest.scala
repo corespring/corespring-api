@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ InteractionRuleTransformer, ItemTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsObject
 
@@ -37,8 +38,8 @@ class FocusTaskInteractionTransformerTest extends Specification {
   "FocusTaskInteractionTransformer" should {
 
     val input = qti(correctResponses)
-    val componentsJson = FocusTaskInteractionTransformer.interactionJs(input)
-    val output = new RuleTransformer(FocusTaskInteractionTransformer).transform(input)
+    val componentsJson = FocusTaskInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(FocusTaskInteractionTransformer).transform(input)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

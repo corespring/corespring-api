@@ -9,9 +9,9 @@ import org.corespring.common.utils.string
 import org.corespring.platform.core.models.item.{FieldValue, TaskInfo}
 import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
 import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.platform.core.utils.CsvWriter
 import org.corespring.reporting.models.ReportLineResult
 import org.corespring.reporting.models.ReportLineResult.{ KeyCount, LineResult }
-import org.corespring.reporting.utils.CsvWriter
 import scala.Some
 
 object ReportsService extends ReportsService(ItemServiceWired.collection, Subject.collection, ContentCollection.collection, Standard.collection)

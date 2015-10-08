@@ -1,15 +1,18 @@
 package org.corespring.importing
 
+import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.core.services.item.ItemService
+import org.corespring.qtiToV2.SourceWrapper
 import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ OrgAndOpts, _ }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.corespring.platform.data.mongo.models.VersionedId
+import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.io.Source
@@ -192,8 +195,10 @@ class ItemFileConverterTest extends Specification with Mockito {
   "convert" should {
 
     val sources = (Seq(
-      "dot array.png", "metadata.json", "files/rubric.pdf").map(file => (file, Source.fromURL(getClass.getResource(s"/item/$file"), "ISO-8859-1"))) ++
-      Seq("item.json" -> Source.fromString(itemJson), "metadata.json" -> Source.fromString(metadataJson))).toMap
+      "dot array.png", "metadata.json", "files/rubric.pdf"
+    ).map(file => (file, new SourceWrapper(file, getClass.getResource(s"/item/$file").openStream)))) ++
+      Seq("item.json" -> new SourceWrapper("item.json", IOUtils.toInputStream(itemJson)), "metadata.json" ->
+        new SourceWrapper("metadata.json", IOUtils.toInputStream(metadataJson))).toMap
 
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
@@ -203,12 +208,12 @@ class ItemFileConverterTest extends Specification with Mockito {
         service
       }
       def uploader = new Uploader {
-        override def upload(filename: String, path: String, file: Source): Future[StoredFile] = future {
+        override def upload(filename: String, path: String, file: SourceWrapper): Future[StoredFile] = future {
           StoredFile(name = filename, contentType = BaseFile.getContentType(filename), storageKey = storageKey)
         }
       }
     }
-    val result = itemFileConverter.convert(collectionId)(sources)
+    val result = itemFileConverter.convert(collectionId, Json.obj())(sources.toMap)
 
     "create Item from local files" in {
       result must beAnInstanceOf[Success[Error, Item]]

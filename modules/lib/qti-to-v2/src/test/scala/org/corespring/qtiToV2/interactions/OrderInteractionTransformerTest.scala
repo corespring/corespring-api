@@ -1,11 +1,12 @@
 package org.corespring.qtiToV2.interactions
 
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
+import org.corespring.qtiToV2.transformers.{ InteractionRuleTransformer, ItemTransformer }
 import org.specs2.mutable.Specification
 import play.api.libs.json._
 
 import scala.xml._
-import scala.xml.transform.{RewriteRule, RuleTransformer}
+import scala.xml.transform.{ RewriteRule, RuleTransformer }
 import scala.Some
 import play.api.libs.json.JsArray
 import scala.Some
@@ -21,22 +22,22 @@ class OrderInteractionTransformerTest extends Specification {
 
   def qti(correctResponse: Seq[String], csOrderingType: Option[String] = None): Node = {
     val xml = <assessmentItem>
-      <responseDeclaration identifier={ identifier } cardinality="ordered" baseType="identifier">
-        <correctResponse>{ correctResponse.map(r => <value>{ r }</value>) }</correctResponse>
-      </responseDeclaration>
-      <itemBody>
-        <orderInteraction responseIdentifier={ identifier } shuffle={ shuffle }>
-          <prompt>{ prompt }</prompt>
-          {
-            correctResponse.map(r =>
-              <simpleChoice identifier={ r } fixed="true">
-                { r }
-                <feedbackInline identifier={ r }>{ feedbackValue }</feedbackInline>
-              </simpleChoice>)
-          }
-        </orderInteraction>
-      </itemBody>
-    </assessmentItem>
+                <responseDeclaration identifier={ identifier } cardinality="ordered" baseType="identifier">
+                  <correctResponse>{ correctResponse.map(r => <value>{ r }</value>) }</correctResponse>
+                </responseDeclaration>
+                <itemBody>
+                  <orderInteraction responseIdentifier={ identifier } shuffle={ shuffle }>
+                    <prompt>{ prompt }</prompt>
+                    {
+                      correctResponse.map(r =>
+                        <simpleChoice identifier={ r } fixed="true">
+                          { r }
+                          <feedbackInline identifier={ r }>{ feedbackValue }</feedbackInline>
+                        </simpleChoice>)
+                    }
+                  </orderInteraction>
+                </itemBody>
+              </assessmentItem>
 
     new RuleTransformer(new RewriteRule {
       override def transform(n: Node): NodeSeq = {
@@ -55,12 +56,13 @@ class OrderInteractionTransformerTest extends Specification {
     val responses = List("a", <img src="puppies.png"/>.toString, "c")
 
     val input = qti(responses)
-    val componentsJson = OrderInteractionTransformer.interactionJs(input)
-    val output = new RuleTransformer(OrderInteractionTransformer).transform(input)
+    val componentsJson = OrderInteractionTransformer.interactionJs(input, ItemTransformer.EmptyManifest)
+    val output = new InteractionRuleTransformer(OrderInteractionTransformer).transform(input)
 
     val placementInput = qti(responses, Some("placement"))
-    val placementComponentsJson = OrderInteractionTransformer.interactionJs(placementInput)
-    val placementOutput = new RuleTransformer(OrderInteractionTransformer).transform(placementInput)
+    val placementComponentsJson = OrderInteractionTransformer
+      .interactionJs(placementInput, ItemTransformer.EmptyManifest)
+    val placementOutput = new InteractionRuleTransformer(OrderInteractionTransformer).transform(placementInput)
 
     val interactionResult =
       componentsJson.get(identifier).getOrElse(throw new RuntimeException(s"No component called $identifier"))

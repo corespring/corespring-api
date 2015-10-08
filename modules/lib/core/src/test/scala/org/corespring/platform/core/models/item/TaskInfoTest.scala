@@ -21,11 +21,17 @@ class TaskInfoTest extends BaseTest {
     }
 
     "parse itemType" in {
-
       val taskInfo = TaskInfo(itemType = Some("itemType"))
       val json = Json.toJson(taskInfo)
       val parsed = json.as[TaskInfo]
       parsed.itemType must equalTo(taskInfo.itemType)
+    }
+
+    "parse sourceId" in {
+      val taskInfo = TaskInfo(sourceId = Some("sourceId"))
+      val json = Json.toJson(taskInfo)
+      val parsed = json.as[TaskInfo]
+      parsed.sourceId must be equalTo(taskInfo.sourceId)
     }
 
   }

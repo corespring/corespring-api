@@ -3,6 +3,8 @@ package org.corespring.qtiToV2
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
+import org.corespring.qtiToV2.kds.CssSandboxer
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import play.api.libs.json._
 
 import scala.xml._
@@ -25,6 +27,7 @@ import scala.xml.transform.{ RewriteRule, RuleTransformer }
  *                                                                     *
  * *********************************************************************
  */
+
 trait QtiTransformer extends XMLNamespaceClearer {
 
   implicit class NodeWithClass(node: Node) {
@@ -41,7 +44,7 @@ trait QtiTransformer extends XMLNamespaceClearer {
     override def transform(node: Node): Seq[Node] = {
       node match {
         case elem: Elem if elem.label == "itemBody" => {
-          <div class="item-body">{ elem.child }</div>
+          <div class="item-body qti">{ elem.child }</div>
         }
         case _ => node
       }
@@ -61,23 +64,35 @@ trait QtiTransformer extends XMLNamespaceClearer {
     }.getOrElse(Json.obj())
   }
 
-  def transform(qti: Elem): JsValue = {
+  def transform(qti: Elem, sources: Map[String, SourceWrapper] = Map.empty[String, SourceWrapper], manifest: Node = <div/>): JsValue = {
 
     val transformers = interactionTransformers(qti)
 
     /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
-    val texProcessedQti = new RuleTransformer(FontTransformer).transform(new RuleTransformer(TexTransformer).transform(qti))
+    val texProcessedQti = new InteractionRuleTransformer(FontTransformer)
+      .transform(new InteractionRuleTransformer(TexTransformer).transform(qti, manifest), manifest)
+
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
-      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
+      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head, manifest))
 
-    val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
+    val transformedHtml = new InteractionRuleTransformer(transformers: _*).transform(texProcessedQti, manifest)
     val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
-      (html, transformer) => transformer.transform(html).head)
+      (html, transformer) => transformer.transform(html, manifest).head)
 
-    val divRoot = new RuleTransformer(ItemBodyTransformer).transform(html).head
+    val finalHtml = new RuleTransformer(new RewriteRule {
+      override def transform(node: Node) = node match {
+        case node: Node if node.label == "stylesheet" =>
+          (sources.find { case (file, source) => file == (node \ "@href").text.split("/").last }.map(_._2)) match {
+            case Some(cssSource) =>
+              <style type="text/css">{ CssSandboxer.sandbox(cssSource.getLines.mkString, ".qti") }</style>
+            case _ => node
+          }
+        case _ => node
+      }
+    }, ItemBodyTransformer).transform(html).head.toString
 
     Json.obj(
-      "xhtml" -> divRoot.toString,
+      "xhtml" -> finalHtml,
       "components" -> components) ++ customScoring(qti, components)
   }
 
@@ -92,6 +107,7 @@ object QtiTransformer extends QtiTransformer {
     NumberedLinesTransformer(qti),
     FocusTaskInteractionTransformer,
     TextEntryInteractionTransformer(qti),
+    GraphicGapMatchInteractionTransformer,
     LineInteractionTransformer,
     GraphicGapMatchInteractionTransformer,
     OrderInteractionTransformer,
