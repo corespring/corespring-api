@@ -23,7 +23,8 @@ class UserService(
   private implicit val ctx = context
 
   /**
-   * insert a user into the database as a member of the given organization, along with their private organization and collection
+   * insert a user into the database as a member of the given organization,
+   * along with their private organization and collection
    * @param user
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
@@ -69,7 +70,7 @@ class UserService(
   private def getPermissions(user: User, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
     Permission.fromLong(user.org.pval) match {
       case Some(p) => Success(p)
-      case None => Failure(PlatformServiceError("uknown permission retrieved"))
+      case None => Failure(PlatformServiceError(s"Unknown permission retrieved: ${user.org.pval}"))
     }
   }
 

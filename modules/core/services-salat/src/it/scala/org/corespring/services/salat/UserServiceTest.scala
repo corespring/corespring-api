@@ -9,27 +9,60 @@ import scalaz.Success
 
 class UserServiceTest extends ServicesSalatIntegrationTest {
 
-  class UserScoped(saveOrg: Boolean) extends After {
+  trait UserScoped extends After {
 
-    lazy val user = User("user_test_name", org = UserOrg(org.id, Permission.Read.value))
+    val org = Organization(id = ObjectId.get, name = "saved user test org")
 
-    lazy val org = getOrg
+    val user = User("user_test_name", org = UserOrg(org.id, Permission.Read.value))
 
-    def getOrg = {
-      val o = Organization(id = ObjectId.get, name = "user test org")
-      if (saveOrg) {
-        services.orgService.insert(o, None)
-      }
-      o
-    }
+    services.orgService.insert(org, None)
+    services.userService.insertUser(user, org.id, Permission.Write)
 
     def after {
-      services.orgService.delete(org.id)
       services.userService.removeUser(user.userName)
+      services.orgService.delete(org.id)
     }
   }
 
-  "user" should {
+  "userService" should {
+
+    "getPermissions" should {
+      "work if the org and userName is in the db" in new UserScoped() {
+        services.userService.getPermissions(user.userName, org.id) must_== Success(Permission(3, "write"))
+      }
+      "fail if there is the org is not in the db" in new UserScoped() {
+        val nonExistentOrgId = ObjectId.get
+        services.userService.getPermissions(user.userName, nonExistentOrgId).fold(e => success, _ => failure)
+      }
+      "fail if the username is not in the db" in new UserScoped() {
+        services.userService.getPermissions("non existent name", org.id).fold(e => success, _ => failure)
+      }
+    }
+
+    "getOrg" should {
+      "return the organisation of the user" in new UserScoped() {
+        val result = services.userService.getOrg(user, Permission.Read)
+        result !== None
+        val dbOrg = result.get
+        dbOrg.name === org.name
+        dbOrg.id === org.id
+      }
+      "fail is user does not have the expected permissions" in new UserScoped() {
+        val result = services.userService.getOrg(user, Permission.Write)
+        result === None
+      }
+    }
+
+    /*
+    "getUser" in pending
+    "getUserByEmail" in pending
+    "getUsers" in pending
+    "insertUser" in pending
+    "removeUser" in pending
+    "setOrganization" in pending
+    "touchLastLogin" in pending
+    "touchRegistration" in pending
+    "updateUser" in pending
 
     "insert" in pending
     "update" in pending
@@ -37,16 +70,6 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     "get organization" in pending
     "get" in pending
     "write json" in pending
-
-    "get permissions works if the org is in the db" in new UserScoped(true) {
-      services.userService.insertUser(user, org.id, Permission.Write)
-      services.userService.getPermissions(user.userName, org.id) must_== Success(Permission(3, "write"))
-    }
-
-    "get permissions fails if there is no org in the db" in new UserScoped(false) {
-      services.userService.insertUser(user, org.id, Permission.Write)
-      services.userService.getPermissions(user.userName, org.id).fold(e => success, _ => failure)
-    }
+    */
   }
-
 }
