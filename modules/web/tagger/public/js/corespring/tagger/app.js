@@ -31,9 +31,9 @@
           redirectTo: '/new/blank'
         });
 
-        mk('/home', '/web/views/partials/tagger/home', tagger.HomeController);
-        mk('/edit/draft/:itemId', '/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
-        mk('/edit/:itemId', '/web/partials/editItem', ItemController, false);
+        mk('/home', '/tagger/web/views/partials/tagger/home', tagger.HomeController);
+        mk('/edit/draft/:itemId', '/tagger/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
+        mk('/edit/:itemId', '/tagger/web/partials/editItem', ItemController, false);
         $rp.otherwise({
           redirectTo: '/home'
         });

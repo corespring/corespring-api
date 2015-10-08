@@ -13,6 +13,7 @@ import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, Loca
 import org.corespring.web.common.views.helpers.Defaults
 import org.corespring.wiring.AppWiring
 import org.corespring.wiring.sessiondb.SessionDbInitialiser
+import org.corespring.tagger.controllers.deployment.TaggerAssetsLoaderImpl
 import org.joda.time.{ DateTime, DateTimeZone }
 import play.api._
 import play.api.http.ContentTypes
@@ -111,6 +112,7 @@ object Global
 
     AssetsLoaderImpl.init(app)
     LocalAssetsLoaderImpl.init(app)
+    TaggerAssetsLoaderImpl.init(app)
     SessionDbInitialiser.init(app)
   }
 

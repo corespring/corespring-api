@@ -1,0 +1,11 @@
+@()(implicit assetsLoader:org.corespring.tagger.controllers.deployment.TaggerAssetsLoader = org.corespring.tagger.controllers.deployment.TaggerAssetsLoaderImpl)
+
+@assetsLoader.tagger
+
+<script type="text/javascript" src="/v2/player/player.js?showControls=true"></script>
+<script type="text/javascript" src="/v2/player/catalog.js?showControls=true"></script>
+<script type="text/javascript" src="/v2/player/editor.js"></script>
+<script src="/assets/js/vendor/msgr/msgr.js" type="text/javascript"></script>
+@*<script type="text/javascript" src="@_root_.web.controllers.routes.ShowResource.javascriptRoutes"></script>*@
+
+

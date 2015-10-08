@@ -1,4 +1,4 @@
-package org.corespring.web.common.controllers.deployment
+package org.corespring.platform.core.utils
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model._

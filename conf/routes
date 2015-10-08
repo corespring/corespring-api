@@ -28,7 +28,7 @@ POST        /auth/register                                            org.coresp
 POST        /auth/access_token                                        org.corespring.platform.core.controllers.auth.AuthController.getAccessToken
 GET         /auth/isvalid                                             org.corespring.platform.core.controllers.auth.AuthController.isValid(token)
 
-GET         /                                                         web.controllers.Partials.redirect(url = "http://www.corespring.org")
+GET         /                                                         org.corespring.tagger.controllers.Partials.redirect(url = "http://www.corespring.org")
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /logger                                                   clientlogging.Routes
@@ -44,13 +44,14 @@ GET         /                                                         web.contro
 ->          /reports                                                  reports.Routes
 ->          /scorm                                                    scorm.Routes
 ->          /dev/tools                                                devTools.Routes
+->          /tagger                                                   tagger.Routes
 
 # Web tier
 GET         /web                                                      web.controllers.Main.index
 
 # Item Preview
-GET         /web/partials/editItem                                    web.controllers.Partials.editItem
-GET         /web/views/*path                                             web.controllers.Partials.loadFromPath(path:String)
+#GET         /web/partials/editItem                                    web.controllers.Partials.editItem
+#GET         /web/views/*path                                             web.controllers.Partials.loadFromPath(path:String)
 GET         /web/javascripts/routes                                   web.controllers.ShowResource.javascriptRoutes
 
 GET         /web/show-resource/:itemId/:resourceName/main             web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)

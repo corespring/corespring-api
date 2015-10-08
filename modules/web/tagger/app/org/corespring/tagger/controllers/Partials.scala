@@ -1,4 +1,4 @@
-package web.controllers
+package org.corespring.tagger.controllers
 
 import org.corespring.platform.core.models.{ User, Organization }
 import play.api.templates.{Html, Template0}
@@ -14,8 +14,9 @@ object Partials extends BaseApi {
     val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
     val useV2 = Play.current.mode == Mode.Dev || AppConfig.v2playerOrgIds.contains(user.org.orgId)
     val isRoot = Organization.findOneById(user.org.orgId).map(_.isRoot).getOrElse(false)
-    Ok(web.views.html.partials.editItem(useV2, isRoot))
+    Ok(org.corespring.tagger.views.html.partials.editItem(useV2, isRoot))
   }
+
   def redirect(url: String) = Action {
     if(Play.current.mode == Mode.Dev){
       Redirect("/login")
@@ -26,7 +27,7 @@ object Partials extends BaseApi {
 
   def loadFromPath(path:String) = Action{
 
-    val fullName = s"web.views.html.${path.replace("/", ".")}"
+    val fullName = s"org.corespring.tagger.views.html.${path.replace("/", ".")}"
 
     try {
       val c : Class[_] = Play.current.classloader.loadClass(fullName)

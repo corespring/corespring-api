@@ -1,0 +1,5 @@
+GET         /assets/*file                         com.ee.assets.controllers.Assets.at(path="/public", file)
+GET         /web                                  org.corespring.tagger.controllers.TaggerMain.index
+GET         /web/partials/editItem                org.corespring.tagger.controllers.Partials.editItem
+GET         /web/views/*path                      org.corespring.tagger.controllers.Partials.loadFromPath(path:String)
+

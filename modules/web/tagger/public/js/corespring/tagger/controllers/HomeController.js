@@ -1,3 +1,4 @@
+/* MALACBASZAS */
 (function(root) {
 
   root.tagger = root.tagger || {};

@@ -35,10 +35,9 @@ object ShowResource
 
       import play.api.Routes
       import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-      import web.controllers.routes.javascript.{Partials => PartialsJs}
+      import org.corespring.tagger.controllers.routes.javascript.{Partials => PartialsJs}
       Ok(
         Routes.javascriptRouter("WebRoutes")(
-          PartialsJs.editItem,
           ShowResourceJs.getResourceFile)).as("text/javascript")
   }
 

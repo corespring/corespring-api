@@ -171,6 +171,12 @@ object Build extends sbt.Build {
     .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
     .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
 
+  val tagger = builders.web("tagger").settings(
+    templatesImport ++= TemplateImports.Ids,
+    routesImport ++= customImports)
+    .aggregate(qti, playerLib, v1Api, apiUtils, testLib, core, commonViews)
+    .dependsOn(qti, playerLib, v1Api, apiUtils, testLib % "test->compile", core % "test->compile;test->test", commonViews)
+
   val devTools = builders.web("dev-tools")
     .settings(
       routesImport ++= customImports,
@@ -203,7 +209,7 @@ object Build extends sbt.Build {
       templatesImport ++= TemplateImports.Ids,
       routesImport ++= customImports)
     .aggregate(core, ltiLib, playerLib, v1Player)
-    .dependsOn(ltiLib, playerLib, v1Player, testLib % "test->compile", core % "test->compile;test->test")
+    .dependsOn(ltiLib, playerLib, v1Player, tagger, testLib % "test->compile", core % "test->compile;test->test")
 
   val public = builders.web("public")
     .settings(
@@ -249,6 +255,7 @@ object Build extends sbt.Build {
       ltiWeb,
       v1Api,
       v1Player,
+      tagger,
       playerLib,
       core % "it->test;compile->compile",
       apiUtils,
@@ -269,6 +276,7 @@ object Build extends sbt.Build {
       ltiWeb,
       v1Api,
       v1Player,
+      tagger,
       playerLib,
       core,
       apiUtils,

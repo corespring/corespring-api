@@ -8,12 +8,9 @@ class AssetsLoader(val loader: Loader) extends PackageLogging {
 
   def init(implicit app: play.api.Application) = if (Play.isProd) {
     logger.debug("running S3 deployments...")
-    tagger
     corespringCommon
     playerCommon
   }
-
-  def tagger = loader.scripts("tagger")("js/corespring/tagger")
 
   def corespringCommon = loader.scripts("cs-common")(
     "js/corespring/common/services/ItemFormattingUtils.js",

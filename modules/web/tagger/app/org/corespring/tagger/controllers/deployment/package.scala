@@ -1,10 +1,11 @@
-package org.corespring.web.common.controllers
+package org.corespring.tagger.controllers
 
-import com.ee.assets.Loader
+import com.ee.assets._
+import com.ee.assets.models._
 import com.ee.assets.deployment.Deployer
+import org.corespring.platform.core.utils.S3Deployer
 import org.apache.commons.lang3.StringUtils
 import org.corespring.assets.CorespringS3ServiceExtended
-import org.corespring.platform.core.utils.S3Deployer
 import play.api.Play
 import play.api.Play.current
 import org.corespring.web.common.views.helpers.Defaults
@@ -15,8 +16,8 @@ package object deployment {
 
   val bucketNameLengthMax = 63
 
-  lazy val loader: Loader = new Loader(if (isProd) Some(s3Deployer) else None, Play.mode, current.configuration)
-  lazy val localLoader: Loader = new Loader(None, Play.mode, current.configuration)
+  lazy val assetsInfo: AssetsInfo = SimpleAssetsInfo("tagger/assets", "public")
+  lazy val loader: Loader = new Loader(if (isProd) Some(s3Deployer) else None, Play.mode, current.configuration, None, assetsInfo)
 
   lazy val s3Deployer: Deployer = new S3Deployer(Some(CorespringS3ServiceExtended.getClient), bucketName, releaseRoot)
 
