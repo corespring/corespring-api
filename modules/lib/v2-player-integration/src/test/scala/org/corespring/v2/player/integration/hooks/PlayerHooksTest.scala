@@ -38,10 +38,7 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
       val m = mock[SessionAuth[OrgAndOpts, PlayerDefinition]]
       m.canCreate(any[String])(any[OrgAndOpts]) returns Success(true)
       m.create(any[JsValue])(any[OrgAndOpts]) answers { (obj, m) =>
-        val sessionJson = obj.asInstanceOf[Array[Any]](0).asInstanceOf[JsValue]
-        val idString = (sessionJson \ "_id" \ "$oid").as[String]
-        println(s"idString: $idString")
-        Success(new ObjectId(idString))
+        Success(new ObjectId())
       }
       m
     }
@@ -97,7 +94,7 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         val (session, item) = either.right.get
         (session \ "id").asOpt[String] must beSome[String]
-        (session \ "_id" \ "$oid").asOpt[String] must beSome[String]
+        (session \ "_id" \ "$oid").asOpt[String] must beNone
         (item \ "xhtml").asOpt[String] must_== Some("hi")
       }
     }

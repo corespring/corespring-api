@@ -1,7 +1,6 @@
-package org.corespring.platform.core.models.item.index
+package org.corespring.itemSearch
 
-import org.corespring.models.JsonUtil
-import org.slf4j.LoggerFactory
+import play.api.Logger
 import play.api.libs.json._
 
 case class ItemIndexHit(id: String,
@@ -18,10 +17,10 @@ case class ItemIndexHit(id: String,
   itemTypes: Seq[String])
 
 object ItemIndexHit {
+  //TODO: move json out of item-search
+  object Format extends Format[ItemIndexHit] {
 
-  object Format extends Format[ItemIndexHit] with JsonUtil {
-
-    lazy val logger = LoggerFactory.getLogger("ItemIndexHit#Format")
+    val logger = Logger(classOf[ItemIndexHit])
 
     private def subjectify(json: JsObject) = {
       def emptyOption(string: String): Option[String] = string match {

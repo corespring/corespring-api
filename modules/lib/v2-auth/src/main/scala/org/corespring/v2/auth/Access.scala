@@ -2,7 +2,7 @@ package org.corespring.v2.auth
 
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
-import org.corespring.common.config.AppConfig
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.services.OrganizationService
@@ -19,7 +19,8 @@ trait Access[DATA, REQUESTER] {
 
 class ItemAccess(
   orgService: OrganizationService,
-  checker: AccessSettingsWildcardCheck) extends Access[Item, OrgAndOpts] {
+  checker: AccessSettingsWildcardCheck,
+  archiveConfig: ArchiveConfig) extends Access[Item, OrgAndOpts] {
 
   def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
     checker.allow(itemId, sessionId, Mode.evaluate, settings)
@@ -50,9 +51,10 @@ class ItemAccess(
   override def grant(identity: OrgAndOpts, permission: Permission, item: Item): Validation[V2Error, Boolean] = {
 
     def orgCanAccess(collectionId: String) = orgService.canAccessCollection(identity.org, new ObjectId(collectionId), permission)
+    def isArchived(collectionId: String) = collectionId == archiveConfig.contentCollectionId.toString
 
     for {
-      canAccess <- if (orgCanAccess(item.collectionId))
+      canAccess <- if (orgCanAccess(item.collectionId) || isArchived(item.collectionId))
         Success(true)
       else
         Failure(orgCantAccessCollection(identity.org.id, item.collectionId, permission.name))
