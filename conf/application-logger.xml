@@ -31,7 +31,7 @@
     <logger name="poc" level="DEBUG"/>
     <logger name="org.corespring.platform.core.models" level="DEBUG"/>
     -->
-    <logger name="VersionInfo" level="TRACE"/>
+    <logger name="org.corespring.container.client.filters" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>
