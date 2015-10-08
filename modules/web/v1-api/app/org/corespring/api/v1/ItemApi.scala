@@ -19,6 +19,7 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.{ OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService
+import org.corespring.v2.sessiondb.{SessionServices}
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
@@ -38,6 +39,7 @@ class ItemApi(
   metadataSetService: MetadataSetService,
   contentCollectionService: ContentCollectionService,
   orgService: OrganizationService,
+  sessionServices: SessionServices,
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   val oAuthProvider: OAuthProvider,
@@ -84,18 +86,22 @@ class ItemApi(
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
         dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
         validatedItem <- validateItem(dbItem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbItem.published && (service.sessionCount(dbItem.id) > 0)).toSuccess("Error saving item")
+        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0)).toSuccess("Error saving item")
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
       }
   }
 
+  private def sessionCount(item: Item): Long = {
+    sessionServices.main.sessionCount(item.id)
+  }
+
   def countSessions(id: VersionedId[ObjectId]) = ApiAction {
     request =>
       val c = for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-      } yield service.sessionCount(item.id)
+      } yield sessionCount(item)
       c match {
         case Success(_) => Ok(JsObject(Seq("sessionCount" -> JsNumber(c.toOption.get))))
         case _ => BadRequest

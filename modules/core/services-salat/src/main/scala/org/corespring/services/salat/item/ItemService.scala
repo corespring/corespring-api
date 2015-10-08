@@ -251,10 +251,6 @@ class ItemService(
     }
   }
 
-  override def sessionCount(id: VersionedId[Imports.ObjectId]): Long = {
-    throw new RuntimeException("not supported")
-  }
-
   override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
 
     val readableCollectionIds = contentCollectionService
