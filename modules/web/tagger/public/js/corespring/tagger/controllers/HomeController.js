@@ -1,5 +1,4 @@
-/* MALACBASZAS */
-(function(root) {
+(function (root) {
 
   root.tagger = root.tagger || {};
   root.tagger.HomeController = HomeController;
@@ -19,20 +18,18 @@
     'V2ItemService'
   ];
 
-  function HomeController(
-    $http,
-    $location,
-    $rootScope,
-    $scope,
-    $timeout,
-    ItemDraftService,
-    ItemFormattingUtils,
-    ItemService,
-    Logger,
-    Modals,
-    UserInfo,
-    V2ItemService
-  ) {
+  function HomeController($http,
+                          $location,
+                          $rootScope,
+                          $scope,
+                          $timeout,
+                          ItemDraftService,
+                          ItemFormattingUtils,
+                          ItemService,
+                          Logger,
+                          Modals,
+                          UserInfo,
+                          V2ItemService) {
 
     //Mixin ItemFormattingUtils
     angular.extend($scope, ItemFormattingUtils);
@@ -44,21 +41,19 @@
 
     $scope.$root.mode = "home";
 
-    $scope.v2 = new V2();
-    $scope.v1 = new V1();
 
     $scope.cloneItem = cloneItem;
     $scope.deleteItem = deleteItem;
-    $scope.edit = edit;
+    $scope.edit = editItem;
     $scope.hidePopup = hidePopup;
     $scope.launchCatalogView = launchCatalogView;
     $scope.onItemLoad = onItemLoad;
-    $scope.publish = publish;
+    $scope.publish = publishItem;
 
     // Delay in milliseconds for search after item update
     var searchDelay = 1000;
 
-    $scope.delayedSearch = function() {
+    $scope.delayedSearch = function () {
       $timeout($scope.search, searchDelay);
     };
 
@@ -73,113 +68,12 @@
       $scope.org = UserInfo.org;
     }
 
-    function edit(item) {
-      route('edit', item);
-    }
-
-    function publish(item, callback) {
-      Modals.publish(function(cancelled) {
-        if (!cancelled) {
-          ItemService.get({
-            id: item.id
-          }, function(itemData) {
-            itemData.publish(
-              function success(item) {
-                $scope.delayedSearch();
-                if(_.isFunction(callback) ) {
-                  callback();
-                }
-              },
-              function error(err) {
-                alert('Error publishing'); //would be nice if we did something more useful with error messages.
-              },
-              itemData.id
-            );
-
-          });
-        }
-      });
-    }
-
-    function cloneItem(item) {
-      route('cloneItem', item);
-    }
-
-    function route(action, item) {
-      if (item.apiVersion === 1 || (item.format && item.format.apiVersion === 1)) {
-        $scope.v1[action](item);
-      } else {
-        $scope.v2[action](item);
-      }
-    }
-
-    function V1() {
-
-      this.edit = function(item) {
+    function editItem(item) {
+      if (isV1Item(item)) {
         $location.url('/edit/' + item.id);
-      };
-
-      this.cloneItem = function(item) {
-        //The item passed in is not coming from the v1 ItemService
-        //and therefore doesn't have the clone method. ItemService.get
-        //does that for us.
-        ItemService.get({
-          id: item.id
-        }, function(itemData) {
-          itemData.clone(
-            function success(newItem) {
-              $location.url('/edit/' + newItem.id);
-            },
-            function error(err) {
-              alert('cloneItem:', JSON.stringify(err));
-            }
-          );
-        });
-      };
-
-      this.publish = function(item) {
-        publish(item, function() {
-          $scope.v1.itemToPublish = itemData;
-          $scope.v1.showConfirmPublishModal = true;
-        });
-      };
-
-      this.publishConfirmed = function() {
-        $scope.v1.showConfirmPublishModal = false;
-
-        $scope.v1.itemToPublish.publish(function(result) {
-            if (!result.published) {
-              alert('Error publishing');
-            }
-            $scope.v1.itemToPublish.published = result.published;
-            $scope.v1.itemToPublish = null;
-          },
-          function(err) {
-            alert(err);
-          });
-      };
-
-      this.publishCancelled = function() {
-        $scope.v1.itemToPublish = null;
-        $scope.v1.showConfirmPublishModal = false;
-      };
-    }
-
-    function V2() {
-
-      function getItem(id) {
-        return _.find($scope.items, function(i) {
-          return i.id === id;
-        });
-      }
-
-      function goToEditDraft(itemId) {
-        $location.url('/edit/draft/' + itemId);
-      }
-
-      this.edit = function(item) {
+      } else {
         if (item.published) {
-          Modals.edit(function(cancelled) {
+          Modals.edit(function (cancelled) {
             if (cancelled) {
               return;
             }
@@ -188,28 +82,47 @@
         } else {
           goToEditDraft(item.id);
         }
-      };
+      }
+    }
 
-      this.publish = function(item) {
-        publish(item);
-      };
+    function cloneItem(item) {
+      V2ItemService.clone({
+          id: item.id
+        },
+        function success(newItem) {
+          goToEditDraft(newItem.id);
+        },
+        function error(err) {
+          alert('cloneItem:', JSON.stringify(err));
+        }
+      );
+    }
 
-      this.cloneItem = function(item) {
-        V2ItemService.clone({
-            id: item.id
-          },
-          function success(newItem) {
-            goToEditDraft(newItem.id);
-          },
-          function error(err) {
-            alert('cloneItem:', JSON.stringify(err));
-          }
-        );
-      };
+    function publishItem(item, callback) {
+      Modals.publish(function (cancelled) {
+        if (!cancelled) {
+          V2ItemService.publish({id: item.id}, function success() {
+            $scope.delayedSearch();
+            if (_.isFunction(callback)) {
+              callback();
+            }
+          }, function error(e) {
+            alert(e);
+          });
+        }
+      });
+    }
+
+    function isV1Item(item) {
+      return item.apiVersion === 1 || (item.format && item.format.apiVersion === 1);
+    }
+
+    function goToEditDraft(itemId) {
+      $location.url('/edit/draft/' + itemId);
     }
 
     function deleteItem(item) {
-      Modals['delete'](function(cancelled) {
+      Modals['delete'](function (cancelled) {
         if (!cancelled) {
           ItemDraftService.deleteByItemId(
             item.id,
@@ -238,7 +151,7 @@
     }
 
     function openPreview(id) {
-      $timeout(function() {
+      $timeout(function () {
         $scope.showPopup = true;
         $scope.popupBg = "extra-large-window";
         $scope.previewingId = id;
@@ -246,7 +159,7 @@
         $('#player').hide();
       }, 50);
 
-      $timeout(function() {
+      $timeout(function () {
         $('.window-overlay').scrollTop(0);
       }, 100);
     }

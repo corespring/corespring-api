@@ -2,20 +2,6 @@
   'use strict';
 
   /**
-   * Remove Item utility method
-   * TODO Quite dangerous to put this into the array prototype
-   */
-  if (Array.prototype.removeItem === null) Array.prototype.removeItem = function(item) {
-    var itemIndex = this.indexOf(item);
-
-    if (itemIndex == -1) {
-      return null;
-    }
-
-    return this.splice(itemIndex, 1)[0];
-  };
-
-  /**
    * Controller for editing Item
    */
   function EditDraftController(
