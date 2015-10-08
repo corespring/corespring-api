@@ -23,13 +23,11 @@ class FieldValueService(
   override def get = dao.find(MongoDBObject.empty).sort(MongoDBObject("_id" -> -1)).limit(1).toArray.headOption
 
   override def insert(f: FieldValue): Validation[PlatformServiceError, ObjectId] = {
-    dao.insert(f).toSuccess(GeneralError("Failed to insert field value", None))
+    dao.insert(f).toSuccess(GeneralError(s"Failed to insert field value: $f", None))
   }
 
   override def delete(id: ObjectId): Validation[PlatformServiceError, ObjectId] = {
-
     val result = dao.removeById(id)
-
     if (!result.getLastError.ok) {
       Failure(GeneralError(s"Failed to delete field value with id $id", None))
     } else {
