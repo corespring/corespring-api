@@ -31,7 +31,7 @@ class CollectionApi(
   private lazy val logger = Logger(classOf[CollectionApi])
 
   private def deprecatedMethod(name: String) = {
-    logger.warn(s"deprecated method called $name")
+    logger.warn(s"deprecated method called - $name")
   }
 
   import jsonFormatting.writeContentCollection
@@ -74,7 +74,7 @@ class CollectionApi(
   def createCollection = futureWithIdentity { (identity, request) =>
     Future {
 
-      logger.debug(s"[createCollection]")
+      logger.debug(s"function=createCollection, ${request.body}")
 
       val v: Validation[V2Error, ContentCollection] = for {
         json <- request.body.asJson.toSuccess(noJson)
@@ -203,7 +203,7 @@ class CollectionApi(
 
   def updateCollection(collectionId: ObjectId) = futureWithIdentity { (identity, request) =>
 
-    logger.info(s"[updateCollection] collectionId=$collectionId")
+    logger.info(s"function=updateCollection, collectionId=$collectionId, requestBody=${request.body}")
 
     lazy val organizationsNotSupported = noLongerSupported("'organizations' is no longer supported in the json request body to update collection")
 

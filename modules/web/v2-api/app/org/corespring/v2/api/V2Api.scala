@@ -20,6 +20,9 @@ trait V2Api extends Controller with LoadOrgAndOptions {
   final override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsFn(request)
 
   protected implicit class MkV2Error[A](v: Validation[PlatformServiceError, A]) {
+
+    require(v != null)
+
     def v2Error: Validation[V2Error, A] = {
       v.leftMap { e => generalError(e.message) }
     }
