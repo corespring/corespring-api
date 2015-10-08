@@ -161,7 +161,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.devUrl = function() {
     return ($scope.itemData && $scope.itemData.id) ?
-      '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
+      '/v2/player/item/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
   }
 
   $scope.togglePreview = function () {
