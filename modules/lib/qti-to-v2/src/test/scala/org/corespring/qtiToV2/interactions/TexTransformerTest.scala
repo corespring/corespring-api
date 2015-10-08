@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import org.specs2.mutable.Specification
 
 import scala.xml.Node
@@ -15,7 +16,7 @@ class TexTransformerTest extends Specification {
           <itemBody>{ node }</itemBody>
         </assessmentItem>
 
-      def transformed = new RuleTransformer(TexTransformer).transform(node)
+      def transformed = new InteractionRuleTransformer(TexTransformer).transform(node)
     }
 
     val tex = "This is my latex!"

@@ -8,7 +8,8 @@ import scala.xml.Node
 class InteractionTransformerTest extends Specification {
 
   val transformer = new InteractionTransformer {
-    def interactionJs(qti: Node): Map[String, JsObject] = ???
+    override def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] = ???
+    override def transform(node: Node, manifest: Node): Seq[Node] = node
   }
 
   val responseIdentifier = "Q_01"
@@ -77,16 +78,18 @@ class InteractionTransformerTest extends Specification {
 
     "add prompt when source contains one" in {
       new InteractionTransformer {
-        def interactionJs(qti: Node): Map[String, JsObject] = ???
+        def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] = ???
         (result.withPrompt(sourceWithPrompt) \\ "p").find(n => n.text == prompt) must not beEmpty
+        override def transform(node: Node, manifest: Node): Seq[Node] = node
       }
       success
     }
 
     "add nothing when source contains no prompt" in {
       new InteractionTransformer {
-        def interactionJs(qti: Node): Map[String, JsObject] = ???
+        def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] = ???
         (result.withPrompt(sourceWithoutPrompt) \\ "p").find(n => n.text == prompt) must beEmpty
+        override def transform(node: Node, manifest: Node): Seq[Node] = node
       }
       success
     }

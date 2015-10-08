@@ -1,5 +1,7 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.{ ItemTransformer, InteractionRuleTransformer }
+
 import scala.xml.transform.RuleTransformer
 
 import org.specs2.mutable.Specification
@@ -61,20 +63,24 @@ class LineInteractionTransformerTest extends Specification {
     }
 
     val input = qti(correctResponse)
-    val output = new RuleTransformer(LineInteractionTransformer).transform(input)
-    val interactionResult = json(LineInteractionTransformer.interactionJs(input), identifier)
-    val noConfigInteractionResult = json(LineInteractionTransformer.interactionJs(qtiNoConfig), anotherIdentifier)
+    val output = new InteractionRuleTransformer(LineInteractionTransformer).transform(input)
+    val interactionResult = json(LineInteractionTransformer
+      .interactionJs(input, ItemTransformer.EmptyManifest), identifier)
+    val noConfigInteractionResult =
+      json(LineInteractionTransformer.interactionJs(qtiNoConfig, ItemTransformer.EmptyManifest), anotherIdentifier)
 
     val config = (interactionResult \ "model" \ "config")
     val noConfig = (noConfigInteractionResult \ "model" \ "config")
 
     "returns an object with no correctResponse if the interaction is locked and has no responseDeclaration" in {
-      val jsonResult = json(LineInteractionTransformer.interactionJs(qtiNoResponseDeclaration(true)), anotherIdentifier)
+      val jsonResult = json(LineInteractionTransformer.interactionJs(qtiNoResponseDeclaration(true),
+        ItemTransformer.EmptyManifest), anotherIdentifier)
       (jsonResult \ "correctResponse").asOpt[JsObject] === None
     }
 
     "throws an exception if the interaction is not locked and there is no responseDeclaration" in {
-      LineInteractionTransformer.interactionJs(qtiNoResponseDeclaration(false)) must throwA[IllegalArgumentException]
+      LineInteractionTransformer
+        .interactionJs(qtiNoResponseDeclaration(false), ItemTransformer.EmptyManifest) must throwA[IllegalArgumentException]
     }
 
     "return the correct component type" in {

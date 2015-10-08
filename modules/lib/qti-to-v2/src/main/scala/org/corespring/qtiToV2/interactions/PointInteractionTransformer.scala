@@ -5,7 +5,7 @@ import scala.xml._
 import play.api.libs.json._
 object PointInteractionTransformer extends InteractionTransformer {
 
-  override def interactionJs(qti: Node) = (qti \\ "pointInteraction").map(implicit node => {
+  override def interactionJs(qti: Node, manifest: Node) = (qti \\ "pointInteraction").map(implicit node => {
     val identifier = (node \\ "@responseIdentifier").text
     identifier -> Json.obj(
       "componentType" -> "corespring-point-intercept",
@@ -29,7 +29,7 @@ object PointInteractionTransformer extends InteractionTransformer {
           }),
           "showCoordinates" -> Some(JsBoolean(booleanFor("show-coordinates"))),
           "showFeedback" -> Some(JsBoolean(false)) // Don't show internal feedback in v1 originated items
-        )))
+          )))
   }).toMap
 
   private def booleanFor(attribute: String, default: Boolean = true)(implicit node: Node) =
@@ -38,8 +38,8 @@ object PointInteractionTransformer extends InteractionTransformer {
       case "false" => false
       case _ => default
     }
-  
-  override def transform(node: Node): Seq[Node] = node match {
+
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "pointInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
       <corespring-point-intercept id={ identifier }></corespring-point-intercept>

@@ -1,5 +1,6 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import org.specs2.mutable.Specification
 
 import scala.xml.Node
@@ -23,7 +24,7 @@ class CorespringTabTransformerTest extends Specification {
   "CorespringTabTransformer" should {
 
     val input = qti(tabData)
-    val output = new RuleTransformer(CorespringTabTransformer).transform(input)
+    val output = new InteractionRuleTransformer(CorespringTabTransformer).transform(input)
 
     "replace <cs-tabs/> with <corespring-tabs/>" in {
       (output \ "cs-tabs").length must be equalTo 0

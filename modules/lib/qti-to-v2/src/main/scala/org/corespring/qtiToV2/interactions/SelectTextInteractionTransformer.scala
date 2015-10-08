@@ -12,21 +12,22 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
     val shuffle = false
   }
 
-  override def interactionJs(qti: Node): Map[String, JsObject] = (qti \\ "selectTextInteraction").map(implicit node => {
-    (node \ "@responseIdentifier").text ->
-      Json.obj(
-        "componentType" -> "corespring-select-text",
-        "model" -> Json.obj(
-          "choices" -> choices,
-          "config" -> partialObj(
-            "selectionUnit" -> optForAttr[JsString]("selectionType"),
-            "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
-            "minSelections" -> optForAttr[JsNumber]("minSelections"),
-            "maxSelections" -> optForAttr[JsNumber]("maxSelections"),
-            "showFeedback" -> Some(JsBoolean(false)))))
-  }).toMap
+  override def interactionJs(qti: Node, manifest: Node): Map[String, JsObject] =
+    (qti \\ "selectTextInteraction").map(implicit node => {
+      (node \ "@responseIdentifier").text ->
+        Json.obj(
+          "componentType" -> "corespring-select-text",
+          "model" -> Json.obj(
+            "choices" -> choices,
+            "config" -> partialObj(
+              "selectionUnit" -> optForAttr[JsString]("selectionType"),
+              "checkIfCorrect" -> optForAttr[JsString]("checkIfCorrect"),
+              "minSelections" -> optForAttr[JsNumber]("minSelections"),
+              "maxSelections" -> optForAttr[JsNumber]("maxSelections"),
+              "showFeedback" -> Some(JsBoolean(false)))))
+    }).toMap
 
-  override def transform(node: Node): Seq[Node] = node match {
+  override def transform(node: Node, manifest: Node): Seq[Node] = node match {
     case elem: Elem if elem.label == "selectTextInteraction" => {
       val identifier = (elem \ "@responseIdentifier").text
       <corespring-select-text id={ identifier }></corespring-select-text>
@@ -37,25 +38,24 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
   private def choices(implicit node: Node): JsArray = {
     def isCorrect(string: String) = string.indexOf("<correct>") >= 0
     def stripCorrectness(string: String) =
-      string.replaceAll("<[/]*correct>","")
+      string.replaceAll("<[/]*correct>", "")
 
     def removeBlockLevelElements(fromText: String) = {
-      val validTags = List("br", "p", "correct","b","i","u","strong","span","small","img","a","sub","sup")
-      def isValid(tag:String) = {
-        val strippedTag = new Regex("<[\\s/]*(\\S+)[^>]*?>","tag").findFirstMatchIn(tag) match {
+      val validTags = List("br", "p", "correct", "b", "i", "u", "strong", "span", "small", "img", "a", "sub", "sup")
+      def isValid(tag: String) = {
+        val strippedTag = new Regex("<[\\s/]*(\\S+)[^>]*?>", "tag").findFirstMatchIn(tag) match {
           case Some(mm) => mm.group("tag")
           case _ => ""
         }
         validTags.contains(strippedTag)
       }
-      s"<.*?>".r.replaceAllIn (fromText, { m =>
+      s"<.*?>".r.replaceAllIn(fromText, { m =>
         if (isValid(m.toString)) m.toString else ""
       })
     }
 
-
     def fixLineBreaks(fromText: String) = {
-      val preProcess= s"<.*?>".r.replaceAllIn(fromText, { m =>
+      val preProcess = s"<.*?>".r.replaceAllIn(fromText, { m =>
         m.toString match {
           case "<br>" => ""
           case "</br>" => "<br/>"
@@ -85,7 +85,6 @@ object SelectTextInteractionTransformer extends InteractionTransformer {
       "correct" -> (if (isCorrect(choice)) Some(JsBoolean(true)) else None))))
   }
 
-
 }
 
 object TextSplitter {
@@ -94,14 +93,14 @@ object TextSplitter {
     val regExp = new Regex("(?s)(.*?[.!?]([^ \\t])*)", "match")
     // Filter out names like Vikram S. Pandit as they break the sentence parsing
     val namesParsed = "([A-Z][a-z]+ [A-Z])\\.( [A-Z][a-z]+)".r.replaceAllIn(s, "$1&#46;$2")
-    regExp.findAllMatchIn(namesParsed).map({m => m.group("match").trim }).toList
+    regExp.findAllMatchIn(namesParsed).map({ m => m.group("match").trim }).toList
   }
 
   def words(s: String): Seq[String] = {
-    def getWordsWithXmlTags(node: Node, path: Seq[Node]):Seq[String] = {
+    def getWordsWithXmlTags(node: Node, path: Seq[Node]): Seq[String] = {
       if (node.isInstanceOf[Text]) {
         val l = path.map(_.label).dropRight(1).reverse
-        def textWithNeighbouringTags(left:Seq[String], res:String):String = {
+        def textWithNeighbouringTags(left: Seq[String], res: String): String = {
           if (left.isEmpty) {
             res
           } else {

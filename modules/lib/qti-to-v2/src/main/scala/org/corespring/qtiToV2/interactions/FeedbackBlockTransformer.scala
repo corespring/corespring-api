@@ -1,7 +1,7 @@
 package org.corespring.qtiToV2.interactions
 
 import org.corespring.common.xml.XMLNamespaceClearer
-import  scala.util.matching.Regex
+import scala.util.matching.Regex
 import scala.Predef._
 import scala.xml._
 
@@ -9,8 +9,8 @@ import play.api.libs.json._
 
 case class FeedbackBlockTransformer(qti: Node) extends InteractionTransformer {
 
-  override def transform(node: Node): Seq[Node] = node
-  override def interactionJs(qti: Node) = FeedbackBlockTransformer.interactionJs(qti)
+  override def transform(node: Node, manifest: Node): Seq[Node] = node
+  override def interactionJs(qti: Node, manifest: Node) = FeedbackBlockTransformer.interactionJs(qti, manifest)
 
 }
 
@@ -43,12 +43,11 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
 
   }
 
-
-  def interactionJs(qti: Node) = (qti \\ "feedbackBlock").filterNot(node => belongsToTextEntry(node, qti)).map(node => {
-    def feedbackToJson(feedbackBlock:Node) = {
+  def interactionJs(qti: Node, manifest: Node) = (qti \\ "feedbackBlock").filterNot(node => belongsToTextEntry(node, qti)).map(node => {
+    def feedbackToJson(feedbackBlock: Node) = {
       val input = (feedbackBlock \ "@identifier").text
-      def nonEmptyNode(c:Node) = !c.text.trim.isEmpty
-      def formatNode(c:Node) = clearNamespace(c.child).mkString.trim
+      def nonEmptyNode(c: Node) = !c.text.trim.isEmpty
+      def formatNode(c: Node) = clearNamespace(c.child).mkString.trim
       val feedback = JsString(feedbackBlock.child.filter(nonEmptyNode).headOption.map(formatNode).getOrElse(DEFAULT_FEEDBACK))
       input match {
         case "" => Json.obj("input" -> "*", "feedback" -> feedback)
@@ -91,7 +90,7 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
             case false => Json.obj(
               "correct" -> JsArray(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString != "true").map(feedbackBlock => {
-                   feedbackToJson(feedbackBlock)
+                  feedbackToJson(feedbackBlock)
                 })),
               "incorrect" -> JsArray(
                 (qti \\ "feedbackBlock").filter(n => n.isFeedbackFor(id) && (n \ "@incorrectResponse").toString == "true").map(feedbackBlock => {
@@ -109,7 +108,7 @@ object FeedbackBlockTransformer extends Transformer with XMLNamespaceClearer {
    * Takes a QTI document rooted at the provided node, removing <feedbackBlock/>s with duplicate outcomeIdentifier
    * attributes and replacing them with a single <corespring-feedback-block/> element.
    */
-  override def transform(qti: Node): Node = {
+  override def transform(qti: Node, manifest: Node): Node = {
     var ids = Set.empty[String]
 
     def recurse(node: Node): Seq[Node] = node match {

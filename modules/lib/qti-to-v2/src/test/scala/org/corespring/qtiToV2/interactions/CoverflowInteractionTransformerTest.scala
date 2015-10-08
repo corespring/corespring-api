@@ -1,9 +1,9 @@
 package org.corespring.qtiToV2.interactions
 
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import org.specs2.mutable.Specification
 
 import scala.xml.Node
-import scala.xml.transform.RuleTransformer
 
 class CoverflowInteractionTransformerTest extends Specification {
 
@@ -18,7 +18,7 @@ class CoverflowInteractionTransformerTest extends Specification {
         </itemBody>
       </assessmentItem>
 
-    def output = new RuleTransformer(CoverflowInteractionTransformer).transform(qti)
+    def output = new InteractionRuleTransformer(CoverflowInteractionTransformer).transform(qti)
     def corespringCoverflows = (output \\ "corespring-coverflow")
 
     "should remove <coverflow/>" in {

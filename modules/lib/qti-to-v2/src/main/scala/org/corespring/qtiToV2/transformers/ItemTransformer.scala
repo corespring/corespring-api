@@ -205,3 +205,7 @@ trait ItemTransformer {
   }
 
 }
+
+object ItemTransformer {
+  val EmptyManifest = <div/>
+}

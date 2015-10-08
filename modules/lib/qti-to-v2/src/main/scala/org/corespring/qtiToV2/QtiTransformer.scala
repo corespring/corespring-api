@@ -3,6 +3,7 @@ package org.corespring.qtiToV2
 import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qtiToV2.customScoring.CustomScoringTransformer
 import org.corespring.qtiToV2.interactions._
+import org.corespring.qtiToV2.transformers.InteractionRuleTransformer
 import play.api.libs.json._
 
 import scala.xml._
@@ -61,18 +62,19 @@ trait QtiTransformer extends XMLNamespaceClearer {
     }.getOrElse(Json.obj())
   }
 
-  def transform(qti: Elem): JsValue = {
+  def transform(qti: Elem, manifest: Node = <div/>): JsValue = {
 
     val transformers = interactionTransformers(qti)
 
     /** Need to pre-process Latex so that it is avaiable for all JSON and XML transformations **/
-    val texProcessedQti = new RuleTransformer(FontTransformer).transform(new RuleTransformer(TexTransformer).transform(qti))
+    val texProcessedQti = new InteractionRuleTransformer(FontTransformer)
+      .transform(new InteractionRuleTransformer(TexTransformer).transform(qti, manifest), manifest)
     val components = transformers.foldLeft(Map.empty[String, JsObject])(
-      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head))
+      (map, transformer) => map ++ transformer.interactionJs(texProcessedQti.head, manifest))
 
-    val transformedHtml = new RuleTransformer(transformers: _*).transform(texProcessedQti)
+    val transformedHtml = new InteractionRuleTransformer(transformers: _*).transform(texProcessedQti, manifest)
     val html = statefulTransformers.foldLeft(clearNamespace((transformedHtml.head \ "itemBody").head))(
-      (html, transformer) => transformer.transform(html).head)
+      (html, transformer) => transformer.transform(html, manifest).head)
 
     val divRoot = new RuleTransformer(ItemBodyTransformer).transform(html).head
 

@@ -4,15 +4,21 @@ import org.corespring.common.xml.XMLNamespaceClearer
 import org.corespring.qti.models.QtiItem
 
 import scala.reflect.ClassTag
-import scala.xml.{XML, NodeSeq, Node}
+import scala.xml.{ XML, NodeSeq, Node }
 import scala.xml.transform.RewriteRule
 
 import play.api.libs.json._
 
-abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClearer {
+abstract class InteractionTransformer extends XMLNamespaceClearer {
 
-  def interactionJs(qti: Node): Map[String, JsObject]
+  def interactionJs(qti: Node, manifest: Node): Map[String, JsObject]
+  def transform(node: Node, manifest: Node): Seq[Node]
 
+  def transform(ns: Seq[Node], manifest: Node): Seq[Node] = {
+    val changed = ns.flatMap(node => transform(node, manifest))
+    if (changed.length != ns.length || (changed, ns).zipped.exists(_ != _)) changed
+    else ns
+  }
   /**
    * Given a node and QTI document, method looks at node's responseIdentifier attribute, and finds a
    * <responseDeclaration/> within the QTI document whose identifier attribute matches.
@@ -69,7 +75,6 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
     }
   }
 
-
   /**
    * Returns an Option of JsValue subtype T for an attribute of the implicit node. For example:
    *
@@ -101,6 +106,6 @@ abstract class InteractionTransformer extends RewriteRule with XMLNamespaceClear
 
 trait Transformer {
 
-  def transform(qti: Node): Node
+  def transform(qti: Node, manifest: Node): Node
 
 }
