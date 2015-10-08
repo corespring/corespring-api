@@ -43,6 +43,7 @@
     <!--<logger name="org.corespring.drafts.item" level="INFO"/>-->
     <!--<logger name="org.corespring.container.client.AssetUtils" level="WARN"/>-->
     <!--<logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>-->
+    <logger name="org.corespring.container.client.filters" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
     <logger name="ContentCollection" level="TRACE"/>

@@ -1,6 +1,7 @@
 package org.corespring.v2.auth
 
 import org.corespring.common.config.AppConfig
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -17,6 +18,7 @@ trait V2AuthModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
+  def archiveConfig: ArchiveConfig
   def appConfig: AppConfig
   def jsonFormatting: JsonFormatting
   def itemService: ItemService
