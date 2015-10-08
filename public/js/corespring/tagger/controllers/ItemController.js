@@ -477,6 +477,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
+  function isV2() {
+    return $scope.versionOverride ? $scope.versionOverride === 2 : $('.preview').data('version') === 2;
+  }
+
   $scope.reloadPlayer = function() {
     if (isV2()) {
       $scope.launchV2Player();

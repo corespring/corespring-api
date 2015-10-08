@@ -24,9 +24,6 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def contributorsForOrg(orgId: ObjectId): Seq[String]
 
-  @deprecated("use SessionService.sessionCount(itemId)", "")
-  def sessionCount(id: VersionedId[ObjectId]): Long
-
   def clone(item: Item): Option[Item]
 
   def moveItemToArchive(id: VersionedId[ObjectId]): Option[String]
