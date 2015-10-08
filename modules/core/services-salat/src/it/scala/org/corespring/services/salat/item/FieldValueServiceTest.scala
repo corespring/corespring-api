@@ -65,6 +65,7 @@ class FieldValueServiceTest extends ServicesSalatIntegrationTest with Mockito {
       fvDb.depthOfKnowledge === fv.depthOfKnowledge
       fvDb.credentials === fv.credentials
       fvDb.bloomsTaxonomy === fv.bloomsTaxonomy
+      fvDb === fv //to make sure we didn't miss something
     }
 
     "return the last fieldValue inserted" in new Scope {
