@@ -6,6 +6,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.ContentCollectionUpdate
 import org.corespring.services.errors._
 import org.specs2.mutable._
 
@@ -518,6 +519,27 @@ class ContentCollectionServiceIntegrationTest
         val col = service.create("my-new-collection", rootOrg).toOption.get
         service.getCollections(rootOrg.id, Permission.Write).isSuccess === true
         service.delete(col.id)
+      }
+    }
+
+    "update" should {
+
+      "update name" in new testScope {
+        service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), None))
+        service.findOneById(writableCollection.id).get.name === "new-name"
+        service.findOneById(writableCollection.id).get.isPublic === writableCollection.isPublic
+      }
+
+      "update isPublic" in new testScope {
+        service.update(writableCollection.id, ContentCollectionUpdate(None, Some(!writableCollection.isPublic)))
+        service.findOneById(writableCollection.id).get.name === writableCollection.name
+        service.findOneById(writableCollection.id).get.isPublic === !writableCollection.isPublic
+      }
+
+      "update name and isPublic" in new testScope {
+        service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), Some(!writableCollection.isPublic)))
+        service.findOneById(writableCollection.id).get.name === "new-name"
+        service.findOneById(writableCollection.id).get.isPublic === !writableCollection.isPublic
       }
     }
 

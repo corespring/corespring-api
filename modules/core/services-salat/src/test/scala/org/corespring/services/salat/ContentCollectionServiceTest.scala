@@ -9,7 +9,6 @@ import org.corespring.models.{ ContentCollRef, ContentCollection }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.ContentCollectionUpdate
 import org.corespring.services.errors._
 import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
@@ -118,27 +117,6 @@ class ContentCollectionServiceTest extends Specification with Mockito {
         case Success(value) => failure("Expected to fail with error")
         case Failure(error) => error must haveClass[GeneralError]
       }
-    }
-  }
-
-  "update" should {
-
-    "update name" in new scope {
-      service.update(collection.id, ContentCollectionUpdate(Some("new-name"), None))
-      service.findOneById(collection.id).get.name === "new-name"
-      service.findOneById(collection.id).get.isPublic === collection.isPublic
-    }
-
-    "update isPublic" in new scope {
-      service.update(collection.id, ContentCollectionUpdate(None, Some(!collection.isPublic)))
-      service.findOneById(collection.id).get.name === collection.name
-      service.findOneById(collection.id).get.isPublic === !collection.isPublic
-    }
-
-    "update name and isPublic" in new scope {
-      service.update(collection.id, ContentCollectionUpdate(Some("new-name"), Some(!collection.isPublic)))
-      service.findOneById(collection.id).get.name === "new-name"
-      service.findOneById(collection.id).get.isPublic === !collection.isPublic
     }
   }
 
