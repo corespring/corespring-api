@@ -41,9 +41,11 @@ class CollectionApi(
     def toObjectId(s: String) = if (ObjectId.isValid(s)) Some(new ObjectId(s)) else None
 
     val collectionIds = ids.split(",").flatMap(toObjectId)
-    val futureMap = field match {
+
+    val futureMap: Future[Map[String, Double]] = field match {
       case "itemType" => itemAggregationService.taskInfoItemTypeCounts(collectionIds)
       case "contributor" => itemAggregationService.contributorCounts(collectionIds)
+      case _ => Future(Map.empty)
     }
 
     futureMap.map { m =>
@@ -184,6 +186,7 @@ class CollectionApi(
       }
   }
 
+  //TODO: move this to a service?
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {
 
     val o = for {
