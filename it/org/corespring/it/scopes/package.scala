@@ -315,9 +315,18 @@ package object scopes {
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
+    private def mkUrl(url: String) = {
+      val separator = if (url.contains("?")) "&" else "?"
+      s"$url${separator}access_token=$accessToken"
+    }
+
     override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {
       val separator = if (call.url.contains("?")) "&" else "?"
-      FakeRequest(call.method, s"${call.url}${separator}access_token=$accessToken", FakeHeaders(), body)
+      FakeRequest(call.method, mkUrl(call.url), FakeHeaders(), body)
+    }
+
+    def makeJsonRequest(call: Call, json: JsValue): Request[AnyContentAsJson] = {
+      FakeRequest(call.method, mkUrl(call.url)).withJsonBody(json)
     }
   }
 

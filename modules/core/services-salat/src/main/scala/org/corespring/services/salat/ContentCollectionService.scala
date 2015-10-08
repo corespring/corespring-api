@@ -211,10 +211,10 @@ class ContentCollectionService(
       val query = MongoDBObject("_id" -> id)
 
       val updateDbo = {
-        val builder = MongoDBObject.newBuilder
-        update.isPublic.map(p => builder += "isPublic" -> p)
-        update.name.map(n => builder += "name" -> n)
-        builder.result()
+        val fields = Seq(
+          update.isPublic.map(p => "isPublic" -> p),
+          update.name.map(n => "name" -> n)).flatten
+        $set(fields: _*)
       }
 
       val result = dao.update(query, updateDbo, upsert = false, multi = false, dao.collection.writeConcern)

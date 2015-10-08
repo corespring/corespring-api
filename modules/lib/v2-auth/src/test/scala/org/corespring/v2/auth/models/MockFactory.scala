@@ -9,14 +9,7 @@ import org.specs2.mock.Mockito
 
 trait MockFactory extends Mockito {
 
-  def mockOrg(collections: Seq[ObjectId] = Seq.empty) = {
-    val m = mock[Organization]
-    m.id returns ObjectId.get
-    m.name returns "mock org"
-    m.contentcolls returns collections.map(ContentCollRef(_, enabled = true))
-    m.accessibleCollections returns Seq.empty
-    m
-  }
+  def mockOrg(collections: Seq[ObjectId] = Seq.empty) = Organization("mock org", contentcolls = collections.map(ContentCollRef(_, enabled = true)))
 
   def mockOrgAndOpts(authMode: AuthMode = AuthMode.AccessToken,
     collections: Seq[ObjectId] = Seq.empty) = OrgAndOpts(mockOrg(collections), PlayerAccessSettings.ANYTHING, authMode, None)
