@@ -36,7 +36,7 @@ class PlayerHooks(
   jsonFormatting: JsonFormatting,
   playerAssets: PlayerAssets,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext) extends ContainerPlayerHooks with LoadOrgAndOptions {
+  override implicit val containerContext: ContainerExecutionContext) extends ContainerPlayerHooks with LoadOrgAndOptions {
 
   implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
 

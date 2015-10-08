@@ -20,7 +20,7 @@ import scalaz.Validation
 class CollectionHooks(
   colService: ContentCollectionService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext) extends ContainerCollectionHooks with LoadOrgAndOptions {
+  override implicit val containerContext: ContainerExecutionContext) extends ContainerCollectionHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[CollectionHooks])
 

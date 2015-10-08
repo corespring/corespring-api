@@ -21,7 +21,7 @@ class SessionHooks(auth: SessionAuth[OrgAndOpts, PlayerDefinition],
   itemService: ItemService,
   jsonFormatting: JsonFormatting,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext)
+  override implicit val containerContext: ContainerExecutionContext)
   extends ContainerSessionHooks
   with LoadOrgAndOptions {
 

@@ -16,7 +16,7 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
   val servicesExecutionContext: SalatServicesExecutionContext,
   val context: Context) extends org.corespring.services.StandardService with HasDao[Standard, ObjectId] {
 
-  private implicit val ec: ExecutionContext = servicesExecutionContext.ctx
+  implicit val ec: ExecutionContext = servicesExecutionContext.ctx
 
   private val logger = Logger(classOf[StandardService])
 

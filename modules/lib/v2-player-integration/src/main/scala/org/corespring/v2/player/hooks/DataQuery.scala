@@ -21,7 +21,7 @@ class DataQueryHooks(
   standardQueryService: StandardService,
   standardsTree: StandardsTree,
   jsonFormatting: JsonFormatting,
-  override implicit val ec: ContainerExecutionContext) extends ContainerDataQueryHooks {
+  override implicit val containerContext: ContainerExecutionContext) extends ContainerDataQueryHooks {
 
   lazy val logger = Logger(classOf[DataQueryHooks])
 

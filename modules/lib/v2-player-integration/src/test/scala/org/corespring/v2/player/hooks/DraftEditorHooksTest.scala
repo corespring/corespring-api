@@ -19,11 +19,10 @@ import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
+import scala.concurrent.ExecutionContext.Implicits
 import scalaz.{ Failure, Success, Validation }
 
 class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
-
-  implicit val ec = containerExecutionContext
 
   val item = Item(collectionId = ObjectId.get.toString)
   val orgId = ObjectId.get
@@ -104,7 +103,7 @@ class DraftEditorHooksTest extends V2PlayerIntegrationSpec {
       val ou = orgAndUser(orgAndOpts.toOption.get)
       val draftId = hooks.mkDraftId(ou, s"$itemId:0").toOption.get
       val f = hooks.deleteFile(s"$itemId:0", "file")(FakeRequest("", ""))
-      val r = waitFor(f)
+      val r = await(f)
       there was one(playS3).delete("bucket", S3Paths.draftFile(draftId, "file"))
     }
   }

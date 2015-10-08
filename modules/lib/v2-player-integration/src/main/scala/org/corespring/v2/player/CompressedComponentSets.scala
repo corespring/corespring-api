@@ -16,7 +16,7 @@ class CompressedComponentSets(
   val rootConfig: Configuration,
   val componentLoader: ComponentLoader,
   val mode: Mode,
-  implicit val ec : ContainerExecutionContext) extends CompressedAndMinifiedComponentSets {
+  implicit val containerContext: ContainerExecutionContext) extends CompressedAndMinifiedComponentSets {
 
   import play.api.Play.current
 
