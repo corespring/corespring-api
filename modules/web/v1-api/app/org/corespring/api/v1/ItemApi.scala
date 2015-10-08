@@ -82,9 +82,9 @@ class ItemApi(
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
-        dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
-        validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem.id) > 0)).toSuccess("Error saving item")
+        dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
+        validatedItem <- validateItem(dbItem, item).toSuccess("Invalid data")
+        savedResult <- saveItem(validatedItem, dbItem.published && (service.sessionCount(dbItem.id) > 0)).toSuccess("Error saving item")
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
