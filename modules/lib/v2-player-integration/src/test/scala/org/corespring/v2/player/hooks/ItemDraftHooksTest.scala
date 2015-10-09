@@ -21,8 +21,6 @@ import scalaz.{ Success, Validation }
 class ItemDraftHooksTest
   extends V2PlayerIntegrationSpec {
 
-  implicit val ec = containerExecutionContext
-
   private class scope extends Scope {
 
     val itemDrafts = mock[ItemDrafts]
@@ -50,7 +48,7 @@ class ItemDraftHooksTest
         json: JsValue,
         updateFn: (Item, JsValue) => Item)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
         updateFn(Item(collectionId = ObjectId.get.toString), json)
-        Future(Right(json))
+        Future(Right(json))(ec)
       }
 
     }

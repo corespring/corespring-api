@@ -30,7 +30,7 @@ class ItemEditorHooks(
   itemAuth: ItemAuth[OrgAndOpts],
   itemService: ItemService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext)
+  override implicit val containerContext: ContainerExecutionContext)
   extends ContainerItemEditorHooks
   with LoadOrgAndOptions {
 

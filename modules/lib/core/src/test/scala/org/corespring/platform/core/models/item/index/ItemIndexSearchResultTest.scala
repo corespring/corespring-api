@@ -24,6 +24,7 @@ class ItemIndexSearchResultTest extends Specification {
     val title = "This is the title"
     val description = "This is the description"
     val apiVersion = 1
+    val interactionCount = 2
     val itemTypes = Seq("corespring-multiple-choice", "corespring-feedback")
 
     val searchResult = ItemIndexSearchResult(
@@ -39,6 +40,7 @@ class ItemIndexSearchResultTest extends Specification {
         title = Some(title),
         description = Some(description),
         apiVersion = Some(apiVersion),
+        interactionCount = interactionCount,
         itemTypes = itemTypes)))
 
     "reads" should {
@@ -68,6 +70,7 @@ class ItemIndexSearchResultTest extends Specification {
                 "itemTypes": ["${itemTypes.mkString("\",\"")}"],
                 "description": "$description"
               },
+              "interactionCount": $interactionCount,
               "version" : $version
             }
           }]
@@ -106,6 +109,7 @@ class ItemIndexSearchResultTest extends Specification {
             "title" : "$title",
             "description" : "$description",
             "apiVersion" : $apiVersion,
+            "interactionCount" : $interactionCount,
             "itemTypes" : ["${itemTypes.mkString("\",\"")}"]
           }]
         }""")

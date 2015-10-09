@@ -16,7 +16,7 @@ import scalaz._
 class PlayerLauncherHooks(
   userService: UserService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext) extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
+  override implicit val containerContext: ContainerExecutionContext) extends ContainerPlayerLauncherHooks with LoadOrgAndOptions {
 
   lazy val logger = Logger(classOf[PlayerLauncherHooks])
 

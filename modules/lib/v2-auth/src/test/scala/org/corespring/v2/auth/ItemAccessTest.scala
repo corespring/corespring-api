@@ -2,6 +2,7 @@ package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
 import org.corespring.models.Organization
+import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.Mode.Mode
@@ -15,35 +16,41 @@ import scalaz.{ Failure, Success }
 
 class ItemAccessTest extends Specification with Mockito with MockFactory {
 
-  class accessScope(orgCanAccess: Boolean = true,
-    hasPermission: Boolean = true) extends Scope {
-
+  trait base extends Scope {
     lazy val opts = mockOrgAndOpts()
+    lazy val archiveConfig = ArchiveConfig(ObjectId.get, opts.org.id)
 
     val noPermission = generalError("no permission")
 
     lazy val orgService: OrganizationService = {
       val m = mock[OrganizationService]
-      m.canAccessCollection(
-        any[Organization],
-        any[ObjectId],
-        any[Permission]) returns orgCanAccess
       m
     }
 
     lazy val checker = {
       val m = mock[AccessSettingsWildcardCheck]
-      m.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns {
-        if (hasPermission) {
-          Success(true)
-        } else {
-          Failure(noPermission)
-        }
-      }
-
+      m
     }
 
-    lazy val access = new ItemAccess(orgService, checker)
+    lazy val access = new ItemAccess(orgService, checker, archiveConfig)
+
+  }
+
+  class accessScope(orgCanAccess: Boolean = true,
+    hasPermission: Boolean = true) extends base {
+
+    orgService.canAccessCollection(
+      any[Organization],
+      any[ObjectId],
+      any[Permission]) returns orgCanAccess
+
+    checker.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns {
+      if (hasPermission) {
+        Success(true)
+      } else {
+        Failure(noPermission)
+      }
+    }
   }
 
   "ItemAccess" should {
@@ -73,22 +80,9 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
 
     "canCreateInCollection" should {
 
-      class s(canAccess: Boolean = true) extends Scope {
-
-        val opts = mockOrgAndOpts()
-
-        lazy val orgService = {
-          val m = mock[OrganizationService]
-          m.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
-          m
-        }
-
-        lazy val checker = {
-          val m = mock[AccessSettingsWildcardCheck]
-          m.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns Success(true)
-        }
-
-        lazy val access = new ItemAccess(orgService, checker)
+      class s(canAccess: Boolean = true) extends base {
+        orgService.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
+        checker.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns Success(true)
       }
 
       "return Failure - if collection id is invalid" in new s {

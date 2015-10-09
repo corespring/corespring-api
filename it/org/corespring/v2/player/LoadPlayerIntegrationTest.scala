@@ -31,7 +31,7 @@ class LoadPlayerIntegrationTest
 
     def showErrorInUi = false
 
-    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+    override def containerContext: ContainerExecutionContext = ContainerExecutionContext(ExecutionContext.global)
 
     override def hooks: PlayerHooks = new PlayerHooks {
 
@@ -44,7 +44,7 @@ class LoadPlayerIntegrationTest
 
       override def loadSessionAndItem(sessionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), (JsValue, JsValue)]] = ???
 
-      override implicit def ec: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
+      override implicit def containerContext: ContainerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
     }
 
     override def urls: ComponentUrls = mock[ComponentUrls]

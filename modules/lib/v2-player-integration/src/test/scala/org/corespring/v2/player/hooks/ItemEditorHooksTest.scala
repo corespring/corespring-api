@@ -31,8 +31,6 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
   val mockOrgAndOptsForSpecs = mockOrgAndOpts(AuthMode.AccessToken)
   val vid = VersionedId(ObjectId.get, Some(0))
 
-  implicit val ec = containerExecutionContext
-
   private class scope(
     val transformResult: JsValue = Json.obj(),
     val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOptsForSpecs)) extends Scope {
@@ -132,7 +130,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
   "deleteFile" should {
     "call s3.delete" in new scope {
-      waitFor(hooks.deleteFile(vid.toString, "path"))
+      await(hooks.deleteFile(vid.toString, "path"))
       there was one(playS3).delete("bucket", S3Paths.itemFile(vid, "path"))
     }
 
@@ -144,7 +142,7 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
         r
       }
 
-      val result = waitFor(hooks.deleteFile(vid.toString, "path"))
+      val result = await(hooks.deleteFile(vid.toString, "path"))
       result === Some(BAD_REQUEST, "s3 error")
     }
   }
@@ -169,8 +167,8 @@ class ItemEditorHooksTest extends V2PlayerIntegrationSpec {
 
       val bp: BodyParser[Future[UploadResult]] = hooks.upload(vid.toString, mockKey)((rh: RequestHeader) => None)
       val i: Iteratee[Array[Byte], Either[SimpleResult, Future[UploadResult]]] = bp(fakeRequest)
-      val result: Either[SimpleResult, Future[UploadResult]] = waitFor(i.run)
-      val uploadResult = waitFor(result.right.get)
+      val result: Either[SimpleResult, Future[UploadResult]] = await(i.run)
+      val uploadResult = await(result.right.get)
       val file = StoredFile(mockKey, BaseFile.getContentType(mockKey), false, grizzled.file.util.basename(mockKey))
       there was one(itemService).addFileToPlayerDefinition(mockItem, file)
     }

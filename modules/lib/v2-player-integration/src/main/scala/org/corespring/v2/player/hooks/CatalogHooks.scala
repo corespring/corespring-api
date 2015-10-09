@@ -27,7 +27,7 @@ class CatalogHooks(
   auth: ItemAuth[OrgAndOpts],
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   catalogAssets: CatalogAssets,
-  override implicit val ec: ContainerExecutionContext) extends ContainerCatalogHooks with LoadOrgAndOptions {
+  override implicit val containerContext: ContainerExecutionContext) extends ContainerCatalogHooks with LoadOrgAndOptions {
 
   override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 

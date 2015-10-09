@@ -22,7 +22,7 @@ private[player] class V2PlayerIntegrationSpec extends Specification with Mockito
 
   val containerExecutionContext = new ContainerExecutionContext(ExecutionContext.global)
 
-  def waitFor[A](f: Future[A]) = Await.result(f, 1.second)
+  implicit val ec = containerExecutionContext.context
 
   def TestError(msg: String) = generalError(msg)
 

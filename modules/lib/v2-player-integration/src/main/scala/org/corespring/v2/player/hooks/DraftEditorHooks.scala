@@ -28,7 +28,7 @@ class DraftEditorHooks(
   awsConfig: Bucket,
   backend: ItemDrafts,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
-  override implicit val ec: ContainerExecutionContext)
+  override implicit val containerContext: ContainerExecutionContext)
   extends ContainerDraftEditorHooks
   with LoadOrgAndOptions
   with ContainerConverters
