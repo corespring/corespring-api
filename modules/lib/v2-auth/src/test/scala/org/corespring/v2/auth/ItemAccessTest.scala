@@ -7,6 +7,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, MockFactory }
+import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, MockFactory }
 import org.corespring.v2.errors.Errors.{ invalidObjectId, generalError, orgCantAccessCollection, noCollectionIdForItem }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
