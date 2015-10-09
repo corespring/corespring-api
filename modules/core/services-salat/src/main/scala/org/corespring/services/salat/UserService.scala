@@ -73,10 +73,8 @@ class UserService(
   }
 
   private def getPermissions(user: User, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
-    Permission.fromLong(user.org.pval) match {
-      case Some(p) => Success(p)
-      case None => Failure(PlatformServiceError(s"Unknown permission retrieved: ${user.org.pval}"))
-    }
+    import scalaz.Scalaz._
+    org.corespring.models.auth.Permission.fromLong(user.org.pval).toSuccess(PlatformServiceError(""))
   }
 
   override def getUsers(orgId: ObjectId): Validation[PlatformServiceError, Seq[User]] = {
@@ -101,9 +99,8 @@ class UserService(
       case None => Failure(PlatformServiceError("no user found to update " + field))
     }
 
-
-
   override def updateUser(user: User): Validation[PlatformServiceError, User] = {
+    import scalaz.Scalaz._
     try {
       dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
         MongoDBObject(
@@ -112,10 +109,8 @@ class UserService(
           "email" -> user.email,
           "password" -> user.password)),
         false, false, dao.collection.writeConcern)
-      getUser(user.id) match {
-        case Some(u) => Success(u)
-        case None => Failure(PlatformServiceError(s"Failed to update user: user not found for id: ${user.id}"))
-      }
+      getUser(user.id).toSuccess(
+        PlatformServiceError(s"Failed to update user: user not found for id: ${user.id}"))
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update user", e))
     }

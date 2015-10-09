@@ -17,6 +17,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     val userPermission = Permission.Read
     val userOrg = UserOrg(org.id, userPermission.value)
     val user = User(userName = "user_test_name", org = userOrg, provider = "user test provider", email = "user@example.org")
+    val nonExistentOrgId = ObjectId.get
 
     services.orgService.insert(org, None)
     userService.insertUser(user, userOrg.orgId, userPermission)
@@ -26,23 +27,36 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
       services.orgService.delete(org.id)
     }
 
-    def assertUser(dbUser: User, user: User) = {
-      dbUser.userName === user.userName
-      dbUser.email === user.email
-      dbUser.id === user.id
-      dbUser.org.orgId === user.org.orgId
-      dbUser.org.pval === user.org.pval
+    def assertUser(dbUser: Option[User], user: User) = {
+      dbUser !== None
+      val dbu = dbUser.get
+      dbu.userName === user.userName
+      dbu.email === user.email
+      dbu.id === user.id
+      assertUserOrg(dbu, user.org.orgId, user.org.pval)
+    }
+
+    def assertUserOrg(user: User, orgId: ObjectId, pval: Long) = {
+      user.org.orgId === orgId
+      user.org.pval === pval
+    }
+
+    def assertOrgNameAndId(dbOrg: Organization, org: Organization) = {
+      dbOrg.name === org.name
+      dbOrg.id === org.id
     }
   }
 
   "userService" should {
 
     "getPermissions" should {
-      "work if the org and userName is in the db" in new UserScoped() {
-        userService.getPermissions(user.userName, org.id) must_== Success(userPermission)
+      "return permissions for the user with org and userName" in new UserScoped() {
+        userService.getPermissions(user.userName, org.id) match {
+          case Success(p) => p === userPermission
+          case Failure(e) => failure(s"Unexpected error $e")
+        }
       }
       "fail if there is the org is not in the db" in new UserScoped() {
-        val nonExistentOrgId = ObjectId.get
         userService.getPermissions(user.userName, nonExistentOrgId).fold(e => success, _ => failure)
       }
       "fail if the username is not in the db" in new UserScoped() {
@@ -52,15 +66,14 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
 
     "getOrg" should {
       "return the organisation of the user" in new UserScoped() {
-        val result = userService.getOrg(user, Permission.Read)
-        result !== None
-        val dbOrg = result.get
-        dbOrg.name === org.name
-        dbOrg.id === org.id
+        userService.getOrg(user, Permission.Read) match {
+          case None => failure("Expected the organization to be returned.")
+          case Some(dbOrg) => assertOrgNameAndId(dbOrg, org)
+        }
       }
+
       "fail if user does not have the expected permission" in new UserScoped() {
-        val result = userService.getOrg(user, Permission.Write)
-        result === None
+        userService.getOrg(user, Permission.Write) === None
       }
     }
 
@@ -68,18 +81,15 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
 
       "find the user by name" in new UserScoped() {
         val result = userService.getUser(user.userName)
-        result !== None
-        assertUser(result.get, user)
+        assertUser(result, user)
       }
       "find the user by name & provider" in new UserScoped() {
         val result = userService.getUser(user.userName, user.provider)
-        result !== None
-        assertUser(result.get, user)
+        assertUser(result, user)
       }
       "find the user by id" in new UserScoped() {
         val result = userService.getUser(user.id)
-        result !== None
-        assertUser(result.get, user)
+        assertUser(result, user)
       }
       "return none if user name cannot be found" in new UserScoped() {
         userService.getUser("name does not exist in db") === None
@@ -95,8 +105,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     "getUserByEmail" should {
       "find the user by email" in new UserScoped() {
         val result = userService.getUserByEmail("user@example.org")
-        result !== None
-        assertUser(result.get, user)
+        assertUser(result, user)
       }
       "return none if email cannot be found" in new UserScoped() {
         userService.getUserByEmail("no email") === None
@@ -108,14 +117,14 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
         userService.getUsers(org.id) match {
           case Failure(error) => failure(s"Unexpected failure: $error")
           case Success(users) => {
-            assertUser(users(0), user)
+            assertUser(Some(users(0)), user)
             //TODO Should we return the stream instead of a seq? The seq doesn't seem to work like a seq
             //users.length === 1 //fails with npe in DBApiLayer
           }
         }
       }
       "return empty seq if org does not have users" in new UserScoped() {
-        userService.getUsers(ObjectId.get) match {
+        userService.getUsers(nonExistentOrgId) match {
           case Success(users) => users === Seq.empty
           case Failure(error) => failure(s"Unexpected failure: $error")
         }
@@ -128,18 +137,16 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
         val newUserPermission = Permission.Read
         val newOrg = new UserOrg(ObjectId.get, newUserPermission.value)
         val newUser = new User(userName = "ralf", org = newOrg)
-        val nonExistentOrgId = ObjectId.get
 
         override def after = {
           userService.removeUser(newUser.id)
           super.after
         }
 
-        def assertOrg(updatedUser: User, orgId: ObjectId) = {
-          updatedUser.org.orgId === orgId
-          updatedUser.org.pval === userPermission.value
+        def assertUpdatedUser(updatedUser: User, orgId: ObjectId) = {
+          assertUserOrg(updatedUser, orgId, userPermission.value)
 
-          val dbUser = userService.getUser(updatedUser.id).get
+          val dbUser = userService.getUser(updatedUser.id)
           assertUser(dbUser, updatedUser)
         }
       }
@@ -147,7 +154,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
       "replace the org in user with the given organization" in new InsertUserScope() {
         userService.insertUser(newUser, org.id, userPermission) match {
           case Failure(error) => failure(s"Unexpected error $error")
-          case Success(updatedUser) => assertOrg(updatedUser, org.id)
+          case Success(updatedUser) => assertUpdatedUser(updatedUser, org.id)
         }
       }
 
@@ -168,7 +175,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
       "allow to insert a non-existing orgId when checkOrgId is false" in new InsertUserScope() {
         userService.insertUser(newUser, nonExistentOrgId, userPermission, checkOrgId = false) match {
           case Failure(error) => failure(s"Unexpected error $error")
-          case Success(updatedUser) => assertOrg(updatedUser, nonExistentOrgId)
+          case Success(updatedUser) => assertUpdatedUser(updatedUser, nonExistentOrgId)
         }
       }
 
@@ -211,6 +218,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
         userService.getUser(user.id) === None
       }
 
+      //TODO What if we have users with the same name
       "remove a user by name" in new UserScoped() {
         userService.getUser(user.id)
         userService.removeUser(user.id) match {
@@ -245,8 +253,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
         }
 
         val dbUser = userService.getUser(user.id).get
-        dbUser.org.orgId === orgId
-        dbUser.org.pval === perms.value
+        assertUserOrg(dbUser, orgId, perms.value)
       }
     }
 
@@ -273,7 +280,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     "updateUser" should {
       "return the updated user" in new UserScoped() {
         userService.updateUser(user.copy(userName="new")) match {
-          case Success(u) => assertUser(userService.getUser(user.id).get, u)
+          case Success(u) => assertUser(userService.getUser(user.id), u)
           case Failure(e) => failure(s"Unexpected error: $e")
         }
       }
