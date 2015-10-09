@@ -1,6 +1,7 @@
 package org.corespring.wiring.sessiondb
 
 import common.db.Db
+import org.corespring.common.config.AppConfig
 import org.corespring.common.log.ClassLogging
 import org.corespring.v2.sessiondb.dynamo.DynamoSessionDbTableHelper
 import org.corespring.common.config.{ DynamoSessionDbNames, AppConfig }
