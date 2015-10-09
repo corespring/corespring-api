@@ -32,8 +32,11 @@ describe('tagger.controllers.new.HomeController', function() {
     };
 
     v2ItemService = {
-      clone: jasmine.createSpy('clone')
+      clone: jasmine.createSpy('clone'),
+      publish: jasmine.createSpy('publish'),
+      "delete": jasmine.createSpy('delete')
     };
+
 
     itemDraftService = {
       createUserDraft: jasmine.createSpy('createUserDraft').andCallFake(function(id, success, error) {
@@ -92,7 +95,6 @@ describe('tagger.controllers.new.HomeController', function() {
 
   function itSets(key, value) {
     it('sets' + key + ' to ' + value, function() {
-      console.log('scope: ', scope);
       expect(scope[key]).toEqual(value);
     });
   }
@@ -112,7 +114,29 @@ describe('tagger.controllers.new.HomeController', function() {
     itSets('popupBg', 'extra-large-window');
   });
 
-  describe('v2', function() {
+  describe('actions', function() {
+
+    describe('edit', function() {
+      describe('v1', function() {
+        it("should launch the v1 editor", function() {
+          scope.edit({
+            apiVersion: 1,
+            id: '123'
+          });
+          expect(location.url).toHaveBeenCalledWith('/edit/123');
+        });
+      });
+
+      describe('v2', function() {
+        it("should launch the v2 editor", function() {
+          scope.edit({
+            apiVersion: 2,
+            id: '123'
+          });
+          expect(location.url).toHaveBeenCalledWith('/edit/draft/123');
+        });
+      });
+    });
 
     describe('publish', function() {
 
@@ -127,7 +151,6 @@ describe('tagger.controllers.new.HomeController', function() {
 
       it('calls the underlying v2 publish if apiVersion is anything but 1', function() {
         item.apiVersion = 99;
-        //spyOn(modals, 'publish');
         scope.publish(item);
         expect(modals.publish).toHaveBeenCalled();
       });
@@ -150,7 +173,7 @@ describe('tagger.controllers.new.HomeController', function() {
           });
         });
 
-        scope.v2.cloneItem({});
+        scope.cloneItem({});
 
         expect(v2ItemService.clone).toHaveBeenCalled();
         expect(location.url).toHaveBeenCalledWith('/edit/draft/2');
@@ -170,51 +193,8 @@ describe('tagger.controllers.new.HomeController', function() {
       });
 
       it('calls itemService.remove', function() {
-        expect(itemService.remove).toHaveBeenCalledWith({id:123}, jasmine.any(Function), jasmine.any(Function));
+        expect(v2ItemService.delete).toHaveBeenCalledWith({id:123}, jasmine.any(Function), jasmine.any(Function));
       });
     });
   });
-
-  describe('v1', function() {
-    describe('edit', function() {
-      it("should launch the old editor", function() {
-        scope.v1.edit({
-          id: '123'
-        });
-        expect(location.url).toHaveBeenCalledWith('/edit/123');
-      });
-    });
-    describe('cloneItem', function() {
-      var newItem;
-
-      beforeEach(function() {
-        itemService.get.andCallFake(function(obj, success) {
-          newItem = {
-            id: obj.id,
-            clone: jasmine.createSpy('clone')
-          };
-          newItem.clone.andCallFake(function(success) {
-            success({
-              id: obj.id + "-clone"
-            });
-          });
-          success(newItem);
-        });
-        scope.v1.cloneItem({
-          id: 123
-        });
-      });
-
-      it('calls ItemService.get', function() {
-        expect(itemService.get).toHaveBeenCalled();
-      });
-      it('calls itemData.clone', function() {
-        expect(newItem.clone).toHaveBeenCalled();
-      });
-      it("launches the old editor with the clone", function() {
-        expect(location.url).toHaveBeenCalledWith('/edit/123-clone');
-      });
-    });
-  });
-
 });

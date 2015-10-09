@@ -70,7 +70,7 @@
 
     function editItem(item) {
       if (isV1Item(item)) {
-        $location.url('/edit/' + item.id);
+        goToV1Editor(item.id);
       } else {
         if (item.published) {
           Modals.edit(function (cancelled) {
@@ -90,10 +90,14 @@
           id: item.id
         },
         function success(newItem) {
-          goToEditDraft(newItem.id);
+          if (isV1Item(item)) {
+            goToV1Editor(newItem.id);
+          } else {
+            goToEditDraft(newItem.id);
+          }
         },
         function error(err) {
-          alert('cloneItem:', JSON.stringify(err));
+          alert('Error cloning item:', JSON.stringify(err));
         }
       );
     }
@@ -113,21 +117,13 @@
       });
     }
 
-    function isV1Item(item) {
-      return item.apiVersion === 1 || (item.format && item.format.apiVersion === 1);
-    }
-
-    function goToEditDraft(itemId) {
-      $location.url('/edit/draft/' + itemId);
-    }
-
     function deleteItem(item) {
       Modals['delete'](function (cancelled) {
         if (!cancelled) {
           ItemDraftService.deleteByItemId(
             item.id,
             function draftDeleteByItemIdSuccess(result) {
-              ItemService.remove({
+              V2ItemService.delete({
                   id: item.id
                 },
                 function itemRemoveSuccess(result) {
@@ -144,6 +140,19 @@
             });
         }
       });
+    }
+
+
+    function isV1Item(item) {
+      return item.apiVersion === 1 || (item.format && item.format.apiVersion === 1);
+    }
+
+    function goToV1Editor(itemId) {
+      $location.url('/edit/' + itemId);
+    }
+
+    function goToEditDraft(itemId) {
+      $location.url('/edit/draft/' + itemId);
     }
 
     function launchCatalogView() {

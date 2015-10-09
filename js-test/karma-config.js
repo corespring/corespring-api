@@ -21,7 +21,9 @@ files = [
     'public/js/vendor/corespring-ng-components/corespring-ng-components.js',
     'public/js/corespring/qti/services/qtiServices.js',
     'public/js/corespring/**/*.js',
+    'modules/web/tagger/public/js/corespring/**/*.js',
     'js-test/lib/play.mock.routes.js',
+    'js-test/**/*-priority-1.js',
     'js-test/unit/**/*.js'
 ];
 // list of files to exclude
@@ -32,7 +34,7 @@ exclude = ["public/js/corespring/qti/directives/printing/*.js",
 // use dots reporter, as travis terminal does not support escaping sequences
 // possible values: 'dots' || 'progress'
 reporter = 'dots';
-browsers = ['Firefox'];
+browsers = ['PhantomJS'];
 // these are default values, just to show available options
 // web server port
 port = 8080;

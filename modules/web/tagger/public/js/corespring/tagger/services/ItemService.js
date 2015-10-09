@@ -87,8 +87,9 @@ angular.module('tagger.services')
             .error(onError);
         };
 
-        this.delete = function( data, onSuccess, onError ){
-          $http.delete('/api/v2/items', data)
+        this.delete = function(params, onSuccess, onError ){
+          var url = "/api/v2/items/:id".replace(":id", params.id);
+          $http.delete(url, {})
             .success(onSuccess)
             .error(onError);
         };
