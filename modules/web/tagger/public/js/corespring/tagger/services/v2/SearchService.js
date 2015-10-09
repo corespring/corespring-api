@@ -1,5 +1,5 @@
 angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$http',
-  function ($rootScope, $http) {
+  function($rootScope, $http) {
 
     var results = [];
     var query = {};
@@ -31,17 +31,18 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
         published: function() {
           function hasKey(key) {
             return _.find(params.publishStatuses, function(status) {
-              return status.key === key;
-            }) !== undefined;
+                return status.key === key;
+              }) !== undefined;
           }
+
           var published = hasKey('published') ? 1 : 0;
           var draft = hasKey('draft') ? 1 : 0;
           return (published ^ draft) ? (published == 1) : undefined;
         }(),
         workflows: _.filter(['setup', 'tagged', 'standardsAligned', 'qaReview'], function(workflow) {
           return _.find(params.statuses, function(status) {
-            return status.key === workflow;
-          }) !== undefined;
+              return status.key === workflow;
+            }) !== undefined;
         })
       };
     }
@@ -51,6 +52,7 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
       function callback() {
         $rootScope.$broadcast('onNetworkComplete');
       }
+
       block(callback);
     }
 
@@ -92,4 +94,4 @@ angular.module('tagger.services').service('V2SearchService', ['$rootScope', '$ht
     };
 
     return new Results();
-}]);
+  }]);

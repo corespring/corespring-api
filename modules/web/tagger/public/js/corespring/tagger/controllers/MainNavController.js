@@ -1,11 +1,9 @@
-
-function MainNavController(
-	$scope,
-	$rootScope,
-	$location,
-  V2SearchService,
-	V2ItemService,
-	ItemDraftService) {
+function MainNavController($scope,
+                           $rootScope,
+                           $location,
+                           V2SearchService,
+                           V2ItemService,
+                           ItemDraftService) {
 
   "use strict";
 
@@ -19,15 +17,15 @@ function MainNavController(
     }
   };
 
-  $scope.$on('onSearchCountComplete', function (event, count) {
+  $scope.$on('onSearchCountComplete', function(event, count) {
     $rootScope.resultCount = count;
   });
 
-  $scope.goToItem = function (itemId) {
+  $scope.goToItem = function(itemId) {
     $location.path('/edit/' + itemId);
   };
 
-  $scope.loadMore = function (index, onLoaded) {
+  $scope.loadMore = function(index, onLoaded) {
     V2SearchService.loadMore(function() {
       $rootScope.items = V2SearchService.itemDataCollection;
       if (onLoaded) {
@@ -36,22 +34,22 @@ function MainNavController(
     });
   };
 
-  $scope.$on('onListViewOpened', function (evt) {
+  $scope.$on('onListViewOpened', function(evt) {
     $scope.editViewOpen = false;
   });
 
-  $scope.$on('onEditViewOpened', function (evt) {
+  $scope.$on('onEditViewOpened', function(evt) {
     $scope.editViewOpen = true;
   });
 
-  $scope.$on('createNewItem', function (evt) {
+  $scope.$on('createNewItem', function(evt) {
     $rootScope.items = [];
   });
 
-  $scope.createItem = function(){
-     V2ItemService.create({}, function onCreated(itemData) {
-     	$location.url('/edit/draft/' + itemData.id);
-    }, function onError(e) {
+  $scope.createItem = function() {
+    V2ItemService.create({}, function onCreated(itemData) {
+        $location.url('/edit/draft/' + itemData.id);
+      }, function onError(e) {
         alert("Error creating item: " + e.data.message);
       }
     );
@@ -64,4 +62,4 @@ MainNavController.$inject = [
   '$location',
   'V2SearchService',
   'V2ItemService',
-  'ItemDraftService' ];
+  'ItemDraftService'];

@@ -4,17 +4,15 @@
   /**
    * Controller for editing Item
    */
-  function EditDraftController(
-    $location,
-    $routeParams,
-    $scope,
-    $timeout,
-    $window,
-    ItemDraftService,
-    ItemService,
-    Logger,
-    Modals
-  ) {
+  function EditDraftController($location,
+                               $routeParams,
+                               $scope,
+                               $timeout,
+                               $window,
+                               ItemDraftService,
+                               ItemService,
+                               Logger,
+                               Modals) {
 
     var itemService = new ItemService({
       id: $routeParams.itemId
@@ -100,7 +98,8 @@
     }
 
     function discardDraft(done) {
-      done = done || function() {};
+      done = done || function() {
+        };
       ItemDraftService.deleteDraft($scope.itemId, function(data) {
         Logger.debug('draft ' + $scope.itemId + ' deleted');
         done();
@@ -155,7 +154,8 @@
     }
 
     function commit(force, done) {
-      done = done || function() {};
+      done = done || function() {
+        };
       $scope.commitInProgress = true;
 
       $scope.v2Editor.forceSave(function onSave(err) {

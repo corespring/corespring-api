@@ -2,15 +2,15 @@ window.com = (window.com || {}  );
 com.corespring = ( com.corespring || {});
 com.corespring.mongo = (com.corespring.mongo || {});
 //TODO: These can be static methods?
-com.corespring.mongo.MongoQuery = function () {
+com.corespring.mongo.MongoQuery = function() {
 
   function fieldQuery(field, text) {
     var out = {};
-    out[field] = { $regex: "\\b" + text, $options: "i" };
+    out[field] = {$regex: "\\b" + text, $options: "i"};
     return out;
   }
 
-  this.fuzzyTextQuery = function (text, fields) {
+  this.fuzzyTextQuery = function(text, fields) {
 
     var query = {};
     if (!text) {
@@ -24,7 +24,7 @@ com.corespring.mongo.MongoQuery = function () {
     return query;
   };
 
-  this.and = function () {
+  this.and = function() {
 
     var out = {};
     out.$and = [];
@@ -38,7 +38,7 @@ com.corespring.mongo.MongoQuery = function () {
   };
 
 
-  this.buildFilter = function (fields) {
+  this.buildFilter = function(fields) {
     var filter = {};
     for (var i = 0; i < fields.length; i++) {
       filter[fields[i]] = 1;
@@ -50,19 +50,19 @@ com.corespring.mongo.MongoQuery = function () {
    * Create mongo $in array
    * @return {{$in: Array}}
    */
-  this.inArray = function (arr, key) {
+  this.inArray = function(arr, key) {
     var out = [];
     for (var x = 0; x < arr.length; x++) {
       out.push(arr[x][key]);
     }
-    return { $in: out};
+    return {$in: out};
   };
 
-  this.notInArray = function (arr, key) {
+  this.notInArray = function(arr, key) {
     var out = [];
     for (var x = 0; x < arr.length; x++) {
       out.push(arr[x][key]);
     }
-    return { $nin: out};
+    return {$nin: out};
   };
 };

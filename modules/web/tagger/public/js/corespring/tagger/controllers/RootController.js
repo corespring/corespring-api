@@ -4,16 +4,15 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     showCollectionsPane: false
   };
 
-  $rootScope.$watch('modals', function(n,o){
-    if(n && !o){
+  $rootScope.$watch('modals', function(n, o) {
+    if (n && !o) {
       $scope.modals = n;
     }
   });
 
-  $scope.navigationHooks = {
-  };
+  $scope.navigationHooks = {};
 
-  $scope.$on("error", function(event, errorSubType, data){
+  $scope.$on("error", function(event, errorSubType, data) {
     $scope.showErrorBox = true;
     $scope.errorSubType = errorSubType;
     var details = data ? data.error || data.message : null;
@@ -21,7 +20,7 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
     $scope.errorUid = (data && data.uid) ? data.uid : null;
   });
 
-  $scope.errorAcknowledged = function(){
+  $scope.errorAcknowledged = function() {
     $scope.showErrorBox = false;
     $scope.errorSubType = null;
     $scope.errorDetails = null;
@@ -46,8 +45,8 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
 
   $scope.search = function() {
     var isOtherSelected = $rootScope.searchParams && _.find($rootScope.searchParams.itemType, function(e) {
-      return e.label == "Other";
-    });
+        return e.label == "Other";
+      });
 
     if (isOtherSelected) {
       $rootScope.searchParams.notSelectedItemTypes = [];
@@ -97,4 +96,4 @@ function RootController($scope, $rootScope, ItemService, V2SearchService, Collec
   }
 }
 
-RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'V2SearchService','CollectionManager'];
+RootController.$inject = ['$scope', '$rootScope', 'ItemService', 'V2SearchService', 'CollectionManager'];

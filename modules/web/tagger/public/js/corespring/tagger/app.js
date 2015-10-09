@@ -14,28 +14,28 @@
       'corespring-directives',
       'ui',
       'tagger-context',
-    'corespring-logger']);
+      'corespring-logger']);
 
   taggerApp.
     config(['$routeProvider', function($rp) {
 
-        function mk(path, templateUrl, controller, reloadOnSearch) {
-          $rp.when(path, {
-            templateUrl: templateUrl,
-            controller: controller,
-            reloadOnSearch: reloadOnSearch
-          });
-        }
-
-        $rp.when('/new', {
-          redirectTo: '/new/blank'
+      function mk(path, templateUrl, controller, reloadOnSearch) {
+        $rp.when(path, {
+          templateUrl: templateUrl,
+          controller: controller,
+          reloadOnSearch: reloadOnSearch
         });
+      }
 
-        mk('/home', '/tagger/web/views/partials/tagger/home', tagger.HomeController);
-        mk('/edit/draft/:itemId', '/tagger/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
-        mk('/edit/:itemId', '/tagger/web/partials/editItem', ItemController, false);
-        $rp.otherwise({
-          redirectTo: '/home'
-        });
+      $rp.when('/new', {
+        redirectTo: '/new/blank'
+      });
+
+      mk('/home', '/tagger/web/views/partials/tagger/home', tagger.HomeController);
+      mk('/edit/draft/:itemId', '/tagger/web/views/partials/tagger/editDraft', tagger.EditDraftController, false);
+      mk('/edit/:itemId', '/tagger/web/partials/editItem', EditItemController, false);
+      $rp.otherwise({
+        redirectTo: '/home'
+      });
     }]);
 })(this);

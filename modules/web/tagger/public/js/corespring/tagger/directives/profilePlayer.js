@@ -1,49 +1,49 @@
 angular.module('tagger')
-  .directive('profilePlayer', ['$timeout',function ($timeout) {
+  .directive('profilePlayer', ['$timeout', function($timeout) {
 
-  var definition = {
-    replace: false,
-    restrict: 'A',
-    template: '<div class="modal-content"><div class="modal-header"><span class="close close-window-button" ng-click="hidePopup()">&times;</span><h4 class="modal-title">Question Information</h4></div><div id="content"></div></div>',
-    scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
-    link: function (scope, element, attrs) {
-      scope.hidePopup = function() {
-        scope.$parent.hidePopup();
-      };
-
-      scope.$watch("itemId", function (val) {
-        if (!val) return;
-
-        var options = {
-          itemId: attrs.itemId,
-          mode: "preview",
-          width: "740px",
-          autoHeight: true
+    var definition = {
+      replace: false,
+      restrict: 'A',
+      template: '<div class="modal-content"><div class="modal-header"><span class="close close-window-button" ng-click="hidePopup()">&times;</span><h4 class="modal-title">Question Information</h4></div><div id="content"></div></div>',
+      scope: {itemId: '@itemId', onItemLoad: '&onItemLoad'},
+      link: function(scope, element, attrs) {
+        scope.hidePopup = function() {
+          scope.$parent.hidePopup();
         };
 
-        var onError = function (err) {
-          throw "Error loading test player: " + err.msg;
-        };
+        scope.$watch("itemId", function(val) {
+          if (!val) return;
 
-        var onLoad = function () {
-          scope.onItemLoad();
-        };
+          var options = {
+            itemId: attrs.itemId,
+            mode: "preview",
+            width: "740px",
+            autoHeight: true
+          };
 
-        new org.corespring.players.ItemCatalog(
-          angular.element(element).find('#content')[0],
-          options, 
-          function(error){
-            console.error("error creating catalog " + error);
-          });
+          var onError = function(err) {
+            throw "Error loading test player: " + err.msg;
+          };
 
-        //0.24 of the container catalog doesn't have an onLoad callback,
-        //timeout for now.
-        $timeout(function(){
-          scope.onItemLoad();
-        }, 1000);
-      });
-    }
-  };
-  return definition;
+          var onLoad = function() {
+            scope.onItemLoad();
+          };
 
-}]);
+          new org.corespring.players.ItemCatalog(
+            angular.element(element).find('#content')[0],
+            options,
+            function(error) {
+              console.error("error creating catalog " + error);
+            });
+
+          //0.24 of the container catalog doesn't have an onLoad callback,
+          //timeout for now.
+          $timeout(function() {
+            scope.onItemLoad();
+          }, 1000);
+        });
+      }
+    };
+    return definition;
+
+  }]);

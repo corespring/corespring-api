@@ -16,25 +16,25 @@
  * TODO: We do alot of data formatting on the client side here - should that be server side instead?
  */
 angular.module('tagger.services')
-  .factory('CollectionManager', [ 'Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', 'ShareCollection', function (Collection, UserInfo, Logger, CollectionEnabledStatus, ShareCollection) {
+  .factory('CollectionManager', ['Collection', 'UserInfo', 'Logger', 'CollectionEnabledStatus', 'ShareCollection', function(Collection, UserInfo, Logger, CollectionEnabledStatus, ShareCollection) {
     "use strict";
 
     var rawData = {};
 
 
-    var getCollectionById = function (id) {
+    var getCollectionById = function(id) {
 
       if (out.sortedCollections[0]) {
-        return _.find(out.sortedCollections[0].collections, function (c) {
+        return _.find(out.sortedCollections[0].collections, function(c) {
           return c.id === id;
         });
       }
     };
 
 
-    var updateNameSortedCollection = function (newCollection) {
+    var updateNameSortedCollection = function(newCollection) {
       if (out.sortedCollections[0]) {
-        out.sortedCollections[0].collections = _.map(out.sortedCollections[0].collections, function (c) {
+        out.sortedCollections[0].collections = _.map(out.sortedCollections[0].collections, function(c) {
           if (c.id === newCollection.id) {
             c.name = newCollection.name;
           }
@@ -44,69 +44,67 @@ angular.module('tagger.services')
     };
 
 
-
-    var removeCollectionFromSortedCollection = function (id) {
+    var removeCollectionFromSortedCollection = function(id) {
       if (out.sortedCollections[0]) {
-        out.sortedCollections[0].collections = _.filter(out.sortedCollections[0].collections, function (c) {
+        out.sortedCollections[0].collections = _.filter(out.sortedCollections[0].collections, function(c) {
           return c.id !== id;
         });
       }
     };
 
-    var addNewCollectionToSortedCollection = function (newCollection) {
+    var addNewCollectionToSortedCollection = function(newCollection) {
       if (out.sortedCollections[0]) {
         out.sortedCollections[0].collections.push(newCollection);
       }
     }
 
-    var createSortedCollection = function (collections, userOrg) {
+    var createSortedCollection = function(collections, userOrg) {
       if (!collections || !userOrg) {
         return [];
       }
 
-      var getName = function (id) {
-        var out = _.find(collections, function (c) {
+      var getName = function(id) {
+        var out = _.find(collections, function(c) {
           return c.id === id;
         });
         return out ? out.name : "?";
       };
 
-      var isOwner = function (c) {
+      var isOwner = function(c) {
         return userOrg.id === c.ownerOrgId;
       };
 
-      var convertProperties = function (c) {
-        return { id: c.collectionId, name: getName(c.collectionId), permission: c.permission, enabled: c.enabled };
+      var convertProperties = function(c) {
+        return {id: c.collectionId, name: getName(c.collectionId), permission: c.permission, enabled: c.enabled};
       };
 
-      var getItemCount = function (id) {
-        var collection = _.find(collections, function (c) {
+      var getItemCount = function(id) {
+        var collection = _.find(collections, function(c) {
           return c.id === id;
         });
         return collection ? collection.itemCount : 0;
       };
 
-      var addItemCount = function (c) {
+      var addItemCount = function(c) {
         c.itemCount = getItemCount(c.id);
         return c;
       };
 
-      var notInUserOrgs = function (c) {
+      var notInUserOrgs = function(c) {
         return userIds.indexOf(c.id) === -1;
       };
 
-      var addEnabledState = function (c) {
+      var addEnabledState = function(c) {
         c.enabled = getEnabledState(c.id);
         return c;
       };
 
-      var getEnabledState = function (id) {
-        var collection = _.find(userOrg.collections, function (c) {
+      var getEnabledState = function(id) {
+        var collection = _.find(userOrg.collections, function(c) {
           return c.collectionId === id;
         });
         return collection ? collection.enabled : false;
       };
-
 
 
       collections = _.map(collections, addEnabledState);
@@ -114,7 +112,7 @@ angular.module('tagger.services')
 
       var sharedCollections = {
         name: "Shared",
-        collections: _.filter(collections, function(c){
+        collections: _.filter(collections, function(c) {
           return c.ownerOrgId != userOrg.id;
         })
       };
@@ -128,24 +126,24 @@ angular.module('tagger.services')
       return [userOrg, sharedCollections];
     };
 
-    var initialize = function (onComplete) {
-      Collection.get({}, function (data) {
+    var initialize = function(onComplete) {
+      Collection.get({}, function(data) {
           rawData.collection = data;
           out.rawCollections = data;
           out.sortedCollections = createSortedCollection(data, _.clone(UserInfo.org));
           if (onComplete) onComplete();
         },
-        function (err) {
-            Logger.error("Error initializing collections: "+JSON.stringify(err));
+        function(err) {
+          Logger.error("Error initializing collections: " + JSON.stringify(err));
         });
     };
 
 
     var updateCollectionEnabledStatus = function(collectionId, status, onSuccess, onError) {
-      CollectionEnabledStatus.update({id: collectionId, enabled : status }, {}, onSuccess, onError);
+      CollectionEnabledStatus.update({id: collectionId, enabled: status}, {}, onSuccess, onError);
 
       if (out.sortedCollections[1]) {
-        out.sortedCollections[1].collections = _.map(out.sortedCollections[1].collections, function (c) {
+        out.sortedCollections[1].collections = _.map(out.sortedCollections[1].collections, function(c) {
           if (c.id === collectionId) {
             c.enabled = status;
           }
@@ -158,9 +156,9 @@ angular.module('tagger.services')
     /** PUBLIC */
     var out = {
       /** Add a new collection */
-      addCollection: function (name, onSuccess, onError) {
+      addCollection: function(name, onSuccess, onError) {
         var param = {name: name};
-        var successHandler = function (data) {
+        var successHandler = function(data) {
           rawData.collection.push(data);
           addNewCollectionToSortedCollection(data);
           if (onSuccess) {
@@ -170,8 +168,8 @@ angular.module('tagger.services')
         Collection.create({}, param, successHandler, onError);
       },
       /** remove a collection by id */
-      removeCollection: function (id, onSuccess, onError) {
-        var successHandler = function () {
+      removeCollection: function(id, onSuccess, onError) {
+        var successHandler = function() {
           removeCollectionFromSortedCollection(id);
           if (onSuccess) {
             onSuccess(id);
@@ -180,7 +178,7 @@ angular.module('tagger.services')
         Collection.remove({id: id}, successHandler, onError);
       },
       /** rename an existing collection */
-      renameCollection: function (id, newName, onSuccess, onError, onNoChange) {
+      renameCollection: function(id, newName, onSuccess, onError, onNoChange) {
 
 
         var collection = getCollectionById(id);
@@ -188,7 +186,7 @@ angular.module('tagger.services')
           onNoChange();
           return;
         }
-        var successHandler = function (data) {
+        var successHandler = function(data) {
           updateNameSortedCollection(data);
           if (onSuccess) {
             onSuccess(data);
@@ -203,14 +201,14 @@ angular.module('tagger.services')
       },
 
       enableCollection: function(collectionId, onSuccess, onError) {
-        updateCollectionEnabledStatus(collectionId, true,  onSuccess, onError);
+        updateCollectionEnabledStatus(collectionId, true, onSuccess, onError);
       },
 
-      init: function (onComplete) {
+      init: function(onComplete) {
         initialize(onComplete);
       },
       shareCollection: function(collectionId, orgId, onSuccess, onError) {
-        ShareCollection.update({id: collectionId, orgId : orgId }, {}, onSuccess, onError);
+        ShareCollection.update({id: collectionId, orgId: orgId}, {}, onSuccess, onError);
       },
       rawCollections: null,
       sortedCollections: null

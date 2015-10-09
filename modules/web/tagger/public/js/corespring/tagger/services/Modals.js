@@ -1,65 +1,33 @@
 angular.module('tagger.services')
   .service('Modals',
-    ['$rootScope',
-    function($rootScope){
+  ['$rootScope',
+    function($rootScope) {
 
+      var MODALS = ['publish', 'edit', 'delete', 'saveConflictedDraft', 'confirmSave', 'commitFailedDueToConflict'];
 
-  $rootScope.modals = {
-    publish: {
-      show: false
-    },
-    edit: {
-      show: false
-    },
-    'delete' : {
-      show: false
-    },
-    saveConflictedDraft: {
-    	show: false
-    },
-    confirmSave: {
-    	show: false
-    },
-    commitFailedDueToConflict: {
-      show: false
+      $rootScope.modals = {};
+      _.each(MODALS, function(m) {
+        $rootScope.modals[m] = {show: false};
+      });
+
+      function Modals() {
+        var self = this;
+        _.each(MODALS, function(m) {
+          self[m] = function(done) {
+            showModal(m, done);
+          }
+        });
+
+        function showModal(name, done) {
+          $rootScope.modals[name].show = true;
+          $rootScope.modals[name].done = function(cancelled) {
+            $rootScope.modals[name].show = false;
+            done(cancelled);
+          };
+        }
+      }
+
+      return new Modals();
     }
-  };
-
-  function Modals(){
-
-    this.publish = function(done){
-      showModal('publish', done);
-    };
-
-    this.edit = function(done){
-      showModal('edit', done);
-    };
-
-    this['delete'] = function(done){
-      showModal('delete', done);
-    };
-
-    this.saveConflictedDraft = function(done){
-    	showModal('saveConflictedDraft', done);
-    };
-
-    this.confirmSave = function(done){
-    	showModal('confirmSave', done);
-    };
-
-    this.commitFailedDueToConflict = function(done){
-    	showModal('commitFailedDueToConflict', done);
-    };
-
-    function showModal(name, done){
-      $rootScope.modals[name].show = true;
-      $rootScope.modals[name].done = function(cancelled){
-        $rootScope.modals[name].show = false;
-        done(cancelled);
-      };
-    }
-  }
-
-  return new Modals();
-
-}]);
+  ]
+);

@@ -40,7 +40,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       var match = location.hash.match(/.*\/edit\/(.*)\?.*/);
       return (match && match[1]) ?
         location.hash.replace(match[1], id + ':' + version) :
-        "#/edit/" + id + ':' + latestVersion;
+      "#/edit/" + id + ':' + latestVersion;
     }
 
     $scope.resourceToEdit = resource;
@@ -65,21 +65,21 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.urls = urls;
   });
 
-  $scope.$watch('resourceToEdit', function (newValue, oldValue) {
+  $scope.$watch('resourceToEdit', function(newValue, oldValue) {
 
     if (!newValue) {
       return;
     }
     $scope.resource = newValue;
 
-    var defaultFile = _.find($scope.resource.files, function (f) {
+    var defaultFile = _.find($scope.resource.files, function(f) {
       return f.isMain;
     });
-    
+
     $scope.showFile(defaultFile);
   });
 
-  $scope.leaveEditor = function () {
+  $scope.leaveEditor = function() {
     $rootScope.$broadcast('leaveEditor');
   };
 
@@ -99,12 +99,12 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
    * if its another type - launch it in a new window (eg: pdf/doc).
    * @param f
    */
-  $scope.showFile = function (f) {
+  $scope.showFile = function(f) {
     if (!f) {
       return;
     }
 
-    $timeout(function () {
+    $timeout(function() {
       $scope.showEditor = f.content ? true : false;
     });
     $scope.selectedFile = f;
@@ -112,9 +112,9 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.selectedFileImageUrl = $scope.updateFileImageUrl(f);
   };
 
-  var imageContentTypes = [ 'image/jpg', 'image/png', 'image/jpeg'];
+  var imageContentTypes = ['image/jpg', 'image/png', 'image/jpeg'];
 
-  $scope.updateFileImageUrl = function (f) {
+  $scope.updateFileImageUrl = function(f) {
     if (!f) {
       return;
     }
@@ -134,15 +134,15 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     return $scope.lockedFiles.indexOf(file.name) != -1;
   }
 
-  $scope.canShowFileDropdown = function (f) {
+  $scope.canShowFileDropdown = function(f) {
     return !isLockedFile(f);
   };
 
-  $scope.canRemove = function (f) {
+  $scope.canRemove = function(f) {
     return (f && !isLockedFile(f));
   };
 
-  $scope.canRename = function (f) {
+  $scope.canRename = function(f) {
     return (f && !isLockedFile(f));
   };
 
@@ -154,32 +154,33 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     return ["text/html", "application/pdf"].indexOf(type) != -1;
   }
 
-  $scope.canMakeDefault = function (f) {
+  $scope.canMakeDefault = function(f) {
     if ($scope.lockedFiles && $scope.lockedFiles.length > 0) {
       return false;
     }
     return isTypeDefaultable(f.contentType);
   };
 
-  $scope.onFileSizeGreaterThanMax = function (file, maxSize) {
-      function kbToMb(size) {
-          return Math.round(size/1024 * 100) / 100
-      }
-      alert("The file size is too big. CoreSpring limits the size of files that you may upload to " + kbToMb(maxSize) + "MB.");
+  $scope.onFileSizeGreaterThanMax = function(file, maxSize) {
+    function kbToMb(size) {
+      return Math.round(size / 1024 * 100) / 100
+    }
+
+    alert("The file size is too big. CoreSpring limits the size of files that you may upload to " + kbToMb(maxSize) + "MB.");
   };
 
-  $scope.renameFile = function (f) {
+  $scope.renameFile = function(f) {
     $scope.fileToRename = f;
     $scope.showRenameFileModal = true;
   };
 
-  $scope.canRenameFile = function () {
+  $scope.canRenameFile = function() {
     return $scope.newFilename ? true : false;
   };
 
-  $scope.confirmRenameFile = function () {
+  $scope.confirmRenameFile = function() {
 
-    var fileWithSameName = _.find($scope.resource.files, function (f) {
+    var fileWithSameName = _.find($scope.resource.files, function(f) {
       return f.name == $scope.newFilename
     });
 
@@ -196,16 +197,16 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       url: $scope.urls.updateFile.replace("{filename}", oldFilename),
       method: "PUT",
       data: validateFile($scope.fileToRename)
-    }).success(function (data, status, headers, config) {
-        $scope.showFile($scope.fileToRename);
-        $scope.saveSelectedFileFinished();
-    }).error(function (data, status, headers, config) {
+    }).success(function(data, status, headers, config) {
+      $scope.showFile($scope.fileToRename);
+      $scope.saveSelectedFileFinished();
+    }).error(function(data, status, headers, config) {
 
       if (typeof data.flags != "undefined" && _.contains(data.flags, "alert_increment")) {
         fileToUpdate.name = oldFilename;
         $scope.saveSelectedFileFinished(true);
       } else {
-        $scope.$emit("error", "Error saving " + filename , data);
+        $scope.$emit("error", "Error saving " + filename, data);
         $scope.saveSelectedFileFinished();
       }
     });
@@ -213,11 +214,11 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $scope.clearRename();
   };
 
-  $scope.cancelRenameFile = function () {
+  $scope.cancelRenameFile = function() {
     $scope.clearRename();
   };
 
-  $scope.clearRename = function () {
+  $scope.clearRename = function() {
     $scope.showRenameFileModal = false;
     $scope.fileToRename = null;
     $scope.newFilename = null;
@@ -229,7 +230,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     if (!f) {
       return;
     }
-    var currentDefault = _.find($scope.resource.files, function (f) {
+    var currentDefault = _.find($scope.resource.files, function(f) {
       return f.isMain === true;
     });
 
@@ -260,17 +261,17 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
 
     var textTypes = ['html', 'js', 'css', 'xml', 'txt'];
 
-    function isTextType(){
+    function isTextType() {
 
-      for(var i = 0; i < textTypes.length; i++){
-        if(f.contentType.indexOf(textTypes[i]) !== -1){
-           return true;
+      for (var i = 0; i < textTypes.length; i++) {
+        if (f.contentType.indexOf(textTypes[i]) !== -1) {
+          return true;
         }
       }
       return false;
     }
 
-    if( typeof(f.content) === 'string' && !isTextType()){
+    if (typeof(f.content) === 'string' && !isTextType()) {
       delete f.content;
     }
 
@@ -281,7 +282,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
    * Update the file on the server
    * @param file
    */
-  $scope.update = function (file, filename) {
+  $scope.update = function(file, filename) {
 
     filename = filename || file.name;
 
@@ -291,28 +292,28 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       url: $scope.urls.updateFile.replace("{filename}", filename),
       method: "PUT",
       data: file
-    }).success(function (data, status, headers, config) {
-        $scope.showFile(file);
-        $scope.saveSelectedFileFinished();
+    }).success(function(data, status, headers, config) {
+      $scope.showFile(file);
+      $scope.saveSelectedFileFinished();
     }).error(function(data, status, headers, config) {
-        if (data.flags && _.contains(data.flags, "alert_increment")) {
-          $scope.saveSelectedFileFinished(true);
-        } else {
-          var msg = "Error updating " + filename;
-          $scope.$emit("error", msg, data);
-          $scope.saveSelectedFileFinished();
-        }
+      if (data.flags && _.contains(data.flags, "alert_increment")) {
+        $scope.saveSelectedFileFinished(true);
+      } else {
+        var msg = "Error updating " + filename;
+        $scope.$emit("error", msg, data);
+        $scope.saveSelectedFileFinished();
+      }
     });
   };
 
-  $scope.getSelectedFileImageUrl = function () {
+  $scope.getSelectedFileImageUrl = function() {
     if (!$scope.selectedFile || $scope.selectedFile.storageKey) {
       return "/web/empty.png";
     }
     return "/api/v1/files/{storageKey}";
   };
 
-  $scope.confirmRemoveFile = function () {
+  $scope.confirmRemoveFile = function() {
     var f = $scope.fileToRemove;
 
     if (!f) {
@@ -322,24 +323,24 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     $http({
       url: $scope.urls.deleteFile.replace("{filename}", f.name),
       method: "DELETE"
-    }).success(function (data, status, headers, config) {
-        $scope.resource.files.removeItem(f);
-        $scope.showRemoveFileModal = false;
-        $scope.fileToRemove = null;
-      }).error(function (data, status, headers, config) {
-        $scope.showRemoveFileModal = false;
-        $scope.fileToRemove = null;
-        $scope.$emit( "error", "Error deleting file", data);
-      });
+    }).success(function(data, status, headers, config) {
+      $scope.resource.files.removeItem(f);
+      $scope.showRemoveFileModal = false;
+      $scope.fileToRemove = null;
+    }).error(function(data, status, headers, config) {
+      $scope.showRemoveFileModal = false;
+      $scope.fileToRemove = null;
+      $scope.$emit("error", "Error deleting file", data);
+    });
   };
 
-  $scope.cancelRemoveFile = function () {
+  $scope.cancelRemoveFile = function() {
     $scope.showRemoveFileModal = false;
     $scope.fileToRemove = null;
   };
 
 
-  $scope.removeFile = function (f) {
+  $scope.removeFile = function(f) {
     $scope.fileToRemove = f;
     $scope.showRemoveFileModal = true;
   };
@@ -350,19 +351,19 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
    * @param file - the file selected by the user
    * @return a url where this file will be uploaded
    */
-  $scope.calculateUploadUrl = function (file) {
+  $scope.calculateUploadUrl = function(file) {
     if (file == null) {
-      throw "ItemController:calculateUploadUrl - the file is null"
+      throw "EditItemController:calculateUploadUrl - the file is null"
     }
     return $scope.urls.uploadFile.replace("{filename}", file.name);
   };
 
-  $scope.onFileUploadCompleted = function (result,status) {
-    if(status == 200){
+  $scope.onFileUploadCompleted = function(result, status) {
+    if (status == 200) {
       var file = JSON.parse(result);
       $scope.addFile(file);
       $scope.showFile(file);
-    }else{
+    } else {
       var jsresult = JSON.parse(result);
       if (typeof jsresult.flags != "undefined" && _.contains(jsresult.flags, "alert_increment")) {
         $rootScope.$broadcast('showSaveWarning')
@@ -371,7 +372,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   };
 
 
-  $scope.addFile = function (file) {
+  $scope.addFile = function(file) {
     $scope.resource.files = ($scope.resource.files || []);
     $scope.resource.files.push(file);
   };
@@ -384,7 +385,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
     html: "<html><head></head><body>hello world</body></html>"
   };
 
-  $scope.createNewVirtualFile = function (name) {
+  $scope.createNewVirtualFile = function(name) {
 
     if (name.indexOf("*.") == 0) {
       var now = new Date();
@@ -392,7 +393,7 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       name = defaultName + "_" + now.getHours() + "." + now.getMinutes() + "." + now.getSeconds() + "." + type;
     }
 
-    var fileWithSameName = _.find($scope.resource.files, function (f) {
+    var fileWithSameName = _.find($scope.resource.files, function(f) {
       return f.name == name
     });
 
@@ -411,16 +412,16 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
       url: $scope.urls.createFile,
       method: "POST",
       data: newVirtualFile
-    }).success(function (data, status, headers, config) {
-        $scope.addFile(newVirtualFile);
-        $scope.showFile(newVirtualFile);
-      }).error(function (data, status, headers, config) {
-        $scope.$emit("error", "Error saving file");
-      });
+    }).success(function(data, status, headers, config) {
+      $scope.addFile(newVirtualFile);
+      $scope.showFile(newVirtualFile);
+    }).error(function(data, status, headers, config) {
+      $scope.$emit("error", "Error saving file");
+    });
   };
 }
 
-ResourceEditor.$inject = [ '$scope',
+ResourceEditor.$inject = ['$scope',
   '$rootScope',
   '$timeout',
   '$routeParams',

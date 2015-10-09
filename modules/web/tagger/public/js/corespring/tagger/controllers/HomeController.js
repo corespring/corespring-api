@@ -1,4 +1,4 @@
-(function (root) {
+(function(root) {
 
   root.tagger = root.tagger || {};
   root.tagger.HomeController = HomeController;
@@ -53,7 +53,7 @@
     // Delay in milliseconds for search after item update
     var searchDelay = 1000;
 
-    $scope.delayedSearch = function () {
+    $scope.delayedSearch = function() {
       $timeout($scope.search, searchDelay);
     };
 
@@ -73,7 +73,7 @@
         goToV1Editor(item.id);
       } else {
         if (item.published) {
-          Modals.edit(function (cancelled) {
+          Modals.edit(function(cancelled) {
             if (cancelled) {
               return;
             }
@@ -103,7 +103,7 @@
     }
 
     function publishItem(item, callback) {
-      Modals.publish(function (cancelled) {
+      Modals.publish(function(cancelled) {
         if (!cancelled) {
           V2ItemService.publish({id: item.id}, function success() {
             $scope.delayedSearch();
@@ -118,7 +118,7 @@
     }
 
     function deleteItem(item) {
-      Modals['delete'](function (cancelled) {
+      Modals['delete'](function(cancelled) {
         if (!cancelled) {
           ItemDraftService.deleteByItemId(
             item.id,
@@ -160,7 +160,7 @@
     }
 
     function openPreview(id) {
-      $timeout(function () {
+      $timeout(function() {
         $scope.showPopup = true;
         $scope.popupBg = "extra-large-window";
         $scope.previewingId = id;
@@ -168,7 +168,7 @@
         $('#player').hide();
       }, 50);
 
-      $timeout(function () {
+      $timeout(function() {
         $('.window-overlay').scrollTop(0);
       }, 100);
     }

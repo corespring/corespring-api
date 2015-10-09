@@ -1,17 +1,17 @@
 angular.module('tagger.directives').directive('toastMessage', [
   '$timeout',
-  function($timeout){
+  function($timeout) {
 
-    function link($scope, $element, $attr){
+    function link($scope, $element, $attr) {
 
       var eventToListenFor = $attr.toastEvent;
       var timeout = parseInt($attr.toastTimeout, 10) || 3000;
 
       $scope.showToast = false;
-      $scope.$on(eventToListenFor, function(event){
-        if($scope.showToast === false){
+      $scope.$on(eventToListenFor, function(event) {
+        if ($scope.showToast === false) {
           $scope.showToast = true;
-          $timeout(function(){
+          $timeout(function() {
             $scope.showToast = false;
           }, timeout);
         }

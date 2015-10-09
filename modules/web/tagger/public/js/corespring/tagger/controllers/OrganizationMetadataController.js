@@ -1,17 +1,19 @@
 function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
 
-  var getMetadata = function(key,sets){
-     return _.find(sets, function(s){return s.metadataKey == key});
+  var getMetadata = function(key, sets) {
+    return _.find(sets, function(s) {
+      return s.metadataKey == key
+    });
   };
 
-  var updateMetadata = function(key, holder, newData){
+  var updateMetadata = function(key, holder, newData) {
     var current = getMetadata(key, holder);
     current.data = newData;
   };
 
-  var getEditorUrl = function(key, sets){
-    var metadataSet = getMetadata(key,sets);
-    if(metadataSet && metadataSet.editorUrl){
+  var getEditorUrl = function(key, sets) {
+    var metadataSet = getMetadata(key, sets);
+    if (metadataSet && metadataSet.editorUrl) {
       return metadataSet.editorUrl;
     } else {
       return "/metadata/unkown-editor-url?" + key
@@ -25,15 +27,15 @@ function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
       $scope.editUrl = getEditorUrl(k, $scope.itemMetadata);
   });
 
-  MessageBridge.addMessageListener(function (message) {
+  MessageBridge.addMessageListener(function(message) {
 
     if (message && message.data && message.data.type == 'updateMetadata') {
       var update = message.data.message;
 
       var property = $scope.selectedMetadata;
-      ExtendedData.update({id: $scope.itemData.id, property : property }, update, function onSuccess(response){
+      ExtendedData.update({id: $scope.itemData.id, property: property}, update, function onSuccess(response) {
         var data = response[$scope.selectedMetadata];
-        updateMetadata($scope.selectedMetadata, $scope.itemMetadata, data );
+        updateMetadata($scope.selectedMetadata, $scope.itemMetadata, data);
         MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: data}, true);
       });
       return;
@@ -43,7 +45,7 @@ function OrganizationMetadataController($scope, MessageBridge, ExtendedData) {
 
       var current = getMetadata($scope.selectedMetadata, $scope.itemMetadata);
 
-      if(current){
+      if (current) {
         MessageBridge.sendMessage("externalMetadataEditor", {type: "currentMetadata", message: current.data}, true);
       }
     }

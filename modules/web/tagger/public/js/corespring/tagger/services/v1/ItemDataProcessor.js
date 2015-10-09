@@ -2,26 +2,26 @@ window.com = (window.com || {});
 com.corespring = (com.corespring || {});
 com.corespring.model = (com.corespring.model || {});
 
-com.corespring.model.Defaults = function(){
+com.corespring.model.Defaults = function() {
 
-  this.$defaults = (function(){
+  this.$defaults = (function() {
 
-    if(!window.fieldValues){
+    if (!window.fieldValues) {
       return {};
     }
 
     return {
-      keySkills:_.map(window.fieldValues.keySkills, function (k) {
-        return {header:k.key, list:k.value};
+      keySkills: _.map(window.fieldValues.keySkills, function(k) {
+        return {header: k.key, list: k.value};
       }),
-      reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
-        return {key:g.key, label:g.value};
+      reviewsPassed: _.map(window.fieldValues.reviewsPassed, function(g) {
+        return {key: g.key, label: g.value};
       }),
-      gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
-        return {key:g.key, label:g.value};
+      gradeLevels: _.map(window.fieldValues.gradeLevels, function(g) {
+        return {key: g.key, label: g.value};
       }),
-      itemTypes:_.map(window.fieldValues.itemTypes, function (g) {
-        return {key:g.key, label:g.value};
+      itemTypes: _.map(window.fieldValues.itemTypes, function(g) {
+        return {key: g.key, label: g.value};
       }),
       v2ItemTypes: _.map(window.fieldValues.v2ItemTypes, function(g) {
         return {key: g.key, label: g.value};
@@ -33,21 +33,21 @@ com.corespring.model.Defaults = function(){
   }());
 
 
-  this.buildNgDataProvider = function(name){
+  this.buildNgDataProvider = function(name) {
 
-    var _buildNgDataProvider = function (defaults) {
+    var _buildNgDataProvider = function(defaults) {
 
       var out = [];
       for (var x = 0; x < defaults.length; x++) {
         var definition = defaults[x];
-        var item = {state:{}};
+        var item = {state: {}};
         angular.extend(item, definition);
         out.push(item);
       }
       return out;
     };
 
-    if(this.$defaults[name]){
+    if (this.$defaults[name]) {
       return _buildNgDataProvider(this.$defaults[name]);
     } else {
       return [];
@@ -62,33 +62,35 @@ com.corespring.model.Defaults = function(){
  * are in the correct model format for saving.
  * @constructor
  */
-com.corespring.model.ItemDataProcessor = function () {
+com.corespring.model.ItemDataProcessor = function() {
 
 
   /**
    * Create Data transfer object to send across the wire.
    * @param itemData - the item data model
    */
-  this.createDTO = function (itemData) {
+  this.createDTO = function(itemData) {
     var dto = {};
-    var processedData = { _id:undefined };
+    var processedData = {_id: undefined};
     processedData.priorGradeLevel = this.buildDtoKeyArray(itemData.$priorGradeLevelDataProvider);
     processedData.gradeLevel = this.buildDtoKeyArray(itemData.$gradeLevelDataProvider);
     processedData.reviewsPassed = this.buildDtoKeyArray(itemData.$reviewsPassedDataProvider);
     processedData.primarySubject = this.convertEmbeddedToOid(itemData.primarySubject);
     processedData.relatedSubject = [this.convertEmbeddedToOid(itemData.relatedSubject[0])];
-    processedData.standards = _.map(itemData.standards, function(s){ return s.dotNotation; } );
+    processedData.standards = _.map(itemData.standards, function(s) {
+      return s.dotNotation;
+    });
     processedData.costForResource = parseInt(itemData.costForResource);
     angular.extend(dto, itemData, processedData);
     dto.id = null;
     return dto;
   };
 
-  this.convertEmbeddedToOid = function (item) {
+  this.convertEmbeddedToOid = function(item) {
     if (!item || !item.id) {
       return null;
     }
-    return  item.id;
+    return item.id;
   }
 
   /**
@@ -97,7 +99,7 @@ com.corespring.model.ItemDataProcessor = function () {
    * [ {state: { selected: true, key: "blah", label: "blah" }}, ...]
    * @return {Array} of values that were true eg: ["Blah"]
    */
-  this.buildDtoKeyArray = function (dataProvider) {
+  this.buildDtoKeyArray = function(dataProvider) {
 
     var out = [];
     for (var i = 0; i < dataProvider.length; i++) {
@@ -116,7 +118,7 @@ com.corespring.model.ItemDataProcessor = function () {
    * to allow the controller and bindings to function.
    * @param resource
    */
-  this.processIncomingData = function (item) {
+  this.processIncomingData = function(item) {
 
     item.$defaults = this.$defaults;
 
@@ -142,7 +144,9 @@ com.corespring.model.ItemDataProcessor = function () {
 
     item.relatedSubject = item.relatedSubject || [];
 
-    function getKey(o){ return o.key }
+    function getKey(o) {
+      return o.key
+    }
 
     /**
      * Dataproviders are prepended with a $ so that angular doesn't send them across the wire.
@@ -155,7 +159,9 @@ com.corespring.model.ItemDataProcessor = function () {
     item.$credentialsDataProvider = _.map(window.fieldValues.credentials, getKey);
     item.$licenseTypeDataProvider = _.map(window.fieldValues.licenseTypes, getKey);
     item.$bloomsTaxonomyDataProvider = _.map(window.fieldValues.bloomsTaxonomy, getKey);
-    item.$itemTypeDataProvider = _.filter( window.fieldValues.itemTypes, function(c){ return c.value != "Other" });
+    item.$itemTypeDataProvider = _.filter(window.fieldValues.itemTypes, function(c) {
+      return c.value != "Other"
+    });
     item.$depthOfKnowledgeDataProvider = window.fieldValues.depthOfKnowledge;
 
     if (!item.keySkills) {
@@ -163,31 +169,31 @@ com.corespring.model.ItemDataProcessor = function () {
     }
   };
 
-  this.$defaults = (function(){
+  this.$defaults = (function() {
 
-    if(!window.fieldValues){
+    if (!window.fieldValues) {
       return {};
     }
 
     return {
-      keySkills:_.map(window.fieldValues.keySkills, function (k) {
-        return {header:k.key, list:k.value}
+      keySkills: _.map(window.fieldValues.keySkills, function(k) {
+        return {header: k.key, list: k.value}
       }),
-      reviewsPassed:_.map(window.fieldValues.reviewsPassed, function (g) {
-        return {key:g.key, label:g.value}
+      reviewsPassed: _.map(window.fieldValues.reviewsPassed, function(g) {
+        return {key: g.key, label: g.value}
       }),
-      gradeLevels:_.map(window.fieldValues.gradeLevels, function (g) {
-        return {key:g.key, label:g.value}
+      gradeLevels: _.map(window.fieldValues.gradeLevels, function(g) {
+        return {key: g.key, label: g.value}
       })
     }
   }());
 
-  this.createWorkflowObject = function () {
+  this.createWorkflowObject = function() {
     return {
-      setup:false,
-      tagged:false,
-      standardsAligned:false,
-      qaReview:false
+      setup: false,
+      tagged: false,
+      standardsAligned: false,
+      qaReview: false
     };
   };
 
@@ -203,7 +209,7 @@ com.corespring.model.ItemDataProcessor = function () {
    * @param dtoArray - the values saved in the datamodel
    * @return {Array}
    */
-  this.buildNgDataProvider = function (defaults, dtoArray) {
+  this.buildNgDataProvider = function(defaults, dtoArray) {
 
     function getValueFromModel(key, dtoArray) {
 
@@ -240,18 +246,18 @@ com.corespring.model.ItemDataProcessor = function () {
     for (var x = 0; x < defaults.length; x++) {
       var definition = defaults[x];
       var selected = getValueFromModel(definition.key, dtoArray);
-      var item = {state:{}};
-      angular.extend(item.state, definition, {selected:selected});
+      var item = {state: {}};
+      angular.extend(item.state, definition, {selected: selected});
       out.push(item);
     }
     return out;
   };
 
-  this.buildObjectFromTokens = function (tokens, initialValue) {
+  this.buildObjectFromTokens = function(tokens, initialValue) {
     var out = {};
     var tokensArray = tokens.split(",");
     for (var i = 0; i < tokensArray.length; i++) {
-      out[ tokensArray[i] ] = initialValue;
+      out[tokensArray[i]] = initialValue;
     }
     return out;
   };

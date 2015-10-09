@@ -1,16 +1,16 @@
 // module for showing search count and paging through search results in editor
 angular.module('tagger')
-  .directive('networkProgress', function () {
+  .directive('networkProgress', function() {
 
     return {
-      link: function ($scope) {
+      link: function($scope) {
         $scope.isLoading = false;
 
-        $scope.$on('onNetworkLoading', function () {
+        $scope.$on('onNetworkLoading', function() {
           $scope.isLoading = true;
         });
 
-        $scope.$on('onNetworkComplete', function () {
+        $scope.$on('onNetworkComplete', function() {
           $scope.isLoading = false;
         });
 

@@ -1,7 +1,7 @@
 /* global _ */
 'use strict';
 
-describe('ItemController should', function () {
+describe('EditItemController should', function () {
 
   var routeParams, rootScope, scope, ctrl, $httpBackend, location, http;
 

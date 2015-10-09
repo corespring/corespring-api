@@ -1,8 +1,8 @@
 (function(root) {
 
-  function SubNavController($scope, $rootScope, CollectionManager, Contributor){
+  function SubNavController($scope, $rootScope, CollectionManager, Contributor) {
 
-    function init(){
+    function init() {
       loadCollections();
       loadContributors();
       var defaultsFactory = new com.corespring.model.Defaults();
@@ -12,15 +12,15 @@
       $scope.widgetDataProvider = defaultsFactory.buildNgDataProvider('widgets');
 
       $scope.statuses = [
-        { label: 'Setup', key: 'setup' },
-        { label: 'Tagged', key: 'tagged' },
-        { label: 'Standards Aligned', key: 'standardsAligned' },
-        { label: 'QA Review', key: 'qaReview' },
-        { label: 'Exact Match', key: 'exactMatch' }];
+        {label: 'Setup', key: 'setup'},
+        {label: 'Tagged', key: 'tagged'},
+        {label: 'Standards Aligned', key: 'standardsAligned'},
+        {label: 'QA Review', key: 'qaReview'},
+        {label: 'Exact Match', key: 'exactMatch'}];
 
       $scope.publishStatuses = [
-        { label: 'Live', key: 'published' },
-        { label: 'Draft', key: 'draft' } ];
+        {label: 'Live', key: 'published'},
+        {label: 'Draft', key: 'draft'}];
     }
 
     function loadCollections() {
@@ -61,7 +61,7 @@
       if (!items || items.length === 0) {
         return '';
       }
-      return '('+items.length + ')';
+      return '(' + items.length + ')';
     };
 
     $scope.getCollectionTitle = function(c) {
@@ -80,7 +80,7 @@
       if (!items || items.length === 0) {
         return '';
       }
-      return '('+items.length + ')';
+      return '(' + items.length + ')';
     };
 
     $scope.getSelectedTitle = function(items) {
@@ -92,13 +92,13 @@
       //   return isNaN(numericKey) ? key : numericKey;
       // });
       // return out.join(', ');
-      return '('+items.length+')';
+      return '(' + items.length + ')';
     };
 
     init();
   }
 
-  SubNavController.$inject = ['$scope', '$rootScope','CollectionManager', 'Contributor'];
+  SubNavController.$inject = ['$scope', '$rootScope', 'CollectionManager', 'Contributor'];
 
   root.tagger = root.tagger || {};
   root.tagger.SubNavController = SubNavController;

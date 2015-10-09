@@ -1,5 +1,5 @@
 angular.module('tagger.directives')
-  .directive('itemActionButton', ['$log', function ($log) {
+  .directive('itemActionButton', ['$log', function($log) {
 
     $log.log('itemActionButton loaded into angular');
 
@@ -16,7 +16,7 @@ angular.module('tagger.directives')
       }
     };
 
-    function link(scope, elem, attr){
+    function link(scope, elem, attr) {
     }
 
     function template() {

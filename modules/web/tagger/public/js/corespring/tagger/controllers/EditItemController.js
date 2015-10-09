@@ -3,13 +3,13 @@
 /**
  * Controller for editing Item
  */
-function ItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
+function EditItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
   $scope.filteredDomainValues = {};
 
   function loadStandardsSelectionData() {
-    $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function (data) {
+    $http.get(ServiceLookup.getUrlFor('standardsTree')).success(function(data) {
       $scope.standardsOptions = data;
     });
   }
@@ -60,11 +60,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
     }
 
-    Collection.get({}, function (data) {
+    Collection.get({}, function(data) {
         $scope.collections = writable(data);
       },
-      function (err) {
-        Logger.error("error when loading collections in ItemController: "+JSON.stringify(err))
+      function(err) {
+        Logger.error("error when loading collections in EditItemController: " + JSON.stringify(err))
       });
   }
 
@@ -79,10 +79,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     loadWritableCollections();
     loadDomainData();
     $scope.$watch(
-      function () {
+      function() {
         return $location.url();
       },
-      function (path) {
+      function(path) {
         var panel = $location.search().panel;
         if (panel) {
           $scope.changePanel(panel);
@@ -90,20 +90,20 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       });
   }
 
-  $scope.launchV1Player = function(){
+  $scope.launchV1Player = function() {
     new com.corespring.players.ItemPlayer("#item-preview-target", {
-        mode : "preview",
-        itemId : $scope.itemData.id,
+        mode: "preview",
+        itemId: $scope.itemData.id,
         omitSubmitButton: false
       }
     );
   };
 
-  $scope.launchV2Player = function(){
+  $scope.launchV2Player = function() {
 
     var options = {
       mode: "gather",
-      itemId : $scope.itemData.id,
+      itemId: $scope.itemData.id,
       evaluate: $scope.modeSettings,
       width: '100%'
     };
@@ -111,8 +111,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.v2player = new org.corespring.players.ItemPlayer('#item-preview-target', options, $scope.handlePlayerError);
   };
 
-  $scope.$watch('showV2Preview',function(newValue){
-    if (!newValue){
+  $scope.$watch('showV2Preview', function(newValue) {
+    if (!newValue) {
       $scope.v2CatalogUrl = "";
     }
   });
@@ -169,8 +169,8 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.devUrl = function() {
     return ($scope.itemData && $scope.itemData.id) ?
-      '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
-  }
+    '/v2/player/dev-editor/' + $scope.itemData.id + '/index.html' : undefined;
+  };
 
   $scope.changePlayerVersion = function() {
     $scope.versionOverride = $scope.versionOverride === 1 ? 2 : 1;
@@ -185,7 +185,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     return isV2() ? 1 : 2;
   };
 
-  $scope.togglePreview = function () {
+  $scope.togglePreview = function() {
     $scope.previewVisible = !$scope.previewVisible;
     $scope.$broadcast("panelOpen");
     if (isV2()) {
@@ -195,20 +195,20 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
-  $scope.$watch("previewVisible", function (newValue) {
+  $scope.$watch("previewVisible", function(newValue) {
     $scope.previewClassName = newValue ? "preview-open" : "preview-closed";
     $scope.corespringApiUrl = newValue ? ("/player/item/" + $routeParams.itemId + "/preview") : "";
     $scope.fullPreviewUrl = "/player/item/" + $routeParams.itemId + "/profile";
   });
 
-  $scope.deleteItem = function (item) {
+  $scope.deleteItem = function(item) {
     $scope.itemToDelete = item;
     $scope.showConfirmDestroyModal = true;
   };
 
-  $scope.deleteConfirmed = function () {
+  $scope.deleteConfirmed = function() {
     ItemService.remove({id: $scope.itemToDelete.id},
-      function (result) {
+      function(result) {
         $scope.itemToDelete = null;
         $location.path("/web");
       }
@@ -217,7 +217,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     $scope.showConfirmDestroyModal = false;
   };
 
-  $scope.deleteCancelled = function () {
+  $scope.deleteCancelled = function() {
     $scope.itemToDelete = null;
     $scope.showConfirmDestroyModal = false;
   };
@@ -249,7 +249,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     if (!type) {
       return;
     }
-    var foundType = _.find($scope.itemData.$itemTypeDataProvider, function (d) {
+    var foundType = _.find($scope.itemData.$itemTypeDataProvider, function(d) {
       return _.find(d.value, function(e) {
         return e == type;
       });
@@ -264,7 +264,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
     if ($scope.currentPanel == 'content' && $scope.itemData) {
       var urls = {};
-      var substitutions = { itemId: $routeParams.itemId };
+      var substitutions = {itemId: $routeParams.itemId};
       urls.uploadFile = ServiceLookup.getUrlFor('uploadDataFile', substitutions);
       urls.createFile = ServiceLookup.getUrlFor('createDataFile', substitutions);
       urls.updateFile = ServiceLookup.getUrlFor('updateDataFile', substitutions);
@@ -290,7 +290,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     return $scope.currentPanel == "orgMetadata";
   };
 
-  $scope.changePanel = function (panelName) {
+  $scope.changePanel = function(panelName) {
     var panel = ["metadata", "supportingMaterials", "content", "orgMetadata"].indexOf(panelName) == -1 ? "metadata" : panelName;
     $scope.currentPanel = panel;
     $scope.$broadcast("tabSelected");
@@ -298,25 +298,25 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     updateLocation($scope.currentPanel);
   };
 
-  $scope.changeToOrgMetadata = function (mdKey) {
+  $scope.changeToOrgMetadata = function(mdKey) {
     $scope.changePanel("orgMetadata");
     $scope.selectedMetadata = mdKey;
-  }
+  };
 
-  $scope.editItem = function () {
+  $scope.editItem = function() {
     $location.url('/edit/' + $scope.itemData.id);
   };
 
   /**
    * optional callback from strap-tabs
    */
-  $scope.onTabSelect = function (tab) {
+  $scope.onTabSelect = function(tab) {
     $rootScope.$broadcast("tabSelected");
     $scope.suppressSave = true;
     $scope.save();
   };
 
-  $scope.processData = function (rawData, itemId, itemFiles) {
+  $scope.processData = function(rawData, itemId, itemFiles) {
 
     if (!itemFiles) {
       return;
@@ -334,11 +334,11 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   // broadcast an event when the Edit view is called
   $rootScope.$broadcast('onEditViewOpened');
 
-  $scope.loadItemMetadata = function(){
-    ItemMetadata.get({id: $routeParams.itemId }, function onItemMetadataLoaded(itemMetadata){
+  $scope.loadItemMetadata = function() {
+    ItemMetadata.get({id: $routeParams.itemId}, function onItemMetadataLoaded(itemMetadata) {
       $scope.itemMetadata = itemMetadata;
 
-      if(isViewingMetadataPanel()){
+      if (isViewingMetadataPanel()) {
         $scope.selectedMetadata = $scope.itemMetadata[0].metadataKey;
       }
     });
@@ -348,7 +348,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem = function() {
     ItemService.get({id: $routeParams.itemId}, function onItemLoaded(itemData) {
       $rootScope.itemData = itemData;
-      ItemSessionCountService.get({id:$routeParams.itemId}, function onItemLoaded(countObject) {
+      ItemSessionCountService.get({id: $routeParams.itemId}, function onItemLoaded(countObject) {
         $rootScope.itemData.sessionCount = countObject.sessionCount;
         $scope.$broadcast("dataLoaded");
       });
@@ -359,7 +359,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     });
   };
 
-  $scope.clone = function () {
+  $scope.clone = function() {
     $scope.showProgressModal = true;
     $scope.itemData.clone(function onCloneSuccess(data) {
       $scope.showProgressModal = false;
@@ -373,7 +373,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.showSaveWarning = false;
 
   $scope.itemVersion = 1;
-  $scope.$on("dataLoaded", function (newValue, oldValue) {
+  $scope.$on("dataLoaded", function(newValue, oldValue) {
     $scope.itemVersion = parseInt($scope.itemData.id.split(":")[1]) + 1;
     $scope.isPublished = $scope.itemData.published;
   });
@@ -381,29 +381,29 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   $scope.loadItem();
   $scope.loadItemMetadata();
 
-  $rootScope.$on('showSaveWarning', function () {
+  $rootScope.$on('showSaveWarning', function() {
     $scope.$apply('showSaveWarning=true');
   });
 
-  $scope.$watch('itemData.pValue', function (newValue, oldValue) {
+  $scope.$watch('itemData.pValue', function(newValue, oldValue) {
     $scope.pValueAsString = $scope.getPValueAsString(newValue);
   });
 
-  $scope.$watch('isPublished', function(){
-    if($scope.isPublished) {
+  $scope.$watch('isPublished', function() {
+    if ($scope.isPublished) {
       $scope.itemStatus = "published";
-      if($scope.itemData.sessionCount == 1) {
-        $scope.sessionCount = "("+$scope.itemData.sessionCount+" response)";
+      if ($scope.itemData.sessionCount == 1) {
+        $scope.sessionCount = "(" + $scope.itemData.sessionCount + " response)";
       }
       else {
-        $scope.sessionCount = "("+$scope.itemData.sessionCount+" responses)"
+        $scope.sessionCount = "(" + $scope.itemData.sessionCount + " responses)"
       }
     } else {
       $scope.itemStatus = "Draft"
     }
   });
 
-  $scope.getPValueAsString = function (value) {
+  $scope.getPValueAsString = function(value) {
 
     var vals = {
       "NO_VALUE": 0,
@@ -411,9 +411,10 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       "Moderately Hard": 40,
       "Moderate": 60,
       "Easy": 80,
-      "Very Easy": 100 };
+      "Very Easy": 100
+    };
 
-    var getLabelFromValue = function (numberArray, valueToCheck) {
+    var getLabelFromValue = function(numberArray, valueToCheck) {
       for (var x in numberArray) {
         if (valueToCheck <= numberArray[x]) {
           return x == "NO_VALUE" ? "" : x;
@@ -423,18 +424,18 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     return getLabelFromValue(vals, value);
   };
 
-  $scope.processValidationResults = function (result) {
+  $scope.processValidationResults = function(result) {
 
     if (result && result.success === false) {
       $scope.showExceptions = true;
-      $scope.validationResult = { exceptions: angular.copy(result.exceptions) };
+      $scope.validationResult = {exceptions: angular.copy(result.exceptions)};
     }
     else {
       $scope.showExceptions = false;
     }
   };
 
-  $scope.saveSelectedFileFinished = function (error) {
+  $scope.saveSelectedFileFinished = function(error) {
     $scope.isSaving = false;
     $scope.suppressSave = false;
     if (error) {
@@ -444,22 +445,22 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
-  $scope.backToCollections = function(){
+  $scope.backToCollections = function() {
     $location.path("/home").search('');
   };
 
-  $scope.publish = function(){
+  $scope.publish = function() {
     $scope.itemData.published = true;
-    $scope.itemData.update({},function(data){
-      if(data.published) {
+    $scope.itemData.update({}, function(data) {
+      if (data.published) {
         $scope.isPublished = true
-      }else alert("error publishing: status ok but no published property found")
-    },function(error){
-      alert("error publishing: "+JSON.stringify(error))
+      } else alert("error publishing: status ok but no published property found")
+    }, function(error) {
+      alert("error publishing: " + JSON.stringify(error))
     })
   }
 
-  $scope.save = function (saveItemData) {
+  $scope.save = function(saveItemData) {
 
     if (!$scope.itemData) {
       return;
@@ -468,7 +469,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     if (!$scope.suppressSave) {
       $scope.isSaving = true;
     }
-    if($scope.showSaveWarning){
+    if ($scope.showSaveWarning) {
       $scope.showSaveWarning = false;
     }
 
@@ -477,18 +478,18 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
       return;
     }
 
-    if(!saveItemData && $scope.itemData.published && ($scope.itemData.sessionCount > 0)){
+    if (!saveItemData && $scope.itemData.published && ($scope.itemData.sessionCount > 0)) {
       $scope.showSaveWarning = true;
       $scope.isSaving = false
-    }else{
+    } else {
       $scope.validationResult = {};
-      $scope.itemData.update({}, function (data) {
+      $scope.itemData.update({}, function(data) {
           $scope.isSaving = false;
           $scope.suppressSave = false;
           $scope.processValidationResults(data["$validationResult"]);
-          if(data.id != $scope.itemData.id){
+          if (data.id != $scope.itemData.id) {
             $location.path('/edit/' + data.id);
-          }else{
+          } else {
             $rootScope.itemData = data;
             $scope.$broadcast("dataLoaded")
           }
@@ -510,7 +511,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     }
   };
 
-  var subjectFormatResult = function (subject) {
+  var subjectFormatResult = function(subject) {
     var separator = " ";
     if (subject.subject) separator = ": ";
     var markup = "<blockquote>"
@@ -520,14 +521,14 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     return markup;
   };
 
-  var subjectFormatSelection = function (subject) {
+  var subjectFormatSelection = function(subject) {
     var separator = " ";
     if (subject.subject) separator = ": ";
     return subject.category + separator + subject.subject;
   };
 
 
-  var addFieldIfApplicable = function (item, filter, key) {
+  var addFieldIfApplicable = function(item, filter, key) {
     if (!item) {
       return;
     }
@@ -537,7 +538,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     filter[key] = item.name;
   };
 
-  $scope.createStandardMongoQuery = function (searchText, fields) {
+  $scope.createStandardMongoQuery = function(searchText, fields) {
 
     if ($scope.standardAdapter.subjectOption == "all") {
       return createMongoQuery(searchText, ['subject'].concat(fields));
@@ -561,21 +562,21 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
     ['dotNotation', 'category', 'subCategory', 'standard']
   );
 
-  $scope.standardAdapter.valueSetter = function (newItem) {
+  $scope.standardAdapter.valueSetter = function(newItem) {
     if ($scope.itemData.standards != null) {
       $scope.itemData.standards.push(newItem);
     }
   };
 
-  $scope.standardAdapter.formatSelection = function (standard) {
+  $scope.standardAdapter.formatSelection = function(standard) {
 
-    setTimeout(function () {
+    setTimeout(function() {
       $(".standard-adapter-result").tooltip();
     }, 500);
     return "<span class='standard-adapter-result' data-title='" + standard.standard + "'>" + standard.dotNotation + "</span>";
   };
 
-  $scope.standardAdapter.formatResult = function (standard) {
+  $scope.standardAdapter.formatResult = function(standard) {
     var markup = "<blockquote>";
     markup += '<p>' + standard.standard + '</p>';
     markup += '<small>' + standard.dotNotation + ', ' + standard.subject + ', ' + standard.subCategory + '</small>';
@@ -588,33 +589,33 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
 
   $scope.selectPrimarySubject = new com.corespring.select2.Select2Adapter(
     ServiceLookup.getUrlFor('subject'),
-    { subject: "choose a subject", category: "Subject", id: ""},
+    {subject: "choose a subject", category: "Subject", id: ""},
     createMongoQuery,
-    [ 'subject', 'category' ]
+    ['subject', 'category']
   );
   $scope.selectPrimarySubject.formatResult = subjectFormatResult;
   $scope.selectPrimarySubject.formatSelection = subjectFormatSelection;
 
   $scope.selectRelatedSubject = new com.corespring.select2.Select2Adapter(
     ServiceLookup.getUrlFor('subject'),
-    { subject: "choose a subject", category: "Subject", id: ""},
+    {subject: "choose a subject", category: "Subject", id: ""},
     createMongoQuery,
-    [ 'subject', 'category' ]
+    ['subject', 'category']
   );
   $scope.selectRelatedSubject.formatResult = subjectFormatResult;
   $scope.selectRelatedSubject.formatSelection = subjectFormatSelection;
 
-  $scope.$watch("itemData.itemType", function (newValue) {
+  $scope.$watch("itemData.itemType", function(newValue) {
     if (newValue != $scope.otherItemType) {
       $scope.otherItemType = "";
     }
   });
 
-  $scope.updateItemType = function () {
+  $scope.updateItemType = function() {
     $scope.itemData.itemType = $scope.otherItemType;
   };
 
-  $scope.getKeySkillsSummary = function (keySkills) {
+  $scope.getKeySkillsSummary = function(keySkills) {
     var count = "No";
     var skills = "Skills";
 
@@ -648,7 +649,7 @@ function ItemController($scope, $location, $routeParams, ItemService, $rootScope
   // end EditCrtl
 }
 
-ItemController.$inject = [
+EditItemController.$inject = [
   '$scope',
   '$location',
   '$routeParams',
