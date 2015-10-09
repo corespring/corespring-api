@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.platform.core.models.Organization
 import org.corespring.platform.core.models.auth.Permission
 import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.test.PlaySingleton
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, MockFactory }
 import org.corespring.v2.errors.Errors.{ invalidObjectId, generalError, orgCantAccessCollection, noCollectionIdForItem }
 import org.corespring.v2.errors.V2Error
@@ -14,6 +15,8 @@ import org.specs2.specification.Scope
 import scalaz.{ Validation, Failure, Success }
 
 class ItemAccessTest extends Specification with Mockito with MockFactory {
+
+  PlaySingleton.start()
 
   class accessScope(orgCanAccess: Boolean = true,
     hasPermission: Boolean = true) extends Scope {
