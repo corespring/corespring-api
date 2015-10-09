@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import com.mongodb.{WriteConcern, DBObject}
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
@@ -33,9 +34,9 @@ class UserService(
     if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         val update = user.copy(org = UserOrg(orgId, p.value))
-        dao.insert(update) match {
+        dao.insert(update, com.mongodb.WriteConcern.ACKNOWLEDGED) match {
           case Some(id) => {
-            Success(user)
+            Success(update)
           }
           case None => Failure(PlatformServiceError("error inserting user"))
         }
@@ -49,15 +50,19 @@ class UserService(
    * @return
    */
 
-  override def getUser(username: String): Option[User] = dao.findOne(MongoDBObject("userName" -> username))
+  override def getUser(username: String): Option[User] = getUser(MongoDBObject("userName" -> username))
 
-  override def getUser(userId: ObjectId): Option[User] = dao.findOneById(userId)
+  override def getUser(userId: ObjectId): Option[User] = getUser(MongoDBObject("_id" -> userId))
 
-  override def getUser(username: String, provider: String): Option[User] = {
-    logger.debug(s"[getUser]: $username, $provider")
-    val query = MongoDBObject("userName" -> username, "provider" -> provider)
-    logger.trace(s"${dao.count(query)}")
-    dao.findOne(query)
+  override def getUser(username: String, provider: String): Option[User] = getUser(MongoDBObject("userName" -> username, "provider" -> provider))
+
+  override def getUserByEmail(email: String): Option[User] = getUser(MongoDBObject("email" -> email))
+
+  private def getUser(query:DBObject) : Option[User] = {
+    logger.debug(s"[getUser]: query $query")
+    val result = dao.findOne(query)
+    logger.debug(s"[getUser]: result $result")
+    result
   }
 
   override def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
@@ -81,10 +86,11 @@ class UserService(
     returnValue
   }
 
-  override def touchLastLogin(userId: String) = touch(userId, "lastLoginDate")
+  override def touchLastLogin(userName: String) = touch(userName, "lastLoginDate")
+  override def touchRegistration(userName: String) = touch(userName, "registrationDate")
 
-  private def touch(userId: String, field: String): Unit =
-    getUser(userId) match {
+  private def touch(userName: String, field: String): Unit =
+    getUser(userName) match {
       case Some(user) => {
         dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
           MongoDBObject(
@@ -95,7 +101,7 @@ class UserService(
       case None => Failure(PlatformServiceError("no user found to update " + field))
     }
 
-  override def touchRegistration(userId: String) = touch(userId, "registrationDate")
+
 
   override def updateUser(user: User): Validation[PlatformServiceError, User] = {
     try {
@@ -108,7 +114,7 @@ class UserService(
         false, false, dao.collection.writeConcern)
       getUser(user.id) match {
         case Some(u) => Success(u)
-        case None => Failure(PlatformServiceError("no user found that was just modified"))
+        case None => Failure(PlatformServiceError(s"Failed to update user: user not found for id: ${user.id}"))
       }
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update user", e))
@@ -130,7 +136,7 @@ class UserService(
         false, false, dao.collection.writeConcern)
       Success(())
     } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError("could add organization to user"))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError(s"Error updating user $userId with org $orgId and permission ${p.name}"))
     }
   }
 
@@ -150,5 +156,4 @@ class UserService(
     }
   }
 
-  override def getUserByEmail(email: String): Option[User] = dao.findOne(MongoDBObject("email" -> email))
 }
