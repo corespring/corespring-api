@@ -2,32 +2,29 @@ package org.corespring.api.tracking
 
 import akka.actor.{ ActorRef, Props }
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
-import play.api.Mode.Mode
 import play.api.mvc.RequestHeader
-import play.api.{ Configuration, Logger, Mode }
 import play.libs.Akka
 
-class ApiTracking(tokenService: AccessTokenService, apiClientService: ApiClientService)(config: Configuration, appMode: Mode) {
+trait ApiTracking {
+  def handleRequest(r: RequestHeader): Unit
+}
 
-  private lazy val logger = Logger("org.corespring.ApiTrackingWiring")
+object NullTracking extends ApiTracking {
+  override def handleRequest(r: RequestHeader): Unit = {}
+}
 
-  lazy val trackingService = new TrackingService {
+class ApiTrackingLogger(
+  tokenService: AccessTokenService,
+  apiClientService: ApiClientService)
+  extends ApiTracking {
 
-    private val logger = Logger("org.corespring.api.tracking")
-
-    override def log(c: => ApiCall): Unit = {
-      logger.info(c.toKeyValues)
-    }
-  }
-
-  lazy val apiTracker: ActorRef = Akka.system.actorOf(
-    Props.create(classOf[ApiTrackingActor], trackingService, tokenService, apiClientService)
-      .withDispatcher("akka.api-tracking-dispatcher"), "api-tracking")
-
-  lazy val logRequests = {
-    val out = config.getBoolean("api.log-requests").getOrElse(appMode == Mode.Dev)
-    logger.info(s"Log api requests? ${out}")
-    out
+  lazy val apiTracker: ActorRef = {
+    val props = Props.create(
+      classOf[ApiTrackingActor],
+      new LoggingTrackingService(),
+      tokenService,
+      apiClientService).withDispatcher("akka.api-tracking-dispatcher")
+    Akka.system.actorOf(props, "api-tracking")
   }
 
   def isLoggable(path: String): Boolean = {
@@ -39,11 +36,11 @@ class ApiTracking(tokenService: AccessTokenService, apiClientService: ApiClientS
       DraftDevEditor.load(".*"),
       ItemEditor.load(".*"),
       ItemDevEditor.load(".*")).map(_.url.r).exists { r => r.findFirstIn(path).isDefined }
-    logRequests && (path.contains("api") || matchesPaths)
+    (path.contains("api") || matchesPaths)
   }
 
-  def handleRequest(r: RequestHeader): Unit = {
-    if (logRequests && isLoggable(r.path)) {
+  override def handleRequest(r: RequestHeader): Unit = {
+    if (isLoggable(r.path)) {
       apiTracker ! LogRequest(r)
     }
   }

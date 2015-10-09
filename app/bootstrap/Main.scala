@@ -9,6 +9,7 @@ import common.db.Db
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
+import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
 import org.corespring.common.config.AppConfig
@@ -92,13 +93,16 @@ object Main
     AppConfig.componentsPath)
 
   lazy val transformerItemService = new TransformerItemService(itemService,
-    db("versioned_content"),
-    db("content"))(context)
+    db(CollectionNames.versionedItem),
+    db(CollectionNames.item))(context)
 
   lazy val itemTransformerConfig = ItemTransformerConfig(
     configuration.getBoolean("v2.itemTransformer.checkModelIsUpToDate").getOrElse(false))
 
-  override lazy val sessionDbConfig: SessionDbConfig = new SessionDbConfig(if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None)
+  override lazy val sessionDbConfig: SessionDbConfig = {
+    val envName = if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None
+    new SessionDbConfig(envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
+  }
 
   override lazy val awsCredentials: AWSCredentials = new AWSCredentials {
     override lazy val getAWSAccessKeyId: String = AppConfig.amazonKey
@@ -275,4 +279,20 @@ object Main
 
   //TODO: RF: Plugin in session service
   override def mostRecentDateModifiedForSessions: (Seq[ObjectId]) => Option[DateTime] = _ => None
+
+  lazy val apiTracking: ApiTracking = {
+
+    lazy val logRequests = {
+      val out = configuration.getBoolean("api.log-requests").getOrElse(Play.current.mode == Mode.Dev)
+      logger.info(s"Log api requests? $out")
+      out
+    }
+
+    if (logRequests) {
+      wire[ApiTrackingLogger]
+    } else {
+      NullTracking
+    }
+  }
+
 }
