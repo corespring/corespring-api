@@ -34,7 +34,7 @@ class UserService(
     if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         val update = user.copy(org = UserOrg(orgId, p.value))
-        dao.insert(update, com.mongodb.WriteConcern.ACKNOWLEDGED) match {
+        dao.insert(update, dao.collection.writeConcern) match {
           case Some(id) => {
             Success(update)
           }
