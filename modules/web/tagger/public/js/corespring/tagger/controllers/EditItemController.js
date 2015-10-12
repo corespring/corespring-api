@@ -3,7 +3,7 @@
 /**
  * Controller for editing Item
  */
-function EditItemController($scope, $location, $routeParams, ItemService, $rootScope, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
+function EditItemController($scope, $location, $routeParams, ItemService, $rootScope, MongoQueryUtils, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
   $scope.filteredDomainValues = {};
@@ -543,8 +543,7 @@ function EditItemController($scope, $location, $routeParams, ItemService, $rootS
     if ($scope.standardAdapter.subjectOption == "all") {
       return createMongoQuery(searchText, ['subject'].concat(fields));
     } else {
-      var mongoQueryMaker = new com.corespring.mongo.MongoQuery();
-      var query = mongoQueryMaker.fuzzyTextQuery(searchText, fields);
+      var query = MongoQueryUtils.fuzzyTextQuery(searchText, fields);
       addFieldIfApplicable($scope.standardAdapter.subjectOption, query, "subject");
       addFieldIfApplicable($scope.standardAdapter.categoryOption, query, "category");
 
@@ -638,7 +637,7 @@ function EditItemController($scope, $location, $routeParams, ItemService, $rootS
    * @param {array} fields - an array of the fields to find the searchtext in
    */
   function createMongoQuery(searchText, fields) {
-    return JSON.stringify(new com.corespring.mongo.MongoQuery().fuzzyTextQuery(searchText, fields));
+    return JSON.stringify(MongoQueryUtils.fuzzyTextQuery(searchText, fields));
   }
 
 
@@ -655,6 +654,7 @@ EditItemController.$inject = [
   '$routeParams',
   'ItemService',
   '$rootScope',
+  'MongoQueryUtils',
   'Collection',
   'ServiceLookup',
   '$http',

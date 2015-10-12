@@ -1,4 +1,4 @@
-function SearchController($scope, $rootScope, $http, ItemService, SearchService, Collection) {
+function SearchController($scope, $rootScope, $http, ItemService, V2SearchService, Collection) {
 
   $rootScope.searchParams = ($rootScope.searchParams || ItemService.createWorkflowObject() );
   $scope.unpreppedGradeLevel = [];
@@ -168,5 +168,5 @@ SearchController.$inject = ['$scope',
   '$rootScope',
   '$http',
   'ItemService',
-  'SearchService',
+  'V2SearchService',
   'Collection'];

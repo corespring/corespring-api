@@ -2,8 +2,7 @@ function MainNavController($scope,
                            $rootScope,
                            $location,
                            V2SearchService,
-                           V2ItemService,
-                           ItemDraftService) {
+                           V2ItemService) {
 
   "use strict";
 
@@ -61,5 +60,4 @@ MainNavController.$inject = [
   '$rootScope',
   '$location',
   'V2SearchService',
-  'V2ItemService',
-  'ItemDraftService'];
+  'V2ItemService'];

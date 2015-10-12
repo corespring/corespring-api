@@ -43,7 +43,7 @@ describe('EditItemController should', function () {
     http = $http;
 
     try {
-      ctrl = $controller(ItemController, {$scope: scope, $routeParams: routeParams, $location: location, Logger: {}});
+      ctrl = $controller(EditItemController, {$scope: scope, $routeParams: routeParams, $location: location, Logger: {}});
     } catch (e) {
       throw("Error with the controller: " + e);
     }
