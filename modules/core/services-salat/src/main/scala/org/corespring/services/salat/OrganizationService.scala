@@ -216,7 +216,7 @@ class OrganizationService(
     val updatedOrg = update(paths)
 
     dao.insert(updatedOrg, dao.collection.writeConcern) match {
-      case Some(id) => Success(org)
+      case Some(id) => Success(updatedOrg)
       case None => Failure(PlatformServiceError("error inserting organization"))
     }
   }

@@ -48,6 +48,18 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         .find(_.collectionId == collectionId)
         .map(_.enabled) === Some(expectedStatus)
     }
+
+    def orgExistsInDb(orgId: ObjectId) = {
+      service.findOneById(org.id).isDefined
+    }
+
+    def assertDbOrg(orgId: ObjectId)(block: Organization => Unit) = {
+      service.findOneById(orgId) match {
+        case None => failure(s"org not found: $orgId")
+        case Some(org) => block(org)
+      }
+    }
+
   }
 
   "addCollection" should {
@@ -116,9 +128,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         }
         "add a metadataset to the org" in new TestScope {
           service.addMetadataSet(orgId, setId, false)
-          service.findOneById(org.id).map {
-            org => org.metadataSets.length === 1
-          }.getOrElse(failure("didn't find org"))
+          assertDbOrg(org.id) {_.metadataSets.length === 1}
         }
       }
     }
@@ -250,7 +260,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "change the org name" in new TestScope {
       service.changeName(org.id, "update")
-      service.findOneById(org.id).map(_.name) === Some("update")
+      assertDbOrg(org.id){_.name === "update"}
     }
 
     "return the org id" in new TestScope {
@@ -308,16 +318,16 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     }
     "remove the org itself" in new DeleteScope {
-      service.findOneById(org.id) !== None
+      orgExistsInDb(org.id) === true
       service.delete(org.id)
-      service.findOneById(org.id) === None
+      orgExistsInDb(org.id) === false
     }
     "remove all the child orgs too" in new DeleteScope {
-      service.findOneById(childOrgOne.id) !== None
-      service.findOneById(childOrgTwo.id) !== None
+      orgExistsInDb(childOrgOne.id) === true
+      orgExistsInDb(childOrgTwo.id) === true
       service.delete(org.id)
-      service.findOneById(childOrgOne.id) === None
-      service.findOneById(childOrgTwo.id) === None
+      orgExistsInDb(childOrgOne.id) === false
+      orgExistsInDb(childOrgTwo.id) === false
     }
     "not fail if the org does not exist" in new DeleteScope {
       service.delete(ObjectId.get) match {
@@ -556,16 +566,23 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
   }
 
   "insert" should {
-    "add the org to the db" in new TestScope {
-      service.findOneById(org.id).get.id === org.id
-    }
-    "add its own id to the paths if parent is None" in new TestScope {
-      service.findOneById(org.id).get.path === Seq(org.id)
-    }
-    "add the parent's id to the paths if parent is not None" in new TestScope {
+    trait InsertScope extends TestScope {
+
       val childOrg = Organization("child")
-      service.insert(childOrg, Some(org.id))
-      service.findOneById(childOrg.id).get.path === Seq(childOrg.id, org.id)
+
+      override def before = {
+        super.before
+        service.insert(childOrg, Some(org.id))
+      }
+    }
+    "add the org to the db" in new InsertScope {
+      assertDbOrg(org.id){ _.id === org.id }
+    }
+    "add org's own id to the paths if parent is None" in new InsertScope {
+      assertDbOrg(org.id){_.path === Seq(org.id)}
+    }
+    "add the parent's id to the paths if parent is not None" in new InsertScope {
+      assertDbOrg(childOrg.id){_.path === Seq(childOrg.id, org.id)}
     }
   }
 
@@ -654,9 +671,9 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "remove a metadataset" in new TestScope {
       service.addMetadataSet(orgId, setId, false)
-      service.findOneById(org.id).map { org => org.metadataSets.length === 1 }.getOrElse(failure("didn't find org"))
+      assertDbOrg(org.id){_.metadataSets.length === 1}
       service.removeMetadataSet(orgId, setId)
-      service.findOneById(org.id).map { org => org.metadataSets.length === 0 }.getOrElse(failure("didn't find org"))
+      assertDbOrg(org.id){_.metadataSets.length === 0}
     }
 
     "return the metadataset, which has been removed" in new TestScope {
@@ -695,13 +712,14 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     //TODO How are we using enabled?
     "allow to change enabled" in new TestScope {
-      service.findOneById(org.id).map { org => org.contentcolls(0).enabled === true }.getOrElse(failure("didn't find org"))
+      assertDbOrg(org.id){ _.contentcolls(0).enabled === true }
 
       service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Read.value, enabled=false)) match {
         case Success(_) => success
         case Failure(e) => failure(s"Unexpected failure: $e")
       }
-      service.findOneById(org.id).map { org => org.contentcolls(0).enabled === false }.getOrElse(failure("didn't find org"))
+
+      assertDbOrg(org.id){ _.contentcolls(0).enabled === false }
     }
 
     "fail when org does not exist" in new TestScope {
@@ -722,7 +740,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     "update the org name in the db" in new TestScope {
       val update = org.copy(name = "update")
       service.updateOrganization(update)
-      service.findOneById(update.id).map(_.name) === Some("update")
+      assertDbOrg(update.id){ _.name === "update" }
     }
     "return the updated org object" in new TestScope {
       val update = org.copy(name = "update")
@@ -735,13 +753,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       val updatedContentcolls = Seq(ContentCollRef(ObjectId.get))
       val update = org.copy(contentcolls = updatedContentcolls)
       service.updateOrganization(update)
-      service.findOneById(update.id).map(_.contentcolls) !== updatedContentcolls
+      assertDbOrg(update.id){_.contentcolls !== updatedContentcolls}
     }
     "not change the metadatasets" in new TestScope {
       val updatedMetadataSets = Seq(MetadataSetRef(ObjectId.get, false))
       val update = org.copy(metadataSets = updatedMetadataSets)
       service.updateOrganization(update)
-      service.findOneById(update.id).map(_.contentcolls) !== updatedMetadataSets
+      assertDbOrg(update.id){_.contentcolls !== updatedMetadataSets}
     }
     "fail when org cannot be found" in new TestScope {
       val update = org.copy(id = ObjectId.get, name = "update")
