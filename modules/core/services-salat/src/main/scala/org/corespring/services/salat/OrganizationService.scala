@@ -262,15 +262,20 @@ class OrganizationService(
   }
 
   override def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
-    val collections = collectionService.getCollectionIds(orgId, Permission.Write, false)
-    if (collections.isEmpty) {
-      collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
-    } else {
-      collectionService.getDefaultCollection(collections)
-      match {
-        case Some(default) => Success(default)
-        case None =>
+    findOneById(orgId) match {
+      case None => Failure(PlatformServiceError(s"Org not found $orgId"))
+      case Some(org) => {
+        val collections = collectionService.getCollectionIds(orgId, Permission.Write, false)
+        if (collections.isEmpty) {
           collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
+        } else {
+          collectionService.getDefaultCollection(collections)
+          match {
+            case Some(default) => Success(default)
+            case None =>
+              collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
+          }
+        }
       }
     }
   }
