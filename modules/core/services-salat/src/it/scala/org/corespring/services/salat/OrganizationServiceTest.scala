@@ -29,7 +29,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     def before: Any = service.insert(org, None)
 
-    def assertCCR(ccr: ContentCollRef, collId: ObjectId, p: Permission, org: ObjectId) = {
+    def assertContentCollRefs(ccr: ContentCollRef, collId: ObjectId, p: Permission, org: ObjectId) = {
       ccr.collectionId === collId
       ccr.pval === p.value
       service.hasCollRef(orgId, ccr) === true
@@ -44,7 +44,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       orgsToFind.length === orgs.length
     }
 
-    def assertEnabled(ref : ContentCollRef, expectedStatus: Boolean) = {
+    def assertContentCollRefEnabled(ref : ContentCollRef, expectedStatus: Boolean) = {
       ref.enabled === expectedStatus
       service.findOneById(org.id).get
         .contentcolls
@@ -59,7 +59,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       val newCollectionId = ObjectId.get
       service.addCollection(orgId, newCollectionId, Permission.Read) match {
         case Failure(e) => failure(s"Unexpected error $e")
-        case Success(ccr) => assertCCR(ccr, newCollectionId, Permission.Read, orgId)
+        case Success(ccr) => assertContentCollRefs(ccr, newCollectionId, Permission.Read, orgId)
       }
     }
 
@@ -67,7 +67,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       val newCollectionId = ObjectId.get
       service.addCollection(orgId, newCollectionId, Permission.Write) match {
         case Failure(e) => failure(s"Unexpected error $e")
-        case Success(ccr) => assertCCR(ccr, newCollectionId, Permission.Write, orgId)
+        case Success(ccr) => assertContentCollRefs(ccr, newCollectionId, Permission.Write, orgId)
       }
     }
 
@@ -93,14 +93,14 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       val ref = ContentCollRef(newCollectionId, Permission.Write.value)
       service.addCollectionReference(orgId, ref) match {
         case Failure(e) => failure(s"Unexpected error $e")
-        case Success(_) => assertCCR(ref, newCollectionId, Permission.Write, orgId)
+        case Success(_) => assertContentCollRefs(ref, newCollectionId, Permission.Write, orgId)
       }
     }
     "not fail when content coll ref is duplicate" in new TestScope {
       val ref = ContentCollRef(collectionId, Permission.Write.value)
       service.addCollectionReference(orgId, ref) match {
         case Failure(e) => failure(s"Unexpected error $e")
-        case Success(_) => assertCCR(ref, collectionId, Permission.Write, orgId)
+        case Success(_) => assertContentCollRefs(ref, collectionId, Permission.Write, orgId)
       }
     }
   }
@@ -169,6 +169,31 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
           val collRef = new ContentCollRef(publicCollection.id, Permission.Read.value, true)
           service.hasCollRef(testOrg.id, collRef) === true
           service.hasCollRef(org.id, collRef) === true
+        }
+      }
+    }
+
+    "give all orgs read access to a public collection" in new AddPublicCollectionScope {
+      service.addPublicCollectionToAllOrgs(publicCollection.id) match {
+        case Failure(e) => failure(s"Unexpected error $e")
+        case Success(_) => {
+          service.canAccessCollection(org.id, publicCollection.id, Permission.Read) === true
+          service.canAccessCollection(testOrg.id, publicCollection.id, Permission.Read) === true
+        }
+      }
+    }
+
+    //TODO Any id can be added as public collection. Shouldn't we be a bit more strict?
+    "succeed adding any id as public collection" in new AddPublicCollectionScope {
+      val fakeId = ObjectId.get
+      service.addPublicCollectionToAllOrgs(fakeId) match {
+        case Failure(e) => failure(s"Unexpected error $e")
+        case Success(_) => {
+          val collRef = new ContentCollRef(fakeId, Permission.Read.value, true)
+          service.hasCollRef(testOrg.id, collRef) === true
+          service.hasCollRef(org.id, collRef) === true
+          service.canAccessCollection(org.id, fakeId, Permission.Read) === true
+          service.canAccessCollection(testOrg.id, fakeId, Permission.Read) === true
         }
       }
     }
@@ -345,7 +370,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     "disable collection for org" in new DisableCollectionScope {
       service.disableCollection(org.id, collectionId) match {
         case Failure(e) => failure(s"Unexpected error with $e")
-        case Success(r) => assertEnabled(r, false)
+        case Success(r) => assertContentCollRefEnabled(r, false)
       }
     }
 
@@ -378,7 +403,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     "enable collection for org" in new EnableCollectionScope {
       service.enableCollection(org.id, collectionId) match {
         case Failure(e) => failure(s"Unexpected error with $e")
-        case Success(r) => assertEnabled(r, true)
+        case Success(r) => assertContentCollRefEnabled(r, true)
       }
     }
 
