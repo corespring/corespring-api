@@ -3,7 +3,7 @@
 /**
  * Controller for editing Item
  */
-function EditItemController($scope, $location, $routeParams, ItemService, $rootScope, MongoQueryUtils, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
+function EditItemController($scope, $location, $routeParams, ItemService, $rootScope, MongoQueryUtils, Select2Adapter, Collection, ServiceLookup, $http, ItemMetadata, Logger, ItemSessionCountService) {
 
   $scope.v2Editor = "/v2/player/editor/" + $routeParams.itemId + "/index.html";
   $scope.filteredDomainValues = {};
@@ -554,7 +554,7 @@ function EditItemController($scope, $location, $routeParams, ItemService, $rootS
     }
   };
 
-  $scope.standardAdapter = new com.corespring.select2.Select2Adapter(
+  $scope.standardAdapter = new Select2Adapter(
     ServiceLookup.getUrlFor('standards'),
     "Choose a standard",
     $scope.createStandardMongoQuery,
@@ -586,7 +586,7 @@ function EditItemController($scope, $location, $routeParams, ItemService, $rootS
 
   $scope.standardAdapter.tags = true;
 
-  $scope.selectPrimarySubject = new com.corespring.select2.Select2Adapter(
+  $scope.selectPrimarySubject = new Select2Adapter(
     ServiceLookup.getUrlFor('subject'),
     {subject: "choose a subject", category: "Subject", id: ""},
     createMongoQuery,
@@ -595,7 +595,7 @@ function EditItemController($scope, $location, $routeParams, ItemService, $rootS
   $scope.selectPrimarySubject.formatResult = subjectFormatResult;
   $scope.selectPrimarySubject.formatSelection = subjectFormatSelection;
 
-  $scope.selectRelatedSubject = new com.corespring.select2.Select2Adapter(
+  $scope.selectRelatedSubject = new Select2Adapter(
     ServiceLookup.getUrlFor('subject'),
     {subject: "choose a subject", category: "Subject", id: ""},
     createMongoQuery,
@@ -655,6 +655,7 @@ EditItemController.$inject = [
   'ItemService',
   '$rootScope',
   'MongoQueryUtils',
+  'Select2Adapter',
   'Collection',
   'ServiceLookup',
   '$http',

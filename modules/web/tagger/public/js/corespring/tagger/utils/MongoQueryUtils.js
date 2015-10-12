@@ -1,7 +1,7 @@
 angular.module('tagger.services')
   .service('MongoQueryUtils',
-  ['$rootScope',
-    function($rootScope) {
+  ['$log',
+    function($log) {
 
       function MongoQueryUtils() {
         function fieldQuery(field, text) {
