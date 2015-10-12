@@ -546,6 +546,18 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         case Failure(e) => failure(s"Unexpected error $e")
       }
     }
+    //TODO Do we really want to be able to remove a public collection from an org?
+    //TODO That seems to be inconsistent with hasAccessToCollection
+    "allow to remove a public collection" in new TestScope {
+      val publicOrg = Organization("Public")
+      val publicCollection = ContentCollection("public", publicOrg.id, isPublic = true)
+      services.contentCollectionService.insertCollection(publicOrg.id, publicCollection, Permission.Write, true)
+      service.addPublicCollectionToAllOrgs(publicCollection.id)
+
+      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) === true
+      service.removeCollection(org.id, publicCollection.id)
+      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) === false
+    }
   }
 
   "removeMetadataSet" should {
