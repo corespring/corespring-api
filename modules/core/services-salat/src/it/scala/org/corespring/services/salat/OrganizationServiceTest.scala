@@ -19,10 +19,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     lazy val orgId: ObjectId = ObjectId.get
     lazy val collectionId: ObjectId = ObjectId.get
     lazy val contentCollRef = ContentCollRef(collectionId = collectionId, Permission.Read.value, enabled=true)
-    lazy val org = Organization(
-      name = "orgservice-test-org",
-      id = orgId,
-      contentcolls = Seq(contentCollRef))
+    lazy val org = Organization(name = "orgservice-test-org", id = orgId, contentcolls = Seq(contentCollRef))
     lazy val setId: ObjectId = ObjectId.get
 
     def after: Any = service.delete(orgId)
