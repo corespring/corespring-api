@@ -47,33 +47,13 @@ class OrganizationService(
     getDefaultCollection(o.id).toOption.map(_.id)
   }
 
-  override def addMetadataSet(orgId: ObjectId, setId: ObjectId, checkExistence: Boolean): Validation[String, MetadataSetRef] = {
-
-    def metadataSetExists(setId: ObjectId) = metadataSetService.findOneById(setId) != None
-
-    def addMetadataSetRef(setId: ObjectId) = try {
-      val ref = MetadataSetRef(setId, true)
-      val wr = dao.update(MongoDBObject(Keys.id -> orgId),
-        MongoDBObject("$push" -> MongoDBObject(Keys.metadataSets -> grater[MetadataSetRef].asDBObject(ref))),
-        false, false)
-      if (wr.getLastError.ok()) {
-        Success(ref)
-      } else {
-        Failure("error while updating organization data")
-      }
-    } catch {
-      case e: SalatDAOUpdateError => Failure("error while updating organization data")
-    }
-
-    if (checkExistence) {
-      if (metadataSetExists(setId)) {
-        addMetadataSetRef(setId)
-      } else {
-        Failure("couldn't find the metadata set")
-      }
-    } else {
-      addMetadataSetRef(setId)
-    }
+  override def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef] = {
+    val ref = MetadataSetRef(setId, true)
+    val wr = dao.update(
+      MongoDBObject(Keys.id -> orgId),
+      MongoDBObject("$push" -> MongoDBObject(Keys.metadataSets -> grater[MetadataSetRef].asDBObject(ref))),
+      false, false)
+    if (wr.getN == 1) Success(ref) else Failure("Error while updating organization $orgId with metadata set $setId")
   }
 
   override def updateOrganization(org: Organization): Validation[PlatformServiceError, Organization] = {
@@ -110,8 +90,8 @@ class OrganizationService(
     val query = MongoDBObject(Keys.id -> orgId, "contentcolls.collectionId" -> collectionId)
     val update = MongoDBObject("$set" -> MongoDBObject("contentcolls.$.enabled" -> enabled))
 
-    dao.update(query, update)
-    getCollRef(orgId, collectionId)
+    val res = dao.update(query, update)
+    if (res.getN == 1) getCollRef(orgId, collectionId) else Failure(PlatformServiceError("Nothing updated"))
   }
 
   override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
@@ -159,7 +139,7 @@ class OrganizationService(
     }.getOrElse(Failure(PlatformServiceError(("Can't find org with id: " + orgId))))
 
   /**
-   * TODO: I'm duplicating hasCollRef, but adjusting the orgsQuery so that it checks that the stored permission
+   * TODO: I'm using hasCollRef with $gte, so that it checks that the stored permission
    * pval is gte than the requested pval.
    * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
    * see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
@@ -169,17 +149,7 @@ class OrganizationService(
     def isRequestForPublicCollection() =
       collectionService.isPublic(collectionId) && permission == Permission.Read
 
-    def hasMatchingCollection() = {
-      val query = MongoDBObject(
-        Keys.id -> orgId,
-        Keys.contentcolls ->
-          MongoDBObject(
-            "$elemMatch" ->
-              MongoDBObject(
-                Keys.collectionId -> collectionId,
-                Keys.pval -> MongoDBObject("$gte" -> permission.value))))
-      dao.count(query) > 0
-    }
+    def hasMatchingCollection() = hasCollRef(orgId, collectionId, permission.value, "$gte")
 
     val access = isRequestForPublicCollection() || hasMatchingCollection()
     logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
@@ -269,8 +239,7 @@ class OrganizationService(
         if (collections.isEmpty) {
           collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
         } else {
-          collectionService.getDefaultCollection(collections)
-          match {
+          collectionService.getDefaultCollection(collections) match {
             case Some(default) => Success(default)
             case None =>
               collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
@@ -373,27 +342,34 @@ class OrganizationService(
     }
   }
 
-  override def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean = {
-    dao.count(MongoDBObject(Keys.id -> orgId,
-      Keys.contentcolls -> MongoDBObject("$elemMatch" ->
-        MongoDBObject(Keys.collectionId -> collRef.collectionId, Keys.pval -> collRef.pval)))) > 0
+  override def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean =
+    hasCollRef(orgId, collRef.collectionId, collRef.pval)
+
+  private def hasCollRef(orgId: ObjectId, collectionId: ObjectId, pval: Long, pCompareOp: String = "$eq"): Boolean = {
+    dao.findOne(
+      MongoDBObject("_id" -> orgId,
+        Keys.contentcolls -> MongoDBObject("$elemMatch" ->
+          MongoDBObject(
+            Keys.collectionId -> collectionId,
+            Keys.pval -> MongoDBObject(pCompareOp -> pval))))).isDefined
   }
 
-  private def getCollRef(orgId: ObjectId, collectionId: ObjectId) = {
+  private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
+    import scalaz.Scalaz._
+
     val query = MongoDBObject(Keys.id -> orgId)
     val projection = MongoDBObject(Keys.contentcolls -> MongoDBObject("$elemMatch" -> MongoDBObject(Keys.collectionId -> collectionId)))
 
+    def getRef(dbo: DBObject) = {
+      import org.corespring.common.mongo.ExpandableDbo.ExpandableDbo
+      for {
+        dboRef <- dbo.expandPath(Keys.contentcolls + ".0")
+        ref <- Some(com.novus.salat.grater[ContentCollRef].asObject(new MongoDBObject(dboRef)))
+      } yield ref
+    }
+
     dao.collection.find(query, projection).toSeq match {
-      case Seq(dbo) => {
-        val dboRefList = dbo.asInstanceOf[DBObject].get(Keys.contentcolls).asInstanceOf[BasicDBList]
-        if(dboRefList.isInstanceOf[BasicDBList] && dboRefList.size() > 0 ) {
-          val dboRef: DBObject = dboRefList.get(0).asInstanceOf[DBObject]
-          val ref: ContentCollRef = com.novus.salat.grater[ContentCollRef].asObject(new MongoDBObject(dboRef))
-          Success(ref)
-        } else {
-          Failure(PlatformServiceError("Organization does not have collection"))
-        }
-      }
+      case Seq(dbo) => getRef(dbo).toSuccess(PlatformServiceError("Organization does not have collection"))
       case _ => Failure(PlatformServiceError("Organization not found"))
     }
   }

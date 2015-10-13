@@ -19,7 +19,7 @@ trait OrganizationService {
 
   def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization]
 
-  def addMetadataSet(orgId: ObjectId, setId: ObjectId, checkExistence: Boolean = true): Validation[String, MetadataSetRef]
+  def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef]
 
   def deleteCollectionFromAllOrganizations(collId: ObjectId): Validation[String, Unit]
 

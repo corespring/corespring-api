@@ -115,41 +115,12 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
   }
 
   "addMetadataSet" should {
-    "if the set does not exist" should {
-      "return an error when checkExistence is the default" in new TestScope {
-        service.addMetadataSet(orgId, setId) must equalTo(Failure("couldn't find the metadata set"))
-      }
-      "return an error when checkExistence = true" in new TestScope {
-        service.addMetadataSet(orgId, setId, true) must equalTo(Failure("couldn't find the metadata set"))
-      }
-      "if checkExistence is false" should {
-        "return the new ref" in new TestScope {
-          service.addMetadataSet(orgId, setId, false) must equalTo(Success(MetadataSetRef(setId, true)))
-        }
-        "add a metadataset to the org" in new TestScope {
-          service.addMetadataSet(orgId, setId, false)
-          assertDbOrg(org.id) {_.metadataSets.length === 1}
-        }
-      }
+    "return the new ref" in new TestScope {
+      service.addMetadataSet(orgId, setId) must equalTo(Success(MetadataSetRef(setId, true)))
     }
-    "if the set exists" should {
-      trait WithSetScope extends TestScope {
-        val metadataSet = new MetadataSet("", "", "")
-        //TODO Can we insert a metadata set only? Update is not the correct method
-        services.metadataSetService.update(metadataSet)
-
-        override def after = {
-          //TODO Can we remove a metadata set only? Delete also tries to update the org
-          services.metadataSetService.delete(ObjectId.get, metadataSet.id)
-          super.after
-        }
-      }
-      "succeed when checkExistence is default" in new WithSetScope {
-        service.addMetadataSet(orgId, metadataSet.id).isSuccess === true
-      }
-      "succeed when checkExistence is true" in new WithSetScope {
-        service.addMetadataSet(orgId, metadataSet.id, true).isSuccess === true
-      }
+    "add a metadataset to the org" in new TestScope {
+      service.addMetadataSet(orgId, setId)
+      assertDbOrg(org.id) {_.metadataSets.length === 1}
     }
   }
 
@@ -668,16 +639,15 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   "removeMetadataSet" should {
 
-
     "remove a metadataset" in new TestScope {
-      service.addMetadataSet(orgId, setId, false)
+      service.addMetadataSet(orgId, setId)
       assertDbOrg(org.id){_.metadataSets.length === 1}
       service.removeMetadataSet(orgId, setId)
       assertDbOrg(org.id){_.metadataSets.length === 0}
     }
 
     "return the metadataset, which has been removed" in new TestScope {
-      service.addMetadataSet(orgId, setId, false)
+      service.addMetadataSet(orgId, setId)
       service.removeMetadataSet(orgId, setId) match {
         case Success(mds) => mds.metadataId === setId
         case Failure(e) => failure(s"Unexpected error $e")

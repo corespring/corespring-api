@@ -54,7 +54,7 @@ class MetadataSetService(
   override def create(orgId: ObjectId, set: MetadataSet): Validation[String, MetadataSet] = {
     dao.insert(set).map {
       oid =>
-        orgService.addMetadataSet(orgId, oid, false).map(_ => set.copy(id = oid))
+        orgService.addMetadataSet(orgId, oid).map(_ => set.copy(id = oid))
     }.getOrElse(Failure("Error creating metadata set"))
   }
 }
