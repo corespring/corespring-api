@@ -17,12 +17,12 @@ trait UserService {
    */
   def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Validation[PlatformServiceError, User]
 
-  def removeUser(username: String): Validation[PlatformServiceError, Unit]
+  def removeUser(userName: String): Validation[PlatformServiceError, Unit]
 
   def removeUser(userId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  def touchLastLogin(userId: String)
-  def touchRegistration(userId: String)
+  def touchLastLogin(userName: String)
+  def touchRegistration(userName: String)
 
   def updateUser(user: User): Validation[PlatformServiceError, User]
 
