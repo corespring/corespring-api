@@ -58,11 +58,11 @@ class ItemService(
     }.getOrElse(base)
   }
 
-  override def asMetadataOnly(i: Item): DBObject = {
+  override def asMetadataOnly(item: Item): DBObject = {
     import com.mongodb.casbah.commons.MongoDBObject
     import com.novus.salat._
-    val timestamped = i.copy(dateModified = Some(new DateTime()))
-    val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(timestamped))
+    val timestampedItem = item.copy(dateModified = Some(new DateTime()))
+    val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(timestampedItem))
     dbo - "_id" - Keys.supportingMaterials - Keys.data - Keys.collectionId
   }
 
@@ -108,10 +108,13 @@ class ItemService(
     Success(id)
   }
 
+
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
-    val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
+    //TODO It was writing to data.playerDefinition before. Is that correct?
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
+
     logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result}")
     Validation.fromEither(result).map(id => true)
   }
@@ -274,8 +277,8 @@ class ItemService(
   }
 
   override def collectionIdForItem(itemId: VersionedId[Imports.ObjectId]): Option[Imports.ObjectId] = {
-    dao.findDbo(itemId.copy(version = None),
-      MongoDBObject("collectionId" -> 1)).flatMap { dbo =>
+    dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).flatMap {
+      dbo =>
         try {
           val idString = dbo.get("collectionId").asInstanceOf[String]
           Some(new ObjectId(idString))
