@@ -343,9 +343,9 @@ class OrganizationService(
   }
 
   override def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean =
-    hasCollRef(orgId, collRef.collectionId, collRef.pval)
+    hasCollRef(orgId, collRef.collectionId, collRef.pval, "$eq")
 
-  private def hasCollRef(orgId: ObjectId, collectionId: ObjectId, pval: Long, pCompareOp: String = "$eq"): Boolean = {
+  private def hasCollRef(orgId: ObjectId, collectionId: ObjectId, pval: Long, pCompareOp: String): Boolean = {
     dao.findOne(
       MongoDBObject("_id" -> orgId,
         Keys.contentcolls -> MongoDBObject("$elemMatch" ->
