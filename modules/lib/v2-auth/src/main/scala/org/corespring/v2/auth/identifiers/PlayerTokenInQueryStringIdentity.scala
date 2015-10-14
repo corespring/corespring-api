@@ -59,10 +59,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
    */
   def playerToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
 
-    val token = rh.getQueryString(Keys.playerToken) match {
-      case Some(token) => Some(token)
-      case _ => rh.getQueryString(Keys.editorToken)
-    }
+    val token = rh.getQueryString(Keys.playerToken).orElse(rh.getQueryString(Keys.editorToken))
 
     token.map(t => (t, None)).orElse {
       val deprecatedOptions = rh.getQueryString(Keys.options)
