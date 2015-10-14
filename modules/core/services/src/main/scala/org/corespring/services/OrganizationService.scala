@@ -81,6 +81,7 @@ trait OrganizationService {
 
   def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean
 
+  @deprecated("use canAccessCollection", "core-refactor")
   def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean
 
   def removeCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Unit]

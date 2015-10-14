@@ -6,6 +6,7 @@ import org.corespring.models.metadata.MetadataSet
 import org.corespring.models.{ ContentCollection, MetadataSetRef, ContentCollRef, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.{ PlatformServiceError, GeneralError }
+import org.specs2.matcher.{ Expectable, Matcher }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
 
@@ -18,7 +19,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     lazy val service = services.orgService
     lazy val orgId: ObjectId = ObjectId.get
     lazy val collectionId: ObjectId = ObjectId.get
-    lazy val contentCollRef = ContentCollRef(collectionId = collectionId, Permission.Read.value, enabled=true)
+    lazy val contentCollRef = ContentCollRef(collectionId = collectionId, Permission.Read.value, enabled = true)
     lazy val org = Organization(name = "orgservice-test-org", id = orgId, contentcolls = Seq(contentCollRef))
     lazy val setId: ObjectId = ObjectId.get
 
@@ -27,26 +28,26 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     def before: Any = service.insert(org, None)
 
     def assertContentCollRefs(ccr: ContentCollRef, collId: ObjectId, p: Permission, org: ObjectId) = {
-      ccr.collectionId === collId
-      ccr.pval === p.value
-      service.hasCollRef(orgId, ccr) === true
+      ccr.collectionId must_== collId
+      ccr.pval must_== p.value
+      service.hasCollRef(orgId, ccr) must_== true
     }
 
     def assertSeqOfOrgs(orgs: Seq[Organization], orgsToFind: Organization*) = {
-      for( orgToFind <- orgsToFind) {
-        if(orgs.find(o => o.id == orgToFind.id) == None){
+      for (orgToFind <- orgsToFind) {
+        if (orgs.find(o => o.id == orgToFind.id) == None) {
           failure(s"Expected to find ${orgToFind.name} in seq")
         }
       }
-      orgsToFind.length === orgs.length
+      orgsToFind.length must_== orgs.length
     }
 
-    def assertContentCollRefEnabled(ref : ContentCollRef, expectedStatus: Boolean) = {
-      ref.enabled === expectedStatus
+    def assertContentCollRefEnabled(ref: ContentCollRef, expectedStatus: Boolean) = {
+      ref.enabled must_== expectedStatus
       service.findOneById(org.id).get
         .contentcolls
         .find(_.collectionId == collectionId)
-        .map(_.enabled) === Some(expectedStatus)
+        .map(_.enabled) must_== Some(expectedStatus)
     }
 
     def orgExistsInDb(orgId: ObjectId) = {
@@ -66,28 +67,22 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "add contentColRef with collection id and read permission" in new TestScope {
       val newCollectionId = ObjectId.get
-      service.addCollection(orgId, newCollectionId, Permission.Read) match {
-        case Failure(e) => failure(s"Unexpected error $e")
-        case Success(ccr) => assertContentCollRefs(ccr, newCollectionId, Permission.Read, orgId)
-      }
+      service.addCollection(orgId, newCollectionId, Permission.Read) must_== Success(ContentCollRef(newCollectionId, Permission.Read.value, false))
+      service.canAccessCollection(orgId, newCollectionId, Permission.Read) must_== true
+      service.canAccessCollection(orgId, newCollectionId, Permission.Write) must_== false
     }
 
     "add contentColRef with collection id and write permission" in new TestScope {
       val newCollectionId = ObjectId.get
-      service.addCollection(orgId, newCollectionId, Permission.Write) match {
-        case Failure(e) => failure(s"Unexpected error $e")
-        case Success(ccr) => assertContentCollRefs(ccr, newCollectionId, Permission.Write, orgId)
-      }
+      service.addCollection(orgId, newCollectionId, Permission.Write) must_== Success(ContentCollRef(newCollectionId, Permission.Write.value, false))
     }
 
     "fail to add contentColRef if it exists already" in new TestScope {
-      service.addCollection(orgId, collectionId, Permission.Read) match {
-        case Failure(e) => success
-        case Success(ccr) => failure(s"Unexpected success")
-      }
+      service.addCollection(orgId, collectionId, Permission.Read).isFailure must_== true
     }
 
     //TODO Do we really want to add two content coll refs with same collection but different permissions?
+    //Ed: I think we should fail if this happens and add an updateCollection function -- or an updateCollection with an 'upsert' option a la mongo.
     "allow to add contentColRef with existing collection id but different perms" in new TestScope {
       service.addCollection(orgId, collectionId, Permission.Write) match {
         case Failure(e) => failure(s"Unexpected error $e")
@@ -120,7 +115,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
     "add a metadataset to the org" in new TestScope {
       service.addMetadataSet(orgId, setId)
-      assertDbOrg(org.id) {_.metadataSets.length === 1}
+      assertDbOrg(org.id) { _.metadataSets.length must_== 1 }
     }
   }
 
@@ -145,8 +140,8 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(_) => {
           val collRef = new ContentCollRef(publicCollection.id, Permission.Read.value, true)
-          service.hasCollRef(testOrg.id, collRef) === true
-          service.hasCollRef(org.id, collRef) === true
+          service.hasCollRef(testOrg.id, collRef) must_== true
+          service.hasCollRef(org.id, collRef) must_== true
         }
       }
     }
@@ -155,8 +150,8 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       service.addPublicCollectionToAllOrgs(publicCollection.id) match {
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(_) => {
-          service.canAccessCollection(org.id, publicCollection.id, Permission.Read) === true
-          service.canAccessCollection(testOrg.id, publicCollection.id, Permission.Read) === true
+          service.canAccessCollection(org.id, publicCollection.id, Permission.Read) must_== true
+          service.canAccessCollection(testOrg.id, publicCollection.id, Permission.Read) must_== true
         }
       }
     }
@@ -168,10 +163,10 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
         case Failure(e) => failure(s"Unexpected error $e")
         case Success(_) => {
           val collRef = new ContentCollRef(fakeId, Permission.Read.value, true)
-          service.hasCollRef(testOrg.id, collRef) === true
-          service.hasCollRef(org.id, collRef) === true
-          service.canAccessCollection(org.id, fakeId, Permission.Read) === true
-          service.canAccessCollection(testOrg.id, fakeId, Permission.Read) === true
+          service.hasCollRef(testOrg.id, collRef) must_== true
+          service.hasCollRef(org.id, collRef) must_== true
+          service.canAccessCollection(org.id, fakeId, Permission.Read) must_== true
+          service.canAccessCollection(testOrg.id, fakeId, Permission.Read) must_== true
         }
       }
     }
@@ -202,28 +197,28 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       }
     }
     "return true when accessing public collection with read permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, publicCollection.id, Permission.Read) === true
+      service.canAccessCollection(org.id, publicCollection.id, Permission.Read) must_== true
     }
     "return false when accessing public collection with write permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, publicCollection.id, Permission.Write) === false
+      service.canAccessCollection(org.id, publicCollection.id, Permission.Write) must_== false
     }
     "return true when accessing own readable collection with read permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, collectionId, Permission.Read) === true
+      service.canAccessCollection(org.id, collectionId, Permission.Read) must_== true
     }
     "return false when accessing own readable collection with write permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, collectionId, Permission.Write) === false
+      service.canAccessCollection(org.id, collectionId, Permission.Write) must_== false
     }
     "return true when accessing own writable collection with read permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, ownWritableCollection.id, Permission.Read) === true
+      service.canAccessCollection(org.id, ownWritableCollection.id, Permission.Read) must_== true
     }
     "return true when accessing own writable collection with write permissions" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, ownWritableCollection.id, Permission.Write) === true
+      service.canAccessCollection(org.id, ownWritableCollection.id, Permission.Write) must_== true
     }
     "return false when accessing collection of other org with read permission" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, testOrgWritableCollection.id, Permission.Read) === false
+      service.canAccessCollection(org.id, testOrgWritableCollection.id, Permission.Read) must_== false
     }
     "return false when accessing collection of other org with write permission" in new CanAccessCollectionScope {
-      service.canAccessCollection(org.id, testOrgWritableCollection.id, Permission.Write) === false
+      service.canAccessCollection(org.id, testOrgWritableCollection.id, Permission.Write) must_== false
     }
   }
 
@@ -231,12 +226,12 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "change the org name" in new TestScope {
       service.changeName(org.id, "update")
-      assertDbOrg(org.id){_.name === "update"}
+      assertDbOrg(org.id) { _.name must_== "update" }
     }
 
     "return the org id" in new TestScope {
       service.changeName(org.id, "update") match {
-        case Success(orgId) => orgId === org.id
+        case Success(orgId) => orgId must_== org.id
         case Failure(e) => failure(s"Unexpected error $e")
       }
     }
@@ -259,7 +254,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
       service.defaultCollection(org.id) match {
         case None => failure(s"Unexpected error")
-        case Some(colId) => colId === defaultCollection.id
+        case Some(colId) => colId must_== defaultCollection.id
       }
     }
     "fail if org does not exist" in new TestScope {
@@ -289,16 +284,16 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     }
     "remove the org itself" in new DeleteScope {
-      orgExistsInDb(org.id) === true
+      orgExistsInDb(org.id) must_== true
       service.delete(org.id)
-      orgExistsInDb(org.id) === false
+      orgExistsInDb(org.id) must_== false
     }
     "remove all the child orgs too" in new DeleteScope {
-      orgExistsInDb(childOrgOne.id) === true
-      orgExistsInDb(childOrgTwo.id) === true
+      orgExistsInDb(childOrgOne.id) must_== true
+      orgExistsInDb(childOrgTwo.id) must_== true
       service.delete(org.id)
-      orgExistsInDb(childOrgOne.id) === false
-      orgExistsInDb(childOrgTwo.id) === false
+      orgExistsInDb(childOrgOne.id) must_== false
+      orgExistsInDb(childOrgTwo.id) must_== false
     }
     "not fail if the org does not exist" in new DeleteScope {
       service.delete(ObjectId.get) match {
@@ -325,13 +320,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "remove the collection from all orgs" in new DeleteCollectionScope {
-      service.hasCollRef(org.id, contentCollRef) === true
-      service.hasCollRef(testOrg.id, contentCollRef) === true
+      service.hasCollRef(org.id, contentCollRef) must_== true
+      service.hasCollRef(testOrg.id, contentCollRef) must_== true
 
       service.deleteCollectionFromAllOrganizations(collectionId)
 
-      service.hasCollRef(org.id, contentCollRef) === false
-      service.hasCollRef(testOrg.id, contentCollRef) === false
+      service.hasCollRef(org.id, contentCollRef) must_== false
+      service.hasCollRef(testOrg.id, contentCollRef) must_== false
     }
   }
 
@@ -404,7 +399,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     "return Some(org) if it can be found" in new TestScope {
       service.findOneById(org.id) match {
         case None => failure("Unexpected error")
-        case Some(o) => o.id === org.id
+        case Some(o) => o.id must_== org.id
       }
     }
     "return None if org does not exist" in new TestScope {
@@ -425,13 +420,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       org1.id !== org2.id
       service.findOneByName("X") match {
         case None => failure("Unexpected error")
-        case Some(o) => o.id === org1.id
+        case Some(o) => o.id must_== org1.id
       }
     }
     "return Some(org), if it can be found" in new TestScope {
       service.findOneByName(org.name) match {
         case None => failure("Unexpected error")
-        case Some(o) => o.id === org.id
+        case Some(o) => o.id must_== org.id
       }
     }
     "return None, if name is not in db" in new TestScope {
@@ -455,7 +450,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
       service.getDefaultCollection(org.id) match {
         case Failure(e) => failure(s"Unexpected error: $e")
-        case Success(col) => col.id === defaultCollection.id
+        case Success(col) => col.id must_== defaultCollection.id
       }
     }
     "fail if org does not exist" in new TestScope {
@@ -484,7 +479,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "return empty seq if no org has access to collection" in new GetOrgsScope {
       val orgs = service.getOrgsWithAccessTo(ObjectId.get).toSeq
-      orgs === Seq.empty
+      orgs must_== Seq.empty
     }
 
   }
@@ -511,7 +506,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "return empty seq when org does not exist" in new GetTreeScope {
-      service.getTree(ObjectId.get) === Seq.empty
+      service.getTree(ObjectId.get) must_== Seq.empty
     }
     "return just org when it does not have any children" in new GetTreeScope {
       assertSeqOfOrgs(service.getTree(childOne.id), childOne)
@@ -526,13 +521,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   "hasCollRef" should {
     "return true when collectionId and permissions are correct" in new TestScope {
-      service.hasCollRef(org.id, ContentCollRef(collectionId, Permission.Read.value)) === true
+      service.hasCollRef(org.id, ContentCollRef(collectionId, Permission.Read.value)) must_== true
     }
     "return false when collectionId is not correct" in new TestScope {
-      service.hasCollRef(org.id, ContentCollRef(ObjectId.get, Permission.Read.value)) === false
+      service.hasCollRef(org.id, ContentCollRef(ObjectId.get, Permission.Read.value)) must_== false
     }
     "return false when permission is not correct" in new TestScope {
-      service.hasCollRef(org.id, ContentCollRef(collectionId, Permission.Write.value)) === false
+      service.hasCollRef(org.id, ContentCollRef(collectionId, Permission.Write.value)) must_== false
     }
   }
 
@@ -547,13 +542,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       }
     }
     "add the org to the db" in new InsertScope {
-      assertDbOrg(org.id){ _.id === org.id }
+      assertDbOrg(org.id) { _.id must_== org.id }
     }
     "add org's own id to the paths if parent is None" in new InsertScope {
-      assertDbOrg(org.id){_.path === Seq(org.id)}
+      assertDbOrg(org.id) { _.path must_== Seq(org.id) }
     }
     "add the parent's id to the paths if parent is not None" in new InsertScope {
-      assertDbOrg(childOrg.id){_.path === Seq(childOrg.id, org.id)}
+      assertDbOrg(childOrg.id) { _.path must_== Seq(childOrg.id, org.id) }
     }
   }
 
@@ -568,13 +563,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "return true, when child has been inserted with parent" in new IsChildScope {
-      service.isChild(org.id, childOrg.id) === true
+      service.isChild(org.id, childOrg.id) must_== true
     }
     "return false, when child does not exist" in new IsChildScope {
-      service.isChild(org.id, ObjectId.get) === false
+      service.isChild(org.id, ObjectId.get) must_== false
     }
     "return false, when parent does not exist" in new IsChildScope {
-      service.isChild(ObjectId.get, childOrg.id) === false
+      service.isChild(ObjectId.get, childOrg.id) must_== false
     }
   }
 
@@ -592,24 +587,24 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "return parent only, when deep = false" in new OrgsWithPathScope {
-      assertSeqOfOrgs(service.orgsWithPath(org.id, deep=false), org)
+      assertSeqOfOrgs(service.orgsWithPath(org.id, deep = false), org)
     }
     "return parent and child, when deep = true" in new OrgsWithPathScope {
-      assertSeqOfOrgs(service.orgsWithPath(childOrg.id, deep=true), childOrg, grandChildOrg)
+      assertSeqOfOrgs(service.orgsWithPath(childOrg.id, deep = true), childOrg, grandChildOrg)
     }
     "also returns deeply nested orgs (> one level), when deep = true" in new OrgsWithPathScope {
-      assertSeqOfOrgs(service.orgsWithPath(org.id, deep=true), org, childOrg, grandChildOrg)
+      assertSeqOfOrgs(service.orgsWithPath(org.id, deep = true), org, childOrg, grandChildOrg)
     }
   }
 
   "removeCollection" should {
     "remove collection from org" in new TestScope {
-      service.canAccessCollection(org.id, collectionId, Permission.Read) === true
+      service.canAccessCollection(org.id, collectionId, Permission.Read) must_== true
       service.removeCollection(org.id, collectionId) match {
         case Success(u) => success
         case Failure(e) => failure(s"Unexpected error $e")
       }
-      service.canAccessCollection(org.id, collectionId, Permission.Read) === false
+      service.canAccessCollection(org.id, collectionId, Permission.Read) must_== false
     }
     "fail when org does not exist" in new TestScope {
       service.removeCollection(ObjectId.get, collectionId) match {
@@ -631,9 +626,9 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       services.contentCollectionService.insertCollection(publicOrg.id, publicCollection, Permission.Write, true)
       service.addPublicCollectionToAllOrgs(publicCollection.id)
 
-      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) === true
+      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) must_== true
       service.removeCollection(org.id, publicCollection.id)
-      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) === false
+      service.hasCollRef(orgId, ContentCollRef(publicCollection.id)) must_== false
     }
   }
 
@@ -641,15 +636,15 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "remove a metadataset" in new TestScope {
       service.addMetadataSet(orgId, setId)
-      assertDbOrg(org.id){_.metadataSets.length === 1}
+      assertDbOrg(org.id) { _.metadataSets.length must_== 1 }
       service.removeMetadataSet(orgId, setId)
-      assertDbOrg(org.id){_.metadataSets.length === 0}
+      assertDbOrg(org.id) { _.metadataSets.length must_== 0 }
     }
 
     "return the metadataset, which has been removed" in new TestScope {
       service.addMetadataSet(orgId, setId)
       service.removeMetadataSet(orgId, setId) match {
-        case Success(mds) => mds.metadataId === setId
+        case Success(mds) => mds.metadataId must_== setId
         case Failure(e) => failure(s"Unexpected error $e")
       }
     }
@@ -672,24 +667,24 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
   "updateCollection" should {
     //TODO We cannot update the perms?
     "not allow to change the permissions" in new TestScope {
-      service.canAccessCollection(org.id, collectionId, Permission.Write) === false
+      service.canAccessCollection(org.id, collectionId, Permission.Write) must_== false
       service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Write.value)) match {
         case Success(_) => failure("Unexpected success")
         case Failure(e) => e must haveClass[GeneralError]
       }
-      service.canAccessCollection(org.id, collectionId, Permission.Write) === false
+      service.canAccessCollection(org.id, collectionId, Permission.Write) must_== false
     }
 
     //TODO How are we using enabled?
     "allow to change enabled" in new TestScope {
-      assertDbOrg(org.id){ _.contentcolls(0).enabled === true }
+      assertDbOrg(org.id) { _.contentcolls(0).enabled must_== true }
 
-      service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Read.value, enabled=false)) match {
+      service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Read.value, enabled = false)) match {
         case Success(_) => success
         case Failure(e) => failure(s"Unexpected failure: $e")
       }
 
-      assertDbOrg(org.id){ _.contentcolls(0).enabled === false }
+      assertDbOrg(org.id) { _.contentcolls(0).enabled must_== false }
     }
 
     "fail when org does not exist" in new TestScope {
@@ -710,12 +705,12 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     "update the org name in the db" in new TestScope {
       val update = org.copy(name = "update")
       service.updateOrganization(update)
-      assertDbOrg(update.id){ _.name === "update" }
+      assertDbOrg(update.id) { _.name must_== "update" }
     }
     "return the updated org object" in new TestScope {
       val update = org.copy(name = "update")
       service.updateOrganization(update) match {
-        case Success(o) => o.name === "update"
+        case Success(o) => o.name must_== "update"
         case Failure(e) => failure(s"Unexpected error $e")
       }
     }
@@ -723,13 +718,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       val updatedContentcolls = Seq(ContentCollRef(ObjectId.get))
       val update = org.copy(contentcolls = updatedContentcolls)
       service.updateOrganization(update)
-      assertDbOrg(update.id){_.contentcolls !== updatedContentcolls}
+      assertDbOrg(update.id) { _.contentcolls !== updatedContentcolls }
     }
     "not change the metadatasets" in new TestScope {
       val updatedMetadataSets = Seq(MetadataSetRef(ObjectId.get, false))
       val update = org.copy(metadataSets = updatedMetadataSets)
       service.updateOrganization(update)
-      assertDbOrg(update.id){_.contentcolls !== updatedMetadataSets}
+      assertDbOrg(update.id) { _.contentcolls !== updatedMetadataSets }
     }
     "fail when org cannot be found" in new TestScope {
       val update = org.copy(id = ObjectId.get, name = "update")
