@@ -36,6 +36,7 @@ class ItemIndexQueryTest extends Specification {
     val collections = (1 to 5).map(f => new ObjectId().toString)
     val itemTypes = Seq("Multiple Choice", "Short Answer - Fill In The Blank")
     val gradeLevels = Seq("09", "10", "11", "12")
+    val standards = Seq("RI.7.1", "W.7.1b")
     val published = true
     val workflows = Seq("qaReview")
 
@@ -48,6 +49,7 @@ class ItemIndexQueryTest extends Specification {
       "itemTypes": ["${itemTypes.mkString("\",\"")}"],
       "gradeLevels": ["${gradeLevels.mkString("\",\"")}"],
       "published" : $published,
+      "standards" : ["${standards.mkString("\",\"")}"],
       "requiredPlayerWidth" : $requiredPlayerWidth,
       "workflows" : ["${workflows.mkString("\",\"")}"]
     }"""
@@ -64,6 +66,7 @@ class ItemIndexQueryTest extends Specification {
         query.itemTypes must be equalTo (itemTypes)
         query.gradeLevels must be equalTo (gradeLevels)
         query.published must be equalTo (Some(published))
+        query.standards must be equalTo(standards)
         query.workflows must be equalTo (workflows)
         query.requiredPlayerWidth must be equalTo (Some(requiredPlayerWidth))
       }
@@ -118,6 +121,10 @@ class ItemIndexQueryTest extends Specification {
 
           "query on content" in {
             (multiMatch(json) \ "fields").as[Seq[String]] must contain("content")
+          }
+
+          "query on standard" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("standards.dotNotation")
           }
 
         }
@@ -231,6 +238,23 @@ class ItemIndexQueryTest extends Specification {
           val published = false
           Json.toJson(ItemIndexQuery(published = Some(published)))
             .hasTermFilter("published", published) must beTrue
+        }
+      }
+
+    }
+
+    "standards" should {
+
+      "empty" should {
+        "not be included in filter" in {
+          Json.toJson(ItemIndexQuery(standards = Seq.empty)).hasFilter("standards.dotNotation") must beFalse
+        }
+      }
+
+      "nonEmpty" should {
+        "be included as terms filter" in {
+          val standards = Seq("RI.7.1", "W.7.1b")
+          Json.toJson(ItemIndexQuery(standards = standards)).hasTermsFilter("standards.dotNotation", standards) must beTrue
         }
       }
 
