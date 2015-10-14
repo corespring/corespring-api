@@ -103,11 +103,14 @@ class ItemService(
     result.isRight
   }
 
+  override def purge(item:Item) = {
+    purge(item.id)
+  }
+
   override def purge(id: VersionedId[ObjectId]) = {
     dao.delete(id)
     Success(id)
   }
-
 
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
@@ -272,11 +275,11 @@ class ItemService(
     dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
 
-  override def countItemsInCollection(collectionId: Imports.ObjectId): Long = {
+  override def countItemsInCollection(collectionId: ObjectId): Long = {
     dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
   }
 
-  override def collectionIdForItem(itemId: VersionedId[Imports.ObjectId]): Option[Imports.ObjectId] = {
+  override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
     dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).flatMap {
       dbo =>
         try {

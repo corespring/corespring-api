@@ -55,6 +55,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
   /** Completely remove the item from the system. */
   def purge(id: VersionedId[ObjectId]): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
+  def purge(item: Item): Validation[PlatformServiceError, VersionedId[ObjectId]]
+
   def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
