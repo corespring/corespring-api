@@ -1,5 +1,6 @@
 package org.corespring.services.salat
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
@@ -7,7 +8,7 @@ import grizzled.slf4j.Logger
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
-import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
 import org.corespring.services.errors._
@@ -138,6 +139,7 @@ class ContentCollectionService(
 
     val orgs = organizationService.orgsWithPath(orgId, deep)
 
+    logger.trace(s"function=getContentCollRefs, orgId=$orgId, orgs=$orgs")
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
       acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
@@ -296,7 +298,20 @@ class ContentCollectionService(
   override def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
     val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
     val query = ("_id" $in refs)
+    logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query")
     dao.find(query).toStream
+  }
+
+  override def listAllCollectionsAvailableForOrg(orgId: Imports.ObjectId): Stream[CollectionInfo] = {
+
+    logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId")
+    val refs = getContentCollRefs(orgId, Permission.Read)
+    listCollectionsByOrg(orgId)
+      .filterNot(_.id == archiveCollectionId)
+      .map { c =>
+        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval)).getOrElse(Permission.None)
+        CollectionInfo(c, itemCount(c.id), orgId, permission)
+      }
   }
 
   override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {

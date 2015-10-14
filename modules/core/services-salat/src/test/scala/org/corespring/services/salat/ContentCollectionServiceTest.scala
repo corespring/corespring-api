@@ -121,3 +121,4 @@ class ContentCollectionServiceTest extends Specification with Mockito {
   }
 
 }
+

@@ -21,8 +21,8 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
   sequential
 
-  val contentCollectionId = ObjectId.get
-  val orgId = ObjectId.get
+  protected val archiveContentCollectionId = ObjectId.get
+  protected val archiveOrgId = ObjectId.get
 
   protected def clearDb() = {
     logger.debug(s"function=clearDb - dropping db")
@@ -38,7 +38,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   lazy val services = new SalatServices {
     override def db: MongoDB = DbSingleton.db
 
-    override def archiveConfig: ArchiveConfig = ArchiveConfig(contentCollectionId, orgId)
+    override def archiveConfig: ArchiveConfig = ArchiveConfig(archiveContentCollectionId, archiveOrgId)
 
     override def bucket: Bucket = Bucket(System.getenv("AWS_BUCKET"))
 

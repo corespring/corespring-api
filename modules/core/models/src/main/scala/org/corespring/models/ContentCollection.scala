@@ -1,6 +1,7 @@
 package org.corespring.models
 
 import com.mongodb.casbah.Imports._
+import org.corespring.models.auth.Permission
 
 /**
  * A ContentCollection
@@ -12,6 +13,11 @@ case class ContentCollection(
   ownerOrgId: ObjectId,
   isPublic: Boolean = false,
   id: ObjectId = new ObjectId())
+
+case class CollectionInfo(contentCollection: ContentCollection,
+  itemCount: Long,
+  orgId: ObjectId,
+  orgPermission: Permission)
 
 object ContentCollection {
   val Default = "default"

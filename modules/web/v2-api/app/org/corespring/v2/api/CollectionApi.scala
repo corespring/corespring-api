@@ -2,8 +2,8 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.corespring.models.json.{ CollectionInfoWrites, JsonFormatting }
+import org.corespring.models._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.item.ItemAggregationService
@@ -252,9 +252,13 @@ class CollectionApi(
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
 
     Future {
+
+      implicit val writes = CollectionInfoWrites
+
       getOrgAndOptionsFn(request).map { identity =>
-        val collectionList = contentCollectionService.listCollectionsByOrg(identity.org.id)
-        Ok(Json.toJson(collectionList.toSeq))
+        val infoList = contentCollectionService
+          .listAllCollectionsAvailableForOrg(identity.org.id)
+        Ok(Json.toJson(infoList.toSeq))
       }.getOrElse(Unauthorized)
     }
   }
