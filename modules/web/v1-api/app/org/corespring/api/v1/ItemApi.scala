@@ -9,6 +9,7 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
+import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.{ TaskInfo, Item }
@@ -34,6 +35,7 @@ import scalaz.{ Failure, Success, _ }
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(
+  v2ItemApi: org.corespring.v2.api.ItemApi,
   s3service: S3Service,
   service: ItemService,
   salatService: SalatContentService[Item, _],
@@ -200,17 +202,7 @@ class ItemApi(
   /**
    * Deletes the item matching the id specified
    */
-  def delete(id: VersionedId[ObjectId]) = ApiAction { request =>
-    val out: Validation[String, SimpleResult] = for {
-      dbo <- service.findFieldsById(id, MongoDBObject(Keys.collectionId -> 1)).toSuccess(s"Can't find collectionId for item: $id")
-      collectionId <- dbo.expand[String](Keys.collectionId).toSuccess(s"Can't read 'collectionId' as a string")
-      _ <- if (isCollectionAuthorized(request.ctx.orgId, collectionId, Permission.Write)) Success() else Failure(s"org: ${request.ctx.org.name} doesnt have access to $collectionId")
-      _ <- service.moveItemToArchive(id).toSuccess(s"Failed to delete item")
-    } yield {
-      Ok("")
-    }
-    out.fold(e => BadRequest(e), r => r)
-  }
+  def delete(id: VersionedId[ObjectId]) = v2ItemApi.delete(id.toString)
 
   private def itemFromJson(json: JsValue): Item = {
     json.asOpt[Item].getOrElse {

@@ -9,26 +9,17 @@ class V1ItemApiDeleteIntegrationTest extends IntegrationSpecification with PlayS
 
   val Routes = org.corespring.api.v1.routes.ItemApi
 
-  trait scope extends orgWithAccessTokenAndItem with TokenRequestBuilder {
-
-  }
+  trait scope extends orgWithAccessTokenAndItem with TokenRequestBuilder
 
   "delete" should {
 
     "move the item to the archiveCollection" in new scope {
-
       val call = Routes.delete(itemId)
-
       val request = makeRequest(call)
-
       val item = ItemHelper.get(itemId)
-
-      println(s"item collection id : ${item.get.collectionId}")
-      println(s"our id: $collectionId")
       route(request).map { r =>
-
-        println(contentAsString(r))
         status(r) === OK
+        ItemHelper.get(itemId).get.collectionId === bootstrap.Main.archiveConfig.contentCollectionId.toString
       }
     }
   }
