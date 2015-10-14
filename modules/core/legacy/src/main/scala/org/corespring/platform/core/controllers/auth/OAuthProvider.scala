@@ -73,14 +73,16 @@ class OAuthProvider(
         if (token.isExpired) {
           Failure(ApiError.ExpiredToken.format(token.expirationDate.toString))
         } else {
-          val org = orgService.findOneById(token.organization)
-          val permission = token.scope.map { username =>
-            userService.getPermissions(username, token.organization).valueOr(_ => Permission.None)
-          }.getOrElse(Permission.Write)
-          val context = new AuthorizationContext(token.organization, token.scope, org, permission, true)
-          Success(context)
+          orgService.findOneById(token.organization).map { org =>
+            val permission = token.scope.map { username =>
+              userService.getPermissions(username, token.organization).valueOr(_ => Permission.None)
+            }.getOrElse(Permission.Write)
+            val context = new AuthorizationContext(token.scope, org, permission, true)
+            Success(context)
+          }.getOrElse {
+            Failure(ApiError.InvalidToken)
+          }
         }
-      case _ => Failure(ApiError.InvalidToken)
     }
   }
 
