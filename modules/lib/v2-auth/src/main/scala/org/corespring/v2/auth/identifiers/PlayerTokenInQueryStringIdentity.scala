@@ -57,7 +57,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
    * @param rh
    * @return
    */
-  def playerToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
+  def checkToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
 
     val token = rh.getQueryString(Keys.playerToken).orElse(rh.getQueryString(Keys.editorToken))
 
@@ -111,7 +111,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     import Scalaz._
 
     val result: Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = for {
-      tokenWithWarning <- playerToken(rh).toSuccess(generalError("can't create player token"))
+      tokenWithWarning <- checkToken(rh).toSuccess(generalError("can't create player token"))
       apiClientId <- apiClientId(rh).toSuccess(noToken(rh))
       decrypted <- decrypt(tokenWithWarning._1, apiClientId, rh).toSuccess(generalError("failed to decrypt"))
       json <- try {
