@@ -1,18 +1,15 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.WriteConcern
-import com.mongodb.{ DBObject, BasicDBList }
-import com.mongodb.casbah.commons.MongoDBObject
-import com.novus.salat.{ Context, grater }
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatRemoveError }
+import com.novus.salat.{ Context, grater }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
-import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
-import org.corespring.models.auth.Permission
 
 import scalaz.{ Failure, Success, Validation }
 
