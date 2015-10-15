@@ -30,7 +30,10 @@ trait JsonFormatting {
   def toPlayerDefinition(json: JsValue): Option[PlayerDefinition] = json.asOpt[PlayerDefinition]
 
   implicit val formatOid = ObjectIdFormat
+
   implicit val formatRegToken = Json.writes[RegistrationToken]
+
+  implicit val writeContentCollRef: Writes[ContentCollRef] = CollectionReferenceWrites
 
   implicit lazy val writesCollectionExtraDetails: Writes[CollectionExtraDetails] = new CollectionExtraDetailsWrites {
     override def itemCount(id: ObjectId): Long = countItemsInCollection(id)

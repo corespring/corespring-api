@@ -150,7 +150,7 @@ trait BaseApi
       ServiceLookup.userService.getPermissions(username, org.id) match {
         case Failure(e) => BadRequest(e.message)
         case Success(p) => {
-          val ctx = new AuthorizationContext(org.id, Option(username), Some(org), p, true)
+          val ctx = new AuthorizationContext(Option(username), org, p, true)
           f(ApiRequest(ctx, request, ""))
         }
       }

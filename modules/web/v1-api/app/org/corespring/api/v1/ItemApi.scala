@@ -9,7 +9,9 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
+import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
@@ -19,11 +21,11 @@ import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.{ OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService
-import org.corespring.v2.sessiondb.{SessionServices}
+import org.corespring.v2.sessiondb.{ SessionServices }
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ SimpleResult, Action, AnyContent, Result }
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
@@ -33,6 +35,7 @@ import scalaz.{ Failure, Success, _ }
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
 class ItemApi(
+  v2ItemApi: org.corespring.v2.api.ItemApi,
   s3service: S3Service,
   service: ItemService,
   salatService: SalatContentService[Item, _],
@@ -180,8 +183,7 @@ class ItemApi(
         if (service.isAuthorized(request.ctx.orgId, id, p).isSuccess) {
           block(request)
         } else {
-          //orgService.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")
-          val orgName = request.ctx.org.map(_.name).getOrElse("unknown org")
+          val orgName = request.ctx.org.name
           val message = "Access forbidden for org: " + orgName
           Forbidden(JsObject(Seq("message" -> JsString(message))))
         }
@@ -197,30 +199,10 @@ class ItemApi(
     searchFields.dbfields
   }
 
-  def delete(id: VersionedId[ObjectId]) = NotImplemented
-
   /**
    * Deletes the item matching the id specified
-   * def delete(id: VersionedId[ObjectId]) = ApiAction {
-   *
-   * import Item.Keys
-   * request =>
-   * service.findFieldsById(id, MongoDBObject(Keys.collectionId -> 1)) match {
-   * case Some(dbObject) => dbObject.get(Keys.collectionId) match {
-   * case collId: String => if (service.isCollectionAuthorized(request.ctx.organization, Some(collId), Permission.Write)) {
-   * service.moveToArchive(id) match {
-   * case Right(_) => Ok(com.mongodb.util.JSON.serialize(dbObject))
-   * case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
-   * }
-   * } else {
-   * Forbidden
-   * }
-   * case _ => Forbidden
-   * }
-   * case _ => NotFound
-   * }
-   * }
    */
+  def delete(id: VersionedId[ObjectId]) = v2ItemApi.delete(id.toString)
 
   private def itemFromJson(json: JsValue): Item = {
     json.asOpt[Item].getOrElse {
@@ -230,7 +212,7 @@ class ItemApi(
 
   private def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
     val ids = contentCollectionService.getCollectionIds(orgId, p)
-    logger.debug("isCollectionAuthorized: " + ids + " collection id: " + collectionId)
+    logger.debug(s"function=isCollectionAuthorized, orgId=$orgId, ids=$ids, collectionId=$collectionId")
     ids.exists(_.toString == id)
   }
 

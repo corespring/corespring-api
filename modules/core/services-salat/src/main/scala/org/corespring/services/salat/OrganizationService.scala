@@ -186,7 +186,10 @@ class OrganizationService(
     val updatedOrg = update(paths)
 
     dao.insert(updatedOrg, dao.collection.writeConcern) match {
-      case Some(id) => Success(updatedOrg)
+      case Some(id) => {
+        logger.trace(s"function=insert, org=$updatedOrg, id=$id")
+        Success(updatedOrg)
+      }
       case None => Failure(PlatformServiceError("error inserting organization"))
     }
   }

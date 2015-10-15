@@ -2,7 +2,7 @@ package web.controllers
 
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.{ User }
-import play.api.libs.json.JsObject
+import play.api.libs.json.{ Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
@@ -12,14 +12,12 @@ object Main extends Controller with securesocial.core.SecureSocial {
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
-
   lazy val defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
     implicit val writeFieldValue = ServiceLookup.jsonFormatting.writesFieldValue
     val fvJson = toJson(fv).as[JsObject]
     val values = fvJson.deepMerge(obj(
       "v2ItemTypes" -> bootstrap.Main.itemType.all,
-      "widgetTypes" -> bootstrap.Main.widgetType.all)
-    )
+      "widgetTypes" -> bootstrap.Main.widgetType.all))
     stringify(values)
   }
 
@@ -31,15 +29,18 @@ object Main extends Controller with securesocial.core.SecureSocial {
       val userId = request.user.identityId
       val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
       implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
+      implicit val writesRef = ServiceLookup.jsonFormatting.writeContentCollRef
 
       (for {
         fv <- defaultValues
         org <- ServiceLookup.orgService.findOneById(user.org.orgId)
       } yield {
-        val userOrgString = stringify(toJson(org))
+        //Add old 'collections' field
+        val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
+        val userOrgString = stringify(legacyJson)
         val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv)
         Ok(html)
-      }).getOrElse{
+      }).getOrElse {
         InternalServerError("could not find organization of user")
       }
   }

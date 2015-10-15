@@ -2,7 +2,7 @@ package org.corespring.services
 
 import com.mongodb.casbah.Imports._
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ Organization, ContentCollRef, ContentCollection }
+import org.corespring.models.{ CollectionInfo, Organization, ContentCollRef, ContentCollection }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
@@ -26,6 +26,8 @@ trait ContentCollectionService {
   def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection]
 
   def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection]
+
+  def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo]
 
   def archiveCollectionId: ObjectId
 
