@@ -91,8 +91,6 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro))
     .dependsOn(coreServices, coreModels)
 
-  lazy val coreLeftovers = builders.lib("leftovers", "core")
-
   /**
    * Core data model
    * lazy val core = builders.lib("core")
