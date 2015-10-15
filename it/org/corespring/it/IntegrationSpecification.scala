@@ -3,6 +3,7 @@ package org.corespring.it
 import akka.util.Timeout
 import bootstrap.Main
 import grizzled.slf4j.Logger
+import org.corespring.services.salat.bootstrap.CollectionNames
 import org.specs2.execute.{ Result, AsResult, Results }
 import org.specs2.mutable.Around
 import play.api.test._
@@ -25,9 +26,12 @@ abstract class IntegrationSpecification
   override implicit def defaultAwaitTimeout: Timeout = 3.seconds
 
   protected def dropDb() = {
-    logger.debug(s"function=dropDb - dropping db")
-    Main.db.dropDatabase()
+    logger.debug(s"function=dropDb - dropping collections")
+    CollectionNames.all.foreach { n =>
+      Main.db(n).dropCollection()
+    }
   }
+
   override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
     logger.debug(s"function=around - dropping db")
     dropDb()
