@@ -30,6 +30,7 @@ import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success }
 
 object CollectionNames {
+
   val contentCollection = "contentcolls"
   val organization = "orgs"
   val accessToken = "accessTokens"
@@ -44,6 +45,22 @@ object CollectionNames {
   val fieldValue = "fieldValues"
   val item = "content"
   val versionedItem = "versioned_content"
+
+  val all = Seq(
+    contentCollection,
+    organization,
+    accessToken,
+    assessment,
+    assessmentTemplate,
+    apiClient,
+    user,
+    metadataSet,
+    registrationToken,
+    standard,
+    subject,
+    fieldValue,
+    item,
+    versionedItem)
 }
 
 case class SalatServicesExecutionContext(ctx: ExecutionContext)

@@ -26,7 +26,12 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
   protected def clearDb() = {
     logger.debug(s"function=clearDb - dropping db")
-    DbSingleton.db.dropDatabase()
+
+    //Note: for speed we just drop the collection
+    val db = DbSingleton.db
+    CollectionNames.all.foreach { n =>
+      db(n).dropCollection()
+    }
   }
 
   protected val logger = Logger(classOf[ServicesSalatIntegrationTest])

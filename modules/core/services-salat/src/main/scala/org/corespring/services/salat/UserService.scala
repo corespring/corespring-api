@@ -1,6 +1,6 @@
 package org.corespring.services.salat
 
-import com.mongodb.{WriteConcern, DBObject}
+import com.mongodb.{ WriteConcern, DBObject }
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
@@ -58,7 +58,7 @@ class UserService(
 
   override def getUserByEmail(email: String): Option[User] = getUser(MongoDBObject("email" -> email))
 
-  private def getUser(query:DBObject) : Option[User] = {
+  private def getUser(query: DBObject): Option[User] = {
     logger.debug(s"[getUser]: query $query")
     val result = dao.findOne(query)
     logger.debug(s"[getUser]: result $result")
@@ -77,12 +77,7 @@ class UserService(
     org.corespring.models.auth.Permission.fromLong(user.org.pval).toSuccess(PlatformServiceError(""))
   }
 
-  override def getUsers(orgId: ObjectId): Validation[PlatformServiceError, Seq[User]] = {
-    val c: SalatMongoCursor[User] = dao.find(MongoDBObject("org.orgId" -> orgId))
-    val returnValue = Success(c.toSeq)
-    c.close()
-    returnValue
-  }
+  override def getUsers(orgId: ObjectId): Stream[User] = dao.find(MongoDBObject("org.orgId" -> orgId)).toStream
 
   override def touchLastLogin(userName: String) = touch(userName, "lastLoginDate")
   override def touchRegistration(userName: String) = touch(userName, "registrationDate")

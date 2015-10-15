@@ -15,6 +15,7 @@ trait UserService {
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
+  @deprecated("refactor to insertUser(User,Permission) instead", "core-refactor")
   def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Validation[PlatformServiceError, User]
 
   def removeUser(userName: String): Validation[PlatformServiceError, Unit]
@@ -43,7 +44,7 @@ trait UserService {
 
   def getUserByEmail(email: String): Option[User]
 
-  def getUsers(orgId: ObjectId): Validation[PlatformServiceError, Seq[User]]
+  def getUsers(orgId: ObjectId): Stream[User]
 
   def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission]
 }

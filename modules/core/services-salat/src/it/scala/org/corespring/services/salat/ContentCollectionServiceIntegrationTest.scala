@@ -15,8 +15,6 @@ import scalaz.{ Validation, Failure, Success }
 class ContentCollectionServiceIntegrationTest
   extends ServicesSalatIntegrationTest {
 
-  def calling(n: String) = s"when calling $n"
-
   "ContentCollectionService" should {
 
     trait scope extends After {
@@ -66,8 +64,8 @@ class ContentCollectionServiceIntegrationTest
         Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
       }
 
-      def itemAuthorizationError(p: Permission, itemIds: VersionedId[ObjectId]*) = {
-        Failure(ItemAuthorizationError(rootOrg.id, p, itemIds: _*))
+      def itemAuthorizationError(orgId: ObjectId, p: Permission, itemIds: VersionedId[ObjectId]*) = {
+        Failure(ItemAuthorizationError(orgId, p, itemIds: _*))
       }
     }
 
@@ -86,10 +84,10 @@ class ContentCollectionServiceIntegrationTest
     }
 
     "shareCollectionWithOrg" should {
-      "should work" in new scope {
-        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) must_== false
+      "share the collection with the org" in new scope {
+        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Failure(_: PlatformServiceError)
         service.shareCollectionWithOrg(writableCollection.id, childOrg.id, Permission.Read)
-        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) must_== true
+        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Success()
       }
     }
 
@@ -145,19 +143,12 @@ class ContentCollectionServiceIntegrationTest
 
       "remove shared item from collection" in new scope {
         service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
-        val res = service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id)
-        res match {
-          case Success(items) => service.isItemSharedWith(itemId, writableCollection.id) must_== false
-          case Failure(error) => failure(s"Unexpected failure: $error")
-        }
+        service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id) must_== Success(Seq(item.id))
+        service.isItemSharedWith(item.id, writableCollection.id) must_== false
       }
 
       "return error when org does not have write permissions for all collections" in new scope {
-        val res = service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id))
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[CollectionAuthorizationError]
-        }
+        service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id)) must_== Failure(_: CollectionAuthorizationError)
       }
     }
 
@@ -173,7 +164,7 @@ class ContentCollectionServiceIntegrationTest
       }
 
       "return error when org cannot read all items" in new scope {
-        service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id) must_== itemAuthorizationError(Permission.Read, item.id)
+        service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id) must_== itemAuthorizationError(childOrg.id, Permission.Read, item.id)
       }
     }
 
@@ -206,21 +197,21 @@ class ContentCollectionServiceIntegrationTest
       "with permission = Read" should {
 
         "return all readable collections for rootOrg" in new getCollectionIds {
-          service.getCollectionIds(rootOrg.id, Permission.Read) must_== Seq(
+          service.getCollectionIds(rootOrg.id, Permission.Read).sorted must_== Seq(
             writableCollection,
             writableCollectionWithItem,
             writableChildOrgCollection,
             readableCollection,
             readableChildOrgCollection,
             defaultCollection,
-            publicCollection).map(_.id)
+            publicCollection).map(_.id).sorted
         }
 
         "return all readable collections for childOrg" in new getCollectionIds {
-          service.getCollectionIds(childOrg.id, Permission.Read) must_== Seq(
+          service.getCollectionIds(childOrg.id, Permission.Read).sorted must_== Seq(
             writableChildOrgCollection,
             readableChildOrgCollection,
-            publicCollection).map(_.id)
+            publicCollection).map(_.id).sorted
         }
       }
     }
@@ -258,23 +249,10 @@ class ContentCollectionServiceIntegrationTest
 
     "listCollectionsByOrg" should {
 
-      trait listCollectionsByOrg extends scope {
-        def assertResult(res: Seq[ContentCollection], cols: ContentCollection*) = {
-          cols.map { col =>
-            res.find(_.id.equals(col.id)) match {
-              case None => failure(s"CollectionId not found: ${col.name} ${col.id}")
-              case _ =>
-            }
-          }
-          if (res.length != cols.length) {
-            failure(s"unexpected difference in length: res: ${res.length} cols: ${cols.length}")
-          }
-        }
-      }
+      trait listCollectionsByOrg extends scope
 
       "list 3 collections for the childOrg" in new listCollectionsByOrg {
-        val cols = service.listCollectionsByOrg(childOrg.id).toSeq
-        assertResult(cols,
+        service.listCollectionsByOrg(childOrg.id) === Stream(
           readableChildOrgCollection,
           writableChildOrgCollection,
           publicCollection)
@@ -529,9 +507,8 @@ class ContentCollectionServiceIntegrationTest
     "create" should {
 
       "create a new collection" in new scope {
-        val col = service.create("my-new-collection", rootOrg).toOption.get
-        service.getCollections(rootOrg.id, Permission.Write).isSuccess must_== true
-        service.delete(col.id)
+        val newCollection = service.create("my-new-collection", rootOrg).toOption
+        service.findOneById(newCollection.get.id) must_== newCollection
       }
     }
 
@@ -539,20 +516,18 @@ class ContentCollectionServiceIntegrationTest
 
       "update name" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), None))
-        service.findOneById(writableCollection.id).get.name must_== "new-name"
-        service.findOneById(writableCollection.id).get.isPublic must_== writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_== Some(writableCollection.copy(name = "new-name"))
       }
 
       "update isPublic" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(None, Some(!writableCollection.isPublic)))
-        service.findOneById(writableCollection.id).get.name must_== writableCollection.name
-        service.findOneById(writableCollection.id).get.isPublic must_== !writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_== Some(writableCollection.copy(isPublic = !writableCollection.isPublic))
       }
 
       "update name and isPublic" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), Some(!writableCollection.isPublic)))
-        service.findOneById(writableCollection.id).get.name must_== "new-name"
-        service.findOneById(writableCollection.id).get.isPublic must_== !writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_==
+          Some(writableCollection.copy(name = "new-name", isPublic = !writableCollection.isPublic))
       }
     }
 
