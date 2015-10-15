@@ -2,7 +2,9 @@
 
 /* global db */
 
-function NcCalculatorAdder() {
+function NcCalculatorAdder(doUpdateData) {
+
+  doUpdateData = doUpdateData === true;
 
   var self = this;
   self.run = run;
@@ -32,33 +34,35 @@ function NcCalculatorAdder() {
   }
 
   function processItems(type, items) {
-    log("processItems: " + type);
+    log("processItems: " + type + " -- does update data:" + doUpdateData);
 
     var updates = 0;
     var wasUpdatedAlready = 0;
     var count = items.count();
 
     items.forEach(updateItem);
-    log("processItems: items processed total:" + count + " updated first time: " + updates + " updated again: " + wasUpdatedAlready);
+    log("processItems: items processed total:" + count + " updated: " + updates);
 
     function updateItem(item) {
       var qti = getQti(item);
       if (!qti) {
         return;
       }
-      if(qti.search(calculatorRegExp) >= 0){
-        wasUpdatedAlready++;
-      }
       var updatedQti = convertQti(qti, item, type);
       if (updatedQti) {
-        db.content.update({
-          "_id": item._id,
-          "data.files.name": "qti.xml",
-        }, {
-          "$set": {
-            "data.files.$.content": updatedQti
-          }
-        });
+        if(doUpdateData) {
+          db.content.update({
+            "_id": item._id,
+            "data.files.name": "qti.xml",
+          }, {
+            "$set": {
+              "data.files.$.content": updatedQti
+            },
+            "$unset": {
+              "playerDefinition": ""
+            }
+          });
+        }
         updates++;
       }
     }
@@ -128,6 +132,7 @@ function NcCalculatorAdder() {
 
 }
 
-//var processor = new NcCalculatorAdder();
-//processor.run();
+//pass in "true" to make it update  the data
+var processor = new NcCalculatorAdder(false);
+processor.run();
 
