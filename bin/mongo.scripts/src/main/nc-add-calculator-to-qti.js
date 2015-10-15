@@ -6,7 +6,7 @@ function NcCalculatorAdder() {
 
   var self = this;
   self.run = run;
-  self.makeQtiConvertFn = makeQtiConvertFn; //for testing
+  self.convertQti = convertQti; //for testing
 
   //------------------------------------
 
@@ -16,11 +16,11 @@ function NcCalculatorAdder() {
   }
 
   function findBasicCalculatorItems() {
-    return findCalculatorItems(["222", "228", "302", "317", "355"]);
+    return findCalculatorItemsBySkillNumber(["222", "228", "302", "317", "355"]);
   }
 
   function findScientificCalculatorItems() {
-    return findCalculatorItems(["127", "150", "173", "181", "191", "194", "200", "204", "205",
+    return findCalculatorItemsBySkillNumber(["127", "150", "173", "181", "191", "194", "200", "204", "205",
       "206", "207", "211", "219", "221", "224", "232", "236", "237", "240", "241", "242", "243",
       "244", "249", "251", "255", "259", "260", "261", "262", "266", "267", "273", "275", "280",
       "284", "285", "291", "299", "300", "308", "309", "319", "320", "322", "323", "324", "325",
@@ -37,7 +37,6 @@ function NcCalculatorAdder() {
     var updates = 0;
     var wasUpdatedAlready = 0;
     var count = items.count();
-    var convertQtiFn = makeQtiConvertFn(type);
 
     items.forEach(updateItem);
     log("processItems: items processed total:" + count + " updated first time: " + updates + " updated again: " + wasUpdatedAlready);
@@ -50,7 +49,7 @@ function NcCalculatorAdder() {
       if(qti.search(calculatorRegExp) >= 0){
         wasUpdatedAlready++;
       }
-      var updatedQti = convertQtiFn(qti, item);
+      var updatedQti = convertQti(qti, item, type);
       if (updatedQti) {
         db.content.update({
           "_id": item._id,
@@ -65,26 +64,22 @@ function NcCalculatorAdder() {
     }
   }
 
-  function makeQtiConvertFn(type){
-    var calculatorId = "automatically-inserted-calculator";
-    var calculatorXhtml = "<csCalculator responseIdentifier=\"" + calculatorId + "\" type=\"" + type + "\"></csCalculator>";
+  function convertQti(qti, item, type) {
     var itemType1 = /<itemBody>/gi;
     var itemType2 = /<div class="item-body">/gi;
+    var calculatorId = "automatically-inserted-calculator";
+    var calculatorXhtml = "<csCalculator responseIdentifier=\"" + calculatorId + "\" type=\"" + type + "\"></csCalculator>";
 
-    return convertQti;
-
-    function convertQti(qti, item) {
-      qti = qti.replace(/You may use a calculator to answer this question\./, "");
-      qti = qti.replace(/<i><\/i>/, "");
-      qti = qti.replace(/<csCalculator.+\/csCalculator>/gi, "");
-      if (qti.search(itemType1) >= 0) return qti.replace(itemType1, "<itemBody>" + calculatorXhtml);
-      if (qti.search(itemType2) >= 0) return qti.replace(itemType2, "<div class=\"item-body\">" + calculatorXhtml);
-      log("WARNING: Unexpected format of qti for item " + itemIdToString(item) + " qti:" + qti);
-      return null;
-    }
+    qti = qti.replace(/You may use a calculator to answer this question\./, "");
+    qti = qti.replace(/<i><\/i>/, "");
+    qti = qti.replace(/<csCalculator.+\/csCalculator>/gi, "");
+    if (qti.search(itemType1) >= 0) return qti.replace(itemType1, "<itemBody>" + calculatorXhtml);
+    if (qti.search(itemType2) >= 0) return qti.replace(itemType2, "<div class=\"item-body\">" + calculatorXhtml);
+    log("WARNING: Unexpected format of qti for item " + itemIdToString(item) + " qti:" + qti);
+    return null;
   }
 
-  function findCalculatorItems(skillNumbers) {
+  function findCalculatorItemsBySkillNumber(skillNumbers) {
     return db.content.find({
       "taskInfo.extended.new_classrooms.skillNumber": {
         "$in": skillNumbers
@@ -133,6 +128,6 @@ function NcCalculatorAdder() {
 
 }
 
-var processor = new NcCalculatorAdder();
-processor.run();
+//var processor = new NcCalculatorAdder();
+//processor.run();
 
