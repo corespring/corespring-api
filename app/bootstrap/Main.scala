@@ -189,10 +189,6 @@ object Main
     override lazy val findSubjectById: (ObjectId) => Option[Subject] = subjectService.findOneById(_)
 
     override lazy val rootOrgId: ObjectId = AppConfig.rootOrgId
-
-    override def countItemsInCollection(collectionId: ObjectId): Long = {
-      itemService.countItemsInCollection(collectionId)
-    }
   }
 
   override lazy val itemDao: VersioningDao[Item, VersionedId[ObjectId]] = {

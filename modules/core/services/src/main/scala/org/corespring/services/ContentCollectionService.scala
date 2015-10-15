@@ -27,6 +27,11 @@ trait ContentCollectionService {
 
   def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection]
 
+  /**
+   * List all collections that the given orgId has access to.
+   * @param orgId
+   * @return a stream of [[CollectionInfo]]
+   */
   def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo]
 
   def archiveCollectionId: ObjectId
@@ -92,7 +97,8 @@ trait ContentCollectionService {
   }
 
   /**
-   * does the given organization have access to the given collection with given permissions?
+   * does the given organization have access to the given collection with given permission.
+   * Aka - can org 'a' 'write' to collection 'c'?
    * @param orgId
    * @param collId
    */

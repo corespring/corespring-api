@@ -18,8 +18,8 @@ case class CollectionAuthorizationError(val org: ObjectId, val p: Permission, va
 case class CollectionInsertError(val collection: ContentCollection, t: Option[Throwable])
   extends PlatformServiceError(s"Error inserting collection ${collection}.", t)
 
-case class ItemAuthorizationError(val org: ObjectId, val p: Permission, val item: VersionedId[ObjectId]*)
-  extends PlatformServiceError(s"Org $org cannot access item(s) ${item} with permission $p.")
+case class ItemAuthorizationError(val org: ObjectId, val p: Permission, val items: VersionedId[ObjectId]*)
+  extends PlatformServiceError(s"Org $org cannot access item(s) $items with permission $p.")
 
 case class ItemNotFoundError(val org: ObjectId, val p: Permission, val item: VersionedId[ObjectId]*)
   extends PlatformServiceError(s"Org $org cannot find item(s) ${item} with permission $p.")

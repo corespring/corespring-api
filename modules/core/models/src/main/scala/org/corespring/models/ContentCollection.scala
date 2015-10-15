@@ -14,6 +14,9 @@ case class ContentCollection(
   isPublic: Boolean = false,
   id: ObjectId = new ObjectId())
 
+/**
+ * Additional information about the content collection and the given orgs access to it.
+ */
 case class CollectionInfo(contentCollection: ContentCollection,
   itemCount: Long,
   orgId: ObjectId,
@@ -22,6 +25,4 @@ case class CollectionInfo(contentCollection: ContentCollection,
 object ContentCollection {
   val Default = "default"
 }
-
-case class CollectionExtraDetails(coll: ContentCollection, access: Long)
 

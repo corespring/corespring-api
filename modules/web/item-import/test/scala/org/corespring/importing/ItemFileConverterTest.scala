@@ -2,10 +2,10 @@ package org.corespring.importing
 
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
-import org.corespring.models.item.resource.{BaseFile, StoredFile}
-import org.corespring.models.item.{FieldValue, Item, StringKeyValue}
+import org.corespring.models.item.resource.{ BaseFile, StoredFile }
+import org.corespring.models.item.{ FieldValue, Item, StringKeyValue }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.models.{Standard, Subject}
+import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
@@ -204,7 +204,7 @@ class ItemFileConverterTest extends Specification with Mockito {
     val itemFileConverter = new ItemFileConverter {
       def bucket: String = "fake bucket"
       def itemService: ItemService = {
-        import org.mockito.{Matchers => MockitoMatchers}
+        import org.mockito.{ Matchers => MockitoMatchers }
         val service = mock[ItemService]
         service.insert(MockitoMatchers.anyObject().asInstanceOf[Item]).returns(Some(new VersionedId[ObjectId](id = new ObjectId(), version = Some(0))))
         service
@@ -222,8 +222,6 @@ class ItemFileConverterTest extends Specification with Mockito {
         override def fieldValue: FieldValue = ItemFileConverterTest.this.fieldValue
 
         override def findStandardByDotNotation: (String) => Option[Standard] = s => None
-
-        override def countItemsInCollection(collectionId: ObjectId): Long = 0
 
         override def rootOrgId: ObjectId = defaultRootOrgId
 

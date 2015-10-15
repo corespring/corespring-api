@@ -23,7 +23,6 @@ trait JsonFormatting {
   def findSubjectById: ObjectId => Option[Subject]
   def findStandardByDotNotation: String => Option[Standard]
   def rootOrgId: ObjectId
-  def countItemsInCollection(collectionId: ObjectId): Long
 
   val itemSummary = new ItemToSummaryWrites(this)
 
@@ -34,10 +33,6 @@ trait JsonFormatting {
   implicit val formatRegToken = Json.writes[RegistrationToken]
 
   implicit val writeContentCollRef: Writes[ContentCollRef] = CollectionReferenceWrites
-
-  implicit lazy val writesCollectionExtraDetails: Writes[CollectionExtraDetails] = new CollectionExtraDetailsWrites {
-    override def itemCount(id: ObjectId): Long = countItemsInCollection(id)
-  }
 
   implicit lazy val writeStandardDomains: Writes[StandardDomains] = StandardDomainsWrites
 

@@ -35,8 +35,6 @@ private[player] class V2PlayerIntegrationSpec extends Specification with Mockito
 
       override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
 
-      override def countItemsInCollection(collectionId: ObjectId): Long = 0
-
       override def rootOrgId: ObjectId = ObjectId.get
 
       override def findSubjectById: (ObjectId) => Option[Subject] = _ => None

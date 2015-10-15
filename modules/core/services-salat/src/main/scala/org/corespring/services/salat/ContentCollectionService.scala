@@ -175,7 +175,7 @@ class ContentCollectionService(
 
     collIds.filterNot(id => orgCollectionIds.contains(id)) match {
       case Nil => Success()
-      case failedCollIds => Failure(CollectionAuthorizationError(orgId, Permission.Write, failedCollIds: _*))
+      case failedCollIds => Failure(CollectionAuthorizationError(orgId, p, failedCollIds: _*))
     }
   }
 

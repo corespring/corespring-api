@@ -75,7 +75,7 @@ class ItemMetadataApiTest
         val oAuthProvider = {
           val m = mock[OAuthProvider]
           m.getAuthorizationContext(any[String]) returns Success(
-            AuthorizationContext(orgId, None, None, Permission.Write, false))
+            AuthorizationContext(None, mockedOrg, Permission.Write, false))
         }
 
         val api: ItemMetadataApi = new ItemMetadataApi(metadataService, setService, oAuthProvider)

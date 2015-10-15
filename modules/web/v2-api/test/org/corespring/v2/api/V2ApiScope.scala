@@ -21,8 +21,6 @@ private[api] trait V2ApiSpec extends PlaySpecification with Mockito with MockFac
 
     override def findStandardByDotNotation: (String) => Option[Standard] = ???
 
-    override def countItemsInCollection(collectionId: ObjectId): Long = ???
-
     override def rootOrgId: ObjectId = ???
 
     override def findSubjectById: (ObjectId) => Option[Subject] = ???

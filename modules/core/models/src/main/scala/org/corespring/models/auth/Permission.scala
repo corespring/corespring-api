@@ -11,6 +11,7 @@ case class Permission(value: Long, name: String) {
 
 object Permission {
 
+  @deprecated("None is not useful, instead use Option[Permission] (AC-251)", "core-refactor")
   val None = new Permission(0, "none")
   val Read = new Permission(1, "read")
   val Write = new Permission(3, "write") // write is 3 instead of two (11 instead of 10) because read permission is implied in write

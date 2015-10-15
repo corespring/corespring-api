@@ -49,8 +49,6 @@ class ItemToSummaryWritesTest extends Specification {
       override def findSubjectById: (ObjectId) => Option[Subject] = {
         (id) => Some(mockSubject)
       }
-
-      override def countItemsInCollection(collectionId: ObjectId): Long = 0
     }
 
     lazy val json = new ItemToSummaryWrites(

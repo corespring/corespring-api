@@ -65,8 +65,6 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
   val jsonFormatting = new JsonFormatting {
     override def findStandardByDotNotation: (String) => Option[Standard] = s => None
 
-    override def countItemsInCollection(collectionId: ObjectId): Long = 0
-
     override def rootOrgId: ObjectId = ObjectId.get
 
     override def fieldValue: FieldValue = new FieldValue()
