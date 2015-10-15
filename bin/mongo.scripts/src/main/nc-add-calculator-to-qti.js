@@ -2,7 +2,7 @@
 
 /* global db */
 
-function NcCalculatorAdder(doUpdateData) {
+function NcCalculatorAdder(doUpdateData, ignoredCollections) {
 
   doUpdateData = doUpdateData === true;
 
@@ -84,11 +84,15 @@ function NcCalculatorAdder(doUpdateData) {
   }
 
   function findCalculatorItemsBySkillNumber(skillNumbers) {
-    return db.content.find({
+    var query = {
       "taskInfo.extended.new_classrooms.skillNumber": {
         "$in": skillNumbers
       }
-    }, {"data.files":1})
+    };
+    if(ignoredCollections && ignoredCollections.length){
+      query.collectionId = {"$nin" : ignoredCollections};
+    }
+    return db.content.find(query, {"data.files":1})
   }
 
   function getQti(item) {
@@ -133,6 +137,7 @@ function NcCalculatorAdder(doUpdateData) {
 }
 
 //pass in "true" to make it update  the data
-var processor = new NcCalculatorAdder(false);
+//pass in the ids of the collections that should be excluded, eg. the archive collection
+var processor = new NcCalculatorAdder(false, []);
 processor.run();
 
