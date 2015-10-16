@@ -8,6 +8,7 @@ import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 
+//TODO: Add new Service [[OrgCollectionsService]] and thin out [[OrganizationService]] and [[ContentCollectionService]]
 trait OrganizationService {
 
   def list(sk: Int = 0, l: Int = 0): Stream[Organization]

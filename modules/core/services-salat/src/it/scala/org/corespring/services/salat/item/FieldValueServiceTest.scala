@@ -1,17 +1,11 @@
 package org.corespring.services.salat.item
 
-import org.bson.types.ObjectId
-import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
 import org.corespring.models.item._
-import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.ContentCollectionService
 import org.corespring.services.salat.ServicesSalatIntegrationTest
-import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
-import org.specs2.mutable.After
 import org.specs2.specification.Scope
 
-import scalaz.{ Failure, Success, Validation }
+import scalaz.Success
 
 class FieldValueServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
@@ -84,9 +78,7 @@ class FieldValueServiceTest extends ServicesSalatIntegrationTest with Mockito {
   "insert" should {
     "insert data into db" in new Scope {
       val fv = mkFieldValue()
-      val res = fieldValueService.insert(fv)
-      res.isSuccess === true
-      res.map(id => id === fv.id)
+      fieldValueService.insert(fv) must_== Success(fv.id)
     }
   }
 
@@ -94,8 +86,7 @@ class FieldValueServiceTest extends ServicesSalatIntegrationTest with Mockito {
     "work" in new Scope {
       val fv = mkFieldValue()
       fieldValueService.insert(fv).getOrElse(failure("insert failed"))
-      val res = fieldValueService.delete(fv.id)
-      res.isSuccess === true
+      fieldValueService.delete(fv.id) must_== Success(fv.id)
     }
   }
 
