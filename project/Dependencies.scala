@@ -6,6 +6,7 @@ object Dependencies {
 
   //V2 Player
   val containerVersion = "0.53.0-SNAPSHOT"
+  val qtiVersion = "0.1-SNAPSHOT"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
@@ -20,6 +21,9 @@ object Dependencies {
   val componentModel = toModule("component-model")
   val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
+
+  val qti = "org.corespring" %% "corespring-qti" % qtiVersion
+  val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
