@@ -3,7 +3,6 @@ package org.corespring.it
 import akka.util.Timeout
 import bootstrap.Main
 import grizzled.slf4j.Logger
-import org.corespring.services.salat.bootstrap.CollectionNames
 import org.specs2.execute.{ Result, AsResult, Results }
 import org.specs2.mutable.Around
 import play.api.test._
@@ -27,7 +26,7 @@ abstract class IntegrationSpecification
 
   protected def dropDb() = {
     logger.debug(s"function=dropDb - dropping collections")
-    CollectionNames.all.foreach { n =>
+    Main.db.collectionNames.filterNot(_.contains("system")).foreach { n =>
       Main.db(n).dropCollection()
     }
   }

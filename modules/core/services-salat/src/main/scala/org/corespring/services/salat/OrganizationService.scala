@@ -397,4 +397,6 @@ class OrganizationService(
       case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
     }
   }
+
+  override def list(sk: Int, l: Int): Stream[Organization] = dao.find(MongoDBObject.empty).skip(sk).limit(l).toStream
 }

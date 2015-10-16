@@ -46,7 +46,7 @@ import org.joda.time.DateTime
 import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
-import play.api.{ Mode, Configuration, Logger, Play }
+import play.api.{ Play, Mode, Configuration, Logger }
 import web.controllers.ShowResource
 
 import scala.concurrent.ExecutionContext

@@ -10,6 +10,8 @@ import scalaz.Validation
 
 trait OrganizationService {
 
+  def list(sk: Int = 0, l: Int = 0): Stream[Organization]
+
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
   def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission

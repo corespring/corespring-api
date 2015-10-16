@@ -88,7 +88,7 @@ object Build extends sbt.Build {
     .dependsOn(coreSalatConfig, coreServices, coreUtils)
 
   lazy val encryption = builders.lib("encryption", "core")
-    .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro))
+    .settings(libraryDependencies ++= Seq(casbah, commonsCodec, macWireMacro, jbcrypt, specs2 % "test"))
     .dependsOn(coreServices, coreModels)
 
   /**
@@ -276,6 +276,7 @@ object Build extends sbt.Build {
       coreModels,
       coreServices,
       coreServicesSalat,
+      coreSalatConfig,
       coreWeb,
       coreJson,
       apiUtils,

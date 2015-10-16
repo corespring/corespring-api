@@ -29,7 +29,8 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
     //Note: for speed we just drop the collection
     val db = DbSingleton.db
-    CollectionNames.all.foreach { n =>
+
+    db.collectionNames.filterNot(_.contains("system")).foreach { n =>
       db(n).dropCollection()
     }
   }
