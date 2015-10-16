@@ -38,8 +38,8 @@ class ItemDrafts(
 
   def collection = draftService.collection
 
-  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
-  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).has(Permission.Write)
+  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).map(_.has(Permission.Write)).getOrElse(false)
+  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).map(_.has(Permission.Write)).getOrElse(false)
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 

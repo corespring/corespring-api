@@ -46,6 +46,6 @@ trait UserService {
 
   def getUsers(orgId: ObjectId): Stream[User]
 
-  def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission]
+  def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Option[Permission]]
 }
 

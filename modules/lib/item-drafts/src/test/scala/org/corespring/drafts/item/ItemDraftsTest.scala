@@ -74,7 +74,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
     val orgService = {
       val m = mock[OrganizationService]
-      m.getOrgPermissionForItem(any[ObjectId], any[VersionedId[ObjectId]]) returns Permission.Write
+      m.getOrgPermissionForItem(any[ObjectId], any[VersionedId[ObjectId]]) returns Some(Permission.Write)
       m
     }
 

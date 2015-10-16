@@ -13,6 +13,7 @@ import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 class UserService(
   val dao: SalatDAO[User, ObjectId],
@@ -65,17 +66,9 @@ class UserService(
     result
   }
 
-  override def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
-    dao.findOne(MongoDBObject("userName" -> username, "org.orgId" -> orgId)) match {
-      case Some(u) => getPermissions(u, orgId)
-      case None => Failure(PlatformServiceError(s"could not find user $username with access to given organization: $orgId"))
-    }
-  }
-
-  private def getPermissions(user: User, orgId: ObjectId): Validation[PlatformServiceError, Permission] = {
-    import scalaz.Scalaz._
-    org.corespring.models.auth.Permission.fromLong(user.org.pval).toSuccess(PlatformServiceError(""))
-  }
+  override def getPermissions(username: String, orgId: ObjectId): Validation[PlatformServiceError, Option[Permission]] = for {
+    u <- dao.findOne(MongoDBObject("userName" -> username, "org.orgId" -> orgId)).toSuccess(PlatformServiceError(s"can't find user with username: $username"))
+  } yield Permission.fromLong(u.org.pval)
 
   override def getUsers(orgId: ObjectId): Stream[User] = dao.find(MongoDBObject("org.orgId" -> orgId)).toStream
 

@@ -234,34 +234,6 @@ class ContentCollectionService(
     }
   }
 
-  /*
-   * Share the items returned by the query with the specified collection.
-   *
-   * @param orgId
-   * @param query
-   * @param collId
-   * @return
-   *
-   *          "add filtered items to a collection" in new CollectionSharingScope {
-   *
-   * publishItemsInCollection(collectionB1)
-   * // this is to support a user searching for a set of items, then adding that set of items to a collection
-   * // share items in collection b1 that are published with collection a1...
-   * val query = s""" {"published":true, "collectionId":{"$$in":["$collectionB1"]} } """
-   * val addFilteredItemsReq = FakeRequest("", s"?q=$query&access_token=$accessTokenA")
-   * val shareItemsResult = CollectionApi.shareFilteredItemsWithCollection(collectionA1, Some(query))(addFilteredItemsReq)
-   * assertResult(shareItemsResult)
-   * val response = parsed[JsNumber](shareItemsResult)
-   * response.toString mustEqual "3"
-   * // check how many items are now available in a1. There should be 6: 3 owned by a1 and 3 shared with a1 from b1
-   * val listReq = FakeRequest(GET, s"/api/v1/collections/$collectionA1/items?access_token=%s".format(accessTokenA))
-   * val listResult = ItemApi.listWithColl(collectionA1, None, None, "10", 0, 10, None)(listReq)
-   * assertResult(listResult)
-   * val itemsList = parsed[List[JsValue]](listResult)
-   * itemsList.size must beEqualTo(6)
-   * }
-   */
-
   /** How many items are associated with this collectionId */
   override def itemCount(collectionId: ObjectId): Long = {
     itemService.count(MongoDBObject("collectionId" -> collectionId.toString))
@@ -308,9 +280,11 @@ class ContentCollectionService(
     val refs = getContentCollRefs(orgId, Permission.Read)
     listCollectionsByOrg(orgId)
       .filterNot(_.id == archiveCollectionId)
-      .map { c =>
-        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval)).getOrElse(Permission.None)
-        CollectionInfo(c, itemCount(c.id), orgId, permission)
+      .flatMap { c =>
+        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
+
+        permission.map(p =>
+          CollectionInfo(c, itemCount(c.id), orgId, p))
       }
   }
 
