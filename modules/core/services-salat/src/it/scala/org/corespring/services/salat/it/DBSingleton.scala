@@ -3,8 +3,8 @@ package org.corespring.services.salat.it
 import com.mongodb.casbah.{ MongoURI, MongoDB, MongoConnection }
 
 object DbSingleton {
-  val dbName = "corespring_platform_core_test"
-  lazy val envUri = System.getenv("CORESPRING_PLATFORM_CORE_TEST_DB_URI")
+  val dbName = "services-salat-integration-test"
+  lazy val envUri = sys.env("CORESPRING_SERVICES_SALAT_TEST_DB_URI")
 
   lazy val mongoUri = {
     val out = if (envUri == null) "mongodb://localhost:27017/" + dbName else envUri

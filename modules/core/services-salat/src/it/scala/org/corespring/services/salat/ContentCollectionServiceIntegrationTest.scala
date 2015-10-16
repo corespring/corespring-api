@@ -58,7 +58,7 @@ class ContentCollectionServiceIntegrationTest
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
 
-      override def after: Any = clearDb()
+      override def after: Any = removeAllData()
 
       def authorizationError[R](p: Permission, colls: ContentCollection*): Validation[CollectionAuthorizationError, R] = {
         Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
@@ -228,7 +228,7 @@ class ContentCollectionServiceIntegrationTest
         service.insertCollection(orgOne.id, readOne, Permission.Read, true)
         service.insertCollection(orgOne.id, publicOne, Permission.Read, true)
 
-        override def after: Any = clearDb()
+        override def after: Any = removeAllData()
       }
 
       "list all the collections for org" in new listAllCollectionsAvailableForOrg {
