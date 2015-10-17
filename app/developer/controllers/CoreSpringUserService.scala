@@ -12,9 +12,6 @@ import securesocial.core._
 import securesocial.core.providers.Token
 import securesocial.core.providers.utils.PasswordHasher
 
-/**
- * An implementation of the UserService
- */
 class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
 
   override def find(id: IdentityId): Option[SocialUser] = {
@@ -53,7 +50,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.identityId.providerId,
             new ObjectId())
 
-        ServiceLookup.userService.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)
+        ServiceLookup.userService.insertUser(corespringUser)
         user
       }
       case Some(existingUser) => {

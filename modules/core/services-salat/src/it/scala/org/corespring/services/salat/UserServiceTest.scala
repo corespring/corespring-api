@@ -20,13 +20,9 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     val user = User(userName = "user_test_name", org = userOrg, provider = "user test provider", email = "user@example.org")
     val nonExistentOrgId = ObjectId.get
 
-    userService.insertUser(user, userOrg.orgId, userPermission)
+    userService.insertUser(user)
 
-    def after {
-      userService.removeUser(user.userName)
-      services.orgService.delete(org.id)
-    }
-
+    def after = removeAllData()
   }
 
   "userService" should {
@@ -115,34 +111,16 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
 
       }
 
-      "replace the org in user with the given organization" in new insertUser {
-        userService.insertUser(newUser, org.id, userPermission) must_== Success(newUser.copy(org = UserOrg(org.id, userPermission.value)))
-      }
-
       "fail if org is not in db" in new insertUser {
-        userService.insertUser(newUser, nonExistentOrgId, userPermission) must_== Failure(_: PlatformServiceError)
-      }
-
-      "fail when checkOrg is true and org is not in db" in new insertUser {
-        userService.insertUser(newUser, nonExistentOrgId, userPermission, checkOrgId = true) must_== Failure(_: PlatformServiceError)
-      }
-
-      "allow to insert a non-existing orgId when checkOrgId is false" in new insertUser {
-        userService.insertUser(newUser, nonExistentOrgId, userPermission, checkOrgId = false) must_==
-          Success(newUser.copy(org = UserOrg(nonExistentOrgId, userPermission.value)))
+        userService.insertUser(newUser.copy(org = UserOrg(nonExistentOrgId, Permission.Write.value))) must_== Failure(_: PlatformServiceError)
       }
 
       "fail when userName is same as an existing user" in new insertUser {
-        userService.insertUser(doppelgaenger, org.id, userPermission) must_== Failure(_: PlatformServiceError)
+        userService.insertUser(doppelgaenger) must_== Failure(_: PlatformServiceError)
       }
 
-      "fail when userName is same as an existing user and checkUsername = true" in new insertUser {
-        userService.insertUser(doppelgaenger, org.id, userPermission, checkUsername = true) must_== Failure(_: PlatformServiceError)
-      }
-
-      "allow to insert a user with the same name as an existing user when checkUsername = false" in new insertUser {
-        userService.insertUser(doppelgaenger, org.id, userPermission, checkUsername = false) must_==
-          Success(doppelgaenger)
+      "insert the user" in new insertUser {
+        userService.getUser(user.userName) must_== Some(user)
       }
     }
 
@@ -205,6 +183,11 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
       "return the updated user" in new scope {
         val updatedUser = userService.updateUser(user.copy(userName = "new")).toOption
         userService.getUser(user.id) must_== updatedUser
+      }
+
+      "not update if userName is already taken by someone else" in new scope {
+        userService.insertUser(User("other-user", org = userOrg))
+        userService.updateUser(user.copy(userName = "other-user")) must_== Failure(_: PlatformServiceError)
       }
 
       "update userName" in new scope {

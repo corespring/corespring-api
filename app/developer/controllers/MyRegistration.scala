@@ -125,7 +125,7 @@ object MyRegistration extends Controller {
 
               val out = for {
                 orgId <- mkNewOrgOrGetDemoOrg
-                user <- ServiceLookup.userService.insertUser(user, orgId, Permission.Write, false)
+                user <- ServiceLookup.userService.insertUser(user.copy(org = UserOrg(orgId, Permission.Write.value)))
               } yield true
 
               out match {

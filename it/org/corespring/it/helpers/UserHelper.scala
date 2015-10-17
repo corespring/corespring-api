@@ -22,7 +22,7 @@ object UserHelper {
       email = Internet.email(fullName),
       org = UserOrg(orgId, permission.value))
 
-    service.insertUser(user, orgId, permission)
+    service.insertUser(user)
     user
   }
 
