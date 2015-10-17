@@ -31,8 +31,15 @@ class UserService(
    * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  override def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean): Validation[PlatformServiceError, User] = {
-    if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
+  //orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean
+  override def insertUser(user: User): Validation[PlatformServiceError, User] = {
+
+    for{
+        _ <- orgService.findOneById(user.org.orgId).toSuccess(PlatformServiceError(s"Can't find org with id: ${user.org.orgId}"))
+        _ <- if(getUser(user.userName).isEmpty) Success() else Failure(PlatformServiceError(s"The username: ${user.userName} already exists"))
+        _ <- dao.insert(user, dao.collection.writeConcern) match {
+    }
+    if (orgService.findOneById(orgId).isDefined) {
       if (!checkUsername || getUser(user.userName).isEmpty) {
         val update = user.copy(org = UserOrg(orgId, p.value))
         dao.insert(update, dao.collection.writeConcern) match {

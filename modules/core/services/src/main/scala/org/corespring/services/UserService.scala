@@ -12,11 +12,9 @@ trait UserService {
   /**
    * insert a user into the database as a member of the given organization, along with their private organization and collection
    * @param user
-   * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  @deprecated("refactor to insertUser(User,Permission) instead", "core-refactor")
-  def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean = true, checkUsername: Boolean = true): Validation[PlatformServiceError, User]
+  def insertUser(user: User): Validation[PlatformServiceError, User]
 
   def removeUser(userName: String): Validation[PlatformServiceError, Unit]
 
