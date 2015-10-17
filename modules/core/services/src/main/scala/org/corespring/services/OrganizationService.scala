@@ -2,7 +2,7 @@ package org.corespring.services
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
+import org.corespring.models.{ MetadataSetRef, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
@@ -13,26 +13,10 @@ trait OrganizationService {
 
   def list(sk: Int = 0, l: Int = 0): Stream[Organization]
 
-  def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
-
   def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission]
 
-  def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
-
-  def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization]
-
+  //TODO: Move to MetadataSetService
   def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef]
-
-  def deleteCollectionFromAllOrganizations(collId: ObjectId): Validation[String, Unit]
-
-  def addCollectionReference(orgId: ObjectId, reference: ContentCollRef): Validation[PlatformServiceError, Unit]
-
-  /**
-   * Add the public collection to all orgs to that they have access to it
-   * @param collectionId
-   * @return
-   */
-  def addPublicCollectionToAllOrgs(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
   /**
    * remove metadata set by id
@@ -40,6 +24,7 @@ trait OrganizationService {
    * @param setId
    * @return maybe an error string
    */
+  //TODO: Move to MetadataSetService
   def removeMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[PlatformServiceError, MetadataSetRef]
 
   def findOneById(orgId: ObjectId): Option[Organization]
@@ -69,21 +54,4 @@ trait OrganizationService {
    */
   @deprecated("legacy function for v1 api - remove once v1 is gone", "core-refactor")
   def getTree(parentId: ObjectId): Seq[Organization]
-
-  def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean
-
-  def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean
-
-  def removeCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Unit]
-
-  def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission]
-
-  def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef]
-
-  /** Enable this collection for this org */
-  def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
-
-  /** Enable the collection for the org */
-  def disableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
-
 }
