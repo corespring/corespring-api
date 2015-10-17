@@ -48,26 +48,6 @@ class OrganizationService(
     if (wr.getN == 1) Success(ref) else Failure("Error while updating organization $orgId with metadata set $setId")
   }
 
-  override def updateOrganization(org: Organization): Validation[PlatformServiceError, Organization] = {
-    val result = changeName(org.id, org.name)
-    logger.debug(s"function=updateOrganization, change name result=$result")
-    dao.findOneById(org.id) match {
-      case None => Failure(PlatformServiceError(s"org with id: $org.id not found"))
-      case Some(o) => Success(o)
-    }
-  }
-
-  override def changeName(orgId: ObjectId, name: String): Validation[PlatformServiceError, ObjectId] = try {
-    logger.debug(s"function=changeName, orgId=$orgId, name=$name")
-    val query = MongoDBObject(Keys.id -> orgId)
-    val update = MongoDBObject("$set" -> MongoDBObject(Keys.name -> name))
-    val result = dao.update(query, update, false, false, dao.collection.writeConcern)
-    if (result.getN == 1) Success(orgId) else Failure(PlatformServiceError("Nothing updated"))
-  } catch {
-    case e: SalatDAOUpdateError => Failure(PlatformServiceError("unable to update organization", e))
-    case t: Throwable => Failure(PlatformServiceError("Error updating", t))
-  }
-
   /** Enable this collection for this org */
   override def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     toggleCollectionEnabled(orgId, collectionId, true)
@@ -89,15 +69,6 @@ class OrganizationService(
   override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
     val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collectionId)))
     dao.find(query).toStream
-  }
-
-  override def isChild(parentId: ObjectId, childId: ObjectId): Boolean = {
-    findOneById(childId) match {
-      case Some(child) => {
-        if (child.path.size >= 2) child.path(1) == parentId else false
-      }
-      case None => false
-    }
   }
 
   /**
@@ -230,17 +201,7 @@ class OrganizationService(
     })
   }
 
-  @deprecated("use getDefaultCollection instead", "1.0")
-  override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
-    getDefaultCollection(oid).toOption.map(_.id)
-  }
-
-  @deprecated("use getDefaultCollection instead", "1.0")
-  override def defaultCollection(o: Organization): Option[ObjectId] = {
-    getDefaultCollection(o.id).toOption.map(_.id)
-  }
-
-  override def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
+  override def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
     findOneById(orgId) match {
       case None => Failure(PlatformServiceError(s"Org not found $orgId"))
       case Some(org) => {
@@ -288,15 +249,6 @@ class OrganizationService(
       Success(())
     } catch {
       case e: SalatRemoveError => Failure(PlatformServiceError("failed to destroy organization tree", e))
-    }
-  }
-
-  override def updateCollection(orgId: ObjectId, collRef: ContentCollRef): Validation[PlatformServiceError, ContentCollRef] = {
-    if (!hasCollRef(orgId, collRef)) {
-      Failure(PlatformServiceError("can't update collection, it does not exist in this organization"))
-    } else {
-      removeCollRefFromOrgs(MongoDBObject(Keys.id -> orgId), collRef, false)
-      addCollRefToOrgs(MongoDBObject(Keys.id -> orgId), collRef).map(_ => collRef)
     }
   }
 

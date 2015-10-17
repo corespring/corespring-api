@@ -156,11 +156,6 @@ class ItemDraftHooks(
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = {
     update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
   }
-  //<<<<<<< HEAD
-  //    savePartOfPlayerDef(draftId, json.as[JsObject])
-  //
-  //  //DraftHook
-  //=======
 
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
@@ -173,7 +168,7 @@ class ItemDraftHooks(
 
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
-      orgService.defaultCollection(u.org.id).map { c =>
+      orgService.getOrCreateDefaultCollection(u.org.id).toOption.map { c =>
         ModelItem(
           collectionId = c.toString,
           playerDefinition = Some(PlayerDefinition("")))

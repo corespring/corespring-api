@@ -177,22 +177,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
   }
 
-  "changeName" should {
-
-    "change the org name" in new scope {
-      service.changeName(org.id, "update")
-      service.findOneById(org.id).map(_.name) must_== Some("update")
-    }
-
-    "return the org id" in new scope {
-      service.changeName(org.id, "update") must_== Success(org.id)
-    }
-
-    "return an error if no org is found" in new scope {
-      service.changeName(ObjectId.get, "update") must_== Failure(_: GeneralError)
-    }
-  }
-
   "delete" should {
     trait delete extends scope {
       val childOrgOne = insertOrg("child org one", Some(org.id))
@@ -317,17 +301,17 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
   "getDefaultCollection" should {
     "create new default collection, if it does not exist" in new scope {
       val dummyId = ObjectId.get
-      service.getDefaultCollection(org.id).map(c => c.copy(id = dummyId)) must_== Success(ContentCollection(OrganizationService.Keys.DEFAULT, org.id, false, dummyId))
+      service.getOrCreateDefaultCollection(org.id).map(c => c.copy(id = dummyId)) must_== Success(ContentCollection(OrganizationService.Keys.DEFAULT, org.id, false, dummyId))
     }
 
     "return default collection, if it does exist" in new scope {
       val existing = ContentCollection(OrganizationService.Keys.DEFAULT, org.id, id = ObjectId.get)
       services.contentCollectionService.insertCollection(org.id, existing, Permission.Write, enabled = true)
-      service.getDefaultCollection(org.id).map(_.id) must_== Success(existing.id)
+      service.getOrCreateDefaultCollection(org.id).map(_.id) must_== Success(existing.id)
     }
 
     "fail if org does not exist" in new scope {
-      service.getDefaultCollection(ObjectId.get) must_== Failure(_: PlatformServiceError)
+      service.getOrCreateDefaultCollection(ObjectId.get) must_== Failure(_: PlatformServiceError)
     }
   }
 
@@ -386,22 +370,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "add the parent's id to the paths if parent is not None" in new insert {
       service.findOneById(childOrg.id).map(_.path) must_== Some(Seq(childOrg.id, org.id))
-    }
-  }
-
-  "isChild" should {
-    trait isChild extends scope {
-      val childOrg = insertOrg("child", Some(org.id))
-    }
-
-    "return true, when child has been inserted with parent" in new isChild {
-      service.isChild(org.id, childOrg.id) must_== true
-    }
-    "return false, when child does not exist" in new isChild {
-      service.isChild(org.id, ObjectId.get) must_== false
-    }
-    "return false, when parent does not exist" in new isChild {
-      service.isChild(ObjectId.get, childOrg.id) must_== false
     }
   }
 
@@ -469,48 +437,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
     "fail when metadata set cannot be found" in new scope {
       service.removeMetadataSet(org.id, ObjectId.get) must_== Failure(_: GeneralError)
-    }
-  }
-
-  "updateCollection" should {
-    //TODO We cannot update the perms?
-    "not allow to change the permissions" in new scope {
-      service.canAccessCollection(org.id, collectionId, Permission.Write) must_== false
-      service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Write.value)) must_== Failure(_: GeneralError)
-      service.canAccessCollection(org.id, collectionId, Permission.Write) must_== false
-    }
-
-    //TODO How are we using enabled?
-    "allow to change enabled" in new scope {
-      service.findOneById(org.id).map(_.contentcolls(0).enabled) must_== Some(true)
-      service.updateCollection(orgId, ContentCollRef(collectionId, Permission.Read.value, enabled = false))
-      service.findOneById(org.id).map(_.contentcolls(0).enabled) must_== Some(false)
-    }
-
-    "fail when org does not exist" in new scope {
-      service.updateCollection(ObjectId.get, contentCollRef) must_== Failure(_: GeneralError)
-    }
-
-    "fail when collection does not exist in org" in new scope {
-      service.updateCollection(org.id, ContentCollRef(ObjectId.get, Permission.Write.value)) must_== Failure(_: GeneralError)
-    }
-  }
-
-  "updateOrganization" should {
-    "update the org name in the db" in new scope {
-      val update = org.copy(name = "update")
-      service.updateOrganization(update)
-      service.findOneById(update.id).map(_.name) must_== Some("update")
-    }
-
-    "return the updated org object" in new scope {
-      val update = org.copy(name = "update")
-      service.updateOrganization(update) must_== Success(update)
-    }
-
-    "fail when org cannot be found" in new scope {
-      val update = org.copy(id = ObjectId.get, name = "update")
-      service.updateOrganization(update) must_== Failure(_: GeneralError)
     }
   }
 

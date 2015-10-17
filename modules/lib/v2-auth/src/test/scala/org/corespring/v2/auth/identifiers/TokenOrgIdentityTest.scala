@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ User, Organization }
+import org.corespring.models.{ ContentCollection, User, Organization }
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.AccessTokenService
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
@@ -42,7 +42,9 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
       lazy val orgService: OrganizationService = {
         val m = mock[OrganizationService]
-        m.defaultCollection(any[Organization]) returns defaultCollection
+        m.getOrCreateDefaultCollection(any[ObjectId]) returns defaultCollection.map { id =>
+          Success(ContentCollection(name = "mock", ownerOrgId = ObjectId.get, id = id))
+        }.getOrElse(Failure(PlatformServiceError("no default collection")))
         m.findOneById(any[ObjectId]) returns org.toOption
         m
       }

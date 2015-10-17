@@ -13,6 +13,7 @@ import play.api.mvc._
 import scala.collection.JavaConversions._
 import scala.io.Source
 import scalaz._
+import scalaz.Scalaz._
 
 class ItemImportController(converter: ItemFileConverter,
   userSession: UserSessionOrgIdentity[OrgAndOpts],
@@ -24,21 +25,20 @@ class ItemImportController(converter: ItemFileConverter,
 
   def upload() = Action(parse.multipartFormData) { request =>
 
-    def defaultCollection = getOrgAndOptions(request).map(opts => orgService.defaultCollection(opts.org))
+    val item = for {
+      orgAndOpts <- getOrgAndOptions(request).leftMap(_.message)
+      upload <- request.body.file("file").toSuccess("You need a file")
+      collection <- orgService.getOrCreateDefaultCollection(orgAndOpts.org.id).leftMap(_.message)
+      zip = new ZipFile(upload.ref.file)
+      val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
+        (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
+      }).toMap
+      item <- converter.convert(collection.id.toString)(fileMap).leftMap(_.getMessage)
+    } yield item
 
-    (request.body.file("file"), defaultCollection) match {
-      case (Some(upload), Success(Some(collectionId))) => {
-        val zip = new ZipFile(upload.ref.file)
-        val fileMap = zip.entries.filterNot(_.isDirectory).map(entry => {
-          (entry.getName -> Source.fromInputStream(zip.getInputStream(entry))("ISO-8859-1"))
-        }).toMap
-        converter.convert(collectionId.toString)(fileMap) match {
-          case Success(item) => Ok(item.id.toString)
-          case Failure(error) => BadRequest(error.getMessage)
-        }
-      }
-      case (None, _) => BadRequest("You need a file")
-      case (_, _) => BadRequest("Not logged in")
+    item match {
+      case Success(i) => Ok(i.id.toString)
+      case Failure(msg) => BadRequest(msg)
     }
   }
 

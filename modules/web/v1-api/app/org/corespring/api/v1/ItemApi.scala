@@ -226,7 +226,7 @@ class ItemApi(
             } else {
 
               def withCollectionId(i: Item): Item = if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
-                orgService.getDefaultCollection(request.ctx.orgId).toEither match {
+                orgService.getOrCreateDefaultCollection(request.ctx.orgId).toEither match {
                   case Right(default) => {
                     i.copy(collectionId = default.id.toString)
                   }

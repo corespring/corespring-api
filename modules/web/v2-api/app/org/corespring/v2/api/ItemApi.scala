@@ -52,14 +52,6 @@ class ItemApi(
   private implicit val QueryReads = ItemIndexQuery.ApiReads
   private implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
-  /**
-   * For a known organization (derived from the request) return Some(id)
-   * If it is an unknown user return None
-   * @param identity
-   * @return
-   */
-  def defaultCollection(implicit identity: OrgAndOpts): Option[String] = orgService.defaultCollection(identity.org).map(_.toString)
-
   protected lazy val logger = Logger(classOf[ItemApi])
 
   /**
@@ -82,9 +74,9 @@ class ItemApi(
 
       val out = for {
         identity <- getOrgAndOptions(request)
-        dc <- defaultCollection(identity).toSuccess(noDefaultCollection(identity.org.id))
-        json <- loadJson(dc)(request)
-        validJson <- validatedJson(dc)(json).toSuccess(incorrectJsonFormat(json))
+        dc <- orgService.getOrCreateDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
+        json <- loadJson(dc.id)(request)
+        validJson <- validatedJson(dc.id)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))
         canCreate <- itemAuth.canCreateInCollection(collectionId)(identity)
         item <- validJson.asOpt[Item].toSuccess(invalidJson("can't parse json as Item"))
@@ -290,7 +282,7 @@ class ItemApi(
     }
   }
 
-  private def defaultItem(collectionId: String): JsValue = validatedJson(collectionId)(Json.obj()).get
+  private def defaultItem(collectionId: ObjectId): JsValue = validatedJson(collectionId)(Json.obj()).get
 
   lazy val defaultPlayerDefinition = Json.obj(
     "components" -> Json.obj(),
@@ -309,15 +301,15 @@ class ItemApi(
 
   private def addDefaultPlayerDefinition(json: JsObject): JsObject = addIfNeeded[JsObject](json, "playerDefinition", defaultPlayerDefinition)
 
-  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: String): JsObject = addIfNeeded[String](json, "collectionId", JsString(defaultCollectionId))
+  private def addDefaultCollectionId(json: JsObject, defaultCollectionId: ObjectId): JsObject = addIfNeeded[String](json, "collectionId", JsString(defaultCollectionId.toString))
 
-  private def validatedJson(defaultCollectionId: String)(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
+  private def validatedJson(defaultCollectionId: ObjectId)(raw: JsValue): Option[JsValue] = raw.asOpt[JsObject].map { rawObj =>
     val noId = (rawObj - "id").as[JsObject]
     val steps = addDefaultPlayerDefinition _ andThen (addDefaultCollectionId(_, defaultCollectionId))
     steps(noId)
   }
 
-  private def loadJson(defaultCollectionId: String)(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
+  private def loadJson(defaultCollectionId: ObjectId)(request: Request[AnyContent]): Validation[V2Error, JsValue] = {
 
     def hasJsonHeader: Boolean = {
       val types = Seq("application/json", "text/json")

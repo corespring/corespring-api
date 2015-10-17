@@ -16,11 +16,8 @@ trait OrganizationService {
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
   def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission]
-  @deprecated("use getDefaultCollection instead", "1.0")
-  def defaultCollection(o: Organization): Option[ObjectId]
-  @deprecated("use getDefaultCollection instead", "1.0")
-  def defaultCollection(oid: ObjectId): Option[ObjectId]
-  def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
+
+  def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
   def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization]
 
@@ -49,8 +46,6 @@ trait OrganizationService {
 
   def findOneByName(name: String): Option[Organization]
 
-  //def isRoot(org:Organization) : Boolean
-
   /**
    * insert organization. if parent exists, insert as child of parent, otherwise, insert as root of new nested set tree
    * @param org - the organization to be inserted
@@ -66,19 +61,14 @@ trait OrganizationService {
    */
   def delete(orgId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  @deprecated("use changeName instead", "0.0.1")
-  def updateOrganization(org: Organization): Validation[PlatformServiceError, Organization]
-  def changeName(orgId: ObjectId, name: String): Validation[PlatformServiceError, ObjectId]
-
   /**
    * get all sub-nodes of given organization.
    * if none, or parent could not be found in database, returns empty list
    * @param parentId
    * @return
    */
+  @deprecated("legacy function for v1 api - remove once v1 is gone", "core-refactor")
   def getTree(parentId: ObjectId): Seq[Organization]
-
-  def isChild(parentId: ObjectId, childId: ObjectId): Boolean
 
   def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean
 
@@ -95,7 +85,5 @@ trait OrganizationService {
 
   /** Enable the collection for the org */
   def disableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
-
-  def updateCollection(orgId: ObjectId, collRef: ContentCollRef): Validation[PlatformServiceError, ContentCollRef]
 
 }
