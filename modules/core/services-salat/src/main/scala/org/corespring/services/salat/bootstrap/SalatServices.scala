@@ -17,6 +17,7 @@ import org.corespring.models.registration.RegistrationToken
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{ OrgCollectionService, OrgItemSharingService }
 import org.corespring.services.salat._
 import org.corespring.services.salat.assessment.{ AssessmentService, AssessmentTemplateService }
 import org.corespring.services.salat.auth.{ AccessTokenService, ApiClientService }
@@ -193,4 +194,8 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val standardService: interface.StandardService = wire[StandardService]
 
   override lazy val fieldValueService: interface.item.FieldValueService = wire[FieldValueService]
+
+  override def orgCollectionService: interface.OrgCollectionService = wire[OrgCollectionService]
+
+  override def orgItemSharingService: interface.OrgItemSharingService = wire[OrgItemSharingService]
 }
