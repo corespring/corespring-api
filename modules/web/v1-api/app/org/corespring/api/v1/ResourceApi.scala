@@ -3,13 +3,13 @@ package org.corespring.api.v1
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.common.config.AppConfig
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, Resource }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.ContentCollectionService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.sessiondb.{ SessionServices, SessionService }

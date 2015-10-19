@@ -5,12 +5,12 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.container.client.hooks.UploadResult
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.S3Paths
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.{ BaseFile, StoredFile }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
