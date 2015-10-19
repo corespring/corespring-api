@@ -1,38 +1,25 @@
 package org.corespring.platform.core.services.item
 
-import org.corespring.models.JsonUtil
+import org.corespring.platform.core.models.JsonUtil
 import play.api.libs.json._
 
 /**
  * Contains fields used for querying the item index
  */
 case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
-<<<<<<< HEAD
   count: Int = ItemIndexQuery.Defaults.count,
   text: Option[String] = ItemIndexQuery.Defaults.text,
   contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
   collections: Seq[String] = ItemIndexQuery.Defaults.collections,
   itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
+  widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
   gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
   published: Option[Boolean] = ItemIndexQuery.Defaults.published,
+  standards: Seq[String] = ItemIndexQuery.Defaults.standards,
   workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
   sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
   metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
   requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth)
-=======
-                          count: Int = ItemIndexQuery.Defaults.count,
-                          text: Option[String] = ItemIndexQuery.Defaults.text,
-                          contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
-                          collections: Seq[String] = ItemIndexQuery.Defaults.collections,
-                          itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
-                          widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
-                          gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
-                          published: Option[Boolean] = ItemIndexQuery.Defaults.published,
-                          workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
-                          sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
-                          metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
-                          requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth )
->>>>>>> develop
 
 case class Sort(field: String, direction: Option[String])
 
@@ -45,7 +32,7 @@ object Sort {
     "gradeLevel" -> "taskInfo.gradeLevel",
     "itemType" -> "taskInfo.itemTypes",
     "widget" -> "taskInfo.widgets",
-    "standard" -> "taskInfo.standards.dotNotation",
+    "standard" -> "standards.dotNotation",
     "contributor" -> "contributorDetails.contributor")
 
   object ElasticSearchWrites extends Writes[Sort] {
@@ -84,6 +71,7 @@ object ItemIndexQuery {
     val widgets = Seq.empty[String]
     val gradeLevels = Seq.empty[String]
     val published = None
+    val standards = Seq.empty[String]
     val workflows = Seq.empty[String]
     val sort = Seq.empty[Sort]
     val metadata = Map.empty[String, String]
@@ -99,11 +87,13 @@ object ItemIndexQuery {
     val widgets = "widgets"
     val gradeLevels = "gradeLevels"
     val published = "published"
+    val standards = "standards"
     val workflows = "workflows"
     val requiredPlayerWidth = "requiredPlayerWidth"
     val sort = "sort"
     val all =
-      Set(offset, count, text, contributors, collections, itemTypes, widgets, gradeLevels, published, workflows, sort)
+      Set(offset, count, text, contributors, collections, itemTypes, widgets, gradeLevels, published, standards,
+        workflows, sort)
   }
 
   /**
@@ -124,6 +114,7 @@ object ItemIndexQuery {
         widgets = (json \ widgets).asOpt[Seq[String]].getOrElse(Defaults.widgets),
         gradeLevels = (json \ gradeLevels).asOpt[Seq[String]].getOrElse(Defaults.gradeLevels),
         published = (json \ published).asOpt[Boolean],
+        standards = (json \ standards).asOpt[Seq[String]].getOrElse(Defaults.standards),
         workflows = (json \ workflows).asOpt[Seq[String]].getOrElse(Defaults.workflows),
         requiredPlayerWidth = (json \ requiredPlayerWidth).asOpt[Int],
         sort = (json \ sort).asOpt[JsValue].map(sort => Seq(Json.fromJson[Sort](sort)
@@ -190,7 +181,7 @@ object ItemIndexQuery {
       case Some(text) => Some(Json.obj("should" -> Json.arr(
         Json.obj("multi_match" -> Json.obj(
           "query" -> text,
-          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content"),
+          "fields" -> Seq("taskInfo.description", "taskInfo.title", "content", "standards.dotNotation"),
           "type" -> "phrase")),
         Json.obj("ids" -> Json.obj(
           "values" -> Json.arr(text))))))
@@ -219,6 +210,7 @@ object ItemIndexQuery {
               terms("taskInfo.itemTypes", itemTypes),
               terms("taskInfo.widgets", widgets),
               terms("taskInfo.gradeLevel", gradeLevels),
+              terms("standards.dotNotation", standards),
               term("published", published),
               terms("workflow", workflows, Some("and")),
               range("minimumWidth", lte = requiredPlayerWidth)).flatten
