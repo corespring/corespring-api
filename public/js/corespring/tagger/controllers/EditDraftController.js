@@ -49,6 +49,7 @@
     $scope.discardAndLoadFreshCopy = discardAndLoadFreshCopy;
     $scope.discardDraft = discardDraft;
     $scope.ignoreConflict = ignoreConflict;
+    $scope.initialItemLoad = initialItemLoad;
     $scope.loadDraftItem = loadDraftItem;
     $scope.onItemChanged = onItemChanged;
     $scope.publish = publish;
@@ -62,13 +63,16 @@
     $scope.navigationHooks.beforeUnload = angularBeforeUnload;
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
-
-    $scope.discardDraft(function(){
-      $scope.loadDraftItem();
-    });
+    $scope.initialItemLoad();
 
 
     //----------------------------------------
+
+    function initialItemLoad(){
+      $scope.discardDraft(function(){
+        $scope.loadDraftItem();
+      });
+    }
 
     function jqueryBeforeUnload() {
       //jquery expects the method to return the question string
