@@ -51,32 +51,32 @@ This file will look like so:
 Ask someone to provide you with the user password
 
 
-### Testing
-
-Currently our testing is a hybrid of unit and integration tests.
-We are looking to move out the integration tests to the 'it' folder.
-And we plan to remove the db-seeding that is done for the entire test suite.
-Instead each tests will hoist and destroy their own data.
-
+### Unit Tests
 
     play test
 
 ### Integration tests
 
-These tests are more expensive than the unit tests.
+These tests are slower than the unit tests, as they set up a db + s3 etc, but they exercise the web apps endpoints and other parts of the system.
 
 * They run sequentially
-* They boot the play app for each test
+* They boot the play app at the start of the test run
 * They seed and destroy the data they need
 
     play it:test
 
-
-
-To test a single example in a given test run:
+To test a single example in a given test run (works for unit tests and integration tests):
 
     it:test-only *ItemSessionApiTest* -- -ex "1: return 200 and 100% - for multiple choice"
 
+#### Logging in integration tests
+
+Add a logger to `it-resources/application-logger.xml` - it's ignored by git so do what you want there
+
+
+### Regression Testing
+
+see: [corespring-container-regression-tests](https://github.com/corespring/corespring-container-regression-tests)
 
 ### Application configuration
 
@@ -127,7 +127,7 @@ version of play.*
 
 #### Localhost
 
-by default in Dev mode the logger in conf/logger.xml is used.
+by default in Dev mode the logger in conf/application-logger.xml is used.
 
 #### Amazon S3
 
@@ -136,12 +136,9 @@ We use Amazon S3 for deploying files - the management console is here:
 Each deployment uses its own s3 bucket: corespring-assets-${deployment}.
 The developer machines point to corespring-assets-dev for example.
 
-There are some useful utilities for working with the s3 assets: 
+You may find the following tool useful: [aws cli](https://aws.amazon.com/cli/).
 
-* [corespring-assets gem](https://github.com/corespring/corespring-api-assets) - some commands for pulling/pushing buckets and cleaning them.
-* [s3cmd](https://github.com/pearltrees/s3cmd-modification) - a command line utility for working with s3 (modded for parallel speed).
-
-[aws console](https://corespring.signin.aws.amazon.com/console)
+The web ui is here: [aws console](https://corespring.signin.aws.amazon.com/console).
 
 Ask evan for a user account.
 
@@ -162,12 +159,7 @@ Ask evan for a user account or use an account from passpack
 
 ### Dev Tools
 
-Some quick shortcuts for running certain things:
-
-DEV_TOOLS_ENABLED needs to be set to true on the env for this to work:
-
-
-   GET /dev/tools/v2-player/:itemId -> run the item in the new v2 player.
+see: [cs-dev-tools](https://github.com/corespring/cs-dev-tools)
 
 ## Container Configuration
 

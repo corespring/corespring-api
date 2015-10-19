@@ -13,14 +13,7 @@ import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }
 
-class OrganizationService(
-  val dao: SalatDAO[Organization, ObjectId],
-  implicit val context: Context,
-  collectionService: => interface.ContentCollectionService,
-  metadataSetService: interface.metadata.MetadataSetService,
-  itemService: interface.item.ItemService) extends interface.OrganizationService with HasDao[Organization, ObjectId] {
-
-  lazy val logger: Logger = Logger(classOf[OrganizationService])
+object OrganizationService {
 
   object Keys {
     val DEFAULT = "default"
@@ -33,16 +26,18 @@ class OrganizationService(
     val path = "path"
     val pval = "pval"
   }
+}
 
-  @deprecated("use getDefaultCollection instead", "1.0")
-  override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
-    getDefaultCollection(oid).toOption.map(_.id)
-  }
+class OrganizationService(
+  val dao: SalatDAO[Organization, ObjectId],
+  implicit val context: Context,
+  collectionService: => interface.ContentCollectionService,
+  metadataSetService: interface.metadata.MetadataSetService,
+  itemService: interface.item.ItemService) extends interface.OrganizationService with HasDao[Organization, ObjectId] {
 
-  @deprecated("use getDefaultCollection instead", "1.0")
-  override def defaultCollection(o: Organization): Option[ObjectId] = {
-    getDefaultCollection(o.id).toOption.map(_.id)
-  }
+  lazy val logger: Logger = Logger(classOf[OrganizationService])
+
+  import OrganizationService.Keys
 
   override def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef] = {
     val ref = MetadataSetRef(setId, true)
@@ -214,21 +209,35 @@ class OrganizationService(
    * @param collectionId
    * @return
    */
+  //TODO: Adding a content collection with isPublic=true is all that is required to allow access to that collection
+  //Is adding a Ref needed?
+  @deprecated("There is no need to add the ref to all orgs")
   override def addPublicCollectionToAllOrgs(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
-    val query = MongoDBObject.empty
-    //TODO What should the permission be?
-    val collRef = ContentCollRef(collectionId, Permission.Read.value, true)
-    removeCollRefFromOrgs(query, collRef, true)
-    addCollRefToOrgs(query, collRef, true)
+    collectionService.findOneById(collectionId).map { c =>
+      val query = MongoDBObject.empty
+      val collRef = ContentCollRef(collectionId, Permission.Read.value, true)
+      removeCollRefFromOrgs(query, collRef, true)
+      addCollRefToOrgs(query, collRef, true)
+    }.getOrElse(Failure(PlatformServiceError(s"collection does not exist: $collectionId")))
   }
 
-  override def getPermissions(orgId: ObjectId, collId: ObjectId): Permission = {
-    getTree(orgId).foldRight[Permission](Permission.None)((o, p) => {
+  override def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
+    getTree(orgId).foldRight[Option[Permission]](None)((o, p) => {
       o.contentcolls.find(_.collectionId == collId) match {
-        case Some(ccr) => Permission.fromLong(ccr.pval).getOrElse(p)
+        case Some(ccr) => Permission.fromLong(ccr.pval)
         case None => p
       }
     })
+  }
+
+  @deprecated("use getDefaultCollection instead", "1.0")
+  override def defaultCollection(oid: ObjectId): Option[ObjectId] = {
+    getDefaultCollection(oid).toOption.map(_.id)
+  }
+
+  @deprecated("use getDefaultCollection instead", "1.0")
+  override def defaultCollection(o: Organization): Option[ObjectId] = {
+    getDefaultCollection(o.id).toOption.map(_.id)
   }
 
   override def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
@@ -321,8 +330,8 @@ class OrganizationService(
     cursor.toSeq
   }
 
-  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission = {
-    itemService.collectionIdForItem(itemId).map { collectionId =>
+  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission] = {
+    itemService.collectionIdForItem(itemId).flatMap { collectionId =>
       try {
         getPermissions(orgId, collectionId)
       } catch {
@@ -333,16 +342,13 @@ class OrganizationService(
           }
 
           logger.error(t.getMessage)
-          Permission.None
+          None
         }
       }
-    }.getOrElse {
-      logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
-      Permission.None
     }
   }
 
-  override def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean =
+  private def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean =
     hasCollRef(orgId, collRef.collectionId, collRef.pval, "$eq")
 
   private def hasCollRef(orgId: ObjectId, collectionId: ObjectId, pval: Long, pCompareOp: String): Boolean = {

@@ -2,8 +2,7 @@ package org.corespring.services.salat
 
 import org.corespring.models.Subject
 import org.corespring.services.SubjectQuery
-import org.specs2.mutable.{ BeforeAfter, Before }
-import play.api.libs.json.Json
+import org.specs2.mutable.Before
 
 class SubjectServiceTest extends ServicesSalatIntegrationTest {
 

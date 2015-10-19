@@ -37,9 +37,6 @@ class ContentCollectionServiceIntegrationTest
       val defaultCollection = ContentCollection("default", rootOrg.id)
       service.insertCollection(rootOrg.id, defaultCollection, Permission.Read)
 
-      val noPermissionCollection = ContentCollection("no-permission-col", rootOrg.id)
-      service.insertCollection(rootOrg.id, noPermissionCollection, Permission.None)
-
       //collections added to childOrg
       val readableChildOrgCollection = ContentCollection("readable-child-org-col", childOrg.id)
       service.insertCollection(childOrg.id, readableChildOrgCollection, Permission.Read)
@@ -58,7 +55,7 @@ class ContentCollectionServiceIntegrationTest
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
 
-      override def after: Any = clearDb()
+      override def after: Any = removeAllData()
 
       def authorizationError[R](p: Permission, colls: ContentCollection*): Validation[CollectionAuthorizationError, R] = {
         Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
@@ -228,7 +225,7 @@ class ContentCollectionServiceIntegrationTest
         service.insertCollection(orgOne.id, readOne, Permission.Read, true)
         service.insertCollection(orgOne.id, publicOne, Permission.Read, true)
 
-        override def after: Any = clearDb()
+        override def after: Any = removeAllData()
       }
 
       "list all the collections for org" in new listAllCollectionsAvailableForOrg {
@@ -353,6 +350,7 @@ class ContentCollectionServiceIntegrationTest
 
       trait isAuthorized extends scope {
         def p: Permission
+
         def auth(collections: ContentCollection*) = service.isAuthorized(rootOrg.id, collections.map(_.id), p)
 
         def authorizationError[R](collections: ContentCollection*): Validation[CollectionAuthorizationError, R] = authorizationError(p, collections: _*)
@@ -370,14 +368,6 @@ class ContentCollectionServiceIntegrationTest
 
         "return success when collection is writable" in new isReadAuthorized {
           auth(writableCollection) must_== Success()
-        }
-
-        "return failure when collection has permission none" in new isReadAuthorized {
-          auth(noPermissionCollection) must_== authorizationError(noPermissionCollection)
-        }
-
-        "return failure when one collection is not readable" in new isReadAuthorized {
-          auth(readableCollection, noPermissionCollection) must_== authorizationError(noPermissionCollection)
         }
 
         "return success when all collections are readable" in new isReadAuthorized {
@@ -399,42 +389,12 @@ class ContentCollectionServiceIntegrationTest
           auth(writableCollection) must_== Success()
         }
 
-        "return failure when collection has permission none" in new isWriteAuthorized {
-          auth(noPermissionCollection) must_== authorizationError(noPermissionCollection)
-        }
-
         "return failure when one collection is not writable" in new isWriteAuthorized {
           auth(readableCollection, writableCollection) must_== authorizationError(readableCollection)
         }
 
         "return success when all collections are writable" in new isWriteAuthorized {
           auth(writableCollectionWithItem, writableCollection) must_== Success()
-        }
-      }
-
-      /**
-       * TODO: Permission logic clean up.
-       * below we ask does org x have no permission for collection y? and we get a Success() back
-       * which means 'yes org x doesn't have permission for collection y'
-       * this is a question that can be asked asking if org x has permission read/write for collection y.
-       * So really Permission.None should be removed in favour of Option[Permission]
-       */
-      "with none permission" should {
-
-        trait isNoneAuthorized extends isAuthorized {
-          override def p = Permission.None
-        }
-
-        "return failure when collection is readable" in new isNoneAuthorized {
-          auth(readableCollection) must_== Success()
-        }
-
-        "return failure when collection is writable" in new isNoneAuthorized {
-          auth(writableCollection) must_== Success()
-        }
-
-        "return failure when collection has permission none" in new isNoneAuthorized {
-          auth(noPermissionCollection) must_== Success()
         }
       }
     }

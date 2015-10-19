@@ -24,7 +24,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   protected val archiveContentCollectionId = ObjectId.get
   protected val archiveOrgId = ObjectId.get
 
-  protected def clearDb() = {
+  protected def removeAllData() = {
     logger.debug(s"function=clearDb - dropping db")
 
     //Note: for speed we just drop the collection
@@ -61,7 +61,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
   override def around[T](r: => T)(implicit toResult: AsResult[T]): Result = {
     logger.debug(s"function=around - dropping db")
-    clearDb()
+    removeAllData()
     AsResult(r)
   }
 
