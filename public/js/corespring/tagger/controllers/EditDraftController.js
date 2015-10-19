@@ -46,9 +46,10 @@
     $scope.backToCollections = backToCollections;
     $scope.clone = clone;
     $scope.confirmSaveBeforeLeaving = confirmSaveBeforeLeaving;
-    $scope.discard = discard;
+    $scope.discardAndLoadFreshCopy = discardAndLoadFreshCopy;
     $scope.discardDraft = discardDraft;
     $scope.ignoreConflict = ignoreConflict;
+    $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem = initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem;
     $scope.loadDraftItem = loadDraftItem;
     $scope.onItemChanged = onItemChanged;
     $scope.publish = publish;
@@ -62,10 +63,16 @@
     $scope.navigationHooks.beforeUnload = angularBeforeUnload;
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
-    $scope.loadDraftItem();
+    //AC-252
+    $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
 
+    //---------------------------------------------
 
-    //----------------------------------------
+    function initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem() {
+      $scope.discardDraft(function () {
+        $scope.loadDraftItem();
+      });
+    }
 
     function jqueryBeforeUnload() {
       //jquery expects the method to return the question string
@@ -124,7 +131,7 @@
       });
     }
 
-    function discard() {
+    function discardAndLoadFreshCopy() {
       ItemDraftService.deleteDraft($routeParams.itemId, function() {
         $scope.loadDraftItem();
       }, function() {
