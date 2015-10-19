@@ -30,16 +30,6 @@ class ContentCollectionService(
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
 
-  /** Enable this collection for this org */
-  override def enableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    organizationService.enableCollection(orgId, collectionId)
-  }
-
-  /** Enable the collection for the org */
-  override def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    organizationService.disableCollection(orgId, collectionId)
-  }
-
   override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Validation[PlatformServiceError, ContentCollection] = {
 
     def addCollectionToDb() = {
@@ -75,87 +65,9 @@ class ContentCollectionService(
     } yield updatedCollection
   }
 
-  /**
-   * Share items to the collection specified.
-   * - must ensure that the context org has write access to the collection
-   * - must ensure that the context org has read access to the items being added
-   * TODO: Do we check perms here? or keep it outside of this scope?
-   * We'll have to filter the individual item ids anyway
-   */
-  override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-
-    def allowedToWriteCollection = {
-      isAuthorized(orgId, collId, Permission.Write)
-    }
-
-    def allowedToReadItems = {
-      val objectIds = items.map(i => i.id)
-      // get a list of any items that were not authorized to be added
-      itemService.findMultipleById(objectIds: _*).filterNot(item => {
-        // get the collections to test auth on (owner collection for item, and shared-in collections)
-        val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
-        // does org have read access to any of these collections
-        val collectionsAuthorized = collectionsToAuth.
-          filter(collectionId => isAuthorized(orgId, collectionId, Permission.Read).isSuccess)
-        collectionsAuthorized.nonEmpty
-      }) match {
-        case Stream.Empty => Success()
-        case notAuthorizedItems => {
-          logger.error(s"[allowedToReadItems] unable to read items: ${notAuthorizedItems.map(_.id)}")
-          Failure(ItemAuthorizationError(orgId, Permission.Read, notAuthorizedItems.map(_.id): _*))
-        }
-      }
-    }
-
-    def saveUnsavedItems = {
-      itemService.addCollectionIdToSharedCollections(items, collId)
-    }
-
-    for {
-      canWriteToCollection <- allowedToWriteCollection
-      canReadAllItems <- allowedToReadItems
-      sharedItems <- saveUnsavedItems
-    } yield sharedItems
-  }
-
   /** Get a default collection from the set of ids */
   override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] =
     dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
-
-  /**
-   * Unshare the specified items from the specified collections
-   */
-  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    for {
-      canUpdateAllCollections <- isAuthorized(orgId, collIds, Permission.Write)
-      successfullyRemovedItems <- itemService.removeCollectionIdsFromShared(items, collIds)
-    } yield successfullyRemovedItems
-  }
-
-  override def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
-
-  override def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
-
-    val orgs = organizationService.orgsWithPath(orgId, deep)
-
-    logger.trace(s"function=getContentCollRefs, orgId=$orgId, orgs=$orgs")
-    def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
-      acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
-    }
-
-    val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
-
-    if (p == Permission.Read) {
-      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
-    } else {
-      out
-    }
-  }
-
-  override def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]] = {
-    val collectionIds = getCollectionIds(orgId, p, deep = false)
-    Success(dao.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
-  }
 
   def isPublic(collectionId: ObjectId): Boolean = dao.findOneById(collectionId).exists(_.isPublic)
 
