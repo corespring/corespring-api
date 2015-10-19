@@ -4,12 +4,12 @@ import org.corespring.container.client.hooks.CoreItemHooks
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
+import org.corespring.conversion.qti.transformers.{PlayerJsonToItem, ItemTransformer}
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.{ ItemTransformer, PlayerJsonToItem }
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.CommitJson

@@ -1,10 +1,10 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.ItemAccess
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts, PlayerAccessSettings }

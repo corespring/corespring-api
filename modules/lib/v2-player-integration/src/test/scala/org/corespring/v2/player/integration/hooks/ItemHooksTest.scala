@@ -4,10 +4,10 @@ import com.mongodb._
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.StatusMessage
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.Organization
 import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.test.fakes.Fakes.withMockCollection
 import org.corespring.v2.auth.ItemAuth

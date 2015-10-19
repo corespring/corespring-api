@@ -1,19 +1,17 @@
 package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
-import org.corespring.container.client.hooks.CoreItemHooks
-import org.corespring.container.client.{ VersionInfo }
-import org.corespring.container.client.integration.{ ContainerExecutionContext, DefaultIntegration }
+import org.corespring.container.client.VersionInfo
+import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
 import org.corespring.container.components.model.Component
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.ItemDrafts
-import org.corespring.drafts.item.models.DraftId
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services._
-import org.corespring.services.item.{ SupportingMaterialsService, ItemService }
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.{ SessionAuth, ItemAuth }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
