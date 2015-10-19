@@ -3,7 +3,7 @@ package org.corespring.services.salat
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
-import org.corespring.services.errors.{ PlatformServiceError, GeneralError }
+import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.BeforeAfter
 
@@ -59,17 +59,17 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
 
   "addCollectionReference" should {
     "add content coll reference to org" in new scope {
-      service.getPermissions(orgId, newCollectionId) must_== Permission.None
+      service.getPermissions(orgId, newCollectionId) must_== None
       val newCollectionId = ObjectId.get
       val ref = ContentCollRef(newCollectionId, Permission.Write.value)
       service.addCollectionReference(orgId, ref) must_== Success()
-      service.getPermissions(orgId, newCollectionId) must_== Permission.Write
+      service.getPermissions(orgId, newCollectionId) must_== Some(Permission.Write)
     }
 
     //TODO: If the ref is adding - is should update the ref that's there instead
     "not change the permission when content coll ref is duplicate" in new scope {
       val existingPermission = service.getPermissions(orgId, collectionId)
-      existingPermission must_!= Permission.Write
+      existingPermission must_!= Some(Permission.Write)
       val ref = ContentCollRef(collectionId, Permission.Write.value)
       service.addCollectionReference(orgId, ref) must_== Success()
       service.getPermissions(orgId, collectionId) must_== existingPermission
@@ -230,13 +230,13 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
     }
 
     "remove the collection from all orgs" in new deleteCollection {
-      service.getPermissions(org.id, collectionId) must_== Permission.Read
-      service.getPermissions(testOrg.id, collectionId) must_== Permission.Read
+      service.getPermissions(org.id, collectionId) must_== Some(Permission.Read)
+      service.getPermissions(testOrg.id, collectionId) must_== Some(Permission.Read)
 
       service.deleteCollectionFromAllOrganizations(collectionId)
 
-      service.getPermissions(org.id, collectionId) must_== Permission.None
-      service.getPermissions(testOrg.id, collectionId) must_== Permission.None
+      service.getPermissions(org.id, collectionId) must_== None
+      service.getPermissions(testOrg.id, collectionId) must_== None
     }
   }
 
@@ -446,7 +446,7 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       services.contentCollectionService.insertCollection(publicOrg.id, publicCollection, Permission.Write, true)
       service.addPublicCollectionToAllOrgs(publicCollection.id)
       service.removeCollection(org.id, publicCollection.id)
-      service.getPermissions(org.id, publicCollection.id) must_== Permission.None
+      service.getPermissions(org.id, publicCollection.id) must_== None
     }
   }
 

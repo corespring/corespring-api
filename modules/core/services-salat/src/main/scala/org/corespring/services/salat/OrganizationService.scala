@@ -221,10 +221,10 @@ class OrganizationService(
     }.getOrElse(Failure(PlatformServiceError(s"collection does not exist: $collectionId")))
   }
 
-  override def getPermissions(orgId: ObjectId, collId: ObjectId): Permission = {
-    getTree(orgId).foldRight[Permission](Permission.None)((o, p) => {
+  override def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
+    getTree(orgId).foldRight[Option[Permission]](None)((o, p) => {
       o.contentcolls.find(_.collectionId == collId) match {
-        case Some(ccr) => Permission.fromLong(ccr.pval).getOrElse(p)
+        case Some(ccr) => Permission.fromLong(ccr.pval)
         case None => p
       }
     })
@@ -330,8 +330,8 @@ class OrganizationService(
     cursor.toSeq
   }
 
-  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission = {
-    itemService.collectionIdForItem(itemId).map { collectionId =>
+  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission] = {
+    itemService.collectionIdForItem(itemId).flatMap { collectionId =>
       try {
         getPermissions(orgId, collectionId)
       } catch {
@@ -342,12 +342,9 @@ class OrganizationService(
           }
 
           logger.error(t.getMessage)
-          Permission.None
+          None
         }
       }
-    }.getOrElse {
-      logger.warn(s"function=getOrgPermissionsForItem, Can't find item with id=$itemId")
-      Permission.None
     }
   }
 

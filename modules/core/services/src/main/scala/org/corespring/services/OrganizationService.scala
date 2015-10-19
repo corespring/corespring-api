@@ -15,7 +15,7 @@ trait OrganizationService {
 
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
-  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission
+  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission]
   @deprecated("use getDefaultCollection instead", "1.0")
   def defaultCollection(o: Organization): Option[ObjectId]
   @deprecated("use getDefaultCollection instead", "1.0")
@@ -86,7 +86,7 @@ trait OrganizationService {
 
   def removeCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  def getPermissions(orgId: ObjectId, collId: ObjectId): Permission
+  def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission]
 
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef]
 

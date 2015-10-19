@@ -33,7 +33,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
 
     "getPermissions" should {
       "return permissions for the user with org and userName" in new scope {
-        userService.getPermissions(user.userName, org.id) must_== Success(userPermission)
+        userService.getPermissions(user.userName, org.id) must_== Success(Some(userPermission))
       }
 
       "fail if there is the org is not in the db" in new scope {
@@ -172,7 +172,7 @@ class UserServiceTest extends ServicesSalatIntegrationTest {
     "setOrganization" should {
       "update the org and permission" in new scope {
         val orgId = ObjectId.get //Note, org does not have to exist
-        val perms = Permission.None
+        val perms = Permission.Read
         userService.setOrganization(user.id, orgId, perms) must_== Success()
         userService.getUser(user.id) must_== Some(user.copy(org = UserOrg(orgId, perms.value)))
       }
