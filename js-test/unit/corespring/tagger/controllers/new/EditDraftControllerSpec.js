@@ -145,15 +145,13 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
     });
 
-    it('calls draftService.discardDraft', function(){
+    it('discards a draft', function(){
       mkController();
-      scope.initialItemLoad();
       expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
     });
 
-    it('calls draftService.get', function(){
+    it('loads a draft', function(){
       mkController();
-      scope.initialItemLoad();
       expect(mocks.itemDraftService.get).toHaveBeenCalled();
     });
 
@@ -389,18 +387,6 @@ describe('tagger.controllers.new.EditDraftController', function() {
       baseId: undefined,
     }));
 
-  });
-
-  describe('discardAndLoadFreshCopy', function() {
-    it('calls ItemDraftService.deleteDraft', function() {
-      scope.discardAndLoadFreshCopy();
-      expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
-    });
-    it('calls scope.loadDraftItem', function() {
-      spyOn(scope, 'loadDraftItem');
-      scope.discardAndLoadFreshCopy();
-      expect(scope.loadDraftItem).toHaveBeenCalled();
-    });
   });
 
   describe('showEditor', function() {

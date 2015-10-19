@@ -46,7 +46,7 @@
     $scope.backToCollections = backToCollections;
     $scope.clone = clone;
     $scope.confirmSaveBeforeLeaving = confirmSaveBeforeLeaving;
-    $scope.discardAndLoadFreshCopy = discardAndLoadFreshCopy;
+    $scope.discardAnyDraftAndLoadAFreshCopyOfTheItem = discardAnyDraftAndLoadAFreshCopyOfTheItem;
     $scope.discardDraft = discardDraft;
     $scope.ignoreConflict = ignoreConflict;
     $scope.loadDraftItem = loadDraftItem;
@@ -62,11 +62,16 @@
     $scope.navigationHooks.beforeUnload = angularBeforeUnload;
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
-    $scope.discardDraft(function() {
-      $scope.loadDraftItem();
-    });
+    //AC-252
+    $scope.discardAnyDraftAndLoadAFreshCopyOfTheItem();
 
     //---------------------------------------------
+
+    function discardAnyDraftAndLoadAFreshCopyOfTheItem() {
+      $scope.discardDraft(function () {
+        $scope.loadDraftItem();
+      });
+    }
 
     function jqueryBeforeUnload() {
       //jquery expects the method to return the question string
