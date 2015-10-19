@@ -375,11 +375,14 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
   });
 
-  describe('discard', function(){
+  describe('discardAndLoadFreshCopy', function(){
     it('calls ItemDraftService.deleteDraft', function(){
-      spyOn(scope, 'loadDraftItem');
-      scope.discard();
+      scope.discardAndLoadFreshCopy();
       expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
+    });
+    it('calls scope.loadDraftItem, function(){
+      spyOn(scope, 'loadDraftItem');
+      scope.discardAndLoadFreshCopy();
       expect(scope.loadDraftItem).toHaveBeenCalled();
     });
   });

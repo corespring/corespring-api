@@ -46,7 +46,7 @@
     $scope.backToCollections = backToCollections;
     $scope.clone = clone;
     $scope.confirmSaveBeforeLeaving = confirmSaveBeforeLeaving;
-    $scope.discard = discard;
+    $scope.discardAndLoadFreshCopy = discardAndLoadFreshCopy;
     $scope.discardDraft = discardDraft;
     $scope.ignoreConflict = ignoreConflict;
     $scope.loadDraftItem = loadDraftItem;
@@ -62,7 +62,10 @@
     $scope.navigationHooks.beforeUnload = angularBeforeUnload;
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
-    $scope.loadDraftItem();
+
+    $scope.discardDraft(function(){
+      $scope.loadDraftItem();
+    });
 
 
     //----------------------------------------
@@ -124,7 +127,7 @@
       });
     }
 
-    function discard() {
+    function discardAndLoadFreshCopy() {
       ItemDraftService.deleteDraft($routeParams.itemId, function() {
         $scope.loadDraftItem();
       }, function() {
