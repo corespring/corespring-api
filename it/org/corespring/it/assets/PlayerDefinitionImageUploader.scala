@@ -1,7 +1,5 @@
 package org.corespring.it.assets
 
-import java.io.File
-
 import org.bson.types.ObjectId
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -15,8 +13,7 @@ object PlayerDefinitionImageUploader {
   def uploadImageAndAddToPlayerDefinition(
     itemId: VersionedId[ObjectId],
     imagePath: String) = {
-    val file = new File(imagePath)
-    require(file.exists)
+    val file = ImageUtils.resourcePathToFile(imagePath)
 
     val name = grizzled.file.util.basename(file.getCanonicalPath)
     val key = s"${itemId.id}/${itemId.version.getOrElse("0")}/data/$name"

@@ -18,7 +18,7 @@ class ItemServiceIntegrationTest extends IntegrationSpecification {
 
       "copy assets from the old version to the new version of an item" in
         new AddImageAndItem {
-          override lazy val imagePath = "it/test-images/ervin.png"
+          override lazy val imagePath = "/test-images/ervin.png"
 
           val file = StoredFile("ervin.png", "image/png", false)
 

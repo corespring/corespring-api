@@ -18,8 +18,16 @@ object ImageUtils {
   lazy val credentials: AWSCredentials = AwsUtil.credentials()
   lazy val tm: TransferManager = new TransferManager(credentials)
 
+  def resourcePathToFile(p: String): File = {
+    val url = this.getClass.getResource(p)
+    require(url != null, s"can't load url for $p")
+    val file = new File(url.toURI)
+    require(file.exists, s"file doesn't exist: $p")
+    file
+  }
+
   def upload(file: File, s3Path: String) = {
-    require(file.exists)
+    require(file.exists, s"file: $file, doesn't exist?")
     logger.debug(s"Uploading image, bucket=$bucket, file=${file.getPath}, key=$s3Path")
     val upload: Upload = tm.upload(bucket, s3Path, file)
     upload.waitForUploadResult()
@@ -29,8 +37,7 @@ object ImageUtils {
   def getS3Object(key: String) = client.getObject(bucket, key)
 
   def imageData(imagePath: String): Array[Byte] = {
-    val file = new File(imagePath)
-    require(file.exists)
+    val file = resourcePathToFile(imagePath)
     require(Seq("jpg", "png").exists(s => file.getName.endsWith(s)))
     val bytes = IOUtils.toByteArray(file.toURI)
     bytes
