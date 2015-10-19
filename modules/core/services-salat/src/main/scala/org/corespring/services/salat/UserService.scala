@@ -24,26 +24,30 @@ class UserService(
 
   private implicit val ctx = context
 
+  //TODO: Ensure Unique: userName - first need to remove duplicates - this script will find them:
+  /**
+   * db.users.aggregate([
+   * { "$group": {
+   * "_id": "$userName",
+   * "count": { "$sum": 1 }
+   * }},
+   * { "$match": {
+   * "count": { "$gt": 1 }
+   * }}
+   * ])
+   */
+
   /**
    * insert a user into the database as a member of the given organization,
    * along with their private organization and collection
    * @param user
-   * @param orgId - the organization that the given user belongs to
    * @return the user that was inserted
    */
-  override def insertUser(user: User, orgId: ObjectId, p: Permission, checkOrgId: Boolean, checkUsername: Boolean): Validation[PlatformServiceError, User] = {
-    if (!checkOrgId || orgService.findOneById(orgId).isDefined) {
-      if (!checkUsername || getUser(user.userName).isEmpty) {
-        val update = user.copy(org = UserOrg(orgId, p.value))
-        dao.insert(update, dao.collection.writeConcern) match {
-          case Some(id) => {
-            Success(update)
-          }
-          case None => Failure(PlatformServiceError("error inserting user"))
-        }
-      } else Failure(PlatformServiceError("user already exists"))
-    } else Failure(PlatformServiceError("no organization found with given id"))
-  }
+  override def insertUser(user: User): Validation[PlatformServiceError, User] = for {
+    _ <- orgService.findOneById(user.org.orgId).toSuccess(PlatformServiceError(s"Can't find org with id: ${user.org.orgId}"))
+    _ <- if (getUser(user.userName).isEmpty) Success() else Failure(PlatformServiceError(s"The username: ${user.userName} already exists"))
+    id <- dao.insert(user, dao.collection.writeConcern).toSuccess(PlatformServiceError(s"Insert failed for user ${user.userName}"))
+  } yield user.copy(id = id)
 
   /**
    * return the user from the database based on the given username, or None if the user wasn't found
@@ -89,19 +93,45 @@ class UserService(
 
   override def updateUser(user: User): Validation[PlatformServiceError, User] = {
     import scalaz.Scalaz._
-    try {
-      dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
+
+    lazy val ensureUserNameIsntTaken = {
+
+      val nameTaken = Failure(PlatformServiceError(s"The userName ${user.userName} is taken"))
+
+      //Note: until we fix the unique constraint in the db for userName we need to check if we find multiple users.
+      dao.find(MongoDBObject("userName" -> user.userName)).toSeq match {
+        case Nil => Success()
+        case Seq(u) if u.id == user.id => Success()
+        case Seq(u) if u.id != user.id => nameTaken
+        case head :: xs => {
+          logger.warn(s"Found multiple users with the same name - this can happen at the moment because we don't ensureUnique on the userName: ${head +: xs}")
+          //For now we're going to use the head
+          if (head.id == user.id) Success() else nameTaken
+        }
+      }
+    }
+
+    lazy val applyUpdate = try {
+      val result = dao.update(MongoDBObject("_id" -> user.id), MongoDBObject("$set" ->
         MongoDBObject(
           "userName" -> user.userName,
           "fullName" -> user.fullName,
           "email" -> user.email,
           "password" -> user.password)),
         false, false, dao.collection.writeConcern)
-      getUser(user.id).toSuccess(
-        PlatformServiceError(s"Failed to update user: user not found for id: ${user.id}"))
+
+      if (result.getN == 1) Success() else Failure(PlatformServiceError("Update failed"))
+
     } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update user", e))
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError(s"Update failed: $e"))
+      case t: Throwable => Failure(PlatformServiceError(s"Update failed: ${t.getMessage}"))
     }
+
+    for {
+      dbUser <- getUser(user.id).toSuccess(PlatformServiceError("Can't update a user that isn't in saved, call 'insertUser' first."))
+      _ <- ensureUserNameIsntTaken
+      _ <- applyUpdate
+    } yield user
   }
 
   override def getOrg(user: User, p: Permission): Option[Organization] = {
