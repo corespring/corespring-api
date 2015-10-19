@@ -180,11 +180,11 @@ package object scopes {
 
     lazy val sessionId = v2SessionHelper.create(itemId)
     lazy val bucketName = AppConfig.assetsBucket
-    lazy val file = new File(imagePath)
+    lazy val file = ImageUtils.resourcePathToFile(imagePath)
 
     lazy val fileBytes: Array[Byte] = {
       import java.nio.file.{ Files, Paths }
-      val path = Paths.get(imagePath)
+      val path = Paths.get(this.getClass.getResource(imagePath).toURI)
       Files.readAllBytes(path)
     }
     val fileName = grizzled.file.util.basename(file.getCanonicalPath)
