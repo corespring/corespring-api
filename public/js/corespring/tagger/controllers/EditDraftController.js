@@ -46,9 +46,10 @@
     $scope.backToCollections = backToCollections;
     $scope.clone = clone;
     $scope.confirmSaveBeforeLeaving = confirmSaveBeforeLeaving;
-    $scope.discardAnyDraftAndLoadAFreshCopyOfTheItem = discardAnyDraftAndLoadAFreshCopyOfTheItem;
+    $scope.discardAndLoadFreshCopy = discardAndLoadFreshCopy;
     $scope.discardDraft = discardDraft;
     $scope.ignoreConflict = ignoreConflict;
+    $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem = initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem;
     $scope.loadDraftItem = loadDraftItem;
     $scope.onItemChanged = onItemChanged;
     $scope.publish = publish;
@@ -63,11 +64,11 @@
     $($window).bind('beforeunload', jqueryBeforeUnload);
 
     //AC-252
-    $scope.discardAnyDraftAndLoadAFreshCopyOfTheItem();
+    $scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
 
     //---------------------------------------------
 
-    function discardAnyDraftAndLoadAFreshCopyOfTheItem() {
+    function initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem() {
       $scope.discardDraft(function () {
         $scope.loadDraftItem();
       });

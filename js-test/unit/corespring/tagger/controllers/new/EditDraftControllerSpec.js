@@ -114,7 +114,8 @@ describe('tagger.controllers.new.EditDraftController', function() {
 
     mocks.logger = {
       info: function() {},
-      debug: function() {}
+      debug: function() {},
+      warn: function(){}
     };
 
     jQueryFunctions = {
@@ -145,16 +146,56 @@ describe('tagger.controllers.new.EditDraftController', function() {
       expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
     });
 
+    describe("loading the initial item", function(){
+      //there is no straightforward way to spy
+      //on the scope itself, so we have to duplicate the tests
+      //for initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem here
+      it('discards a draft', function(){
+        mkController();
+        expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
+      });
+
+      it('loads a draft', function(){
+        mkController();
+        expect(mocks.itemDraftService.get).toHaveBeenCalled();
+      });
+
+      it('loads a draft even if deleteDraft is failing', function(){
+        mocks.itemDraftService.deleteDraft = jasmine.createSpy('deleteDraft').andCallFake(function(id, success, error) {
+          error(1);
+        });
+        mkController();
+        expect(mocks.itemDraftService.get).toHaveBeenCalled();
+      });
+    });
+
+  });
+
+  describe('initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem', function(){
+
     it('discards a draft', function(){
       mkController();
+      mocks.itemDraftService.deleteDraft.reset();
+      scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
       expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
     });
 
     it('loads a draft', function(){
       mkController();
+      mocks.itemDraftService.get.reset();
+      scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
       expect(mocks.itemDraftService.get).toHaveBeenCalled();
     });
 
+    it('loads a even if deleteDraft fails', function(){
+      mkController();
+      mocks.itemDraftService.deleteDraft = jasmine.createSpy('deleteDraft').andCallFake(function(id, success, error) {
+        error(1);
+      });
+      mocks.itemDraftService.get.reset();
+      scope.initiallyDiscardAnyDraftAndLoadAFreshCopyOfTheItem();
+      expect(mocks.itemDraftService.get).toHaveBeenCalled();
+    });
   });
 
   describe('beforeunload', function() {
@@ -387,6 +428,18 @@ describe('tagger.controllers.new.EditDraftController', function() {
       baseId: undefined,
     }));
 
+  });
+
+  describe('discardAndLoadFreshCopy', function() {
+    it('calls ItemDraftService.deleteDraft', function() {
+      scope.discardAndLoadFreshCopy();
+      expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
+    });
+    it('calls scope.loadDraftItem', function() {
+      spyOn(scope, 'loadDraftItem');
+      scope.discardAndLoadFreshCopy();
+      expect(scope.loadDraftItem).toHaveBeenCalled();
+    });
   });
 
   describe('showEditor', function() {
