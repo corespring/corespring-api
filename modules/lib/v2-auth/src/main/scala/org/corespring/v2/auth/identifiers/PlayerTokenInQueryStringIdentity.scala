@@ -20,6 +20,7 @@ object PlayerTokenInQueryStringIdentity {
     /** deprecated("Still supported but is going to be removed", "1.1") */
     val options = "options"
     val playerToken = "playerToken"
+    val editorToken = "editorToken"
     val skipDecryption = "skipDecryption"
   }
 }
@@ -28,7 +29,6 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   override lazy val logger = Logger(classOf[PlayerTokenInQueryStringIdentity])
   override val name = "player-token-in-query-string"
-
 
   override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, OrgAndOpts] = {
     toAccessSettings(org.id, rh).map { tuple: (PlayerAccessSettings, Option[V2Warning]) =>
@@ -51,14 +51,14 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
 
   /**
    * read the player token from the request header
-   * Checks 'playerToken' param first and falls back to the deprecated 'options' param.
+   * Checks 'playerToken'/'editorToken' params first and falls back to the deprecated 'options' param.
    * If using the deprecated param a V2Warning will be included.
    * @param rh
    * @return
    */
-  def playerToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
+  def checkToken(rh: RequestHeader): Option[(String, Option[V2Warning])] = {
 
-    val token = rh.getQueryString(Keys.playerToken)
+    val token = rh.getQueryString(Keys.playerToken).orElse(rh.getQueryString(Keys.editorToken))
 
     token.map(t => (t, None)).orElse {
       val deprecatedOptions = rh.getQueryString(Keys.options)
@@ -110,7 +110,7 @@ trait PlayerTokenInQueryStringIdentity extends OrgRequestIdentity[OrgAndOpts] {
     import Scalaz._
 
     val result: Validation[V2Error, (PlayerAccessSettings, Option[V2Warning])] = for {
-      tokenWithWarning <- playerToken(rh).toSuccess(generalError("can't create player token"))
+      tokenWithWarning <- checkToken(rh).toSuccess(generalError("can't create player token"))
       apiClientId <- apiClientId(rh).toSuccess(noToken(rh))
       decrypted <- decrypt(tokenWithWarning._1, apiClientId, rh).toSuccess(generalError("failed to decrypt"))
       json <- try {

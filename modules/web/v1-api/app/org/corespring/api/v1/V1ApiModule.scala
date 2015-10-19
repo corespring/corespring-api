@@ -2,11 +2,11 @@ package org.corespring.api.v1
 
 import com.novus.salat.Context
 import org.corespring.amazon.s3.S3Service
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.OAuthProvider
 import org.corespring.platform.data.mongo.SalatVersioningDao
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.auth.{ AccessTokenService, ApiClientService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.{ MetadataService, MetadataSetService }

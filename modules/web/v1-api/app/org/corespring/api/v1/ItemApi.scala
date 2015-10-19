@@ -9,6 +9,7 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys
@@ -17,7 +18,6 @@ import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.{ OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService

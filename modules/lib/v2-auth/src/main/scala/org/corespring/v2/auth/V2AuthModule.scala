@@ -4,7 +4,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
