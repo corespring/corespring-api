@@ -1,0 +1,30 @@
+{
+  "item" : {
+    "components" : {
+      "equationEntryTest" : {
+        "componentType" : "corespring-function-entry"
+      }
+    }
+  },
+  "session" : {
+    "components" : {
+      "equationEntryTest" : {
+        "answers" : "?"
+      }
+    }
+  },
+  "outcomes" : {
+    "components" : {
+      "equationEntryTest" : {
+        "correctness" : "correct"
+      }
+    }
+  },
+  "expected" : {
+    "components":{},
+    "summary":{
+      "percentage":40,
+      "note": "Overridden score"
+    }
+  }
+}
