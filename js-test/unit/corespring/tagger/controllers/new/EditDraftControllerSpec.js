@@ -144,23 +144,17 @@ describe('tagger.controllers.new.EditDraftController', function() {
     it('binds beforeunload', function () {
       expect($.fn.bind).toHaveBeenCalledWith('beforeunload', jasmine.any(Function));
     });
-  });
 
-  describe('initialItemLoad', function(){
-
-    it('calls discardDraft', function(){
+    it('calls draftService.discardDraft', function(){
       mkController();
-      spyOn(scope, 'discardDraft');
       scope.initialItemLoad();
-      expect(scope.discardDraft).toHaveBeenCalled();
+      expect(mocks.itemDraftService.deleteDraft).toHaveBeenCalled();
     });
 
-    it('calls loadDraftItem', function(){
+    it('calls draftService.get', function(){
       mkController();
-      spyOn(scope, 'loadDraftItem');
-      spyOn(scope, 'discardDraft').andCallThrough();
       scope.initialItemLoad();
-      expect(scope.loadDraftItem).toHaveBeenCalled();
+      expect(mocks.itemDraftService.get).toHaveBeenCalled();
     });
 
   });
