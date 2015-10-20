@@ -7,12 +7,12 @@ import com.novus.salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{CollectionInfo, ContentCollRef, ContentCollection, Organization}
+import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
 
 import scalaz.Scalaz._
-import scalaz.{Failure, Success, Validation}
+import scalaz.{ Failure, Success, Validation }
 
 object OrgCollectionService {
 
@@ -24,15 +24,14 @@ object OrgCollectionService {
   }
 }
 
-class OrgCollectionService(orgService:org.corespring.services.OrganizationService,
-                          collectionService:org.corespring.services.ContentCollectionService,
-                          itemService:org.corespring.services.item.ItemService,
+class OrgCollectionService(orgService: org.corespring.services.OrganizationService,
+  collectionService: org.corespring.services.ContentCollectionService,
+  itemService: org.corespring.services.item.ItemService,
   orgDao: SalatDAO[Organization, ObjectId],
   collectionDao: SalatDAO[ContentCollection, ObjectId],
-implicit val context:Context ) extends org.corespring.services.OrgCollectionService {
+  implicit val context: Context) extends org.corespring.services.OrgCollectionService {
 
   private val logger = Logger(classOf[OrgCollectionService])
-
 
   override def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo] = {
 
@@ -120,7 +119,7 @@ implicit val context:Context ) extends org.corespring.services.OrgCollectionServ
       .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
   }
 
-  override def removeAccessToCollectionForAllOrgs(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch{
+  override def removeAccessToCollectionForAllOrgs(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch {
     val update = MongoDBObject("$pull" -> MongoDBObject(OrgKeys.contentcolls -> MongoDBObject(OrgKeys.collectionId -> collId)))
     val result = orgDao.update(MongoDBObject.empty, update, upsert = false, multi = true, orgDao.collection.writeConcern)
     if (!result.getLastError.ok) {
@@ -128,11 +127,11 @@ implicit val context:Context ) extends org.corespring.services.OrgCollectionServ
     }
   }.leftMap(t => PlatformServiceError("Remove failed", t))
 
-//TODO: .... where does this go? ItemSharingService?
-//    def removeCollectionIdFromItem() = {
-//      itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
-//    }
-//
+  //TODO: .... where does this go? ItemSharingService?
+  //    def removeCollectionIdFromItem() = {
+  //      itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
+  //    }
+  //
 
   override def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
     orgDao.findOneById(orgId) match {
@@ -156,7 +155,9 @@ implicit val context:Context ) extends org.corespring.services.OrgCollectionServ
     orgService.orgsWithPath(orgId, true).foldRight[Option[Permission]](None)((o, p) => {
       o.contentcolls.find(_.collectionId == collId) match {
         case Some(ccr) => Permission.fromLong(ccr.pval)
-        case None => p
+        case None => collectionDao.findOneById(collId).flatMap { c =>
+          if (c.isPublic) Some(Permission.Read) else None
+        }
       }
     })
   }
@@ -189,23 +190,15 @@ implicit val context:Context ) extends org.corespring.services.OrgCollectionServ
     }
   }
 
-
   override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
     val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collectionId)))
     orgDao.find(query).toStream
   }
 
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-
-    collectionDao.findOne
-    k
-    for{
-    }
-    getPermission(orgId, collId).map{ orgPermission =>
-      orgPermission.has(p)
+    getPermission(orgId, collId).map { orgPermission =>
+      p.has(orgPermission)
     }.getOrElse(false)
   }
-
-
 
 }
