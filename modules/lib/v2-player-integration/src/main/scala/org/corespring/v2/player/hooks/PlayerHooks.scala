@@ -1,7 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
-import org.corespring.common.json.JsonUtil
+import org.corespring.platform.core.models.JsonUtil
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.ItemService
