@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
+import org.corespring.common.json.JsonUtil
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.ItemService
@@ -19,7 +20,7 @@ import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
 
-trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
+trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions with JsonUtil {
 
   def itemService: ItemService
 
@@ -33,8 +34,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
-    def createSessionJson(item: Item) = Json.obj("itemId" -> item.id.toString,
-      "collectionId" -> item.collectionId.getOrElse(throw new Exception("Item must belong to collection")))
+    def createSessionJson(item: Item) = partialObj("itemId" -> Some(JsString(item.id.toString)),
+      "collectionId" -> item.collectionId.map(JsString(_)))
 
     val result = for {
       identity <- getOrgAndOptions(header)
