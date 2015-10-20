@@ -2,7 +2,7 @@ package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
-import org.corespring.platform.core.models.item.PlayerDefinition
+import org.corespring.platform.core.models.item.{Item, PlayerDefinition}
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qtiToV2.transformers.ItemTransformer
@@ -33,7 +33,8 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
-    def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj("itemId" -> vid.toString)
+    def createSessionJson(item: Item) = Json.obj("itemId" -> item.id.toString,
+      "collectionId" -> item.collectionId.getOrElse(throw new Exception("Item must belong to collection")))
 
     val result = for {
       identity <- getOrgAndOptions(header)
@@ -44,7 +45,7 @@ trait PlayerHooks extends ContainerPlayerHooks with LoadOrgAndOptions {
         case None => id.copy(version = Some(itemService.currentVersion(id)))
       }).toSuccess(cantParseItemId(itemId))
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
-      json <- Success(createSessionJson(vid))
+      json <- Success(createSessionJson(item))
       sessionId <- auth.create(json)(identity)
     } yield (Json.obj("id" -> sessionId.toString) ++ json, Json.toJson(item.playerDefinition))
 
