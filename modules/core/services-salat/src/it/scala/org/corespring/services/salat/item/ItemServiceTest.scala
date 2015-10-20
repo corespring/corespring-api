@@ -410,18 +410,6 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
   }
 
-  "cloning" should {
-
-    "create a new item in the db" in {
-      val item = Item(collectionId = "1234567")
-      val clonedItem = itemService.clone(item)
-      item.collectionId === clonedItem.get.collectionId
-      val update = item.copy(collectionId = "0987654321")
-      itemService.save(update)
-      itemService.findOneById(clonedItem.get.id) must_== clonedItem
-    }
-  }
-
   "save" should {
 
     def mockAssets(succeed: Boolean) = {
