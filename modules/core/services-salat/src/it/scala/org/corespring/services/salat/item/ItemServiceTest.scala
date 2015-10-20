@@ -32,9 +32,7 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
 
     def after:Any = {
-      items.valuesIterator.foreach(i => itemService.purge(i.id))
-      colls.valuesIterator.foreach(c => services.contentCollectionService.delete(c.id))
-      orgs.valuesIterator.foreach(o => services.orgService.delete(o.id))
+      removeAllData()
     }
 
     val orgs = new mutable.HashMap[Int, Organization]
@@ -371,7 +369,10 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
   }
 
-  "deleteFromSharedCollections" should { "work" in pending }
+  "deleteFromSharedCollections" should {
+    "work" in pending
+  }
+
   "find" should { "work" in pending }
   "findFieldsById" should { "work" in pending }
   "findItemStandards" should { "work" in pending }
