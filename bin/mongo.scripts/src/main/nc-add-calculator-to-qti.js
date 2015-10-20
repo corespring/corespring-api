@@ -11,11 +11,16 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
   self.run = run;
   self.convertQti = convertQti; //make public for easier testing
 
+  var backupCollection = 'content-task-77-backup-' + (new Date().getTime());
+  if(doUpdateData){
+    db.createCollection(backupCollection);
+  }
+
   //------------------------------------
 
   function run() {
     processItems("basic", findBasicCalculatorItems());
-    processItems("scientific", findScientificCalculatorItems());
+    //processItems("scientific", findScientificCalculatorItems());
   }
 
   function findBasicCalculatorItems() {
@@ -49,6 +54,7 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
       if (!qti) {
         return;
       }
+
       var updatedQti = convertQti(qti, item, type);
       if (updatedQti) {
         if (doUpdateData) {
@@ -64,6 +70,7 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
               "playerDefinition": ""
             }
           };
+          db[backupCollection].insert(item);
           db.content.update(query, update);
         }
         updates++;
