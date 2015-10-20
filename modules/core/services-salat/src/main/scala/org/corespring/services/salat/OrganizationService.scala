@@ -1,12 +1,12 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatRemoveError }
+import com.novus.salat.dao.{ SalatDAO, SalatRemoveError }
 import com.novus.salat.{ Context, grater }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
+import org.corespring.models.{ ContentCollRef, MetadataSetRef, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
@@ -16,7 +16,6 @@ import scalaz.{ Failure, Success, Validation }
 object OrganizationService {
 
   object Keys {
-    val DEFAULT = "default"
     val collectionId = "collectionId"
     val contentcolls = "contentcolls"
     val id = "_id"
@@ -131,7 +130,7 @@ class OrganizationService(
    * @param parentId
    * @return
    */
-  override def getTree(parentId: ObjectId): Seq[Organization] = dao.find(MongoDBObject(Keys.path -> parentId)).toSeq
+  override def getTree(parentId: ObjectId) = dao.find(MongoDBObject(Keys.path -> parentId)).toStream
 
   /**
    * delete the specified organization and all sub-organizations
@@ -150,7 +149,7 @@ class OrganizationService(
   override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission] = {
     itemService.collectionIdForItem(itemId).flatMap { collectionId =>
       try {
-        orgCollectionService.getPermissions(orgId, collectionId)
+        orgCollectionService.getPermission(orgId, collectionId)
       } catch {
         case t: Throwable => {
 
@@ -166,4 +165,9 @@ class OrganizationService(
   }
 
   override def list(sk: Int, l: Int): Stream[Organization] = dao.find(MongoDBObject.empty).skip(sk).limit(l).toStream
+
+  override def orgsWithPath(orgId: ObjectId, deep: Boolean): Stream[Organization] = {
+    val cursor = if (deep) dao.find(MongoDBObject(Keys.path -> orgId)) else dao.find(MongoDBObject(Keys.id -> orgId)) //find the tree of the given organization
+    cursor.toStream
+  }
 }

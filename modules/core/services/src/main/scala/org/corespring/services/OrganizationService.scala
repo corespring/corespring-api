@@ -18,6 +18,7 @@ trait OrganizationService {
   //TODO: Move to MetadataSetService
   def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef]
 
+  def orgsWithPath(orgId: ObjectId, deep: Boolean): Stream[Organization]
   /**
    * remove metadata set by id
    * @param orgId
@@ -53,5 +54,5 @@ trait OrganizationService {
    * @return
    */
   @deprecated("legacy function for v1 api - remove once v1 is gone", "core-refactor")
-  def getTree(parentId: ObjectId): Seq[Organization]
+  def getTree(parentId: ObjectId): Stream[Organization]
 }

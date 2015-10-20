@@ -1,33 +1,66 @@
 package org.corespring.services.salat
 
+import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.novus.salat.dao.{ SalatDAOUpdateError, SalatDAO }
+import com.novus.salat.Context
+import com.novus.salat.dao.SalatDAO
+import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.corespring.models.{CollectionInfo, ContentCollRef, ContentCollection, Organization}
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
 
-import scalaz.{ Success, Validation, Failure }
+import scalaz.Scalaz._
+import scalaz.{Failure, Success, Validation}
 
 object OrgCollectionService {
 
-  object OrgKeys {
-    val DEFAULT = "default"
+  private[OrgCollectionService] object OrgKeys {
     val collectionId = "collectionId"
     val contentcolls = "contentcolls"
     val id = "_id"
-    val metadataId = "metadataId"
-    val metadataSets = "metadataSets"
-    val name = "name"
-    val path = "path"
     val pval = "pval"
   }
 }
 
-class OrgCollectionService(
+class OrgCollectionService(orgService:org.corespring.services.OrganizationService,
+                          collectionService:org.corespring.services.ContentCollectionService,
+                          itemService:org.corespring.services.item.ItemService,
   orgDao: SalatDAO[Organization, ObjectId],
-  collectionDao: SalatDAO[ContentCollection, ObjectId]) extends org.corespring.services.OrgCollectionService {
+  collectionDao: SalatDAO[ContentCollection, ObjectId],
+implicit val context:Context ) extends org.corespring.services.OrgCollectionService {
+
+  private val logger = Logger(classOf[OrgCollectionService])
+
+
+  override def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo] = {
+
+    logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId")
+    val refs = getContentCollRefs(orgId, Permission.Read)
+    listCollectionsByOrg(orgId)
+      .filterNot(_.id == collectionService.archiveCollectionId)
+      .flatMap { c =>
+        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
+
+        permission.map(p =>
+          CollectionInfo(c, collectionService.itemCount(c.id), orgId, p))
+      }
+  }
+
+  private def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
+    val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
+    val query = ("_id" $in refs)
+    logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query")
+    collectionDao.find(query).toStream
+  }
+
+  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+    for {
+      collection <- collectionService.findOneById(collectionId).toSuccess(PlatformServiceError(s"Cant find collection with id: $collectionId"))
+      result <- if (collection.ownerOrgId == org.id) Success() else Failure(PlatformServiceError(s"Organisation ${org.name} does not own collection: $collectionId."))
+    } yield result
+  }
 
   override def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]] = {
     val collectionIds = getCollectionIds(orgId, p, deep = false)
@@ -36,7 +69,7 @@ class OrgCollectionService(
 
   private def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
 
-    val orgs = orgsWithPath(orgId, deep)
+    val orgs = orgService.orgsWithPath(orgId, deep)
 
     logger.trace(s"function=getContentCollRefs, orgId=$orgId, orgs=$orgs")
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
@@ -46,21 +79,13 @@ class OrgCollectionService(
     val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
 
     if (p == Permission.Read) {
-      out ++ getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
+      out ++ collectionService.getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
     } else {
       out
     }
   }
-  override def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
-  /** Enable this collection for this org */
-  override def enableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    enableCollection(orgId, collectionId)
-  }
 
-  /** Enable the collection for the org */
-  override def disableCollectionForOrg(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
-    disableCollection(orgId, collectionId)
-  }
+  private def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
 
   /** Enable this collection for this org */
   override def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
@@ -72,127 +97,42 @@ class OrgCollectionService(
     toggleCollectionEnabled(orgId, collectionId, false)
   }
 
-  /**
-   * TODO: I'm using hasCollRef with $gte, so that it checks that the stored permission
-   * pval is gte than the requested pval.
-   * Permissions with a higher pval have access to lower pvals, eg: pval 3 can allow pvals 1,2 and 3.
-   * see: https://www.pivotaltracker.com/s/projects/880382/stories/63449984
-   */
-  override def canAccessCollection(orgId: ObjectId, collectionId: ObjectId, permission: Permission): Boolean = {
+  override def addAccessToCollectionForOrg(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
 
-    def isRequestForPublicCollection() =
-      collectionService.isPublic(collectionId) && permission == Permission.Read
+    def updateOrAddNewReference(o: Organization): Organization = {
+      val ref = o.contentcolls
+        .find(_.collectionId == collId)
+        .map(r => r.copy(pval = p.value))
+        .getOrElse(ContentCollRef(collId, p.value, true))
 
-    def hasMatchingCollection() = hasCollRef(orgId, collectionId, permission.value, "$gte")
-
-    val access = isRequestForPublicCollection() || hasMatchingCollection()
-    logger.trace(s"[canAccessCollection] orgId: $orgId -> $collectionId ? $access")
-    access
-  }
-
-  override def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean =
-    canAccessCollection(org.id, collectionId, permission)
-
-  override def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef] = {
-    try {
-      val collRef = new ContentCollRef(collId, p.value)
-      if (!hasCollRef(orgId, collRef)) {
-        addCollectionReference(orgId, collRef).map(_ => collRef)
-      } else {
-        Failure(PlatformServiceError("collection reference already exists"))
+      val updatedRefs = o.contentcolls match {
+        case s: Seq[ContentCollRef] if s.nonEmpty => s.map(r => if (r.collectionId == collId) ref else r)
+        case Nil => Seq(ref)
       }
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-    }
-  }
 
-  override def addCollectionReference(orgId: ObjectId, collRef: ContentCollRef): Validation[PlatformServiceError, Unit] = {
-    val query = MongoDBObject(OrgKeys.id -> orgId)
-    addCollRefToOrgs(query, collRef)
-  }
-
-  private def removeCollRefFromOrgs(orgsQuery: DBObject, collRef: ContentCollRef, multi: Boolean): Validation[PlatformServiceError, Unit] = {
-    removeCollRefFromOrgs(orgsQuery, collRef.collectionId, multi)
-  }
-
-  private def addCollRefToOrgs(orgsQuery: DBObject, collRef: ContentCollRef, multi: Boolean = false) = {
-    try {
-      val update = MongoDBObject("$addToSet" -> MongoDBObject(OrgKeys.contentcolls -> com.novus.salat.grater[ContentCollRef].asDBObject(collRef)))
-      val result = orgDao.update(orgsQuery, update, upsert = false, multi = multi, dao.collection.writeConcern)
-      if (result.getLastError.ok) Success() else Failure(PlatformServiceError(s"Error adding collection reference to orgs: $orgsQuery, reference: $collRef"))
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-    }
-  }
-
-  private def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean =
-    hasCollRef(orgId, collRef.collectionId, collRef.pval, "$eq")
-
-  private def hasCollRef(orgId: ObjectId, collectionId: ObjectId, pval: Long, pCompareOp: String): Boolean = {
-    orgDao.findOne(
-      MongoDBObject("_id" -> orgId,
-        OrgKeys.contentcolls -> MongoDBObject("$elemMatch" ->
-          MongoDBObject(
-            OrgKeys.collectionId -> collectionId,
-            OrgKeys.pval -> MongoDBObject(pCompareOp -> pval))))).isDefined
-  }
-
-  private def removeCollRefFromOrgs(orgsQuery: DBObject, collectionId: ObjectId, multi: Boolean) = {
-    try {
-      val update = MongoDBObject("$pull" -> MongoDBObject(OrgKeys.contentcolls -> MongoDBObject(OrgKeys.collectionId -> collectionId)))
-      val result = orgDao.update(orgsQuery, update, upsert = false, multi = multi, orgDao.collection.writeConcern)
-      if (result.getLastError.ok) Success() else Failure(PlatformServiceError(s"Error removing collection from orgs: $orgsQuery, collection id: $collectionId"))
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-    }
-  }
-
-  /**
-   * Add the public collection to all orgs so that they have access to it
-   * @param collectionId
-   * @return
-   */
-  //TODO: Adding a content collection with isPublic=true is all that is required to allow access to that collection
-  //Is adding a Ref needed?
-  @deprecated("There is no need to add the ref to all orgs")
-  override def addPublicCollectionToAllOrgs(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
-    collectionService.findOneById(collectionId).map { c =>
-      val query = MongoDBObject.empty
-      val collRef = ContentCollRef(collectionId, Permission.Read.value, true)
-      removeCollRefFromOrgs(query, collRef, true)
-      addCollRefToOrgs(query, collRef, true)
-    }.getOrElse(Failure(PlatformServiceError(s"collection does not exist: $collectionId")))
-  }
-
-  override def removeCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Unit] = {
-    orgDao.findOneById(orgId) match {
-      case Some(org) => {
-        removeCollRefFromOrgs(MongoDBObject(OrgKeys.id -> orgId), collId, false)
-      }
-      case None => Failure(PlatformServiceError("could not find organization"))
-    }
-  }
-
-  override def deleteCollectionFromAllOrganizations(collId: ObjectId): Validation[String, Unit] = {
-
-    def removeCollectionIdFromOrgs() = {
-      removeCollRefFromOrgs(MongoDBObject.empty, collId, true).leftMap(e => e.message)
+      val updatedOrg = o.copy(contentcolls = updatedRefs)
+      orgDao.save(updatedOrg)
+      updatedOrg
     }
 
-    def removeCollectionIdFromItem() = {
-      itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
+    orgDao.findOneById(orgId)
+      .map(updateOrAddNewReference)
+      .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+  }
+
+  override def removeAccessToCollectionForAllOrgs(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch{
+    val update = MongoDBObject("$pull" -> MongoDBObject(OrgKeys.contentcolls -> MongoDBObject(OrgKeys.collectionId -> collId)))
+    val result = orgDao.update(MongoDBObject.empty, update, upsert = false, multi = true, orgDao.collection.writeConcern)
+    if (!result.getLastError.ok) {
+      throw new RuntimeException("Remove failed")
     }
+  }.leftMap(t => PlatformServiceError("Remove failed", t))
 
-    for {
-      rmFromOrg <- removeCollectionIdFromOrgs()
-      rmFromItem <- removeCollectionIdFromItem()
-    } yield Success()
-  }
-
-  override def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization] = {
-    val cursor = if (deep) orgDao.find(MongoDBObject(OrgKeys.path -> orgId)) else orgDao.find(MongoDBObject(OrgKeys.id -> orgId)) //find the tree of the given organization
-    cursor.toSeq
-  }
+//TODO: .... where does this go? ItemSharingService?
+//    def removeCollectionIdFromItem() = {
+//      itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
+//    }
+//
 
   override def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
     orgDao.findOneById(orgId) match {
@@ -200,34 +140,27 @@ class OrgCollectionService(
       case Some(org) => {
         val collections = getCollectionIds(orgId, Permission.Write, false)
         if (collections.isEmpty) {
-          collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
+          collectionService.insertCollection(orgId, ContentCollection(ContentCollection.Default, orgId), Permission.Write)
         } else {
           collectionService.getDefaultCollection(collections) match {
             case Some(default) => Success(default)
             case None =>
-              collectionService.insertCollection(orgId, ContentCollection(Keys.DEFAULT, orgId), Permission.Write)
+              collectionService.insertCollection(orgId, ContentCollection(ContentCollection.Default, orgId), Permission.Write)
           }
         }
       }
     }
   }
 
-  /**
-   * get all sub-nodes of given organization.
-   * if none, or parent could not be found in database, returns empty list
-   * @param parentId
-   * @return
-   */
-  override def getTree(parentId: ObjectId): Seq[Organization] = orgDao.find(MongoDBObject(Keys.path -> parentId)).toSeq
-
-  override def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
-    getTree(orgId).foldRight[Option[Permission]](None)((o, p) => {
+  override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
+    orgService.orgsWithPath(orgId, true).foldRight[Option[Permission]](None)((o, p) => {
       o.contentcolls.find(_.collectionId == collId) match {
         case Some(ccr) => Permission.fromLong(ccr.pval)
         case None => p
       }
     })
   }
+
   private def toggleCollectionEnabled(orgId: ObjectId, collectionId: ObjectId, enabled: Boolean): Validation[PlatformServiceError, ContentCollRef] = {
     val query = MongoDBObject(OrgKeys.id -> orgId, "contentcolls.collectionId" -> collectionId)
     val update = MongoDBObject("$set" -> MongoDBObject("contentcolls.$.enabled" -> enabled))
@@ -240,7 +173,7 @@ class OrgCollectionService(
     import scalaz.Scalaz._
 
     val query = MongoDBObject(OrgKeys.id -> orgId)
-    val projection = MongoDBObject(OrgKeys.contentcolls -> MongoDBObject("$elemMatch" -> MongoDBObject(Keys.collectionId -> collectionId)))
+    val projection = MongoDBObject(OrgKeys.contentcolls -> MongoDBObject("$elemMatch" -> MongoDBObject(OrgKeys.collectionId -> collectionId)))
 
     def getRef(dbo: DBObject) = {
       import org.corespring.common.mongo.ExpandableDbo.ExpandableDbo
@@ -256,8 +189,23 @@ class OrgCollectionService(
     }
   }
 
+
   override def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization] = {
     val query = MongoDBObject("contentcolls.collectionId" -> MongoDBObject("$in" -> List(collectionId)))
     orgDao.find(query).toStream
   }
+
+  override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
+
+    collectionDao.findOne
+    k
+    for{
+    }
+    getPermission(orgId, collId).map{ orgPermission =>
+      orgPermission.has(p)
+    }.getOrElse(false)
+  }
+
+
+
 }

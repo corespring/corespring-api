@@ -25,7 +25,7 @@ import scalaz._
 class ItemService(
   val dao: VersioningDao[Item, VersionedId[ObjectId]],
   assets: interface.item.ItemAssetService,
-  contentCollectionService: => interface.ContentCollectionService,
+  orgCollectionService: => interface.OrgCollectionService,
   implicit val context: Context,
   archiveConfig: ArchiveConfig)
   extends interface.item.ItemService {
@@ -59,10 +59,9 @@ class ItemService(
   }
 
   override def asMetadataOnly(i: Item): DBObject = {
-    import com.mongodb.casbah.commons.MongoDBObject
     import com.novus.salat._
     val timestamped = i.copy(dateModified = Some(new DateTime()))
-    val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(timestamped))
+    val dbo: MongoDBObject = grater[Item].asDBObject(timestamped)
     dbo - "_id" - Keys.supportingMaterials - Keys.data - Keys.collectionId
   }
 
@@ -240,7 +239,7 @@ class ItemService(
     dao.findDbo(contentId, MongoDBObject("collectionId" -> 1)).map { dbo =>
       val collectionId = dbo.get("collectionId").asInstanceOf[String]
       if (ObjectId.isValid(collectionId)) {
-        contentCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)
+        orgCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
         Failure(ItemNotFoundError(orgId, p, contentId))
@@ -253,7 +252,7 @@ class ItemService(
 
   override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
 
-    val readableCollectionIds = contentCollectionService
+    val readableCollectionIds = orgCollectionService
       .getCollectionIds(orgId, Permission.Read)
       .filterNot(_ == archiveConfig.contentCollectionId)
       .map(_.toString)
