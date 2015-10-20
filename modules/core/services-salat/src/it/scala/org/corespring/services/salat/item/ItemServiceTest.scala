@@ -48,9 +48,10 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       org
     }
 
-    def addCollection(id: Int, p: Permission = Permission.Read, enabled: Boolean = true) = {
-      val coll = ContentCollection("test-coll-" + id, org.id)
-      services.contentCollectionService.insertCollection(org.id, coll, p, enabled)
+    def addCollection(id: Int, orgId: Option[ObjectId] = None, p: Permission = Permission.Read, enabled: Boolean = true) = {
+      val orgToUse = orgId.getOrElse(org.id)
+      val coll = ContentCollection("test-coll-" + id, orgToUse)
+      services.contentCollectionService.insertCollection(orgToUse, coll, p, enabled)
       colls.put(id, coll)
       coll
     }
@@ -269,7 +270,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       res === Seq("contributor-1")
     }
     "not include contributors from collections which are not readable" in new TestScope {
-      addCollection(1, p = Permission.None)
+      addOrg(2)
+      addCollection(1, orgId=Some(orgs(2).id))
       addItem(1, colls(1))
 
       val res = itemService.contributorsForOrg(org.id)
