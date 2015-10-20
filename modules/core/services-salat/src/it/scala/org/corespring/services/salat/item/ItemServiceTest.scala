@@ -132,20 +132,18 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
   "asMetadataOnly" should {
     trait AsMetadataOnlyScope extends Scope {
       val longAgo = new DateTime(1000, 10, 10, 10, 10)
+
       val item = new Item(
         id = VersionedId(ObjectId.get),
         supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)),
         data = Some(Resource(name = "test-data", files = Seq.empty)),
         collectionId = "1234567",
         dateModified = Some(longAgo))
-      def assertDatetimeEquals(d1: DateTime, d2: DateTime, precisionMillis: Int = 1000 * 60) = {
-        def mins(d: DateTime) = Math.floor(d.getMillis() / precisionMillis)
-        mins(d1) == mins(d2)
-      }
     }
     "set dateModified to the current time" in new AsMetadataOnlyScope {
-      val res = itemService.asMetadataOnly(item)
-      assertDatetimeEquals(new DateTime(res.get("dateModified")), DateTime.now())
+      val now = DateTime.now().getMillis
+      var dateModified = itemService.asMetadataOnly(item).get("dateModified")
+      new DateTime(dateModified).getMillis must beGreaterThanOrEqualTo(now)
     }
     "remove id from result" in new AsMetadataOnlyScope {
       val res = itemService.asMetadataOnly(item)
