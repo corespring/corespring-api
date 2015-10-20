@@ -56,13 +56,17 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
     def addItem(id: Int, c: ContentCollection,
       contributorId: Option[Int] = None,
-      contentType: Option[String] = None) = {
+      contentType: Option[String] = None,
+      standards: Seq[String] = Seq.empty,
+      title: Option[String] = None) = {
       val contributorDetails = ContributorDetails(
         contributor = Some("contributor-" + contributorId.getOrElse(id)))
       val item = Item(
         collectionId = c.id.toString,
         contributorDetails = Some(contributorDetails),
-        contentType = contentType.getOrElse(Item.contentType))
+        contentType = contentType.getOrElse(Item.contentType),
+        standards = standards,
+        taskInfo = Some(TaskInfo(title = title)))
       services.itemService.insert(item)
       items.put(id, item)
       item
@@ -167,18 +171,12 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     trait CloneScope extends TestScope {
       val item = Item(collectionId = "1234567")
       val clonedItem = itemService.clone(item)
-
-      override def after = {
-        clonedItem.map(itemService.purge(_))
-        super.after
-      }
     }
     "return the cloned item" in new CloneScope {
       clonedItem.get.id !== item.id
     }
     "create a new item in the db" in new CloneScope {
-      val dbItem = itemService.findOneById(clonedItem.get.id)
-      dbItem.isDefined === true
+      loadItem(clonedItem.get.id).isDefined == true
     }
     //TODO How much of file cloning do we want to test?
     "clone stored files" in pending
@@ -197,7 +195,7 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       }
 
       override def after = {
-        itemService.purge(v1Item.id)
+        removeAllData()
       }
     }
 
@@ -322,6 +320,7 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
       itemService.count(MongoDBObject()) === 1
     }
+    "ignore archived items" in pending
   }
 
   "countItemsInCollection" should {
@@ -366,29 +365,68 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
   }
 
   "deleteFromSharedCollections" should {
-    "work" in pending
+    trait DeleteFromSharedCollectionsScope extends TestScope {
+      addCollection(1)
+      addCollection(2)
+      addItem(1, colls(1))
+      addItem(2, colls(1))
+      val sharedCollectionId = colls(2).id
+      itemService.addCollectionIdToSharedCollections(Seq(items(1).id), sharedCollectionId)
+    }
+    "remove collection from one item" should {
+      "return success" in new DeleteFromSharedCollectionsScope() {
+        itemService.deleteFromSharedCollections(sharedCollectionId) match {
+          case Failure(e) => failure(s"Unexpected failure $e")
+          case Success(_) => success
+        }
+      }
+      "update the item in db" in new DeleteFromSharedCollectionsScope() {
+        loadItem(items(1).id).map(_.sharedInCollections === Seq(sharedCollectionId))
+        itemService.deleteFromSharedCollections(sharedCollectionId)
+        loadItem(items(1).id).map(_.sharedInCollections === Seq.empty)
+      }
+    }
+    "remove collection from multiples items" should {
+      "update the items in db" in new DeleteFromSharedCollectionsScope() {
+        itemService.addCollectionIdToSharedCollections(Seq(items(2).id), sharedCollectionId)
+        loadItem(items(1).id).map(_.sharedInCollections === Seq(sharedCollectionId))
+        loadItem(items(2).id).map(_.sharedInCollections === Seq(sharedCollectionId))
+        itemService.deleteFromSharedCollections(sharedCollectionId)
+        loadItem(items(1).id).map(_.sharedInCollections === Seq.empty)
+        loadItem(items(2).id).map(_.sharedInCollections === Seq.empty)
+      }
+    }
   }
 
-  "find" should { "work" in pending }
-  "findFieldsById" should { "work" in pending }
-  "findItemStandards" should { "work" in pending }
-  "findMultiple" should { "work" in pending }
-  "findMultipleById" should { "work" in pending }
-  "findOne" should { "work" in pending }
-  "findOneById" should { "work" in pending }
-  "getOrCreateUnpublishedVersion" should { "work" in pending }
-  "getQtiXml" should { "work" in pending }
-  "insert" should { "work" in pending }
-  "isPublished" should { "work" in pending }
-  "moveItemToArchive" should { "work" in pending }
-  "publish" should { "work" in pending }
-  "purge" should { "work" in pending }
-  "removeCollectionIdsFromShared" should { "work" in pending }
-  "save" should { "work" in pending }
-  "saveNewUnpublishedVersion" should { "work" in pending }
-  "saveUsingDbo" should { "work" in pending }
+  "find" should {
+    "only return item of type item" in pending
+    "not return archived items" in pending
+    "allow to select the returned fields" in pending
+    "return an empty Stream if no items can be found" in pending
+  }
+
+  "findFieldsById" should {
+    "return all fields of the item by default" in pending
+    "allow to select fields of the item" in pending
+    "return None if item cannot be found" in pending
+    "return Fields of archived item" in pending
+  }
 
   "findItemStandards" should {
+
+    "return item standards of an item" in new TestScope {
+      addCollection(1)
+      addItem(1, colls(1), title = Some("title"), standards = Seq("S1", "S2"))
+      itemService.findItemStandards(items(1).id) must_== Some(ItemStandards("title", Seq("S1", "S2"), items(1).id))
+    }
+    "return item standards of an archived item" in pending
+    "return None if item cannot be found" in pending
+    "return None if item has no title" in pending
+    "return None if item has no standards" in pending
+
+  }
+
+  "findMultiple" should {
     trait scope extends After {
 
       lazy val item = Item(
@@ -398,17 +436,90 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       lazy val itemId = services.itemService.insert(item).get
 
       override def after: Any = {
-        services.itemService.purge(itemId)
+        removeAllData()
       }
     }
+    "return Seq of items found" in pending
+    "return empty Seq when o item can be found" in pending
+    "return items with type item only" in pending
+    "allow to select fields of the items" in pending
+    "not return archived items" in pending
+  }
 
-    "return an item standard" in new scope {
-      services.itemService.findItemStandards(itemId) must_== Some(ItemStandards("title", Seq("S1", "S2"), itemId))
-    }
+  "findMultipleById" should {
+    "return Stream of items found" in pending
+    "return empty Stream if no item can be found" in pending
+    "not return archived items" in pending
+  }
+
+  "findOne" should {
+    "return item" in pending
+    "return None if item is in archive" in pending
+    "return None if item cannot be found" in pending
+  }
+
+  "findOneById" should {
+    "return current item" in pending
+    "return archived item" in pending
+    "return None if item cannot be found" in pending
+  }
+
+  "getOrCreateUnpublishedVersion" should {
+    "return an existing unpublished current item" in pending
+    "return None if the item does not exist in current or archive" in pending
+    "create a new unpublished item, if published item can be found in current" in pending
+    "create a new unpublished item, if published item can be found in archive" in pending
+    "create a new unpublished item, if unpublished item can be found in archive" in pending
+  }
+
+  "getQtiXml" should {
+    //TODO Really? Or is it a todo?
+    "return None for any item" in pending
+  }
+
+  "insert" should {
+    "return the id if successful" in pending
+    "return None if not successful" in pending
+  }
+
+  "isPublished" should {
+    "return true if item.isPublished is true" in pending
+    "return false if item.isPublished is false" in pending
+    "return false if item cannot be found" in pending
+    "return false if item is archived" in pending
+  }
+
+  "moveItemToArchive" should {
+    "set the collectionId of an item to the archive collection id" in pending
+    "not add a new item, if it does not exist" in pending
+    "return the archive collection id" in pending
+  }
+
+  "publish" should {
+    "set item.isPublished to true" in pending
+    "not create a new item, if it does not exist" in pending
+    "return true, if update is successful" in pending
+    "return true, if isPublished was true already" in pending
+    "return false, if item could not be updated" in pending
+  }
+
+  "purge" should {
+    "delete item from current" in pending
+    "delete item from archive" in pending
+    "return Success when item has been deleted" in pending
+    "return Success when item has not been deleted" in pending
+  }
+
+  "removeCollectionIdsFromShared" should {
+    "remove one collectionId from one item" in pending
+    "remove multiple collectionIds from one item" in pending
+    "remove one collectionId from multiple items" in pending
+    "remove multiple collectionId from multiple items" in pending
+    "return ids of all items if successful" in pending
+    "return ids of failed items if not successful" in pending
   }
 
   "save" should {
-
     def mockAssets(succeed: Boolean) = {
       val m = mock[ItemAssetService]
 
@@ -461,12 +572,44 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
 
     "revert the version if a failure occurred when cloning stored files" in {
+      //TODO Can it be tested without mocking
       assertSaveWithStoredFile("bad.png", false)
     }
 
     "update the version if no failure occurred when cloning stored files" in {
+      //TODO Can it be tested without mocking
       assertSaveWithStoredFile("good.png", true)
     }
+
+    "when createVersion is default or false" should {
+      "save an existing item" in pending
+      "update dateModified to the time of the saving" in pending
+      "return the id of the saved item if successful" in pending
+    }
+
+    "when createVersion is true" should {
+      "save an existing item to a new version" in pending
+      "update dateModified to the time of the saving" in pending
+      "return the new id of the saved item if successful" in pending
+      "copy the assets from the old item to the new item" in pending
+    }
+    "insert a new item if item does not exist" in pending
+  }
+
+  "saveNewUnpublishedVersion" should {
+    "create new unpublished item when item is in current" in pending
+    "create new unpublished item when item is in archive" in pending
+    "return None if the item cannot be found in current or archive" in pending
+  }
+
+  "saveUsingDbo" should {
+    "return false when item does not exist in current" in pending
+    "return true when item exists in current" in pending
+    "use the dbo to update the item" in pending
+    "create a new version of the item, when createNewVersion is true" in pending
+
+    //TODO Assets should be copied, that seems to be missing in the implementation
+    "copy the assets when createNewVersion is true" in pending
   }
 
 }

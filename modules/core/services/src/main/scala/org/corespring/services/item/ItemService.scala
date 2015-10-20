@@ -65,7 +65,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def insert(i: Item): Option[VersionedId[ObjectId]]
 
-  def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item]
+  def findMultiple(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Seq[Item]
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem]
 

@@ -126,7 +126,10 @@ class ItemService(
 
   import org.corespring.services.salat.ValidationUtils._
 
-  // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
+  // three things occur here:
+  // 1. save the new item,
+  // 2. copy the old item's s3 files,
+  // 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   override def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
@@ -162,10 +165,10 @@ class ItemService(
 
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
-  def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
+  def findMultiple(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Seq[Item] = {
     val oids = ids.map(i => i.id)
     val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
-    val out = dao.findCurrent(query, keys).toSeq
+    val out = dao.findCurrent(query, fields).toSeq
     out
   }
 
