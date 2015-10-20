@@ -1,7 +1,7 @@
 package org.corespring.v2
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.errors._
 import org.corespring.v2.errors.Errors._

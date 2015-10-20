@@ -1,8 +1,4 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# Map static developer site..
+GET         /                                                         web.controllers.PublicSite.redirect()
 
 
 # Map static resources from the /public folder to the /assets URL path
@@ -21,44 +17,19 @@ GET         /developer/org/:orgid                                     developer.
 GET         /developer/home                                           developer.controllers.Developer.home
 GET         /developer/*file                                          developer.controllers.Developer.at(path="/public/developer", file)
 
-#
-# Auth endpoints
-#
-POST        /auth/register                                            org.corespring.platform.core.controllers.auth.AuthController.register
-POST        /auth/access_token                                        org.corespring.platform.core.controllers.auth.AuthController.getAccessToken
-GET         /auth/isvalid                                             org.corespring.platform.core.controllers.auth.AuthController.isValid(token)
 
-GET         /                                                         web.controllers.Partials.redirect(url = "http://www.corespring.org")
+# Auth endpoints
+POST /auth/register                                                   @developer.controllers.AuthController.register
+POST /auth/access_token                                               @developer.controllers.AuthController.getAccessToken
+GET /auth/isvalid                                                     @developer.controllers.AuthController.isValid(token)
+
+
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
-->          /logger                                                   clientlogging.Routes
-->          /player                                                   v1Player.Routes
-->          /import                                                   itemimport.Routes
-
-# Note: You can't assign the same routes file to different paths as the object will get overwritten
-# ->     /v1/player             v1Player.Routes
-->          /logger/                                                  clientlogging.Routes
-
 ->          /v2/player                                                v2Player.Routes
 ->          /v2/editor                                                v2Editor.Routes
-->          /lti                                                      lti.Routes
-->          /reports                                                  reports.Routes
-->          /scorm                                                    scorm.Routes
-->          /dev/tools                                                devTools.Routes
 
-# Web tier
-GET         /web                                                      web.controllers.Main.index
 
-# Item Preview
-GET         /web/partials/editItem                                    web.controllers.Partials.editItem
-GET         /web/views/*path                                          web.controllers.Partials.loadFromPath(path:String)
-GET         /web/javascripts/routes                                   web.controllers.ShowResource.javascriptRoutes
-
-GET         /web/show-resource/:itemId/:resourceName/main             web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
-GET         /web/show-resource/:itemId/:resourceName/:filename        web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
-GET         /web/print-resource/:itemId/data/main                     web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
-
-#
 # SecureSocial routes
 
 # Login page
@@ -75,19 +46,22 @@ POST        /reset                                                    securesoci
 GET         /reset/:token                                             securesocial.controllers.Registration.resetPassword(token)
 POST        /reset/:token                                             securesocial.controllers.Registration.handleResetPassword(token)
 
+# Web tier
+GET         /web                                                      web.controllers.Main.index
+
+# Item Preview
+GET         /web/partials/editItem                                    web.controllers.Partials.editItem
+GET         /web/views/*path                                          web.controllers.Partials.loadFromPath(path:String)
+GET         /web/javascripts/routes                                   @web.controllers.ShowResource.javascriptRoutes
+
+GET         /web/show-resource/:itemId/:resourceName/main             @web.controllers.ShowResource.getDefaultResourceFile(itemId,resourceName)
+GET         /web/show-resource/:itemId/:resourceName/:filename        @web.controllers.ShowResource.getResourceFile(itemId,resourceName,filename)
+GET         /web/print-resource/:itemId/data/main                     @web.controllers.ShowResource.renderDataResourceForPrinting(itemId)
+
+
 GET         /password                                                 securesocial.controllers.PasswordChange.page
 POST        /password                                                 securesocial.controllers.PasswordChange.handlePasswordChange
 
 # Providers entry points
 GET         /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticate(provider)
 POST        /authenticate/:provider                                   securesocial.controllers.ProviderController.authenticateByPost(provider)
-
-#system check
-GET         /system/check                                             controllers.SystemCheck.index()
-
-GET         /internal/utils/qti-search                                internal.controllers.QtiSearch.qtiSearchPage()
-POST        /internal/utils/qti-search                                internal.controllers.QtiSearch.qtiSearch()
-
-# Regression test endpoints
-GET         /regression/:orgId/:itemSessionId/render                  regression.controllers.Item.renderPlayer(orgId: ObjectId, itemSessionId: ObjectId)
-GET         /regression/:orgId/:itemId/:requestedAccess               regression.controllers.Item.simplePlayer(requestedAccess: String, orgId: ObjectId, itemId: VersionedId[ObjectId])

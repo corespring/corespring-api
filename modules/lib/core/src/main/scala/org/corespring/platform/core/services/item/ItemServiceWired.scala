@@ -10,11 +10,11 @@ import org.corespring.assets.CorespringS3Service
 import org.corespring.assets.CorespringS3ServiceExtended
 import org.corespring.common.config.AppConfig
 import org.corespring.platform.core.files.{ CloneFileFailure, CloneFileSuccess, CloneFileResult, ItemFiles }
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ StoredFile, CDataHandler, VirtualFile, Resource }
-import org.corespring.platform.core.models.item.{ Item, FieldValue }
-import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
+import org.corespring.models.ContentCollection
+import org.corespring.models.item.resource.BaseFile.ContentTypes
+import org.corespring.models.item.resource.{ StoredFile, CDataHandler, VirtualFile, Resource }
+import org.corespring.models.item.{ Item, FieldValue }
+import org.corespring.models.itemSession.{ ItemSessionCompanion, DefaultItemSession }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -45,7 +45,7 @@ class ItemServiceWired(
   with IdConverters {
 
   import com.mongodb.casbah.commons.conversions.scala._
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   RegisterJodaTimeConversionHelpers()
 
@@ -121,7 +121,7 @@ class ItemServiceWired(
   def deleteUsingDao(id: VersionedId[ObjectId]) = dao.delete(id)
 
   override def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean] = {
-    import org.corespring.platform.core.models.mongoContext.context
+    import org.corespring.models.mongoContext.context
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
     val result = dao.collectionUpdate(item.id, MongoDBObject("_id._id" -> item.id.id), update, false, false)

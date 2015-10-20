@@ -1,66 +1,77 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.item.{Item, PlayerDefinition}
+import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.auth.SessionAuth.Session
-import org.corespring.v2.auth.models.{ IdentityJson, AuthMode, OrgAndOpts, PlayerAccessSettings }
-import org.corespring.v2.auth.{ ItemAuth, SessionAuth }
-import org.corespring.v2.errors.Errors.{ cantLoadSession, errorSaving, noItemIdInSession }
+import org.corespring.v2.auth.models.{AuthMode, IdentityJson, OrgAndOpts, PlayerAccessSettings}
+import org.corespring.v2.auth.{ItemAuth, SessionAuth}
+import org.corespring.v2.errors.Errors.{cantLoadSession, errorSaving, noItemIdInSession}
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
-import org.corespring.v2.sessiondb.SessionService
-import org.joda.time.{ DateTime, DateTimeZone }
-import play.api.libs.json.{ Json, JsObject, JsValue }
+import org.corespring.v2.sessiondb.{SessionService, SessionServices}
+import org.joda.time.{DateTime, DateTimeZone}
+import play.api.Logger
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Success, Validation}
 
-trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
+trait HasPermissions {
+  def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
+}
 
-  lazy val logger = V2LoggerFactory.getLogger("auth.SessionAuth")
+class SessionAuthWired(
+  itemTransformer: ItemTransformer,
+  jsonToPlayerDef: JsonFormatting,
+  itemAuth: ItemAuth[OrgAndOpts],
+  sessionServices: SessionServices,
+  perms: HasPermissions) extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
-  def itemTransformer: ItemTransformer
-
-  def itemAuth: ItemAuth[OrgAndOpts]
-
-  /**
-   * The main session service holds 'real' item sessions
-   * @return
-   */
-  def mainSessionService: SessionService
-
-  /**
-   * The preview session service holds 'preview' sessions -
-   * This service is used when the identity -> AuthMode == UserSession
-   * @return
-   */
-  def previewSessionService: SessionService
+  lazy val logger = Logger(classOf[SessionAuthWired])
 
   private def sessionService(implicit identity: OrgAndOpts): SessionService = if (identity.authMode == AuthMode.UserSession) {
     logger.debug("Using preview session service")
-    previewSessionService
+    sessionServices.preview
   } else {
     logger.debug("Using main session service")
-    mainSessionService
+    sessionServices.main
   }
 
-  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean]
+//<<<<<<< HEAD
+  //override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
+
+  //override def loadForWrite(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId)
+
+  //override def loadWithIdentity(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = load(sessionId, withIdentity = true)
+
+  //private def load(sessionId: String, withIdentity: Boolean = false)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] = {
+//=======
+  def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = perms.has(itemId, sessionId, settings)
 
   override def loadForRead(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
     for {
       json <- loadSessionJson(sessionId)
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield (cleanSession(json), playerDef)
+//>>>>>>> develop
 
   override def loadForSave(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, JsValue] =
     for {
       json <- loadSessionJson(sessionId)
     } yield cleanSession(json)
 
+//<<<<<<< HEAD
+//    val out = for {
+//      json <- (sessionService.load(sessionId) match {
+//        case Some(session) => Some(session)
+//        case _ => sessionServices.preview.load(sessionId)
+//      }).toSuccess(cantLoadSession(sessionId))
+//=======
   override def loadForWrite(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, (JsValue, PlayerDefinition)] =
     for {
       json <- loadSessionJson(sessionId)
+//>>>>>>> develop
       playerDef <- loadPlayerDefinition(sessionId, json)
     } yield (cleanSession(json), playerDef)
 
@@ -74,7 +85,7 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
     logger.debug(s"[loadSessionJson] $sessionId")
     (sessionService.load(sessionId) match {
       case Some(session) => Some(session)
-      case _ => previewSessionService.load(sessionId)
+      case _ => sessionServices.preview.load(sessionId)
     }).toSuccess(cantLoadSession(sessionId))
   }
 
@@ -92,13 +103,13 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
       for {
         itemId <- (session \ "itemId").asOpt[String].toSuccess(noItemIdInSession(sessionId))
         item <- itemAuth.loadForRead(itemId)
-        hasPerms <- hasPermissions(item.id.toString, Some(sessionId), identity.opts)
+        hasPerms <- perms.has(item.id.toString, Some(sessionId), identity.opts)
       } yield item
     }
 
     val sessionPlayerDef: Option[PlayerDefinition] = (session \ "item").asOpt[JsObject].map {
       internalModel =>
-        internalModel.asOpt[PlayerDefinition]
+        jsonToPlayerDef.toPlayerDefinition(internalModel)
     }.flatten
 
     sessionPlayerDef
@@ -143,8 +154,8 @@ trait SessionAuthWired extends SessionAuth[OrgAndOpts, PlayerDefinition] {
 
   override def cloneIntoPreview(sessionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, ObjectId] = {
     for {
-      original <- mainSessionService.load(sessionId).toSuccess(cantLoadSession(sessionId))
-      copy <- previewSessionService.create(original).toSuccess(cantLoadSession(sessionId))
+      original <- sessionServices.main.load(sessionId).toSuccess(cantLoadSession(sessionId))
+      copy <- sessionServices.preview.create(original).toSuccess(cantLoadSession(sessionId))
     } yield {
       copy
     }

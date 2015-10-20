@@ -1,11 +1,11 @@
 package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption._
+import org.corespring.encryption.apiClient.{ EncryptionFailure, EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ encryptionFailed, missingRequiredField }
 import org.corespring.v2.errors.{ V2Error, Field }
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.{ Json, JsError, JsSuccess, JsValue }
 
 import scalaz.{ Validation, Failure, Success }
@@ -13,15 +13,13 @@ import scalaz.Scalaz._
 
 case class CreateTokenResult(apiClient: String, token: String, settings: JsValue)
 
-trait PlayerTokenService {
+class PlayerTokenService(service: ApiClientEncryptionService) {
 
-  private lazy val logger = V2LoggerFactory.getLogger("PlayerTokenService")
-
-  def encrypter: ApiClientEncrypter
+  private lazy val logger = Logger(classOf[PlayerTokenService])
 
   def createToken(orgId: ObjectId, json: JsValue): Validation[V2Error, CreateTokenResult] = for {
     accessSettings <- toAccessSettings(json)
-    encryptionResult <- encrypter.encryptByOrg(orgId, Json.stringify(Json.toJson(accessSettings)))
+    encryptionResult <- service.encryptByOrg(orgId, Json.stringify(Json.toJson(accessSettings)))
       .toSuccess(encryptionFailed(s"orgId: $orgId - Unknown error trying to encrypt"))
     clientIdAndToken <- encryptionToValidation(encryptionResult)
   } yield {

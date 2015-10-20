@@ -11,7 +11,7 @@ class CorespringIdGenerator(app: Application) extends IdGenerator(app) {
   val IdSizeInBytes = 96
 
   def generate: String = {
-    var randomValue = new Array[Byte](IdSizeInBytes)
+    val randomValue = new Array[Byte](IdSizeInBytes)
     random.nextBytes(randomValue)
     Codecs.toHexString(randomValue)
   }

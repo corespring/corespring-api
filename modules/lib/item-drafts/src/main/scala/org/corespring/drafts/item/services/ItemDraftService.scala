@@ -1,34 +1,40 @@
 package org.corespring.drafts.item.services
 
-import java.util.Date
-
 import com.mongodb.casbah.Imports._
 import org.corespring.drafts.item.models.{ ItemDraftHeader, DraftId, ItemDraft, OrgAndUser }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
+import play.api.Logger
 
-object ItemDraftDbUtils {
+object ItemDraftConfig {
+  object CollectionNames {
+    val itemDrafts = "drafts.items"
+    val commits = "drafts.item_commits"
+  }
+}
+
+private[drafts] trait ItemDraftDbUtils {
+  implicit def context: com.novus.salat.Context
   import com.novus.salat.grater
-  import org.corespring.platform.core.models.mongoContext.context
   import scala.language.implicitConversions
 
-  def idToDbo(draftId: DraftId): DBObject = {
+  protected def idToDbo(draftId: DraftId): DBObject = {
     val id = grater[DraftId].asDBObject(draftId)
     MongoDBObject("_id" -> id)
   }
 
-  implicit def toDbo(dbo: ItemDraft): DBObject = {
+  protected implicit def toDbo(dbo: ItemDraft): DBObject = {
     grater[ItemDraft].asDBObject(dbo)
   }
 
-  implicit def toDraft(dbo: DBObject): ItemDraft = {
+  protected implicit def toDraft(dbo: DBObject): ItemDraft = {
     grater[ItemDraft].asObject(new MongoDBObject(dbo))
   }
 }
 
-trait ItemDraftService {
+trait ItemDraftService extends ItemDraftDbUtils {
 
-  import ItemDraftDbUtils._
+  val logger = Logger(classOf[ItemDraftService])
 
   private object IdKeys {
     val orgId: String = "_id.orgId"
@@ -40,18 +46,10 @@ trait ItemDraftService {
   collection.ensureIndex(IdKeys.orgId)
   collection.ensureIndex(IdKeys.itemId)
 
-  import com.novus.salat.grater
-  import org.corespring.platform.core.models.mongoContext.context
-
   import scala.language.implicitConversions
 
   def save(d: ItemDraft): WriteResult = {
     collection.save(d)
-  }
-
-  private def idToDbo(draftId: DraftId): DBObject = {
-    val id = grater[DraftId].asDBObject(draftId)
-    MongoDBObject("_id" -> id)
   }
 
   def load(id: DraftId): Option[ItemDraft] = {
@@ -108,6 +106,7 @@ trait ItemDraftService {
   def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId): Seq[ItemDraftHeader] = {
     val query = MongoDBObject(IdKeys.orgId -> orgId, IdKeys.itemId -> itemId.id)
     val fields = MongoDBObject("created" -> 1, "expires" -> 1, "user.user.userName" -> 1)
+    logger.trace(s"function=listByItemAndOrgId, collection=${collection.name}, query=$query, fields=$fields")
     collection.find(query, fields).map(toHeader).toSeq
   }
 

@@ -6,8 +6,8 @@ import com.novus.salat.dao.{ SalatDAOUpdateError, SalatRemoveError, ModelCompani
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
 import org.corespring.platform.core.services.organization.OrganizationService
 import play.api.Play
@@ -17,10 +17,10 @@ import se.radley.plugin.salat._
 import search.Searchable
 
 case class Organization(var name: String = "",
-                        var path: Seq[ObjectId] = Seq(),
-                        var contentcolls: Seq[ContentCollRef] = Seq(),
-                        var metadataSets: Seq[MetadataSetRef] = Seq(),
-                        var id: ObjectId = new ObjectId()) {
+  var path: Seq[ObjectId] = Seq(),
+  var contentcolls: Seq[ContentCollRef] = Seq(),
+  var metadataSets: Seq[MetadataSetRef] = Seq(),
+  var id: ObjectId = new ObjectId()) {
 
   lazy val isRoot: Boolean = id == AppConfig.rootOrgId
 
@@ -40,7 +40,7 @@ trait OrganizationImpl
 
   val collection = mongoCollection("orgs")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val dao = new SalatDAO[Organization, ObjectId](collection = collection) {}
 

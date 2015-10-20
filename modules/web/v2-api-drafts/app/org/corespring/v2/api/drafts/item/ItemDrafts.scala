@@ -1,25 +1,24 @@
 package org.corespring.v2.api.drafts.item
 
-import org.corespring.drafts.errors.{ DraftError, NothingToCommit }
-import org.corespring.drafts.item.models.{ DraftId, OrgAndUser }
-import org.corespring.drafts.item.{ ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId }
+import org.corespring.drafts.errors.{DraftError, NothingToCommit}
+import org.corespring.drafts.item.models.{DraftId, OrgAndUser}
+import org.corespring.drafts.item.{ItemDraftIsOutOfDate, ItemDrafts => DraftsBackend, MakeDraftId}
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.v2.api.drafts.item.json.{ CommitJson, DraftCloneResultJson, ItemDraftJson }
+import org.corespring.v2.api.drafts.item.json.{CommitJson, DraftCloneResultJson, ItemDraftJson}
 import org.joda.time.DateTime
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.Future
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
-trait ItemDrafts extends Controller with MakeDraftId {
+class ItemDrafts(
+  drafts: DraftsBackend,
+  identifyUser: (RequestHeader) => Option[OrgAndUser],
+  itemDraftJson: ItemDraftJson) extends Controller with MakeDraftId {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   import scalaz.Scalaz._
-
-  def drafts: DraftsBackend
-
-  def identifyUser(rh: RequestHeader): Option[OrgAndUser]
 
   private def toOrgAndUser(request: RequestHeader) = identifyUser(request).toSuccess(AuthenticationFailed)
 
@@ -39,7 +38,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftList <- Success(drafts.listByItemAndOrgId(vid, user.org.id))
       } yield {
-        val seq = draftList.map(ItemDraftJson.header)
+        val seq = draftList.map(itemDraftJson.header)
         Json.toJson(seq)
       }
     }
@@ -61,12 +60,12 @@ trait ItemDrafts extends Controller with MakeDraftId {
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
         draftName <- Success(mkDraftName(user.user.map(_.userName).getOrElse("unknown_user")))
         draft <- drafts.create(DraftId(vid.id, draftName, user.org.id), user, expires).leftMap { e => generalDraftApiError(e.msg) }
-      } yield ItemDraftJson.header(draft.toHeader)
+      } yield itemDraftJson.header(draft.toHeader)
     }
   }
 
   private def toApiResult(e: DraftError): DraftApiResult = e match {
-    case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data)
+    case ItemDraftIsOutOfDate(d, src) => draftIsOutOfDate(d, src.data, itemDraftJson.conflict)
     case NothingToCommit(id) => nothingToCommit(id.toString)
     case _ => generalDraftApiError(e.msg)
   }
@@ -92,7 +91,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
   def get(id: String, ignoreConflicts: Option[Boolean] = None) = draftsAction(id) { (user, draftId, rh) =>
     drafts.loadOrCreate(user)(draftId, ignoreConflicts.getOrElse(false)).bimap(
       toApiResult,
-      d => ItemDraftJson.withFullItem(d))
+      d => itemDraftJson.withFullItem(d))
   }
 
   private implicit def draftErrorToDraftApiError[A](v: Validation[DraftError, A]): Validation[DraftApiError, A] = {
@@ -126,7 +125,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
         user <- toOrgAndUser(request)
       } yield {
         val orgDrafts = drafts.listForOrg(user.org.id)
-        Json.toJson(orgDrafts.map(ItemDraftJson.header))
+        Json.toJson(orgDrafts.map(itemDraftJson.header))
       }
     }
   }
@@ -135,7 +134,7 @@ trait ItemDrafts extends Controller with MakeDraftId {
     drafts.conflict(user)(draftId)
       .bimap(
         e => generalDraftApiError(e.msg),
-        c => c.map(ItemDraftJson.conflict).getOrElse(Json.obj()))
+        c => c.map(itemDraftJson.conflict).getOrElse(Json.obj()))
   }
 
   private def draftsAction(id: String, parser: BodyParser[Any] = parse.anyContent)(fn: (OrgAndUser, DraftId, RequestHeader) => Validation[DraftApiResult, JsValue]) =

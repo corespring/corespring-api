@@ -30,7 +30,14 @@ class AppConfig(config: Configuration) {
   lazy val envName: String = config.getString(Key.ENV_NAME).getOrElse("dev")
   lazy val rootOrgId: ObjectId = config.getString(Key.ROOT_ORG_ID).map(new ObjectId(_)).getOrElse(throw new RuntimeException("Not found"))
   lazy val v2playerOrgIds: Seq[ObjectId] = config.getString(Key.V2_PLAYER_ORG_IDS).map(_.split(",").map(new ObjectId(_)).toSeq).getOrElse(Seq.empty[ObjectId])
+  lazy val archiveContentCollectionId: ObjectId = new ObjectId(getString("archive.contentCollectionId"))
+  lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
+  lazy val publicSite = config.getString("publicSiteUrl").getOrElse("//www.corespring.org")
+  lazy val mongoUri = getString("mongodb.default.uri")
+  lazy val componentsPath = getString("container.components.path")
   lazy val componentFilteringEnabled: Boolean = config.getBoolean(Key.COMPONENT_FILTERING_ENABLED).getOrElse(notFound(Key.COMPONENT_FILTERING_ENABLED))
+
+  private def getString(key: String): String = config.getString(key).getOrElse(throw new RuntimeException(s"Key not found: $key"))
 
 }
 

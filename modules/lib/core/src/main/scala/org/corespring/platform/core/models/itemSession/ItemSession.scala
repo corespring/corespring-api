@@ -4,9 +4,9 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import dao.{ SalatDAO, ModelCompanion, SalatInsertError, SalatDAOUpdateError }
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.json.JsonValidationException
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.json.JsonValidationException
+import org.corespring.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.{ ItemServiceWired, ItemService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.Response
@@ -127,7 +127,7 @@ object DefaultItemSession extends ItemSessionCompanion {
 trait ItemSessionCompanion extends ModelCompanion[ItemSession, ObjectId] with PackageLogging {
 
   import ItemSession.Keys._
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val debugMode: Boolean;
 

@@ -1,31 +1,34 @@
 package org.corespring.api.v1
 
 import com.mongodb.casbah.Imports._
+import com.novus.salat.Context
 import com.novus.salat.dao.SalatMongoCursor
-import org.corespring.api.v1.errors.ApiError
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
+import org.corespring.models.item.{ Content => CsContent, Item, Alignments, TaskInfo }
 import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.item.{ TaskInfo, Alignments }
-import org.corespring.platform.core.models.item.{ Content => CsContent }
-import org.corespring.platform.core.models.item.json.ContentView
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.services.BaseContentService
+import org.corespring.services.{ OrganizationService, ContentCollectionService }
+import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json._
 import play.api.mvc._
-import scala.Some
 
 /**
  * This is a superclass for any API Controller that manages Content. ContentApi should provide any functionality that
  * is common to routes associated for various Content subclasses. An implicit Writes for the Content subclass must be
  * provided so that the controller can serialize Content.
  */
-abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentService[ContentType, _])(implicit writes: Writes[ContentView[ContentType]]) extends BaseApi {
+abstract class ContentApi[ContentType <: CsContent[_]](
+  service: SalatContentService[ContentType, _],
+  contentCollectionService: ContentCollectionService,
+  orgService: OrganizationService,
+  implicit val context: Context,
+  implicit val writes: Writes[ContentView[ContentType]]) extends BaseApi {
+
+  import org.corespring.models.item.Item.Keys._
 
   /** Subclasses must define the contentType of the Content in the database **/
   def contentType: String
@@ -57,7 +60,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     limit: Int,
     sort: Option[String]) = ApiAction {
     implicit request =>
-      val collections = ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read).map(_.collectionId)
+      val collections = contentCollectionService.getContentCollRefs(request.ctx.orgId, Permission.Read).map(_.collectionId)
 
       val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
       contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
@@ -79,7 +82,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
    */
   def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
     sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
-    val collections = ContentCollection.getCollectionIds(request.ctx.organization, Permission.Read)
+    val collections = contentCollectionService.getCollectionIds(request.ctx.orgId, Permission.Read)
 
     contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
       case Left(apiError) => BadRequest(toJson(apiError))
@@ -104,6 +107,38 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
     toJson(contentViews)
   }
 
+  private def createDefaultCollectionsQuery[A](collections: Seq[ObjectId], orgId: ObjectId): DBObject = {
+    // filter the collections to exclude any that are not currently enabled for the organization
+    val org = orgService.findOneById(orgId)
+    val disabledCollections: Seq[ObjectId] = org match {
+      case Some(organization) => organization.contentcolls.filterNot(collRef => collRef.enabled).map(_.collectionId)
+      case None => Seq()
+    }
+    val enabledCollections = collections.filterNot(disabledCollections.contains(_))
+    val collectionIdQry: MongoDBObject = MongoDBObject(collectionId -> MongoDBObject("$in" -> enabledCollections.map(_.toString)))
+    val sharedInCollectionsQry: MongoDBObject = MongoDBObject(sharedInCollections -> MongoDBObject("$in" -> enabledCollections))
+    val initSearch: MongoDBObject = MongoDBObject("$or" -> MongoDBList(collectionIdQry, sharedInCollectionsQry))
+    initSearch
+  }
+
+  private def parseCollectionIds[A](organizationId: ObjectId)(value: AnyRef): Either[CorespringInternalError, AnyRef] = value match {
+    case dbo: BasicDBObject => dbo.toSeq.headOption match {
+      case Some((key, dblist)) => if (key == "$in") {
+        if (dblist.isInstanceOf[BasicDBList]) {
+          try {
+            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => contentCollectionService.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read).isSuccess))
+              Right(value)
+            else Left(CorespringInternalError("attempted to access a collection that you are not authorized to"))
+          } catch {
+            case e: IllegalArgumentException => Left(CorespringInternalError("could not parse collectionId into an object id", e))
+          }
+        } else Left(CorespringInternalError("invalid value for collectionId key. could not cast to array"))
+      } else Left(CorespringInternalError("can only use $in special operator when querying on collectionId"))
+      case None => Left(CorespringInternalError("empty db object as value of collectionId key"))
+    }
+    case _ => Left(CorespringInternalError("invalid value for collectionId"))
+  }
+
   protected def contentList[A](q: Option[String],
     f: Option[String],
     sk: Int,
@@ -116,13 +151,13 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
       Right(JsArray(Seq()))
     } else {
       val initSearch: MongoDBObject = baseQuery.iterator.toSeq
-        .foldLeft(service.createDefaultCollectionsQuery(collections, request.ctx.organization)) { (query, entry) =>
+        .foldLeft(createDefaultCollectionsQuery(collections, request.ctx.orgId)) { (query, entry) =>
           query ++ entry
         }
 
       val queryResult: Either[SearchCancelled, DBObject] = q.map(query => ItemSearch.toSearchObj(query,
         Some(initSearch),
-        Map(collectionId -> service.parseCollectionIds(request.ctx.organization)))) match {
+        Map(collectionId -> parseCollectionIds(request.ctx.orgId)))) match {
         case Some(result) => result
         case None => Right(initSearch)
       }
@@ -136,8 +171,9 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
 
       def runQueryAndMakeJson(query: MongoDBObject, fields: SearchFields, sk: Int, limit: Int, sortField: Option[MongoDBObject] = None) = {
         logger.debug(s"query=${com.mongodb.util.JSON.serialize(query)}")
-        logger.debug(s"fields=${fields.fieldsToReturn}")
-        val cursor = service.find(query, fields.fieldsToReturn)
+        val fieldsWithCollectionId = MongoDBObject(collectionId -> 1) ++ fields.fieldsToReturn
+        logger.debug(s"fields=${fieldsWithCollectionId}")
+        val cursor = service.find(query, fieldsWithCollectionId)
         val count = cursor.count
         val sorted = sortField.map(cursor.sort(_)).getOrElse(cursor)
         jsBuilder(count, sorted.skip(sk).limit(limit), fields, current)
@@ -146,7 +182,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](service: BaseContentServi
       queryResult match {
         case Right(query) => fieldResult match {
           case Right(searchFields) => {
-            cleanDbFields(searchFields, request.ctx.isLoggedIn)
+            cleanDbFields(searchFields, request.ctx.isLoggedInUser)
             sort.map(ItemSearch.toSortObj(_)) match {
               case Some(Right(sortField)) => Right(runQueryAndMakeJson(query, searchFields, sk, l, Some(sortField)))
               case None => Right(runQueryAndMakeJson(query, searchFields, sk, l))

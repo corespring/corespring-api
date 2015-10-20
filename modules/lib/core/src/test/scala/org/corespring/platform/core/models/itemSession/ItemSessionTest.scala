@@ -2,9 +2,9 @@ package org.corespring.platform.core.models.itemSession
 
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.BaseFile.ContentTypes
-import org.corespring.platform.core.models.item.resource.{ VirtualFile, Resource }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.BaseFile.ContentTypes
+import org.corespring.models.item.resource.{ VirtualFile, Resource }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.qti.models.responses.{ ArrayResponse, StringResponse }
 import org.corespring.test.BaseTest
@@ -340,7 +340,11 @@ class ItemSessionTest extends BaseTest {
       }
       session.responses = Seq(StringResponse("winterDiscontent", "blergl"))
       itemSession.process(session, MockXml.AllItems, false)(false) match {
+<<<<<<< HEAD
+        case Left(e) => failure("error: " + e.message)
+=======
         case Left(e) => ko("error: " + e.message)
+>>>>>>> develop
         case Right(s) => {
           println(Json.toJson(s).toString())
           s.responses.exists(r => r.id == "winterDiscontent" && r.value == "blergl") === true

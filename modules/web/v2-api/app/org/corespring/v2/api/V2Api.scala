@@ -1,18 +1,32 @@
 package org.corespring.v2.api
 
+import org.corespring.services.errors.PlatformServiceError
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.errors.Errors.noToken
+import org.corespring.v2.errors.Errors.{ generalError, noToken }
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc._
 
 import scala.concurrent.{ Future, ExecutionContext }
-import scalaz.{ Success, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 trait V2Api extends Controller with LoadOrgAndOptions {
 
   implicit def ec: ExecutionContext
+
+  def getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]
+
+  final override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptionsFn(request)
+
+  protected implicit class MkV2Error[A](v: Validation[PlatformServiceError, A]) {
+
+    require(v != null)
+
+    def v2Error: Validation[V2Error, A] = {
+      v.leftMap { e => generalError(e.message) }
+    }
+  }
 
   /**
    * Convert a Validation to a SimpleResult.
@@ -25,8 +39,17 @@ trait V2Api extends Controller with LoadOrgAndOptions {
     v.fold[SimpleResult](errResult, fn)
   }
 
-  implicit class V2ErrorWithSimpleResult(error: V2Error) {
+  protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
     def toResult: SimpleResult = Status(error.statusCode)(Json.prettyPrint(error.json))
+  }
+
+  protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
+    def toSimpleResult(statusCode: Int = OK): SimpleResult = {
+      v match {
+        case Success(json) => Status(statusCode)(json)
+        case Failure(e) => Status(e.statusCode)(e.json)
+      }
+    }
   }
 
   protected def withIdentity(block: (OrgAndOpts, Request[AnyContent]) => SimpleResult) =
@@ -34,7 +57,7 @@ trait V2Api extends Controller with LoadOrgAndOptions {
       Future {
         getOrgAndOptions(request) match {
           case Success(identity) => block(identity, request)
-          case _ => noToken(request).toResult
+          case Failure(e) => e.toResult
         }
       }
     }
@@ -43,7 +66,7 @@ trait V2Api extends Controller with LoadOrgAndOptions {
     Action.async { implicit request =>
       getOrgAndOptions(request) match {
         case Success(identity) => block(identity, request)
-        case _ => Future { noToken(request).toResult }
+        case Failure(e) => Future { e.toResult }
       }
     }
 

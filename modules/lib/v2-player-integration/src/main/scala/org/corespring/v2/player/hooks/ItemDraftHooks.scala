@@ -1,47 +1,62 @@
 package org.corespring.v2.player.hooks
 
+import org.corespring.container.client.hooks.CoreItemHooks
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
+import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
+import org.corespring.conversion.qti.transformers.{PlayerJsonToItem, ItemTransformer}
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
-import org.corespring.platform.core.models.item.{ Item => ModelItem, PlayerDefinition }
-import org.corespring.platform.core.services.item.ItemService
-import org.corespring.qtiToV2.transformers.PlayerJsonToItem
+import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.OrganizationService
+import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
-import org.corespring.v2.auth.services.OrgService
+import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.{ JsValue, Json, _ }
 import play.api.mvc.RequestHeader
 
-import scala.language.implicitConversions
 import scala.concurrent.Future
+import scala.language.implicitConversions
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{ Success, Validation }
 
-trait ItemDraftHooks
-  extends containerHooks.CoreItemHooks
-  with containerHooks.DraftHooks
+trait DraftHelper {
+  implicit def validationToEither[A](v: Validation[V2Error, A]): Either[StatusMessage, A] = v.leftMap { e => e.statusCode -> e.message }.toEither
+  implicit def validationToOption[A](v: Validation[V2Error, A]): Option[StatusMessage] = v.swap.map { e => e.statusCode -> e.message }.toOption
+}
+
+class ItemDraftHooks(
+  backend: DraftsBackend,
+  itemService: ItemService,
+  orgService: OrganizationService,
+  transformer: ItemTransformer,
+  jsonFormatting: JsonFormatting,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val containerContext: ContainerExecutionContext)
+  extends containerHooks.DraftHooks
+  with CoreItemHooks
   with LoadOrgAndOptions
   with ContainerConverters
   with MakeDraftId {
 
-  def backend: DraftsBackend
-  def itemService: ItemService
-  def orgService: OrgService
-  def transform: ModelItem => JsValue
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
-  private lazy val logger = V2LoggerFactory.getLogger("ItemHooks")
+  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
+
+  private lazy val logger = Logger(classOf[ItemHooks])
 
   //TODO: Why do we load the draft twice? Once in DraftEditorHooks and once here
   override def load(draftId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = Future {
     for {
       draftAndIdentity <- loadDraftAndIdentity(draftId, backend.loadOrCreate(_)(_, ignoreConflict = true))
       draft <- Success(draftAndIdentity._1)
-      json <- Success(transform(draft.change.data))
+      json <- Success(transformer.transformToV2Json(draft.change.data))
     } yield {
       logger.trace(s"draftId=$draftId, json=${Json.stringify(json)}")
       json
@@ -86,7 +101,7 @@ trait ItemDraftHooks
 
   override def saveCollectionId(itemId: String, collectionId: String)(implicit header: RequestHeader): Future[Either[(Int, String), JsValue]] = {
     def updateCollectionId(item: ModelItem, json: JsValue): ModelItem = {
-      item.copy(collectionId = Some(collectionId))
+      item.copy(collectionId = collectionId)
     }
 
     update(itemId, Json.obj("collectionId" -> collectionId), updateCollectionId)
@@ -138,8 +153,14 @@ trait ItemDraftHooks
     } yield Json.obj("id" -> id)
   }
 
-  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] =
+  def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = {
     update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
+  }
+  //<<<<<<< HEAD
+  //    savePartOfPlayerDef(draftId, json.as[JsObject])
+  //
+  //  //DraftHook
+  //=======
 
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
@@ -154,7 +175,7 @@ trait ItemDraftHooks
     def mkItem(u: OrgAndUser) = {
       orgService.defaultCollection(u.org.id).map { c =>
         ModelItem(
-          collectionId = Some(c.toString),
+          collectionId = c.toString,
           playerDefinition = Some(PlayerDefinition("")))
       }
     }
@@ -164,10 +185,7 @@ trait ItemDraftHooks
     val result: Validation[V2Error, (String, String)] = for {
       identity <- getOrgAndUser(h)
       item <- mkItem(identity).toSuccess(generalError("Can't make a new item"))
-      vid <- itemService.save(item, false) match {
-        case Left(m) => Failure(generalError(m))
-        case Right(vid) => Success(vid)
-      }
+      vid <- itemService.save(item, false).leftMap(e => generalError(e.message))
       draft <- backend.create(DraftId(vid.id, randomDraftName, identity.org.id), identity).v2Error
     } yield (vid.toString, draft.id.toString)
 

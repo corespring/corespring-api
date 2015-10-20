@@ -1,7 +1,7 @@
 package org.corespring.lti.models
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.models.itemSession.ItemSessionSettings
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.BaseTest
 import scala.Some
@@ -45,8 +45,7 @@ class LtiAssessmentTest extends BaseTest {
       val config = new LtiAssessment("1",
         LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(),
-        orgId = Some(new ObjectId())
-      )
+        orgId = Some(new ObjectId()))
       LtiAssessment.insert(config)
       LtiAssessment.canUpdate(config, config.orgId.get) === true
       val maybeUpdate = LtiAssessment.update(config.copy(participants = Seq(LtiParticipant(new ObjectId(), "", "", ""))), config.orgId.get)
@@ -65,8 +64,7 @@ class LtiAssessmentTest extends BaseTest {
       val config = new LtiAssessment("1",
         LtiQuestion(Some(VersionedId(ObjectId.get)), ItemSessionSettings()),
         Seq(LtiParticipant(new ObjectId(), "", "", "")),
-        orgId = Some(new ObjectId())
-      )
+        orgId = Some(new ObjectId()))
       LtiAssessment.insert(config)
       val copiedQuestion = config.question.copy(itemId = None)
       val copy = config.copy(question = copiedQuestion)

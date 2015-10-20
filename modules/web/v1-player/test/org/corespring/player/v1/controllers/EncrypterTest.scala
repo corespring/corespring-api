@@ -1,16 +1,15 @@
 package org.corespring.player.v1.controllers
 
-import org.corespring.common.encryption.{Crypto, AESCrypto}
-import org.corespring.platform.core.models.auth.{ApiClient, AccessToken}
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.common.encryption.{ Crypto, AESCrypto }
+import org.corespring.models.auth.{ ApiClient, AccessToken }
+import org.corespring.player.accessControl.models.{ RequestedAccess, RenderOptions }
 import org.corespring.test.BaseTest
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsJson}
+import play.api.mvc.{ AnyContent, AnyContentAsEmpty, AnyContentAsJson }
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
 class EncrypterTest extends BaseTest {
-
 
   "encrypter" should {
 
@@ -65,7 +64,7 @@ class EncrypterTest extends BaseTest {
       def fr(c: AnyContent): FakeRequest[AnyContent] = FakeRequest("", tokenize(".."), FakeHeaders(), c)
 
       runRequestAndReturnStatus(fr(AnyContentAsEmpty)) === BAD_REQUEST
-      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.parse( """{"test": true}""")))) === OK
+      runRequestAndReturnStatus(fr(AnyContentAsJson(Json.parse("""{"test": true}""")))) === OK
       runRequestAndReturnStatus(fr(AnyContentAsJson(Json.toJson(RenderOptions(expires = 0, mode = RequestedAccess.Mode.All))))) === OK
 
     }

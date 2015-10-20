@@ -29,7 +29,7 @@ object MetadataSet {
     def id = new ObjectId()
   }
 
-  import org.corespring.platform.core.models.json._
+  import org.corespring.models.json._
 
   implicit val format = new Format[MetadataSet] {
 

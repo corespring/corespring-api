@@ -1,41 +1,41 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.common.encryption.AESCrypto
-import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.encryption.{ EncryptionResult, EncryptionSuccess, ApiClientEncrypter }
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.PlayerDefinition
-import org.corespring.platform.core.services.organization.OrganizationService
+import org.corespring.encryption.apiClient.{ EncryptionSuccess, EncryptionResult, ApiClientEncryptionService }
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.item.PlayerDefinition
+import org.corespring.services.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.auth.ApiClientService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.SessionAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, sessionDoesNotContainResponses }
-import org.corespring.v2.auth.services.OrgService
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsString, JsValue, Json }
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ RequestHeader, Action, AnyContent }
 
 import scala.concurrent._
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
-trait ItemSessionApi extends V2Api {
+case class ItemSessionApiExecutionContext(context: ExecutionContext)
 
-  private lazy val logger = V2LoggerFactory.getLogger("ItemSessionApi")
+class ItemSessionApi(
+  sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition],
+  scoreService: ScoreService,
+  orgService: OrganizationService,
+  encryptionService: ApiClientEncryptionService,
+  apiClientService: ApiClientService,
+  sessionCreatedForItem: VersionedId[ObjectId] => Unit,
+  apiContext: ItemSessionApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
-  def sessionAuth: SessionAuth[OrgAndOpts, PlayerDefinition]
-  def scoreService: ScoreService
-  def orgService: OrgService
+  override implicit def ec: ExecutionContext = apiContext.context
 
-  /**
-   * A session has been created for an item with the given item id.
-   * @param itemId
-   */
-  def sessionCreatedForItem(itemId: VersionedId[ObjectId]): Unit
+  private lazy val logger = Logger(classOf[ItemSessionApi])
 
   /**
    * Creates a new v2 ItemSession in the database.
@@ -61,7 +61,7 @@ trait ItemSessionApi extends V2Api {
    */
   def create(itemId: VersionedId[ObjectId]) = Action.async(parse.empty) { implicit request =>
     Future {
-      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) = 
+      def createSessionJson(vid: VersionedId[ObjectId], orgAndOpts: OrgAndOpts) =
         Json.obj("itemId" -> JsString(vid.toString))
 
       sessionCreatedForItem(itemId)
@@ -170,14 +170,13 @@ trait ItemSessionApi extends V2Api {
    * of the original session.
    */
   def cloneSession(sessionId: String): Action[AnyContent] = Action.async { implicit request =>
-    val encrypter = new ApiClientEncrypter(AESCrypto)
 
     Future {
       val out: Validation[V2Error, JsValue] = for {
         identity <- getOrgAndOptions(request)
         sessionId <- sessionAuth.cloneIntoPreview(sessionId)(identity)
         apiClient <- randomApiClient(identity.org.id).toSuccess(invalidToken(request))
-        options <- encrypter.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
+        options <- encryptionService.encrypt(apiClient, ItemSessionApi.clonedSessionOptions.toString).toSuccess(noOrgIdAndOptions(request))
         session <- sessionAuth.loadWithIdentity(sessionId.toString)(identity)
           .map { case (json, _) => withApiClient(withOptions(withOrg(json), options), apiClient) }
       } yield session
@@ -186,11 +185,11 @@ trait ItemSessionApi extends V2Api {
     }
   }
 
-  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = ApiClient.findOneByOrgId(orgId)
+  protected def randomApiClient(orgId: ObjectId): Option[ApiClient] = apiClientService.findOneByOrgId(orgId)
 
   private def withOrg(jsValue: JsValue) = jsValue match {
     case jsObject: JsObject => (jsObject \ "identity" \ "orgId").asOpt[String]
-      .map(orgId => orgService.org(new ObjectId(orgId))).flatten match {
+      .map(orgId => orgService.findOneById(new ObjectId(orgId))).flatten match {
         case Some(org) => jsObject ++ Json.obj("organization" -> org.name)
         case _ => jsValue
       }

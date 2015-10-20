@@ -1,11 +1,10 @@
 package org.corespring.v2.api
 
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.{ SecureSocialHelper, ItemHelper }
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ SessionRequestBuilder, userAndItem }
-import play.api.test.{ PlaySpecification, FakeRequest }
+import play.api.test.PlaySpecification
 
 class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpecification {
 
@@ -14,7 +13,7 @@ class ItemApiCloneIntegrationTest extends IntegrationSpecification with PlaySpec
   "ItemApi" should {
     "when calling clone" should {
 
-      trait clone extends userAndItem with SessionRequestBuilder with SecureSocialHelpers {
+      trait clone extends userAndItem with SessionRequestBuilder with SecureSocialHelper {
 
         lazy val result = {
           val request = makeRequest(routes.cloneItem(itemId.toString))

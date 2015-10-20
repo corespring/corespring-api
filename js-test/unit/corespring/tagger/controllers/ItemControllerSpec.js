@@ -204,4 +204,19 @@ describe('ItemController should', function () {
     });
   });
 
+  describe('devUrl', function(){
+    it('returns correct url', function(){
+      scope.itemData = {id: "1234"};
+      expect(scope.devUrl()).toEqual("/v2/player/item/dev-editor/1234/index.html")
+    });
+    it('returns undefined, when id is falsy', function(){
+      scope.itemData = {id: null};
+      expect(scope.devUrl()).toBe(undefined)
+    });
+    it('returns undefined, when itemData is falsy', function(){
+      scope.itemData = null;
+      expect(scope.devUrl()).toBe(undefined)
+    });
+  });
+
 });

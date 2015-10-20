@@ -1,8 +1,8 @@
 package org.corespring.player.accessControl.auth
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.AccessToken
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.auth.AccessToken
+import org.corespring.models.error.CorespringInternalError
 import org.corespring.player.accessControl.auth.requests.TokenizedRequest
 import org.corespring.player.accessControl.cookies.PlayerCookieReader
 import org.corespring.player.accessControl.models.RequestedAccess.Mode

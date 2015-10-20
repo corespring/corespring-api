@@ -1,7 +1,7 @@
 package org.corespring.lti.web.controllers.api.v1
 
 import org.bson.types.ObjectId
-import org.corespring.api.v1.{ ItemApi => Api }
+import org.corespring.api.v1.{ ItemApiStripped => Api }
 import org.corespring.lti.web.accessControl.auth.QuerySessionRenderOptions
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.auth.TokenizedRequestActionBuilder

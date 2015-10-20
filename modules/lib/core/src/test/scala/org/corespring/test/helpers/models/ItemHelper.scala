@@ -2,12 +2,12 @@ package org.corespring.test.helpers.models
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.{ TaskInfo, Item }
+import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.libs.json.{ Json, JsValue }
 import scala.Some
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
 import com.mongodb.DBObject
 import com.mongodb.util.JSON
 

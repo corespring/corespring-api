@@ -2,28 +2,34 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.Hooks.StatusMessage
 import org.corespring.container.client.hooks.{ FullSession, SaveSession, SessionOutcome, SessionHooks => ContainerSessionHooks }
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.services.item.ItemService
+import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.models.item.{ PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
-import org.corespring.v2.log.V2LoggerFactory
+import org.corespring.v2.errors.V2Error
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{ JsValue, Json }
 import play.api.mvc.RequestHeader
 
 import scala.concurrent.Future
+import scalaz.Validation
 
-trait SessionHooks
+class SessionHooks(auth: SessionAuth[OrgAndOpts, PlayerDefinition],
+  itemService: ItemService,
+  jsonFormatting: JsonFormatting,
+  getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+  override implicit val containerContext: ContainerExecutionContext)
   extends ContainerSessionHooks
   with LoadOrgAndOptions {
 
-  def auth: SessionAuth[OrgAndOpts, PlayerDefinition]
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
-  def itemService: ItemService
+  implicit val formatPlayerDefinition = jsonFormatting.formatPlayerDefinition
 
-  def transformItem: Item => JsValue
-
-  lazy val logger = V2LoggerFactory.getLogger("SessionHooks")
+  lazy val logger = Logger(classOf[SessionHooks])
 
   private def isComplete(session: JsValue) = (session \ "isComplete").asOpt[Boolean].getOrElse(false)
 
@@ -67,5 +73,6 @@ trait SessionHooks
     }
     out.leftMap { s => s.statusCode -> s.message }.toEither
   }
+
 }
 

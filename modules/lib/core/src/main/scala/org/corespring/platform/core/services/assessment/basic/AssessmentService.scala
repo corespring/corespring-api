@@ -2,9 +2,9 @@ package org.corespring.platform.core.services.assessment.basic
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatDAO, ModelCompanion }
-import org.corespring.platform.core.models.assessment.basic.{ Answer, Question, Participant, Assessment }
+import org.corespring.models.assessment.basic.{ Answer, Question, Participant, Assessment }
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSessionCompanion }
+import org.corespring.models.itemSession.{ DefaultItemSession, ItemSessionCompanion }
 import com.mongodb.casbah.Imports._
 import scala.Some
 import org.joda.time.DateTime
@@ -41,7 +41,7 @@ class AssessmentServiceImpl(itemSession: ItemSessionCompanion) extends Assessmen
 
     import com.novus.salat.global._
     import play.api.Play.current
-    import org.corespring.platform.core.models.mongoContext.context
+    import org.corespring.models.mongoContext.context
 
     val collection = mongoCollection("assessments")
     val dao = new SalatDAO[Assessment, ObjectId](collection = collection) {}

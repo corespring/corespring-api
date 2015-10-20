@@ -6,20 +6,34 @@ import com.mongodb.casbah.map_reduce._
 import com.mongodb.{ BasicDBObject, DBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.utils.string
-import org.corespring.platform.core.models.item.{FieldValue, TaskInfo}
-import org.corespring.platform.core.models.{ Subject, Standard, ContentCollection }
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.models.Standard
+import org.corespring.models.item.FieldValue
 import org.corespring.reporting.models.ReportLineResult
 import org.corespring.reporting.models.ReportLineResult.{ KeyCount, LineResult }
 import org.corespring.reporting.utils.CsvWriter
-import scala.Some
+import org.corespring.services.{StandardService, ContentCollectionService}
 
-object ReportsService extends ReportsService(ItemServiceWired.collection, Subject.collection, ContentCollection.collection, Standard.collection)
-
-class ReportsService(ItemCollection: MongoCollection,
+class ReportsService(
+                    archiveCollId:ObjectId,
+                    fieldValue:FieldValue,
+                    contentCollectionService:ContentCollectionService,
+                    standardService: StandardService,
+                      ItemCollection: MongoCollection,
   SubjectCollection: MongoCollection,
   CollectionsCollection: MongoCollection,
   StandardCollection: MongoCollection) extends CsvWriter {
+
+
+  val helper = new StandardsHelper {
+    override def findAll: Stream[Standard] = ???
+
+    override def dotNotation: Option[String] = ???
+
+    override def subCategory: Option[String] = ???
+
+    override def grades: Seq[String] =
+
+  }
 
   def getReport(collectionId: String, queryType: String): List[(String, String)] = {
 
@@ -50,7 +64,7 @@ class ReportsService(ItemCollection: MongoCollection,
 
     def collectionIdToName(id: String): String = {
       if (id == "unknown") return "?"
-      ContentCollection.findOneById(new ObjectId(id)) match {
+      contentCollectionService.findOneById(new ObjectId(id)) match {
         case Some(c) => c.name
         case _ => "?"
       }
@@ -118,6 +132,14 @@ class ReportsService(ItemCollection: MongoCollection,
     (category + ": " + subject).replaceAll(",", "")
   }
 
+
+  def baseQuery: DBObject = new BasicDBObject("legacyItem", new BasicDBObject("$ne", true))
+  def baseQuery(mongo: DBObject): DBObject = {
+    val base = baseQuery
+    base.putAll(mongo.toMap)
+    base
+  }
+
   def buildStandardsReport: String = {
 
     populateHeaders
@@ -131,14 +153,14 @@ class ReportsService(ItemCollection: MongoCollection,
           val category = dbo.get("category").asInstanceOf[String]
           val finalKey = List(dotNotation, subject, category).filterNot(_.isEmpty).mkString(":")
 
-          val query = Standard.baseQuery(baseQuery)
+          val query = baseQuery(baseQuery)
           query.put("standards", dbo.get("dotNotation").asInstanceOf[String])
           Some(buildLineResult(query, finalKey))
         }
       }
     }).flatten.toList
     ReportLineResult.buildCsv("Standards", lineResults,
-      (a: String, b: String) => Standard.sorter(a.split(":").head, b.split(":").head))
+      (a: String, b: String) => StandardsHelper.sorter(a.split(":").head, b.split(":").head))
   }
 
   /**
@@ -193,7 +215,7 @@ class ReportsService(ItemCollection: MongoCollection,
     val collections = CollectionsCollection.find().toIterator.toSeq
     val header = "Standards" :: collections.map(_.get("_id").asInstanceOf[ObjectId].toString).toList
     val collectionIds = collections.map(_.get("_id").asInstanceOf[ObjectId])
-    val lines = mapToDistinctList("standards", Standard.sorter)
+    val lines = mapToDistinctList("standards", StandardsHelper.sorter)
       .filterNot(Standard.legacy.map(_.dotNotation).flatten.contains(_))
       .map(standard => {
         val collectionsKeyCounts = ReportLineResult.zeroedKeyCountList(collectionIds.map(_.toString).toList)
@@ -204,11 +226,11 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   def buildStandardsGroupReport() = {
-    val bloomsTaxonomy = FieldValue.current.bloomsTaxonomy.map(_.value).toList.sorted
-    val depthOfKnowledge = FieldValue.current.depthOfKnowledge.map(_.value).toList.sorted
-    val itemTypes = FieldValue.current.itemTypes.map(_.value).flatten.toList.sorted
+    val bloomsTaxonomy = fieldValue.bloomsTaxonomy.map(_.value).toList.sorted
+    val depthOfKnowledge = fieldValue.depthOfKnowledge.map(_.value).toList.sorted
+    val itemTypes = fieldValue.itemTypes.map(_.value).flatten.toList.sorted
 
-    val lines: List[List[String]] = Standard.groupMap.map{ case (group, standards) =>
+    val lines: List[List[String]] = StandardsHelper.groupMap.map{ case (group, standards) =>
       val values = standards.map(_.dotNotation).flatten
       val query = new BasicDBObject()
       query.put("standards", new BasicDBObject("$in", values))
@@ -231,7 +253,7 @@ class ReportsService(ItemCollection: MongoCollection,
     (header ++ lines).toCsv
   }
 
-  def getCollections: List[(String, String)] = ContentCollection.findAll().toList.map {
+  def getCollections: List[(String, String)] = contentCollectionService.findAll().toList.map {
     c => (c.name.toString, c.id.toString)
   }
 
@@ -355,6 +377,6 @@ class ReportsService(ItemCollection: MongoCollection,
   }
 
   private def baseQuery = new BasicDBObject("collectionId",
-    new BasicDBObject("$ne", ContentCollection.archiveCollId.toString))
+    new BasicDBObject("$ne", archiveCollId.toString))
 
 }

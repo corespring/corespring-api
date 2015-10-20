@@ -3,7 +3,7 @@ package org.corespring.lti.web.controllers
 import org.bson.types.ObjectId
 import org.corespring.lti.models.LtiAssessment
 import org.corespring.platform.core.controllers.AssetResource
-import org.corespring.platform.core.models.itemSession.{ DefaultItemSession, ItemSession }
+import org.corespring.models.itemSession.{ DefaultItemSession, ItemSession }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.player.accessControl.auth.CheckSessionAccess

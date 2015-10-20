@@ -1,28 +1,40 @@
 package org.corespring.it
 
-import org.slf4j.LoggerFactory
-import org.specs2.specification.{ Step, Fragments }
-import play.api.mvc.Results
-import play.api.test.PlaySpecification
-import scala.concurrent.duration._
 import akka.util.Timeout
+import bootstrap.Main
+import grizzled.slf4j.Logger
+import org.specs2.execute.{ Result, AsResult, Results }
+import org.specs2.mutable.Around
+import play.api.test._
 
-class IntegrationSpecification extends PlaySpecification with Results with ServerSpec {
+import scala.concurrent.duration._
+
+/**
+ * Note: We don't make use of BeforeAfterAll as our specs2 version (2.2.1) doesn't have it.
+ * Instead we use sbt Test.Setup/Test.Cleanup for the time being.
+ */
+abstract class IntegrationSpecification
+  extends PlaySpecification
+  with Results
+  with Around {
 
   sequential
 
-  protected def logger: org.slf4j.Logger = LoggerFactory.getLogger("it.spec.is")
+  lazy val logger: grizzled.slf4j.Logger = Logger(this.getClass)
 
-  override def map(fs: => Fragments) = {
+  override implicit def defaultAwaitTimeout: Timeout = 3.seconds
 
-    Step(server.start()) ^
-      Step(logger.trace("-------------------> server started")) ^
-      fs ^
-      Step(logger.trace("-------------------> stopping server")) ^
-      Step(server.stop)
+  protected def dropDb() = {
+    logger.debug(s"function=dropDb - dropping collections")
+    Main.db.collectionNames.filterNot(_.contains("system")).foreach { n =>
+      Main.db(n).dropCollection()
+    }
   }
 
-
-  override implicit def defaultAwaitTimeout : Timeout = 60.seconds
-
+  override def around[T](t: => T)(implicit evidence$1: AsResult[T]): Result = {
+    logger.debug(s"function=around - dropping db")
+    dropDb()
+    AsResult(t)
+  }
 }
+

@@ -1,72 +1,110 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
-import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.item.{ Item, PlayerDefinition }
-import org.corespring.qtiToV2.transformers.ItemTransformer
+import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.{ Standard, Subject }
+import org.corespring.models.item.{ Item, FieldValue, PlayerDefinition }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
-import org.corespring.v2.errors.Errors.{ cantLoadSession, generalError, noItemIdInSession }
+import org.corespring.v2.errors.Errors.{ noItemIdInSession, cantLoadSession, generalError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.sessiondb.SessionService
+import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
+import org.mockito.ArgumentMatcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{ JsObject, Json, JsValue }
+
+import scalaz.{ Failure, Validation, Success }
 
 import scalaz.Scalaz._
-import scalaz.{ Failure, Success, Validation }
 
 class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
+  implicit val identity: OrgAndOpts = mockOrgAndOpts(AuthMode.AccessToken)
+
   val defaultItemFailure = generalError("no item")
+
+  val defaultPlayerDefinition = PlayerDefinition.empty
 
   "SessionAuth" should {
 
-    implicit val identity: OrgAndOpts = mockOrgAndOpts()
-
     case class authScope(
       session: Option[JsValue] = None,
-      playerDefinition: Option[PlayerDefinition] = None,
+      playerDefinition: PlayerDefinition = defaultPlayerDefinition,
       itemLoadForRead: Boolean = true,
       itemLoadForWrite: Boolean = true,
       hasPerms: Validation[V2Error, Boolean] = Success(true),
       savedId: ObjectId = new ObjectId()) extends Scope {
-      val auth = new SessionAuthWired {
 
-        private def serviceMock(key: String) = {
-          val m = mock[SessionService]
-          m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
-          m.create(any[JsValue]) returns Some(savedId)
-          m.save(anyString, any[JsValue]).answers { (args, value) =>
-            {
-              Some(args.asInstanceOf[Array[Object]](1).asInstanceOf[JsValue])
-            }
-          }
-          m
-        }
+      lazy val itemTransformer: ItemTransformer = {
+        val m = mock[ItemTransformer]
+        m.createPlayerDefinition(any[Item]) returns playerDefinition
+        m
+      }
 
-        val previewSessionService: SessionService = serviceMock("preview")
-        val mainSessionService: SessionService = serviceMock("main")
+      lazy val jsonFormatting = new JsonFormatting {
+        override def fieldValue: FieldValue = ???
 
-        override def itemAuth: ItemAuth[OrgAndOpts] = {
-          val m = mock[ItemAuth[OrgAndOpts]]
-          m.loadForRead(anyString)(any[OrgAndOpts]) returns (if (itemLoadForRead) playerDefinition.map(pd => Item(playerDefinition = Some(pd))).toSuccess(defaultItemFailure) else Failure(defaultItemFailure))
-          m.loadForWrite(anyString)(any[OrgAndOpts]) returns (if (itemLoadForWrite) playerDefinition.map(pd => Item(playerDefinition = Some(pd))).toSuccess(defaultItemFailure) else Failure(defaultItemFailure))
-          m
-        }
+        override def findStandardByDotNotation: (String) => Option[Standard] = ???
 
-        override def hasPermissions(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = {
-          hasPerms
-        }
+        override def rootOrgId: ObjectId = ???
 
-        override def itemTransformer: ItemTransformer = {
-          val m = mock[ItemTransformer]
-          m.createPlayerDefinition(any[Item]) returns playerDefinition.get
-          m
+        override def findSubjectById: (ObjectId) => Option[Subject] = ???
+      }
+
+      lazy val mockCollectionId = ObjectId.get.toString
+
+      class IsEmptyString() extends ArgumentMatcher[String] {
+        override def matches(s: Any): Boolean = {
+          s.isInstanceOf[String] && s.asInstanceOf[String].isEmpty
         }
       }
+
+      lazy val itemAuth: ItemAuth[OrgAndOpts] = {
+        val m = mock[ItemAuth[OrgAndOpts]] //.verbose
+        val out = Success(
+          Item(collectionId = mockCollectionId, playerDefinition = Some(playerDefinition)))
+
+        m.loadForRead(anArgThat(new IsEmptyString()))(any[OrgAndOpts]) returns {
+          //println("---> empty string")
+          Failure(defaultItemFailure)
+        }
+        m.loadForRead(anyString)(any[OrgAndOpts]) returns (if (itemLoadForRead) out else Failure(defaultItemFailure))
+        m.loadForWrite(anArgThat(new IsEmptyString()))(any[OrgAndOpts]) returns {
+          //println("---> empty string")
+          Failure(defaultItemFailure)
+        }
+        m.loadForWrite(anyString)(any[OrgAndOpts]) returns (if (itemLoadForWrite) out else Failure(defaultItemFailure))
+        m
+      }
+
+      private def serviceMock(key: String) = {
+        val m = mock[SessionService]
+        m.load(anyString) returns session.map(s => Json.obj("service" -> key) ++ s.as[JsObject])
+        m.create(any[JsValue]) returns Some(savedId)
+        m.save(anyString, any[JsValue]).answers { (args, value) =>
+          {
+            Some(args.asInstanceOf[Array[Object]](1).asInstanceOf[JsValue])
+          }
+        }
+        m
+      }
+
+      val sessionServices = SessionServices(serviceMock("preview"), serviceMock("main"))
+
+      val perms = new HasPermissions {
+        override def has(itemId: String, sessionId: Option[String], settings: PlayerAccessSettings): Validation[V2Error, Boolean] = Success(true)
+      }
+
+      val auth = new SessionAuthWired(
+        itemTransformer,
+        jsonFormatting,
+        itemAuth,
+        sessionServices,
+        perms)
     }
 
     def getEmptyPlayerDefinition: PlayerDefinition = PlayerDefinition(
@@ -77,11 +115,11 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       None)
 
     "can create" should {
-      "fail" in new authScope() {
+      "fail" in new authScope(itemLoadForRead = false) {
         auth.canCreate("") must_== Failure(defaultItemFailure)
       }
 
-      "succeed" in new authScope(playerDefinition = Some(getEmptyPlayerDefinition)) {
+      "succeed" in new authScope() {
         auth.canCreate("") must_== Success(true)
       }
     }
@@ -95,7 +133,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         fn(auth) must_== Failure(noItemIdInSession(""))
       }
 
-      "fail if there is no item" in new authScope(session = Some(Json.obj("itemId" -> "itemId"))) {
+      "fail if there is no item" in new authScope(itemLoadForRead = false, itemLoadForWrite = false, session = Some(Json.obj("itemId" -> "itemId"))) {
         fn(auth) must_== Failure(defaultItemFailure)
       }
 
@@ -110,10 +148,9 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
 
       "succeed" in new authScope(
-        playerDefinition = Some(getEmptyPlayerDefinition),
         session = Some(Json.obj("itemId" -> "itemId"))) {
         val Success((rSession, rItem)) = fn(auth)
-        (rSession.as[JsObject] - "service", rItem) must_== (session.get, playerDefinition.get)
+        (rSession.as[JsObject] - "service", rItem) must_== (session.get, PlayerDefinition.empty)
         (rSession \ "service").as[String] must_== serviceName
       }
     }
@@ -133,7 +170,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
       }
 
       "succeed" in new authScope(
-        playerDefinition = Some(getEmptyPlayerDefinition),
+        playerDefinition = getEmptyPlayerDefinition,
         session = Some(Json.obj("itemId" -> "itemId"))) {
         val Success(rSession) = fn(auth)
         rSession.as[JsObject] - "service" must_== session.get
@@ -162,7 +199,6 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
     "load for write - access token - uses main service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.AccessToken)), "main")
     }
-
     "load for write - access token - uses main service" should {
       run(auth => auth.loadForWrite("")(opts(AuthMode.ClientIdAndPlayerToken)), "main")
     }
@@ -181,11 +217,10 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
     "when loading a session" should {
       "can load write if item is read only" in new authScope(
-        playerDefinition = Some(getEmptyPlayerDefinition),
         session = Some(Json.obj("itemId" -> "itemId")),
         itemLoadForWrite = false) {
-        val Success((rSession, rItem)) = auth.loadForWrite("?")
-        (rSession.as[JsObject] - "service", rItem) must_== (session.get, playerDefinition.get)
+        val Success((rSession, playerDef)) = auth.loadForWrite("?")
+        (rSession.as[JsObject] - "service", playerDef) must_== (session.get, PlayerDefinition.empty)
       }
     }
 
@@ -194,7 +229,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         val saveFn = auth.saveSessionFunction(optsIn)
         saveFn.toOption.map(fn => fn("1", Json.obj()))
-        there was one(auth.mainSessionService).save("1", Json.obj("identity" -> IdentityJson(optsIn)))
+        there was one(sessionServices.main).save("1", Json.obj("identity" -> IdentityJson(optsIn)))
       }
 
       "add the identity but not the apiClient id" in new authScope() {
@@ -203,7 +238,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         saveFn.toOption.map(fn => fn("1", Json.obj()))
         val identityJson = IdentityJson(optsIn)
         (identityJson \ "apiClientId").asOpt[String] must beNone
-        there was one(auth.mainSessionService).save("1", Json.obj("identity" -> identityJson))
+        there was one(sessionServices.main).save("1", Json.obj("identity" -> identityJson))
       }
     }
 
@@ -212,7 +247,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.create(Json.obj())(optsIn)
         val captor = capture[JsValue]
-        there was one(auth.mainSessionService).create(captor.capture)
+        there was one(sessionServices.main).create(captor.capture)
         (captor.value \ "identity").as[JsObject] must_== IdentityJson(optsIn)
       }
 
@@ -220,7 +255,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         val optsIn = opts(AuthMode.ClientIdAndPlayerToken, Some("1"))
         auth.create(Json.obj())(optsIn)
         val captor = capture[JsValue]
-        there was one(auth.mainSessionService).create(captor.capture)
+        there was one(sessionServices.main).create(captor.capture)
         (captor.value \ "dateCreated" \ "$date").asOpt[Long] must beSome[Long]
       }
     }
@@ -246,7 +281,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "save into main service" in new authScope(session = Some(Json.obj())) {
         auth.reopen("")(optsIn)
-        there was one(auth.mainSessionService).load(any[String])
+        there was one(sessionServices.main).load(any[String])
       }
 
       "return session with 0 attempts" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
@@ -270,7 +305,7 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "save into main service" in new authScope(session = Some(Json.obj())) {
         auth.complete("")(optsIn)
-        there was one(auth.mainSessionService).load(any[String])
+        there was one(sessionServices.main).load(any[String])
       }
 
       "return session with isComplete true" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
@@ -287,12 +322,12 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
 
       "load from main service" in new authScope(session = Some(Json.obj())) {
         auth.cloneIntoPreview("")(optsIn)
-        there was one(auth.mainSessionService).load(any[String])
+        there was one(sessionServices.main).load(any[String])
       }
 
       "save into preview service" in new authScope(session = Some(Json.obj())) {
         auth.cloneIntoPreview("")(optsIn)
-        there was one(auth.previewSessionService).create(any[JsObject])
+        there was one(sessionServices.preview).create(any[JsObject])
       }
 
       "return id of saved session" in new authScope(session = Some(Json.obj()), savedId = new ObjectId()) {
@@ -302,5 +337,5 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
     }
 
   }
-
 }
+

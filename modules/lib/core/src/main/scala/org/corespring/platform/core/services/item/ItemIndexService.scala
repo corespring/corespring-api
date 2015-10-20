@@ -1,7 +1,7 @@
 package org.corespring.platform.core.services.item
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
+import org.corespring.models.item.index.ItemIndexSearchResult
 import org.corespring.platform.data.mongo.models.VersionedId
 
 import scala.concurrent.Future

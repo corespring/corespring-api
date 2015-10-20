@@ -2,7 +2,7 @@ package org.corespring.lti.models
 
 import java.net.URLDecoder
 import oauth.signpost.AbstractOAuthConsumer
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.models.auth.ApiClient
 import play.api.mvc.{ AnyContent, Request }
 
 class LtiOAuthConsumer(consumerKey: String, consumerSecret: String)

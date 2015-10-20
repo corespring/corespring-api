@@ -1,26 +1,27 @@
 package developer.controllers
 
-import play.api.mvc.{ Result, Action, Controller }
-import play.api.data._
-import play.api.data.Forms._
-import play.api.{ Play, Logger }
-import securesocial.core.providers.UsernamePasswordProvider
-import securesocial.core._
 import com.typesafe.plugin._
-import Play.current
-import securesocial.core.providers.utils._
-import play.api.i18n.Messages
-import securesocial.core.providers.Token
-import scala.Some
-import securesocial.controllers.Registration._
-import play.api.libs.json.{ JsString, JsObject }
-import org.corespring.platform.core.models
-import org.corespring.platform.core.models.{ContentCollection, User}
+import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ ContentCollection, Organization, User, UserOrg }
+import org.corespring.services.errors.PlatformServiceError
+import play.api.Play.current
+import play.api.data.Forms._
+import play.api.data._
+import play.api.i18n.Messages
+import play.api.libs.json.Json
+import play.api.mvc.{ Action, Controller, Result }
+import play.api.{ Logger, Play }
+import securesocial.controllers.Registration.{ Success => RegistrationSuccess, _ }
+import securesocial.core._
+import securesocial.core.providers.{ Token, UsernamePasswordProvider }
+import securesocial.core.providers.utils._
+
+import scalaz.{ Failure, Success, Validation }
 
 object MyRegistration extends Controller {
-  val Organization = "organization"
 
   case class MyRegistrationInfo(userName: Option[String],
     firstName: String,
@@ -35,7 +36,7 @@ object MyRegistration extends Controller {
       }),
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
-      Organization -> optional(nonEmptyText),
+      "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
@@ -48,7 +49,7 @@ object MyRegistration extends Controller {
     mapping(
       FirstName -> nonEmptyText,
       LastName -> nonEmptyText,
-      Organization -> optional(nonEmptyText),
+      "organization" -> optional(nonEmptyText),
       Password ->
         tuple(
           Password1 -> nonEmptyText.verifying(use[PasswordValidator].errorMessage,
@@ -69,6 +70,19 @@ object MyRegistration extends Controller {
     }
   }
 
+  private def contentCollectionService = ServiceLookup.contentCollectionService
+  private def orgService = ServiceLookup.orgService
+
+  private def insertOrg(name: String) = {
+
+    def newColl(o: Organization) = ContentCollection(ContentCollection.Default, o.id)
+
+    for {
+      org <- orgService.insert(Organization(name), None)
+      collInsert <- contentCollectionService.insertCollection(org.id, newColl(org), Permission.Write)
+    } yield org
+  }
+
   /**
    * Handles posts from the sign up page
    */
@@ -78,43 +92,55 @@ object MyRegistration extends Controller {
         t =>
           form.bindFromRequest.fold(
             errors => {
-              if (Logger.isDebugEnabled) {
-                Logger.debug("errors " + errors)
-              }
+              Logger.debug("errors " + errors)
               BadRequest(use[securesocial.controllers.TemplatesPlugin].getSignUpPage(request, securesocial.controllers.Registration.form.bind(errors.data), t.uuid))
             },
             info => {
               val id = if (UsernamePasswordProvider.withUserNameSupport) info.userName.get else t.email
               val passwordInfo = use[PasswordHasher].hash(info.password)
-              val user = User(userName = id, fullName = info.firstName + " " + info.lastName, email = t.email, password = passwordInfo.password, provider = providerId)
-              (info.organization match {
-                case Some(orgName) => models.Organization.insert(models.Organization(orgName), None) match {
-                  case Right(org) => {
-                    ContentCollection.insertCollection(org.id, ContentCollection(ContentCollection.DEFAULT, org.id), Permission.Write);
-                    User.insertUser(user, org.id, Permission.Write, false)
-                  }
-                  case Left(error) => Left(error)
-                }
-                case None => User.insertUser(user, AppConfig.demoOrgId, Permission.Read, false)
-              }) match {
-                case Right(dbuser) => {
-                  val socialUser = SocialUser(
-                    IdentityId(id, providerId),
-                    info.firstName,
-                    info.lastName,
-                    "%s %s".format(info.firstName, info.lastName),
-                    Some(t.email),
-                    if (UsernamePasswordProvider.enableGravatar) GravatarHelper.avatarFor(t.email) else None,
-                    AuthenticationMethod.UserPassword,
-                    passwordInfo = Some(passwordInfo))
+              val user = User(
+                userName = id,
+                fullName = s"${info.firstName} ${info.lastName}",
+                email = t.email,
+                password = passwordInfo.password,
+                org = UserOrg(AppConfig.demoOrgId, Permission.Read.value),
+                provider = providerId)
+
+              def mkNewOrgOrGetDemoOrg: Validation[PlatformServiceError, ObjectId] = info.organization match {
+                case Some(name) => insertOrg(name).map(_.id)
+                case _ => Success(AppConfig.demoOrgId)
+              }
+
+              lazy val socialUser = {
+                SocialUser(
+                  IdentityId(id, providerId),
+                  info.firstName,
+                  info.lastName,
+                  "%s %s".format(info.firstName, info.lastName),
+                  Some(t.email),
+                  if (UsernamePasswordProvider.enableGravatar) GravatarHelper.avatarFor(t.email) else None,
+                  AuthenticationMethod.UserPassword,
+                  passwordInfo = Some(passwordInfo))
+              }
+
+              val out = for {
+                orgId <- mkNewOrgOrGetDemoOrg
+                user <- ServiceLookup.userService.insertUser(user.copy(org = UserOrg(orgId, Permission.Write.value)))
+              } yield true
+
+              out match {
+                case Success(true) => {
                   UserService.deleteToken(t.uuid)
                   if (UsernamePasswordProvider.sendWelcomeEmail) {
                     Mailer.sendWelcomeEmail(socialUser)
                   }
                   Events.fire(new SignUpEvent(socialUser))
-                  Redirect(RoutesHelper.login()).flashing(Success -> Messages(SignUpDone))
+                  Redirect(RoutesHelper.login()).flashing(RegistrationSuccess -> Messages(SignUpDone))
                 }
-                case Left(error) => InternalServerError(JsObject(Seq("message" -> JsString("error occurred during registration [" + error.clientOutput.getOrElse("") + "]"))))
+                case Success(false) => throw new IllegalStateException("This should never happen")
+                case Failure(e) => InternalServerError(
+                  Json.obj(
+                    "message" -> s"error occurred during registration [${e.message}]"))
               }
             })
       })

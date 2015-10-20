@@ -29,11 +29,11 @@ function ResourceEditor($scope, $rootScope, $timeout, $routeParams, $http, Servi
   $scope.$on('enterEditor', function(event, resource, showBackNav, urls, lockedFiles, itemId, latestVersion) {
 
     function versionedId(id) {
-      var match = id.match(/(.*)\:([0-9]*)/);
+      var match = id && id.match(/(.*)\:([0-9]*)/);
       return (match && match.length === 3) ? {
         id: match[1],
         version: parseInt(match[2])
-      } : {};
+      } : {version:0};
     }
 
     function urlForVersion(id, version) {

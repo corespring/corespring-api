@@ -1,6 +1,6 @@
 package org.corespring.test.helpers.models
 
-import org.corespring.platform.core.models.Subject
+import org.corespring.models.Subject
 import org.bson.types.ObjectId
 
 object SubjectHelper {

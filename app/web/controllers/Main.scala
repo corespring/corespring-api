@@ -1,25 +1,24 @@
 package web.controllers
 
-import common.controllers.session.SessionHandler
-import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.web.QtiTemplate
-import org.corespring.platform.core.models.{ User, Organization }
-import org.corespring.player.accessControl.cookies.{ PlayerCookieKeys, PlayerCookieWriter }
-import org.corespring.player.accessControl.models.{RequestedAccess, RenderOptions}
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.{ User }
+import play.api.libs.json.{ Json, JsObject }
 import play.api.mvc._
-import scala.Some
-import securesocial.core.SecuredRequest
+import play.api.libs.json.Json._
+import securesocial.core.{ SecuredRequest }
 
-object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
+object Main extends Controller with securesocial.core.SecureSocial {
 
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
-  def logout(s: Session): Session = {
-    s -
-      PlayerCookieKeys.renderOptions -
-      UserKey -
-      ProviderKey
+  lazy val defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
+    implicit val writeFieldValue = ServiceLookup.jsonFormatting.writesFieldValue
+    val fvJson = toJson(fv).as[JsObject]
+    val values = fvJson.deepMerge(obj(
+      "v2ItemTypes" -> bootstrap.Main.itemType.all,
+      "widgetTypes" -> bootstrap.Main.widgetType.all))
+    stringify(values)
   }
 
   def index = SecuredAction {
@@ -28,14 +27,22 @@ object Main extends BaseApi with PlayerCookieWriter with SessionHandler {
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
       val (dbServer, dbName) = getDbName(uri)
       val userId = request.user.identityId
-      val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
-      Organization.findOneById(user.org.orgId) match {
-        case Some(userOrg) => Ok(web.views.html.index(QtiTemplate.findAll().toList, dbServer, dbName, user, userOrg))
-          .withSession(
-            sumSession(request.session, playerCookies(userId.userId, userId.providerId, RenderOptions.ANYTHING) :+ activeModeCookie(RequestedAccess.Mode.Preview): _*))
-        case None => InternalServerError("could not find organization of user")
-      }
+      val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+      implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
+      implicit val writesRef = ServiceLookup.jsonFormatting.writeContentCollRef
 
+      (for {
+        fv <- defaultValues
+        org <- ServiceLookup.orgService.findOneById(user.org.orgId)
+      } yield {
+        //Add old 'collections' field
+        val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]
+        val userOrgString = stringify(legacyJson)
+        val html = web.views.html.index(dbServer, dbName, user, userOrgString, fv)
+        Ok(html)
+      }).getOrElse {
+        InternalServerError("could not find organization of user")
+      }
   }
 
   private def getDbName(uri: Option[String]): (String, String) = uri match {

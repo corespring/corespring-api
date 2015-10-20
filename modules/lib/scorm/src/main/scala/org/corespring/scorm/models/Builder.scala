@@ -1,7 +1,7 @@
 package org.corespring.scorm.models
 
-import org.corespring.platform.core.models.item.Item
-import play.api.libs.json.{Json, JsObject, JsString}
+import org.corespring.models.item.Item
+import play.api.libs.json.{ Json, JsObject, JsString }
 import scala.xml.{ Unparsed, Elem }
 
 object Builder {

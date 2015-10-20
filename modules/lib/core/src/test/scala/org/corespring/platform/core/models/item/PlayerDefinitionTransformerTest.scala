@@ -2,8 +2,8 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.{ BasicDBList, DBObject }
 import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
-import org.corespring.platform.core.models.item.resource.{ StoredFile, VirtualFile }
-import org.corespring.platform.core.models.mongoContext
+import org.corespring.models.item.resource.{ StoredFile, VirtualFile }
+import org.corespring.models.mongoContext
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

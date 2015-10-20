@@ -3,7 +3,7 @@ package org.corespring.platform.core.models.search
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.{ JSONParseException, JSON }
 import java.util.regex.Pattern
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 import play.api.libs.json.{ Json, JsValue, JsObject }
 import scala.Left
 import scala.Right

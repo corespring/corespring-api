@@ -1,7 +1,8 @@
 package org.corespring.v2.api.services
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.encryption._
+import org.corespring.encryption.apiClient.{ ApiClientEncryptionService, EncryptionFailure, EncryptionSuccess, EncryptionResult }
+import org.corespring.models.auth.ApiClient
 import org.corespring.v2.auth.models.PlayerAccessSettings
 import org.corespring.v2.errors.Errors.{ missingRequiredField, encryptionFailed }
 import org.corespring.v2.errors.Field
@@ -16,13 +17,13 @@ class PlayerTokenServiceTest extends Specification with Mockito {
 
   class serviceScope(encryptionResult: EncryptionResult = EncryptionSuccess("clientId", "data")) extends Scope {
 
-    val service = new PlayerTokenService {
-      override def encrypter: ApiClientEncrypter = {
-        val m = mock[ApiClientEncrypter]
-        m.encryptByOrg(any[ObjectId], anyString) returns Some(encryptionResult)
-        m
-      }
+    val encryptionService: ApiClientEncryptionService = {
+      val m = mock[ApiClientEncryptionService]
+      m.encryptByOrg(any[ObjectId], anyString) returns Some(encryptionResult)
+      m
     }
+
+    val service = new PlayerTokenService(encryptionService)
   }
 
   class serviceScopeWithJsonBack(jsonIn: JsValue) extends serviceScope {
@@ -34,9 +35,6 @@ class PlayerTokenServiceTest extends Specification with Mockito {
   }
 
   "PlayerTokenService" should {
-    "todo - see assertions in PlayerTokenApiTest" in {
-      true === false
-    }.pendingUntilFixed
 
     "fail if encryption fails" in new serviceScope(
       EncryptionFailure("?", new RuntimeException("?"))) {

@@ -1,15 +1,15 @@
 package org.corespring.platform.core.models.assessment
 
-import org.corespring.platform.core.models.assessment.basic.Question
-import org.corespring.platform.core.models.JsonUtil
+import org.corespring.models.assessment.basic.Question
+import org.corespring.models.JsonUtil
 import play.api.libs.json._
 import play.api.libs.json.JsSuccess
 import org.bson.types.ObjectId
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import org.corespring.platform.core.models.item.Content
+import org.corespring.models.item.Content
 import org.joda.time.DateTime
-import org.corespring.platform.core.models.item.resource.{ Resource, BaseFile, VirtualFile }
-import org.corespring.platform.core.models.item.json.ContentView
+import org.corespring.models.item.resource.{ Resource, BaseFile, VirtualFile }
+import org.corespring.models.item.json.ContentView
 
 case class AssessmentTemplate(var id: ObjectId = AssessmentTemplate.Defaults.id,
   var collectionId: Option[String] = AssessmentTemplate.Defaults.collectionId,

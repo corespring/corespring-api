@@ -47,7 +47,7 @@ object ApiClient extends ApiClientService with ModelCompanion[ApiClient, ObjectI
 
   val collection = mongoCollection("apiClients")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   //collection.ensureIndex( keys = MongoDBObject("clientId" -> 1), "apiClientIndex", unique = true)
 

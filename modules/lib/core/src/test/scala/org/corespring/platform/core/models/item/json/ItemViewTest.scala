@@ -1,9 +1,9 @@
 package org.corespring.platform.core.models.item.json
 
-import org.corespring.platform.core.models.item.Item.ItemFormat
-import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.json.ItemView
-import org.corespring.platform.core.models.search.SearchFields
+import org.corespring.models.item.Item.ItemFormat
+import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.json.ItemView
+import org.corespring.models.search.SearchFields
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

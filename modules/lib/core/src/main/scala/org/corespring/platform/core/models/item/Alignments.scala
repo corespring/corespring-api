@@ -3,7 +3,7 @@ package org.corespring.platform.core.models.item
 import play.api.libs.json._
 import play.api.libs.json.JsArray
 import play.api.libs.json.JsString
-import org.corespring.platform.core.models.JsonUtil
+import org.corespring.models.JsonUtil
 
 case class Alignments(bloomsTaxonomy: Option[String] = None,
   keySkills: Seq[String] = Seq(),
@@ -23,7 +23,7 @@ object Alignments extends ValueGetter with JsonUtil {
     val none = "None"
   }
 
-  implicit object Writes extends Writes[Alignments]{
+  implicit object Writes extends Writes[Alignments] {
 
     def writes(alignments: Alignments): JsValue = {
       import Keys._
@@ -37,8 +37,7 @@ object Alignments extends ValueGetter with JsonUtil {
           case skills: Seq[JsString] if (skills.isEmpty) => None
           case skills: Seq[JsString] => Some(JsArray(skills))
         }),
-        relatedCurriculum -> alignments.relatedCurriculum.map(JsString(_))
-      )
+        relatedCurriculum -> alignments.relatedCurriculum.map(JsString(_)))
     }
 
   }

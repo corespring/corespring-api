@@ -1,12 +1,14 @@
 package org.corespring.v2.errors
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 import play.api.http.Status._
+
+import scalaz.Failure
 
 /**
  * Base type for all known V2 errors.
@@ -18,6 +20,8 @@ sealed abstract class V2Error(val title: String, val description: String, val me
   def errorType: String = this.getClass.getSimpleName
 
   def json: JsObject = Json.obj("message" -> message, "errorType" -> errorType)
+
+  def asFailure[A]: Failure[V2Error, A] = Failure(this)
 
 }
 
@@ -57,6 +61,8 @@ private[v2] object Errors {
 
   case class generalError(msg: String, override val statusCode: Int = BAD_REQUEST) extends V2Error("General Error", "There was a general, non-specific error processing the request.", msg, statusCode)
 
+  case class noLongerSupported(msg: String, override val statusCode: Int = NOT_IMPLEMENTED) extends V2Error("No Longer Suported", "The action is no longer supported", msg)
+
   case object notReady extends V2Error("Not Ready", "?", "not ready")
 
   case object noJson extends V2Error("No JSON", "The body of the provided request was required to contain JSON, but it was not found.", "No json in request body")
@@ -68,6 +74,8 @@ private[v2] object Errors {
   case object needJsonHeader extends V2Error("Need JSON Header", "The server expected the request to contain the `Content-Type: application/json` header.", "You need to set the Content-Type to 'application/json'")
 
   case class propertyNotFoundInJson(name: String) extends V2Error("Property Not Found In JSON", "The request's JSON body was expected to contain the provided property, but it was not fonud.", s"can't find $name in request body")
+
+  case class propertyNotAllowedInJson(name: String, jsonIn: JsValue) extends V2Error("Property Not Allowed In JSON", s"There is a property in the json that is not allowed.", s"property '$name' is not allowed - json: $jsonIn")
 
   case class noOrgIdAndOptions(request: RequestHeader) extends V2Error("No Organization ID and Options", "The organization id and player options could not be read from the request.", s"can not load orgId and PlayerOptions from session: ${request.session.data}", UNAUTHORIZED)
 

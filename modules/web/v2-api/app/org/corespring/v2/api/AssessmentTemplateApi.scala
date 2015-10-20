@@ -1,28 +1,41 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.AssessmentTemplate
-import org.corespring.platform.core.services.assessment.template.AssessmentTemplateService
+import org.corespring.models.assessment.AssessmentTemplate
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.assessment.AssessmentTemplateService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, cantFindAssessmentTemplateWithId }
-import play.api.libs.json.{ JsSuccess, JsObject, Json }
-import play.api.mvc.{ Request, AnyContent }
+import org.corespring.v2.errors.V2Error
+import play.api.libs.json.{ JsError, JsSuccess, JsObject, Json }
+import play.api.mvc.{ RequestHeader, Request, AnyContent }
 
-trait AssessmentTemplateApi extends V2Api {
+import scala.concurrent.ExecutionContext
+import scalaz.Validation
 
-  def assessmentTemplateService: AssessmentTemplateService
+class AssessmentTemplateApi(
+  assessmentTemplateService: AssessmentTemplateService,
+  jsonFormatting: JsonFormatting,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts])
+  extends V2Api {
 
-  implicit val AssessmentTemplateFormat = AssessmentTemplate.Format
+  override def ec: ExecutionContext = v2ApiContext.context
+
+  implicit val AssessmentTemplateFormat = jsonFormatting.formatAssessmentTemplate
 
   def get = withIdentity { (identity, _) =>
-    Ok(Json.prettyPrint(Json.toJson(
-      assessmentTemplateService.find(MongoDBObject("orgId" -> identity.org.id)).map(_.toAssessmentTemplate).toSeq)))
+    val t = assessmentTemplateService.find(MongoDBObject("orgId" -> identity.org.id), MongoDBObject.empty)
+    Ok(Json.toJson(t))
   }
 
   def getById(assessmentTemplateId: ObjectId) = withIdentity { (identity, _) =>
-    assessmentTemplateService.findOne(MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)) match {
-      case Some(dbResult) => Ok(Json.prettyPrint(Json.toJson(dbResult.toAssessmentTemplate)))
+    val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
+    val t = assessmentTemplateService.findOne(query, MongoDBObject.empty)
+
+    t match {
+      case Some(dbResult) => Ok(Json.toJson(t))
       case _ => cantFindAssessmentTemplateWithId(assessmentTemplateId).toResult
     }
   }
@@ -32,7 +45,7 @@ trait AssessmentTemplateApi extends V2Api {
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val assessmentTemplate = new AssessmentTemplate().merge(jsonAssessment)
-        assessmentTemplateService.create(assessmentTemplate.forSalat)
+        assessmentTemplateService.create(assessmentTemplate)
         Created(Json.prettyPrint(Json.toJson(assessmentTemplate)))
       }
       case _ => incorrectJsonFormat(json).toResult
@@ -40,16 +53,21 @@ trait AssessmentTemplateApi extends V2Api {
   }
 
   def update(assessmentTemplateId: ObjectId) = withIdentity { (identity, request) =>
-    Json.fromJson[AssessmentTemplate](getJson(identity, request)) match {
-      case JsSuccess(jsonAssessment, _) =>
-        assessmentTemplateService.findOne(MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)) match {
+    val json = getJson(identity, request)
+    Json.fromJson[AssessmentTemplate](json) match {
+      case JsSuccess(jsonAssessment, _) => {
+        val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
+        //TODO: RF: Low-Priority: could $set or update work here?
+        assessmentTemplateService.findOne(query, MongoDBObject.empty) match {
           case Some(dbResult) => {
-            val updatedAssessment = dbResult.toAssessmentTemplate.merge(jsonAssessment)
-            assessmentTemplateService.save(updatedAssessment.forSalat)
+            val updatedAssessment = dbResult.merge(jsonAssessment)
+            assessmentTemplateService.save(updatedAssessment)
             Ok(Json.prettyPrint(Json.toJson(updatedAssessment)))
           }
           case _ => cantFindAssessmentTemplateWithId(assessmentTemplateId).toResult
         }
+      }
+      case JsError(_) => incorrectJsonFormat(json).toResult
     }
   }
 

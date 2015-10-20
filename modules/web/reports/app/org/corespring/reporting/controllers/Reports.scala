@@ -4,29 +4,51 @@ import java.io.StringReader
 
 import com.mongodb.casbah.Imports._
 import net.quux00.simplecsv.CsvReader
-import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.ContentCollection
-import org.corespring.platform.core.models.auth.Permission
+import org.corespring.models.{ Organization, ContentCollection }
+import org.corespring.models.auth.Permission
 import org.corespring.reporting.services.ReportGenerator.ReportKeys
 import org.corespring.reporting.services.{ ReportGenerator, ReportsService }
 import org.corespring.reporting.utils.CsvWriter
+import org.corespring.services.ContentCollectionService
+import play.api.Logger
 import play.api.libs.json.Json
-import play.api.mvc.SimpleResult
+import play.api.mvc._
 
-class Reports(service: ReportsService, generator: ReportGenerator) extends BaseApi with CsvWriter {
+case class OrgRequest[A](org: Organization, r: Request[A]) extends WrappedRequest[A](r)
 
-  def index = ApiAction {
+trait Reports extends Controller with CsvWriter {
+
+  def contentCollectionService: ContentCollectionService
+  def service: ReportsService
+  def generator: ReportGenerator
+  def logger = Logger(classOf[Reports])
+
+  def orgFromRequest(r: RequestHeader): Option[Organization]
+
+  def ReportAction(f: OrgRequest[AnyContent] => Result): Action[AnyContent] = {
+    ReportAction(BodyParsers.parse.anyContent)(f)
+  }
+
+  def ReportAction[A](p: BodyParser[A])(f: OrgRequest[A] => Result) = {
+    Action(p) { request =>
+      orgFromRequest(request).map { o =>
+        f(OrgRequest(o, request))
+      }.getOrElse(Forbidden)
+    }
+  }
+
+  def index = ReportAction {
     request =>
       val availableCollections = service.getCollections
       Ok(org.corespring.reporting.views.html.index(availableCollections, generator.timestamps, generator.inProgress))
   }
 
-  def generate(reportKey: String) = ApiAction { request =>
+  def generate(reportKey: String) = ReportAction { request =>
     generator.generateReport(reportKey)
     getStatus(reportKey)
   }
 
-  def status(reportKey: String) = ApiAction { request => getStatus(reportKey) }
+  def status(reportKey: String) = ReportAction { request => getStatus(reportKey) }
 
   private def getStatus(reportKey: String) = generator.inProgress(reportKey) match {
     case true => Accepted(Json.obj("report" -> reportKey, "status" -> "In Progress"))
@@ -39,7 +61,7 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
     }
   }
 
-  def getCsv(collection: String, queryType: String) = ApiAction {
+  def getCsv(collection: String, queryType: String) = ReportAction {
     request =>
       logger.info("getCsv: " + collection + " type: " + queryType)
       val result = service.getReport(collection, queryType)
@@ -50,22 +72,22 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
       Ok(out).withHeaders(("Content-type", "text/csv"))
   }
 
-  def getPrimarySubjectItemReport = ApiAction(request => getReport(ReportKeys.primarySubject))
-  def getStandardItemReport = ApiAction(request => getReport(ReportKeys.standards))
-  def getContributorReport = ApiAction(request => getReport(ReportKeys.contributor))
-  def getCollectionReport = ApiAction(request => getReport(ReportKeys.collection))
-  def getGroupedStandardsReport = ApiAction(request => getReport(ReportKeys.subcategory))
+  def getPrimarySubjectItemReport = ReportAction(request => getReport(ReportKeys.primarySubject))
+  def getStandardItemReport = ReportAction(request => getReport(ReportKeys.standards))
+  def getContributorReport = ReportAction(request => getReport(ReportKeys.contributor))
+  def getCollectionReport = ReportAction(request => getReport(ReportKeys.collection))
+  def getGroupedStandardsReport = ReportAction(request => getReport(ReportKeys.subcategory))
 
   /**
    * Only report current user's visible collections
    */
-  def getStandardsByCollectionReport = ApiAction {
+  def getStandardsByCollectionReport = ReportAction {
     request =>
       {
         val collections: Seq[ContentCollection] =
-          ContentCollection.find(
+          contentCollectionService.findByDbo(
             MongoDBObject("_id" -> MongoDBObject(
-              "$in" -> ContentCollection.getContentCollRefs(request.ctx.organization, Permission.Read, true).map(_.collectionId)))).toSeq
+              "$in" -> contentCollectionService.getContentCollRefs(request.org.id, Permission.Read, true).map(_.collectionId)))).toSeq
 
         import scala.collection.JavaConversions._
 
@@ -99,4 +121,3 @@ class Reports(service: ReportsService, generator: ReportGenerator) extends BaseA
 
 }
 
-object Reports extends Reports(ReportsService, ReportGenerator)

@@ -7,19 +7,19 @@ import play.api.libs.json._
  * Contains fields used for querying the item index
  */
 case class ItemIndexQuery(offset: Int = ItemIndexQuery.Defaults.offset,
-                          count: Int = ItemIndexQuery.Defaults.count,
-                          text: Option[String] = ItemIndexQuery.Defaults.text,
-                          contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
-                          collections: Seq[String] = ItemIndexQuery.Defaults.collections,
-                          itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
-                          widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
-                          gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
-                          published: Option[Boolean] = ItemIndexQuery.Defaults.published,
-                          standards: Seq[String] = ItemIndexQuery.Defaults.standards,
-                          workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
-                          sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
-                          metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
-                          requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth )
+  count: Int = ItemIndexQuery.Defaults.count,
+  text: Option[String] = ItemIndexQuery.Defaults.text,
+  contributors: Seq[String] = ItemIndexQuery.Defaults.contributors,
+  collections: Seq[String] = ItemIndexQuery.Defaults.collections,
+  itemTypes: Seq[String] = ItemIndexQuery.Defaults.itemTypes,
+  widgets: Seq[String] = ItemIndexQuery.Defaults.widgets,
+  gradeLevels: Seq[String] = ItemIndexQuery.Defaults.gradeLevels,
+  published: Option[Boolean] = ItemIndexQuery.Defaults.published,
+  standards: Seq[String] = ItemIndexQuery.Defaults.standards,
+  workflows: Seq[String] = ItemIndexQuery.Defaults.workflows,
+  sort: Seq[Sort] = ItemIndexQuery.Defaults.sort,
+  metadata: Map[String, String] = ItemIndexQuery.Defaults.metadata,
+  requiredPlayerWidth: Option[Int] = ItemIndexQuery.Defaults.requiredPlayerWidth)
 
 case class Sort(field: String, direction: Option[String])
 
@@ -33,8 +33,7 @@ object Sort {
     "itemType" -> "taskInfo.itemTypes",
     "widget" -> "taskInfo.widgets",
     "standard" -> "standards.dotNotation",
-    "contributor" -> "contributorDetails.contributor"
-  )
+    "contributor" -> "contributorDetails.contributor")
 
   object ElasticSearchWrites extends Writes[Sort] {
     override def writes(sort: Sort): JsValue = Json.obj(
@@ -42,17 +41,14 @@ object Sort {
         "order" -> (sort.direction match {
           case Some("desc") => "desc"
           case _ => "asc"
-        })
-      )
-    )
+        })))
   }
 
   object Reads extends Reads[Sort] {
     override def reads(json: JsValue): JsResult[Sort] = json match {
       case obj: JsObject => JsSuccess(Sort(
         field = obj.keys.head,
-        direction = (obj \ (obj.keys.head)).asOpt[String]
-      ))
+        direction = (obj \ (obj.keys.head)).asOpt[String]))
       case _ => JsError("Must be object")
     }
   }
@@ -128,9 +124,7 @@ object ItemIndexQuery {
           case jsObject: JsObject =>
             (jsObject.keys diff all).map(key => (jsObject \ key).asOpt[String].map(value => key -> value)).flatten.toMap
           case _ => Map.empty[String, String]
-        })
-      )
-    )
+        })))
   }
 
   /**
@@ -138,29 +132,23 @@ object ItemIndexQuery {
    */
   object ElasticSearchWrites extends Writes[ItemIndexQuery] with JsonUtil {
 
-    private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)
-                        (implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
+    private def terms[A](field: String, values: Seq[A], execution: Option[String] = None)(implicit writes: Writes[A]) = filter("terms", field, values, execution): Option[JsObject]
 
-    private def term[A](field: String, values: Option[A])
-                       (implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
+    private def term[A](field: String, values: Option[A])(implicit writes: Writes[A], execution: Option[String] = None): Option[JsObject] =
       filter("term", field, values, execution)
 
-    private def filter[A](named: String, field: String, values: Seq[A], execution: Option[String])
-                         (implicit writes: Writes[A]): Option[JsObject] =
+    private def filter[A](named: String, field: String, values: Seq[A], execution: Option[String])(implicit writes: Writes[A]): Option[JsObject] =
       values.nonEmpty match {
         case true => Some(Json.obj(named -> partialObj(
-          field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString)
-        )))
+          field -> Some(Json.toJson(values)), "execution" -> execution.map(JsString))))
         case _ => None
       }
 
-    private def filter[A](named: String, field: String, value: Option[A], execution: Option[String])
-                         (implicit writes: Writes[A]): Option[JsObject] =
+    private def filter[A](named: String, field: String, value: Option[A], execution: Option[String])(implicit writes: Writes[A]): Option[JsObject] =
       value.map(v => partialObj(
         named -> Some(Json.obj(field -> Json.toJson(v))), "execution" -> execution.map(JsString)))
 
-    private def range[A <: Int](field: String, gte: Option[A] = None, gt: Option[A] = None, lte: Option[A] = None, lt: Option[A] = None)
-                        (implicit writes: Writes[A]): Option[JsObject] =
+    private def range[A <: Int](field: String, gte: Option[A] = None, gt: Option[A] = None, lte: Option[A] = None, lt: Option[A] = None)(implicit writes: Writes[A]): Option[JsObject] =
       if ((gte ++ gt ++ lte ++ lt).isEmpty) None
       else
         Some(Json.obj(
@@ -169,27 +157,21 @@ object ItemIndexQuery {
               "gte" -> gte.map(JsNumber(_)),
               "gt" -> gt.map(JsNumber(_)),
               "lte" -> lte.map(JsNumber(_)),
-              "lt" -> lt.map(JsNumber(_))
-            )
-          )
-        ))
-
+              "lt" -> lt.map(JsNumber(_))))))
 
     private def must(metadata: Map[String, String]): Option[JsObject] = {
       metadata.nonEmpty match {
-        case true => Some(Json.obj("must" -> metadata.map{ case(key, value) => {
-          Json.obj("nested" -> Json.obj(
-            "path" -> "metadata",
-            "query" -> Json.obj(
-              "bool" -> Json.obj(
-                "must" -> Json.arr(
-                  Json.obj("match" -> Json.obj("metadata.key" -> key)),
-                  Json.obj("match" -> Json.obj("metadata.value" -> value))
-                )
-              )
-            )
-          ))
-        }}))
+        case true => Some(Json.obj("must" -> metadata.map {
+          case (key, value) => {
+            Json.obj("nested" -> Json.obj(
+              "path" -> "metadata",
+              "query" -> Json.obj(
+                "bool" -> Json.obj(
+                  "must" -> Json.arr(
+                    Json.obj("match" -> Json.obj("metadata.key" -> key)),
+                    Json.obj("match" -> Json.obj("metadata.value" -> value)))))))
+          }
+        }))
         case _ => None
       }
     }
@@ -200,12 +182,9 @@ object ItemIndexQuery {
         Json.obj("multi_match" -> Json.obj(
           "query" -> text,
           "fields" -> Seq("taskInfo.description", "taskInfo.title", "content", "standards.dotNotation"),
-          "type" -> "phrase"
-        )),
+          "type" -> "phrase")),
         Json.obj("ids" -> Json.obj(
-          "values" -> Json.arr(text)
-        ))
-      )))
+          "values" -> Json.arr(text))))))
       case _ => None
     }
 
@@ -213,7 +192,7 @@ object ItemIndexQuery {
       import query._
       implicit val SortWrites = Sort.ElasticSearchWrites
 
-      val clauses = Seq(must(metadata), should(text)).flatten.foldLeft(Json.obj()){ case (obj, acc) => acc ++ obj }
+      val clauses = Seq(must(metadata), should(text)).flatten.foldLeft(Json.obj()) { case (obj, acc) => acc ++ obj }
 
       partialObj(
         "from" -> Some(JsNumber(offset)),
@@ -233,17 +212,14 @@ object ItemIndexQuery {
               terms("taskInfo.gradeLevel", gradeLevels),
               terms("standards.dotNotation", standards),
               term("published", published),
-              terms("workflow", workflows , Some("and")),
-              range("minimumWidth", lte = requiredPlayerWidth)
-            ).flatten
+              terms("workflow", workflows, Some("and")),
+              range("minimumWidth", lte = requiredPlayerWidth)).flatten
             t
-          })
-        )),
+          }))),
         "sort" -> (query.sort.nonEmpty match {
           case true => Some(JsArray(query.sort.map(Json.toJson(_))))
           case _ => None
-        })
-      )
+        }))
     }
   }
 

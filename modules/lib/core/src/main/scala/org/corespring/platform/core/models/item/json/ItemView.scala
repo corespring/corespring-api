@@ -1,10 +1,10 @@
 package org.corespring.platform.core.models.json
 
-import org.corespring.platform.core.models.Standard
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.json.ContentView
-import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.models.Standard
+import org.corespring.models.item.Item
+import org.corespring.models.item.json.ContentView
+import org.corespring.models.search.SearchFields
+import org.corespring.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item.ItemServiceWired
 import play.api.libs.json._
 import scala.Some

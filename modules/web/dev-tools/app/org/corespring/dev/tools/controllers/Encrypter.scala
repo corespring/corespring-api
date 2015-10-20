@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.platform.core.controllers.auth.OAuthProvider
 import org.corespring.platform.core.encryption._
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.models.auth.ApiClient
 import play.api.libs.json.Json
 import play.api.mvc.Controller
 

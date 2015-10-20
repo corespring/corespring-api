@@ -2,7 +2,7 @@ package org.corespring.platform.core.models
 
 import com.novus.salat.{ TypeHintFrequency, StringTypeHintStrategy, Context }
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.PlayerDefinitionTransformer
+import org.corespring.models.item.PlayerDefinitionTransformer
 import org.corespring.platform.data.mongo.models.VersionedIdTransformer
 import play.api.Play
 import play.api.Play.current

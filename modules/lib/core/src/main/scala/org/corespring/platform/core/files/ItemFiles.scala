@@ -1,8 +1,8 @@
 package org.corespring.platform.core.files
 
 import org.corespring.assets.CorespringS3Service
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }

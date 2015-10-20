@@ -3,7 +3,7 @@ package org.corespring.platform.core.models
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.search.Searchable
+import org.corespring.models.search.Searchable
 import org.corespring.platform.core.services.QueryService
 import play.api.Play.current
 import play.api.libs.json._
@@ -17,7 +17,7 @@ object Subject extends ModelCompanion[Subject, ObjectId] with Searchable {
 
   val collection = mongoCollection("subjects")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   val dao = new SalatDAO[Subject, ObjectId](collection = collection) {}
 

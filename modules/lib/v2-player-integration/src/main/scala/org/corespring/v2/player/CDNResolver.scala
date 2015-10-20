@@ -1,10 +1,10 @@
 package org.corespring.v2.player
 
-import org.corespring.v2.log.V2LoggerFactory
+import play.api.Logger
 import play.api.Configuration
 
 class CDNResolver(val configuration: Configuration, version: String) {
-  lazy val logger = V2LoggerFactory.getLogger("V2PlayerIntegration")
+  lazy val logger = Logger(classOf[CDNResolver])
 
   lazy val cdnDomain = {
     val out = configuration.getString("cdn.domain")
