@@ -86,25 +86,28 @@ trait QtiTransformer extends XMLNamespaceClearer {
 object QtiTransformer extends QtiTransformer {
 
   def interactionTransformers(qti: Elem) = Seq(
+    CalculatorTransformer,
     ChoiceInteractionTransformer,
+    CorespringTabTransformer,
+    CoverflowInteractionTransformer,
     DragAndDropInteractionTransformer,
+    ExtendedTextInteractionTransformer,
     FeedbackBlockTransformer(qti),
-    NumberedLinesTransformer(qti),
     FocusTaskInteractionTransformer,
-    TextEntryInteractionTransformer(qti),
-    LineInteractionTransformer,
+    FoldableInteractionTransformer,
     GraphicGapMatchInteractionTransformer,
+    LineInteractionTransformer,
+    NumberedLinesTransformer(qti),
     OrderInteractionTransformer,
     PointInteractionTransformer,
     SelectTextInteractionTransformer,
-    ExtendedTextInteractionTransformer,
-    FoldableInteractionTransformer,
-    CoverflowInteractionTransformer,
-    CorespringTabTransformer)
+    TextEntryInteractionTransformer(qti)
+  )
 
   def statefulTransformers = Seq(
     FeedbackBlockTransformer,
     NumberedLinesTransformer,
-    TextEntryInteractionTransformer)
+    TextEntryInteractionTransformer
+  )
 
 }
