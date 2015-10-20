@@ -155,8 +155,11 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
   }
 }
 
+
 //by default updates are disabled for safety reasons
 //pass in "true" to make it update the data
+//a backup of the original items is saved in content-task-77-backup-(current date in millis)
+
 //pass in the ids of the collections that should be excluded, eg. the archive collection
 var archiveColl = "500ecfc1036471f538f24bdc"; //same fore staging and prod
 var publicSiteSamplesColl = "541b00bd5966943aed30daf9"; //same fore staging and prod
