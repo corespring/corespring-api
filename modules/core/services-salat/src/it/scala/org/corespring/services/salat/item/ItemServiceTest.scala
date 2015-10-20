@@ -27,11 +27,11 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
   trait TestScope extends BeforeAfter {
     lazy val org = addOrg(1)
 
-    def before:Any = {
+    def before: Any = {
 
     }
 
-    def after:Any = {
+    def after: Any = {
       removeAllData()
     }
 
@@ -55,8 +55,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
 
     def addItem(id: Int, c: ContentCollection,
-                contributorId: Option[Int] = None,
-                contentType:Option[String] = None) = {
+      contributorId: Option[Int] = None,
+      contentType: Option[String] = None) = {
       val contributorDetails = ContributorDetails(
         contributor = Some("contributor-" + contributorId.getOrElse(id)))
       val item = Item(
@@ -68,26 +68,26 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       item
     }
 
-    def assertDbItem(id: VersionedId[ObjectId])(block: Item => Any) = {
-      itemService.findOneById(id) match {
-        case None => failure(s"Cannot find item $id")
-        case Some(item) => block(item)
-      }
+    def loadItem(id: VersionedId[ObjectId]): Option[Item] = {
+      itemService.findOneById(id).orElse({
+        failure(s"Cannot find item $id")
+        None
+      })
     }
   }
 
   "addCollectionIdToSharedCollections" should {
     trait AddCollectionIdToSharedCollectionsScope extends TestScope {
-        addCollection(1)
-        addItem(1, colls(1))
-        addItem(2, colls(1))
-        val sharedCollectionId = addCollection(2).id
+      addCollection(1)
+      addItem(1, colls(1))
+      addItem(2, colls(1))
+      val sharedCollectionId = addCollection(2).id
     }
 
     "add collectionId to item.sharedInCollections" in new AddCollectionIdToSharedCollectionsScope {
       itemService.addCollectionIdToSharedCollections(Seq(items(1).id, items(2).id), sharedCollectionId)
-      assertDbItem(items(1).id) { item => item.sharedInCollections.contains(sharedCollectionId) }
-      assertDbItem(items(2).id) { item => item.sharedInCollections.contains(sharedCollectionId) }
+      loadItem(items(1).id).map(_.sharedInCollections.contains(sharedCollectionId))
+      loadItem(items(2).id).map(_.sharedInCollections.contains(sharedCollectionId))
     }
     "return ids of updated items when call was successful" in new AddCollectionIdToSharedCollectionsScope {
       itemService.addCollectionIdToSharedCollections(Seq(items(1).id, items(2).id), sharedCollectionId) match {
@@ -107,13 +107,13 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     "add file to playerDefinition.files using item id" in new AddFileToPlayerDefinitionScope {
       val file = StoredFile("name.png", "image/png", false)
       itemService.addFileToPlayerDefinition(items(1).id, file)
-      assertDbItem(items(1).id) { _.playerDefinition.get.files === Seq(file) }
+      loadItem(items(1).id).map(_.playerDefinition.get.files === Seq(file))
     }
 
     "add file to playerDefinition.files using item" in new AddFileToPlayerDefinitionScope {
       val file = StoredFile("name.png", "image/png", false)
       itemService.addFileToPlayerDefinition(items(1), file)
-      assertDbItem(items(1).id) { _.playerDefinition.get.files === Seq(file) }
+      loadItem(items(1).id).map(_.playerDefinition.get.files === Seq(file))
     }
     "return true when call was successful" in new AddFileToPlayerDefinitionScope {
       val file = StoredFile("name.png", "image/png", false)
@@ -175,10 +175,10 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
         super.after
       }
     }
-    "return the cloned item" in new CloneScope{
+    "return the cloned item" in new CloneScope {
       clonedItem.get.id !== item.id
     }
-    "create a new item in the db" in new CloneScope{
+    "create a new item in the db" in new CloneScope {
       val dbItem = itemService.findOneById(clonedItem.get.id)
       dbItem.isDefined === true
     }
@@ -252,9 +252,9 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
     "not include a contributor more than once" in new TestScope {
       addCollection(1)
-      addItem(1, colls(1), contributorId=Some(77))
+      addItem(1, colls(1), contributorId = Some(77))
       addCollection(2)
-      addItem(2, colls(2), contributorId=Some(77))
+      addItem(2, colls(2), contributorId = Some(77))
 
       val res = itemService.contributorsForOrg(org.id)
       res === Seq("contributor-77")
@@ -269,7 +269,7 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
     "not include contributors from collections which are not readable" in new TestScope {
       addOrg(2)
-      addCollection(1, orgId=Some(orgs(2).id))
+      addCollection(1, orgId = Some(orgs(2).id))
       addItem(1, colls(1))
 
       val res = itemService.contributorsForOrg(org.id)
@@ -287,13 +287,11 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       addCollection(1)
       addItem(1, colls(1))
       val updatedItem = items(1).copy(
-        contributorDetails=Some(ContributorDetails(contributor=Some("updated contributor"))))
-      itemService.save(updatedItem, createNewVersion=true)
+        contributorDetails = Some(ContributorDetails(contributor = Some("updated contributor"))))
+      itemService.save(updatedItem, createNewVersion = true)
 
       //the versioned item has the old contributor still
-      assertDbItem(items(1).id){
-        _.contributorDetails.get.contributor === Some("contributor-1")
-      }
+      loadItem(items(1).id).map(_.contributorDetails.get.contributor === Some("contributor-1"))
 
       val res = itemService.contributorsForOrg(org.id)
       res === Seq("updated contributor")
@@ -321,8 +319,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
     "return the number of items with contentType item only" in new TestScope {
       addCollection(1)
-      addItem(1, colls(1), contentType=Some(Item.contentType))
-      addItem(2, colls(1), contentType=Some("thing"))
+      addItem(1, colls(1), contentType = Some(Item.contentType))
+      addItem(2, colls(1), contentType = Some("thing"))
 
       itemService.count(MongoDBObject()) === 1
     }
@@ -338,8 +336,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     //TODO Do we want to count items with contentType different from item?
     "return number of things in collection even though contentType is not item" in new TestScope {
       addCollection(1)
-      addItem(1, colls(1), contentType=Some("apple"))
-      addItem(2, colls(1), contentType=Some("pear"))
+      addItem(1, colls(1), contentType = Some("apple"))
+      addItem(2, colls(1), contentType = Some("pear"))
       itemService.countItemsInCollection(colls(1).id) === 2
     }
     "return 0 if collection does not exist" in new TestScope {
