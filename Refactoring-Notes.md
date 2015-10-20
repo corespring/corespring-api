@@ -19,7 +19,7 @@ Filtering and skipping etc is disabled - I don't think we need it - but check th
 The item calls need to be checked that they are still working
 - resource api calls
 
-- check w/ ev about motion math
+- ~~check w/ ev about motion math~~
 
 - who/where is POST /api/v1/items being called - this shouldn't be running anymore.
 in the last 30 days there were 34 calls to it..
@@ -44,17 +44,23 @@ Open the v1 editor and click the interaction tab and you should see the warning.
 
 #### v1 item api search -> v2 search interface
 
-Check if this is doable w/ ben
+We still support the v1 api for now.
 
-ben says it's tricky .. so the options are maintain v1 search in it's own module, or do the mapping
 
-queries from log entries: 
+### queries from log entries: 
+
+Note: all illuminate and new classrooms calls must work, along with v2 player and v2 api.
 
 path=/.*api\/v1\/collections.*&access_token=(.*)/ ==> 0 results
+
 path=/.*api\/v1\/organizations.*&access_token=(.*)/ ==> 0 results
+
 path=/.*api\/v1\/users.*&access_token=(.*)/ ==> 0 results
+
 path=/.*api\/v1\/assessments.*&access_token=(.*)/ ==> 0 results
+
 path=/.*api\/v1\/items.*&access_token=(.*)/ ==> lots of results results
+
 path=/.*api\/v1\/items\/query.*/ ==> 0
 
 

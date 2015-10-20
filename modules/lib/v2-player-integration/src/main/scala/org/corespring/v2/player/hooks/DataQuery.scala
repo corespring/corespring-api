@@ -95,7 +95,7 @@ class DataQueryHooks(
     }
 
     def toResult[A](v: Validation[(Int, String), Stream[A]])(implicit w: Writes[A]): Either[(Int, String), JsArray] = {
-      v.toEither.map(list => Json.arr(list.toSeq.map(Json.toJson(_))))
+      v.toEither.map(list => Json.toJson(list.toSeq).as[JsArray])
     }
 
     topic match {

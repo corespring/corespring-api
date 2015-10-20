@@ -1,10 +1,10 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ Item, FieldValue, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.AuthMode.AuthMode
 import org.corespring.v2.auth.models._
@@ -49,8 +49,6 @@ class SessionAuthWiredTest extends Specification with Mockito with MockFactory {
         override def fieldValue: FieldValue = ???
 
         override def findStandardByDotNotation: (String) => Option[Standard] = ???
-
-        override def countItemsInCollection(collectionId: ObjectId): Long = ???
 
         override def rootOrgId: ObjectId = ???
 

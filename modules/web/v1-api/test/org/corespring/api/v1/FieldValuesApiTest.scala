@@ -43,8 +43,6 @@ class FieldValuesApiTest
     val jsonFormatting = new JsonFormatting {
       override def findStandardByDotNotation: (String) => Option[Standard] = _ => None
 
-      override def countItemsInCollection(collectionId: ObjectId): Long = 0
-
       override def rootOrgId: ObjectId = ObjectId.get
 
       override def fieldValue: FieldValue = FieldValue()

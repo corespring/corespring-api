@@ -408,6 +408,18 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
     }
   }
 
+  "cloning" should {
+
+    "create a new item in the db" in {
+      val item = Item(collectionId = "1234567")
+      val clonedItem = itemService.clone(item)
+      item.collectionId === clonedItem.get.collectionId
+      val update = item.copy(collectionId = "0987654321")
+      itemService.save(update)
+      itemService.findOneById(clonedItem.get.id) must_== clonedItem
+    }
+  }
+
   "save" should {
 
     def mockAssets(succeed: Boolean) = {
@@ -415,10 +427,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
       m.cloneStoredFiles(any[Item], any[Item]).answers { (args, _) =>
         {
-          println(s" --> args:  $args")
           val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
             val arr = args.asInstanceOf[Array[Any]]
-            println(s" --> arr: $arr")
             Success(arr(1).asInstanceOf[Item])
           } else {
             Failure(Seq.empty[CloneFileResult])
@@ -456,8 +466,6 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       val dbItem = service.findOneById(VersionedId(item.id.id))
 
       val expectedVersion = if (shouldSucceed) 1 else 0
-
-      println("expecting version: " + expectedVersion)
 
       val out: MatchResult[Any] = dbItem
         .map(i => i.id === VersionedId(id.id, Some(expectedVersion))).get

@@ -1,7 +1,5 @@
 package web.controllers
 
-import java.io.File
-
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.assets.ImageUtils
@@ -15,8 +13,8 @@ class ShowResourceIntegrationTest extends IntegrationSpecification {
   trait rootBinary extends userAndItem with SessionRequestBuilder with SecureSocialHelper {
     def s3Path: String
     def item: Item
-    val path = "it/test-images/ervin.png"
-    val img = new File(path)
+    val path = "/test-images/ervin.png"
+    val img = ImageUtils.resourcePathToFile(path)
     lazy val bytes = ImageUtils.imageData(path)
     ImageUtils.upload(img, s3Path)
     logger.info(s"save item: $item")

@@ -19,8 +19,6 @@ class BasicScoreServiceTest extends Specification with Mockito {
 
     override def findStandardByDotNotation: (String) => Option[Standard] = ???
 
-    override def countItemsInCollection(collectionId: ObjectId): Long = ???
-
     override def rootOrgId: ObjectId = ???
 
     override def findSubjectById: (ObjectId) => Option[Subject] = ???

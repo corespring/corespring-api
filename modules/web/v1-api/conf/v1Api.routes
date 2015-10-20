@@ -23,7 +23,7 @@ PUT     /items/:id                        @org.corespring.api.v1.ItemApi.update(
 GET     /items/query                      @org.corespring.api.v1.ItemApi.listAndCount(q: Option[String] ?= None, f: Option[String] ?= None, sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /organizations/:orgId/items       @org.corespring.api.v1.ItemApi.listWithOrg(orgId:ObjectId, q: Option[String] ?= None, f: Option[String] ?= None, c ?= "false", sk: Int ?= 0, l: Int ?= 50, sort:Option[String] ?= None)
 GET     /items/:itemId/sessions/count     @org.corespring.api.v1.ItemApi.countSessions(itemId:VersionedId[ObjectId])
-
+DELETE  /items/:id                        @org.corespring.api.v1.ItemApi.delete(id: VersionedId[ObjectId])
 
 GET     /metadata/item/:id                @org.corespring.api.v1.ItemMetadataApi.get(id:VersionedId[ObjectId])
 

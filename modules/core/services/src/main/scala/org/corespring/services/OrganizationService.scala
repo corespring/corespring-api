@@ -8,18 +8,23 @@ import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 
+//TODO: Add new Service [[OrgCollectionsService]] and thin out [[OrganizationService]] and [[ContentCollectionService]]
 trait OrganizationService {
+
+  def list(sk: Int = 0, l: Int = 0): Stream[Organization]
 
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
-  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Permission
-
+  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission]
+  @deprecated("use getDefaultCollection instead", "1.0")
   def defaultCollection(o: Organization): Option[ObjectId]
+  @deprecated("use getDefaultCollection instead", "1.0")
   def defaultCollection(oid: ObjectId): Option[ObjectId]
+  def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
   def orgsWithPath(orgId: ObjectId, deep: Boolean): Seq[Organization]
 
-  def addMetadataSet(orgId: ObjectId, setId: ObjectId, checkExistence: Boolean = true): Validation[String, MetadataSetRef]
+  def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef]
 
   def deleteCollectionFromAllOrganizations(collId: ObjectId): Validation[String, Unit]
 
@@ -43,8 +48,6 @@ trait OrganizationService {
   def findOneById(orgId: ObjectId): Option[Organization]
 
   def findOneByName(name: String): Option[Organization]
-
-  def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
   //def isRoot(org:Organization) : Boolean
 
@@ -81,11 +84,9 @@ trait OrganizationService {
 
   def canAccessCollection(org: Organization, collectionId: ObjectId, permission: Permission): Boolean
 
-  def hasCollRef(orgId: ObjectId, collRef: ContentCollRef): Boolean
-
   def removeCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  def getPermissions(orgId: ObjectId, collId: ObjectId): Permission
+  def getPermissions(orgId: ObjectId, collId: ObjectId): Option[Permission]
 
   def addCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, ContentCollRef]
 

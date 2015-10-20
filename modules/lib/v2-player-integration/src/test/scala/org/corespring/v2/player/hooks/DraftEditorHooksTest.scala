@@ -3,6 +3,7 @@ package org.corespring.v2.player.hooks
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
 import org.corespring.amazon.s3.models.DeleteResponse
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts, S3Paths }
@@ -10,7 +11,6 @@ import org.corespring.models.appConfig.Bucket
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.{ User, UserOrg }
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerIntegrationSpec

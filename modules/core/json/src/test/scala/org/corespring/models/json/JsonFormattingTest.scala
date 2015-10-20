@@ -22,8 +22,6 @@ class JsonFormattingTest extends Specification {
 
     override def findStandardByDotNotation: (String) => Option[Standard] = s => None
 
-    override def countItemsInCollection(collectionId: ObjectId): Long = 0
-
     override def rootOrgId: ObjectId = JsonFormattingTest.this.rootOrgId
 
     override def findSubjectById: (ObjectId) => Option[Subject] = id => None

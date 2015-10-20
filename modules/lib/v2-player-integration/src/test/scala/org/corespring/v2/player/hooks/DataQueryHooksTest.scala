@@ -5,7 +5,8 @@ import org.corespring.services._
 import org.corespring.v2.player.V2PlayerIntegrationSpec
 import org.specs2.mock.Mockito
 import org.specs2.specification.{ Fragment, Scope }
-import play.api.libs.json.{ JsObject, Json }
+import play.api.libs.json.{ JsArray, JsValue, JsObject, Json }
+import play.api.mvc.RequestHeader
 import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
 
@@ -85,6 +86,23 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
           override lazy val key = s"subjects.$subjectKey"
         }
 
+        s"return an array of found subjects" in new scope {
+
+          subjectQueryService.query(any[SubjectQuery], any[Int], any[Int]) returns {
+            Stream(
+              Subject("History"),
+              Subject("Art"))
+          }
+
+          val key = s"subjects.$subjectKey"
+          override val queryJson = Some(Json.obj("searchTerm" -> "a"))
+          val result = hooks.list(key, queryString)
+          val resultJson: JsValue = wait(result).fold(_ => Json.obj("error" -> true), arr => arr)
+          val arr = resultJson.as[JsArray]
+          (arr(0) \ "subject").as[String] must_== "History"
+          (arr(1) \ "subject").as[String] must_== "Art"
+        }
+
         assertBasics(s"subjects.$subjectKey", h => h.subjectQueryService)
 
         s"call subjectQueryService.query for subjects.$subjectKey" in new s(
@@ -114,6 +132,22 @@ class DataQueryHooksTest extends V2PlayerIntegrationSpec with Mockito {
         val result = hooks.list("standards", queryString)
         wait(result)
         there was one(standardService).query(expected, 0, 0)
+      }
+
+      "return the standards json" in new scope {
+
+        standardService.query(any[StandardQuery], any[Int], any[Int]) returns {
+          Stream(
+            Standard(subject = Some("History")),
+            Standard(subject = Some("Art")))
+        }
+
+        override val queryJson = Some(Json.obj("searchTerm" -> "a"))
+        val result = hooks.list("standards", queryString)
+        val resultJson: JsValue = wait(result).fold(_ => Json.obj("error" -> true), arr => arr)
+        val arr = resultJson.as[JsArray]
+        (arr(0) \ "subject").as[String] must_== "History"
+        (arr(1) \ "subject").as[String] must_== "Art"
       }
 
       assertBasics("standards", h => h.standardService)

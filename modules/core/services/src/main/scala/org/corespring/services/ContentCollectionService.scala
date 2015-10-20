@@ -2,7 +2,7 @@ package org.corespring.services
 
 import com.mongodb.casbah.Imports._
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ Organization, ContentCollRef, ContentCollection }
+import org.corespring.models.{ CollectionInfo, Organization, ContentCollRef, ContentCollection }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 
@@ -26,6 +26,13 @@ trait ContentCollectionService {
   def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection]
 
   def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection]
+
+  /**
+   * List all collections that the given orgId has access to.
+   * @param orgId
+   * @return a stream of [[CollectionInfo]]
+   */
+  def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo]
 
   def archiveCollectionId: ObjectId
 
@@ -90,7 +97,8 @@ trait ContentCollectionService {
   }
 
   /**
-   * does the given organization have access to the given collection with given permissions?
+   * does the given organization have access to the given collection with given permission.
+   * Aka - can org 'a' 'write' to collection 'c'?
    * @param orgId
    * @param collId
    */

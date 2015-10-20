@@ -26,7 +26,7 @@ class StandardServiceTest extends ServicesSalatIntegrationTest with NoTimeConver
     }
 
     override def before: Any = {
-      clearDb()
+      removeAllData()
       addStandard(ELA, "ela-1", "C.1.2")
       addStandard(ELA, "ela-1", "C.1")
       addStandard(ELA, "ela-1", "C.1.1")
@@ -63,7 +63,7 @@ class StandardServiceTest extends ServicesSalatIntegrationTest with NoTimeConver
     })
 
     override def before: Any = {
-      clearDb()
+      removeAllData()
       toStandard(standard: _*).flatMap { s =>
         services.standardService.insert(s)
       }

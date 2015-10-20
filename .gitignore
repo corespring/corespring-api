@@ -11,9 +11,6 @@
 .run-*
 atlassian-*
 aws.zip
-<<<<<<< HEAD
-*.list
-=======
 deployment/.env_vars.sh
 dist
 logs
@@ -25,4 +22,4 @@ target
 tasks/mock-data-task/project
 tasks/mock-data-task/target
 tmp
->>>>>>> develop
+deploy.sh

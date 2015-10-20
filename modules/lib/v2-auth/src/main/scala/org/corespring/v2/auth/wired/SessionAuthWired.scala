@@ -1,9 +1,9 @@
 package org.corespring.v2.auth.wired
 
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.models.item.{Item, PlayerDefinition}
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.auth.models.{AuthMode, IdentityJson, OrgAndOpts, PlayerAccessSettings}
 import org.corespring.v2.auth.{ItemAuth, SessionAuth}

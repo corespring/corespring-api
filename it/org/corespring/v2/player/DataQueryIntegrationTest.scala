@@ -4,11 +4,13 @@ import org.corespring.it.IntegrationSpecification
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.models.item.{ FieldValue, ListKeyValue, StringKeyValue }
 import org.specs2.mutable.After
-import play.api.libs.json.{ JsArray, JsObject, JsValue }
+import play.api.libs.json.{ Json, JsArray, JsObject, JsValue }
 import play.api.mvc.SimpleResult
 import play.api.test.FakeRequest
 
 import scala.concurrent.Future
+
+import org.corespring.container.client.controllers.routes.DataQuery
 
 class DataQueryIntegrationTest extends IntegrationSpecification {
 
@@ -38,7 +40,6 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
     val standardId = standardService.insert(Standard(Some("DOT.NOTATION")))
 
     def listResult(topic: String): Future[SimpleResult] = {
-      import org.corespring.container.client.controllers.routes.DataQuery
       val call = DataQuery.list(topic)
       route(FakeRequest(call.method, call.url)).getOrElse {
         throw new RuntimeException("data-query list failed")
@@ -53,6 +54,13 @@ class DataQueryIntegrationTest extends IntegrationSpecification {
   }
 
   "data query" should {
+
+    "list a json array standards query" in new listScope {
+      val call = DataQuery.list("standards", Some(s"""{"dotNotation" : "DOT.NOTATION"}"""))
+      val result = route(FakeRequest(call.method, call.url)).get
+      val jsArray = contentAsJson(result).as[JsArray]
+      (jsArray(0) \ "dotNotation").as[String] must_== "DOT.NOTATION"
+    }
 
     "list should return a list for every topic" in new listScope {
       forall(

@@ -1,6 +1,7 @@
 package org.corespring.models
 
 import com.mongodb.casbah.Imports._
+import org.corespring.models.auth.Permission
 
 /**
  * A ContentCollection
@@ -13,9 +14,15 @@ case class ContentCollection(
   isPublic: Boolean = false,
   id: ObjectId = new ObjectId())
 
+/**
+ * Additional information about the content collection and the given orgs access to it.
+ */
+case class CollectionInfo(contentCollection: ContentCollection,
+  itemCount: Long,
+  orgId: ObjectId,
+  orgPermission: Permission)
+
 object ContentCollection {
   val Default = "default"
 }
-
-case class CollectionExtraDetails(coll: ContentCollection, access: Long)
 

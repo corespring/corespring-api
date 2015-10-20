@@ -1,25 +1,23 @@
 package org.corespring.services.salat
 
-import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
-import org.corespring.models.{ ContentCollRef, ContentCollection, Organization }
+import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
 import org.corespring.services.errors._
 import org.specs2.mutable._
+import org.specs2.specification.Scope
 
-import scalaz.{ Failure, Success }
+import scalaz.{ Validation, Failure, Success }
 
 class ContentCollectionServiceIntegrationTest
   extends ServicesSalatIntegrationTest {
 
-  def calling(n: String) = s"when calling $n"
-
   "ContentCollectionService" should {
 
-    trait testScope extends After {
+    trait scope extends After {
       val service = services.contentCollectionService
 
       val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
@@ -39,9 +37,6 @@ class ContentCollectionServiceIntegrationTest
       val defaultCollection = ContentCollection("default", rootOrg.id)
       service.insertCollection(rootOrg.id, defaultCollection, Permission.Read)
 
-      val noPermissionCollection = ContentCollection("no-permission-col", rootOrg.id)
-      service.insertCollection(rootOrg.id, noPermissionCollection, Permission.None)
-
       //collections added to childOrg
       val readableChildOrgCollection = ContentCollection("readable-child-org-col", childOrg.id)
       service.insertCollection(childOrg.id, readableChildOrgCollection, Permission.Read)
@@ -60,49 +55,42 @@ class ContentCollectionServiceIntegrationTest
         standards = Seq("S1", "S2"))
       val itemId = services.itemService.insert(item).get
 
-      override def after: Any = {
-        services.itemService.purge(itemId)
+      override def after: Any = removeAllData()
 
-        service.delete(readableCollection.id)
-        service.delete(writableCollection.id)
-        service.delete(writableCollectionWithItem.id)
-        service.delete(defaultCollection.id)
-        service.delete(noPermissionCollection.id)
-        service.delete(readableChildOrgCollection.id)
-        service.delete(writableChildOrgCollection.id)
-        service.delete(publicCollection.id)
+      def authorizationError[R](p: Permission, colls: ContentCollection*): Validation[CollectionAuthorizationError, R] = {
+        Failure(CollectionAuthorizationError(rootOrg.id, p, colls.map(_.id): _*))
+      }
 
-        services.orgService.delete(childOrg.id)
-        services.orgService.delete(publicOrg.id)
-        services.orgService.delete(rootOrg.id)
+      def itemAuthorizationError(orgId: ObjectId, p: Permission, itemIds: VersionedId[ObjectId]*) = {
+        Failure(ItemAuthorizationError(orgId, p, itemIds: _*))
       }
     }
 
     "ownsCollection" should {
-      "should return Success when org owns collection" in new testScope {
-        service.ownsCollection(rootOrg, writableCollection.id).isSuccess === true
+      "should return Success when org owns collection" in new scope {
+        service.ownsCollection(rootOrg, writableCollection.id).isSuccess must_== true
       }
 
-      "should return Failure when org does not own collection" in new testScope {
-        service.ownsCollection(childOrg, writableCollection.id).isFailure === true
+      "should return Failure when org does not own collection" in new scope {
+        service.ownsCollection(childOrg, writableCollection.id).isFailure must_== true
       }
 
-      "should return Failure when collection does not exist" in new testScope {
-        service.ownsCollection(childOrg, ObjectId.get).isFailure === true
+      "should return Failure when collection does not exist" in new scope {
+        service.ownsCollection(childOrg, ObjectId.get).isFailure must_== true
       }
     }
 
     "shareCollectionWithOrg" should {
-      "should work" in new testScope {
-        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) === false
+      "share the collection with the org" in new scope {
+        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Failure(_: PlatformServiceError)
         service.shareCollectionWithOrg(writableCollection.id, childOrg.id, Permission.Read)
-        service.getCollectionIds(childOrg.id, Permission.Read).contains(writableCollection.id) === true
+        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Success()
       }
     }
 
     "insertCollection" should {
 
-      trait scope extends testScope {
+      trait insertCollection extends scope {
 
         val newCollection = ContentCollection("child-org-col-2", childOrg.id, isPublic = false)
 
@@ -122,163 +110,146 @@ class ContentCollectionServiceIntegrationTest
         }
       }
 
-      "insert newCollection as enabled by default" in new scope {
+      "insert newCollection as enabled by default" in new insertCollection {
         service.insertCollection(childOrg.id, newCollection, Permission.Write)
-        isEnabled() === true
+        isEnabled() must_== true
       }
 
-      "be able to insert newCollection as enabled" in new scope {
+      "be able to insert newCollection as enabled" in new insertCollection {
         service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = true)
-        isEnabled() === true
+        isEnabled() must_== true
       }
 
-      "be able to insert newCollection as disabled" in new scope {
+      "be able to insert newCollection as disabled" in new insertCollection {
         service.insertCollection(childOrg.id, newCollection, Permission.Write, enabled = false)
-        isEnabled() === false
+        isEnabled() must_== false
       }
 
-      "be able to insert newCollection as writable" in new scope {
+      "be able to insert newCollection as writable" in new insertCollection {
         service.insertCollection(childOrg.id, newCollection, Permission.Write)
-        getPermissions() === Permission.Write.value
+        getPermissions() must_== Permission.Write.value
       }
 
-      "be able to insert newCollection as readable" in new scope {
+      "be able to insert newCollection as readable" in new insertCollection {
         service.insertCollection(childOrg.id, newCollection, Permission.Read)
-        getPermissions() === Permission.Read.value
+        getPermissions() must_== Permission.Read.value
       }
     }
 
     "unShareItems" should {
 
-      "remove shared item from collection" in new testScope {
+      "remove shared item from collection" in new scope {
         service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
-        val res = service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id)
-        res match {
-          case Success(items) => service.isItemSharedWith(itemId, writableCollection.id) === false
-          case Failure(error) => failure(s"Unexpected failure: $error")
-        }
+        service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id) must_== Success(Seq(item.id))
+        service.isItemSharedWith(item.id, writableCollection.id) must_== false
       }
 
-      "return error when org does not have write permissions for all collections" in new testScope {
-        val res = service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id))
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[CollectionAuthorizationError]
-        }
+      "return error when org does not have write permissions for all collections" in new scope {
+        service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id)) must_== Failure(_: CollectionAuthorizationError)
       }
     }
 
     "shareItems" should {
 
-      "add the item to collection" in new testScope {
-        val res = service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
-        res match {
-          case Success(items) => service.isItemSharedWith(items(0), writableCollection.id) === true
-          case Failure(error) => failure(s"Unexpected failure: $error")
-        }
+      "add the item to collection" in new scope {
+        service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id) must_== Success(Seq(item.id))
+        service.isItemSharedWith(item.id, writableCollection.id) must_== true
       }
 
-      "return error when org cannot write into collection" in new testScope {
-        val res = service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id)
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[CollectionAuthorizationError]
-        }
+      "return error when org cannot write into collection" in new scope {
+        service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id) must_== authorizationError(Permission.Write, readableCollection)
       }
 
-      "return error when org cannot read all items" in new testScope {
-        val res = service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id)
-        res match {
-          case Success(x) => failure("Expected to fail with error")
-          case Failure(y) => y must haveClass[ItemAuthorizationError]
-        }
+      "return error when org cannot read all items" in new scope {
+        service.shareItems(childOrg.id, Seq(item.id), writableChildOrgCollection.id) must_== itemAuthorizationError(childOrg.id, Permission.Read, item.id)
       }
     }
 
     "getCollectionIds" should {
 
-      trait scope extends testScope {
-        def assertResult(ids: Seq[ObjectId], cols: ContentCollection*) = {
-          cols.map { col =>
-            ids.find(_.equals(col.id)) match {
-              case None => failure(s"CollectionId not found: ${col.name} ${col.id}")
-              case _ =>
-            }
-          }
-          if (ids.length != cols.length) {
-            failure(s"unexpected difference in length: ids: ${ids.length} cols: ${cols.length}")
-          }
-        }
-      }
+      trait getCollectionIds extends scope
 
       "with Permission.Write" should {
-        "should return CCRs for all nested orgs by default" in new scope {
-          var res = service.getCollectionIds(rootOrg.id, Permission.Write)
-          assertResult(res,
+        "should return CCRs for all nested orgs by default" in new getCollectionIds {
+          service.getCollectionIds(rootOrg.id, Permission.Write) must_== Seq(
             writableCollection,
             writableCollectionWithItem,
-            writableChildOrgCollection)
+            writableChildOrgCollection).map(_.id)
         }
 
-        "should return CCRs for nested orgs when deep = true" in new scope {
-          var res = service.getCollectionIds(rootOrg.id, Permission.Write, deep = true)
-          assertResult(res,
+        "should return CCRs for nested orgs when deep = true" in new getCollectionIds {
+          service.getCollectionIds(rootOrg.id, Permission.Write, deep = true) must_== Seq(
             writableCollection,
             writableCollectionWithItem,
-            writableChildOrgCollection)
+            writableChildOrgCollection).map(_.id)
         }
 
-        "should return CCRs for a single org when deep = false" in new scope {
-          var res = service.getCollectionIds(rootOrg.id, Permission.Write, deep = false)
-          assertResult(res,
+        "should return CCRs for a single org when deep = false" in new getCollectionIds {
+          service.getCollectionIds(rootOrg.id, Permission.Write, deep = false) must_== Seq(
             writableCollection,
-            writableCollectionWithItem)
+            writableCollectionWithItem).map(_.id)
         }
       }
 
       "with permission = Read" should {
 
-        "return all readable collections for rootOrg" in new scope {
-          var res = service.getCollectionIds(rootOrg.id, Permission.Read)
-          assertResult(res,
+        "return all readable collections for rootOrg" in new getCollectionIds {
+          service.getCollectionIds(rootOrg.id, Permission.Read).sorted must_== Seq(
             writableCollection,
             writableCollectionWithItem,
             writableChildOrgCollection,
             readableCollection,
             readableChildOrgCollection,
             defaultCollection,
-            publicCollection)
+            publicCollection).map(_.id).sorted
         }
 
-        "return all readable collections for childOrg" in new scope {
-          var res = service.getCollectionIds(childOrg.id, Permission.Read)
-          assertResult(res,
+        "return all readable collections for childOrg" in new getCollectionIds {
+          service.getCollectionIds(childOrg.id, Permission.Read).sorted must_== Seq(
             writableChildOrgCollection,
             readableChildOrgCollection,
-            publicCollection)
+            publicCollection).map(_.id).sorted
         }
+      }
+    }
+
+    "listAllCollectionsAvailableForOrg" should {
+
+      trait listAllCollectionsAvailableForOrg extends Scope with After {
+        val service = services.contentCollectionService
+        val orgOne = services.orgService.insert(Organization(id = ObjectId.get, name = "org-one"), None).toOption.get
+        val writeOne = ContentCollection("write-one", orgOne.id, false)
+        val readOne = ContentCollection("read-one", orgOne.id, false)
+        val publicOne = ContentCollection("public", orgOne.id, true)
+        service.insertCollection(orgOne.id, writeOne, Permission.Write, true)
+        service.insertCollection(orgOne.id, readOne, Permission.Read, true)
+        service.insertCollection(orgOne.id, publicOne, Permission.Read, true)
+
+        override def after: Any = removeAllData()
+      }
+
+      "list all the collections for org" in new listAllCollectionsAvailableForOrg {
+        lazy val result = service.listAllCollectionsAvailableForOrg(orgOne.id).toSeq
+        result must_== Stream(
+          CollectionInfo(writeOne, 0, orgOne.id, Permission.Write),
+          CollectionInfo(readOne, 0, orgOne.id, Permission.Read),
+          CollectionInfo(publicOne, 0, orgOne.id, Permission.Read))
+      }
+
+      "list public collections for other org" in new listAllCollectionsAvailableForOrg {
+        val orgTwo = services.orgService.insert(Organization(id = ObjectId.get, name = "org-two"), None).toOption.get
+        lazy val result = service.listAllCollectionsAvailableForOrg(orgTwo.id)
+        result must_== Stream(
+          CollectionInfo(publicOne, 0, orgTwo.id, Permission.Read))
       }
     }
 
     "listCollectionsByOrg" should {
 
-      trait scope extends testScope {
-        def assertResult(res: Seq[ContentCollection], cols: ContentCollection*) = {
-          cols.map { col =>
-            res.find(_.id.equals(col.id)) match {
-              case None => failure(s"CollectionId not found: ${col.name} ${col.id}")
-              case _ =>
-            }
-          }
-          if (res.length != cols.length) {
-            failure(s"unexpected difference in length: res: ${res.length} cols: ${cols.length}")
-          }
-        }
-      }
+      trait listCollectionsByOrg extends scope
 
-      "list 3 collections for the childOrg" in new scope {
-        val cols = service.listCollectionsByOrg(childOrg.id).toSeq
-        assertResult(cols,
+      "list 3 collections for the childOrg" in new listCollectionsByOrg {
+        service.listCollectionsByOrg(childOrg.id) === Stream(
           readableChildOrgCollection,
           writableChildOrgCollection,
           publicCollection)
@@ -287,170 +258,150 @@ class ContentCollectionServiceIntegrationTest
 
     "getPublicCollections" should {
 
-      "return seq with public collection" in new testScope {
-        service.getPublicCollections match {
-          case Nil => failure("Should have found a public collection")
-          case seq => seq.length === 1 && seq(0).id === publicCollection.id
-        }
+      "return seq with public collection" in new scope {
+        service.getPublicCollections must_== Seq(publicCollection)
       }
     }
 
     "getContentCollRefs" should {
 
-      trait scope extends testScope {
-        def assertResult(refs: Seq[ContentCollRef], cols: ContentCollection*) = {
-          cols.map { col =>
-            refs.find(_.collectionId.equals(col.id)) match {
-              case None => failure(s"Collection not found: ${col.name} ${col.id}")
-              case _ =>
-            }
-          }
-          if (refs.length != cols.length) {
-            failure(s"unexpected difference in length: refs: ${refs.length} cols: ${cols.length}")
-          }
-        }
-      }
+      trait getContentCollRefs extends scope
 
       "with Permission.Write" should {
-        "should return CCRs for all nested orgs by default" in new scope {
-          var res = service.getContentCollRefs(rootOrg.id, Permission.Write)
-          assertResult(res,
-            writableCollection,
-            writableCollectionWithItem,
-            writableChildOrgCollection)
+        "should return CCRs for all nested orgs by default" in new getContentCollRefs {
+          val expectedIds = Seq(writableCollection, writableCollectionWithItem, writableChildOrgCollection).map(_.id)
+          service.getContentCollRefs(rootOrg.id, Permission.Write).map(_.collectionId) must_== expectedIds
         }
 
-        "should return CCRs for nested orgs when deep = true" in new scope {
-          var res = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = true)
-          assertResult(res,
-            writableCollection,
-            writableCollectionWithItem,
-            writableChildOrgCollection)
+        "should return CCRs for nested orgs when deep = true" in new getContentCollRefs {
+          val expectedIds = Seq(writableCollection, writableCollectionWithItem, writableChildOrgCollection).map(_.id)
+          service.getContentCollRefs(rootOrg.id, Permission.Write, deep = true).map(_.collectionId) == expectedIds
         }
 
-        "should return CCRs for a single org when deep = false" in new scope {
-          var res = service.getContentCollRefs(rootOrg.id, Permission.Write, deep = false)
-          assertResult(res, writableCollection, writableCollectionWithItem)
+        "should return CCRs for a single org when deep = false" in new getContentCollRefs {
+          val expectedIds = Seq(writableCollection, writableCollectionWithItem).map(_.id)
+          service.getContentCollRefs(rootOrg.id, Permission.Write, deep = false).map(_.collectionId) must_== expectedIds
         }
       }
 
       "with permission = Read" should {
 
-        "return all readable collections for rootOrg" in new scope {
-          var res = service.getContentCollRefs(rootOrg.id, Permission.Read)
-          assertResult(res,
-            writableCollection,
+        "return all readable collections for rootOrg" in new getContentCollRefs {
+          val expectedIds = Seq(writableCollection,
             writableCollectionWithItem,
             writableChildOrgCollection,
             readableCollection,
             readableChildOrgCollection,
             defaultCollection,
-            publicCollection)
+            publicCollection).map(_.id).sorted
+          service.getContentCollRefs(rootOrg.id, Permission.Read).map(_.collectionId).sorted must_== expectedIds
         }
 
-        "return all readable collections for childOrg" in new scope {
-          var res = service.getContentCollRefs(childOrg.id, Permission.Read)
-          assertResult(res,
+        "return all readable collections for childOrg" in new getContentCollRefs {
+          val expectedIds = Seq(
             writableChildOrgCollection,
             readableChildOrgCollection,
-            publicCollection)
+            publicCollection).map(_.id).sorted
+          service.getContentCollRefs(childOrg.id, Permission.Read).map(_.collectionId).sorted must_== expectedIds
         }
       }
     }
 
     "itemCount" should {
 
-      "work" in new testScope {
-        service.itemCount(writableCollectionWithItem.id) === 1
+      "return 1 for collection with 1 item" in new scope {
+        service.itemCount(writableCollectionWithItem.id) must_== 1
       }
 
-      "work" in new testScope {
-        service.itemCount(readableCollection.id) === 0
+      "return 0 for collection with no items" in new scope {
+        service.itemCount(readableCollection.id) must_== 0
       }
     }
 
     "getDefaultCollection" should {
 
-      "return default collection" in new testScope {
+      "return default collection" in new scope {
         val collectionIds = Seq(readableCollection, writableCollection, defaultCollection).map(_.id)
-        service.getDefaultCollection(collectionIds) === Some(defaultCollection)
+        service.getDefaultCollection(collectionIds) must_== Some(defaultCollection)
       }
 
-      "return None" in new testScope {
+      "return None" in new scope {
         val collectionIds = Seq(readableCollection, writableCollection).map(_.id)
-        service.getDefaultCollection(collectionIds) === None
+        service.getDefaultCollection(collectionIds) must_== None
       }
     }
 
     "isPublic" should {
 
-      "return true when collection is public" in new testScope {
-        service.isPublic(publicCollection.id) === true
+      "return true when collection is public" in new scope {
+        service.isPublic(publicCollection.id) must_== true
       }
 
-      "return false when collection is not public" in new testScope {
-        service.isPublic(readableCollection.id) === false
+      "return false when collection is not public" in new scope {
+        service.isPublic(readableCollection.id) must_== false
       }
 
-      "return false when collection does not exist" in new testScope {
-        service.isPublic(ObjectId.get) === false
+      "return false when collection does not exist" in new scope {
+        service.isPublic(ObjectId.get) must_== false
       }
     }
 
     "isAuthorized" should {
 
+      trait isAuthorized extends scope {
+        def p: Permission
+
+        def auth(collections: ContentCollection*) = service.isAuthorized(rootOrg.id, collections.map(_.id), p)
+
+        def authorizationError[R](collections: ContentCollection*): Validation[CollectionAuthorizationError, R] = authorizationError(p, collections: _*)
+      }
+
       "with read permission" should {
-        "return success when collection is readable" in new testScope {
-          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Read).isSuccess === true
+
+        trait isReadAuthorized extends isAuthorized {
+          override def p = Permission.Read
         }
-        "return success when collection is writable" in new testScope {
-          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Read).isSuccess === true
+
+        "return success when collection is readable" in new isReadAuthorized {
+          auth(readableCollection) must_== Success()
         }
-        "return failure when collection has permission none" in new testScope {
-          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Read).isFailure === true
+
+        "return success when collection is writable" in new isReadAuthorized {
+          auth(writableCollection) must_== Success()
         }
-        "return failure when one collection is not readable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, noPermissionCollection.id), Permission.Read).isFailure === true
-        }
-        "return success when all collections are readable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id), Permission.Read).isSuccess === true
+
+        "return success when all collections are readable" in new isReadAuthorized {
+          auth(readableCollection, writableCollection) must_== Success()
         }
       }
 
       "with write permission" should {
-        "return failure when collection is readable" in new testScope {
-          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.Write).isFailure === true
-        }
-        "return success when collection is writable" in new testScope {
-          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.Write).isSuccess === true
-        }
-        "return failure when collection has permission none" in new testScope {
-          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.Write).isFailure === true
-        }
-        "return failure when one collection is not writable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(readableCollection.id, writableCollection.id), Permission.Write).isFailure === true
-        }
-        "return success when all collections are writable" in new testScope {
-          service.isAuthorized(rootOrg.id, Seq(writableCollectionWithItem.id, writableCollection.id), Permission.Write).isSuccess === true
-        }
-      }
 
-      "with none permission" should {
-        "return failure when collection is readable" in new testScope {
-          service.isAuthorized(rootOrg.id, readableCollection.id, Permission.None).isSuccess === true
+        trait isWriteAuthorized extends isAuthorized {
+          override def p = Permission.Write
         }
-        "return failure when collection is writable" in new testScope {
-          service.isAuthorized(rootOrg.id, writableCollection.id, Permission.None).isSuccess === true
+
+        "return failure when collection is readable" in new isWriteAuthorized {
+          auth(readableCollection) must_== authorizationError(readableCollection)
         }
-        "return failure when collection has permission none" in new testScope {
-          service.isAuthorized(rootOrg.id, noPermissionCollection.id, Permission.None).isSuccess === true
+
+        "return success when collection is writable" in new isWriteAuthorized {
+          auth(writableCollection) must_== Success()
+        }
+
+        "return failure when one collection is not writable" in new isWriteAuthorized {
+          auth(readableCollection, writableCollection) must_== authorizationError(readableCollection)
+        }
+
+        "return success when all collections are writable" in new isWriteAuthorized {
+          auth(writableCollectionWithItem, writableCollection) must_== Success()
         }
       }
     }
 
     "delete" should {
 
-      trait scope extends testScope {
+      trait delete extends scope {
         def assertCollectionHasBeenRemoved(org: Organization, col: ContentCollection) = {
           service.getContentCollRefs(org.id, Permission.Read).find(
             _.collectionId.equals(col.id)) match {
@@ -460,23 +411,23 @@ class ContentCollectionServiceIntegrationTest
         }
       }
 
-      "remove the collection from the collections" in new testScope {
+      "remove the collection from the collections" in new scope {
         val col = service.create("my-new-collection", rootOrg).toOption.get
         service.findOneById(col.id) !== None
         service.delete(col.id)
-        service.findOneById(col.id) === None
+        service.findOneById(col.id) must_== None
       }
 
-      "return an error if collection has items" in new testScope {
-        service.delete(writableCollectionWithItem.id).isFailure === true
+      "return an error if collection has items" in new scope {
+        service.delete(writableCollectionWithItem.id).isFailure must_== true
       }
 
-      "not remove the collection if it has items" in new testScope {
-        service.delete(writableCollectionWithItem.id).isFailure === true
+      "not remove the collection if it has items" in new scope {
+        service.delete(writableCollectionWithItem.id).isFailure must_== true
         service.findOneById(writableCollectionWithItem.id) !== None
       }
 
-      "remove the collection from all organizations" in new scope {
+      "remove the collection from all organizations" in new delete {
         val col = ContentCollection("test-col", rootOrg.id)
         service.insertCollection(rootOrg.id, col, Permission.Read)
         service.insertCollection(childOrg.id, col, Permission.Read)
@@ -485,7 +436,7 @@ class ContentCollectionServiceIntegrationTest
         assertCollectionHasBeenRemoved(rootOrg, col)
       }
 
-      "remove the collection from shared collections" in new testScope {
+      "remove the collection from shared collections" in new scope {
         def addCollectionToSharedCollectionsOfItem() = {
           services.itemService.addCollectionIdToSharedCollections(Seq(item.id), writableCollection.id)
         }
@@ -501,9 +452,9 @@ class ContentCollectionServiceIntegrationTest
         }
 
         addCollectionToSharedCollectionsOfItem()
-        isCollectionInSharedCollections() === true
+        isCollectionInSharedCollections() must_== true
         service.delete(writableCollection.id)
-        isCollectionInSharedCollections() === false
+        isCollectionInSharedCollections() must_== false
       }
 
       //TODO roll back not implemented in service
@@ -515,31 +466,28 @@ class ContentCollectionServiceIntegrationTest
 
     "create" should {
 
-      "create a new collection" in new testScope {
-        val col = service.create("my-new-collection", rootOrg).toOption.get
-        service.getCollections(rootOrg.id, Permission.Write).isSuccess === true
-        service.delete(col.id)
+      "create a new collection" in new scope {
+        val newCollection = service.create("my-new-collection", rootOrg).toOption
+        service.findOneById(newCollection.get.id) must_== newCollection
       }
     }
 
     "update" should {
 
-      "update name" in new testScope {
+      "update name" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), None))
-        service.findOneById(writableCollection.id).get.name === "new-name"
-        service.findOneById(writableCollection.id).get.isPublic === writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_== Some(writableCollection.copy(name = "new-name"))
       }
 
-      "update isPublic" in new testScope {
+      "update isPublic" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(None, Some(!writableCollection.isPublic)))
-        service.findOneById(writableCollection.id).get.name === writableCollection.name
-        service.findOneById(writableCollection.id).get.isPublic === !writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_== Some(writableCollection.copy(isPublic = !writableCollection.isPublic))
       }
 
-      "update name and isPublic" in new testScope {
+      "update name and isPublic" in new scope {
         service.update(writableCollection.id, ContentCollectionUpdate(Some("new-name"), Some(!writableCollection.isPublic)))
-        service.findOneById(writableCollection.id).get.name === "new-name"
-        service.findOneById(writableCollection.id).get.isPublic === !writableCollection.isPublic
+        service.findOneById(writableCollection.id) must_==
+          Some(writableCollection.copy(name = "new-name", isPublic = !writableCollection.isPublic))
       }
     }
 

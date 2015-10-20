@@ -8,27 +8,6 @@ import org.corespring.web.api.v1.errors.ApiError
 
 import scalaz.{ Failure, Success, Validation }
 
-/**
- * A OAuth provider
- */
-
-//object OAuthProvider {
-//
-//  def getAuthorizationContext(t: String): Either[ApiError, AuthorizationContext] = {
-//    ServiceLookup.accessTokenService.findById(t) match {
-//      case Some(token: AccessToken) =>
-//        if (token.isExpired) {
-//          Left(ApiError.ExpiredToken.format(token.expirationDate.toString))
-//        } else {
-//          val org = ServiceLookup.orgService.findOneById(token.organization)
-//          val context = new AuthorizationContext(token.organization, token.scope, org, Permission.Write, false)
-//          Right(context)
-//        }
-//      case _ => Left(ApiError.InvalidToken)
-//    }
-//  }
-//}
-
 class OAuthProvider(
   apiClientService: ApiClientService,
   orgService: OrganizationService,
@@ -73,12 +52,15 @@ class OAuthProvider(
         if (token.isExpired) {
           Failure(ApiError.ExpiredToken.format(token.expirationDate.toString))
         } else {
-          val org = orgService.findOneById(token.organization)
-          val permission = token.scope.map { username =>
-            userService.getPermissions(username, token.organization).valueOr(_ => Permission.None)
-          }.getOrElse(Permission.Write)
-          val context = new AuthorizationContext(token.organization, token.scope, org, permission, true)
-          Success(context)
+          orgService.findOneById(token.organization).map { org =>
+            val permission = token.scope.flatMap { username =>
+              userService.getPermissions(username, token.organization).valueOr(_ => None)
+            }.getOrElse(Permission.Write)
+            val context = new AuthorizationContext(token.scope, org, permission, true)
+            Success(context)
+          }.getOrElse {
+            Failure(ApiError.InvalidToken)
+          }
         }
       case _ => Failure(ApiError.InvalidToken)
     }
