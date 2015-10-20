@@ -5,6 +5,7 @@
 function NcCalculatorAdder(doUpdateData, ignoredCollections) {
 
   doUpdateData = doUpdateData === true;
+  ignoredCollections = ignoredCollections || [];
 
   var self = this;
   self.run = run;
@@ -39,9 +40,9 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
     var updates = 0;
     var wasUpdatedAlready = 0;
     var count = items.count();
-
+    log("processItems: #items to process:" + count);
     items.forEach(updateItem);
-    log("processItems: items processed total:" + count + " updated: " + updates);
+    log("processItems: #items processed:" + updates);
 
     function updateItem(item) {
       var qti = getQti(item);
@@ -89,7 +90,7 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
         "$in": skillNumbers
       }
     };
-    if(ignoredCollections && ignoredCollections.length){
+    if(ignoredCollections.length){
       query.collectionId = {"$nin" : ignoredCollections};
     }
     return db.content.find(query, {"data.files":1})
@@ -130,14 +131,19 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
     log("WARNING: could not find " + property + " for " + itemIdToString(item));
   }
 
-  function log(message) {
+  function log(message, json) {
     print(message);
+    if(json){
+      printjson(json);
+    }
+
   }
 
 }
 
-//pass in "true" to make it update  the data
+//pass in "true" to make it update the data
 //pass in the ids of the collections that should be excluded, eg. the archive collection
-var processor = new NcCalculatorAdder(false, []);
+var archiveCollId = "500ecfc1036471f538f24bdc"; //same fore staging and prod
+var processor = new NcCalculatorAdder(false, [archiveCollId]);
 processor.run();
 
