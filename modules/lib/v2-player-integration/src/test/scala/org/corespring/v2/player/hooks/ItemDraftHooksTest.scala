@@ -1,10 +1,10 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.OrganizationService
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts

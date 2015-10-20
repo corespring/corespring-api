@@ -9,7 +9,7 @@ import play.api.test.{ FakeHeaders, FakeRequest }
 
 class UploadImageTest extends IntegrationSpecification {
 
-  lazy val path = "it/test-images/puppy.small.jpg"
+  lazy val path = "/test-images/puppy.small.jpg"
   lazy val data = ImageUtils.imageData(path)
 
   "ItemEditor" should {

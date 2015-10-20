@@ -4,10 +4,10 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSON
 import com.novus.salat.Context
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.{ ItemTransformer, ItemTransformerConfig }
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.services.item.{ BaseFindAndSaveService, ItemService }
 import org.corespring.services.{ ContentCollectionService, StandardService }

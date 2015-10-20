@@ -2,8 +2,8 @@ package bootstrap
 
 import akka.actor.{ Actor, Props }
 import org.bson.types.ObjectId
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import play.libs.Akka
 
 object Actors {

@@ -6,20 +6,19 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 

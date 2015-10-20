@@ -50,7 +50,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/test-images/puppy.small.jpg"
+      def filePath: String = s"/test-images/puppy.small.jpg"
       lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", filename)
 
       override def after = {

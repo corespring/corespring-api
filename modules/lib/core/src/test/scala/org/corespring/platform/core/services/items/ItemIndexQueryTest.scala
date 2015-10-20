@@ -36,6 +36,7 @@ class ItemIndexQueryTest extends Specification {
     val collections = (1 to 5).map(f => new ObjectId().toString)
     val itemTypes = Seq("Multiple Choice", "Short Answer - Fill In The Blank")
     val gradeLevels = Seq("09", "10", "11", "12")
+    val standards = Seq("RI.7.1", "W.7.1b")
     val published = true
     val workflows = Seq("qaReview")
 
@@ -48,6 +49,7 @@ class ItemIndexQueryTest extends Specification {
       "itemTypes": ["${itemTypes.mkString("\",\"")}"],
       "gradeLevels": ["${gradeLevels.mkString("\",\"")}"],
       "published" : $published,
+      "standards" : ["${standards.mkString("\",\"")}"],
       "requiredPlayerWidth" : $requiredPlayerWidth,
       "workflows" : ["${workflows.mkString("\",\"")}"]
     }"""
@@ -64,6 +66,7 @@ class ItemIndexQueryTest extends Specification {
         query.itemTypes must be equalTo (itemTypes)
         query.gradeLevels must be equalTo (gradeLevels)
         query.published must be equalTo (Some(published))
+        query.standards must be equalTo (standards)
         query.workflows must be equalTo (workflows)
         query.requiredPlayerWidth must be equalTo (Some(requiredPlayerWidth))
       }
@@ -120,6 +123,10 @@ class ItemIndexQueryTest extends Specification {
             (multiMatch(json) \ "fields").as[Seq[String]] must contain("content")
           }
 
+          "query on standard" in {
+            (multiMatch(json) \ "fields").as[Seq[String]] must contain("standards.dotNotation")
+          }
+
         }
 
         "include ids querying" in {
@@ -136,7 +143,7 @@ class ItemIndexQueryTest extends Specification {
       val json = Json.toJson(query)
 
       "include nested metadata query" in {
-        (nested(json) \ "path").as[String] must be equalTo("metadata")
+        (nested(json) \ "path").as[String] must be equalTo ("metadata")
       }
 
       "matches on metadata.key and metadata.value" in {
@@ -146,7 +153,6 @@ class ItemIndexQueryTest extends Specification {
       }
 
     }
-
 
     "contributors" should {
 
@@ -236,6 +242,23 @@ class ItemIndexQueryTest extends Specification {
 
     }
 
+    "standards" should {
+
+      "empty" should {
+        "not be included in filter" in {
+          Json.toJson(ItemIndexQuery(standards = Seq.empty)).hasFilter("standards.dotNotation") must beFalse
+        }
+      }
+
+      "nonEmpty" should {
+        "be included as terms filter" in {
+          val standards = Seq("RI.7.1", "W.7.1b")
+          Json.toJson(ItemIndexQuery(standards = standards)).hasTermsFilter("standards.dotNotation", standards) must beTrue
+        }
+      }
+
+    }
+
     "requiredPlayerWidth" should {
       "empty" should {
         "not be included in filter" in {
@@ -247,7 +270,7 @@ class ItemIndexQueryTest extends Specification {
         "be included as range filter" in {
           val requiredPlayerWidth = 500
           Json.toJson(ItemIndexQuery(requiredPlayerWidth = Some(requiredPlayerWidth)))
-          .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
+            .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
         }
       }
     }
@@ -276,7 +299,7 @@ class ItemIndexQueryTest extends Specification {
 
     private def getFilter(filter: String): Option[JsObject] = {
       val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-      Seq("term", "terms","range").map(key => (filters.find(f => (f \ key \ filter) match {
+      Seq("term", "terms", "range").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
       }))).flatten.headOption

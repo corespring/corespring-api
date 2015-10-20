@@ -90,5 +90,25 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
         case _ => ko("didn't find warning")
       }
     }
+
+    "with editorToken" in {
+
+      "return success with no warnings" in {
+        import _root_.org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity.Keys._
+        val jsonSettings = Json.stringify(Json.toJson(PlayerAccessSettings.ANYTHING))
+        val request = FakeRequest("GET", s"""?$apiClient=1&$editorToken=${jsonSettings}""")
+        val result = identifier.apply(request)
+
+        result match {
+          case Success(OrgAndOpts(org, _, _, _, _, warnings)) => {
+            warnings.length === 0
+            org === this.org
+          }
+          case _ => ko("didn't find warning")
+        }
+      }
+
+    }
+
   }
 }

@@ -27,6 +27,7 @@ GET /auth/isvalid                                                     @developer
 ->          /api/v1                                                   v1Api.Routes
 ->          /api/v2                                                   version2Api.Routes
 ->          /v2/player                                                v2Player.Routes
+->          /v2/editor                                                v2Editor.Routes
 
 
 # SecureSocial routes

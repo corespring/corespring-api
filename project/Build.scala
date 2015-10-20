@@ -39,10 +39,6 @@ object Build extends sbt.Build {
     .settings(libraryDependencies ++= Seq(specs2 % "test", playS3, playFramework, assetsLoader, corespringCommonUtils))
     .dependsOn(apiUtils)
 
-  lazy val qti = builders.lib("qti")
-    .settings(libraryDependencies ++= Seq(specs2 % "test", playTest % "test", corespringCommonUtils, playFramework, salatPlay, playJson, salat, rhino, rhinos))
-    .dependsOn(apiUtils)
-
   lazy val coreModels = builders.lib("models", "core").settings(
     libraryDependencies ++= Seq(casbah, salatVersioningDao, playJson, commonsLang, specs2 % "test"))
 
@@ -145,11 +141,10 @@ object Build extends sbt.Build {
     .dependsOn(coreSalatConfig % "compile->test", coreModels, coreServices, drafts, testLib)
     .aggregate(coreModels, drafts)
 
-  /** Qti -> v2 transformers */
   lazy val qtiToV2 = builders.lib("qti-to-v2")
     .settings(
-      libraryDependencies ++= Seq(playJson, rhino % "test"))
-    .dependsOn(coreModels, coreServices, coreUtils, coreJson, qti, apiUtils, testLib % "test->compile")
+      libraryDependencies ++= Seq(playJson, rhino % "test", qti, qtiConverter))
+    .dependsOn(coreModels, coreServices, coreUtils, coreJson, apiUtils, testLib % "test->compile")
 
   /**
    * Error types

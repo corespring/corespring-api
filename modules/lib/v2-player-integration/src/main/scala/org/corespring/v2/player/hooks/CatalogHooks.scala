@@ -2,9 +2,8 @@ package org.corespring.v2.player.hooks
 
 import org.corespring.container.client.hooks.{ CatalogHooks => ContainerCatalogHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
-import org.corespring.models.item.Item
+import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
