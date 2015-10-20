@@ -54,11 +54,11 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
     collectionDao.find(query).toStream
   }
 
-  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+  override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = {
     for {
       collection <- collectionService.findOneById(collectionId).toSuccess(PlatformServiceError(s"Cant find collection with id: $collectionId"))
       result <- if (collection.ownerOrgId == org.id) Success() else Failure(PlatformServiceError(s"Organisation ${org.name} does not own collection: $collectionId."))
-    } yield result
+    } yield true
   }
 
   override def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]] = {
@@ -96,7 +96,7 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
     toggleCollectionEnabled(orgId, collectionId, false)
   }
 
-  override def addAccessToCollectionForOrg(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
+  override def upsertAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
 
     def updateOrAddNewReference(o: Organization): Organization = {
       val ref = o.contentcolls
@@ -117,6 +117,14 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
     orgDao.findOneById(orgId)
       .map(updateOrAddNewReference)
       .toSuccess(PlatformServiceError(s"Can't find org with id: $orgId"))
+  }
+
+  override def removeAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId): Validation[PlatformServiceError, Organization] = {
+    orgDao.findOneById(orgId).map { o =>
+      val updatedOrg = o.copy(contentcolls = o.contentcolls.filterNot(_.collectionId == collId))
+      orgDao.save(updatedOrg)
+      updatedOrg
+    }.toSuccess(PlatformServiceError(s"Can't find org with Id: $orgId"))
   }
 
   override def removeAccessToCollectionForAllOrgs(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch {
@@ -196,8 +204,8 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
   }
 
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
-    getPermission(orgId, collId).map { orgPermission =>
-      p.has(orgPermission)
+    getPermission(orgId, collId).map { permissionForOrg =>
+      p.has(permissionForOrg)
     }.getOrElse(false)
   }
 

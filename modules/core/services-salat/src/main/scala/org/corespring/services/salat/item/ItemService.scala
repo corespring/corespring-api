@@ -238,8 +238,8 @@ class ItemService(
   override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
     dao.findDbo(contentId, MongoDBObject("collectionId" -> 1)).map { dbo =>
       val collectionId = dbo.get("collectionId").asInstanceOf[String]
-      if (ObjectId.isValid(collectionId)) {
-        orgCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)
+      if (ObjectId.isValid(collectionId) && orgCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)) {
+        Success()
       } else {
         logger.error(s"item: $contentId has an invalid collectionId: $collectionId")
         Failure(ItemNotFoundError(orgId, p, contentId))
@@ -253,7 +253,9 @@ class ItemService(
   override def contributorsForOrg(orgId: ObjectId): Seq[String] = {
 
     val readableCollectionIds = orgCollectionService
-      .getCollectionIds(orgId, Permission.Read)
+      .getCollections(orgId, Permission.Read)
+      .fold(_ => Seq.empty, c => c)
+      .map(_.id)
       .filterNot(_ == archiveConfig.contentCollectionId)
       .map(_.toString)
 

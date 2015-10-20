@@ -1,7 +1,6 @@
 package org.corespring.services
 
 import com.mongodb.casbah.Imports._
-import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, ContentCollection }
 import org.corespring.services.errors.PlatformServiceError
 
@@ -21,7 +20,12 @@ trait ContentCollectionService {
 
   def findOneById(id: ObjectId): Option[ContentCollection]
 
-  def insertCollection(orgId: ObjectId, coll: ContentCollection, p: Permission, enabled: Boolean = true): Validation[PlatformServiceError, ContentCollection]
+  /**
+   * Insert the new collection such that, the owner org has write access to it.
+   * @param coll
+   * @return
+   */
+  def insertCollection(coll: ContentCollection): Validation[PlatformServiceError, ContentCollection]
 
   def update(id: ObjectId, update: ContentCollectionUpdate): Validation[PlatformServiceError, ContentCollection]
 

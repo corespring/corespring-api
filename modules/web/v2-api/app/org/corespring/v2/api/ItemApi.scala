@@ -8,7 +8,7 @@ import org.corespring.models.item.Item.Keys._
 import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.identifiers.RequestIdentity
@@ -36,6 +36,7 @@ case class ItemApiExecutionContext(context: ExecutionContext)
 class ItemApi(
   itemService: ItemService,
   orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   itemIndexService: ItemIndexService,
   itemAuth: ItemAuth[OrgAndOpts],
   itemTypes: Seq[ComponentType],
@@ -74,7 +75,7 @@ class ItemApi(
 
       val out = for {
         identity <- getOrgAndOptions(request)
-        dc <- orgService.getOrCreateDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
+        dc <- orgCollectionService.getOrCreateDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
         json <- loadJson(dc.id)(request)
         validJson <- validatedJson(dc.id)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))

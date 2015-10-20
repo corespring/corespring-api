@@ -43,6 +43,7 @@ trait V2PlayerModule extends DefaultIntegration {
 
   def itemService: ItemService
   def orgService: OrganizationService
+  def orgCollectionService: OrgCollectionService
   def subjectService: SubjectService
   def standardService: StandardService
   def contentCollectionService: ContentCollectionService

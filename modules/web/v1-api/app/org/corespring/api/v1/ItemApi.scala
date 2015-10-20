@@ -10,15 +10,13 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.assets.{ CorespringS3Service }
 import org.corespring.common.log.{ ClassLogging }
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.models.Organization
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
 import org.corespring.platform.core.models.search.SearchFields
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrganizationService, ContentCollectionService }
+import org.corespring.services.{ OrgCollectionService, OrganizationService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.services.metadata.MetadataSetService
 import org.corespring.v2.sessiondb.{ SessionServices }
@@ -40,8 +38,8 @@ class ItemApi(
   service: ItemService,
   salatService: SalatContentService[Item, _],
   metadataSetService: MetadataSetService,
-  contentCollectionService: ContentCollectionService,
   orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   sessionServices: SessionServices,
   itemTransformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
@@ -49,8 +47,8 @@ class ItemApi(
   override implicit val context: Context)
   extends ContentApi[Item](
     salatService,
-    contentCollectionService,
     orgService,
+    orgCollectionService,
     context,
     ItemView.Writes) {
 
@@ -59,7 +57,7 @@ class ItemApi(
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
       if (orgService.getTree(request.ctx.orgId).exists(_.id == orgId)) {
-        val collections = contentCollectionService.getCollectionIds(orgId, Permission.Read)
+        val collections = getCollectionIds(orgId, Permission.Read)
         val jsonBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
         contentList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
@@ -70,7 +68,7 @@ class ItemApi(
 
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
-      if (contentCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read).isSuccess) {
+      if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
         val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
         contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
           case Left(apiError) =>
@@ -211,7 +209,7 @@ class ItemApi(
   }
 
   private def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
-    val ids = contentCollectionService.getCollectionIds(orgId, p)
+    val ids = getCollectionIds(orgId, p)
     logger.debug(s"function=isCollectionAuthorized, orgId=$orgId, ids=$ids, collectionId=$collectionId")
     ids.exists(_.toString == id)
   }
@@ -226,7 +224,7 @@ class ItemApi(
             } else {
 
               def withCollectionId(i: Item): Item = if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
-                orgService.getOrCreateDefaultCollection(request.ctx.orgId).toEither match {
+                orgCollectionService.getOrCreateDefaultCollection(request.ctx.orgId).toEither match {
                   case Right(default) => {
                     i.copy(collectionId = default.id.toString)
                   }

@@ -19,11 +19,17 @@ class OrgItemSharingService(
    * Unshare the specified items from the specified collections
    */
   override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+
+    lazy val nonWritableCollections = collIds.map { c =>
+      (c -> orgCollectionService.isAuthorized(orgId, c, Permission.Write))
+    }.filter(_._2 == false).map(_._1)
+
     for {
-      canUpdateAllCollections <- orgCollectionService.isAuthorized(orgId, collIds, Permission.Write)
-      successfullyRemovedItems <- itemService.removeCollectionIdsFromShared(items, collIds)
-    } yield successfullyRemovedItems
+      _ <- if (nonWritableCollections.nonEmpty) Failure(PlatformServiceError(s"Can't write to the following collections: $nonWritableCollections")) else Success()
+      removed <- itemService.removeCollectionIdsFromShared(items, collIds)
+    } yield removed
   }
+
   /**
    * Share items to the collection specified.
    * - must ensure that the context org has write access to the collection
@@ -33,11 +39,7 @@ class OrgItemSharingService(
    */
   override def shareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
 
-    def allowedToWriteCollection = {
-      orgCollectionService.isAuthorized(orgId, collId, Permission.Write)
-    }
-
-    def allowedToReadItems = {
+    lazy val canRead = {
       val objectIds = items.map(i => i.id)
       // get a list of any items that were not authorized to be added
       itemService.findMultipleById(objectIds: _*).filterNot(item => {
@@ -45,7 +47,7 @@ class OrgItemSharingService(
         val collectionsToAuth = new ObjectId(item.collectionId) +: item.sharedInCollections
         // does org have read access to any of these collections
         val collectionsAuthorized = collectionsToAuth.
-          filter(collectionId => orgCollectionService.isAuthorized(orgId, collectionId, Permission.Read).isSuccess)
+          filter(collectionId => orgCollectionService.isAuthorized(orgId, collectionId, Permission.Read))
         collectionsAuthorized.nonEmpty
       }) match {
         case Stream.Empty => Success()
@@ -60,9 +62,15 @@ class OrgItemSharingService(
       itemService.addCollectionIdToSharedCollections(items, collId)
     }
 
+    lazy val canWrite = if (orgCollectionService.isAuthorized(orgId, collId, Permission.Write)) {
+      Success()
+    } else {
+      Failure(PlatformServiceError(s"Org: $orgId can't write to collection: $collId"))
+    }
+
     for {
-      canWriteToCollection <- allowedToWriteCollection
-      canReadAllItems <- allowedToReadItems
+      _ <- canWrite
+      _ <- canRead
       sharedItems <- saveUnsavedItems
     } yield sharedItems
   }

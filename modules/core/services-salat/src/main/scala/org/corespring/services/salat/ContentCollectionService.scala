@@ -28,7 +28,7 @@ class ContentCollectionService(
 
   private val logger: Logger = Logger(classOf[ContentCollectionService])
 
-  override def insertCollection(orgId: ObjectId, collection: ContentCollection, p: Permission, enabled: Boolean): Validation[PlatformServiceError, ContentCollection] = {
+  override def insertCollection(collection: ContentCollection): Validation[PlatformServiceError, ContentCollection] = {
 
     def addCollectionToDb() = Validation.fromTryCatch {
       dao.insert(collection).getOrElse {
@@ -39,7 +39,7 @@ class ContentCollectionService(
     //TODO: apply two-phase commit
     for {
       addedCollectionId <- addCollectionToDb()
-      updatedOrg <- orgCollectionService.addAccessToCollectionForOrg(orgId, addedCollectionId, p)
+      updatedOrg <- orgCollectionService.upsertAccessToCollection(collection.ownerOrgId, addedCollectionId, Permission.Write)
     } yield collection.copy(id = addedCollectionId)
   }
 
@@ -64,9 +64,9 @@ class ContentCollectionService(
     }.leftMap(t => PlatformServiceError(t.getMessage))
 
     for {
-      canBeDeleted <- isEmptyCollection
-      success <- delete
-    } yield success
+      _ <- isEmptyCollection
+      _ <- delete
+    } yield Unit
   }
 
   override def getPublicCollections: Seq[ContentCollection] = dao.find(MongoDBObject(Keys.isPublic -> true)).toSeq

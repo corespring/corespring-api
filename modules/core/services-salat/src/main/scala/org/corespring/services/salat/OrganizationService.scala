@@ -170,4 +170,10 @@ class OrganizationService(
     val cursor = if (deep) dao.find(MongoDBObject(Keys.path -> orgId)) else dao.find(MongoDBObject(Keys.id -> orgId)) //find the tree of the given organization
     cursor.toStream
   }
+
+  override def save(o: Organization): Validation[PlatformServiceError, Organization] =
+    Validation.fromTryCatch(dao.save(o)).bimap(
+      t => PlatformServiceError("Error saving", t),
+      _ => o)
+
 }

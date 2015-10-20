@@ -10,7 +10,7 @@ import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
@@ -34,7 +34,7 @@ trait DraftHelper {
 class ItemDraftHooks(
   backend: DraftsBackend,
   itemService: ItemService,
-  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   transformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
@@ -168,7 +168,7 @@ class ItemDraftHooks(
 
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
-      orgService.getOrCreateDefaultCollection(u.org.id).toOption.map { c =>
+      orgCollectionService.getOrCreateDefaultCollection(u.org.id).toOption.map { c =>
         ModelItem(
           collectionId = c.toString,
           playerDefinition = Some(PlayerDefinition("")))

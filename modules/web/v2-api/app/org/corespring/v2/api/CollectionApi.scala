@@ -7,7 +7,7 @@ import org.corespring.models._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.item.ItemAggregationService
-import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate }
+import org.corespring.services.{ OrgItemSharingService, OrgCollectionService, ContentCollectionService, ContentCollectionUpdate }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -21,6 +21,8 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 class CollectionApi(
+  orgItemSharingService: OrgItemSharingService,
+  orgCollectionService: OrgCollectionService,
   contentCollectionService: ContentCollectionService,
   itemAggregationService: ItemAggregationService,
   v2ApiContext: V2ApiExecutionContext,
@@ -99,12 +101,12 @@ class CollectionApi(
 
       logger.debug(s"[shareCollection] collectionId=$collectionId, destinationOrgId=$destinationOrgId")
 
-      val v: Validation[V2Error, ContentCollRef] = for {
-        _ <- contentCollectionService.ownsCollection(identity.org, collectionId).v2Error
-        o <- contentCollectionService.shareCollectionWithOrg(collectionId, destinationOrgId, Permission.Read).v2Error
-      } yield o
+      val v: Validation[V2Error, ObjectId] = for {
+        _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
+        o <- orgCollectionService.upsertAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
+      } yield collectionId
 
-      v.map(r => Json.obj("updated" -> r.collectionId.toString)).toSimpleResult()
+      v.map(r => Json.obj("updated" -> id.toString)).toSimpleResult()
     }
   }
 
@@ -114,9 +116,9 @@ class CollectionApi(
       logger.debug(s"[setEnabledStatus], collectionId=$collectionId, enabled=$enabled")
 
       val toggle: (ObjectId, ObjectId) => Validation[PlatformServiceError, ContentCollRef] = if (enabled) {
-        contentCollectionService.enableCollectionForOrg
+        orgCollectionService.enableCollection
       } else {
-        contentCollectionService.disableCollectionForOrg
+        orgCollectionService.disableCollection
       }
 
       val r = toggle(identity.org.id, collectionId).v2Error
@@ -125,11 +127,13 @@ class CollectionApi(
   }
 
   def deleteCollection(collectionId: ObjectId) = futureWithIdentity {
+
     (identity, request) =>
       Future {
+
         logger.debug(s"[deleteCollection] collectionId=$collectionId")
         val v: Validation[V2Error, Boolean] = for {
-          canAccess <- orgCanAccess(identity.org, collectionId, Permission.Write)
+          _ <- orgCanAccess(identity.org, collectionId, Permission.Write)
           _ <- contentCollectionService.delete(collectionId).v2Error
         } yield true
 
@@ -163,12 +167,12 @@ class CollectionApi(
 
   def shareItemsWithCollection(collectionId: ObjectId) = handleShare(
     collectionId,
-    contentCollectionService.shareItems,
+    orgItemSharingService.shareItems,
     idsFromRequest)
 
   def unShareItemsWithCollection(collectionId: ObjectId) = handleShare(
     collectionId,
-    contentCollectionService.unShareItems,
+    orgItemSharingService.unShareItems,
     idsFromRequest)
 
   /**
@@ -186,18 +190,11 @@ class CollectionApi(
       }
   }
 
-  //TODO: move this to a service?
   private def orgCanAccess(org: Organization, collectionId: ObjectId, p: Permission): Validation[V2Error, Boolean] = {
-
-    val o = for {
-      ref <- org.contentcolls.find(_.collectionId == collectionId)
-      refPerm <- Permission.fromLong(ref.pval)
-      hasPermission <- Some(p.has(refPerm))
-    } yield true
-
-    o match {
-      case Some(true) => Success(true)
-      case _ => Failure(generalError(s"Org ${org.id}, can't access $collectionId"))
+    if (orgCollectionService.isAuthorized(org.id, collectionId, p)) {
+      Success(true)
+    } else {
+      Failure(generalError("not authorized"))
     }
   }
 
@@ -256,7 +253,7 @@ class CollectionApi(
       implicit val writes = CollectionInfoWrites
 
       getOrgAndOptionsFn(request).map { identity =>
-        val infoList = contentCollectionService
+        val infoList = orgCollectionService
           .listAllCollectionsAvailableForOrg(identity.org.id)
         Ok(Json.toJson(infoList.toSeq))
       }.getOrElse(Unauthorized)

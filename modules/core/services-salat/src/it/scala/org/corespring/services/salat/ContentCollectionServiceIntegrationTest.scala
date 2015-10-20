@@ -66,28 +66,6 @@ class ContentCollectionServiceIntegrationTest
       }
     }
 
-    "ownsCollection" should {
-      "should return Success when org owns collection" in new scope {
-        service.ownsCollection(rootOrg, writableCollection.id).isSuccess must_== true
-      }
-
-      "should return Failure when org does not own collection" in new scope {
-        service.ownsCollection(childOrg, writableCollection.id).isFailure must_== true
-      }
-
-      "should return Failure when collection does not exist" in new scope {
-        service.ownsCollection(childOrg, ObjectId.get).isFailure must_== true
-      }
-    }
-
-    "shareCollectionWithOrg" should {
-      "share the collection with the org" in new scope {
-        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Failure(_: PlatformServiceError)
-        service.shareCollectionWithOrg(writableCollection.id, childOrg.id, Permission.Read)
-        service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Success()
-      }
-    }
-
     "insertCollection" should {
 
       trait insertCollection extends scope {
