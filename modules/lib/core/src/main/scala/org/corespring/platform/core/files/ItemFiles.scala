@@ -37,6 +37,12 @@ trait ItemFiles {
 
   val NO_SUCH_KEY_ERROR_CODE: String = "NoSuchKey"
 
+  private def processMissingFile(file: StoredFile): CloneFileOriginalMissing = {
+    // If the original file is missing we are not failing the clone operation
+    logger.error(s"Error during cloning. This file was missing from the source item: ${file.name}")
+    CloneFileOriginalMissing(file)
+  }
+
   /**
    * clone v2 player definition files, if the v1 clone has already tried to copy a file with the same name - skip it.
    * This function is separate from the v1 logic because we don't need to update the storageKey in v2
@@ -57,11 +63,7 @@ trait ItemFiles {
         s3service.copyFile(bucket, fromKey, toKey)
         CloneFileSuccess(f, toKey)
       } catch {
-        case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => {
-          // If the original file is missing we are not failing the clone operation
-          logger.error(s"Error during cloning. This file was missing from the source item: ${f.name}")
-          CloneFileOriginalMissing(f)
-        }
+        case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => processMissingFile(f)
         case tr: Throwable => {
           CloneFileFailure(f, tr)
         }
@@ -101,12 +103,7 @@ trait ItemFiles {
       file.storageKey = toKey
       CloneFileSuccess(file, toKey)
     } catch {
-      case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => {
-        // If the original file is missing we are not failing the clone operation
-        logger.error(s"Error during cloning. This file was missing from the source item: ${file.name}")
-        CloneFileOriginalMissing(file)
-      }
-
+      case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => processMissingFile(file)
       case e: Throwable => {
         logger.debug("An error occurred cloning the file: " + e.getMessage)
         CloneFileFailure(file, e)
@@ -118,6 +115,7 @@ trait ItemFiles {
     val v1FileResults: Seq[CloneFileResult] = result.map(r => r.files).flatten
     v1FileResults
   }
+
 
   /**
    * Given a newly versioned item, copy the files on s3 to the new storageKey
