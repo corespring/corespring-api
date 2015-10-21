@@ -1,5 +1,6 @@
 package org.corespring.platform.core.files
 
+import com.amazonaws.services.s3.model.AmazonS3Exception
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
@@ -53,6 +54,18 @@ class ItemFilesTest extends Specification with Mockito {
           cloneFileResults(0).file.name === aPng.name
           cloneFileResults(0).successful === false
         }
+      }
+    }
+
+    "clone does not fail when a file is missing from the original item" in new itemFilesScope {
+      val mockExp = new AmazonS3Exception("NoSuchKey")
+      mockExp.setErrorCode("NoSuchKey")
+      mockS3.copyFile(any[String], any[String], any[String]) throws mockExp
+      cloneStoredFiles(item, cloned) match {
+        case Success(updatedItem) =>
+          success
+        case Failure(cloneFileResults) =>
+          failure("should not have failed")
       }
     }
   }
