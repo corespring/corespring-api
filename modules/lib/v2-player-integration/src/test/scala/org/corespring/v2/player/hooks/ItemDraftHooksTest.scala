@@ -5,7 +5,7 @@ import org.corespring.conversion.qti.transformers.ItemTransformer
 import org.corespring.drafts.item.ItemDrafts
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
@@ -25,7 +25,7 @@ class ItemDraftHooksTest
 
     val itemDrafts = mock[ItemDrafts]
     val itemService = mock[ItemService]
-    val orgService = mock[OrganizationService]
+    val orgCollectionService = mock[OrgCollectionService]
     val transformer = mock[ItemTransformer]
     val jsonFormatting = mock[JsonFormatting]
 
@@ -38,7 +38,7 @@ class ItemDraftHooksTest
     val hooks = new ItemDraftHooks(
       itemDrafts,
       itemService,
-      orgService,
+      orgCollectionService,
       transformer,
       jsonFormatting,
       getOrgAndOptions,

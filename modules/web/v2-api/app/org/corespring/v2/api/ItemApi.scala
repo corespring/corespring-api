@@ -75,7 +75,7 @@ class ItemApi(
 
       val out = for {
         identity <- getOrgAndOptions(request)
-        dc <- orgCollectionService.upsertDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
+        dc <- orgCollectionService.getDefaultCollection(identity.org.id).leftMap(e => generalError(e.message))
         json <- loadJson(dc.id)(request)
         validJson <- validatedJson(dc.id)(json).toSuccess(incorrectJsonFormat(json))
         collectionId <- (validJson \ "collectionId").asOpt[String].toSuccess(invalidJson("no collection id specified"))

@@ -22,14 +22,14 @@ class ItemApiDeleteTest extends ItemApiSpec {
     val dummyOrgId = ObjectId.get
     val dummyCollectionId = ObjectId.get.toString
 
-    mockItemService.findFieldsById(any, any) returns findFieldsById
+    itemService.findFieldsById(any, any) returns findFieldsById
 
     if (throwErrorInMoveItemToArchive) {
       OrigMockito.doThrow(
-        new RuntimeException("Mock Error")).when(mockItemService).moveItemToArchive(any)
+        new RuntimeException("Mock Error")).when(itemService).moveItemToArchive(any)
     }
 
-    mockItemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns {
+    itemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns {
       if (canDelete)
         Success(true)
       else

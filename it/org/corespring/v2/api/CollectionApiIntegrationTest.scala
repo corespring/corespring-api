@@ -7,7 +7,7 @@ import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Request, AnyContent, AnyContentAsJson }
+import play.api.mvc.{ Request, AnyContentAsJson }
 
 class CollectionApiIntegrationTest extends IntegrationSpecification {
 

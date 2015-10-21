@@ -16,8 +16,8 @@ class ItemApiSearchTest extends ItemApiSpec {
   case class searchApiScope(override val orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts()),
     searchResult: ItemIndexSearchResult = ItemIndexSearchResult(0, Seq.empty)) extends ItemApiScope {
     import ExecutionContext.Implicits.global
-    mockItemIndexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
-    mockItemIndexService.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
+    itemIndexService.search(any[ItemIndexQuery]) returns future { Success(searchResult) }
+    itemIndexService.reindex(any[VersionedId[ObjectId]]) returns future { Success("") }
   }
 
   "search" should {
@@ -28,7 +28,7 @@ class ItemApiSearchTest extends ItemApiSpec {
 
     "call itemIndexService#search" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-      there was one(mockItemIndexService).search(any[ItemIndexQuery])
+      there was one(itemIndexService).search(any[ItemIndexQuery])
     }
 
     "with empty collections" should {
@@ -37,7 +37,7 @@ class ItemApiSearchTest extends ItemApiSpec {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq()).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(mockItemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
+          there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
     }
 
@@ -47,7 +47,7 @@ class ItemApiSearchTest extends ItemApiSpec {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(unallowedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(mockItemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
+          there was one(itemIndexService).search(ItemIndexQuery(collections = allowableCollections.map(_.toString)))
         }
 
     }
@@ -58,7 +58,7 @@ class ItemApiSearchTest extends ItemApiSpec {
         new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, unallowedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
-          there was one(mockItemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
+          there was one(itemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
         }
 
     }

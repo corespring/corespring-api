@@ -7,17 +7,17 @@ import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, Organization, User, UserOrg }
 import org.corespring.services.errors.PlatformServiceError
+import play.api.Logger
 import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, Controller, Result }
-import play.api.{ Logger, Play }
 import securesocial.controllers.Registration.{ Success => RegistrationSuccess, _ }
 import securesocial.core._
-import securesocial.core.providers.{ Token, UsernamePasswordProvider }
 import securesocial.core.providers.utils._
+import securesocial.core.providers.{ Token, UsernamePasswordProvider }
 
 import scalaz.{ Failure, Success, Validation }
 
@@ -79,7 +79,7 @@ object MyRegistration extends Controller {
 
     for {
       org <- orgService.insert(Organization(name), None)
-      collInsert <- contentCollectionService.insertCollection(org.id, newColl(org), Permission.Write)
+      collInsert <- contentCollectionService.insertCollection(newColl(org))
     } yield org
   }
 

@@ -28,9 +28,6 @@ class MockRequestIdentity(
   override def orgService: OrganizationService = {
     val o = mock[OrganizationService]
     o.findOneById(any[ObjectId]) returns org.toOption.map(_._1)
-    o.getOrCreateDefaultCollection(any[ObjectId]) returns defaultCollection.map { id =>
-      Success(ContentCollection(name = "mock collection", ownerOrgId = ObjectId.get, id = id))
-    }.getOrElse(Failure(PlatformServiceError("no default collection")))
     o
   }
 

@@ -29,7 +29,6 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
 
     override def orgService: OrganizationService = {
       val m = mock[OrganizationService]
-      m.getOrCreateDefaultCollection(any[ObjectId]) returns Success(ContentCollection(ownerOrgId = ObjectId.get, name = "mock"))
       m.findOneById(any[ObjectId]) returns Some(org)
       m
     }

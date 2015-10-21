@@ -106,7 +106,7 @@ class CollectionApi(
         o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
       } yield collectionId
 
-      v.map(r => Json.obj("updated" -> id.toString)).toSimpleResult()
+      v.map(r => Json.obj("updated" -> collectionId.toString)).toSimpleResult()
     }
   }
 

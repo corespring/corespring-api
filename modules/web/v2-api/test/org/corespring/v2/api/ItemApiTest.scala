@@ -24,23 +24,19 @@ class ItemApiTest extends ItemApiSpec {
       lazy val vid = VersionedId(ObjectId.get)
       lazy val clonedId = VersionedId(ObjectId.get)
 
-      lazy val mockItem = {
-        val m = mock[Item]
-        m.id returns clonedId
-        m
-      }
+      lazy val clonedItem: Item = Item(id = clonedId, collectionId = ObjectId.get.toString)
 
       case class ItemApiCloneScope(vid: String = vid.toString,
         id: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts),
         itemAuthLoadsItem: Boolean = true,
         itemServiceClones: Boolean = true,
-        item: Option[Item] = Some(mockItem)) extends ItemApiScope {
+        item: Option[Item] = Some(clonedItem)) extends ItemApiScope {
 
-        mockItemService.clone(any[Item]) returns (if (itemServiceClones) item else None)
+        itemService.clone(any[Item]) returns (if (itemServiceClones) item else None)
 
-        mockItemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
+        itemIndexService.search(any[ItemIndexQuery]) returns future { Success(ItemIndexSearchResult.empty) }
 
-        mockItemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns {
+        itemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns {
           import scalaz.Scalaz._
           val out = if (itemAuthLoadsItem) item else None
           out.toSuccess(generalError("Test error: itemAuth.loadForRead"))

@@ -11,9 +11,9 @@ object Builders {
     publishArtifact in (Compile, packageSrc) := false,
     sources in doc in Compile := List())
 
-  val moduleConfig = Seq( /*Dependencies.ModuleConfigurations.snapshots,
-      Dependencies.ModuleConfigurations.releases,
-      Dependencies.ModuleConfigurations.localSnapshots*/ )
+  val moduleConfig = Seq(Dependencies.ModuleConfigurations.snapshots,
+    Dependencies.ModuleConfigurations.releases,
+    Dependencies.ModuleConfigurations.localSnapshots)
 
 }
 class Builders(root: String, org: String, appVersion: String, rootScalaVersion: String) {

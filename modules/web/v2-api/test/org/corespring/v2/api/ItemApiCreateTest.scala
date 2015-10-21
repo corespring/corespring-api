@@ -20,17 +20,17 @@ class ItemApiCreateTest extends ItemApiSpec {
     insertFails: Boolean = false,
     canCreate: Validation[V2Error, Boolean] = Success(true)) extends ItemApiScope {
 
-    mockItemService.insert(any[Item]).returns {
+    itemService.insert(any[Item]).returns {
       if (insertFails) None else Some(VersionedId(ObjectId.get))
     }
 
-    mockItemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
+    itemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
 
-    mockItemAuth.insert(any[Item])(any[OrgAndOpts]) returns {
+    itemAuth.insert(any[Item])(any[OrgAndOpts]) returns {
       if (insertFails) None else Some(itemId)
     }
 
-    mockOrgService.getOrCreateDefaultCollection(any[ObjectId]) returns Success(ContentCollection(name = "default", ownerOrgId = ObjectId.get, id = defaultCollectionId))
+    orgCollectionService.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection(name = "default", ownerOrgId = ObjectId.get, id = defaultCollectionId))
 
     override def orgAndOpts: Validation[V2Error, OrgAndOpts] = canCreate.map(_ => mockOrgAndOpts())
   }

@@ -1,14 +1,12 @@
 package org.corespring.services.salat
 
-import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
-import com.novus.salat.dao.{ SalatRemoveError, SalatDAOUpdateError, SalatInsertError, SalatDAO }
+import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import org.bson.types.ObjectId
-import org.corespring.models.item.Item
-import org.corespring.models.{ Organization, ContentCollRef, ContentCollection }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
-import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.models.item.Item
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.errors._
 import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
@@ -31,7 +29,9 @@ class ContentCollectionServiceTest extends Specification with Mockito {
     }
     val itemService = mock[ItemService]
     val archiveConfig = mock[ArchiveConfig]
-    val service = new ContentCollectionService(dao, context, orgCollectionService, itemService, archiveConfig)
+
+    val orgId = ObjectId.get
+    val collection = new ContentCollection("test-collection", orgId)
 
     val dao = {
       val m = mock[SalatDAO[ContentCollection, ObjectId]]
@@ -39,9 +39,8 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       m
     }
 
-    val orgId = ObjectId.get
-    val collection = new ContentCollection("test-collection", orgId)
     var item = new Item(collectionId = collection.id.toString)
+    val service = new ContentCollectionService(dao, context, orgCollectionService, itemService, archiveConfig)
   }
 
   "insertCollection" should {
@@ -60,7 +59,7 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       service.insertCollection(collection) must_== Failure(_: CollectionInsertError)
     }
 
-    "should fail when organization cannot be updated" in new scope {
+    "should return the collection" in new scope {
       service.insertCollection(collection) must_== Success(collection)
     }
   }
