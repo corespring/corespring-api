@@ -3,7 +3,6 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError }
-import grizzled.slf4j.Logger
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, Organization }
@@ -26,8 +25,6 @@ class ContentCollectionService(
     val sharedInCollections = "sharedInCollections"
   }
 
-  private val logger: Logger = Logger(classOf[ContentCollectionService])
-
   override def insertCollection(collection: ContentCollection): Validation[PlatformServiceError, ContentCollection] = {
 
     def addCollectionToDb() = Validation.fromTryCatch {
@@ -39,7 +36,7 @@ class ContentCollectionService(
     //TODO: apply two-phase commit
     for {
       addedCollectionId <- addCollectionToDb()
-      updatedOrg <- orgCollectionService.upsertAccessToCollection(collection.ownerOrgId, addedCollectionId, Permission.Write)
+      _ <- orgCollectionService.grantAccessToCollection(collection.ownerOrgId, addedCollectionId, Permission.Write)
     } yield collection.copy(id = addedCollectionId)
   }
 
@@ -112,7 +109,7 @@ class ContentCollectionService(
 
   override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
     val collection = ContentCollection(name = name, ownerOrgId = org.id)
-    insertCollection(org.id, collection, Permission.Write, true)
+    insertCollection(collection)
   }
 
 }

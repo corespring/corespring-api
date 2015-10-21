@@ -24,8 +24,8 @@ object OrgCollectionService {
   }
 }
 
-class OrgCollectionService(orgService: org.corespring.services.OrganizationService,
-  collectionService: org.corespring.services.ContentCollectionService,
+class OrgCollectionService(orgService: => org.corespring.services.OrganizationService,
+  collectionService: => org.corespring.services.ContentCollectionService,
   itemService: org.corespring.services.item.ItemService,
   orgDao: SalatDAO[Organization, ObjectId],
   collectionDao: SalatDAO[ContentCollection, ObjectId],
@@ -48,7 +48,7 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
   }
 
   private def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
-    val refs = getContentCollRefs(orgId, Permission.Read, true).map(_.collectionId)
+    val refs = getContentCollRefs(orgId, Permission.Read).map(_.collectionId)
     val query = ("_id" $in refs)
     logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query")
     collectionDao.find(query).toStream
@@ -62,21 +62,23 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
   }
 
   override def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]] = {
-    val collectionIds = getCollectionIds(orgId, p, deep = false)
+    val collectionIds = getCollectionIds(orgId, p)
     Success(collectionDao.find(MongoDBObject("_id" -> MongoDBObject("$in" -> collectionIds))).toSeq)
   }
 
-  private def getContentCollRefs(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ContentCollRef] = {
+  private def getContentCollRefs(orgId: ObjectId, p: Permission): Seq[ContentCollRef] = {
 
-    val orgs = orgService.orgsWithPath(orgId, deep)
+    logger.debug(s"function=getContentCollRefs, orgId=$orgId, p=$p")
+    val orgs = orgService.orgsWithPath(orgId, deep = true)
 
-    logger.trace(s"function=getContentCollRefs, orgId=$orgId, orgs=$orgs")
+    logger.trace(s"function=getContentCollRefs, orgId=$orgId, orgs.size=${orgs.size}")
+
     def addRefsWithPermission(org: Organization, acc: Seq[ContentCollRef]): Seq[ContentCollRef] = {
       acc ++ org.contentcolls.filter(ref => (ref.pval & p.value) == p.value)
     }
 
     val out = orgs.foldRight[Seq[ContentCollRef]](Seq.empty)(addRefsWithPermission)
-
+    logger.trace(s"function=getContentCollRefs, refs=$out")
     if (p == Permission.Read) {
       out ++ collectionService.getPublicCollections.map(c => ContentCollRef(c.id, Permission.Read.value, enabled = true))
     } else {
@@ -84,7 +86,7 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
     }
   }
 
-  private def getCollectionIds(orgId: ObjectId, p: Permission, deep: Boolean = true): Seq[ObjectId] = getContentCollRefs(orgId, p, deep).map(_.collectionId)
+  private def getCollectionIds(orgId: ObjectId, p: Permission): Seq[ObjectId] = getContentCollRefs(orgId, p).map(_.collectionId)
 
   /** Enable this collection for this org */
   override def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
@@ -96,20 +98,25 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
     toggleCollectionEnabled(orgId, collectionId, false)
   }
 
-  override def upsertAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
+  override def grantAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
 
+    logger.debug(s"function=grantAccessToCollection, orgId=$orgId, collId=$collId, p=$p")
     def updateOrAddNewReference(o: Organization): Organization = {
       val ref = o.contentcolls
         .find(_.collectionId == collId)
         .map(r => r.copy(pval = p.value))
         .getOrElse(ContentCollRef(collId, p.value, true))
 
-      val updatedRefs = o.contentcolls match {
-        case s: Seq[ContentCollRef] if s.nonEmpty => s.map(r => if (r.collectionId == collId) ref else r)
-        case Nil => Seq(ref)
+      val updatedRefs = if (o.contentcolls.exists(_.collectionId == collId)) {
+        o.contentcolls.map { r =>
+          if (r.collectionId == collId) ref else r
+        }
+      } else {
+        o.contentcolls :+ ref
       }
 
       val updatedOrg = o.copy(contentcolls = updatedRefs)
+
       orgDao.save(updatedOrg)
       updatedOrg
     }
@@ -141,33 +148,40 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
   //    }
   //
 
-  override def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
+  override def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
     orgDao.findOneById(orgId) match {
       case None => Failure(PlatformServiceError(s"Org not found $orgId"))
       case Some(org) => {
-        val collections = getCollectionIds(orgId, Permission.Write, false)
-        if (collections.isEmpty) {
-          collectionService.insertCollection(orgId, ContentCollection(ContentCollection.Default, orgId), Permission.Write)
-        } else {
-          collectionService.getDefaultCollection(collections) match {
-            case Some(default) => Success(default)
-            case None =>
-              collectionService.insertCollection(orgId, ContentCollection(ContentCollection.Default, orgId), Permission.Write)
-          }
+        collectionService.getDefaultCollection(org.contentcolls.map(_.collectionId)) match {
+          case Some(default) => Success(default)
+          case None =>
+            collectionService.insertCollection(
+              ContentCollection(ContentCollection.Default, orgId))
         }
       }
     }
   }
 
   override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {
-    orgService.orgsWithPath(orgId, true).foldRight[Option[Permission]](None)((o, p) => {
-      o.contentcolls.find(_.collectionId == collId) match {
-        case Some(ccr) => Permission.fromLong(ccr.pval)
-        case None => collectionDao.findOneById(collId).flatMap { c =>
-          if (c.isPublic) Some(Permission.Read) else None
-        }
-      }
-    })
+    logger.debug(s"fuction=getPermission, orgId=$orgId, collId=$collId")
+
+    val stream = orgService.orgsWithPath(orgId, true)
+
+    lazy val publicPermission = collectionDao.findOneById(collId).flatMap { c =>
+      if (c.isPublic) Some(Permission.Read) else None
+    }
+
+    val allRefs = stream.map(_.contentcolls).flatten.distinct
+
+    logger.trace(s"function=getPermission, allRefs=$allRefs")
+
+    if (allRefs.isEmpty) {
+      publicPermission
+    } else {
+      allRefs.find(_.collectionId == collId).map { r =>
+        Permission.fromLong(r.pval)
+      }.getOrElse(publicPermission)
+    }
   }
 
   private def toggleCollectionEnabled(orgId: ObjectId, collectionId: ObjectId, enabled: Boolean): Validation[PlatformServiceError, ContentCollRef] = {
@@ -205,7 +219,8 @@ class OrgCollectionService(orgService: org.corespring.services.OrganizationServi
 
   override def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean = {
     getPermission(orgId, collId).map { permissionForOrg =>
-      p.has(permissionForOrg)
+      logger.trace(s"function=isAuthorized, permissionForOrg=$permissionForOrg, p=$p")
+      permissionForOrg.has(p)
     }.getOrElse(false)
   }
 

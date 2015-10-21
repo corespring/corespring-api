@@ -2,16 +2,16 @@ package org.corespring.services.salat
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollRef, ContentCollection, MetadataSetRef, Organization }
+import org.corespring.models.{ ContentCollRef, MetadataSetRef, Organization }
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.specs2.mock.Mockito
-import org.specs2.mutable.BeforeAfter
+import org.specs2.mutable.After
 
 import scalaz.{ Failure, Success }
 
 class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito {
 
-  trait scope extends BeforeAfter {
+  trait scope extends After {
 
     def mkOrg(name: String) = Organization(name)
 
@@ -28,8 +28,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       service.delete(orgId)
       removeAllData()
     }
-
-    def before: Any = {}
   }
 
   "addMetadataSet" should {
@@ -43,43 +41,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       service.findOneById(orgId).map(_.metadataSets) must_== Some(Seq(MetadataSetRef(setId, true)))
     }
   }
-
-  /*"contentCollectionService.insertCollection" should {
-    trait insertCollection extends scope {
-      val testOrg = Organization("test owner of public collection")
-
-      val publicCollection = ContentCollection("test public collection", testOrg.id, true, id = ObjectId.get)
-
-      override def before = {
-        super.before
-        service.insert(testOrg, None)
-      }
-
-      override def after = {
-        service.delete(testOrg.id)
-        super.after
-      }
-    }
-
-    "give read access to all orgs" in new insertCollection {
-
-      services.contentCollectionService.insertCollection(testOrg.id, publicCollection, Permission.Write)
-
-      forall(service.list()) { o =>
-        val hasAccess = service.canAccessCollection(o, publicCollection.id, Permission.Read)
-        hasAccess must_== true
-      }
-
-      val isCollectionListed = services.contentCollectionService
-        .listAllCollectionsAvailableForOrg(org.id)
-        .exists(i => i.contentCollection.id == publicCollection.id)
-      isCollectionListed must_== true
-    }
-
-    "succeed adding any id as public collection" in new insertCollection {
-      service.addPublicCollectionToAllOrgs(ObjectId.get) must_== Failure(_: PlatformServiceError)
-    }
-  }*/
 
   "delete" should {
     trait delete extends scope {
@@ -105,30 +66,6 @@ class OrganizationServiceTest extends ServicesSalatIntegrationTest with Mockito 
       service.delete(ObjectId.get) must_== Success()
     }
   }
-
-  //  "deleteCollectionFromAllOrganizations" should {
-  //    trait deleteCollection extends scope {
-  //      val testOrg = new Organization("test org",
-  //        contentcolls = Seq(ContentCollRef(collectionId = collectionId)))
-  //
-  //      override def before = {
-  //        super.before
-  //        service.insert(testOrg, None)
-  //      }
-  //    }
-  //
-  //    "remove the collection from all orgs" in new deleteCollection {
-  //      service.getPermissions(org.id, collectionId) must_== Some(Permission.Read)
-  //      service.getPermissions(testOrg.id, collectionId) must_== Some(Permission.Read)
-  //
-  //      service.deleteCollectionFromAllOrganizations(collectionId)
-  //
-  //      service.getPermissions(org.id, collectionId) must_== None
-  //      service.getPermissions(testOrg.id, collectionId) must_== None
-  //    }
-  //  }
-
-  //TODO How are using enabled?
 
   "findOneById" should {
     "return Some(org) if it can be found" in new scope {

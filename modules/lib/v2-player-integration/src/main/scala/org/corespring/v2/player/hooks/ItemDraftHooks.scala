@@ -168,7 +168,7 @@ class ItemDraftHooks(
 
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
-      orgCollectionService.getOrCreateDefaultCollection(u.org.id).toOption.map { c =>
+      orgCollectionService.upsertDefaultCollection(u.org.id).toOption.map { c =>
         ModelItem(
           collectionId = c.toString,
           playerDefinition = Some(PlayerDefinition("")))

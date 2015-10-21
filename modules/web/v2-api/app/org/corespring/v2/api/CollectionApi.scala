@@ -103,7 +103,7 @@ class CollectionApi(
 
       val v: Validation[V2Error, ObjectId] = for {
         _ <- orgCollectionService.ownsCollection(identity.org, collectionId).v2Error
-        o <- orgCollectionService.upsertAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
+        o <- orgCollectionService.grantAccessToCollection(destinationOrgId, collectionId, Permission.Read).v2Error
       } yield collectionId
 
       v.map(r => Json.obj("updated" -> id.toString)).toSimpleResult()

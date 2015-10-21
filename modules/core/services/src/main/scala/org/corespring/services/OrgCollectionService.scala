@@ -37,11 +37,21 @@ trait OrgCollectionService {
 
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
-  def getOrCreateDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
+  /**
+   * Get the default collection for this org, create if necessary.
+   * @param orgId
+   * @return
+   */
+  def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
   def removeAccessToCollectionForAllOrgs(collId: ObjectId): Validation[PlatformServiceError, Unit]
 
-  def upsertAccessToCollection(orgId: ObjectId, collId: ObjectId, p: Permission): Validation[PlatformServiceError, Organization]
-  def removeAccessToCollection(orgId: ObjectId, collId: ObjectId): Validation[PlatformServiceError, Organization]
+  /**
+   * Give the given orgId the permission for the given collectionId.
+   * If a permission already exists, update it.
+   * @return
+   */
+  def grantAccessToCollection(orgId: ObjectId, collectionId: ObjectId, p: Permission): Validation[PlatformServiceError, Organization]
+  def removeAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, Organization]
 
 }

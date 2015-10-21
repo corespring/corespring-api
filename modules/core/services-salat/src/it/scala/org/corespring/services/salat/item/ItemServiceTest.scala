@@ -4,7 +4,6 @@ import org.bson.types.ObjectId
 import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
 import org.corespring.models.item.{ Item, ItemStandards, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.ContentCollectionService
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
@@ -70,16 +69,8 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       m
     }
 
-    def itemServiceWithMockFiles(succeed: Boolean) = new ItemService(
-      itemService.asInstanceOf[ItemService].dao,
-      mockAssets(succeed),
-      mock[ContentCollectionService],
-      services.context,
-      services.archiveConfig) {
-    }
-
     def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): MatchResult[Any] = {
-      val service = itemServiceWithMockFiles(shouldSucceed)
+      val service = services.itemService
       val id = VersionedId(ObjectId.get)
       val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id.id, 0, "data", name))
       val resource = Resource(name = "data", files = Seq(file))

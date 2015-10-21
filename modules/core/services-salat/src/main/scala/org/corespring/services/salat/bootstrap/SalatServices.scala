@@ -110,7 +110,7 @@ trait SalatServices extends interface.bootstrap.Services {
       case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
       case Success(_) =>
         logger.debug(s"function=initArchive collection=$coll - inserting")
-        contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
+        contentCollectionService.insertCollection(coll) match {
           case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
           case _ => logger.info("Archive org and content collection initialised")
         }

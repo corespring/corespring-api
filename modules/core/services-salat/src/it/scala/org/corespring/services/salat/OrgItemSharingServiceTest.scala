@@ -6,49 +6,25 @@ import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.{ ItemAuthorizationError, CollectionAuthorizationError }
-import org.specs2.specification.{ After, Scope }
+import org.specs2.specification.{ After }
 
-import scalaz.{ Failure, Validation }
+import scalaz.{ Success, Failure, Validation }
 
 class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
 
-  trait scope extends After {
-    val service = services.contentCollectionService
+  trait scope extends After with InsertionHelper {
+    val service = services.orgItemSharingService
 
     val otherOrg = services.orgService.insert(Organization("other-org"), None).toOption.get
     val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
     val childOrg = services.orgService.insert(Organization("child-org"), Some(rootOrg.id)).toOption.get
     val publicOrg = services.orgService.insert(Organization("public-org"), None).toOption.get
 
-    //collections added to rootOrg
-    val readableCollection = ContentCollection("readable-col", otherOrg.id)
-    service.insertCollection(readableCollection)
-    //Give root org read access
-    services.orgCollectionService.upsertAccessToCollection(rootOrg.id, readableCollection.id, Permission.Read)
+    val writableCollectionWithItem = insertCollection("writable-with-item", rootOrg)
+    val writableCollection = insertCollection("writable", rootOrg)
+    val readableCollection = insertCollection("readable", otherOrg)
+    giveOrgAccess(rootOrg, readableCollection, Permission.Read)
 
-    val writableCollection = ContentCollection("writable-col", rootOrg.id)
-    service.insertCollection(writableCollection)
-
-    val writableCollectionWithItem = ContentCollection("writable-with-item-col", rootOrg.id)
-    service.insertCollection(writableCollectionWithItem)
-
-    val defaultCollection = ContentCollection(ContentCollection.Default, rootOrg.id)
-    service.insertCollection(defaultCollection)
-
-    //collections added to childOrg
-    val readableChildOrgCollection = ContentCollection("readable-child-org-col", otherOrg.id)
-    service.insertCollection(readableChildOrgCollection)
-    services.orgCollectionService.upsertAccessToCollection(childOrg.id, readableChildOrgCollection.id, Permission.Read)
-
-    val writableChildOrgCollection = ContentCollection("writable-child-org-col", otherOrg.id)
-    service.insertCollection(writableChildOrgCollection)
-    services.orgCollectionService.upsertAccessToCollection(childOrg.id, writableChildOrgCollection.id, Permission.Write)
-
-    //collection added to publicOrg
-    val publicCollection = ContentCollection("public-org-col", publicOrg.id, isPublic = true)
-    service.insertCollection(publicCollection)
-
-    //rootOrg's writableCollectionWithItem contains one item
     val item = Item(
       collectionId = writableCollectionWithItem.id.toString,
       taskInfo = Some(TaskInfo(title = Some("title"))),
@@ -66,11 +42,32 @@ class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "shareCollectionWithOrg" should {
-    "share the collection with the org" in new scope {
-      service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Failure(_: PlatformServiceError)
-      service.shareCollectionWithOrg(writableCollection.id, childOrg.id, Permission.Read)
-      service.isAuthorized(childOrg.id, writableCollection.id, Permission.Read) must_== Success()
+  "unShareItems" should {
+
+    "remove shared item from collection" in new scope {
+      service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id)
+      service.unShareItems(rootOrg.id, Seq(item.id), writableCollection.id) must_== Success(Seq(item.id))
+      service.isItemSharedWith(item.id, writableCollection.id) must_== false
+    }
+
+    "return error when org does not have write permissions for all collections" in new scope {
+      service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id)) must_== Failure(_: CollectionAuthorizationError)
+    }
+  }
+
+  "shareItems" should {
+
+    "add the item to collection" in new scope {
+      service.shareItems(rootOrg.id, Seq(item.id), writableCollection.id) must_== Success(Seq(item.id))
+      service.isItemSharedWith(item.id, writableCollection.id) must_== true
+    }
+
+    "return error when org cannot write into collection" in new scope {
+      service.shareItems(rootOrg.id, Seq(item.id), readableCollection.id) must_== authorizationError(Permission.Write, readableCollection)
+    }
+
+    "return error when org cannot write for all items" in new scope {
+      service.shareItems(childOrg.id, Seq(item.id), readableCollection.id) must_== itemAuthorizationError(childOrg.id, Permission.Read, item.id)
     }
   }
 }

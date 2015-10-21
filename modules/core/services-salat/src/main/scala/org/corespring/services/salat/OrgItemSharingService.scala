@@ -10,8 +10,8 @@ import org.corespring.services.item.ItemService
 import scalaz.{ Validation, Failure, Success }
 
 class OrgItemSharingService(
-  itemService: ItemService,
-  orgCollectionService: org.corespring.services.OrgCollectionService) extends org.corespring.services.OrgItemSharingService {
+  itemService: => ItemService,
+  orgCollectionService: => org.corespring.services.OrgCollectionService) extends org.corespring.services.OrgItemSharingService {
 
   private val logger = Logger(classOf[OrgItemSharingService])
 

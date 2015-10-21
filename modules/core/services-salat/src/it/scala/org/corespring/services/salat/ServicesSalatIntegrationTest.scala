@@ -5,6 +5,8 @@ import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.models.auth.Permission
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.services.salat.bootstrap._
 import org.corespring.services.salat.it.DbSingleton
@@ -25,7 +27,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   protected val archiveOrgId = ObjectId.get
 
   protected def removeAllData() = {
-    logger.debug(s"function=clearDb - dropping db")
+    logger.info(s"function=removeAllData - dropping db ---------------")
 
     //Note: for speed we just drop the collection
     val db = DbSingleton.db
@@ -40,6 +42,24 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   protected def waitFor[A](f: Future[A]): A = Await.result(f, 1.second)
 
   lazy val s3 = mock[AmazonS3]
+
+  trait InsertionHelper {
+
+    private def mkOrg(name: String) = Organization(name)
+    def insertOrg(name: String, parentId: Option[ObjectId] = None) = services.orgService.insert(mkOrg(name), parentId).toOption.get
+
+    def giveOrgAccess(org: Organization, collection: ContentCollection, p: Permission) = {
+      services.orgCollectionService.grantAccessToCollection(org.id, collection.id, p)
+    }
+
+    def insertCollection(name: String, org: Organization, isPublic: Boolean = false) = {
+      val result = services.contentCollectionService.insertCollection(
+        ContentCollection(name, org.id, isPublic = isPublic))
+
+      logger.debug(s"function=mkCollection, result=$result")
+      result.toOption.get
+    }
+  }
 
   lazy val services = new SalatServices {
     override def db: MongoDB = DbSingleton.db
