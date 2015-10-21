@@ -134,19 +134,13 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     }.toSuccess(PlatformServiceError(s"Can't find org with Id: $orgId"))
   }
 
-  override def removeAccessToCollectionForAllOrgs(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch {
+  override def removeAllAccessToCollection(collId: Imports.ObjectId): Validation[PlatformServiceError, Unit] = Validation.fromTryCatch {
     val update = MongoDBObject("$pull" -> MongoDBObject(OrgKeys.contentcolls -> MongoDBObject(OrgKeys.collectionId -> collId)))
     val result = orgDao.update(MongoDBObject.empty, update, upsert = false, multi = true, orgDao.collection.writeConcern)
     if (!result.getLastError.ok) {
       throw new RuntimeException("Remove failed")
     }
   }.leftMap(t => PlatformServiceError("Remove failed", t))
-
-  //TODO: .... where does this go? ItemSharingService?
-  //    def removeCollectionIdFromItem() = {
-  //      itemService.deleteFromSharedCollections(collId).leftMap(e => e.message)
-  //    }
-  //
 
   override def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection] = {
     orgDao.findOneById(orgId) match {

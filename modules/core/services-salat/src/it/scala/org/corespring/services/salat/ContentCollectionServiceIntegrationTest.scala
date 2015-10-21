@@ -126,7 +126,7 @@ class ContentCollectionServiceIntegrationTest
       "remove the collection from all organizations" in new delete {
         val col = ContentCollection("test-col", rootOrg.id)
         service.insertCollection(col)
-        services.orgCollectionService.getOrgsWithAccessTo(col.id) must_== Stream(rootOrg)
+        services.orgCollectionService.getOrgsWithAccessTo(col.id).map(_.name) must_== Stream(rootOrg.name)
         val res = service.delete(col.id)
         services.orgCollectionService.getOrgsWithAccessTo(col.id) must_== Stream.empty
       }

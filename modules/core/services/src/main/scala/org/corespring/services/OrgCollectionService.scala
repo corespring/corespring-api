@@ -14,9 +14,9 @@ trait OrgCollectionService {
    * does the given organization have access to the given collection with given permission.
    * Aka - can org 'a' 'write' to collection 'c'?
    */
-  def isAuthorized(orgId: ObjectId, collId: ObjectId, p: Permission): Boolean
+  def isAuthorized(orgId: ObjectId, collectionId: ObjectId, p: Permission): Boolean
 
-  def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission]
+  def getPermission(orgId: ObjectId, collectionId: ObjectId): Option[Permission]
 
   def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
 
@@ -44,7 +44,12 @@ trait OrgCollectionService {
    */
   def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
-  def removeAccessToCollectionForAllOrgs(collId: ObjectId): Validation[PlatformServiceError, Unit]
+  /**
+   * remove all access to this collection, including the owner's access
+   * //TODO: Check if removing owner's access is correct
+   * @return
+   */
+  def removeAllAccessToCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
   /**
    * Give the given orgId the permission for the given collectionId.

@@ -6,6 +6,7 @@ import com.novus.salat.Context
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
 import org.corespring.services.salat.bootstrap._
@@ -44,6 +45,14 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   lazy val s3 = mock[AmazonS3]
 
   trait InsertionHelper {
+
+    def insertItem(collectionId: ObjectId) = {
+      val item = Item(
+        collectionId = collectionId.toString,
+        taskInfo = Some(TaskInfo(title = Some("title"))))
+      val itemId = services.itemService.insert(item).get
+      item.copy(id = itemId)
+    }
 
     private def mkOrg(name: String) = Organization(name)
     def insertOrg(name: String, parentId: Option[ObjectId] = None) = services.orgService.insert(mkOrg(name), parentId).toOption.get

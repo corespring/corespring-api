@@ -11,7 +11,7 @@ import org.specs2.mutable.After
 
 import scalaz.{ Failure, Success, Validation }
 
-class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
+class ItemServiceTest extends ServicesSalatIntegrationTest {
 
   lazy val itemService = services.itemService
 
@@ -49,59 +49,4 @@ class ItemServiceTest extends ServicesSalatIntegrationTest with Mockito {
       itemService.findOneById(clonedItem.get.id) must_== clonedItem
     }
   }
-
-  "save" should {
-
-    def mockAssets(succeed: Boolean) = {
-      val m = mock[ItemAssetService]
-
-      m.cloneStoredFiles(any[Item], any[Item]).answers { (args, _) =>
-        {
-          val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
-            val arr = args.asInstanceOf[Array[Any]]
-            Success(arr(1).asInstanceOf[Item])
-          } else {
-            Failure(Seq.empty[CloneFileResult])
-          }
-          out
-        }
-      }
-      m
-    }
-
-    def assertSaveWithStoredFile(name: String, shouldSucceed: Boolean): MatchResult[Any] = {
-      val service = services.itemService
-      val id = VersionedId(ObjectId.get)
-      val file = StoredFile(name, "image/png", false, StoredFile.storageKey(id.id, 0, "data", name))
-      val resource = Resource(name = "data", files = Seq(file))
-      val item = Item(id = id, collectionId = "?", data = Some(resource), taskInfo = Some(TaskInfo(title = Some("original title"))))
-      val latestId = service.insert(item)
-
-      latestId.map { vid =>
-        vid.version === Some(0)
-      }.getOrElse(failure("insert failed"))
-
-      val update = item.copy(id = latestId.get, taskInfo = Some(TaskInfo(title = Some("new title"))))
-
-      service.save(update, true)
-
-      val dbItem = service.findOneById(VersionedId(item.id.id))
-
-      val expectedVersion = if (shouldSucceed) 1 else 0
-
-      val out: MatchResult[Any] = dbItem
-        .map(i => i.id === VersionedId(id.id, Some(expectedVersion))).get
-
-      out
-    }
-
-    "revert the version if a failure occurred when cloning stored files" in {
-      assertSaveWithStoredFile("bad.png", false)
-    }
-
-    "update the version if no failure occurred when cloning stored files" in {
-      assertSaveWithStoredFile("good.png", true)
-    }
-  }
-
 }

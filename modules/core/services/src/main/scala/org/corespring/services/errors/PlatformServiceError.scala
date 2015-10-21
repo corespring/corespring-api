@@ -12,8 +12,8 @@ abstract class PlatformServiceError(val message: String, val throwable: Option[T
 
 case class GeneralError(msg: String, t: Option[Throwable]) extends PlatformServiceError(msg, t)
 
-case class CollectionAuthorizationError(val org: ObjectId, val p: Permission, val collection: ObjectId*)
-  extends PlatformServiceError(s"Org $org cannot access collection(s) ${collection} with permission $p.")
+case class CollectionAuthorizationError(val orgId: ObjectId, val p: Permission, val collectionIds: ObjectId*)
+  extends PlatformServiceError(s"Org $orgId cannot access collection(s) $collectionIds with permission $p.")
 
 case class CollectionInsertError(val collection: ContentCollection, t: Option[Throwable])
   extends PlatformServiceError(s"Error inserting collection ${collection}.", t)

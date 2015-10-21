@@ -54,11 +54,11 @@ class ContentCollectionService(
       case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
     }
 
-    lazy val delete = Validation.fromTryCatch {
-      dao.removeById(collId)
-      orgCollectionService.removeAccessToCollectionForAllOrgs(collId)
-      itemService.deleteFromSharedCollections(collId)
-    }.leftMap(t => PlatformServiceError(t.getMessage))
+    lazy val delete = for {
+      _ <- Validation.fromTryCatch(dao.removeById(collId)).leftMap(t => PlatformServiceError(t.getMessage))
+      _ <- orgCollectionService.removeAllAccessToCollection(collId)
+      _ <- itemService.deleteFromSharedCollections(collId)
+    } yield Unit
 
     for {
       _ <- isEmptyCollection

@@ -339,7 +339,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     "remove childOne's access to the collection" in new removeAccessToAll {
       services.orgCollectionService.grantAccessToCollection(childOne.id, one.id, Permission.Read)
       service.isAuthorized(childOne.id, one.id, Permission.Read) must_== true
-      service.removeAccessToCollectionForAllOrgs(one.id)
+      service.removeAllAccessToCollection(one.id)
       service.isAuthorized(childOne.id, one.id, Permission.Read) must_== false
     }
 
@@ -347,11 +347,20 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       services.orgCollectionService.grantAccessToCollection(childOne.id, publicOne.id, Permission.Write)
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true
       service.isAuthorized(childOne.id, publicOne.id, Permission.Write) must_== true
-      service.removeAccessToCollectionForAllOrgs(publicOne.id)
+      service.removeAllAccessToCollection(publicOne.id)
       service.isAuthorized(childOne.id, publicOne.id, Permission.Read) must_== true
       service.isAuthorized(childOne.id, publicOne.id, Permission.Write) must_== false
     }
+
+    //TODO: Not allowing the owner org access to a collection they own sounds wrong. Check if this is correct
+    "remove the ownerOrgs access to the collection" in new removeAccessToAll {
+      service.removeAllAccessToCollection(one.id)
+      service.isAuthorized(org.id, one.id, Permission.Read) must_== false
+      service.ownsCollection(org, one.id) must_== Success(true)
+    }
   }
+
+  private case class OrgAndCol(org: Organization, coll: ContentCollection)
 
   "getCollections" should {
 
@@ -362,6 +371,36 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       val otherOrg = insertOrg("other-org", None)
       val otherOrgColl = insertCollection("other-org-coll", otherOrg, false)
       services.orgCollectionService.grantAccessToCollection(childOrg.id, otherOrgColl.id, Permission.Read)
+    }
+
+    trait deepNesting extends scope {
+
+      private def createNest(levels: Int) = {
+
+        (1 to levels).foldLeft(Seq.empty[OrgAndCol]) { (acc, index) =>
+
+          val parentOrg = if (acc.isEmpty) {
+            None
+          } else {
+            Some(acc.last.org.id)
+          }
+          val o = insertOrg(s"level-$index", parentOrg)
+          val c = insertCollection(s"coll-level-$index", o, false)
+          acc :+ OrgAndCol(o, c)
+        }
+      }
+
+      val orgAndColls = createNest(10)
+    }
+
+    "with 10 levels should return 10 collections" in new deepNesting {
+      service.getCollections(orgAndColls(0).org.id, Permission.Write).map(_.size) must_== Success(10)
+      service.getCollections(orgAndColls(0).org.id, Permission.Write) must_== Success(orgAndColls.map(_.coll).toStream)
+    }
+
+    "with 10 levels should return 5 collections for child 5" in new deepNesting {
+      service.getCollections(orgAndColls(4).org.id, Permission.Write).map(_.size) must_== Success(6)
+      service.getCollections(orgAndColls(4).org.id, Permission.Write) must_== Success(orgAndColls.drop(4).map(_.coll).toStream)
     }
 
     "with Permission.Write" should {

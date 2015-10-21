@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import grizzled.slf4j.Logger
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ PlatformServiceError, ItemAuthorizationError }
+import org.corespring.services.errors.{ CollectionAuthorizationError, PlatformServiceError, ItemAuthorizationError }
 import org.corespring.services.item.ItemService
 
 import scalaz.{ Validation, Failure, Success }
@@ -65,7 +65,7 @@ class OrgItemSharingService(
     lazy val canWrite = if (orgCollectionService.isAuthorized(orgId, collId, Permission.Write)) {
       Success()
     } else {
-      Failure(PlatformServiceError(s"Org: $orgId can't write to collection: $collId"))
+      Failure(CollectionAuthorizationError(orgId, Permission.Write, collId))
     }
 
     for {
