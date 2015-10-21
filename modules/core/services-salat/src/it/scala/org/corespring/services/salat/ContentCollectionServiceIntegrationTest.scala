@@ -19,10 +19,10 @@ class ContentCollectionServiceIntegrationTest
     trait scope extends After with InsertionHelper {
       val service = services.contentCollectionService
 
-      val otherOrg = services.orgService.insert(Organization("other-org"), None).toOption.get
-      val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
-      val childOrg = services.orgService.insert(Organization("child-org"), Some(rootOrg.id)).toOption.get
-      val publicOrg = services.orgService.insert(Organization("public-org"), None).toOption.get
+      val otherOrg = insertOrg("other-org")
+      val rootOrg = insertOrg("root-org")
+      val childOrg = insertOrg("child-org", Some(rootOrg.id))
+      val publicOrg = insertOrg("public-org")
 
       //collections added to rootOrg
       val readableCollection = insertCollection("readable", otherOrg)

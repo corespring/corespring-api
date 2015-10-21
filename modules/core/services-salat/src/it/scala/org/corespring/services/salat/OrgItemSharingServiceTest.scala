@@ -1,21 +1,21 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
+import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ PlatformServiceError, ItemAuthorizationError, CollectionAuthorizationError }
-import org.specs2.specification.{ After }
+import org.corespring.services.errors.{ CollectionAuthorizationError, ItemAuthorizationError, PlatformServiceError }
+import org.specs2.specification.After
 
-import scalaz.{ Success, Failure, Validation }
+import scalaz.{ Failure, Success, Validation }
 
 class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
 
   trait scope extends After with InsertionHelper {
     val service = services.orgItemSharingService
 
-    val otherOrg = services.orgService.insert(Organization("other-org"), None).toOption.get
-    val rootOrg = services.orgService.insert(Organization("root-org"), None).toOption.get
+    val otherOrg = insertOrg("other-org")
+    val rootOrg = insertOrg("root-org")
 
     val writableCollectionWithItem = insertCollection("writable-with-item", rootOrg)
     val writableCollection = insertCollection("writable", rootOrg)

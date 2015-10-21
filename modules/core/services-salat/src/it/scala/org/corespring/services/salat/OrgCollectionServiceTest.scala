@@ -2,10 +2,10 @@ package org.corespring.services.salat
 
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
-import org.corespring.models.{ CollectionInfo, ContentCollection, ContentCollRef, Organization }
+import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.errors.PlatformServiceError
-import org.specs2.mutable.{ BeforeAfter, After }
-import org.specs2.specification.{ Scope }
+import org.specs2.mutable.{ After, BeforeAfter }
+import org.specs2.specification.Scope
 
 import scalaz.{ Failure, Success }
 
@@ -13,11 +13,8 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
   trait scope extends BeforeAfter with Scope with InsertionHelper {
     lazy val service = services.orgCollectionService
-    lazy val orgId: ObjectId = ObjectId.get
-    lazy val collectionId: ObjectId = ObjectId.get
-    lazy val collection = services.contentCollectionService.insertCollection(ContentCollection(name = "test-collection", ownerOrgId = orgId, id = collectionId)).toOption.get
-    lazy val contentCollRef = ContentCollRef(collectionId = collectionId, Permission.Read.value, enabled = true)
-    val org = services.orgService.insert(Organization(name = "orgservice-test-org", id = orgId, contentcolls = Seq(contentCollRef)), None).toOption.get
+    val org = insertOrg("org-test")
+    lazy val collection = insertCollection("test-coll", org, false)
     lazy val setId: ObjectId = ObjectId.get
 
     override def before: Any = {}
@@ -32,11 +29,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       def p: Permission
       val newCollectionId = ObjectId.get
       val expected = {
-        val org = services.orgService.findOneById(orgId).get
-        org.copy(contentcolls = org.contentcolls :+ ContentCollRef(newCollectionId, p.value, true))
+        val o = services.orgService.findOneById(org.id).get
+        o.copy(contentcolls = org.contentcolls :+ ContentCollRef(newCollectionId, p.value, true))
       }
       logger.debug(s"call upsert with: newCollectionId=$newCollectionId")
-      val result = service.grantAccessToCollection(orgId, newCollectionId, p)
+      val result = service.grantAccessToCollection(org.id, newCollectionId, p)
     }
 
     class grantRead extends grant {
@@ -52,11 +49,11 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "read: read is allowed" in new grantRead {
-      service.isAuthorized(orgId, newCollectionId, Permission.Read) must_== true
+      service.isAuthorized(org.id, newCollectionId, Permission.Read) must_== true
     }
 
     "read: write is not allowed" in new grantRead {
-      service.isAuthorized(orgId, newCollectionId, Permission.Write) must_== false
+      service.isAuthorized(org.id, newCollectionId, Permission.Write) must_== false
     }
 
     "write: return the updated org" in new grantWrite {
@@ -64,23 +61,23 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "write: read is allowed" in new grantWrite {
-      service.isAuthorized(orgId, newCollectionId, Permission.Read) must_== true
+      service.isAuthorized(org.id, newCollectionId, Permission.Read) must_== true
     }
 
     "write: write is allowed" in new grantWrite {
-      service.isAuthorized(orgId, newCollectionId, Permission.Write) must_== true
+      service.isAuthorized(org.id, newCollectionId, Permission.Write) must_== true
     }
 
     "update an existing ref if it already exists" in new scope {
 
       val newCollectionId = ObjectId.get
       val ref = ContentCollRef(newCollectionId, Permission.Read.value, true)
-      services.orgService.findOneById(orgId).map { o =>
+      services.orgService.findOneById(org.id).map { o =>
         val update = o.copy(contentcolls = o.contentcolls :+ ref)
         services.orgService.save(update)
       }
 
-      val result = service.grantAccessToCollection(orgId, newCollectionId, Permission.Write)
+      val result = service.grantAccessToCollection(org.id, newCollectionId, Permission.Write)
       val colls = result.fold(_ => Seq.empty, o => o.contentcolls)
       colls.find(_.collectionId == ref.collectionId) must_== Some(ref.copy(pval = Permission.Write.value))
     }
@@ -91,9 +88,14 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     trait isAuthorized extends scope {
 
       val testOrg = insertOrg("test owner of public collection")
+      val testOrgOne = insertCollection("test org writable collection", testOrg)
+
       val publicCollection = insertCollection("test public collection", testOrg, true)
-      val ownWritableCollection = insertCollection("own writable collection", org)
-      val testOrgWritableCollection = insertCollection("test org writable collection", testOrg)
+
+      val otherOrg = insertOrg("other-org")
+      val otherOrgOne = insertCollection("other-org-one", otherOrg)
+
+      giveOrgAccess(org, otherOrgOne, Permission.Read)
 
       def isAuthorized(collection: ContentCollection, p: Permission): Boolean = {
         isAuthorized(collection.id, p)
@@ -112,28 +114,28 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       isAuthorized(publicCollection, Permission.Write) must_== false
     }
 
-    "return true when accessing own readable collection with read permissions" in new isAuthorized {
-      isAuthorized(collectionId, Permission.Read) must_== true
+    "return true when accessing collection with read permissions" in new isAuthorized {
+      isAuthorized(collection.id, Permission.Read) must_== true
     }
 
-    "return false when accessing own readable collection with write permissions" in new isAuthorized {
-      isAuthorized(collectionId, Permission.Write) must_== false
+    "return true when accessing collection with write permissions" in new isAuthorized {
+      isAuthorized(collection.id, Permission.Write) must_== true
     }
 
-    "return true when accessing own writable collection with read permissions" in new isAuthorized {
-      isAuthorized(ownWritableCollection.id, Permission.Read) must_== true
+    "return false when accessing a collection that the org has read access to" in new isAuthorized {
+      isAuthorized(otherOrgOne.id, Permission.Write) must_== false
     }
 
-    "return true when accessing own writable collection with write permissions" in new isAuthorized {
-      isAuthorized(ownWritableCollection.id, Permission.Write) must_== true
+    "return true when accessing a collection that the org has read access to" in new isAuthorized {
+      isAuthorized(otherOrgOne.id, Permission.Read) must_== true
     }
 
     "return false when accessing collection of other org with read permission" in new isAuthorized {
-      isAuthorized(testOrgWritableCollection.id, Permission.Read) must_== false
+      isAuthorized(testOrgOne.id, Permission.Read) must_== false
     }
 
     "return false when accessing collection of other org with write permission" in new isAuthorized {
-      isAuthorized(testOrgWritableCollection.id, Permission.Write) must_== false
+      isAuthorized(testOrgOne.id, Permission.Write) must_== false
     }
   }
 
@@ -141,16 +143,16 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     trait enable extends scope {
 
       override def before: Unit = {
-        service.disableCollection(org.id, collectionId)
+        service.disableCollection(org.id, collection.id)
       }
     }
 
     "enable collection for org" in new enable {
-      service.enableCollection(org.id, collectionId) must_== Success(ContentCollRef(collectionId, Permission.Read.value, true))
+      service.enableCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, true))
     }
 
     "fail if org does not exist" in new enable {
-      service.enableCollection(ObjectId.get, collectionId) must_== Failure(_: PlatformServiceError)
+      service.enableCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
     }
 
     "fail if collection does not exist" in new enable {
@@ -163,16 +165,16 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     trait disable extends scope {
 
       override def before: Unit = {
-        service.disableCollection(org.id, collectionId)
+        service.disableCollection(org.id, collection.id)
       }
     }
 
     "disable collection for org" in new disable {
-      service.disableCollection(org.id, collectionId) must_== Success(ContentCollRef(collectionId, Permission.Read.value, false))
+      service.disableCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, false))
     }
 
     "fail if org does not exist" in new disable {
-      service.disableCollection(ObjectId.get, collectionId) must_== Failure(_: PlatformServiceError)
+      service.disableCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
     }
 
     "fail if collection does not exist" in new disable {
@@ -187,8 +189,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "return default collection, if it does exist" in new scope {
-      val existing = ContentCollection(ContentCollection.Default, org.id, id = ObjectId.get)
-      services.contentCollectionService.insertCollection(existing)
+      val existing = insertCollection(ContentCollection.Default, org)
       service.getDefaultCollection(org.id).map(_.id) must_== Success(existing.id)
     }
 
@@ -200,12 +201,12 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
   "getOrgsWithAccessTo" should {
     trait getOrgs extends scope {
       val inserted = insertOrg("test org 2", None)
-      service.grantAccessToCollection(inserted.id, collectionId, Permission.Read)
+      service.grantAccessToCollection(inserted.id, collection.id, Permission.Read)
       val newOrg = services.orgService.findOneById(inserted.id).get
     }
 
     "return all orgs with access to collection" in new getOrgs {
-      service.getOrgsWithAccessTo(collectionId) must_== Stream(org, newOrg)
+      service.getOrgsWithAccessTo(collection.id).map(_.name) must_== Stream(org, newOrg).map(_.name)
     }
 
     "return empty seq if no org has access to collection" in new getOrgs {
@@ -216,13 +217,13 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
 
   "removeAccessToCollection" should {
     "remove collection from org" in new scope {
-      service.isAuthorized(org.id, collectionId, Permission.Read) must_== true
-      service.removeAccessToCollection(org.id, collectionId) must_== Success(org.copy(contentcolls = Seq.empty))
-      service.isAuthorized(org.id, collectionId, Permission.Read) must_== false
+      service.isAuthorized(org.id, collection.id, Permission.Read) must_== true
+      service.removeAccessToCollection(org.id, collection.id) must_== Success(org.copy(contentcolls = Seq.empty))
+      service.isAuthorized(org.id, collection.id, Permission.Read) must_== false
     }
 
     "fail when org does not exist" in new scope {
-      service.removeAccessToCollection(ObjectId.get, collectionId) must_== Failure(_: PlatformServiceError)
+      service.removeAccessToCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
     }
 
     "not fail, when collection does not exist" in new scope {
@@ -252,8 +253,8 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
       with InsertionHelper
       with After {
       val service = services.orgCollectionService
-      val orgOne = services.orgService.insert(Organization(id = ObjectId.get, name = "org-one"), None).toOption.get
-      val otherOrg = services.orgService.insert(Organization(id = ObjectId.get, name = "other-org"), None).toOption.get
+      val orgOne = insertOrg("org-one")
+      val otherOrg = insertOrg("other-org")
       val writeOne = insertCollection("write-one", orgOne, false)
       val readOne = insertCollection("read-one", orgOne, false)
       val publicOne = insertCollection("public", orgOne, true)
@@ -273,7 +274,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "list public collections for other org" in new listAllCollectionsAvailableForOrg {
-      val orgTwo = services.orgService.insert(Organization(id = ObjectId.get, name = "org-two"), None).toOption.get
+      val orgTwo = insertOrg("org-two")
       lazy val result = service.listAllCollectionsAvailableForOrg(orgTwo.id)
       result must_== Stream(
         CollectionInfo(publicOne, 0, orgTwo.id, Permission.Read))

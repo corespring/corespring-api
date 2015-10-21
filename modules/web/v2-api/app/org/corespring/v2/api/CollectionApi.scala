@@ -1,13 +1,13 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
+import org.corespring.models._
 import org.corespring.models.auth.Permission
 import org.corespring.models.json.{ CollectionInfoWrites, JsonFormatting }
-import org.corespring.models._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.item.ItemAggregationService
-import org.corespring.services.{ OrgItemSharingService, OrgCollectionService, ContentCollectionService, ContentCollectionUpdate }
+import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, OrgItemSharingService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
