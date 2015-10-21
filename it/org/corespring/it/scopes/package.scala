@@ -43,7 +43,7 @@ package object scopes {
     val orgId = organization.id
     val apiClient = ApiClientHelper.create(orgId)
     val user = UserHelper.create(orgId, "test_user")
-    val accessToken = AccessTokenHelper.create(orgId, "test_user")
+    val accessToken = AccessTokenHelper.create(orgId)
 
     println(s"[accessToken] is: $accessToken")
 
@@ -315,9 +315,9 @@ package object scopes {
 
   trait TokenRequestBuilder extends RequestBuilder { self: orgWithAccessToken =>
 
-    private def mkUrl(url: String) = {
+    protected def mkUrl(url: String, token: String = accessToken) = {
       val separator = if (url.contains("?")) "&" else "?"
-      s"$url${separator}access_token=$accessToken"
+      s"$url${separator}access_token=$token"
     }
 
     override def makeRequest[A <: AnyContent](call: Call, body: A = requestBody): Request[A] = {

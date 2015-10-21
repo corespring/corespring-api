@@ -7,7 +7,7 @@ object AccessTokenHelper {
 
   lazy val service = Main.tokenService
 
-  def create(organizationId: ObjectId, userName: String): String = {
+  def create(organizationId: ObjectId): String = {
     val token = service.getOrCreateToken(organizationId)
     token.tokenId
   }
