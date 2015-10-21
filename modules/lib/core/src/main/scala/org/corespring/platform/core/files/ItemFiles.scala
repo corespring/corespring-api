@@ -1,5 +1,6 @@
 package org.corespring.platform.core.files
 
+import com.amazonaws.services.s3.model.AmazonS3Exception
 import org.corespring.assets.CorespringS3Service
 import org.corespring.platform.core.models.item.Item
 import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
@@ -18,6 +19,10 @@ case class CloneFileSuccess(val file: StoredFile, s3Key: String) extends CloneFi
   override def successful: Boolean = true
 }
 
+case class CloneFileOriginalMissing(val file: StoredFile) extends CloneFileResult {
+  override def successful: Boolean = true
+}
+
 case class CloneFileFailure(val file: StoredFile, err: Throwable) extends CloneFileResult {
   override def successful: Boolean = false
 }
@@ -29,6 +34,8 @@ trait ItemFiles {
   def s3service: CorespringS3Service
 
   def bucket: String
+
+  val NO_SUCH_KEY_ERROR_CODE: String = "NoSuchKey"
 
   /**
    * clone v2 player definition files, if the v1 clone has already tried to copy a file with the same name - skip it.
@@ -50,8 +57,13 @@ trait ItemFiles {
         s3service.copyFile(bucket, fromKey, toKey)
         CloneFileSuccess(f, toKey)
       } catch {
-        case t: Throwable => {
-          CloneFileFailure(f, t)
+        case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => {
+          // If the original file is missing we are not failing the clone operation
+          logger.error(s"Error during cloning. This file was missing from the source item: ${f.name}")
+          CloneFileOriginalMissing(f)
+        }
+        case tr: Throwable => {
+          CloneFileFailure(f, tr)
         }
       }
       Some(r)
@@ -89,6 +101,12 @@ trait ItemFiles {
       file.storageKey = toKey
       CloneFileSuccess(file, toKey)
     } catch {
+      case ae: AmazonS3Exception if (ae.getErrorCode == NO_SUCH_KEY_ERROR_CODE) => {
+        // If the original file is missing we are not failing the clone operation
+        logger.error(s"Error during cloning. This file was missing from the source item: ${file.name}")
+        CloneFileOriginalMissing(file)
+      }
+
       case e: Throwable => {
         logger.debug("An error occurred cloning the file: " + e.getMessage)
         CloneFileFailure(file, e)
