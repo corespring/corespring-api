@@ -10,6 +10,7 @@ import org.corespring.models.auth.{ ApiClient, Permission }
 import org.corespring.models.json.ObjectIdFormat
 import org.corespring.models.{ ContentCollection, Organization, User }
 import org.corespring.web.api.v1.errors.ApiError
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import securesocial.core.{ IdentityId, SecureSocial, SecuredRequest }
@@ -21,7 +22,9 @@ import scalaz.{ Failure, Success, Validation }
 /**
  * TODO: remove magic strings
  */
-object Developer extends Controller with SecureSocial with PackageLogging {
+object Developer extends Controller with SecureSocial {
+
+  val logger = Logger(Developer.getClass)
 
   import ExecutionContext.Implicits.global
 
