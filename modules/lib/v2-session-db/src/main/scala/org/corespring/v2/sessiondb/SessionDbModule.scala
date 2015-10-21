@@ -5,6 +5,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.mongodb.casbah.MongoDB
 import org.corespring.common.config.AppConfig
+import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.dynamo.{ DynamoSessionDbTableHelper, DynamoSessionService }
 import org.corespring.v2.sessiondb.mongo.MongoSessionService
 import org.corespring.v2.sessiondb.webservice.RemoteSessionService
@@ -27,12 +28,14 @@ trait SessionDbModule {
   private def mkService(table: String) = {
     AppConfig.sessionService match {
       case "remote" => {
+        import scala.concurrent.ExecutionContext.Implicits.global
         val host = AppConfig.sessionServiceUrl
         val authToken = AppConfig.sessionServiceAuthToken
-        table.contains("preview") match {
-          case true => new RemoteSessionService(host = host, authToken = authToken, bucket = Some("preview"))
-          case _ => new RemoteSessionService(host = host, authToken = authToken, bucket = None)
+        val client = table.contains("preview") match {
+          case true => new SessionServiceClient(host = host, authToken = authToken, bucket = Some("preview"))
+          case _ => new SessionServiceClient(host = host, authToken = authToken, bucket = None)
         }
+        new RemoteSessionService(client)
       }
       case "dynamo" => new DynamoSessionService(dynamoDB.getTable(table), dbClient)
       case _ => new MongoSessionService(db(table))
