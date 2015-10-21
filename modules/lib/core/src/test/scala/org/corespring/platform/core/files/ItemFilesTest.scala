@@ -61,12 +61,7 @@ class ItemFilesTest extends Specification with Mockito {
       val mockExp = new AmazonS3Exception("NoSuchKey")
       mockExp.setErrorCode("NoSuchKey")
       mockS3.copyFile(any[String], any[String], any[String]) throws mockExp
-      cloneStoredFiles(item, cloned) match {
-        case Success(updatedItem) =>
-          success
-        case Failure(cloneFileResults) =>
-          failure("should not have failed")
-      }
+      cloneStoredFiles(item, cloned) must_== Success(cloned)
     }
   }
 
