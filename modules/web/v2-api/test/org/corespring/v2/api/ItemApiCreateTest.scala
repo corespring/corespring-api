@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.models.Organization
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.models.item._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -20,17 +20,17 @@ class ItemApiCreateTest extends ItemApiSpec {
     insertFails: Boolean = false,
     canCreate: Validation[V2Error, Boolean] = Success(true)) extends ItemApiScope {
 
-    mockItemService.insert(any[Item]).returns {
+    itemService.insert(any[Item]).returns {
       if (insertFails) None else Some(VersionedId(ObjectId.get))
     }
 
-    mockItemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
+    itemAuth.canCreateInCollection(anyString)(any[OrgAndOpts]) returns canCreate
 
-    mockItemAuth.insert(any[Item])(any[OrgAndOpts]) returns {
+    itemAuth.insert(any[Item])(any[OrgAndOpts]) returns {
       if (insertFails) None else Some(itemId)
     }
 
-    mockOrgService.defaultCollection(any[Organization]) returns Some(defaultCollectionId)
+    orgCollectionService.getDefaultCollection(any[ObjectId]) returns Success(ContentCollection(name = "default", ownerOrgId = ObjectId.get, id = defaultCollectionId))
 
     override def orgAndOpts: Validation[V2Error, OrgAndOpts] = canCreate.map(_ => mockOrgAndOpts())
   }

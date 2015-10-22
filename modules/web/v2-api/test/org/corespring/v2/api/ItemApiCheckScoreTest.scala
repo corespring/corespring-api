@@ -24,8 +24,8 @@ class ItemApiCheckScoreTest extends ItemApiSpec {
     val loadForReadResult: Validation[V2Error, Item] = Success(Item(collectionId = collectionId.toString, playerDefinition = Some(emptyPlayerDefinition))),
     val scoreResult: Validation[V2Error, JsValue] = Success(Json.obj("score" -> 100))) extends ItemApiScope {
 
-    mockItemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
-    mockScoreService.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
+    itemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForReadResult
+    scoreService.score(any[PlayerDefinition], any[JsValue]) returns scoreResult
 
     def error[A](v: Validation[V2Error, A]) = v.swap.toOption.get
 

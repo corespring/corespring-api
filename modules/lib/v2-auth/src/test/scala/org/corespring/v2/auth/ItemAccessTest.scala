@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.Organization
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.v2.auth.models.Mode.Mode
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, MockFactory }
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, AuthMode, MockFactory }
@@ -23,8 +23,8 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
 
     val noPermission = generalError("no permission")
 
-    lazy val orgService: OrganizationService = {
-      val m = mock[OrganizationService]
+    lazy val orgCollectionService: OrgCollectionService = {
+      val m = mock[OrgCollectionService]
       m
     }
 
@@ -33,15 +33,15 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
       m
     }
 
-    lazy val access = new ItemAccess(orgService, checker, archiveConfig)
+    lazy val access = new ItemAccess(orgCollectionService, checker, archiveConfig)
 
   }
 
   class accessScope(orgCanAccess: Boolean = true,
     hasPermission: Boolean = true) extends base {
 
-    orgService.canAccessCollection(
-      any[Organization],
+    orgCollectionService.isAuthorized(
+      any[ObjectId],
       any[ObjectId],
       any[Permission]) returns orgCanAccess
 
@@ -82,7 +82,7 @@ class ItemAccessTest extends Specification with Mockito with MockFactory {
     "canCreateInCollection" should {
 
       class s(canAccess: Boolean = true) extends base {
-        orgService.canAccessCollection(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
+        orgCollectionService.isAuthorized(any[ObjectId], any[ObjectId], any[Permission]) returns canAccess
         checker.allow(any[String], any[Option[String]], any[Mode], any[PlayerAccessSettings]) returns Success(true)
       }
 

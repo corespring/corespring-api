@@ -3,17 +3,16 @@ package developer.controllers
 import org.corespring.legacy.ServiceLookup
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
 import org.corespring.models.auth.Permission
 import org.corespring.models.registration.RegistrationToken
 import org.corespring.models.{ UserOrg, User }
-import play.api.Application
+import play.api.{ Logger, Application }
 import securesocial.core._
 import securesocial.core.providers.Token
 import securesocial.core.providers.utils.PasswordHasher
 
-class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
-
+class CoreSpringUserService(application: Application) extends UserServicePlugin(application) {
+  val logger = Logger(classOf[CoreSpringUserService])
   override def find(id: IdentityId): Option[SocialUser] = {
     // id.id has the username
     logger.debug("looking for %s(%s)".format(id.userId, id.providerId))

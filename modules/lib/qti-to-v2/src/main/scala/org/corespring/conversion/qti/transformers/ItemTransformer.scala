@@ -17,16 +17,14 @@ import play.api.libs.json._
 case class ItemTransformerConfig(checkModelIsUpToDate: Boolean)
 
 class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[ObjectId]],
-                      contentCollectionService: ContentCollectionService,
-                      standardService: StandardService,
-                      jsonFormatting: JsonFormatting,
-                      config: ItemTransformerConfig) {
+  contentCollectionService: ContentCollectionService,
+  standardService: StandardService,
+  jsonFormatting: JsonFormatting,
+  config: ItemTransformerConfig) {
 
   import jsonFormatting._
 
-
   lazy val logger = Logger("org.corespring.qtiToV2.ItemTransformer")
-
 
   //TODO: Remove service - transform should only transform.
   def loadItemAndUpdateV2(itemId: VersionedId[ObjectId]): Option[Item] = {
@@ -77,16 +75,16 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
         logger.debug(s"itemId=${item.id} function=updateV2Json#Item")
         transformToV2Json(item, Some(createFromQti(item))).asOpt[PlayerDefinition]
           .map(playerDefinition => item.copy(playerDefinition = Some(playerDefinition))) match {
-          case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
-            case true => updatedItem
-            case _ => {
-              logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
-              itemService.save(updatedItem)
-              updatedItem
+            case Some(updatedItem) => item.playerDefinition.equals(updatedItem.playerDefinition) match {
+              case true => updatedItem
+              case _ => {
+                logger.trace(s"itemId=${item.id} function=updateV2Json#Item - saving item")
+                itemService.save(updatedItem)
+                updatedItem
+              }
             }
+            case _ => item
           }
-          case _ => item
-        }
       }
       case _ => item
     }

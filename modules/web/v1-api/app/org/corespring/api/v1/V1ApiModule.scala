@@ -27,6 +27,8 @@ trait V1ApiModule {
 
   def orgService: OrganizationService
 
+  def orgCollectionService: OrgCollectionService
+
   def contentCollectionService: ContentCollectionService
 
   def itemService: ItemService

@@ -1,7 +1,7 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.models.Organization
+import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.OrganizationService
 import org.corespring.v2.auth.models.{ OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors.{ incorrectJsonFormat, invalidQueryStringParameter, noApiClientAndPlayerTokenInQueryString }
@@ -29,7 +29,6 @@ class PlayerTokenInQueryStringIdentityTest extends Specification with Mockito {
 
     override def orgService: OrganizationService = {
       val m = mock[OrganizationService]
-      m.defaultCollection(any[Organization]) returns Some(ObjectId.get)
       m.findOneById(any[ObjectId]) returns Some(org)
       m
     }

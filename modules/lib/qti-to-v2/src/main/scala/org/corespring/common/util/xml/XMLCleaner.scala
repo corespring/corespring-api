@@ -12,8 +12,7 @@ object XMLCleaner {
    * update the data on the client.
    */
   private val cleaners: Seq[String => String] = Seq(
-    (xml: String) => xml.trim
-  )
+    (xml: String) => xml.trim)
 
   /**
    * Runs throw all the cleaner functions and returns the result XML

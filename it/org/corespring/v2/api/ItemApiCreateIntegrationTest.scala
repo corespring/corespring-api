@@ -26,7 +26,6 @@ class ItemApiCreateIntegrationTest extends IntegrationSpecification {
             val id = (contentAsJson(result) \ "id").asOpt[String]
             ItemHelper.delete(VersionedId(id.get).get)
           }
-
           status(result) === expectedStatus
         }.getOrElse(ko("no route found"))
       }

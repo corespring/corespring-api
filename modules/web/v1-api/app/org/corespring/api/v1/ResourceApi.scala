@@ -10,7 +10,7 @@ import org.corespring.models.item.resource.{ VirtualFile, BaseFile, StoredFile, 
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest, BaseApi }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.ContentCollectionService
+import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.sessiondb.{ SessionServices, SessionService }
 import org.corespring.web.api.v1.errors.ApiError
@@ -23,7 +23,7 @@ class ResourceApi(
   s3service: S3Service,
   itemTransformer: ItemTransformer,
   itemService: ItemService,
-  contentCollectionService: ContentCollectionService,
+  orgCollectionService: OrgCollectionService,
   jsonFormatting: JsonFormatting,
   sessionServices: SessionServices,
   val oAuthProvider: OAuthProvider)
@@ -118,7 +118,7 @@ class ResourceApi(
 
   def editCheck(force: Boolean = false) = new Function2[ApiRequest[_], Item, Option[Result]] {
     def apply(request: ApiRequest[_], item: Item): Option[Result] = {
-      if (contentCollectionService.isAuthorized(request.ctx.orgId, new ObjectId(item.collectionId), Permission.Write).isSuccess) {
+      if (orgCollectionService.isAuthorized(request.ctx.orgId, new ObjectId(item.collectionId), Permission.Write)) {
         if (sessionServices.main.sessionCount(item.id) > 0 && item.published && !force) {
           Some(Forbidden(toJson(JsObject(Seq("message" ->
             JsString("Action cancelled. You are attempting to change an item's content that contains session data. You may force the change by appending force=true to the url, but you will invalidate the corresponding session data. It is recommended that you increment the revision of the item before changing it"),

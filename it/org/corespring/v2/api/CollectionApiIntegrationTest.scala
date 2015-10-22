@@ -2,12 +2,14 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.helpers.{ AccessTokenHelper, OrganizationHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
 import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
 import org.specs2.specification.Scope
 import play.api.libs.json.{ JsValue, Json }
-import play.api.mvc.{ Request, AnyContent, AnyContentAsJson }
+import play.api.mvc.{ Request, AnyContentAsJson }
+import play.api.test.FakeRequest
 
 class CollectionApiIntegrationTest extends IntegrationSpecification {
 
@@ -101,7 +103,30 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
   }
 
   "shareCollection" should {
-    "work" in pending
+
+    trait share extends scope {
+      val otherOrgId = OrganizationHelper.create("other org")
+      val call = Routes.shareCollection(collectionId, otherOrgId)
+      val result = route(makeRequest(call)).get
+      val listCollectionsCall = Routes.list()
+      val otherAccessToken = AccessTokenHelper.create(otherOrgId)
+      val request = FakeRequest(listCollectionsCall.method, mkUrl(listCollectionsCall.url, otherAccessToken))
+      val listCollectionsResult = route(makeRequest(listCollectionsCall)).get
+      val json = contentAsJson(listCollectionsResult)
+      val ids = (json \\ "id").map(_.as[String])
+    }
+
+    "should return OK" in new share {
+      status(result) === OK
+    }
+
+    "list for other org should return OK" in new share {
+      status(listCollectionsResult) === OK
+    }
+
+    "list for other org should contain the shared id" in new share {
+      ids.contains(collectionId.toString) === true
+    }
   }
 
   "setEnabledStatus" should {

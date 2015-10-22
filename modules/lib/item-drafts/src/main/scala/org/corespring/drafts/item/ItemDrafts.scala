@@ -12,7 +12,7 @@ import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.{ ItemService }
 import org.joda.time.DateTime
 import play.api.Logger
@@ -26,6 +26,7 @@ case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], It
 class ItemDrafts(
   itemService: ItemService,
   orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   draftService: ItemDraftService,
   commitService: CommitService,
   assets: ItemDraftAssets,
@@ -38,8 +39,23 @@ class ItemDrafts(
 
   def collection = draftService.collection
 
-  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).map(_.has(Permission.Write)).getOrElse(false)
-  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = orgService.getOrgPermissionForItem(user.org.id, VersionedId(itemId)).map(_.has(Permission.Write)).getOrElse(false)
+  private def getPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]) = for {
+    collectionId <- itemService.collectionIdForItem(itemId)
+    p <- orgCollectionService.getPermission(orgId, collectionId)
+  } yield p
+
+  private def hasPermission(itemId: ObjectId, user: OrgAndUser, p: Permission): Boolean = {
+    getPermissionForItem(user.org.id, VersionedId(itemId))
+      .map(_.has(p)).getOrElse(false)
+  }
+
+  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = {
+    hasPermission(itemId, user, Permission.Write)
+  }
+
+  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = {
+    hasPermission(itemId, user, Permission.Write)
+  }
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 

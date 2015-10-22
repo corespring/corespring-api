@@ -36,8 +36,6 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
-  def count(query: DBObject, fields: Option[String] = None): Long
-
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject]
 
   def currentVersion(id: VersionedId[ObjectId]): Long
