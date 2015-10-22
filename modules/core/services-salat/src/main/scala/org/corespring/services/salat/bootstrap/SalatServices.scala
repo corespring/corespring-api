@@ -164,13 +164,22 @@ trait SalatServices extends interface.bootstrap.Services {
    *
    * For now going to manually build the objects
    */
-  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgCollectionService, itemService, archiveConfig)
+  override lazy val contentCollectionService = new ContentCollectionService(
+    contentCollectionDao,
+    context,
+    orgCollectionService,
+    orgItemSharingService,
+    itemService,
+    archiveConfig)
 
   override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
 
   override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
 
-  override lazy val orgItemSharingService: interface.OrgItemSharingService = new OrgItemSharingService(itemService, orgCollectionService)
+  override lazy val orgItemSharingService: interface.OrgItemSharingService = new OrgItemSharingService(
+    itemDao,
+    itemService,
+    orgCollectionService)
 
   override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
 

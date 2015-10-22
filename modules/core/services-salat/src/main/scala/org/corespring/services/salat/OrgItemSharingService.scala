@@ -54,7 +54,7 @@ class OrgItemSharingService(
    * Delete collection reference from shared collections (defined in items)
    * @return
    */
-  private def deleteFromSharedCollections(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+  override def unShareAllItemsFromCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
     try {
       val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
       val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
@@ -70,7 +70,7 @@ class OrgItemSharingService(
   /**
    * Unshare the specified items from the specified collections
    */
-  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: ObjectId*): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
 
     lazy val nonWritableCollections = collIds.map { c =>
       (c -> orgCollectionService.isAuthorized(orgId, c, Permission.Write))

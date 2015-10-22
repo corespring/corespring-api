@@ -172,7 +172,7 @@ class CollectionApi(
 
   def unShareItemsWithCollection(collectionId: ObjectId) = handleShare(
     collectionId,
-    orgItemSharingService.unShareItems,
+    (orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collectionId: ObjectId) => orgItemSharingService.unShareItems(orgId, items, collectionId),
     idsFromRequest)
 
   /**

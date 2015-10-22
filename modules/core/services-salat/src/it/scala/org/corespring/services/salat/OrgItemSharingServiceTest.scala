@@ -37,6 +37,55 @@ class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
+  //TODO: lifted from ItemServiceTest - still relevant?
+  //  "addCollectionIdToSharedCollections" should {
+  //    trait insertCollectionIdToSharedCollections extends scope {
+  //      val itemTwo = addItem(2, collectionOne)
+  //      val sharedCollection = insertCollection("2", org)
+  //    }
+  //
+  //    "add collectionId to item.sharedInCollections" in new insertCollectionIdToSharedCollections {
+  //      service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
+  //      loadItem(itemOne.id).map(_.sharedInCollections.contains(sharedCollection.id))
+  //      loadItem(itemTwo.id).map(_.sharedInCollections.contains(sharedCollection.id))
+  //    }
+  //
+  //    "return ids of updated items when call was successful" in new insertCollectionIdToSharedCollections {
+  //      val result = service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
+  //      result must_== Success(Seq(itemOne.id, itemTwo.id))
+  //    }
+  //  }
+  //  "deleteFromSharedCollections" should {
+  //    trait deleteFromSharedCollections extends scope {
+  //      val collectionTwo = insertCollection("two", org)
+  //      val sharedCollectionId = collectionTwo.id
+  //      service.addCollectionIdToSharedCollections(Seq(itemOne.id), sharedCollectionId)
+  //    }
+  //
+  //    "remove collection from one item" should {
+  //      "return success" in new deleteFromSharedCollections() {
+  //        service.deleteFromSharedCollections(sharedCollectionId) must_== Success()
+  //      }
+  //
+  //      "update the item in db" in new deleteFromSharedCollections() {
+  //        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
+  //        service.deleteFromSharedCollections(sharedCollectionId)
+  //        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
+  //      }
+  //    }
+  //    "remove collection from multiples items" should {
+  //      "update the items in db" in new deleteFromSharedCollections() {
+  //        val itemTwo = addItem(2, collectionOne)
+  //        service.addCollectionIdToSharedCollections(Seq(itemTwo.id), sharedCollectionId)
+  //        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
+  //        loadItem(itemTwo.id).map(_.sharedInCollections === Seq(sharedCollectionId))
+  //        service.deleteFromSharedCollections(sharedCollectionId)
+  //        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
+  //        loadItem(itemTwo.id).map(_.sharedInCollections === Seq.empty)
+  //      }
+  //    }
+  //  }
+
   "unShareItems" should {
 
     "remove shared item from collection" in new scope {
@@ -46,7 +95,7 @@ class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "return error when org does not have write permissions for all collections" in new scope {
-      service.unShareItems(rootOrg.id, Seq(item.id), Seq(readableCollection.id)) must_== Failure(_: PlatformServiceError)
+      service.unShareItems(rootOrg.id, Seq(item.id), readableCollection.id) must_== Failure(_: PlatformServiceError)
     }
   }
 

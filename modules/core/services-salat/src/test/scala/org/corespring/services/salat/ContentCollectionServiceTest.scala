@@ -39,8 +39,19 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       m
     }
 
-    var item = new Item(collectionId = collection.id.toString)
-    val service = new ContentCollectionService(dao, context, orgCollectionService, itemService, archiveConfig)
+    val orgItemSharingService = {
+      val m = mock[OrgItemSharingService]
+      m
+    }
+
+    val item = new Item(collectionId = collection.id.toString)
+    val service = new ContentCollectionService(
+      dao,
+      context,
+      orgCollectionService,
+      orgItemSharingService,
+      itemService,
+      archiveConfig)
   }
 
   "insertCollection" should {

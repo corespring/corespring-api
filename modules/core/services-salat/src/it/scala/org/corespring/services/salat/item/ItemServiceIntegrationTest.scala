@@ -46,24 +46,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     def loadItem(id: VersionedId[ObjectId]): Option[Item] = service.findOneById(id)
   }
 
-  "addCollectionIdToSharedCollections" should {
-    trait insertCollectionIdToSharedCollections extends scope {
-      val itemTwo = addItem(2, collectionOne)
-      val sharedCollection = insertCollection("2", org)
-    }
-
-    "add collectionId to item.sharedInCollections" in new insertCollectionIdToSharedCollections {
-      service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
-      loadItem(itemOne.id).map(_.sharedInCollections.contains(sharedCollection.id))
-      loadItem(itemTwo.id).map(_.sharedInCollections.contains(sharedCollection.id))
-    }
-
-    "return ids of updated items when call was successful" in new insertCollectionIdToSharedCollections {
-      val result = service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
-      result must_== Success(Seq(itemOne.id, itemTwo.id))
-    }
-  }
-
   "countItemsInCollection" should {
 
     "return 1 for collection with 1 item" in new scope {
@@ -259,37 +241,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     //TODO Shouldn't that result in an error?
     "return 0 for a non existing item" in new scope {
       service.currentVersion(VersionedId(ObjectId.get)) === 0
-    }
-  }
-
-  "deleteFromSharedCollections" should {
-    trait deleteFromSharedCollections extends scope {
-      val collectionTwo = insertCollection("two", org)
-      val sharedCollectionId = collectionTwo.id
-      service.addCollectionIdToSharedCollections(Seq(itemOne.id), sharedCollectionId)
-    }
-
-    "remove collection from one item" should {
-      "return success" in new deleteFromSharedCollections() {
-        service.deleteFromSharedCollections(sharedCollectionId) must_== Success()
-      }
-
-      "update the item in db" in new deleteFromSharedCollections() {
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        service.deleteFromSharedCollections(sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
-      }
-    }
-    "remove collection from multiples items" should {
-      "update the items in db" in new deleteFromSharedCollections() {
-        val itemTwo = addItem(2, collectionOne)
-        service.addCollectionIdToSharedCollections(Seq(itemTwo.id), sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        loadItem(itemTwo.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        service.deleteFromSharedCollections(sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
-        loadItem(itemTwo.id).map(_.sharedInCollections === Seq.empty)
-      }
     }
   }
 
