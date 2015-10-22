@@ -10,7 +10,7 @@ import scalaz.Validation
  * The sharing logic here and the access granting logic in OrgCollectionService,
  * could be abstracted into a SharingService[WHAT,WHO].
  */
-trait OrgItemSharingService {
+trait ShareItemWithCollectionsService {
 
   def unShareAllItemsFromCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
   /**

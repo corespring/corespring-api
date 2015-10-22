@@ -17,7 +17,7 @@ class ContentCollectionService(
   val dao: SalatDAO[ContentCollection, ObjectId],
   val context: Context,
   orgCollectionService: => interface.OrgCollectionService,
-  orgItemSharingService: => interface.OrgItemSharingService,
+  shareItemWithCollectionService: => interface.ShareItemWithCollectionsService,
   val itemService: interface.item.ItemService,
   archiveConfig: ArchiveConfig) extends interface.ContentCollectionService with HasDao[ContentCollection, ObjectId] {
 
@@ -59,7 +59,7 @@ class ContentCollectionService(
     lazy val delete = for {
       _ <- Validation.fromTryCatch(dao.removeById(collId)).leftMap(t => PlatformServiceError(t.getMessage))
       _ <- orgCollectionService.removeAllAccessToCollection(collId)
-      _ <- orgItemSharingService.unShareAllItemsFromCollection(collId)
+      _ <- shareItemWithCollectionService.unShareAllItemsFromCollection(collId)
     } yield Unit
 
     for {

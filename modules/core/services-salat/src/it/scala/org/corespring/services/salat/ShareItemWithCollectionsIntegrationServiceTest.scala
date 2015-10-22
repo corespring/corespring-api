@@ -9,10 +9,10 @@ import org.specs2.specification.After
 
 import scalaz.{ Failure, Success, Validation }
 
-class OrgItemSharingServiceTest extends ServicesSalatIntegrationTest {
+class ShareItemWithCollectionsIntegrationServiceTest extends ServicesSalatIntegrationTest {
 
   trait scope extends After with InsertionHelper {
-    val service = services.orgItemSharingService
+    val service = services.shareItemWithCollectionsService
 
     val otherOrg = insertOrg("other-org")
     val rootOrg = insertOrg("root-org")

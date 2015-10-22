@@ -12,12 +12,12 @@ import org.corespring.services.item.ItemService
 
 import scalaz.{ Validation, Failure, Success }
 
-class OrgItemSharingService(
+class ShareItemWithCollectionsService(
   dao: VersioningDao[Item, VersionedId[ObjectId]],
   itemService: => ItemService,
-  orgCollectionService: => org.corespring.services.OrgCollectionService) extends org.corespring.services.OrgItemSharingService {
+  orgCollectionService: => org.corespring.services.OrgCollectionService) extends org.corespring.services.ShareItemWithCollectionsService {
 
-  private val logger = Logger(classOf[OrgItemSharingService])
+  private val logger = Logger(classOf[ShareItemWithCollectionsService])
 
   import org.corespring.models.item.Item.Keys
 

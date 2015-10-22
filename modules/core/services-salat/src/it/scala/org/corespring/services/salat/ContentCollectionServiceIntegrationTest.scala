@@ -121,10 +121,10 @@ class ContentCollectionServiceIntegrationTest
         //allow root org read access to the item so that it can shared it
         giveOrgAccess(rootOrg, otherOrgCollection, Permission.Read)
         //now share it
-        services.orgItemSharingService.shareItems(rootOrg.id, Seq(otherOrgItem.id), writableCollection.id)
-        services.orgItemSharingService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== true
+        services.shareItemWithCollectionsService.shareItems(rootOrg.id, Seq(otherOrgItem.id), writableCollection.id)
+        services.shareItemWithCollectionsService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== true
         service.delete(writableCollection.id)
-        services.orgItemSharingService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== false
+        services.shareItemWithCollectionsService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== false
       }
     }
 

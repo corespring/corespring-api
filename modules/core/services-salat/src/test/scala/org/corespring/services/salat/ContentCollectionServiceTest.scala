@@ -39,8 +39,8 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       m
     }
 
-    val orgItemSharingService = {
-      val m = mock[OrgItemSharingService]
+    val shareItemsWithCollectionsService = {
+      val m = mock[ShareItemWithCollectionsService]
       m
     }
 
@@ -49,7 +49,7 @@ class ContentCollectionServiceTest extends Specification with Mockito {
       dao,
       context,
       orgCollectionService,
-      orgItemSharingService,
+      shareItemsWithCollectionsService,
       itemService,
       archiveConfig)
   }

@@ -168,7 +168,7 @@ trait SalatServices extends interface.bootstrap.Services {
     contentCollectionDao,
     context,
     orgCollectionService,
-    orgItemSharingService,
+    shareItemWithCollectionsService,
     itemService,
     archiveConfig)
 
@@ -176,7 +176,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
   override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
 
-  override lazy val orgItemSharingService: interface.OrgItemSharingService = new OrgItemSharingService(
+  override lazy val shareItemWithCollectionsService: interface.ShareItemWithCollectionsService = new ShareItemWithCollectionsService(
     itemDao,
     itemService,
     orgCollectionService)

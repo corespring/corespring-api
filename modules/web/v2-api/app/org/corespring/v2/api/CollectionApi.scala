@@ -7,7 +7,7 @@ import org.corespring.models.json.{ CollectionInfoWrites, JsonFormatting }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.item.ItemAggregationService
-import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, OrgItemSharingService }
+import org.corespring.services.{ ContentCollectionService, ContentCollectionUpdate, OrgCollectionService, ShareItemWithCollectionsService }
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -21,7 +21,7 @@ import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
 class CollectionApi(
-  orgItemSharingService: OrgItemSharingService,
+  shareItemWithCollectionService: ShareItemWithCollectionsService,
   orgCollectionService: OrgCollectionService,
   contentCollectionService: ContentCollectionService,
   itemAggregationService: ItemAggregationService,
@@ -167,12 +167,12 @@ class CollectionApi(
 
   def shareItemsWithCollection(collectionId: ObjectId) = handleShare(
     collectionId,
-    orgItemSharingService.shareItems,
+    shareItemWithCollectionService.shareItems,
     idsFromRequest)
 
   def unShareItemsWithCollection(collectionId: ObjectId) = handleShare(
     collectionId,
-    (orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collectionId: ObjectId) => orgItemSharingService.unShareItems(orgId, items, collectionId),
+    (orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collectionId: ObjectId) => shareItemWithCollectionService.unShareItems(orgId, items, collectionId),
     idsFromRequest)
 
   /**

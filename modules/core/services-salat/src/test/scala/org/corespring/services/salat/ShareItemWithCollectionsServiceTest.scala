@@ -17,7 +17,7 @@ import org.specs2.specification.Scope
 
 import scalaz.{ Success, Failure }
 
-class OrgItemSharingServiceTest extends Specification with Mockito {
+class ShareItemWithCollectionsServiceTest extends Specification with Mockito {
 
   trait scope extends Scope {
     val context = mock[Context]
@@ -35,7 +35,7 @@ class OrgItemSharingServiceTest extends Specification with Mockito {
     }
 
     val itemService = mock[ItemService]
-    val service = new OrgItemSharingService(dao, itemService, orgCollectionService)
+    val service = new ShareItemWithCollectionsService(dao, itemService, orgCollectionService)
 
     val orgId = ObjectId.get
     val collection = ContentCollection("test-collection", orgId)

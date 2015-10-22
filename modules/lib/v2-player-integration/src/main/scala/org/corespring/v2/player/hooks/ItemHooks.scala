@@ -94,6 +94,7 @@ class ItemHooks(
     updateDb[String](id, "playerDefinition.customScoring", customScoring, Some("customScoring"))
   }
 
+  @deprecated("use supportingMaterialsService instead", "core-refactor")
   override def saveSupportingMaterials(id: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = Future {
     updateDb[JsValue](id, "playerDefinition.supportingMaterials", json, Some("supportingMaterials"))
   }
