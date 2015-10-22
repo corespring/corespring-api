@@ -168,35 +168,6 @@ class ItemService(
     out
   }
 
-  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    itemIds.filterNot { vid =>
-      try {
-        val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-        dao.update(vid, update, createNewVersion = false)
-        true
-      } catch {
-        case e: SalatDAOUpdateError => false
-      }
-    } match {
-      case Nil => Success(itemIds)
-      case failedItems => Failure(ItemShareError(failedItems, collectionId))
-    }
-  }
-
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    itemIds.filterNot { vid =>
-      try {
-        dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
-        true
-      } catch {
-        case e: SalatDAOUpdateError => false
-      }
-    } match {
-      case Nil => Success(itemIds)
-      case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
-    }
-  }
-
   override def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {
     None
   }
@@ -221,24 +192,6 @@ class ItemService(
 
   override def findMultipleById(ids: ObjectId*): Stream[Item] = {
     dao.findCurrent(MongoDBObject("_id._id" -> MongoDBObject("$in" -> ids)), MongoDBObject()).toStream
-  }
-
-  /**
-   * Delete collection reference from shared collections (defined in items)
-   * @return
-   */
-  override def deleteFromSharedCollections(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
-    try {
-      val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
-      val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-      dao.update(query, update, upsert = false, multi = true) match {
-        case Left(e) => Failure(PlatformServiceError(e))
-        case Right(wr) =>
-          if (wr.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
-      }
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-    }
   }
 
   override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
