@@ -6,7 +6,7 @@ import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.services.ScoreService
 import org.corespring.v2.auth.ItemAuth
@@ -81,26 +81,31 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
 
   def orgAndOpts: Validation[V2Error, OrgAndOpts] = Success(mockOrgAndOpts())
 
-  lazy val mockItemService: ItemService = mock[ItemService]
+  lazy val itemService: ItemService = mock[ItemService]
 
-  lazy val mockScoreService: ScoreService = {
+  lazy val scoreService: ScoreService = {
     val m = mock[ScoreService]
     m
   }
 
-  lazy val mockItemAuth: ItemAuth[OrgAndOpts] = {
+  lazy val itemAuth: ItemAuth[OrgAndOpts] = {
     val m = mock[ItemAuth[OrgAndOpts]]
     m
   }
 
-  lazy val mockItemIndexService = {
+  lazy val itemIndexService = {
     val m = mock[ItemIndexService]
     m.reindex(any[VersionedId[ObjectId]]) returns Future(Success(""))
     m
   }
 
-  lazy val mockOrgService = {
+  lazy val orgService = {
     val m = mock[OrganizationService]
+    m
+  }
+
+  lazy val orgCollectionService = {
+    val m = mock[OrgCollectionService]
     m
   }
 
@@ -114,12 +119,13 @@ private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
   lazy val apiContext = ItemApiExecutionContext(ExecutionContext.Implicits.global)
 
   lazy val api = new ItemApi(
-    mockItemService,
-    mockOrgService,
-    mockItemIndexService,
-    mockItemAuth,
+    itemService,
+    orgService,
+    orgCollectionService,
+    itemIndexService,
+    itemAuth,
     itemTypes,
-    mockScoreService,
+    scoreService,
     jsonFormatting,
     apiContext,
     sessionService,

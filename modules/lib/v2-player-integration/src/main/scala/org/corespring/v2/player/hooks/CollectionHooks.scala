@@ -5,7 +5,7 @@ import org.corespring.container.client.hooks.{ CollectionHooks => ContainerColle
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, Organization }
-import org.corespring.services.ContentCollectionService
+import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.generalError
@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scalaz.Validation
 
 class CollectionHooks(
-  colService: ContentCollectionService,
+  orgCollectionService: OrgCollectionService,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
   override implicit val containerContext: ContainerExecutionContext) extends ContainerCollectionHooks with LoadOrgAndOptions {
 
@@ -46,7 +46,7 @@ class CollectionHooks(
   }
 
   private def findWritableCollections(org: Organization): Validation[V2Error, Seq[ContentCollection]] = {
-    colService.getCollections(org.id, Permission.Write).leftMap {
+    orgCollectionService.getCollections(org.id, Permission.Write).leftMap {
       e => generalError(e.message)
     }
   }

@@ -110,7 +110,7 @@ trait SalatServices extends interface.bootstrap.Services {
       case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
       case Success(_) =>
         logger.debug(s"function=initArchive collection=$coll - inserting")
-        contentCollectionService.insertCollection(archiveOrg.id, coll, Permission.Write) match {
+        contentCollectionService.insertCollection(coll) match {
           case Failure(e) => throw new RuntimeException(s"Failed to Bootstrap - error inserting archive org: $e")
           case _ => logger.info("Archive org and content collection initialised")
         }
@@ -164,9 +164,13 @@ trait SalatServices extends interface.bootstrap.Services {
    *
    * For now going to manually build the objects
    */
-  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgService, itemService, archiveConfig)
+  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgCollectionService, itemService, archiveConfig)
 
-  override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, contentCollectionService, metadataSetService, itemService)
+  override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
+
+  override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
+
+  override lazy val orgItemSharingService: interface.OrgItemSharingService = new OrgItemSharingService(itemService, orgCollectionService)
 
   override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
 
@@ -182,7 +186,7 @@ trait SalatServices extends interface.bootstrap.Services {
 
   override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
 
-  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, contentCollectionService, context, archiveConfig)
+  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, orgCollectionService, context, archiveConfig)
 
   override lazy val itemAggregationService: interface.item.ItemAggregationService = new ItemAggregationService(db(CollectionNames.item), salatServicesExecutionContext)
 
@@ -193,4 +197,5 @@ trait SalatServices extends interface.bootstrap.Services {
   override lazy val standardService: interface.StandardService = wire[StandardService]
 
   override lazy val fieldValueService: interface.item.FieldValueService = wire[FieldValueService]
+
 }

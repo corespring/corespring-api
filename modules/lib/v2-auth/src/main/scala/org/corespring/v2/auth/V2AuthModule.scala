@@ -5,7 +5,7 @@ import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.item.PlayerDefinition
 import org.corespring.models.json.JsonFormatting
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.models.{ PlayerAccessSettings, OrgAndOpts }
 import org.corespring.v2.auth.wired.{ HasPermissions, ItemAuthWired, SessionAuthWired }
@@ -24,6 +24,7 @@ trait V2AuthModule {
   def itemService: ItemService
   def orgService: OrganizationService
   def itemTransformer: ItemTransformer
+  def orgCollectionService: OrgCollectionService
 
   lazy val accessSettingsWildcardCheck = new AccessSettingsWildcardCheck(AccessSettingsCheckConfig(appConfig.allowAllSessions))
 

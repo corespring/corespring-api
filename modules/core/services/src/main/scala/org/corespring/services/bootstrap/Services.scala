@@ -7,10 +7,12 @@ import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.services._
 
 trait Services {
-  def contentCollectionService: ContentCollectionService
   def metadataSetService: MetadataSetService
   def itemService: ItemService
   def itemAggregationService: ItemAggregationService
+  def contentCollectionService: ContentCollectionService
+  def orgCollectionService: OrgCollectionService
+  def orgItemSharingService: OrgItemSharingService
   def orgService: OrganizationService
   def userService: UserService
   def registrationTokenService: RegistrationTokenService

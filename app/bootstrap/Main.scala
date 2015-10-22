@@ -16,7 +16,7 @@ import org.corespring.common.config.AppConfig
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
-import org.corespring.conversion.qti.transformers.{ItemTransformerConfig, ItemTransformer}
+import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
 import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig

@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, ContentCollRef, Organization }
-import org.corespring.services.{ ContentCollectionUpdate, ContentCollectionService }
+import org.corespring.services.{ OrgItemSharingService, OrgCollectionService, ContentCollectionUpdate, ContentCollectionService }
 import org.corespring.services.item.ItemAggregationService
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
@@ -30,25 +30,37 @@ class CollectionApiTest extends V2ApiSpec {
       val arr = args.asInstanceOf[Array[Any]]
       (arr(0).asInstanceOf[A], arr(1).asInstanceOf[B])
     }
+    lazy val orgCollectionService: OrgCollectionService = {
+      val m = mock[OrgCollectionService]
 
-    lazy val contentCollectionService: ContentCollectionService = {
-      val m = mock[ContentCollectionService]
-      m.ownsCollection(any[Organization], any[ObjectId]) returns Success()
+      m.isAuthorized(any[ObjectId], any[ObjectId], any[Permission]) returns true
 
-      m.shareCollectionWithOrg(any[ObjectId], any[ObjectId], any[Permission]) answers { (args, _) =>
-        val (collectionId, _, permission) = toTuple[ObjectId, ObjectId, Permission](args)
-        Success(ContentCollRef(collectionId, permission.value, true))
-      }
+      m.ownsCollection(any[Organization], any[ObjectId]) returns Success(true)
 
-      m.enableCollectionForOrg(any[ObjectId], any[ObjectId]) answers { (args, _) =>
+      m.enableOrgAccessToCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
         val (_, collectionId) = toTuple[ObjectId, ObjectId](args)
         Success(ContentCollRef(collectionId, Permission.Read.value, true))
       }
 
-      m.disableCollectionForOrg(any[ObjectId], any[ObjectId]) answers { (args, _) =>
+      m.disableOrgAccessToCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
         val (_, collectionId) = toTuple[ObjectId, ObjectId](args)
         Success(ContentCollRef(collectionId, Permission.Read.value, false))
       }
+
+      m.grantAccessToCollection(any[ObjectId], any[ObjectId], any[Permission]) answers { (args, _) =>
+        val (collectionId, _, permission) = toTuple[ObjectId, ObjectId, Permission](args)
+        Success(Organization("test"))
+      }
+      m
+    }
+
+    lazy val orgItemSharingService: OrgItemSharingService = {
+      val m = mock[OrgItemSharingService]
+      m
+    }
+
+    lazy val contentCollectionService: ContentCollectionService = {
+      val m = mock[ContentCollectionService]
 
       m.delete(any[ObjectId]) returns Success()
 
@@ -84,6 +96,8 @@ class CollectionApiTest extends V2ApiSpec {
     protected val orgId = stubbedOrgAndOpts.org.id
 
     val api = new CollectionApi(
+      orgItemSharingService,
+      orgCollectionService,
       contentCollectionService,
       itemAggregationService,
       v2ApiContext,
@@ -147,11 +161,11 @@ class CollectionApiTest extends V2ApiSpec {
     }
 
     "call contentCollectionService.ownsCollection" in new shareCollection {
-      there was one(contentCollectionService).ownsCollection(any[Organization], any[ObjectId])
+      there was one(orgCollectionService).ownsCollection(any[Organization], any[ObjectId])
     }
 
     "call contentCollectionService.shareCollectionWithOrg" in new shareCollection {
-      there was one(contentCollectionService).shareCollectionWithOrg(any[ObjectId], any[ObjectId], any[Permission])
+      there was one(orgCollectionService).grantAccessToCollection(any[ObjectId], any[ObjectId], any[Permission])
     }
 
     "return the id of the updated collection" in new shareCollection {
@@ -167,13 +181,13 @@ class CollectionApiTest extends V2ApiSpec {
       await(result)
     }
 
-    "call contentCollectionService.enableCollectionForOrg" in new setEnabledStatus {
-      there was one(contentCollectionService).enableCollectionForOrg(orgId, collectionId)
+    "call contentCollectionService.enableOrgAccessToCollectionForOrg" in new setEnabledStatus {
+      there was one(orgCollectionService).enableOrgAccessToCollection(orgId, collectionId)
     }
 
-    "call contentCollectionService.disableCollectionForOrg" in new setEnabledStatus {
+    "call contentCollectionService.disableOrgAccessToCollectionForOrg" in new setEnabledStatus {
       override lazy val enabled = false
-      there was one(contentCollectionService).disableCollectionForOrg(orgId, collectionId)
+      there was one(orgCollectionService).disableOrgAccessToCollection(orgId, collectionId)
     }
 
     "return the id of the updated collection" in new setEnabledStatus {

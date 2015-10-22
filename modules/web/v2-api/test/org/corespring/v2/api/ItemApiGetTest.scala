@@ -18,7 +18,7 @@ class ItemApiGetTest extends ItemApiSpec {
     defaultCollectionId: ObjectId = collectionId,
     loadForRead: Validation[V2Error, Item] = Failure(notReady)) extends ItemApiScope {
 
-    mockItemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForRead
+    itemAuth.loadForRead(anyString)(any[OrgAndOpts]) returns loadForRead
 
     override def orgAndOpts: Validation[V2Error, OrgAndOpts] = loadForRead.map(_ => mockOrgAndOpts())
   }

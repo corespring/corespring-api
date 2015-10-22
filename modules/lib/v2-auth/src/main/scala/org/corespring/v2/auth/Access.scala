@@ -5,7 +5,7 @@ import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.v2.auth.models.{ Mode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -18,7 +18,7 @@ trait Access[DATA, REQUESTER] {
 }
 
 class ItemAccess(
-  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   checker: AccessSettingsWildcardCheck,
   archiveConfig: ArchiveConfig) extends Access[Item, OrgAndOpts] {
 
@@ -31,7 +31,7 @@ class ItemAccess(
   def canCreateInCollection(collectionId: String)(implicit identity: OrgAndOpts): Validation[V2Error, Boolean] = {
 
     def canWrite(orgId: ObjectId, collectionId: ObjectId) = {
-      if (orgService.canAccessCollection(orgId, collectionId, Permission.Write)) {
+      if (orgCollectionService.isAuthorized(orgId, collectionId, Permission.Write)) {
         Success(true)
       } else {
         Failure(orgCantAccessCollection(orgId, collectionId.toString, Permission.Write.name))
@@ -50,7 +50,7 @@ class ItemAccess(
 
   override def grant(identity: OrgAndOpts, permission: Permission, item: Item): Validation[V2Error, Boolean] = {
 
-    def orgCanAccess(collectionId: String) = orgService.canAccessCollection(identity.org, new ObjectId(collectionId), permission)
+    def orgCanAccess(collectionId: String) = orgCollectionService.isAuthorized(identity.org.id, new ObjectId(collectionId), permission)
     def isArchived(collectionId: String) = collectionId == archiveConfig.contentCollectionId.toString
 
     for {

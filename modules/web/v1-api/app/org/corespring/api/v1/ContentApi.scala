@@ -3,6 +3,7 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatMongoCursor
+import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.models.error.CorespringInternalError
 import org.corespring.models.item.{ Content => CsContent, Item, Alignments, TaskInfo }
@@ -10,7 +11,7 @@ import org.corespring.platform.core.controllers.auth.{ ApiRequest, BaseApi }
 import org.corespring.platform.core.models.search.ItemSearch
 import org.corespring.platform.core.models.search.SearchCancelled
 import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.services.{ OrganizationService, ContentCollectionService }
+import org.corespring.services.{ OrgCollectionService, OrganizationService, ContentCollectionService }
 import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json._
@@ -23,8 +24,8 @@ import play.api.mvc._
  */
 abstract class ContentApi[ContentType <: CsContent[_]](
   service: SalatContentService[ContentType, _],
-  contentCollectionService: ContentCollectionService,
   orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   implicit val context: Context,
   implicit val writes: Writes[ContentView[ContentType]]) extends BaseApi {
 
@@ -49,6 +50,13 @@ abstract class ContentApi[ContentType <: CsContent[_]](
     "contentFormat",
     published)
 
+  protected def getCollectionIds(orgId: ObjectId, p: Permission): Seq[ObjectId] = {
+    orgCollectionService
+      .getCollections(orgId, Permission.Read)
+      .fold(_ => Seq.empty[ContentCollection], a => a)
+      .map(_.id)
+  }
+
   /**
    * An API action to list JSON representations of Content, using pagination parameters for skipping, offset, and
    * sorting.
@@ -60,7 +68,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](
     limit: Int,
     sort: Option[String]) = ApiAction {
     implicit request =>
-      val collections = contentCollectionService.getContentCollRefs(request.ctx.orgId, Permission.Read).map(_.collectionId)
+      val collections = getCollectionIds(request.ctx.orgId, Permission.Read)
 
       val jsonBuilder = if (count == "true") countOnlyJson _ else contentOnlyJson _
       contentList(query, fields, skip, limit, sort, collections, true, jsonBuilder) match {
@@ -82,7 +90,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](
    */
   def listAndCount(query: Option[String], fields: Option[String], skip: Int, limit: Int,
     sort: Option[String]): Action[AnyContent] = ApiAction { implicit request =>
-    val collections = contentCollectionService.getCollectionIds(request.ctx.orgId, Permission.Read)
+    val collections = getCollectionIds(request.ctx.orgId, Permission.Read)
 
     contentList(query, fields, skip, limit, sort, collections, true, countAndListJson) match {
       case Left(apiError) => BadRequest(toJson(apiError))
@@ -126,7 +134,7 @@ abstract class ContentApi[ContentType <: CsContent[_]](
       case Some((key, dblist)) => if (key == "$in") {
         if (dblist.isInstanceOf[BasicDBList]) {
           try {
-            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => contentCollectionService.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read).isSuccess))
+            if (dblist.asInstanceOf[BasicDBList].toArray.forall(coll => orgCollectionService.isAuthorized(organizationId, new ObjectId(coll.toString), Permission.Read)))
               Right(value)
             else Left(CorespringInternalError("attempted to access a collection that you are not authorized to"))
           } catch {

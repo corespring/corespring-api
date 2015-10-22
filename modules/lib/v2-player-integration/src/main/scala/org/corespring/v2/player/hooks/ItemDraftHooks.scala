@@ -4,13 +4,13 @@ import org.corespring.container.client.hooks.CoreItemHooks
 import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.client.{ hooks => containerHooks }
-import org.corespring.conversion.qti.transformers.{PlayerJsonToItem, ItemTransformer}
+import org.corespring.conversion.qti.transformers.{ PlayerJsonToItem, ItemTransformer }
 import org.corespring.drafts.errors.DraftError
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.{ ItemDrafts => DraftsBackend, MakeDraftId }
 import org.corespring.models.item.{ Item => ModelItem, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.CommitJson
 import org.corespring.v2.auth.LoadOrgAndOptions
@@ -34,7 +34,7 @@ trait DraftHelper {
 class ItemDraftHooks(
   backend: DraftsBackend,
   itemService: ItemService,
-  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
   transformer: ItemTransformer,
   jsonFormatting: JsonFormatting,
   getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
@@ -156,11 +156,6 @@ class ItemDraftHooks(
   def save(draftId: String, json: JsValue)(implicit h: RequestHeader): R[JsValue] = {
     update(draftId, json.as[JsObject], PlayerJsonToItem.wholeItem)
   }
-  //<<<<<<< HEAD
-  //    savePartOfPlayerDef(draftId, json.as[JsObject])
-  //
-  //  //DraftHook
-  //=======
 
   override def commit(id: String, force: Boolean)(implicit h: RequestHeader): R[JsValue] = Future {
     for {
@@ -173,7 +168,7 @@ class ItemDraftHooks(
 
   override def createItemAndDraft()(implicit h: RequestHeader): R[(String, String)] = Future {
     def mkItem(u: OrgAndUser) = {
-      orgService.defaultCollection(u.org.id).map { c =>
+      orgCollectionService.getDefaultCollection(u.org.id).toOption.map { c =>
         ModelItem(
           collectionId = c.toString,
           playerDefinition = Some(PlayerDefinition("")))

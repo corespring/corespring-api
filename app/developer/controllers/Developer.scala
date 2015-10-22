@@ -136,8 +136,8 @@ object Developer extends Controller with SecureSocial {
       }
 
       def createDefaultCollection(orgId: ObjectId) =
-        ServiceLookup.contentCollectionService.insertCollection(orgId,
-          ContentCollection(ContentCollection.Default, orgId), Permission.Write)
+        ServiceLookup.contentCollectionService.insertCollection(
+          ContentCollection(ContentCollection.Default, orgId))
 
       val validation: Validation[String, (Organization, ApiClient)] = for {
         user <- getUser(request.user.identityId).toSuccess("Unknown user")
@@ -156,27 +156,7 @@ object Developer extends Controller with SecureSocial {
         case Success((o, c)) => Ok(developer.views.html.org_credentials(c.clientId.toString, c.clientSecret, o.name))
       }
   }
-  /*
-   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
-    request =>
-      User.getUser(request.user.identityId) match {
-        case Some(user) => {
-          if (user.org.orgId == orgId) {
-            Organization.findOneById(orgId) match {
-              case Some(org) => {
-                OAuthProvider.createApiClient(org.id) match {
-                  case Right(client) => Ok(developer.views.html.org_credentials(client.clientId.toString, client.clientSecret, org.name))
-                  case Left(error) => BadRequest(Json.toJson(error))
-                }
-              }
-              case None => InternalServerError("could not find organization, after authentication. this should never occur")
-            }
-          } else Unauthorized(Json.toJson(ApiError.UnauthorizedOrganization))
-        }
-        case None => InternalServerError("could not find user...after authentication. something is very wrong")
-      }
-  }
-   */
+
   def getOrganizationCredentials(orgId: ObjectId) = SecuredAction {
     request =>
       getUser(request.user.identityId) match {

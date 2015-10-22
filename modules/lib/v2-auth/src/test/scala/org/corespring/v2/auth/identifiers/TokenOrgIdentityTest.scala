@@ -1,25 +1,21 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.models.{ User, Organization }
+import org.corespring.models.{ Organization, User }
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.AccessTokenService
 import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
-import org.corespring.v2.errors.Errors.{ noToken }
+import org.corespring.v2.errors.Errors.{ noToken, _ }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
-
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
-import org.corespring.v2.errors.Errors._
 
-import scalaz.{ Validation, Failure, Success }
+import scalaz.{ Failure, Success, Validation }
 
 class TokenOrgIdentityTest extends Specification with Mockito {
-
-  import org.mockito.Matchers._
 
   def mockOrg = {
     val m = mock[Organization]
@@ -42,7 +38,6 @@ class TokenOrgIdentityTest extends Specification with Mockito {
 
       lazy val orgService: OrganizationService = {
         val m = mock[OrganizationService]
-        m.defaultCollection(any[Organization]) returns defaultCollection
         m.findOneById(any[ObjectId]) returns org.toOption
         m
       }
