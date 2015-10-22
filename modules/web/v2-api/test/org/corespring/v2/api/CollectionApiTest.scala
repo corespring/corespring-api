@@ -37,12 +37,12 @@ class CollectionApiTest extends V2ApiSpec {
 
       m.ownsCollection(any[Organization], any[ObjectId]) returns Success(true)
 
-      m.enableCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
+      m.enableOrgAccessToCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
         val (_, collectionId) = toTuple[ObjectId, ObjectId](args)
         Success(ContentCollRef(collectionId, Permission.Read.value, true))
       }
 
-      m.disableCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
+      m.disableOrgAccessToCollection(any[ObjectId], any[ObjectId]) answers { (args, _) =>
         val (_, collectionId) = toTuple[ObjectId, ObjectId](args)
         Success(ContentCollRef(collectionId, Permission.Read.value, false))
       }
@@ -181,13 +181,13 @@ class CollectionApiTest extends V2ApiSpec {
       await(result)
     }
 
-    "call contentCollectionService.enableCollectionForOrg" in new setEnabledStatus {
-      there was one(orgCollectionService).enableCollection(orgId, collectionId)
+    "call contentCollectionService.enableOrgAccessToCollectionForOrg" in new setEnabledStatus {
+      there was one(orgCollectionService).enableOrgAccessToCollection(orgId, collectionId)
     }
 
-    "call contentCollectionService.disableCollectionForOrg" in new setEnabledStatus {
+    "call contentCollectionService.disableOrgAccessToCollectionForOrg" in new setEnabledStatus {
       override lazy val enabled = false
-      there was one(orgCollectionService).disableCollection(orgId, collectionId)
+      there was one(orgCollectionService).disableOrgAccessToCollection(orgId, collectionId)
     }
 
     "return the id of the updated collection" in new setEnabledStatus {

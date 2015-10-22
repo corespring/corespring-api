@@ -88,14 +88,20 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
   private def getCollectionIds(orgId: ObjectId, p: Permission): Seq[ObjectId] = getContentCollRefs(orgId, p).map(_.collectionId)
 
-  /** Enable this collection for this org */
-  override def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
+  override def enableOrgAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     toggleCollectionEnabled(orgId, collectionId, true)
   }
 
-  /** Enable the collection for the org */
-  override def disableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
+  override def disableOrgAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {
     toggleCollectionEnabled(orgId, collectionId, false)
+  }
+
+  private def toggleCollectionEnabled(orgId: ObjectId, collectionId: ObjectId, enabled: Boolean): Validation[PlatformServiceError, ContentCollRef] = {
+    val query = MongoDBObject(OrgKeys.id -> orgId, "contentcolls.collectionId" -> collectionId)
+    val update = MongoDBObject("$set" -> MongoDBObject("contentcolls.$.enabled" -> enabled))
+
+    val res = orgDao.update(query, update)
+    if (res.getN == 1) getCollRef(orgId, collectionId) else Failure(PlatformServiceError("Nothing updated"))
   }
 
   override def grantAccessToCollection(orgId: Imports.ObjectId, collId: Imports.ObjectId, p: Permission): Validation[PlatformServiceError, Organization] = {
@@ -176,14 +182,6 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
         Permission.fromLong(r.pval)
       }.getOrElse(publicPermission)
     }
-  }
-
-  private def toggleCollectionEnabled(orgId: ObjectId, collectionId: ObjectId, enabled: Boolean): Validation[PlatformServiceError, ContentCollRef] = {
-    val query = MongoDBObject(OrgKeys.id -> orgId, "contentcolls.collectionId" -> collectionId)
-    val update = MongoDBObject("$set" -> MongoDBObject("contentcolls.$.enabled" -> enabled))
-
-    val res = orgDao.update(query, update)
-    if (res.getN == 1) getCollRef(orgId, collectionId) else Failure(PlatformServiceError("Nothing updated"))
   }
 
   private def getCollRef(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef] = {

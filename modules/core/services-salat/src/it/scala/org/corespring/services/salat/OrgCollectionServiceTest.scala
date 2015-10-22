@@ -139,46 +139,45 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "enableCollection" should {
+  "enableOrgAccessToCollection" should {
     trait enable extends scope {
 
       override def before: Unit = {
-        service.disableCollection(org.id, collection.id)
+        service.disableOrgAccessToCollection(org.id, collection.id)
       }
     }
 
     "enable collection for org" in new enable {
-      service.enableCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, true))
+      service.enableOrgAccessToCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, true))
     }
 
     "fail if org does not exist" in new enable {
-      service.enableCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
+      service.enableOrgAccessToCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
     }
 
     "fail if collection does not exist" in new enable {
-      service.enableCollection(org.id, ObjectId.get) must_== Failure(_: PlatformServiceError)
+      service.enableOrgAccessToCollection(org.id, ObjectId.get) must_== Failure(_: PlatformServiceError)
     }
   }
 
-  //TODO How are using enabled?
-  "disableCollection" should {
+  "disableOrgAccessToCollection" should {
     trait disable extends scope {
 
       override def before: Unit = {
-        service.disableCollection(org.id, collection.id)
+        service.disableOrgAccessToCollection(org.id, collection.id)
       }
     }
 
     "disable collection for org" in new disable {
-      service.disableCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, false))
+      service.disableOrgAccessToCollection(org.id, collection.id) must_== Success(ContentCollRef(collection.id, Permission.Write.value, false))
     }
 
     "fail if org does not exist" in new disable {
-      service.disableCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
+      service.disableOrgAccessToCollection(ObjectId.get, collection.id) must_== Failure(_: PlatformServiceError)
     }
 
     "fail if collection does not exist" in new disable {
-      service.disableCollection(org.id, ObjectId.get) must_== Failure(_: PlatformServiceError)
+      service.disableOrgAccessToCollection(org.id, ObjectId.get) must_== Failure(_: PlatformServiceError)
     }
   }
 

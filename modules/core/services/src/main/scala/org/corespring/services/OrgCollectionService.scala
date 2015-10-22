@@ -20,12 +20,6 @@ trait OrgCollectionService {
 
   def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean]
 
-  /** Enable this collection for this org */
-  def enableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
-
-  /** Enable the collection for the org */
-  def disableCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
-
   def getCollections(orgId: ObjectId, p: Permission): Validation[PlatformServiceError, Seq[ContentCollection]]
 
   /**
@@ -45,6 +39,22 @@ trait OrgCollectionService {
   def getDefaultCollection(orgId: ObjectId): Validation[PlatformServiceError, ContentCollection]
 
   /**
+   * Give the given orgId the permission for the given collectionId.
+   * If a permission already exists, update it.
+   * If a permission is disabled enable it
+   * @return
+   */
+  def grantAccessToCollection(orgId: ObjectId, collectionId: ObjectId, p: Permission): Validation[PlatformServiceError, Organization]
+
+  /**
+   * Remove the given orgId's access to the given collectionId.
+   * @param orgId
+   * @param collectionId
+   * @return
+   */
+  def removeAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, Organization]
+
+  /**
    * remove all access to this collection, including the owner's access
    * //TODO: Check if removing owner's access is correct
    * @return
@@ -52,11 +62,15 @@ trait OrgCollectionService {
   def removeAllAccessToCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
 
   /**
-   * Give the given orgId the permission for the given collectionId.
-   * If a permission already exists, update it.
-   * @return
+   * Enable this org's access to this collection.
+   * If access hasn't been granted do nothing.
    */
-  def grantAccessToCollection(orgId: ObjectId, collectionId: ObjectId, p: Permission): Validation[PlatformServiceError, Organization]
-  def removeAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, Organization]
+  def enableOrgAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
+
+  /**
+   * Disable this org's access to this collection
+   * If access hasn't been granted do nothing.
+   */
+  def disableOrgAccessToCollection(orgId: ObjectId, collectionId: ObjectId): Validation[PlatformServiceError, ContentCollRef]
 
 }

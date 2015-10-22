@@ -116,9 +116,9 @@ class CollectionApi(
       logger.debug(s"[setEnabledStatus], collectionId=$collectionId, enabled=$enabled")
 
       val toggle: (ObjectId, ObjectId) => Validation[PlatformServiceError, ContentCollRef] = if (enabled) {
-        orgCollectionService.enableCollection
+        orgCollectionService.enableOrgAccessToCollection
       } else {
-        orgCollectionService.disableCollection
+        orgCollectionService.disableOrgAccessToCollection
       }
 
       val r = toggle(identity.org.id, collectionId).v2Error
