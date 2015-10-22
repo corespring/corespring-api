@@ -56,11 +56,19 @@ class ContentCollectionServiceIntegrationTest
 
       trait insertCollection extends scope {
         val newCollection = ContentCollection("child-org-col-2", childOrg.id, isPublic = false)
+        service.insertCollection(newCollection)
       }
 
-      "insert newCollection as enabled by default" in new insertCollection {
-        service.insertCollection(newCollection)
+      "newCollection can be found by id" in new insertCollection {
         service.findOneById(newCollection.id) must_== Some(newCollection)
+      }
+
+      "collection's org has write permission to the collection" in new insertCollection {
+        services.orgCollectionService.getPermission(childOrg.id, newCollection.id) must_== Some(Permission.Write)
+      }
+
+      "collection's org owns the collection" in new insertCollection {
+        services.orgCollectionService.ownsCollection(childOrg, newCollection.id) must_== Success(true)
       }
     }
 
@@ -72,19 +80,6 @@ class ContentCollectionServiceIntegrationTest
 
       "return 0 for collection with no items" in new scope {
         service.itemCount(readableCollection.id) must_== 0
-      }
-    }
-
-    "getDefaultCollection" should {
-
-      "return default collection" in new scope {
-        val collectionIds = Seq(readableCollection, writableCollection, defaultCollection).map(_.id)
-        service.getDefaultCollection(collectionIds) must_== Some(defaultCollection)
-      }
-
-      "return None" in new scope {
-        val collectionIds = Seq(readableCollection, writableCollection).map(_.id)
-        service.getDefaultCollection(collectionIds) must_== None
       }
     }
 

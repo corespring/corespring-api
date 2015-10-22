@@ -14,8 +14,6 @@ trait OrganizationService {
 
   def list(sk: Int = 0, l: Int = 0): Stream[Organization]
 
-  def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission]
-
   //TODO: Move to MetadataSetService
   def addMetadataSet(orgId: ObjectId, setId: ObjectId): Validation[String, MetadataSetRef]
 

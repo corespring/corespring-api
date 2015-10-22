@@ -12,20 +12,16 @@ trait ContentCollectionService {
 
   def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection]
 
-  def archiveCollectionId: ObjectId
-
-  def findByDbo(dbo: DBObject, fields: Option[DBObject] = None, sort: Option[DBObject] = None, skip: Int = 0, limit: Int = 0): Stream[ContentCollection]
-
-  def count(dbo: DBObject): Long
-
-  def findOneById(id: ObjectId): Option[ContentCollection]
-
   /**
    * Insert the new collection such that, the owner org has write access to it.
    * @param coll
    * @return
    */
   def insertCollection(coll: ContentCollection): Validation[PlatformServiceError, ContentCollection]
+
+  def archiveCollectionId: ObjectId
+
+  def findOneById(id: ObjectId): Option[ContentCollection]
 
   def update(id: ObjectId, update: ContentCollectionUpdate): Validation[PlatformServiceError, ContentCollection]
 
@@ -43,8 +39,5 @@ trait ContentCollectionService {
 
   /** How many items are associated with this collectionId */
   def itemCount(collectionId: ObjectId): Long
-
-  /** Get a default collection from the set of ids */
-  def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection]
 
 }

@@ -12,6 +12,7 @@ import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }
+import scalaz.Scalaz._
 
 object OrganizationService {
 
@@ -86,10 +87,10 @@ class OrganizationService(
    */
   override def insert(org: Organization, optParentId: Option[ObjectId]): Validation[PlatformServiceError, Organization] = {
 
-    def update(path: Seq[ObjectId]): Organization = {
+    def addPaths(paths: Seq[ObjectId]): Organization = {
       org.copy(
         id = org.id,
-        path = Seq(org.id) ++ path,
+        path = Seq(org.id) ++ paths,
         contentcolls = org.contentcolls ++ collectionService.getPublicCollections.map(cc => ContentCollRef(cc.id, Permission.Read.value)))
     }
 
@@ -102,25 +103,15 @@ class OrganizationService(
       }
     }.getOrElse(Seq.empty)
 
-    val updatedOrg = update(paths)
+    val orgWithPaths = addPaths(paths)
 
-    dao.insert(updatedOrg, dao.collection.writeConcern) match {
-      case Some(id) => {
-        logger.trace(s"function=insert, org=$updatedOrg, id=$id")
-        Success(updatedOrg)
-      }
-      case None => Failure(PlatformServiceError("error inserting organization"))
-    }
+    dao
+      .insert(orgWithPaths, dao.collection.writeConcern)
+      .toSuccess(PlatformServiceError("error inserting organization"))
+      .map(id => orgWithPaths.copy(id = id))
   }
 
-  override def findOneById(orgId: ObjectId): Option[Organization] = try {
-    dao.findOneById(orgId)
-  } catch {
-    case t: Throwable => {
-      t.printStackTrace()
-      throw t
-    }
-  }
+  override def findOneById(orgId: ObjectId): Option[Organization] = dao.findOneById(orgId)
 
   override def findOneByName(name: String): Option[Organization] = dao.findOne(MongoDBObject("name" -> name))
 
@@ -143,24 +134,6 @@ class OrganizationService(
       Success(())
     } catch {
       case e: SalatRemoveError => Failure(PlatformServiceError("failed to destroy organization tree", e))
-    }
-  }
-
-  override def getOrgPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]): Option[Permission] = {
-    itemService.collectionIdForItem(itemId).flatMap { collectionId =>
-      try {
-        orgCollectionService.getPermission(orgId, collectionId)
-      } catch {
-        case t: Throwable => {
-
-          if (logger.isDebugEnabled) {
-            t.printStackTrace()
-          }
-
-          logger.error(t.getMessage)
-          None
-        }
-      }
     }
   }
 

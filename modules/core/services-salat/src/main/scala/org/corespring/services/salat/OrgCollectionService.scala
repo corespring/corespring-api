@@ -152,7 +152,7 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
     orgDao.findOneById(orgId) match {
       case None => Failure(PlatformServiceError(s"Org not found $orgId"))
       case Some(org) => {
-        collectionService.getDefaultCollection(org.contentcolls.map(_.collectionId)) match {
+        findDefaultCollection(org.contentcolls.map(_.collectionId)) match {
           case Some(default) => Success(default)
           case None =>
             collectionService.insertCollection(
@@ -160,6 +160,12 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
         }
       }
     }
+  }
+
+  /** Get a default collection from the set of ids */
+  private def findDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] = {
+    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default")
+    collectionDao.findOne(query)
   }
 
   override def getPermission(orgId: ObjectId, collId: ObjectId): Option[Permission] = {

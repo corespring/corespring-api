@@ -25,6 +25,11 @@ class ContentCollectionService(
     val sharedInCollections = "sharedInCollections"
   }
 
+  override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
+    val collection = ContentCollection(name = name, ownerOrgId = org.id)
+    insertCollection(collection)
+  }
+
   override def insertCollection(collection: ContentCollection): Validation[PlatformServiceError, ContentCollection] = {
 
     def addCollectionToDb() = Validation.fromTryCatch {
@@ -39,10 +44,6 @@ class ContentCollectionService(
       _ <- orgCollectionService.grantAccessToCollection(collection.ownerOrgId, addedCollectionId, Permission.Write)
     } yield collection.copy(id = addedCollectionId)
   }
-
-  /** Get a default collection from the set of ids */
-  override def getDefaultCollection(collections: Seq[ObjectId]): Option[ContentCollection] =
-    dao.findOne(MongoDBObject("_id" -> MongoDBObject("$in" -> collections), "name" -> "default"))
 
   def isPublic(collectionId: ObjectId): Boolean = dao.findOneById(collectionId).exists(_.isPublic)
 
@@ -100,16 +101,5 @@ class ContentCollectionService(
   override def findOneById(id: ObjectId): Option[ContentCollection] = dao.findOneById(id)
 
   override def archiveCollectionId: ObjectId = archiveConfig.contentCollectionId
-
-  override def count(dbo: DBObject): Long = dao.count(dbo)
-
-  override def findByDbo(dbo: DBObject, fields: Option[DBObject] = None, sort: Option[DBObject], skip: Int, limit: Int): Stream[ContentCollection] = {
-    dao.find(dbo, fields.getOrElse(MongoDBObject.empty)).sort(sort.getOrElse(MongoDBObject.empty)).skip(skip).limit(limit).toStream
-  }
-
-  override def create(name: String, org: Organization): Validation[PlatformServiceError, ContentCollection] = {
-    val collection = ContentCollection(name = name, ownerOrgId = org.id)
-    insertCollection(collection)
-  }
 
 }

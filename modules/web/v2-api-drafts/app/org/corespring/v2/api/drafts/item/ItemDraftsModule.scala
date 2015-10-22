@@ -9,7 +9,7 @@ import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
 import org.corespring.drafts.item.{ ItemDraftAssets, ItemDrafts => DraftsBackend, S3ItemDraftAssets }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.OrganizationService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.api.drafts.item.json.ItemDraftJson
 import play.api.mvc.RequestHeader
@@ -21,6 +21,8 @@ trait ItemDraftsModule {
   def itemService: ItemService
 
   def orgService: OrganizationService
+
+  def orgCollectionService: OrgCollectionService
 
   def db: MongoDB
 
