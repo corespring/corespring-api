@@ -36,8 +36,6 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def saveNewUnpublishedVersion(id: VersionedId[ObjectId]): Option[VersionedId[ObjectId]]
 
-  def count(query: DBObject, fields: Option[String] = None): Long
-
   def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject]
 
   def currentVersion(id: VersionedId[ObjectId]): Long
@@ -55,6 +53,8 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
   /** Completely remove the item from the system. */
   def purge(id: VersionedId[ObjectId]): Validation[PlatformServiceError, VersionedId[ObjectId]]
 
+  def purge(item: Item): Validation[PlatformServiceError, VersionedId[ObjectId]]
+
   def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean]
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
@@ -63,7 +63,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def insert(i: Item): Option[VersionedId[ObjectId]]
 
-  def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item]
+  def findMultiple(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Seq[Item]
 
   def getQtiXml(id: VersionedId[ObjectId]): Option[Elem]
 

@@ -12,10 +12,6 @@ import org.corespring.services.salat.bootstrap.CollectionNames
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 
-/**
- * TODO: This helper is problematic because it violates the Law of Demeter by asking the ItemService for its underlying
- * collection. This creates a leaky abstraction, and so this should be refactored to use the collection directly.
- */
 object ItemHelper {
 
   val logger = Logger(ItemHelper.getClass)
@@ -43,10 +39,6 @@ object ItemHelper {
     itemService.findOneById(id)
   }
 
-  def publish(id: VersionedId[ObjectId]) = {
-    itemService.findOneById(id).map { item => itemService.save(item.copy(published = true)) }
-  }
-
   def create(collectionId: ObjectId, item: Item): VersionedId[ObjectId] = {
     itemService.insert(item.copy(collectionId = collectionId.toString)) match {
       case Some(versionedId) => {
@@ -56,27 +48,6 @@ object ItemHelper {
       case _ => throw new Exception("Error creating item")
     }
   }
-
-  def publish(query: DBObject) = {
-    println(s"[publish] query: ${JSON.serialize(query)}")
-    itemCollection.update(query, MongoDBObject("$set" -> MongoDBObject("published" -> true)), multi = true)
-    println(s"[publish] query count : ${itemService.count(query)}")
-    val result = itemService.find(query, MongoDBObject("published" -> 1)).toSeq.map(JSON.serialize(_)).mkString(",")
-    println(s"[publish] query result : $result")
-  }
-
-  def count(collectionIds: Option[Seq[ObjectId]] = None): Long = {
-    collectionIds match {
-      case Some(ids) =>
-        itemService.count(MongoDBObject("collectionId" -> MongoDBObject("$in" -> ids.map(_.toString))))
-      case _ => itemService.count(MongoDBObject())
-    }
-  }
-
-  /**
-   * Provides a count of all items in public collections
-   */
-  def publicCount: Long = count(Some(CollectionHelper.public))
 
   def delete(itemId: VersionedId[ObjectId]) = itemService.purge(itemId)
 

@@ -37,7 +37,4 @@ trait ContentCollectionService {
 
   def isPublic(collectionId: ObjectId): Boolean
 
-  /** How many items are associated with this collectionId */
-  def itemCount(collectionId: ObjectId): Long
-
 }

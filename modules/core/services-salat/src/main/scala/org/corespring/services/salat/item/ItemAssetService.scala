@@ -82,7 +82,7 @@ class ItemAssetService(copyAsset: (String, String) => Unit, deleteFn: (String) =
 
   /**
    * Given a newly versioned item, copy the files on s3 to the new storageKey
-   * and upate the file's storage key.
+   * and update the file's storage key.
    *
    * @return a Validation
    *         Failure -> a seq of files that were successfully cloned (to allow rollback)

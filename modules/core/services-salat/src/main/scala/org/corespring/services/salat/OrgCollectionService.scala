@@ -43,7 +43,7 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
         val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
 
         permission.map(p =>
-          CollectionInfo(c, collectionService.itemCount(c.id), orgId, p))
+          CollectionInfo(c, itemService.countItemsInCollection(c.id), orgId, p))
       }
   }
 

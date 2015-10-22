@@ -50,7 +50,7 @@ class ContentCollectionService(
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
 
-    val isEmptyCollection = itemCount(collId) match {
+    val isEmptyCollection = itemService.countItemsInCollection(collId) match {
       case 0 => Success()
       case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
     }
@@ -91,11 +91,6 @@ class ContentCollectionService(
     } catch {
       case e: SalatDAOUpdateError => Failure(PlatformServiceError("failed to update collection", e))
     }
-  }
-
-  /** How many items are associated with this collectionId */
-  override def itemCount(collectionId: ObjectId): Long = {
-    itemService.count(MongoDBObject("collectionId" -> collectionId.toString))
   }
 
   override def findOneById(id: ObjectId): Option[ContentCollection] = dao.findOneById(id)

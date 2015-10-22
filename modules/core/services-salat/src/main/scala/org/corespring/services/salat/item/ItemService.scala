@@ -1,18 +1,15 @@
 package org.corespring.services.salat.item
 
-import com.mongodb.casbah
-import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat._
 import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.{ ItemStandards, Item }
 import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
+import org.corespring.models.item.{ Item, ItemStandards }
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.errors._
@@ -58,9 +55,9 @@ class ItemService(
     }.getOrElse(base)
   }
 
-  override def asMetadataOnly(i: Item): DBObject = {
+  override def asMetadataOnly(item: Item): DBObject = {
     import com.novus.salat._
-    val timestamped = i.copy(dateModified = Some(new DateTime()))
+    val timestamped = item.copy(dateModified = Some(new DateTime()))
     val dbo: MongoDBObject = grater[Item].asDBObject(timestamped)
     dbo - "_id" - Keys.supportingMaterials - Keys.data - Keys.collectionId
   }
@@ -85,7 +82,7 @@ class ItemService(
     }
   }
 
-  override def count(query: DBObject, fields: Option[String] = None): Long = dao.countCurrent(baseQuery ++ query)
+  private def count(query: DBObject, fields: Option[String] = None): Long = dao.countCurrent(baseQuery ++ query)
 
   override def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
@@ -102,6 +99,10 @@ class ItemService(
     result.isRight
   }
 
+  override def purge(item: Item) = {
+    purge(item.id)
+  }
+
   override def purge(id: VersionedId[ObjectId]) = {
     dao.delete(id)
     Success(id)
@@ -109,8 +110,10 @@ class ItemService(
 
   override def addFileToPlayerDefinition(itemId: VersionedId[ObjectId], file: StoredFile): Validation[String, Boolean] = {
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(file)
-    val update = MongoDBObject("$addToSet" -> MongoDBObject("data.playerDefinition.files" -> dbo))
+    //TODO It was writing to data.playerDefinition before. Is that correct?
+    val update = MongoDBObject("$addToSet" -> MongoDBObject("playerDefinition.files" -> dbo))
     val result = dao.update(itemId, update, false)
+
     logger.trace(s"function=addFileToPlayerDefinition, itemId=$itemId, docsChanged=${result}")
     Validation.fromEither(result).map(id => true)
   }
@@ -119,7 +122,10 @@ class ItemService(
 
   import org.corespring.services.salat.ValidationUtils._
 
-  // three things occur here: 1. save the new item, 2. copy the old item's s3 files, 3. update the old item's stored files with the new s3 locations
+  // three things occur here:
+  // 1. save the new item,
+  // 2. copy the old item's s3 files,
+  // 3. update the old item's stored files with the new s3 locations
   // TODO if any of these three things fail, the database and s3 revert back to previous state
   override def save(item: Item, createNewVersion: Boolean = false): Validation[PlatformServiceError, VersionedId[ObjectId]] = {
 
@@ -155,10 +161,10 @@ class ItemService(
 
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
-  def findMultiple(ids: Seq[VersionedId[ObjectId]], keys: DBObject): Seq[Item] = {
+  def findMultiple(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Seq[Item] = {
     val oids = ids.map(i => i.id)
     val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
-    val out = dao.findCurrent(query, keys).toSeq
+    val out = dao.findCurrent(query, fields).toSeq
     out
   }
 
@@ -201,7 +207,7 @@ class ItemService(
     Some(archiveConfig.contentCollectionId.toString)
   }
 
-  override def isPublished(vid: VersionedId[casbah.Imports.ObjectId]): Boolean = {
+  override def isPublished(vid: VersionedId[ObjectId]): Boolean = {
     val dbo = vidToDbo(vid) ++ MongoDBObject("published" -> true)
     count(dbo) == 1
   }
@@ -270,13 +276,13 @@ class ItemService(
     dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
 
-  override def countItemsInCollection(collectionId: Imports.ObjectId): Long = {
+  override def countItemsInCollection(collectionId: ObjectId): Long = {
     dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
   }
 
-  override def collectionIdForItem(itemId: VersionedId[Imports.ObjectId]): Option[Imports.ObjectId] = {
-    dao.findDbo(itemId.copy(version = None),
-      MongoDBObject("collectionId" -> 1)).flatMap { dbo =>
+  override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
+    dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).flatMap {
+      dbo =>
         try {
           val idString = dbo.get("collectionId").asInstanceOf[String]
           Some(new ObjectId(idString))
@@ -288,10 +294,10 @@ class ItemService(
             logger.error(t.getMessage)
             None
         }
-      }
+    }
   }
 
-  override def findItemStandards(itemId: VersionedId[Imports.ObjectId]): Option[ItemStandards] = {
+  override def findItemStandards(itemId: VersionedId[ObjectId]): Option[ItemStandards] = {
     val fields = MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)
     for {
       dbo <- dao.findDbo(itemId, fields)

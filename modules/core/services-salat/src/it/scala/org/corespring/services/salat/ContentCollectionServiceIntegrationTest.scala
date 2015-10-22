@@ -72,17 +72,6 @@ class ContentCollectionServiceIntegrationTest
       }
     }
 
-    "itemCount" should {
-
-      "return 1 for collection with 1 item" in new scope {
-        service.itemCount(writableCollectionWithItem.id) must_== 1
-      }
-
-      "return 0 for collection with no items" in new scope {
-        service.itemCount(readableCollection.id) must_== 0
-      }
-    }
-
     "isPublic" should {
 
       "return true when collection is public" in new scope {
