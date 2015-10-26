@@ -1,10 +1,10 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
+import org.corespring.errors.{ ItemAuthorizationError, CollectionAuthorizationError, PlatformServiceError }
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ CollectionAuthorizationError, ItemAuthorizationError, PlatformServiceError }
 import org.specs2.specification.After
 
 import scalaz.{ Failure, Success, Validation }

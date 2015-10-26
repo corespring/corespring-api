@@ -72,7 +72,7 @@ object Main
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
-    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
+    org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
 
   //Old cms v1 controller
   lazy val showResource = new ShowResource(itemService, s3Service)
@@ -101,7 +101,8 @@ object Main
 
   override lazy val sessionDbConfig: SessionDbConfig = {
     val envName = if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None
-    new SessionDbConfig(envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
+    new SessionDbConfig(AppConfig.sessionService, AppConfig.sessionServiceUrl, AppConfig.sessionServiceAuthToken,
+      envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
   }
 
   override lazy val awsCredentials: AWSCredentials = new AWSCredentials {

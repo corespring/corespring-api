@@ -5,10 +5,10 @@ import com.novus.salat.dao.{ SalatDAO, SalatRemoveError }
 import com.novus.salat.{ Context, grater }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, MetadataSetRef, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 
 import scalaz.{ Failure, Success, Validation }

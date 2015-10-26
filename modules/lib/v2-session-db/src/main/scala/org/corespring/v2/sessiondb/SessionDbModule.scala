@@ -4,8 +4,11 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.mongodb.casbah.MongoDB
+import org.corespring.common.config.AppConfig
+import org.corespring.sessions.SessionServiceClient
 import org.corespring.v2.sessiondb.dynamo.{ DynamoSessionDbTableHelper, DynamoSessionService }
 import org.corespring.v2.sessiondb.mongo.MongoSessionService
+import org.corespring.v2.sessiondb.webservice.RemoteSessionService
 import play.api.Logger
 
 trait SessionDbModule {
@@ -23,10 +26,19 @@ trait SessionDbModule {
   private lazy val dynamoDB = new DynamoDB(dbClient)
 
   private def mkService(table: String) = {
-    if (sessionDbConfig.useDynamo) {
-      new DynamoSessionService(dynamoDB.getTable(table), dbClient)
-    } else {
-      new MongoSessionService(db(table))
+    sessionDbConfig.sessionService match {
+      case "remote" => {
+        import scala.concurrent.ExecutionContext.Implicits.global
+        val host = sessionDbConfig.sessionServiceUrl
+        val authToken = sessionDbConfig.sessionServiceAuthToken
+        val client = table.contains("preview") match {
+          case true => new SessionServiceClient(host = host, authToken = authToken, bucket = Some("preview"))
+          case _ => new SessionServiceClient(host = host, authToken = authToken, bucket = None)
+        }
+        new RemoteSessionService(client)
+      }
+      case "dynamo" => new DynamoSessionService(dynamoDB.getTable(table), dbClient)
+      case _ => new MongoSessionService(db(table))
     }
   }
 

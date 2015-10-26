@@ -1,20 +1,26 @@
 //a script that adds the calculator to the top of certain nc items
+//see comments at the bottom when you want to run it
 
 /* global db */
-
 function NcCalculatorAdder(doUpdateData, ignoredCollections) {
 
   doUpdateData = doUpdateData === true;
+  ignoredCollections = ignoredCollections || [];
 
   var self = this;
   self.run = run;
-  self.convertQti = convertQti; //for testing
+  self.convertQti = convertQti; //make public for easier testing
+
+  var backupCollection = 'content-task-77-backup-' + (new Date().getTime());
+  if(doUpdateData){
+    db.createCollection(backupCollection);
+  }
 
   //------------------------------------
 
-  function run(){
+  function run() {
     processItems("basic", findBasicCalculatorItems());
-    processItems("scientific", findScientificCalculatorItems());
+    //processItems("scientific", findScientificCalculatorItems());
   }
 
   function findBasicCalculatorItems() {
@@ -39,29 +45,33 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
     var updates = 0;
     var wasUpdatedAlready = 0;
     var count = items.count();
-
+    log("processItems: #items to process:" + count);
     items.forEach(updateItem);
-    log("processItems: items processed total:" + count + " updated: " + updates);
+    log("processItems: #items processed:" + updates);
 
     function updateItem(item) {
       var qti = getQti(item);
       if (!qti) {
         return;
       }
+
       var updatedQti = convertQti(qti, item, type);
       if (updatedQti) {
-        if(doUpdateData) {
-          db.content.update({
+        if (doUpdateData) {
+          var query = {
             "_id": item._id,
-            "data.files.name": "qti.xml",
-          }, {
+            "data.files.name": "qti.xml" //needed for the positional operator in the update
+          };
+          var update = {
             "$set": {
               "data.files.$.content": updatedQti
             },
             "$unset": {
               "playerDefinition": ""
             }
-          });
+          };
+          db[backupCollection].insert(item);
+          db.content.update(query, update);
         }
         updates++;
       }
@@ -74,11 +84,13 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
     var calculatorId = "automatically-inserted-calculator";
     var calculatorXhtml = "<csCalculator responseIdentifier=\"" + calculatorId + "\" type=\"" + type + "\"></csCalculator>";
 
-    qti = qti.replace(/You may use a calculator to answer this question\./, "");
-    qti = qti.replace(/<i><\/i>/, "");
+    qti = qti.replace(/<i>\s*You may use a calculator to answer this question\.\s*<\/i>/gi, "");
+    qti = qti.replace(/You may use a calculator to answer this question\./gi, "");
     qti = qti.replace(/<csCalculator.+\/csCalculator>/gi, "");
+
     if (qti.search(itemType1) >= 0) return qti.replace(itemType1, "<itemBody>" + calculatorXhtml);
     if (qti.search(itemType2) >= 0) return qti.replace(itemType2, "<div class=\"item-body\">" + calculatorXhtml);
+
     log("WARNING: Unexpected format of qti for item " + itemIdToString(item) + " qti:" + qti);
     return null;
   }
@@ -89,10 +101,14 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
         "$in": skillNumbers
       }
     };
-    if(ignoredCollections && ignoredCollections.length){
-      query.collectionId = {"$nin" : ignoredCollections};
+    if (ignoredCollections.length) {
+      query.collectionId = {
+        "$nin": ignoredCollections
+      };
     }
-    return db.content.find(query, {"data.files":1})
+    return db.content.find(query, {
+      "data.files": 1
+    })
   }
 
   function getQti(item) {
@@ -130,14 +146,22 @@ function NcCalculatorAdder(doUpdateData, ignoredCollections) {
     log("WARNING: could not find " + property + " for " + itemIdToString(item));
   }
 
-  function log(message) {
+  function log(message, json) {
     print(message);
-  }
+    if (json) {
+      printjson(json);
+    }
 
+  }
 }
 
-//pass in "true" to make it update  the data
-//pass in the ids of the collections that should be excluded, eg. the archive collection
-var processor = new NcCalculatorAdder(false, []);
-processor.run();
 
+//by default updates are disabled for safety reasons
+//pass in "true" to make it update the data
+//a backup of the original items is saved in content-task-77-backup-(current date in millis)
+
+//pass in the ids of the collections that should be excluded, eg. the archive collection
+var archiveColl = "500ecfc1036471f538f24bdc"; //same fore staging and prod
+var publicSiteSamplesColl = "541b00bd5966943aed30daf9"; //same fore staging and prod
+var processor = new NcCalculatorAdder(false, [archiveColl, publicSiteSamplesColl]);
+processor.run();

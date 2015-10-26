@@ -21,16 +21,21 @@ import scalaz.{ Failure, Success, Validation }
 
 class PlayerHooksTest extends V2PlayerIntegrationSpec {
 
+  sequential
+
   lazy val orgAndOpts = OrgAndOpts(mockOrg(), PlayerAccessSettings.ANYTHING, AuthMode.AccessToken, None)
 
   class defaultScope(orgAndOptsResult: Validation[V2Error, OrgAndOpts] = Success(orgAndOpts))
     extends Scope with StubJsonFormatting {
+    val collectionId = mockCollectionId()
+
+    val vid = VersionedId(ObjectId.get, Some(0))
 
     val itemService = mock[ItemService]
     val itemTransformer = {
       val m = mock[ItemTransformer]
-      m.loadItemAndUpdateV2(any[VersionedId[ObjectId]]) answers { (vid) =>
-        Some(Item(collectionId = mockCollectionId.toString, id = vid.asInstanceOf[VersionedId[ObjectId]], playerDefinition = Some(PlayerDefinition("hi"))))
+      m.loadItemAndUpdateV2(any[VersionedId[ObjectId]]) answers { (_) =>
+        Some(Item(collectionId = collectionId.toString, id = vid.asInstanceOf[VersionedId[ObjectId]], playerDefinition = Some(PlayerDefinition("hi"))))
       }
       m
     }
@@ -88,9 +93,14 @@ class PlayerHooksTest extends V2PlayerIntegrationSpec {
       "fail if itemTransformer fails to load the item" in pending
       "fail if create session fails" in pending
 
-      "return the session and item" in new createSessionScope() {
-        val versionedId = s"${ObjectId.get.toString}:0"
+      "calls sessionAuth.create with itemId and collectionId" in new createSessionScope() {
         val future = hooks.createSessionForItem(ObjectId.get.toString)(FakeRequest("", ""))
+        val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
+        there was one(sessionAuth).create(Json.obj("itemId" -> vid.toString, "collectionId" -> collectionId.toString))(orgAndOpts)
+      }
+
+      "return the session and item" in new createSessionScope() {
+        val future = hooks.createSessionForItem(vid.toString)(FakeRequest("", ""))
         val either = Await.result(future, Duration(1, TimeUnit.SECONDS))
         val (session, item) = either.right.get
         (session \ "id").asOpt[String] must beSome[String]

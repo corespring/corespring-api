@@ -1,8 +1,8 @@
 package org.corespring.services.item
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.item.FieldValue
-import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 

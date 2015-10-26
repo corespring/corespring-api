@@ -1,7 +1,7 @@
-package org.corespring.services.errors
+package org.corespring.errors
 
 import com.mongodb.casbah.Imports._
-import org.corespring.models.{ ContentCollRef, ContentCollection }
+import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.platform.data.mongo.models.VersionedId
 

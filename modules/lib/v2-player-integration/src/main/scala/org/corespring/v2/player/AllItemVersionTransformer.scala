@@ -5,10 +5,10 @@ import com.mongodb.util.JSON
 import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.conversion.qti.transformers.{ ItemTransformerConfig, ItemTransformer }
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.item.Item
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.services.item.{ BaseFindAndSaveService, ItemService }
 import org.corespring.services.{ ContentCollectionService, StandardService }
 import play.api.Logger

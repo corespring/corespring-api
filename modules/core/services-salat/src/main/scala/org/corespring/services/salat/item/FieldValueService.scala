@@ -4,8 +4,8 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import org.bson.types.ObjectId
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.item.FieldValue
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 

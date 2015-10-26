@@ -4,12 +4,12 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAOUpdateError
 import org.bson.types.ObjectId
+import org.corespring.errors.{ ItemUnShareError, PlatformServiceError }
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ ItemUnShareError, PlatformServiceError }
 import org.corespring.services.item.ItemService
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

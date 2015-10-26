@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
-import org.corespring.models.item.PlayerDefinition
+import org.corespring.models.item.{ Item, PlayerDefinition }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
@@ -12,13 +12,12 @@ import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.auth.{ LoadOrgAndOptions, SessionAuth }
 import org.corespring.v2.errors.Errors.{ cantParseItemId, generalError }
 import org.corespring.v2.errors.V2Error
-import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.http.Status._
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Future }
 import scalaz.Scalaz._
 import scalaz._
 
@@ -48,18 +47,26 @@ class PlayerHooks(
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
-    def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj("itemId" -> vid.toString)
+    def createSessionJson(item: Item) = Json.obj(
+      "itemId" -> item.id.toString,
+      "collectionId" -> item.collectionId)
+
+    lazy val getVid: Validation[V2Error, VersionedId[ObjectId]] = {
+      val withVersion: Option[VersionedId[ObjectId]] = VersionedId(itemId).map {
+        id =>
+          lazy val currentVersion: Long = itemService.currentVersion(id)
+          id.copy(version = id.version.orElse(Some(currentVersion)))
+      }
+      withVersion.toSuccess(cantParseItemId(itemId))
+    }
 
     val result = for {
       identity <- getOrgAndOptions(header)
       canWrite <- auth.canCreate(itemId)(identity)
       writeAllowed <- if (canWrite) Success(true) else Failure(generalError(s"Can't create session for $itemId"))
-      vid <- VersionedId(itemId).map(id => id.version match {
-        case Some(version) => id
-        case None => id.copy(version = Some(itemService.currentVersion(id)))
-      }).toSuccess(cantParseItemId(itemId))
+      vid <- getVid
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
-      json <- Success(createSessionJson(vid))
+      json <- Success(createSessionJson(item))
       sessionId <- auth.create(json)(identity)
     } yield (Json.obj("id" -> sessionId.toString) ++ json, Json.toJson(item.playerDefinition))
 

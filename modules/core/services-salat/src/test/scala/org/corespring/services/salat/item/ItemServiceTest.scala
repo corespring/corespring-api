@@ -1,9 +1,9 @@
 package org.corespring.services.salat.item
 
 import com.novus.salat.Context
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.platform.data.VersioningDao
-import org.corespring.services.errors.PlatformServiceError
 import org.specs2.mutable.Specification
 import org.bson.types.ObjectId
 import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }

@@ -3,11 +3,11 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatMongoCursor
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ Item, Content }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.item.BaseContentService
 
 import scalaz.Validation

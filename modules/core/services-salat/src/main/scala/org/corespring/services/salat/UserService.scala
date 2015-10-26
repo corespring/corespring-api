@@ -6,9 +6,9 @@ import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatMongoCursor, SalatRemoveError }
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User, UserOrg }
-import org.corespring.services.errors.PlatformServiceError
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 

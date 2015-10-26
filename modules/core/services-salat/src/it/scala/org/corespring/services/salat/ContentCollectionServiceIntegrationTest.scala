@@ -1,12 +1,12 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
+import org.corespring.errors.{ ItemAuthorizationError, CollectionAuthorizationError }
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.ContentCollectionUpdate
-import org.corespring.services.errors._
 import org.specs2.mutable._
 
 import scalaz.{ Validation, Failure, Success }

@@ -3,11 +3,11 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports._
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError }
+import org.corespring.errors.{ CollectionInsertError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.ContentCollectionUpdate
-import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 
 import scalaz.Scalaz._
