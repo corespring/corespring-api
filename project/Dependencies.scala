@@ -6,11 +6,13 @@ object Dependencies {
 
   //V2 Player
   val containerVersion = "0.53.0-SNAPSHOT"
+  val qtiVersion = "0.4"
 
   def toModule(name: String) = "org.corespring" %% name % containerVersion
 
   object ModuleConfigurations {
     val snapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolvers.corespringSnapshots)
+    val localSnapshots = ModuleConfiguration("org.corespring", "*", "^.*?-SNAPSHOT$", Resolver.defaultLocal)
     val releases = ModuleConfiguration("org.corespring", "*", "^0\\.\\d\\d$", Resolvers.corespringReleases)
   }
 
@@ -19,6 +21,9 @@ object Dependencies {
   val componentModel = toModule("component-model")
   val componentLoader = toModule("component-loader")
   val mongoJsonService = toModule("mongo-json-service")
+
+  val qti = "org.corespring" %% "corespring-qti" % qtiVersion
+  val qtiConverter = "org.corespring" %% "qti-corespring-converter" % qtiVersion
 
   val amapClient = "com.rabbitmq" % "amqp-client" % "3.0.2"
   val assetsLoader = ("com.ee" %% "assets-loader" % "0.12.5")
@@ -36,14 +41,21 @@ object Dependencies {
     .exclude("junit", "junit")
   val commonsIo = "commons-io" % "commons-io" % "2.4"
   val commonsLang = "org.apache.commons" % "commons-lang3" % "3.2.1"
-  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
+  val commonsCodec = "commons-codec" % "commons-codec" % "1.10"
+
   val corespringCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-95301ae"
   val externalCommonUtils = "org.corespring" %% "corespring-common-utils" % "0.1-d6b09c5"
+  val grizzledLog = "org.clapper" %% "grizzled-slf4j" % "1.0.2"
+  val httpClient = "commons-httpclient" % "commons-httpclient" % "3.1"
   val jbcrypt = "org.mindrot" % "jbcrypt" % "0.3m"
   val jodaTime = "joda-time" % "joda-time" % "2.2"
   val jodaConvert = "org.joda" % "joda-convert" % "1.2"
+  val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
+  val macWireMacro = "com.softwaremill.macwire" %% "macros" % "0.7.3"
+  val macWireRuntime = "com.softwaremill.macwire" %% "runtime" % "0.7.3"
   val mockito = "org.mockito" % "mockito-all" % "1.9.5" % "test"
   val mongoDbSeeder = "org.corespring" %% "mongo-db-seeder-lib" % "0.9-17eb3a8"
+  val playCache = "com.typesafe.play" %% "play-cache" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playFramework = "com.typesafe.play" %% "play" % playVersion
   val playJson = "com.typesafe.play" %% "play-json" % playVersion //exclude("org.scala-stm", "scala-stm_2.10.0")
   val playMemcached = "com.github.mumoshu" %% "play2-memcached" % "0.4.0"
@@ -55,17 +67,19 @@ object Dependencies {
   val rhino = "org.mozilla" % "rhino" % "1.7R4"
   val salat = "com.novus" %% "salat" % "1.9.4"
   val salatPlay = "se.radley" %% "play-plugins-salat" % "1.4.0"
-  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.18.0"
+  val salatVersioningDao = "org.corespring" %% "salat-versioning-dao" % "0.19.0-SNAPSHOT"
   val scalaFaker = "it.justwrote" %% "scala-faker" % "0.2"
   val scalaz = "org.scalaz" %% "scalaz-core" % "7.0.6"
   val securesocial = "org.corespring" %% "securesocial" % "master-22044d6"
   val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
-  val specs2 = "org.specs2" %% "specs2" % "2.1.1"
+  val specs2 = "org.specs2" %% "specs2" % "2.2.2" // "3.6.2"
+  //val specs2Mock = "org.specs2" %% "specs2-mock" % "2.2.2" //"3.6.2"
   val sprayCaching = "io.spray" %% "spray-caching" % "1.3.1"
   val simplecsv = "net.quux00.simplecsv" % "simplecsv" % "1.0"
   val jsonValidator = "com.github.fge" % "json-schema-validator" % "2.2.4"
   val elasticsearchPlayWS = ("org.corespring" %% "elasticsearch-play-ws" % "0.0.17-PLAY22").exclude("org.mongodb", "mongo-java-driver")
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
+  val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.3"
 
   object Resolvers {
 
@@ -83,7 +97,10 @@ object Dependencies {
     val justWrote = "justwrote" at "http://repo.justwrote.it/releases/"
     val ivyLocal = Resolver.file("ivyLocal", file(Path.userHome.absolutePath + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 
+    val scalazBintray = "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+
     val all: Seq[Resolver] = Seq(
+      scalazBintray,
       sonatypeSnapshots,
       typesafe,
       corespringSnapshots,

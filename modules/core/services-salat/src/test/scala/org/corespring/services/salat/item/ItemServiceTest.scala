@@ -1,0 +1,83 @@
+package org.corespring.services.salat.item
+
+import com.novus.salat.Context
+import org.corespring.errors.PlatformServiceError
+import org.corespring.models.appConfig.ArchiveConfig
+import org.corespring.platform.data.VersioningDao
+import org.specs2.mutable.Specification
+import org.bson.types.ObjectId
+import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
+import org.corespring.models.item.{ Item, ItemStandards, TaskInfo }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
+import org.specs2.matcher.MatchResult
+import org.specs2.mock.Mockito
+import org.specs2.specification.Scope
+
+import scalaz.{ Failure, Success, Validation }
+
+class ItemServiceTest extends Specification with Mockito {
+
+  "save" should {
+
+    trait save extends Scope {
+      def succeed: Boolean
+
+      protected def inc(v: VersionedId[ObjectId]): VersionedId[ObjectId] = v.copy(version = v.version.map(_ + 1))
+
+      val item = Item(collectionId = ObjectId.get.toString, id = VersionedId(ObjectId.get, Some(0)))
+
+      val dao = {
+        val m = mock[VersioningDao[Item, VersionedId[ObjectId]]]
+        m.save(any[Item], any[Boolean]) returns Right(inc(item.id))
+        m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
+        m
+      }
+
+      val assets = {
+        val m = mock[ItemAssetService]
+        m.cloneStoredFiles(any[Item], any[Item]).answers { (args, _) =>
+          {
+            val out: Validation[Seq[CloneFileResult], Item] = if (succeed) {
+              val arr = args.asInstanceOf[Array[Any]]
+              Success(arr(1).asInstanceOf[Item])
+            } else {
+              Failure(Seq.empty[CloneFileResult])
+            }
+            out
+          }
+        }
+        m
+      }
+      val orgCollectionService = {
+        val m = mock[OrgCollectionService]
+        m
+      }
+
+      val context = new Context {
+        override val name: String = "mock-context"
+      }
+
+      val archiveConfig = ArchiveConfig(ObjectId.get, ObjectId.get)
+
+      val itemService = new ItemService(dao, assets, orgCollectionService, context, archiveConfig)
+    }
+
+    "revert the version if a failure occurred when cloning stored files" in new save {
+      override def succeed = false
+      val result = itemService.save(item, true)
+      there was one(dao).save(any[Item], org.mockito.Matchers.eq(true))
+      there was one(dao).revertToVersion(item.id)
+      result must_== Failure(PlatformServiceError("Cloning of files failed"))
+    }
+
+    "update the version if no failure occurred when cloning stored files" in new save {
+      override def succeed = true
+      val result = itemService.save(item, true)
+      there was one(dao).save(any[Item], org.mockito.Matchers.eq(true))
+      there was no(dao).revertToVersion(item.id)
+      result must_== Success(inc(item.id))
+    }
+  }
+
+}

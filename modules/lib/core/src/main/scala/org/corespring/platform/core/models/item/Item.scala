@@ -2,10 +2,11 @@ package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ Domain, Standard }
-import org.corespring.platform.core.models.item.json.ContentView
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.models.json.{ ItemView, JsonValidationException }
+import org.corespring.models.item._
+import org.corespring.models.{ Domain, Standard }
+import org.corespring.models.item.json.ContentView
+import org.corespring.models.item.resource.Resource
+import org.corespring.models.json.{ ItemView, JsonValidationException }
 import org.corespring.platform.data.mongo.models.{ EntityWithVersionedId, VersionedId }
 import org.joda.time.DateTime
 import play.api.libs.json._
@@ -28,7 +29,7 @@ case class Item(
   var published: Boolean = false,
   var reviewsPassed: Seq[String] = Seq(),
   var reviewsPassedOther: Option[String] = None,
-  var sharedInCollections: Seq[String] = Seq(),
+  var sharedInCollections: Seq[ObjectId] = Seq(),
   var standards: Seq[String] = Seq(),
   var supportingMaterials: Seq[Resource] = Seq(),
   var taskInfo: Option[TaskInfo] = None,
@@ -58,7 +59,7 @@ case class Item(
 
 object Item {
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   object Dbo {
 
@@ -66,7 +67,7 @@ object Item {
     def asMetadataOnly(i: Item): DBObject = {
       import com.mongodb.casbah.commons.MongoDBObject
       import com.novus.salat._
-      import org.corespring.platform.core.models.item.Item.Keys._
+      import org.corespring.models.item.Item.Keys._
       val timestamped = i.copy(dateModified = Some(new DateTime()))
       val dbo: MongoDBObject = new MongoDBObject(grater[Item].asDBObject(timestamped))
       dbo - "_id" - supportingMaterials - data - collectionId
@@ -135,7 +136,7 @@ object Item {
 
   implicit object ItemFormat extends Format[Item] {
 
-    import org.corespring.platform.core.models.item.Item.Keys._
+    import org.corespring.models.item.Item.Keys._
 
     implicit val ItemViewWrites = ItemView.Writes
 
@@ -164,13 +165,13 @@ object Item {
         map(v => if (v.foldRight[Boolean](true)((g, acc) => fieldValues.gradeLevels.exists(_.key == g) && acc)) v else throw new JsonValidationException(priorGradeLevel)).getOrElse(Seq.empty)
       item.reviewsPassed = (json \ reviewsPassed).asOpt[Seq[String]].getOrElse(Seq.empty)
       item.reviewsPassedOther = (json \ reviewsPassedOther).asOpt[String]
-      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[String]].getOrElse(Seq.empty)
+      item.sharedInCollections = (json \ sharedInCollections).asOpt[Seq[ObjectId]].getOrElse(Seq.empty)
       item.standards = (json \ standards).asOpt[Seq[String]].getOrElse(Seq())
       item.data = (json \ data).asOpt[Resource]
       item.published = (json \ published).asOpt[Boolean].getOrElse(false)
 
       try {
-        import org.corespring.platform.core.models.versioning.VersionedIdImplicits.{ Reads => IdReads }
+        import org.corespring.models.versioning.VersionedIdImplicits.{ Reads => IdReads }
         item.id = (json \ id).asOpt[VersionedId[ObjectId]](IdReads).getOrElse(VersionedId(new ObjectId()))
       } catch {
         case e: Throwable => throw new JsonValidationException(id)

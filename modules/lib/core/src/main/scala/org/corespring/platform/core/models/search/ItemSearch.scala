@@ -1,13 +1,13 @@
 package org.corespring.platform.core.models.search
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.Item.Keys._
-import org.corespring.platform.core.models.{ Subject, Standard }
+import org.corespring.models.item._
+import org.corespring.models.item.Item.Keys._
+import org.corespring.models.{ Subject, Standard }
 import scala.Left
 import scala.Right
 import scala.Some
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 
 object ItemSearch extends Searchable {
 

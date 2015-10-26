@@ -2,7 +2,7 @@ package org.corespring.test.helpers.models
 
 import org.bson.types.ObjectId
 import scala.util.Random
-import org.corespring.platform.core.models.auth.AccessToken
+import org.corespring.models.auth.AccessToken
 
 object AccessTokenHelper {
 

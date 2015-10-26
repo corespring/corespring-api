@@ -1,0 +1,19 @@
+<!--
+This is an example logback configuration file.
+Copy this to logback-test.xml and the configuration will be used when you run
+the integration tests.
+-->
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder><pattern>%highlight(%.-1level) %boldYellow(%logger{30}) > %message%n%xException{5}</pattern></encoder>
+    </appender>
+
+    <logger name="org.corespring.services.salat" level="WARN" />
+    <logger name="org.corespring.services.salat.OrgCollectionService" level="TRACE" />
+    <logger name="org.corespring.services.salat.ServicesSalatIntegrationTest" level="WARN" />
+    <logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

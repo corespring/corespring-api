@@ -2,8 +2,8 @@ package org.corespring.dev.tools.controllers
 
 import com.mongodb.casbah.commons.MongoDBObject
 import org.corespring.dev.tools.DevTools
-import org.corespring.platform.core.models.auth.{ AccessToken, ApiClient }
-import org.corespring.platform.core.models.{ Organization => ModelOrg }
+import org.corespring.models.auth.{ AccessToken, ApiClient }
+import org.corespring.models.{ Organization => ModelOrg }
 import play.api.libs.json.{ JsArray, JsObject, Json }
 import play.api.mvc.{ Action, Controller }
 
@@ -21,7 +21,6 @@ object Organization extends Controller {
 
         val tokens = AccessToken.find(MongoDBObject("organization" -> o.id)).toSeq
         val json = Json.toJson(o)(ModelOrg.FullWrites).as[JsObject]
-
 
         json ++ Json.obj("apiClients" -> Json.toJson(JsArray(clients.map { c =>
           Json.obj(

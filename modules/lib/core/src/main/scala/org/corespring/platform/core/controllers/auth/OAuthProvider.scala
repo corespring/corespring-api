@@ -4,8 +4,9 @@ import com.novus.salat.dao.SalatSaveError
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
 import org.corespring.common.encryption.AESCrypto
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.auth.{ ApiClient, AccessToken }
+import org.corespring.models.Organization
+import org.corespring.models.auth.{ ApiClient, AccessToken }
+import org.corespring.web.api.v1.errors.ApiError
 import org.joda.time.DateTime
 import play.api.Logger
 import scala.Some
@@ -77,6 +78,7 @@ object OAuthProvider extends AuthTokenGenerating {
               val org = client.orgId
               val creationTime = DateTime.now()
               val token = AccessToken(org, scope, generateToken(), creationTime, creationTime.plusHours(24))
+
               AccessToken.insert(token) match {
                 case Some(_) => Right(token)
                 case None => Left(ApiError.OperationError)

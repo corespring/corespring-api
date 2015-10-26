@@ -1,11 +1,11 @@
 package org.corespring.lti.web.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.lti.models.{LtiAssessment, LtiQuestion}
+import org.corespring.lti.models.{ LtiAssessment, LtiQuestion }
 import org.corespring.lti.web.accessControl.cookies.LtiCookieKeys
 import org.corespring.lti.web.controllers
-import org.corespring.platform.core.models.Organization
-import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.models.Organization
+import org.corespring.models.itemSession.ItemSessionSettings
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.player.accessControl.cookies.PlayerCookieKeys
 import org.corespring.test.PlaySingleton
@@ -13,9 +13,9 @@ import org.specs2.mutable.Specification
 import play.api.libs.json.Json._
 import play.api.mvc.AnyContentAsJson
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.{ FakeHeaders, FakeRequest }
 
-class LaunchConfigTest extends Specification{
+class LaunchConfigTest extends Specification {
 
   PlaySingleton.start()
 
@@ -34,10 +34,10 @@ class LaunchConfigTest extends Specification{
     c
   }
 
-  private def get(assessment:LtiAssessment): LtiAssessment = {
+  private def get(assessment: LtiAssessment): LtiAssessment = {
     val action = LtiAssessments.get(assessment.id)
     val request = FakeRequest("ignore", "ignore")
-    val result = action(addSessionInfo(assessment,request))
+    val result = action(addSessionInfo(assessment, request))
     val json = parse(contentAsString(result))
     json.as[LtiAssessment]
     //callAndReturnModel(addSessionInfo(assessment,request))
@@ -46,15 +46,14 @@ class LaunchConfigTest extends Specification{
   private def addSessionInfo[A](assessment: LtiAssessment, r: FakeRequest[A]): FakeRequest[A] = {
     r.withSession(
       (LtiCookieKeys.ASSESSMENT_ID -> assessment.id.toString),
-      (PlayerCookieKeys.orgId -> assessment.orgId.get.toString)
-    )
+      (PlayerCookieKeys.orgId -> assessment.orgId.get.toString))
   }
 
   private def update(assessment: LtiAssessment): LtiAssessment = {
     val action = controllers.LtiAssessments.update(assessment.id)
     val jsValue = toJson(assessment)
     val request = FakeRequest("ignore", "ignore", FakeHeaders(), AnyContentAsJson(jsValue))
-    val result = action(addSessionInfo(assessment,request))
+    val result = action(addSessionInfo(assessment, request))
     val json = parse(contentAsString(result))
     json.as[LtiAssessment]
   }

@@ -1,28 +1,23 @@
 package developer.controllers
 
-import com.mongodb.casbah.commons.MongoDBObject
-import developer.models.RegistrationToken
+import org.corespring.legacy.ServiceLookup
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.{ UserOrg, User }
-import org.joda.time.DateTime
-import play.api.Application
+import org.corespring.models.auth.Permission
+import org.corespring.models.registration.RegistrationToken
+import org.corespring.models.{ UserOrg, User }
+import play.api.{ Logger, Application }
 import securesocial.core._
 import securesocial.core.providers.Token
 import securesocial.core.providers.utils.PasswordHasher
 
-/**
- * An implementation of the UserService
- */
-class CoreSpringUserService(application: Application) extends UserServicePlugin(application) with PackageLogging {
-
+class CoreSpringUserService(application: Application) extends UserServicePlugin(application) {
+  val logger = Logger(classOf[CoreSpringUserService])
   override def find(id: IdentityId): Option[SocialUser] = {
     // id.id has the username
     logger.debug("looking for %s(%s)".format(id.userId, id.providerId))
 
-    User.getUser(id) map {
+    ServiceLookup.userService.getUser(id.userId, id.providerId) map {
       u =>
 
         logger.debug(s"Found user: $u")
@@ -40,7 +35,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   override def save(user: Identity): Identity = {
-    User.getUser(user.identityId.userId, user.identityId.providerId) match {
+    ServiceLookup.userService.getUser(user.identityId.userId, user.identityId.providerId) match {
       case None => {
         val corespringUser =
           User(
@@ -54,12 +49,13 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
             user.identityId.providerId,
             new ObjectId())
 
-        User.insertUser(corespringUser, AppConfig.demoOrgId, Permission.Read, checkOrgId = false)
+        ServiceLookup.userService.insertUser(corespringUser)
         user
       }
       case Some(existingUser) => {
-        existingUser.password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password
-        User.save(existingUser)
+        val password = user.passwordInfo.getOrElse(PasswordInfo(hasher = PasswordHasher.BCryptHasher, password = "")).password
+        val withPassword = existingUser.copy(password = password)
+        ServiceLookup.userService.updateUser(withPassword)
         user
       }
     }
@@ -67,26 +63,22 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
 
   override def save(token: Token): Unit = {
     val newToken = RegistrationToken(token.uuid, token.email, Some(token.creationTime), Some(token.expirationTime), token.isSignUp)
-    RegistrationToken.insert(newToken)
+    ServiceLookup.registrationTokenService.createToken(newToken)
   }
 
-  override def findByEmailAndProvider(email: String, providerId: String) = User.findOne(MongoDBObject(User.email -> email)).map(CoreSpringUserService.toIdentity)
+  override def findByEmailAndProvider(email: String, providerId: String) = ServiceLookup.userService.getUserByEmail(email).map(CoreSpringUserService.toIdentity)
 
-  override def findToken(token: String) = {
-    RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> token)).map(regToken =>
+  override def findToken(uuid: String) = {
+    ServiceLookup.registrationTokenService.findTokenByUuid(uuid).map(regToken =>
       Token(regToken.uuid, regToken.email, regToken.creationTime.get, regToken.expirationTime.get, regToken.isSignUp))
   }
 
   override def deleteToken(uuid: String) {
-    RegistrationToken.findOne(MongoDBObject(RegistrationToken.Uuid -> uuid)) match {
-      case Some(regToken) => RegistrationToken.remove(regToken)
-      case _ => logger.info("No such token found")
-    }
+    ServiceLookup.registrationTokenService.deleteTokenUuid(uuid)
   }
 
   def deleteExpiredTokens(): Unit = {
-    val currentTime = new DateTime()
-    RegistrationToken.remove(MongoDBObject(RegistrationToken.Expires -> MongoDBObject("$lt" -> currentTime)))
+    ServiceLookup.registrationTokenService.deleteExpiredTokens()
   }
 }
 

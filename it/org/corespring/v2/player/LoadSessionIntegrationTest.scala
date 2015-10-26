@@ -1,12 +1,10 @@
 package org.corespring.v2.player
 
 import org.bson.types.ObjectId
-import org.corespring.common.config.SessionDbConfig
 import org.corespring.it.IntegrationSpecification
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.V2SessionHelper
+import org.corespring.it.helpers.SecureSocialHelper
+import org.corespring.it.scopes._
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.player.scopes._
 import play.api.http.{ ContentTypeOf, Writeable }
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
@@ -15,16 +13,14 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
 
   "when I load a session" should {
 
-
     "fail for unknown user" in new unknownIdentity_loadSession() {
       status(result) ==== UNAUTHORIZED
     }
 
-
     "work for logged in user" in new user_loadSession() {
+      println(contentAsString(result))
       status(result) ==== OK
     }
-
 
     "work for token" in new token_loadSession() {
       status(result) ==== OK
@@ -43,7 +39,6 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
       status(result) ==== OK
     }
 
-
   }
 
   trait loadSession extends { self: RequestBuilder with HasSessionId =>
@@ -59,18 +54,19 @@ class LoadSessionIntegrationTest extends IntegrationSpecification {
     }
   }
 
-  class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder {}
+  class unknownIdentity_loadSession extends loadSession with userWithItemAndSession with PlainRequestBuilder
 
-  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelpers {
-    override def collection = SessionDbConfig.previewSessionTable
+  class user_loadSession extends loadSession with userWithItemAndSession with SessionRequestBuilder with SecureSocialHelper {
+    override lazy val usePreview = true
   }
 
-  class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder {}
-  class clientId_loadSession(val playerToken: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId {
-    override lazy val sessionId: ObjectId = V2SessionHelper.create(itemId)
+  class token_loadSession extends loadSession with orgWithAccessTokenItemAndSession with TokenRequestBuilder
+
+  class clientId_loadSession(val playerToken: String, val skipDecryption: Boolean = true) extends loadSession with clientIdAndPlayerToken with IdAndPlayerTokenRequestBuilder with HasSessionId with WithV2SessionHelper {
+    override lazy val sessionId: ObjectId = v2SessionHelper.create(itemId)
 
     override def after = {
-      V2SessionHelper.delete(sessionId)
+      v2SessionHelper.delete(sessionId)
     }
   }
 

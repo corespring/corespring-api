@@ -1,19 +1,16 @@
 package web.views.helpers
 
 import org.apache.commons.lang3.StringEscapeUtils
+import org.corespring.models.Organization
 import play.api.templates.Html
-import play.api.libs.json.{ JsValue, Json }
-import org.corespring.platform.core.models.Organization
+import play.api.libs.json.{ Writes }
+import play.api.libs.json.Json._
 
-object MainHelper {
+trait MainHelper {
 
-  def safeXml(s: String) = {
-    import StringEscapeUtils._
-    Html { escapeEcmaScript(s) }
-  }
+  implicit def writeOrg: Writes[Organization]
 
-  def toFullJson(org: Organization): Html = {
-    val jsonOrg: JsValue = Organization.FullWrites.writes(org)
-    Html(Json.stringify(Json.toJson(jsonOrg)))
-  }
+  def safeXml(s: String) = Html(StringEscapeUtils.escapeEcmaScript(s))
+
+  def toFullJson(org: Organization) = Html(stringify(toJson(org)))
 }

@@ -2,8 +2,8 @@ package org.corespring.test
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.ShaHash
-import org.corespring.platform.core.models.auth.{ Permission, AccessToken, OAuthConstants }
-import org.corespring.platform.core.models.{ User, Organization, ContentCollection }
+import org.corespring.models.auth.{ Permission, AccessToken, OAuthConstants }
+import org.corespring.models.{ User, Organization, ContentCollection }
 import org.joda.time.DateTime
 import org.specs2.execute.Failure
 import org.specs2.execute.Result
@@ -84,7 +84,6 @@ trait TestModelHelpers extends ClassLogging {
   def testUser = new User("testoplenty")
 
   def testOrg = new Organization("test")
-
 
   def tokenFormBody(id: String, secret: String, username: String, grantType: Option[String] = None): Array[(String, String)] = {
     val signature = ShaHash.sign(

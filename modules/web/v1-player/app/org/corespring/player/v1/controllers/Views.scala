@@ -3,7 +3,7 @@ package org.corespring.player.v1.controllers
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.QtiResource
 import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.models.itemSession.DefaultItemSession
+import org.corespring.models.itemSession.DefaultItemSession
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.core.services.item.{ ItemServiceClient, ItemService }

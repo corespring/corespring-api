@@ -1,10 +1,10 @@
 package org.corespring.v2.player
 
-import org.corespring.container.client.controllers.PlayerLauncher
+import org.corespring.container.client.controllers.launcher.player.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
+import org.corespring.it.scopes.{ IdAndPlayerTokenRequestBuilder, clientIdAndPlayerToken, RequestBuilder, HasItemId }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity
 import org.corespring.v2.auth.models.PlayerAccessSettings
-import org.corespring.v2.player.scopes.{ HasItemId, IdAndPlayerTokenRequestBuilder, RequestBuilder, clientIdAndPlayerToken }
 import org.corespring.v2.warnings.Warnings.deprecatedQueryStringParameter
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -64,7 +64,14 @@ class LoadPlayerJsIntegrationTest extends IntegrationSpecification {
     }
   }
 
-  class queryString_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndPlayerTokenRequestBuilder {}
-  class queryStringWithOptions_loadJs(val playerToken: String, val skipDecryption: Boolean = true) extends clientIdAndPlayerToken with HasPlayerJsResult with IdAndOptionsRequestBuilder {}
+  class queryString_loadJs(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with HasPlayerJsResult
+    with IdAndPlayerTokenRequestBuilder
+
+  class queryStringWithOptions_loadJs(val playerToken: String, val skipDecryption: Boolean = true)
+    extends clientIdAndPlayerToken
+    with HasPlayerJsResult
+    with IdAndOptionsRequestBuilder
 
 }

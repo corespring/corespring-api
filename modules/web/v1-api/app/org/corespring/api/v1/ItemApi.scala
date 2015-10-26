@@ -3,27 +3,27 @@ package org.corespring.api.v1
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
 import com.mongodb.util.JSONParseException
+import com.novus.salat.Context
 import com.novus.salat.dao.SalatInsertError
 import org.bson.types.ObjectId
-import org.corespring.api.v1.errors.ApiError
-import org.corespring.assets.{ CorespringS3Service, CorespringS3ServiceExtended }
-import org.corespring.common.log.{ClassLogging, PackageLogging}
-import org.corespring.platform.core.controllers.auth.ApiRequest
-import org.corespring.platform.core.models._
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item._
-import org.corespring.platform.core.models.item.resource.StoredFile
-import org.corespring.platform.core.models.json.ItemView
+import org.corespring.amazon.s3.S3Service
+import org.corespring.assets.{ CorespringS3Service }
+import org.corespring.common.log.{ ClassLogging }
+import org.corespring.conversion.qti.transformers.ItemTransformer
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.json.JsonFormatting
+import org.corespring.platform.core.controllers.auth.{ OAuthProvider, ApiRequest }
 import org.corespring.platform.core.models.search.SearchFields
-import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
-import org.corespring.platform.core.services.metadata.{ MetadataSetService, MetadataSetServiceImpl }
-import org.corespring.platform.core.services.organization.OrganizationService
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.qtiToV2.transformers.ItemTransformer
-import play.api.{ Configuration, Play }
+import org.corespring.services.{ OrgCollectionService, OrganizationService, ContentCollectionService }
+import org.corespring.services.item.ItemService
+import org.corespring.services.metadata.MetadataSetService
+import org.corespring.v2.sessiondb.{ SessionServices }
+import org.corespring.web.api.v1.errors.ApiError
 import play.api.libs.json.Json._
 import play.api.libs.json.{ JsNumber, JsObject, JsString, _ }
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ SimpleResult, Action, AnyContent, Result }
 
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, _ }
@@ -32,22 +32,32 @@ import scalaz.{ Failure, Success, _ }
  * Items API
  * //TODO: Look at ways of tidying this class up, there are too many mixed activities going on.
  */
-class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetService: MetadataSetService)
-  extends ContentApi[Item](service)(ItemView.Writes) with ClassLogging {
+class ItemApi(
+  v2ItemApi: org.corespring.v2.api.ItemApi,
+  s3service: S3Service,
+  service: ItemService,
+  salatService: SalatContentService[Item, _],
+  metadataSetService: MetadataSetService,
+  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
+  sessionServices: SessionServices,
+  itemTransformer: ItemTransformer,
+  jsonFormatting: JsonFormatting,
+  val oAuthProvider: OAuthProvider,
+  override implicit val context: Context)
+  extends ContentApi[Item](
+    salatService,
+    orgService,
+    orgCollectionService,
+    context,
+    ItemView.Writes) {
 
-  import org.corespring.platform.core.models.item.Item.Keys._
-  import org.corespring.platform.core.models.mongoContext.context
-
-  val itemTransformer = new ItemTransformer {
-    override def itemService: ItemService = service
-    override def configuration: Configuration = Play.current.configuration
-    override def findCollection(id:ObjectId) = ContentCollection.findOneById(id)
-  }
+  import jsonFormatting.item
 
   def listWithOrg(orgId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
-      if (Organization.getTree(request.ctx.organization).exists(_.id == orgId)) {
-        val collections = ContentCollection.getCollectionIds(orgId, Permission.Read)
+      if (orgService.getTree(request.ctx.orgId).exists(_.id == orgId)) {
+        val collections = getCollectionIds(orgId, Permission.Read)
         val jsonBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
         contentList(q, f, sk, l, sort, collections, true, jsonBuilder) match {
           case Left(apiError) => BadRequest(toJson(apiError))
@@ -58,7 +68,7 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
 
   def listWithColl(collId: ObjectId, q: Option[String], f: Option[String], c: String, sk: Int, l: Int, sort: Option[String]) = ApiAction {
     implicit request =>
-      if (ContentCollection.isAuthorized(request.ctx.organization, collId, Permission.Read)) {
+      if (orgCollectionService.isAuthorized(request.ctx.orgId, collId, Permission.Read)) {
         val jsBuilder = if (c == "true") countOnlyJson _ else contentOnlyJson _
         contentList(q, f, sk, l, sort, Seq(collId), true, jsBuilder) match {
           case Left(apiError) =>
@@ -75,20 +85,24 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       for {
         json <- request.body.asJson.toSuccess("No json in request body")
         item <- json.asOpt[Item].toSuccess("Bad json format - can't parse")
-        dbitem <- service.findOneById(id).toSuccess("no item found for the given id")
-        validatedItem <- validateItem(dbitem, item).toSuccess("Invalid data")
-        savedResult <- saveItem(validatedItem, dbitem.published && (service.sessionCount(dbitem) > 0)).toSuccess("Error saving item")
+        dbItem <- service.findOneById(id).toSuccess("no item found for the given id")
+        validatedItem <- validateItem(dbItem, item).toSuccess("Invalid data")
+        savedResult <- saveItem(validatedItem, dbItem.published && (sessionCount(dbItem) > 0)).toSuccess("Error saving item")
         withV2DataItem <- Success(itemTransformer.updateV2Json(savedResult))
       } yield {
         withV2DataItem
       }
   }
 
+  private def sessionCount(item: Item): Long = {
+    sessionServices.main.sessionCount(item.id)
+  }
+
   def countSessions(id: VersionedId[ObjectId]) = ApiAction {
     request =>
       val c = for {
         item <- service.findOneById(id).toSuccess("Can't find item")
-      } yield service.sessionCount(item)
+      } yield sessionCount(item)
       c match {
         case Success(_) => Ok(JsObject(Seq("sessionCount" -> JsNumber(c.toOption.get))))
         case _ => BadRequest
@@ -109,29 +123,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
       collectionId = if (item.collectionId.isEmpty) dbItem.collectionId else item.collectionId,
       taskInfo = item.taskInfo.map(_.copy(extended = dbItem.taskInfo.getOrElse(TaskInfo()).extended)) //
       )
-    addStorageKeysToItem(dbItem, item)
+    //Note: this is being disabled but it wasn't doing anything useful in the develop branch
+    //addStorageKeysToItem(dbItem, item)
     Some(itemCopy)
-  }
-
-  /**
-   * TODO: Remove code duplication here..
-   * add storage keys to item before update
-   * @param dbItem
-   * @param item
-   */
-  private def addStorageKeysToItem(dbItem: Item, item: Item) = {
-    val itemsf: Seq[StoredFile] =
-      item.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
-        item.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
-    val dbitemsf: Seq[StoredFile] =
-      dbItem.data.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).getOrElse(Seq()) ++
-        dbItem.supportingMaterials.map(r => r.files.filter(_.isInstanceOf[StoredFile]).map(_.asInstanceOf[StoredFile])).flatten
-    itemsf.foreach(sf => {
-      dbitemsf.find(_.name == sf.name) match {
-        case Some(dbsf) => sf.storageKey = dbsf.storageKey
-        case None => logger.warn("addStorageKeysToItem: no db storage key found")
-      }
-    })
   }
 
   /**
@@ -147,8 +141,8 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
     request =>
 
       val fields = detail.map { d =>
-        if (d == "detailed") getFieldsDbo(false, request.ctx.isLoggedIn, Seq(data)) else getFieldsDbo(true, request.ctx.isLoggedIn)
-      }.getOrElse(getFieldsDbo(true, request.ctx.isLoggedIn))
+        if (d == "detailed") getFieldsDbo(false, request.ctx.isLoggedInUser, Seq(Item.Keys.data)) else getFieldsDbo(true, request.ctx.isLoggedInUser)
+      }.getOrElse(getFieldsDbo(true, request.ctx.isLoggedInUser))
 
       logger.debug("[ItemApi.get] fields: " + fields)
 
@@ -184,10 +178,10 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   private def ItemApiAction(id: VersionedId[ObjectId], p: Permission)(block: ApiRequest[AnyContent] => Result): Action[AnyContent] =
     ApiAction {
       request =>
-        if (Content.isAuthorized(request.ctx.organization, id, p)) {
+        if (service.isAuthorized(request.ctx.orgId, id, p).isSuccess) {
           block(request)
         } else {
-          val orgName = Organization.findOneById(request.ctx.organization).map(_.name).getOrElse("unknown org")
+          val orgName = request.ctx.org.name
           val message = "Access forbidden for org: " + orgName
           Forbidden(JsObject(Seq("message" -> JsString(message))))
         }
@@ -206,28 +200,18 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   /**
    * Deletes the item matching the id specified
    */
-  def delete(id: VersionedId[ObjectId]) = ApiAction {
-    request =>
-      service.findFieldsById(id, MongoDBObject(collectionId -> 1)) match {
-        case Some(dbObject) => dbObject.get(collectionId) match {
-          case collId: String => if (Content.isCollectionAuthorized(request.ctx.organization, Some(collId), Permission.Write)) {
-            Content.moveToArchive(id) match {
-              case Right(_) => Ok(com.mongodb.util.JSON.serialize(dbObject))
-              case Left(error) => InternalServerError(toJson(ApiError.Item.Delete(error.clientOutput)))
-            }
-          } else {
-            Forbidden
-          }
-          case _ => Forbidden
-        }
-        case _ => NotFound
-      }
-  }
+  def delete(id: VersionedId[ObjectId]) = v2ItemApi.delete(id.toString)
 
   private def itemFromJson(json: JsValue): Item = {
     json.asOpt[Item].getOrElse {
       throw new Exception("TODO 2.1.1 upgrade- handle this correctly")
     }
+  }
+
+  private def isCollectionAuthorized(orgId: ObjectId, collectionId: String, p: Permission): Boolean = {
+    val ids = getCollectionIds(orgId, p)
+    logger.debug(s"function=isCollectionAuthorized, orgId=$orgId, ids=$ids, collectionId=$collectionId")
+    ids.exists(_.toString == id)
   }
 
   def create = ApiAction {
@@ -238,19 +222,19 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
             if ((json \ "id").asOpt[String].isDefined) {
               BadRequest(toJson(ApiError.IdNotNeeded))
             } else {
-              val i = itemFromJson(json)
-              if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
-                Organization.getDefaultCollection(request.ctx.organization) match {
+
+              def withCollectionId(i: Item): Item = if (i.collectionId.isEmpty && request.ctx.permission.has(Permission.Write)) {
+                orgCollectionService.getDefaultCollection(request.ctx.orgId).toEither match {
                   case Right(default) => {
-                    i.collectionId = Option(default.id.toString)
-                    service.insert(i) match {
-                      case Some(_) => Ok(toJson(i))
-                      case None => InternalServerError(toJson(ApiError.CantSave))
-                    }
+                    i.copy(collectionId = default.id.toString)
                   }
-                  case Left(error) => InternalServerError(toJson(ApiError.CantSave(error.clientOutput)))
+                  case Left(error) => i
                 }
-              } else if (Content.isCollectionAuthorized(request.ctx.organization, i.collectionId, Permission.Write)) {
+              } else i
+
+              val i = withCollectionId(itemFromJson(json))
+
+              if (isCollectionAuthorized(request.ctx.orgId, i.collectionId, Permission.Write)) {
                 service.insert(i) match {
                   case Some(_) => Ok(toJson(i))
                   case None => InternalServerError(toJson(ApiError.CantSave))
@@ -292,9 +276,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
                     case Some(m) => m._2.put(key, value.get)
                     case None => taskInfo.extended.put(metadataKey, new BasicDBObject(key, value.get))
                   }
-                  item.taskInfo = Some(taskInfo)
-                  service.save(item, false)
-                  Ok(TaskInfo.extendedAsJson(taskInfo.extended))
+                  service.save(item.copy(taskInfo = Some(taskInfo)), false)
+                  val json = jsonFormatting.formatTaskInfo.extendedAsJson(taskInfo.extended)
+                  Ok(json)
                 } else BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you are attempting to add a property that does not match the set schema"))))
               }
               case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
@@ -318,9 +302,9 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
                 if (ms.schema.isEmpty || ms.schema.forall(sm => mutableMap.contains(sm.key))) {
                   val taskInfo: TaskInfo = item.taskInfo.getOrElse(TaskInfo())
                   taskInfo.extended.put(property, new BasicDBObject(mutableMap))
-                  item.taskInfo = Some(taskInfo)
-                  service.save(item, false)
-                  Ok(TaskInfo.extendedAsJson(taskInfo.extended))
+                  service.save(item.copy(taskInfo = Some(taskInfo)), false)
+                  val json = jsonFormatting.formatTaskInfo.extendedAsJson(taskInfo.extended)
+                  Ok(json)
                 } else BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("you are attempting to add a property that does not match the set schema"))))
               }
               case None => BadRequest(Json.toJson(ApiError.MetadataNotFound(Some("specified set was not found"))))
@@ -389,14 +373,4 @@ class ItemApi(s3service: CorespringS3Service, service: ItemService, metadataSetS
   }
 
 }
-object dependencies {
-
-  val metadataSetService: MetadataSetServiceImpl = new MetadataSetServiceImpl {
-    def orgService: OrganizationService = new OrganizationImpl {
-      def metadataSetService: MetadataSetServiceImpl = dependencies.metadataSetService
-    }
-  }
-}
-
-object ItemApi extends ItemApi(CorespringS3ServiceExtended, ItemServiceWired, dependencies.metadataSetService)
 

@@ -40,7 +40,7 @@ object FieldValue extends ModelCompanion[FieldValue, ObjectId] {
 
   val collection = mongoCollection("fieldValues")(play.api.Play.current)
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
   val dao = new SalatDAO[FieldValue, ObjectId](collection = collection) {}
 
   val CurrentVersion = "0.0.1"

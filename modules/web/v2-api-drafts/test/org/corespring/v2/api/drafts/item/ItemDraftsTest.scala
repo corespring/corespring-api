@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors.{ GeneralError, DeleteDraftFailed, SaveCommitFailed, DraftError }
 import org.corespring.drafts.item
 import org.corespring.drafts.item.models._
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.test.PlaySingleton
 import org.joda.time.DateTime

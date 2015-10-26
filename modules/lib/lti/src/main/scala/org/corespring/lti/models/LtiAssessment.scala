@@ -4,13 +4,13 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao._
 import org.bson.types.ObjectId
 import org.corespring.api.v1.errors.ApiError
-import org.corespring.platform.core.models.assessment.{BaseAssessment, BaseParticipant, BaseQuestion}
-import org.corespring.platform.core.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.models.assessment.{ BaseAssessment, BaseParticipant, BaseQuestion }
+import org.corespring.models.itemSession.{ ItemSessionSettings, DefaultItemSession, ItemSession }
+import org.corespring.models.versioning.VersionedIdImplicits
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Play.current
 import play.api.libs.json._
-import scala.{Boolean, Left, Right, Some}
+import scala.{ Boolean, Left, Right, Some }
 import se.radley.plugin.salat._
 
 case class LtiQuestion(itemId: Option[VersionedId[ObjectId]],
@@ -106,7 +106,7 @@ object LtiAssessment {
   private object Dao extends ModelCompanion[LtiAssessment, ObjectId] {
     val collection = mongoCollection("lti_quizzes")
 
-    import org.corespring.platform.core.models.mongoContext.context
+    import org.corespring.models.mongoContext.context
 
     val dao = new SalatDAO[LtiAssessment, ObjectId](collection = collection) {}
   }

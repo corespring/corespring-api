@@ -1,7 +1,7 @@
 package org.corespring.scorm.export
 
 import java.io._
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.scorm.models.Builder
 import org.corespring.scorm.models.Builder.Config
 import org.corespring.scorm.models.extractors.RemoteItemRunnerTemplate

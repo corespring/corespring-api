@@ -1,6 +1,6 @@
 package org.corespring.platform.core.controllers.auth
 
-import org.corespring.platform.core.models.User
+import org.corespring.models.User
 import org.corespring.platform.core.services.UserService
 import play.api.mvc.RequestHeader
 

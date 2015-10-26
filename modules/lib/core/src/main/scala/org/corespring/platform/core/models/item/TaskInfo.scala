@@ -1,19 +1,19 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models._
+import org.corespring.models._
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import scala.collection.mutable.Map
 
 case class TaskInfo(extended: Map[String, BasicDBObject] = Map(),
-    subjects: Option[Subjects] = None,
-    gradeLevel: Seq[String] = Seq(),
-    title: Option[String] = None,
-    description: Option[String] = None,
-    itemType: Option[String] = None,
-    domains: Set[String] = Set()) {
+  subjects: Option[Subjects] = None,
+  gradeLevel: Seq[String] = Seq(),
+  title: Option[String] = None,
+  description: Option[String] = None,
+  itemType: Option[String] = None,
+  domains: Set[String] = Set()) {
 
   def cloneInfo(titlePrefix: String): TaskInfo = {
     require(titlePrefix != null)

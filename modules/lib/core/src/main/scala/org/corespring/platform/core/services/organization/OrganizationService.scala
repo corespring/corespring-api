@@ -2,9 +2,9 @@ package org.corespring.platform.core.services.organization
 
 import org.bson.types.ObjectId
 import org.corespring.platform.core.services.metadata.MetadataSetServiceImpl
-import org.corespring.platform.core.models.{ ContentCollection, Organization, MetadataSetRef }
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.{ ContentCollection, Organization, MetadataSetRef }
+import org.corespring.models.auth.Permission
+import org.corespring.models.error.CorespringInternalError
 
 trait OrganizationService {
 

@@ -1,6 +1,6 @@
 package org.corespring.test.helpers.models
 
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.models.auth.ApiClient
 import org.bson.types.ObjectId
 import org.corespring.platform.core.controllers.auth.AuthTokenGenerating
 

@@ -1,8 +1,8 @@
 package org.corespring.test
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.services.item.{ItemService, ItemServiceWired}
+import org.corespring.models.item.Item
+import org.corespring.platform.core.services.item.{ ItemService, ItemServiceWired }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mutable.Specification
 import play.api.libs.json._
@@ -35,7 +35,7 @@ trait BaseTest extends Specification with Assertions {
 
   implicit def resultToResultHelper(result: Future[SimpleResult]) = new ResultHelper(result)
 
-  def tokenize(url: String, tkn: String = token): String = if(url.contains("?")) url+"&access_token="+tkn else url + "?access_token=" + tkn
+  def tokenize(url: String, tkn: String = token): String = if (url.contains("?")) url + "&access_token=" + tkn else url + "?access_token=" + tkn
 
   def tokenFakeRequest[A](method: String, uri: String, headers: FakeHeaders = FakeHeaders(), body: A = AnyContentAsText("")): FakeRequest[A] = {
     FakeRequest(method, tokenize(uri), headers, body)

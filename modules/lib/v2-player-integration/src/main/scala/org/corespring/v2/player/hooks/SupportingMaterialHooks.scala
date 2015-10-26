@@ -1,32 +1,39 @@
 package org.corespring.v2.player.hooks
 
-import org.corespring.container.client.hooks.Hooks.{ R, StatusMessage }
-import org.corespring.container.client.hooks.{ SupportingMaterialHooks => ContainerHooks, _ }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.services.item.SupportingMaterialsService
+import org.corespring.container.client.hooks.Hooks.{R, StatusMessage}
+import org.corespring.container.client.hooks.{SupportingMaterialHooks => ContainerHooks, _}
+import org.corespring.container.client.integration.ContainerExecutionContext
+import org.corespring.models.item.resource.Resource
+import org.corespring.models.json.JsonFormatting
+import org.corespring.services.item.SupportingMaterialsService
 import org.corespring.v2.auth.models.OrgAndOpts
-import org.corespring.v2.auth.{ ItemAuth, LoadOrgAndOptions }
+import org.corespring.v2.auth.{ItemAuth, LoadOrgAndOptions}
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
-import play.api.libs.json.{ JsValue, Json }
+import org.corespring.v2.player.V2PlayerExecutionContext
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.RequestHeader
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scalaz.Validation
 
-trait SupportingMaterialHooks[ID]
+abstract class SupportingMaterialHooks[ID](
+                                 auth:ItemAuth[OrgAndOpts],
+                                 getOrgAndOptsFn: RequestHeader => Validation[V2Error, OrgAndOpts],
+                                 jsonFormatting : JsonFormatting,
+                                 implicit val ec: V2PlayerExecutionContext)
   extends ContainerHooks
   with LoadOrgAndOptions
   with MaterialToResource
   with ContainerConverters {
 
-  def auth: ItemAuth[OrgAndOpts]
+  import jsonFormatting._
 
-  def service: SupportingMaterialsService[ID]
+  def parseId(id:String, identity:OrgAndOpts) : Validation[V2Error,ID]
 
-  implicit def ec: ExecutionContext
+  def service:SupportingMaterialsService[ID]
 
-  def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, ID]
+  override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = getOrgAndOptsFn.apply(request)
 
   private def executeWrite[A, RESULT](validationToResult: Validation[V2Error, A] => RESULT)(id: String, h: RequestHeader)(idToValidation: ID => Validation[String, A]): Future[RESULT] = Future {
     val out: Validation[V2Error, A] = for {

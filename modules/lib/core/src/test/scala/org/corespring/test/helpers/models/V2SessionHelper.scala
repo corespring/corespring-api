@@ -5,8 +5,9 @@ import com.amazonaws.services.dynamodbv2.document.{ Item, DynamoDB }
 import com.amazonaws.services.dynamodbv2.model.{ QueryRequest, AttributeValue }
 import org.bson.types.ObjectId
 import org.corespring.common.aws.AwsUtil
-import org.corespring.common.config.{ SessionDbConfig, AppConfig }
+import org.corespring.common.config.AppConfig
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.v2.sessiondb.SessionDbConfig
 import play.api.Play
 import play.api.libs.json.{ JsObject, Json, JsValue }
 import se.radley.plugin.salat.SalatPlugin

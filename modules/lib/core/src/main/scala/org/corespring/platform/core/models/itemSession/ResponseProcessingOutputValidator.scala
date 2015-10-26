@@ -6,7 +6,7 @@ import play.api.libs.json.JsObject
 import scala.Some
 import play.api.libs.json.JsUndefined
 import play.api.libs.json.JsNumber
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 import scalaz.{ Validation, Success, Failure }
 
 /*

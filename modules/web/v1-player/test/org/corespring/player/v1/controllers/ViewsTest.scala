@@ -2,7 +2,7 @@ package org.corespring.player.v1.controllers
 
 import com.mongodb.casbah.Imports
 import com.mongodb.casbah.Imports._
-import org.corespring.platform.core.models.assessment.basic.{ Answer, Assessment }
+import org.corespring.models.assessment.basic.{ Answer, Assessment }
 import org.corespring.platform.core.services.assessment.basic.AssessmentService
 import org.corespring.platform.core.services.item.ItemService
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -23,7 +23,7 @@ import utils.MockXml
 class ViewsTest extends Specification with Mockito {
 
   import TestIds._
-  import org.corespring.platform.core.models.item.{ Item => ModelItem }
+  import org.corespring.models.item.{ Item => ModelItem }
 
   PlaySingleton.start()
 

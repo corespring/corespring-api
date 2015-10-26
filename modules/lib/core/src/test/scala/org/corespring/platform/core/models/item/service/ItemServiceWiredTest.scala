@@ -8,10 +8,10 @@ import org.bson.types.ObjectId
 import org.corespring.amazon.s3.models.DeleteResponse
 import org.corespring.assets.CorespringS3Service
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.models.item.index.ItemIndexSearchResult
-import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
-import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.itemSession.{ ItemSessionCompanion, DefaultItemSession, ItemSession }
+import org.corespring.models.item.index.ItemIndexSearchResult
+import org.corespring.models.item.resource.{ StoredFile, Resource }
+import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.itemSession.{ ItemSessionCompanion, DefaultItemSession, ItemSession }
 import org.corespring.platform.core.services.item.{ ItemIndexQuery, ItemIndexService, ItemVersioningDao, ItemServiceWired }
 import org.corespring.platform.data.mongo.SalatVersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -176,7 +176,7 @@ class ItemServiceWiredTest extends BaseTest with Mockito {
   "addFileToPlayerDefinition" should {
     "call collection.update with the correct operation and query" in new serviceScope(Item()) {
 
-      import org.corespring.platform.core.models.mongoContext.context
+      import org.corespring.models.mongoContext.context
 
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(item, file)

@@ -2,12 +2,12 @@ package org.corespring.platform.core.models.assessment.basic
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBObject
-import org.corespring.platform.core.models.assessment._
-import org.corespring.platform.core.models.item.{ TaskInfo, Item }
-import org.corespring.platform.core.models.itemSession._
-import org.corespring.platform.core.models.json.JsonValidationException
-import org.corespring.platform.core.models.assessment._
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
+import org.corespring.models.assessment._
+import org.corespring.models.item.{ TaskInfo, Item }
+import org.corespring.models.itemSession._
+import org.corespring.models.json.JsonValidationException
+import org.corespring.models.assessment._
+import org.corespring.models.versioning.VersionedIdImplicits
 import org.corespring.platform.core.services.item._
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.joda.time.DateTime
@@ -119,7 +119,7 @@ trait QuestionLike {
         case Some(dbo) => {
           import com.mongodb.casbah.Imports._
           import com.novus.salat._
-          import org.corespring.platform.core.models.mongoContext.context
+          import org.corespring.models.mongoContext.context
           val item: Item = grater[Item].asObject(dbo)
           val title = item.taskInfo.getOrElse(TaskInfo(title = Some(""))).title
           val standards = item.standards

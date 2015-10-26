@@ -8,7 +8,7 @@ import org.corespring.qti.models.responses.Response
 import org.corespring.qti.models.responses.processing.ResponseProcessing
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 import com.scalapeno.rhinos.EcmaErrorWithSource
 
 case class IdentifierOutcome(score: Double, isCorrect: Boolean, isComplete: Boolean)

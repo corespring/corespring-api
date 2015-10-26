@@ -2,7 +2,7 @@ package org.corespring.platform.core.encryption
 
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.Crypto
-import org.corespring.platform.core.models.auth.ApiClient
+import org.corespring.models.auth.ApiClient
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

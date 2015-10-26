@@ -1,23 +1,21 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ User, Organization }
-import org.corespring.v2.auth.services.{ OrgService, TokenService }
-import org.corespring.v2.errors.Errors.{ generalError, noToken, noDefaultCollection }
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
+import org.corespring.models.{ Organization, User }
+import org.corespring.services.OrganizationService
+import org.corespring.services.auth.AccessTokenService
+import org.corespring.v2.errors.Errors.{ noToken, _ }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito
-
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.mvc.{ AnyContentAsEmpty, RequestHeader }
 import play.api.test.FakeRequest
-import org.corespring.v2.errors.Errors._
 
-import scalaz.{ Validation, Failure, Success }
+import scalaz.{ Failure, Success, Validation }
 
 class TokenOrgIdentityTest extends Specification with Mockito {
-
-  import org.mockito.Matchers._
 
   def mockOrg = {
     val m = mock[Organization]
@@ -25,31 +23,30 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     m
   }
 
+  def testError = GeneralError("testError", None)
+
   "TokenBasedRequestTransformer" should {
 
-    class scope[A](val org: Option[Organization] = None,
+    class scope[A](val org: Validation[PlatformServiceError, Organization] = Failure(testError),
       val defaultCollection: Option[ObjectId] = None) extends Scope {
 
-      val transformer = new TokenOrgIdentity[String] {
-        override def tokenService: TokenService = {
-          val m = mock[TokenService]
-          m.orgForToken(any[String])(anyObject()) returns (org match {
-            case Some(organization) => Success(organization)
-            case _ => Failure(noOrgForToken(FakeRequest()))
-          })
-          m
-        }
-
-        override def orgService: OrgService = {
-          val m = mock[OrgService]
-          m.defaultCollection(any[Organization]) returns defaultCollection
-          m.org(any[ObjectId]) returns org
-          m
-        }
-
-        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, String] = Success("Worked")
-
+      lazy val tokenService: AccessTokenService = {
+        val m = mock[AccessTokenService]
+        m.orgForToken(any[String]) returns org
+        m
       }
+
+      lazy val orgService: OrganizationService = {
+        val m = mock[OrganizationService]
+        m.findOneById(any[ObjectId]) returns org.toOption
+        m
+      }
+
+      class MockIdentity extends TokenOrgIdentity[String](tokenService, orgService) {
+        /** convert the header, org and defaultCollection into the expected output type B */
+        override def data(rh: RequestHeader, org: Organization, apiClientId: Option[String], user: Option[User]): Validation[V2Error, String] = Success("Worked")
+      }
+      val transformer = new MockIdentity()
     }
 
     "not work" in new scope[AnyContentAsEmpty.type] {
@@ -62,7 +59,7 @@ class TokenOrgIdentityTest extends Specification with Mockito {
     }
 
     "work with token + defaultCollection" in new scope[AnyContentAsEmpty.type](
-      Some(mockOrg),
+      Success(mockOrg),
       Some(ObjectId.get)) {
       transformer.apply(FakeRequest("", "?access_token=blah")) must_== Success("Worked")
     }

@@ -1,7 +1,7 @@
 package org.corespring.v2.auth
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.item.Item
+import org.corespring.models.item.Item
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.SessionAuth.Session
 import org.corespring.v2.errors.V2Error

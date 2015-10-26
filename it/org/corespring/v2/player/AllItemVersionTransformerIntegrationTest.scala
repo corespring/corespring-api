@@ -3,18 +3,22 @@ package org.corespring.v2.player
 import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.platform.core.models.item.resource.{ Resource, VirtualFile }
-import org.corespring.platform.core.models.item.{ Item, TaskInfo }
-import org.corespring.platform.core.services.item.ItemServiceWired
+import org.corespring.models.item.resource.{ Resource, VirtualFile }
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.salat.bootstrap.CollectionNames
 import org.specs2.mutable.BeforeAfter
 
 class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification {
 
   trait WithItem extends BeforeAfter {
+    lazy val itemService = bootstrap.Main.itemService
+    lazy val currentCollection = bootstrap.Main.db(CollectionNames.item)
+    lazy val versionedCollection = bootstrap.Main.db(CollectionNames.versionedItem)
     lazy val oid = ObjectId.get
     lazy val idQuery = MongoDBObject("_id._id" -> oid)
     lazy val item = Item(
+      collectionId = ObjectId.get.toString,
       id = VersionedId(oid, Some(0)),
       data = Some(Resource(
         name = "data",
@@ -24,14 +28,14 @@ class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification 
             contentType = "text/xml",
             content = "<assessmentItem><itemBody></itemBody></assessmentItem>",
             isMain = true)))))
-    ItemServiceWired.insert(item)
+    itemService.insert(item)
     lazy val update = item.copy(taskInfo = Some(TaskInfo(title = Some("New title"))))
-    ItemServiceWired.save(update, createNewVersion = true)
-    lazy val transformer = new AllItemVersionTransformer()
+    itemService.save(update, createNewVersion = true)
+    lazy val transformer = bootstrap.Main.itemTransformer
 
     override def after: Any = {
-      ItemServiceWired.itemDao.currentCollection.remove(idQuery)
-      ItemServiceWired.itemDao.versionedCollection.remove(idQuery)
+      currentCollection.remove(idQuery)
+      versionedCollection.remove(idQuery)
     }
 
     override def before: Any = {
@@ -43,8 +47,8 @@ class AllItemVersionTransformerIntegrationTest extends IntegrationSpecification 
 
     "save transformation in the right collection" in new WithItem {
       transformer.updateV2Json(item)
-      ItemServiceWired.itemDao.currentCollection.count(idQuery) === 1
-      ItemServiceWired.itemDao.versionedCollection.count(idQuery) === 1
+      currentCollection.count(idQuery) === 1
+      versionedCollection.count(idQuery) === 1
     }
   }
 }

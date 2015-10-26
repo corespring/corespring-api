@@ -3,27 +3,26 @@ package org.corespring.v2.player.hooks
 import java.io.ByteArrayInputStream
 
 import org.corespring.container.client.hooks.{ Binary, CreateBinaryMaterial }
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFileDataStream }
-import org.corespring.platform.core.services.item.SupportingMaterialsService
+import org.corespring.models.item.resource.{ Resource, StoredFileDataStream }
+import org.corespring.services.item.SupportingMaterialsService
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ AuthMode, MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.integration.hooks.beFutureErrorCodeMessage
+import org.corespring.v2.player.{ V2PlayerExecutionContext, V2PlayerIntegrationSpec }
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import org.specs2.time.NoTimeConversions
 import play.api.mvc.RequestHeader
 import play.api.test.FakeRequest
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Future, Await, ExecutionContext }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scalaz.{ Failure, Success, Validation }
 
-class SupportingMaterialHooksTest extends Specification with NoTimeConversions with Mockito with MockFactory {
+class SupportingMaterialHooksTest extends V2PlayerIntegrationSpec with NoTimeConversions with Mockito with MockFactory {
 
-  val idResult = Success("id")
   val orgAndOpts = Success(mockOrgAndOpts(AuthMode.AccessToken))
 
   val resource = Resource(name = "name", files = Seq.empty)
@@ -35,10 +34,10 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
     "type",
     Binary("image.png", "image/png", Array.empty))
 
-  trait scope extends Scope
-    with SupportingMaterialHooks[String] {
+  trait scope
+    extends Scope with StubJsonFormatting {
 
-    def parseIdResult: Validation[V2Error, String] = idResult
+    lazy val idResult: Validation[V2Error, String] = Success("id")
 
     def orgAndOptsResult: Validation[V2Error, OrgAndOpts] = orgAndOpts
 
@@ -71,15 +70,19 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
       m
     }
 
-    override def auth: ItemAuth[OrgAndOpts] = mockAuth
+    def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
 
-    override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, String] = parseIdResult
+    val hooks = new SupportingMaterialHooks[String](mockAuth,
+      getOrgAndOptions,
+      jsonFormatting,
+      V2PlayerExecutionContext(ExecutionContext.global)) {
+      override def parseId(id: String, identity: OrgAndOpts): Validation[V2Error, String] = parseIdResult
 
-    override def service: SupportingMaterialsService[String] = mockService
+      def parseIdResult: Validation[V2Error, String] = idResult
 
-    override implicit def ec: ExecutionContext = ExecutionContext.Implicits.global
+      override def service: SupportingMaterialsService[String] = mockService
+    }
 
-    override def getOrgAndOptions(request: RequestHeader): Validation[V2Error, OrgAndOpts] = orgAndOptsResult
   }
 
   implicit val req = FakeRequest("", "")
@@ -90,7 +93,7 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
 
       def idToValidationResult: Validation[String, Resource] = Success(resource)
 
-      def testWriteForResource = writeForResource("id", FakeRequest("", "")) { vid =>
+      def testWriteForResource = hooks.writeForResource("id", FakeRequest("", "")) { vid =>
         idToValidationResult
       }
     }
@@ -103,7 +106,7 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
 
     "return an parseId error" in new writeScope {
       val e = testError("id")
-      override lazy val parseIdResult = Failure(e)
+      override lazy val idResult = Failure(e)
       testWriteForResource must beFutureErrorCodeMessage(e.statusCode, e.msg)
     }
 
@@ -145,26 +148,26 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
   "deleteAsset" should {
 
     "call service.removeFile" in new scope {
-      val result = waitFor(deleteAsset("id", "name", "file"))
+      val result = waitFor(hooks.deleteAsset("id", "name", "file"))
       there was one(mockService).removeFile("id", "name", "file")
     }
   }
 
   "delete" should {
     "call service.delete" in new scope {
-      val result = waitFor(delete("id", "name"))
+      val result = waitFor(hooks.delete("id", "name"))
       there was one(mockService).delete("id", "name")
     }
   }
 
   "getAsset" should {
     "call service.getFile" in new scope {
-      val result = waitFor(getAsset("id", "name", "file"))
+      val result = waitFor(hooks.getAsset("id", "name", "file"))
       there was one(mockService).getFile("id", "name", "file")
     }
 
     "return a FileDataStream" in new scope {
-      val result = waitFor(getAsset("id", "name", "file"))
+      val result = waitFor(hooks.getAsset("id", "name", "file"))
       result match {
         case Right(fds) => success
         case Left(_) => ko("expected a FileDataStream")
@@ -174,7 +177,7 @@ class SupportingMaterialHooksTest extends Specification with NoTimeConversions w
 
   "updateContent" should {
     "call service.updateFileContent" in new scope {
-      val result = waitFor(updateContent("id", "name", "file", "content"))
+      val result = waitFor(hooks.updateContent("id", "name", "file", "content"))
       there was one(mockService).updateFileContent("id", "name", "file", "content")
     }
   }

@@ -2,8 +2,8 @@ package org.corespring.platform.core.files
 
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import org.corespring.assets.CorespringS3Service
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ Resource, StoredFile }
 import play.api.Logger
 
 import scalaz.{ Failure, Success, Validation }
@@ -115,7 +115,6 @@ trait ItemFiles {
     val v1FileResults: Seq[CloneFileResult] = result.map(r => r.files).flatten
     v1FileResults
   }
-
 
   /**
    * Given a newly versioned item, copy the files on s3 to the new storageKey

@@ -2,10 +2,10 @@
 package org.corespring.player.v1.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.itemSession.{ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession}
+import org.corespring.models.itemSession.{ ItemSessionCompanion, DefaultItemSession, PreviewItemSessionCompanion, ItemSession }
 import org.corespring.player.accessControl.cookies.PlayerCookieWriter
 import org.corespring.player.accessControl.models.RequestedAccess.Mode._
-import org.corespring.player.v1.controllers.controllers.{TestBuilder, TestIds}
+import org.corespring.player.v1.controllers.controllers.{ TestBuilder, TestIds }
 import org.corespring.test.PlaySingleton
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
@@ -17,7 +17,6 @@ import scala.concurrent.Future
 
 class SessionTest extends Specification with PlayerCookieWriter {
 
-
   PlaySingleton.start()
 
   private def request(m: Mode, content: AnyContent) = {
@@ -27,7 +26,7 @@ class SessionTest extends Specification with PlayerCookieWriter {
 
   private def itemSession = AnyContentAsJson(Json.toJson(ItemSession(TestIds.testId)))
 
-  import org.specs2.execute.{Result => SpecsResult}
+  import org.specs2.execute.{ Result => SpecsResult }
 
   private def assertAction(msg: String, action: Action[AnyContent], r: FakeRequest[AnyContent], idFn: (Future[SimpleResult] => ObjectId), inPreview: Boolean): SpecsResult = {
 

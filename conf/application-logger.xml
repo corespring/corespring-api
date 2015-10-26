@@ -31,6 +31,18 @@
     <logger name="poc" level="DEBUG"/>
     <logger name="org.corespring.platform.core.models" level="DEBUG"/>
     -->
+    <logger name="bootstrap" level="TRACE"/>
+    <logger name="VersionInfo" level="OFF"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+    <!--<logger name="it" level="TRACE"/>-->
+    <!--<logger name="org.corespring.v2.api" level="TRACE"/>-->
+    <logger name="org.corespring.itemSearch" level="TRACE"/>
+    <logger name="org.corespring.services.salat" level="TRACE"/>
+    <!--<logger name="org.corespring.v2.auth" level="INFO"/>-->
+    <!--<logger name="org.corespring.services" level="INFO"/>-->
+    <!--<logger name="org.corespring.drafts.item" level="INFO"/>-->
+    <!--<logger name="org.corespring.container.client.AssetUtils" level="WARN"/>-->
+    <!--<logger name="org.corespring.services.salat.ServicesContext" level="WARN"/>-->
     <logger name="org.corespring.container.client.filters" level="TRACE"/>
     <!--
     <logger name="Global" level="DEBUG"/>
@@ -42,7 +54,6 @@
     <logger name="org.corespring.platform.core.models.item" level="OFF"/>
     <logger name="org.corespring.api.v1" level="TRACE"/>
     <logger name="org.corespring.container" level="TRACE"/>
-    <logger name="org.corespring.v2" level="TRACE"/>
     <logger name="org.corespring.container.JsConsole" level="TRACE"/>
     <logger name="org.corespring.container.RhinoScopeBuilder" level="INFO"/>
     <logger name="org.corespring.container.FileComponentLoader" level="INFO"/>
@@ -61,8 +72,6 @@
     <logger name="ItemApi" level="TRACE"/>
     <logger name="org.corespring.container.AssetUtils" level="TRACE" />
     -->
-    <logger name="org.corespring.platform.core.services.item" level="TRACE" />
-
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

@@ -1,6 +1,6 @@
 package org.corespring.web.publicsite.controllers
 
-import org.corespring.platform.core.models.item._
+import org.corespring.models.item._
 import org.corespring.test.BaseTest
 import play.api.libs.json.Json
 import play.api.test.FakeRequest

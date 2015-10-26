@@ -1,15 +1,16 @@
 package org.corespring.drafts.item
 
-import com.amazonaws.services.s3.{ AmazonS3 }
+import com.amazonaws.services.s3.AmazonS3
 import org.bson.types.ObjectId
+import org.corespring.assets.{ItemAssetKeys, AssetKeys}
 import org.corespring.container.client.AssetUtils
 import org.corespring.drafts.errors._
-import org.corespring.drafts.item.models.{ DraftId }
-import org.corespring.platform.core.services.item.{ ItemAssetKeys, AssetKeys }
+import org.corespring.drafts.item.models.DraftId
+import org.corespring.models.appConfig.Bucket
 import org.corespring.platform.data.mongo.models.VersionedId
 import play.api.Logger
 
-import scalaz.{ Failure, Success, Validation }
+import scalaz.{Failure, Success, Validation}
 
 trait ItemDraftAssets {
   def copyItemToDraft(itemId: VersionedId[ObjectId], draftId: DraftId): Validation[DraftError, DraftId]
@@ -41,14 +42,11 @@ object S3Paths {
   def draftFile(id: DraftId, path: String): String = DraftAssetKeys.file(id, path)
 }
 
-trait S3ItemDraftAssets extends ItemDraftAssets {
-  def s3: AmazonS3
+class S3ItemDraftAssets(s3: AmazonS3, bucket: Bucket) extends ItemDraftAssets {
 
   lazy val logger = Logger(classOf[S3ItemDraftAssets])
 
-  def bucket: String
-
-  def utils = new AssetUtils(s3, bucket)
+  lazy val utils = new AssetUtils(s3, bucket.bucket)
 
   private def cp[A](from: String, to: String, id: A): Validation[DraftError, A] = {
     logger.debug(s"function=cp from=$from to=$to id=$id")

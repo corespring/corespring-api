@@ -1,40 +1,40 @@
 package web.controllers
 
-import org.corespring.platform.core.models.{ User, Organization }
-import play.api.templates.{Html, Template0}
+import org.corespring.legacy.ServiceLookup
+import org.corespring.models.{ Organization, User }
 import play.api.{ Play, Mode }
-import play.api.mvc.Action
+import play.api.mvc.{ Controller, Action }
 import org.corespring.common.config.AppConfig
-import org.corespring.platform.core.controllers.auth.BaseApi
-import play.templates.BaseScalaTemplate
 
-object Partials extends BaseApi {
+object Partials extends Controller with securesocial.core.SecureSocial {
 
   def editItem = SecuredAction { request =>
-    val user: User = User.getUser(request.user.identityId).getOrElse(throw new RuntimeException("Unknown user"))
+    val userId = request.user.identityId
+    val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
     val useV2 = Play.current.mode == Mode.Dev || AppConfig.v2playerOrgIds.contains(user.org.orgId)
-    val isRoot = Organization.findOneById(user.org.orgId).map(_.isRoot).getOrElse(false)
+    val isRoot = AppConfig.rootOrgId == user.org.orgId
     Ok(web.views.html.partials.editItem(useV2, isRoot))
   }
+
   def redirect(url: String) = Action {
-    if(Play.current.mode == Mode.Dev){
+    if (Play.current.mode == Mode.Dev) {
       Redirect("/login")
     } else {
       MovedPermanently(url)
     }
   }
 
-  def loadFromPath(path:String) = Action{
+  def loadFromPath(path: String) = Action {
 
     val fullName = s"web.views.html.${path.replace("/", ".")}"
 
     try {
-      val c : Class[_] = Play.current.classloader.loadClass(fullName)
+      val c: Class[_] = Play.current.classloader.loadClass(fullName)
       println(s"c: $c")
       val fn = c.getMethod("render")
       Ok(fn.invoke(c).asInstanceOf[play.api.templates.HtmlFormat.Appendable])
     } catch {
-      case t : Throwable => {
+      case t: Throwable => {
         t.printStackTrace()
         BadRequest(s"Can't find class with name $path [$fullName]")
       }

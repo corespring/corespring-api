@@ -1,10 +1,10 @@
 package org.corespring.platform.core.services
 
 import com.mongodb.DBObject
-import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
+import com.mongodb.casbah.commons.{ MongoDBList, MongoDBObject }
 import org.bson.types.ObjectId
 import org.corespring.common.log.PackageLogging
-import org.corespring.platform.core.models.{ Standard, Subject }
+import org.corespring.models.{ Standard, Subject }
 import play.api.libs.json.{ JsObject, JsSuccess, JsValue, Json }
 
 object SubjectQueryService extends QueryService[Subject] with PackageLogging {
@@ -34,8 +34,8 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
     json <- Json.parse(raw).asOpt[JsValue]
     searchTerm <- (json \ "searchTerm").asOpt[String]
   } yield MongoDBObject("$or" -> MongoDBList(
-      MongoDBObject("subject" -> toRegex(searchTerm)),
-      MongoDBObject("category" -> toRegex(searchTerm))))
+    MongoDBObject("subject" -> toRegex(searchTerm)),
+    MongoDBObject("category" -> toRegex(searchTerm))))
 
   private def getSubjectByCategoryAndSubjectQuery(raw: String): Option[DBObject] = for {
     json <- Json.parse(raw).asOpt[JsValue]
@@ -48,6 +48,6 @@ object SubjectQueryService extends QueryService[Subject] with PackageLogging {
     query
   }
 
-  private def toRegex( searchTerm: String ) =  MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
+  private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 }
 

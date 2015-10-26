@@ -1,8 +1,8 @@
 package org.corespring.platform.core.services.metadata
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.metadata.{ MetadataSet, SchemaMetadata }
-import org.corespring.platform.core.models.{ MetadataSetRef, Organization }
+import org.corespring.models.metadata.{ MetadataSet, SchemaMetadata }
+import org.corespring.models.{ MetadataSetRef, Organization }
 import org.corespring.test.PlaySingleton
 import org.specs2.mock.Mockito
 import org.specs2.mutable.{ BeforeAfter, Specification }

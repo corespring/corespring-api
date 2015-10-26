@@ -1,11 +1,11 @@
 package org.corespring.v2.player.supportingMaterials
 
+import org.corespring.assets.ItemAssetKeys
+import org.corespring.it.helpers.{ ItemHelper, SecureSocialHelper }
+import org.corespring.it.assets.ImageUtils
+import org.corespring.it.scopes.{ SessionRequestBuilder, userAndItem }
 import org.corespring.it.{ IntegrationSpecification, MultipartFormDataWriteable }
-import org.corespring.platform.core.models.item.resource.Resource
-import org.corespring.platform.core.services.item.ItemAssetKeys
-import org.corespring.test.SecureSocialHelpers
-import org.corespring.test.helpers.models.ItemHelper
-import org.corespring.v2.player.scopes.{ ImageUtils, SessionRequestBuilder, userAndItem }
+import org.corespring.models.item.resource.Resource
 import org.specs2.execute.Result
 import org.specs2.time.NoTimeConversions
 import play.api.mvc.{ Call, SimpleResult }
@@ -19,8 +19,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
   trait scope extends userAndItem
     with SessionRequestBuilder
-    with SecureSocialHelpers
-    with Helpers.requestToFuture
+    with SecureSocialHelper
     with testDefaults {
 
     def getHeadResource = ItemHelper.get(itemId).flatMap(_.supportingMaterials.headOption)
@@ -33,7 +32,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     def createHtmlMaterial: Future[SimpleResult] = {
       val call = ItemRoutes.createSupportingMaterial(itemId.toString)
       val createMaterial = makeJsonRequest(call, json)
-      futureResult(createMaterial)
+      route(createMaterial)(writeableOf_AnyContentAsJson).get
     }
   }
 
@@ -41,8 +40,8 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a html based supporting material" in new scope {
       val result = createHtmlMaterial
+      logger.debug(s"create a html based material result: ${contentAsString(result)}")
       status(result) === CREATED
-
       getHeadResource match {
         case Some(Resource(_, materialName, Some("Rubric"), _)) => success
         case _ => failure("expected to get the head resource from supporting materials ")
@@ -51,7 +50,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
 
     "create a binary supporting material" in new scope with withUploadFile {
 
-      def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+      def filePath: String = s"/test-images/puppy.small.jpg"
       lazy val key = ItemAssetKeys.supportingMaterialFile(itemId, "binary-material", filename)
 
       override def after = {
@@ -91,7 +90,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
       def deleteMaterial(name: String) = {
         val call = ItemRoutes.deleteSupportingMaterial(itemId.toString, name)
         val req = makeRequest(call)
-        futureResult(req)
+        route(req).get
       }
     }
 
@@ -110,7 +109,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
     trait updateFileContentScope extends scope {
       def updateHtmlContent(content: String): Future[SimpleResult] = {
         val updateContent = ItemRoutes.updateSupportingMaterialContent(itemId.toString, materialName, "index.html")
-        futureResult(makeTextRequest(updateContent, content))
+        route(makeTextRequest(updateContent, content))(writeableOf_AnyContentAsText).get
       }
     }
 
@@ -147,7 +146,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         r <- addFile
       } yield r
 
-      println(contentAsString(result))
+      logger.debug(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>
@@ -188,7 +187,7 @@ class ItemSupportingMaterialsTest extends IntegrationSpecification with NoTimeCo
         r <- removeFile
       } yield r
 
-      println(contentAsString(result))
+      logger.debug(contentAsString(result))
       status(result) === OK
 
       assertHeadResource { r =>

@@ -1,24 +1,31 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.assessment.basic.Assessment
-import org.corespring.platform.core.models.metadata.{ Metadata, MetadataSet }
-import org.corespring.platform.core.services.metadata.{ SetJson, MetadataService, MetadataSetService }
+import org.corespring.models.json.metadata.{ SetJson, MetadataSetFormat }
+import org.corespring.models.metadata.{ MetadataSet }
+import org.corespring.services.metadata.{ MetadataService, MetadataSetService }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
 import play.api.libs.json.Json._
-import play.api.libs.json.{ JsArray, JsValue, Json }
+import play.api.libs.json.{ Format, JsArray, JsValue, Json }
 import play.api.mvc._
 
-import scala.concurrent.Future
-import scalaz.Success
+import scala.concurrent.ExecutionContext
+import scalaz.Validation
 
-trait MetadataApi extends V2Api {
+class MetadataApi(
+  metadataSetService: MetadataSetService,
+  metadataService: MetadataService,
+  v2ApiContext: V2ApiExecutionContext,
+  override val getOrgAndOptionsFn: RequestHeader => Validation[V2Error, OrgAndOpts]) extends V2Api {
 
-  def metadataSetService: MetadataSetService
-  def metadataService: MetadataService
+  override implicit def ec: ExecutionContext = v2ApiContext.context
+
+  implicit val ms: Format[MetadataSet] = MetadataSetFormat
+
+  import scala.language.implicitConversions
 
   implicit private def seqToJsValue(l: Seq[MetadataSet]): JsValue = JsArray(l.map(toJson(_)))
   implicit private def metadataToJsValue(m: MetadataSet): JsValue = toJson(m)
@@ -41,10 +48,9 @@ trait MetadataApi extends V2Api {
     } catch {
       case e: Exception => None
     }) match {
-      case Some(metadataSet) => metadataSetService.create(identity.org.id, metadataSet) match {
-        case Left(error) => errorSaving(error).toResult
-        case Right(set) => Ok(Json.prettyPrint(set))
-      }
+      case Some(metadataSet) =>
+        metadataSetService.create(identity.org.id, metadataSet)
+          .fold(e => errorSaving(e).toResult, set => Ok(Json.toJson(set)))
       case _ => incorrectJsonFormat(json).toResult
     }
   }
@@ -56,10 +62,9 @@ trait MetadataApi extends V2Api {
     } catch {
       case e: Exception => None
     }) match {
-      case Some(metadataSet) => metadataSetService.update(metadataSet) match {
-        case Left(error) => errorSaving(error).toResult
-        case Right(set) => Ok(Json.prettyPrint(set))
-      }
+      case Some(metadataSet) =>
+        metadataSetService.update(metadataSet)
+          .fold(e => errorSaving(e).toResult, set => Ok(Json.toJson(set)))
       case _ => incorrectJsonFormat(json).toResult
     }
   })

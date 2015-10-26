@@ -3,6 +3,7 @@ package org.corespring.v2.player.supportingMaterials
 import java.io.File
 
 import org.corespring.it.MultipartFormDataWriteable
+import org.corespring.it.assets.ImageUtils
 import play.api.http.Writeable
 import play.api.libs.json.Json
 import play.api.libs.{ Files, MimeTypes }
@@ -26,7 +27,7 @@ trait addFileScope extends withUploadFile with Helpers.requestToFuture {
 
   import MultipartFormDataWriteable.writeableOf_multipartFormData
 
-  def filePath: String = s"it/org/corespring/v2/player/load-image/puppy.small.jpg"
+  def filePath: String = s"/test-images/puppy.small.jpg"
 
   def addFileCall: Call
   def makeFormRequest(call: Call, form: MultipartFormData[Files.TemporaryFile]): Request[AnyContentAsMultipartFormData]
@@ -59,9 +60,7 @@ private[supportingMaterials] trait withUploadFile {
   lazy val (fileToUpload, filename, contentType) = {
     import grizzled.file.GrizzledFile._
     import grizzled.file.util
-    val f = new File(filePath)
-    require(f.exists, s"$filePath doesn't exist?")
-
+    val f = ImageUtils.resourcePathToFile(filePath)
     val (dir, basename, ext) = f.dirnameBasenameExtension
     val filename = s"$basename$ext"
     val dest: File = f.copyTo(util.joinPath(dir.getAbsolutePath, s"$basename.tmp$ext"))

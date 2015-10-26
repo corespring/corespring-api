@@ -1,95 +1,102 @@
 package web.controllers
 
-import org.corespring.assets.{ CorespringS3ServiceExtended, CorespringS3Service }
-import org.corespring.common.mongo.ObjectIdParser
-import org.corespring.platform.core.controllers.auth.BaseApi
-import org.corespring.platform.core.controllers.{QtiResource, AssetResourceBase}
-import org.corespring.platform.core.models.auth.Permission
-import org.corespring.platform.core.models.item.resource.BaseFile
-import org.corespring.platform.core.models.item.{ Item, Content }
-import org.corespring.platform.core.models.versioning.VersionedIdImplicits
-import org.corespring.platform.core.services.item.ItemServiceWired
-import org.corespring.platform.core.services.item.{ ItemServiceClient, ItemService }
-import org.corespring.player.v1.controllers.QtiRenderer
-import org.corespring.player.v1.views.models.{QtiKeys, PlayerParams}
-import org.corespring.qti.models.RenderingMode._
-import play.api.mvc._
-import scala.xml.Elem
+import org.apache.commons.httpclient.util.URIUtil
+import org.corespring.amazon.s3.S3Service
+import org.corespring.common.config.AppConfig
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.{ BaseFile, Resource, StoredFile, VirtualFile }
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemService
+import org.corespring.web.common.controllers.DefaultCss
+import play.api.mvc.{ Action, AnyContent, Controller }
+import play.mvc.Http.HeaderNames
+import web.controllers.ShowResource.Errors
+
 import scalaz.Scalaz._
-import scalaz.{ Success, Failure }
+import scalaz.{ Failure, Success }
 
-object ShowResource
-  extends BaseApi
-  with ObjectIdParser
-  with QtiResource
-  with ItemServiceClient
-  with AssetResourceBase
-  with QtiRenderer {
+object ShowResource {
+  private[ShowResource] object Errors {
+    val cantFindItem = "Can't find item"
+    val cantFindResource = "Can't find resource"
+    val invalidObjectId = "Invalid object id"
+    val cantFindFileWithName = "Can't find file with name "
+    val cantRender = "Unable to render"
+    val noFilenameSpecified = "No filename specified"
+  }
+}
 
-  def s3Service: CorespringS3Service = CorespringS3ServiceExtended
+class ShowResource(itemService: ItemService, s3Service: S3Service)
+  extends Controller {
 
-  def itemService: ItemService = ItemServiceWired
+  def getResourceFile(itemId: String, resourceName: String, filename: String) = getFile(itemId, resourceName, Some(filename))
+
+  private def getFile(itemId: String, resourceName: String, filename: Option[String] = None): Action[AnyContent] =
+    {
+      val decodedFilename = filename.map { n =>
+        URIUtil.decode(n, "utf-8")
+      }
+      val out = for {
+        oid <- VersionedId(itemId).toSuccess(Errors.invalidObjectId)
+        item <- itemService.findOneById(oid).toSuccess(Errors.cantFindItem)
+        dr <- getResource(item, resourceName).toSuccess(Errors.cantFindResource)
+        (isItemDataResource, resource) = dr
+        name <- (decodedFilename orElse resource.defaultFile.map(_.name)).toSuccess(Errors.noFilenameSpecified)
+        file <- resource.files.find(_.name == name).toSuccess(Errors.cantFindFileWithName + name)
+        action <- renderFile(item, isItemDataResource, file).toSuccess(Errors.cantRender)
+      } yield action
+
+      out match {
+        case Success(a) => a
+        case Failure(e) => Action(BadRequest(e))
+      }
+    }
+
+  private def getResource(item: Item, name: String): Option[(Boolean, Resource)] = if (name == Resource.DataPath) {
+    item.data.map((true, _))
+  } else {
+    item.supportingMaterials.find(_.name == name).map((false, _))
+  }
+
+  def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = {
+    Some(renderBaseFile(f))
+  }
+
+  protected def renderBaseFile(f: BaseFile): Action[AnyContent] = Action {
+    request =>
+      f match {
+        case vFile: VirtualFile => {
+          val text = if (vFile.isMain && vFile.contentType == BaseFile.ContentTypes.HTML) {
+            addDefaultCss(vFile.content)
+          } else {
+            vFile.content
+          }
+          Ok(text).withHeaders((HeaderNames.CONTENT_TYPE, vFile.contentType))
+        }
+        case sFile: StoredFile => {
+          s3Service.download(AppConfig.assetsBucket, sFile.storageKey, Some(request.headers))
+        }
+      }
+  }
+
+  protected def addDefaultCss(html: String): String = {
+    val css = Seq(DefaultCss.BOOTSTRAP, DefaultCss.UBUNTU, DefaultCss.DEFAULT_CSS).mkString("\n")
+    val replacement = "<head>\n%s".format(css)
+    """<head>""".r.replaceAllIn(html, replacement)
+  }
+
+  def renderDataResourceForPrinting(itemId: String) = Action(NotImplemented)
+  def getDefaultResourceFile(itemId: String, resourceName: String) = Action(BadRequest)
 
   def javascriptRoutes = Action {
     implicit request =>
 
       import play.api.Routes
-      import web.controllers.routes.javascript.{ ShowResource => ShowResourceJs }
-      import web.controllers.routes.javascript.{Partials => PartialsJs}
+      import web.controllers.routes.javascript.{ Partials => PartialsJs, ShowResource => ShowResourceJs }
       Ok(
         Routes.javascriptRouter("WebRoutes")(
           PartialsJs.editItem,
           ShowResourceJs.getResourceFile)).as("text/javascript")
   }
-
-  /**
-   * Render the Item.data resource using the CSS for printing.
-   * TODO: This doesn't support non-QTI data items.
-   * It will have to at some point.
-   * @param itemId
-   * @return
-   */
-  def renderDataResourceForPrinting(itemId: String): Action[AnyContent] = {
-
-    import VersionedIdImplicits.Binders._
-    val out = for {
-      oid <- stringToVersionedId(itemId).toSuccess("Invalid object id")
-      item <- itemService.findOneById(oid).toSuccess("Can't find item id")
-    } yield renderPlayer(item, Printing)
-
-    out match {
-      case Success(a) => a
-      case Failure(e) => Action(BadRequest(e))
-    }
-  }
-
-  private def renderPlayer(item: Item, renderMode: RenderingMode = Web): Action[AnyContent] =
-    ApiAction {
-      request =>
-
-
-        if (Content.isAuthorized(request.ctx.organization, item.id, Permission.Read)) {
-
-          itemService.getQtiXml(item.id) match {
-            case Some(xmlData: Elem) => {
-              val qtiKeys = QtiKeys((xmlData \ "itemBody")(0))
-              val finalXml = prepareQti(xmlData, renderMode)
-              val params: PlayerParams = PlayerParams(finalXml, itemId = Some(item.id.toString()), previewEnabled = (renderMode == Web), qtiKeys = qtiKeys, mode = renderMode)
-              Ok(org.corespring.player.v1.views.html.Player(params))
-            }
-            case None => NotFound("Can't find item")
-          }
-        } else {
-          BadRequest("Not Authorized")
-        }
-    }
-
-  private def isQti(f: BaseFile) = f.contentType == BaseFile.ContentTypes.XML && f.name == Item.QtiResource.QtiXml
-
-  override def renderFile(item: Item, isDataResource: Boolean, f: BaseFile): Option[Action[AnyContent]] = Some(
-    if (isDataResource && isQti(f))
-      renderPlayer(item)
-    else
-      renderBaseFile(f))
 
 }

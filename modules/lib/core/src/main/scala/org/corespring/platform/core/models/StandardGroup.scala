@@ -5,17 +5,17 @@ package org.corespring.platform.core.models
  */
 trait StandardGroup {
 
-  def subCategory: Option[String]
-  def grades: Seq[String]
-  def dotNotation: Option[String]
+  //def subCategory: Option[String]
+  //def grades: Seq[String]
+  //def dotNotation: Option[String]
 
   /**
    * Returns true if the Standards belong to the same group, that is if they have the same grades, same subcategory,
    * and begin with the same first two letters.
    */
-  def sameGroupAs(standard: StandardGroup) =
-    (this.subCategory == standard.subCategory) && (standard.grades == this.grades) &&
-      ((this.dotNotation, standard.dotNotation) match {
+  def sameGroupAs(a: Standard, b: Standard) =
+    (a.subCategory == b.subCategory) && (a.grades == b.grades) &&
+      ((a.dotNotation, b.dotNotation) match {
         case (Some(dot), Some(other)) => dot.startsWith(other.substring(0, 2))
         case (None, None) => true
         case _ => false
@@ -44,11 +44,11 @@ trait StandardGroup {
       inSameGroup.length match {
         case 0 => throw new IllegalArgumentException(
           s"Could not find group for ${dotNotation.getOrElse("missing dot notation")}")
-        case _ => inSameGroup.foldLeft(inSameGroup(0)) { longestCommonPrefix(_,_) }
+        case _ => inSameGroup.foldLeft(inSameGroup(0)) { longestCommonPrefix(_, _) }
       }
     }
 
-    val suffixes = inSameGroup.map({s => s.substring(prefix.length, s.length) }).filterNot(_.isEmpty).sorted
+    val suffixes = inSameGroup.map({ s => s.substring(prefix.length, s.length) }).filterNot(_.isEmpty).sorted
 
     (dotNotation, subCategory) match {
       case (Some(dotNotation), Some(subCategory)) => {

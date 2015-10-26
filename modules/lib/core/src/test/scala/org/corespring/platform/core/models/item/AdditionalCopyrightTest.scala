@@ -1,6 +1,6 @@
 package org.corespring.platform.core.models.item
 
-import org.corespring.platform.core.models.json.JsonValidationException
+import org.corespring.models.json.JsonValidationException
 import play.api.libs.json._
 import org.corespring.test.BaseTest
 

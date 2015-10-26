@@ -2,7 +2,7 @@ package org.corespring.platform.core.models.assessment
 
 import org.bson.types.ObjectId
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.platform.core.models.itemSession.ItemSessionSettings
+import org.corespring.models.itemSession.ItemSessionSettings
 
 abstract class BaseParticipant(itemSessions: Seq[ObjectId], uid: String)
 

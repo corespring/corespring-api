@@ -1,7 +1,7 @@
 package org.corespring.drafts.item.models
 
 import org.bson.types.ObjectId
-import org.corespring.platform.core.models.{ Organization, User }
+import org.corespring.models.{Organization, User}
 
 object SimpleUser {
   def fromUser(u: User): SimpleUser = {

@@ -1,9 +1,0 @@
-{
-    "_id" : {
-        "$oid": "511276834924c9ca07b97044"
-    },
-    "name" : "Demo Collection 2",
-    "description" : "this particular collection does not contain any content",
-    "isPublic" : true,
-    "ownerOrgId" : {"$oid": "51114b307fc1eaa866444648"}
-}

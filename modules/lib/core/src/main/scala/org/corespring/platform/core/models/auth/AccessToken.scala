@@ -3,12 +3,16 @@ package org.corespring.platform.core.models.auth
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.dao.{ SalatRemoveError, SalatInsertError, SalatDAO, ModelCompanion }
 import org.bson.types.ObjectId
+<<<<<<< HEAD
+import org.corespring.models.Organization
+=======
 import org.corespring.common.log.PackageLogging
 import org.corespring.platform.core.models.Organization
+>>>>>>> develop
 import org.joda.time.DateTime
 import play.api.Play.current
 import se.radley.plugin.salat._
-import org.corespring.platform.core.models.error.CorespringInternalError
+import org.corespring.models.error.CorespringInternalError
 import com.typesafe.config.ConfigFactory
 
 /**
@@ -39,7 +43,7 @@ object AccessToken extends ModelCompanion[AccessToken, ObjectId] with AccessToke
   lazy val tokenDuration = ConfigFactory.load().getString("TOKEN_DURATION").toInt
   val collection = mongoCollection("accessTokens")
 
-  import org.corespring.platform.core.models.mongoContext.context
+  import org.corespring.models.mongoContext.context
 
   // Not sure when to call this.
   def index = Seq(

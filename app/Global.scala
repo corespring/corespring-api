@@ -1,71 +1,91 @@
-import actors.reporting.ReportActor
-import akka.actor.Props
+import bootstrap.Main
 import com.amazonaws.services.s3.AmazonS3
-import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
-import filters.{ AccessControlFilter, AjaxFilter, Headers, IEHeaders }
-import org.bson.types.ObjectId
+import filters.{ Headers, AccessControlFilter, AjaxFilter, IEHeaders }
 import org.corespring.common.config.AppConfig
-import org.corespring.common.log.ClassLogging
 import org.corespring.container.client.filters.CheckS3CacheFilter
-import org.corespring.play.utils._
-import org.corespring.reporting.services.ReportGenerator
-import org.corespring.web.common.controllers.deployment.{ AssetsLoaderImpl, LocalAssetsLoaderImpl }
-import org.corespring.web.common.views.helpers.Defaults
-import org.corespring.wiring.AppWiring
-import org.corespring.wiring.sessiondb.SessionDbInitialiser
-import org.joda.time.{ DateTime, DateTimeZone }
-import play.api._
+import org.corespring.play.utils.{ CallBlockOnHeaderFilter, ControllerInstanceResolver }
+import org.corespring.web.common.controllers.deployment.AssetsLoader
+import org.corespring.web.common.views.helpers.BuildInfo
+import org.joda.time.DateTime
 import play.api.http.ContentTypes
-import play.api.libs.concurrent.Akka
 import play.api.libs.json.Json
-import play.api.mvc.Results._
+import play.api.{ Mode, Logger, GlobalSettings, Application }
 import play.api.mvc._
-
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.duration._
+import play.api.mvc.Results._
+import scala.concurrent.{ Future, ExecutionContext }
+import ExecutionContext.Implicits.global
 
 object Global
-  extends WithFilters(CallBlockOnHeaderFilter, AjaxFilter, AccessControlFilter, IEHeaders)
+  extends WithFilters(
+    CallBlockOnHeaderFilter,
+    AjaxFilter,
+    AccessControlFilter,
+    IEHeaders)
   with ControllerInstanceResolver
-  with GlobalSettings
-  with ClassLogging {
+  with GlobalSettings {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  private lazy val logger = Logger(Global.getClass)
+
+  lazy val controllers: Seq[Controller] = Main.controllers
 
   lazy val componentSetFilter = new CheckS3CacheFilter {
     override implicit def ec: ExecutionContext = ExecutionContext.global
 
     override lazy val bucket: String = AppConfig.assetsBucket
 
-    override def appVersion: String = Defaults.commitHashShort
+    override def appVersion: String = BuildInfo.commitHashShort
 
-    override def s3: AmazonS3 = AppWiring.playS3.getClient
+    override def s3: AmazonS3 = bootstrap.Main.s3
 
     override def intercept(path: String) = path.contains("component-sets")
 
+  }
+
+  override def onStart(app: Application): Unit = {
+
+    CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
+
+      if (app.mode != Mode.Prod &&
+        Main.componentLoader != null &&
+        rh.path.contains("/v2/player") &&
+        rh.path.endsWith("player")) {
+        logger.info("reload components!")
+        Main.componentLoader.reload
+
+        if (Main.componentLoader.all.length == 0) {
+          throw new RuntimeException("No components loaded - check your component path configuration: 'components.path'")
+        }
+      }
+    }
+
+    AssetsLoader.init(app)
   }
 
   override def doFilter(a: EssentialAction): EssentialAction = {
     Filters(super.doFilter(a), Seq(componentSetFilter): _*)
   }
 
-  def controllers: Seq[Controller] = AppWiring.controllers
-
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     request.method match {
       //return the default access control headers for all OPTION requests.
       case "OPTIONS" => Some(Action(new play.api.mvc.Results.Status(200)))
       case _ => {
-        AppWiring.apiTracking.handleRequest(request)
+        Main.apiTracking.handleRequest(request)
         super.onRouteRequest(request)
       }
     }
   }
 
+  private def applyFilter(f: Future[SimpleResult]): Future[SimpleResult] = f.map(_.withHeaders(Headers.AccessControlAllowEverything))
+
+  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Future[SimpleResult] = applyFilter(super.onHandlerNotFound(request))
+
+  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
+
   // 500 - internal server error
   override def onError(request: RequestHeader, throwable: Throwable) = {
 
-    val uid = new ObjectId().toString
+    val uid = s"${DateTime.now.getMillis()}-${scala.util.Random.alphanumeric.take(4).mkString}"
     logger.error(uid)
     logger.error(throwable.getMessage)
 
@@ -81,54 +101,5 @@ object Global
       }
     }
   }
-
-  private def applyFilter(f: Future[SimpleResult]): Future[SimpleResult] = f.map(_.withHeaders(Headers.AccessControlAllowEverything))
-
-  override def onHandlerNotFound(request: play.api.mvc.RequestHeader): Future[SimpleResult] = applyFilter(super.onHandlerNotFound(request))
-
-  override def onBadRequest(request: play.api.mvc.RequestHeader, error: scala.Predef.String): Future[SimpleResult] = applyFilter(super.onBadRequest(request, error))
-
-  override def onStart(app: Application): Unit = {
-
-    CallBlockOnHeaderFilter.block = (rh: RequestHeader) => {
-
-      if (AppWiring.componentLoader != null && rh.path.contains("/v2/player") && rh.path.endsWith("player")) {
-        logger.info("reload components!")
-        AppWiring.componentLoader.reload
-
-        if (AppWiring.componentLoader.all.length == 0) {
-          throw new RuntimeException("No components loaded - check your component path configuration: 'components.path'")
-        }
-      }
-    }
-
-    AppWiring.validate match {
-      case Left(err) => throw new RuntimeException(err)
-      case Right(_) => Unit
-    }
-
-    RegisterJodaTimeConversionHelpers()
-
-    AssetsLoaderImpl.init(app)
-    LocalAssetsLoaderImpl.init(app)
-    SessionDbInitialiser.init(app)
-  }
-
-  private def timeLeftUntil2am = {
-    implicit val postfixOps = scala.language.postfixOps
-    // Looks like Play is not adjusting the timezone properly here, so it's set for 7am, which ought to be
-    // 6am UTC -> 2am EDT
-    (new DateTime().plusDays(1).withTimeAtStartOfDay().plusHours(6).withZone(DateTimeZone.forID("America/New_York"))
-      .getMinuteOfDay + 1 - new DateTime().withZone(DateTimeZone.forID("America/New_York")).getMinuteOfDay) minutes
-  }
-
-  private def reportingDaemon(app: Application) = {
-    import scala.language.postfixOps
-
-    Logger.info("Scheduling the reporting daemon")
-
-    val reportingActor = Akka.system(app).actorOf(Props(classOf[ReportActor], ReportGenerator))
-    Akka.system(app).scheduler.schedule(timeLeftUntil2am, 24 hours, reportingActor, "reportingDaemon")
-  }
-
 }
+

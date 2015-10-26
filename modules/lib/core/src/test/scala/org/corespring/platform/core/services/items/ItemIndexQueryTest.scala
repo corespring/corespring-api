@@ -66,7 +66,7 @@ class ItemIndexQueryTest extends Specification {
         query.itemTypes must be equalTo (itemTypes)
         query.gradeLevels must be equalTo (gradeLevels)
         query.published must be equalTo (Some(published))
-        query.standards must be equalTo(standards)
+        query.standards must be equalTo (standards)
         query.workflows must be equalTo (workflows)
         query.requiredPlayerWidth must be equalTo (Some(requiredPlayerWidth))
       }
@@ -143,7 +143,7 @@ class ItemIndexQueryTest extends Specification {
       val json = Json.toJson(query)
 
       "include nested metadata query" in {
-        (nested(json) \ "path").as[String] must be equalTo("metadata")
+        (nested(json) \ "path").as[String] must be equalTo ("metadata")
       }
 
       "matches on metadata.key and metadata.value" in {
@@ -153,7 +153,6 @@ class ItemIndexQueryTest extends Specification {
       }
 
     }
-
 
     "contributors" should {
 
@@ -271,7 +270,7 @@ class ItemIndexQueryTest extends Specification {
         "be included as range filter" in {
           val requiredPlayerWidth = 500
           Json.toJson(ItemIndexQuery(requiredPlayerWidth = Some(requiredPlayerWidth)))
-          .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
+            .hasRangeFilter("minimumWidth", lte = Some(500)) must beTrue
         }
       }
     }
@@ -300,7 +299,7 @@ class ItemIndexQueryTest extends Specification {
 
     private def getFilter(filter: String): Option[JsObject] = {
       val filters = (json \ "filter" \ "bool" \ "must").asOpt[Seq[JsObject]].getOrElse(Seq.empty)
-      Seq("term", "terms","range").map(key => (filters.find(f => (f \ key \ filter) match {
+      Seq("term", "terms", "range").map(key => (filters.find(f => (f \ key \ filter) match {
         case _: JsUndefined => false
         case _ => true
       }))).flatten.headOption

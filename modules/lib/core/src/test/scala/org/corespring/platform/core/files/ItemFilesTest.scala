@@ -3,8 +3,8 @@ package org.corespring.platform.core.files
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import org.bson.types.ObjectId
 import org.corespring.assets.CorespringS3Service
-import org.corespring.platform.core.models.item.{ PlayerDefinition, Item }
-import org.corespring.platform.core.models.item.resource.{ StoredFile, Resource }
+import org.corespring.models.item.{ PlayerDefinition, Item }
+import org.corespring.models.item.resource.{ StoredFile, Resource }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

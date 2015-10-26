@@ -5,9 +5,9 @@ import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.common.encryption.AESCrypto
 import org.corespring.mongo.json.services.MongoService
-import org.corespring.platform.core.models.auth.ApiClient
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.{ Organization => OrgModel }
+import org.corespring.models.auth.ApiClient
+import org.corespring.models.item.Item
+import org.corespring.models.{ Organization => OrgModel }
 import org.corespring.platform.core.services.item.ItemServiceWired
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.PlayerAccessSettings
@@ -33,7 +33,7 @@ object CustomScoring extends Controller {
 
     ItemServiceWired.collection.find(hasResponseProcessing).map { dbo =>
       import com.mongodb.casbah.Implicits._
-      import org.corespring.platform.core.models.mongoContext._
+      import org.corespring.models.mongoContext._
       com.novus.salat.grater[Item].asObject(dbo)
     }.toSeq
   }
@@ -46,7 +46,7 @@ object CustomScoring extends Controller {
       case "true" => {
         items = ItemServiceWired.collection.find(hasResponseProcessing).map { dbo =>
           import com.mongodb.casbah.Implicits._
-          import org.corespring.platform.core.models.mongoContext._
+          import org.corespring.models.mongoContext._
           com.novus.salat.grater[Item].asObject(dbo)
         }.toSeq
       }

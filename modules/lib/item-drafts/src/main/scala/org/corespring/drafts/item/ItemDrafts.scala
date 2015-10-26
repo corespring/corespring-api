@@ -2,15 +2,18 @@ package org.corespring.drafts.item
 
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.{ CommandResult, WriteResult }
+import com.novus.salat.Context
 import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
-import org.corespring.drafts.item.services.{ CommitService, ItemDraftService }
+import org.corespring.drafts.item.services.{ ItemDraftDbUtils, CommitService, ItemDraftService }
 import org.corespring.drafts.{ Drafts, Src }
-import org.corespring.platform.core.models.item.Item
-import org.corespring.platform.core.models.item.resource.{ Resource, StoredFile }
-import org.corespring.platform.core.services.item.{ ItemPublishingService, ItemService }
+import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
+import org.corespring.services.item.{ ItemService }
 import org.joda.time.DateTime
 import play.api.Logger
 import scalaz.Scalaz._
@@ -20,24 +23,39 @@ case class DraftCloneResult(itemId: VersionedId[ObjectId], draftId: DraftId)
 
 case class ItemDraftIsOutOfDate(d: ItemDraft, src: Src[VersionedId[ObjectId], Item]) extends DraftIsOutOfDate[DraftId, VersionedId[ObjectId], Item](d, src)
 
-trait ItemDrafts
-  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate] {
+class ItemDrafts(
+  itemService: ItemService,
+  orgService: OrganizationService,
+  orgCollectionService: OrgCollectionService,
+  draftService: ItemDraftService,
+  commitService: CommitService,
+  assets: ItemDraftAssets,
+  implicit val context: com.novus.salat.Context)
+
+  extends Drafts[DraftId, VersionedId[ObjectId], Item, OrgAndUser, ItemDraft, ItemCommit, ItemDraftIsOutOfDate]
+  with ItemDraftDbUtils {
 
   protected val logger = Logger(classOf[ItemDrafts].getName)
 
-  def itemService: ItemService with ItemPublishingService
-
-  def draftService: ItemDraftService
-
-  def commitService: CommitService
-
-  def assets: ItemDraftAssets
-
   def collection = draftService.collection
 
-  /** Check that the user may create the draft for the given src id */
-  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean
-  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean
+  private def getPermissionForItem(orgId: ObjectId, itemId: VersionedId[ObjectId]) = for {
+    collectionId <- itemService.collectionIdForItem(itemId)
+    p <- orgCollectionService.getPermission(orgId, collectionId)
+  } yield p
+
+  private def hasPermission(itemId: ObjectId, user: OrgAndUser, p: Permission): Boolean = {
+    getPermissionForItem(user.org.id, VersionedId(itemId))
+      .map(_.has(p)).getOrElse(false)
+  }
+
+  protected def userCanCreateDraft(itemId: ObjectId, user: OrgAndUser): Boolean = {
+    hasPermission(itemId, user, Permission.Write)
+  }
+
+  protected def userCanDeleteDrafts(itemId: ObjectId, user: OrgAndUser): Boolean = {
+    hasPermission(itemId, user, Permission.Write)
+  }
 
   def owns(user: OrgAndUser)(id: DraftId) = draftService.owns(user, id)
 
@@ -70,7 +88,10 @@ trait ItemDrafts
 
   def listForOrg(orgId: ObjectId) = draftService.listForOrg(orgId)
 
-  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = draftService.listByItemAndOrgId(itemId, orgId)
+  def listByItemAndOrgId(itemId: VersionedId[ObjectId], orgId: ObjectId) = {
+    logger.trace(s"function=listByItemAndOrgId, itemId=$itemId, orgId=$orgId")
+    draftService.listByItemAndOrgId(itemId, orgId)
+  }
 
   def load(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, ItemDraft] = {
     if (draftService.owns(user, draftId)) {
@@ -83,7 +104,7 @@ trait ItemDrafts
   def cloneDraft(user: OrgAndUser)(draftId: DraftId): Validation[DraftError, DraftCloneResult] = for {
     d <- load(user)(draftId)
     cloned <- Success(d.change.data.cloneItem)
-    vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s) }
+    vid <- itemService.save(cloned).disjunction.validation.leftMap { s => SaveDraftFailed(s.message) }
     _ <- assets.copyDraftToItem(draftId, vid)
     newDraft <- create(draftId, user)
   } yield DraftCloneResult(vid, newDraft.id)
@@ -198,7 +219,7 @@ trait ItemDrafts
 
   override protected def copyDraftToSrc(d: ItemDraft): Validation[DraftError, ItemCommit] = {
     for {
-      vid <- itemService.save(noVersion(d.change.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s) }
+      vid <- itemService.save(noVersion(d.change.data), false).disjunction.validation.leftMap { s => SaveDataFailed(s.message) }
       commit <- Success(ItemCommit(d.id, d.user, d.change.data.id))
       _ <- saveCommit(commit)
       _ <- assets.copyDraftToItem(d.id, commit.srcId)
@@ -231,10 +252,6 @@ trait ItemDrafts
   }
 
   def addFileToChangeSet(draft: ItemDraft, f: StoredFile): Boolean = {
-
-    import org.corespring.drafts.item.services.ItemDraftDbUtils.idToDbo
-    import org.corespring.platform.core.models.mongoContext.context
-
     val query = idToDbo(draft.id)
     val dbo = com.novus.salat.grater[StoredFile].asDBObject(f)
     val update = MongoDBObject("$addToSet" -> MongoDBObject("change.data.playerDefinition.files" -> dbo))

@@ -1,7 +1,7 @@
 package org.corespring.platform.core.models.item
 
 import com.mongodb.casbah.commons.TypeImports.ObjectId
-import org.corespring.platform.core.models.Subject
+import org.corespring.models.Subject
 import play.api.libs.json._
 import scala.Some
 
