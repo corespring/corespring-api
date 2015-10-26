@@ -70,6 +70,12 @@ describe("qti conversion", function () {
     expect(update).toEqual('<itemBody><csCalculator responseIdentifier="automatically-inserted-calculator" type="scientific"></csCalculator>');
   });
 
+  it("should remove '<i>You may use calculator</i> with whitespace inside i tags'", function () {
+    var qti = "<itemBody><i>  You may use a calculator to answer this question.  </i>";
+    var update = sut.convertQti(qti, item, "scientific");
+    expect(update).toEqual('<itemBody><csCalculator responseIdentifier="automatically-inserted-calculator" type="scientific"></csCalculator>');
+  });
+
   it("should remove existing calculators", function () {
     var qti = '<itemBody><csCalculator some="thing"></csCalculator>';
     var update = sut.convertQti(qti, item, "scientific");

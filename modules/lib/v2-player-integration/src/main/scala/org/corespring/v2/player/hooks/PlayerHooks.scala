@@ -1,6 +1,7 @@
 package org.corespring.v2.player.hooks
 
 import org.bson.types.ObjectId
+import org.corespring.platform.core.models.JsonUtil
 import org.corespring.container.client.hooks.{ PlayerHooks => ContainerPlayerHooks }
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.conversion.qti.transformers.ItemTransformer
@@ -15,7 +16,7 @@ import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.V2PlayerExecutionContext
 import play.api.Logger
 import play.api.http.Status._
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -48,7 +49,8 @@ class PlayerHooks(
 
     logger.debug(s"itemId=$itemId function=createSessionForItem")
 
-    def createSessionJson(vid: VersionedId[ObjectId]) = Json.obj("itemId" -> vid.toString)
+    def createSessionJson(item: Item) = partialObj("itemId" -> Some(JsString(item.id.toString)),
+      "collectionId" -> item.collectionId.map(JsString(_)))
 
     val result = for {
       identity <- getOrgAndOptions(header)
@@ -59,7 +61,7 @@ class PlayerHooks(
         case None => id.copy(version = Some(itemService.currentVersion(id)))
       }).toSuccess(cantParseItemId(itemId))
       item <- itemTransformer.loadItemAndUpdateV2(vid).toSuccess(generalError("Error generating item v2 JSON", INTERNAL_SERVER_ERROR))
-      json <- Success(createSessionJson(vid))
+      json <- Success(createSessionJson(item))
       sessionId <- auth.create(json)(identity)
     } yield (Json.obj("id" -> sessionId.toString) ++ json, Json.toJson(item.playerDefinition))
 
