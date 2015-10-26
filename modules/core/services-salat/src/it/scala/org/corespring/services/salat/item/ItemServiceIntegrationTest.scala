@@ -40,10 +40,10 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     def after: Any = removeAllData()
 
     def addItem(id: Int, c: ContentCollection,
-                contributorId: Option[Int] = None,
-                contentType: Option[String] = None,
-                standards: Seq[String] = Seq.empty,
-                title: Option[String] = None) = {
+      contributorId: Option[Int] = None,
+      contentType: Option[String] = None,
+      standards: Seq[String] = Seq.empty,
+      title: Option[String] = None) = {
       val contributorDetails = ContributorDetails(
         contributor = Some("contributor-" + contributorId.getOrElse(id)))
       val item = Item(
@@ -58,7 +58,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     def loadItem(id: VersionedId[ObjectId]): Option[Item] = service.findOneById(id)
 
-    def idQuery(id:VersionedId[ObjectId]) = MongoDBObject("_id._id" -> id.id, "_id.version" -> id.version)
+    def idQuery(id: VersionedId[ObjectId]) = MongoDBObject("_id._id" -> id.id, "_id.version" -> id.version)
   }
 
   "countItemsInCollection" should {
@@ -267,12 +267,12 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       stream.head.id === itemOne.id
     }
     "not return items of type different from item" in new scope {
-      val itemTwo = addItem(2, collectionOne, contentType=Some("not an item"))
+      val itemTwo = addItem(2, collectionOne, contentType = Some("not an item"))
       service.find(idQuery(itemTwo.id)) === Stream.empty
     }
     "not return old versions of items" in new scope {
       val oldVersion = itemOne.id
-      service.save(itemOne, createNewVersion=true)
+      service.save(itemOne, createNewVersion = true)
       service.find(idQuery(oldVersion)) === Stream.empty
     }
     "return an empty Stream if no items can be found" in new scope {
@@ -290,7 +290,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
         stream.head.id !== itemOne.id
       }
       "allow to exclude standards" in new scope {
-        val itemTwo = addItem(2, collectionOne, standards=Seq("stand-1"))
+        val itemTwo = addItem(2, collectionOne, standards = Seq("stand-1"))
         val stream = service.find(idQuery(itemTwo.id), MongoDBObject("standards" -> 0))
         stream.head.standards === Seq.empty
       }
@@ -315,7 +315,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return item standards of an old version of an item" in new scope {
       val itemTwo = addItem(2, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
       val oldVersion = itemTwo.id
-      service.save(itemTwo, createNewVersion=true)
+      service.save(itemTwo, createNewVersion = true)
       service.findItemStandards(oldVersion) === Some(ItemStandards("title", Seq("S1", "S2"), oldVersion))
     }
     "return None if item cannot be found" in new scope {
@@ -340,7 +340,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
     "not return old versions of an item" in new scope {
       val oldVersion = itemOne.id
-      service.save(itemOne, createNewVersion=true)
+      service.save(itemOne, createNewVersion = true)
       service.findMultipleById(oldVersion.id).length === 1
     }
   }
@@ -369,7 +369,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "create a new unpublished item, if published item can be found in old versions" in new scope {
       service.publish(itemOne.id) === true
       val oldId = itemOne.id
-      service.save(itemOne, createNewVersion=true).toOption.get
+      service.save(itemOne, createNewVersion = true).toOption.get
       val res = service.getOrCreateUnpublishedVersion(oldId)
       res.isDefined === true
       res !== Some(oldId)
@@ -377,7 +377,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     "create a new unpublished item, if unpublished item can be found in old versions" in new scope {
       val oldId = itemOne.id
-      service.save(itemOne, createNewVersion=true).toOption.get
+      service.save(itemOne, createNewVersion = true).toOption.get
       val res = service.getOrCreateUnpublishedVersion(oldId)
       res.isDefined === true
       res !== Some(oldId)
@@ -431,7 +431,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       loadItem(itemOne.id) === None
     }
     "delete item from old versions" in new scope {
-      service.save(itemOne, createNewVersion=true)
+      service.save(itemOne, createNewVersion = true)
       service.purge(itemOne.id)
       loadItem(itemOne.id) === None
     }
@@ -454,7 +454,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
     "throw exception when item has old version" in new scope {
       val oldId = itemOne.id
-      service.save(itemOne, createNewVersion=true).toOption.get
+      service.save(itemOne, createNewVersion = true).toOption.get
       service.saveNewUnpublishedVersion(oldId) must throwA[SalatVersioningDaoException]
     }
 
