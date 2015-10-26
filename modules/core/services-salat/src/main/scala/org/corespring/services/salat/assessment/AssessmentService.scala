@@ -38,6 +38,7 @@ class AssessmentService(
   with HasDao[Assessment, ObjectId] {
 
   private object Keys {
+    val id = "_id"
     val orgId = "orgId"
     val authorId = "metadata.authorId"
   }
@@ -78,17 +79,17 @@ class AssessmentService(
   def findOneById(id: ObjectId) = dao.findOneById(id)
 
   def findByIdAndOrg(id: ObjectId, organizationId: ObjectId) = {
-    val query = MongoDBObject("_id" -> id, "orgId" -> organizationId)
+    val query = MongoDBObject(Keys.id -> id, Keys.orgId -> organizationId)
     dao.findOne(query)
   }
 
   def findByIds(ids: List[ObjectId]) = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids))
+    val query = MongoDBObject(Keys.id -> MongoDBObject("$in" -> ids))
     dao.find(query).toList
   }
 
   def findByIds(ids: List[ObjectId], organizationId: ObjectId) = {
-    val query = MongoDBObject("_id" -> MongoDBObject("$in" -> ids), "orgId" -> organizationId)
+    val query = MongoDBObject(Keys.id -> MongoDBObject("$in" -> ids), Keys.orgId -> organizationId)
     dao.find(query).toList
   }
 
@@ -139,7 +140,6 @@ class AssessmentService(
 
   def findByAuthorAndOrg(authorId: String, organizationId: ObjectId): List[Assessment] = {
     val query = MongoDBObject(Keys.authorId -> authorId, Keys.orgId -> organizationId)
-    dao.find(query).toList
     withParticipantTimestamps(dao.find(query).toList)
   }
 
