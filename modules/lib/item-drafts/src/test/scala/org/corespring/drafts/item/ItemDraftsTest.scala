@@ -7,6 +7,7 @@ import org.bson.types.ObjectId
 import org.corespring.drafts.errors._
 import org.corespring.drafts.item.models._
 import org.corespring.drafts.item.services.{ CommitService, ItemDraftDbUtils, ItemDraftService }
+import org.corespring.errors
 import org.corespring.models.auth.Permission
 import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, StoredFile }
@@ -234,7 +235,7 @@ class ItemDraftsTest extends Specification with Mockito {
 
         val draft = mkDraft(ed, item)
         itemService.save(any[Item], any[Boolean]) returns {
-          if (saveSuccess) Success(itemId) else Failure(org.corespring.services.errors.GeneralError("Err", None))
+          if (saveSuccess) Success(itemId) else Failure(errors.GeneralError("Err", None))
         }
       }
 

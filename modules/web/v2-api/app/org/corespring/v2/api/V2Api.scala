@@ -1,6 +1,6 @@
 package org.corespring.v2.api
 
-import org.corespring.services.errors.PlatformServiceError
+import org.corespring.errors.PlatformServiceError
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors.{ generalError, noToken }

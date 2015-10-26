@@ -1,8 +1,8 @@
 package org.corespring.services
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 

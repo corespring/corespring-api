@@ -1,10 +1,10 @@
 package org.corespring.services.item
 
 import com.mongodb.casbah.Imports._
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.item.{ PlayerDefinition, ItemStandards, Item }
 import org.corespring.models.item.resource.StoredFile
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future

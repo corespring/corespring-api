@@ -1,9 +1,9 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollRef, MetadataSetRef, Organization }
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.specs2.mock.Mockito
 import org.specs2.mutable.After
 

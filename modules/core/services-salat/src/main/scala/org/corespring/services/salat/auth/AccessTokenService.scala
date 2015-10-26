@@ -6,10 +6,10 @@ import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
 import com.typesafe.config.ConfigFactory
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.Organization
 import org.corespring.models.appConfig.AccessTokenConfig
 import org.corespring.models.auth.AccessToken
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime

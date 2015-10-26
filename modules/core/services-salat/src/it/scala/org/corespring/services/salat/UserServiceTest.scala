@@ -1,9 +1,9 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User, UserOrg }
-import org.corespring.services.errors.PlatformServiceError
 import org.specs2.mutable.After
 
 import scalaz.{ Failure, Success }

@@ -72,7 +72,7 @@ object Main
   override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
-    org.corespring.container.client.controllers.routes.PlayerLauncher.playerJs().url)
+    org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
 
   //Old cms v1 controller
   lazy val showResource = new ShowResource(itemService, s3Service)

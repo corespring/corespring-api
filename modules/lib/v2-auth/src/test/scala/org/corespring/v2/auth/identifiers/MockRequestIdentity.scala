@@ -1,9 +1,9 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.{ ContentCollection, User, Organization }
 import org.corespring.services.OrganizationService
-import org.corespring.services.errors.PlatformServiceError
 import org.corespring.v2.errors.Errors.generalError
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito

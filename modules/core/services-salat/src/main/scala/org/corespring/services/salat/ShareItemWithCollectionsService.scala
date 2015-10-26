@@ -3,11 +3,11 @@ package org.corespring.services.salat
 import com.mongodb.casbah.Imports._
 import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
+import org.corespring.errors._
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors._
 import org.corespring.services.item.ItemService
 
 import scalaz.{ Validation, Failure, Success }

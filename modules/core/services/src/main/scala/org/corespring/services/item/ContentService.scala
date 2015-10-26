@@ -1,10 +1,10 @@
 package org.corespring.services.item
 
 import com.mongodb.casbah.Imports._
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Content
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 

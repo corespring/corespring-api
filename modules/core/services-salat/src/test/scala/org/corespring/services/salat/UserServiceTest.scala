@@ -4,10 +4,10 @@ import com.mongodb.{ WriteConcern, DBObject }
 import com.mongodb.casbah.MongoCollection
 import com.novus.salat.dao.{ SalatMongoCursor, SalatDAO }
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.{ Organization, UserOrg, User }
 import org.corespring.models.auth.Permission
 import org.corespring.salat.config.SalatContext
-import org.corespring.services.errors.PlatformServiceError
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

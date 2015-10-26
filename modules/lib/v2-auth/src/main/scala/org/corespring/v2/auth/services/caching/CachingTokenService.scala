@@ -1,8 +1,8 @@
 package org.corespring.v2.auth.services.caching
 
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.Organization
 import org.corespring.services.auth.AccessTokenService
-import org.corespring.services.errors.PlatformServiceError
 import play.api.Logger
 import spray.caching.Cache
 

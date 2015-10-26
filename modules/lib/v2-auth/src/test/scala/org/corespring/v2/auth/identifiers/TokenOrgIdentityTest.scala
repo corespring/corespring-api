@@ -1,10 +1,10 @@
 package org.corespring.v2.auth.identifiers
 
 import org.bson.types.ObjectId
+import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.{ Organization, User }
 import org.corespring.services.OrganizationService
 import org.corespring.services.auth.AccessTokenService
-import org.corespring.services.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.v2.errors.Errors.{ noToken, _ }
 import org.corespring.v2.errors.V2Error
 import org.specs2.mock.Mockito

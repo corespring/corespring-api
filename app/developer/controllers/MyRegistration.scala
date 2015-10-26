@@ -3,10 +3,10 @@ package developer.controllers
 import com.typesafe.plugin._
 import org.bson.types.ObjectId
 import org.corespring.common.config.AppConfig
+import org.corespring.errors.PlatformServiceError
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, Organization, User, UserOrg }
-import org.corespring.services.errors.PlatformServiceError
 import play.api.Logger
 import play.api.Play.current
 import play.api.data.Forms._

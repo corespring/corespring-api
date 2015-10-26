@@ -1,6 +1,6 @@
 package org.corespring.v2.player
 
-import org.corespring.container.client.controllers.PlayerLauncher
+import org.corespring.container.client.controllers.launcher.player.PlayerLauncher
 import org.corespring.it.IntegrationSpecification
 import org.corespring.it.scopes.{ IdAndPlayerTokenRequestBuilder, clientIdAndPlayerToken, RequestBuilder, HasItemId }
 import org.corespring.v2.auth.identifiers.PlayerTokenInQueryStringIdentity

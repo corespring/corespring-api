@@ -3,12 +3,13 @@ package org.corespring.services.salat
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatDAOUpdateError, SalatInsertError, SalatRemoveError }
 import org.bson.types.ObjectId
+import org.corespring.errors.{ PlatformServiceError, CollectionInsertError, GeneralError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item
 import org.corespring.models.{ ContentCollection, Organization }
-import org.corespring.services.errors._
 import org.corespring.services.item.ItemService
+
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

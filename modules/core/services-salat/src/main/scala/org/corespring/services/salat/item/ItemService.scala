@@ -4,13 +4,13 @@ import com.mongodb.casbah.Imports._
 import com.novus.salat._
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.{ ItemNotFoundError, GeneralError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.resource._
 import org.corespring.models.item.{ Item, ItemStandards }
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 

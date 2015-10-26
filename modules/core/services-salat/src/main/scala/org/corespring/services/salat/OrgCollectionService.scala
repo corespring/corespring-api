@@ -6,9 +6,9 @@ import com.novus.salat.Context
 import com.novus.salat.dao.SalatDAO
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
-import org.corespring.services.errors.PlatformServiceError
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
 
 import scalaz.Scalaz._

@@ -1,9 +1,9 @@
 package org.corespring.services.auth
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.Organization
 import org.corespring.models.auth.AccessToken
-import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 

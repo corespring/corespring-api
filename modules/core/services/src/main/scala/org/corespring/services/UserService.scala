@@ -1,9 +1,9 @@
 package org.corespring.services
 
 import org.bson.types.ObjectId
+import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ Organization, User }
-import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 
