@@ -359,15 +359,29 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return None if the item does not exist in current or old versions" in new scope {
       service.getOrCreateUnpublishedVersion(randomItemId) === None
     }
-    //TODO test when saveNewUnpublishedVersion is tested
     "create a new unpublished item, if published item can be found in current" in new scope {
-      //service.publish(itemOne.id) === true
-      //service.getOrCreateUnpublishedVersion(itemOne.id) === Some(itemOne)
+      service.publish(itemOne.id) === true
+      val res = service.getOrCreateUnpublishedVersion(itemOne.id)
+      res.isDefined === true
+      res !== Some(itemOne.id)
     }
-    //TODO test when saveNewUnpublishedVersion is tested
-    "create a new unpublished item, if published item can be found in old versions" in pending
-    //TODO test when saveNewUnpublishedVersion is tested
-    "create a new unpublished item, if unpublished item can be found in old versions" in pending
+
+    "create a new unpublished item, if published item can be found in old versions" in new scope {
+      service.publish(itemOne.id) === true
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion=true).toOption.get
+      val res = service.getOrCreateUnpublishedVersion(oldId)
+      res.isDefined === true
+      res !== Some(oldId)
+    }
+
+    "create a new unpublished item, if unpublished item can be found in old versions" in new scope {
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion=true).toOption.get
+      val res = service.getOrCreateUnpublishedVersion(oldId)
+      res.isDefined === true
+      res !== Some(oldId)
+    }
   }
 
   "insert" should {
@@ -433,16 +447,19 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   "saveNewUnpublishedVersion" should {
     "create new unpublished item when item is in current" in new scope {
-      //TODO fails with cast error in versioning dao
-      //service.publish(itemOne.id)
-      //service.saveNewUnpublishedVersion(itemOne.id)
+      val res = service.saveNewUnpublishedVersion(itemOne.id)
+      res.isDefined === true
+      res !== Some(itemOne.id)
 
     }
-    //TODO fails with cast error in versioning dao
-    "create new unpublished item when item is in archive" in pending
+    "throw exception when item has old version" in new scope {
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion=true).toOption.get
+      service.saveNewUnpublishedVersion(oldId) must throwA[SalatVersioningDaoException]
+    }
 
     "return None if the item cannot be found in current or archive" in new scope {
-      service.saveNewUnpublishedVersion(randomItemId)
+      service.saveNewUnpublishedVersion(randomItemId) === None
     }
   }
 

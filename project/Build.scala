@@ -65,7 +65,7 @@ object Build extends sbt.Build {
 
   lazy val coreServicesSalat = builders.lib("services-salat", "core")
     .settings(
-      libraryDependencies ++= Seq(salat, grizzledLog, logbackClassic, aws))
+      libraryDependencies ++= Seq(salat, salatVersioningDao, grizzledLog, logbackClassic, aws))
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
     .settings(
