@@ -101,7 +101,8 @@ object Main
 
   override lazy val sessionDbConfig: SessionDbConfig = {
     val envName = if (AppConfig.dynamoDbActivate) Some(AppConfig.envName) else None
-    new SessionDbConfig(envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
+    new SessionDbConfig(AppConfig.sessionService, AppConfig.sessionServiceUrl, AppConfig.sessionServiceAuthToken,
+      envName, AppConfig.dynamoDbUseLocal, AppConfig.dynamoDbLocalInit)
   }
 
   override lazy val awsCredentials: AWSCredentials = new AWSCredentials {

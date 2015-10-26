@@ -26,11 +26,11 @@ trait SessionDbModule {
   private lazy val dynamoDB = new DynamoDB(dbClient)
 
   private def mkService(table: String) = {
-    AppConfig.sessionService match {
+    sessionDbConfig.sessionService match {
       case "remote" => {
         import scala.concurrent.ExecutionContext.Implicits.global
-        val host = AppConfig.sessionServiceUrl
-        val authToken = AppConfig.sessionServiceAuthToken
+        val host = sessionDbConfig.sessionServiceUrl
+        val authToken = sessionDbConfig.sessionServiceAuthToken
         val client = table.contains("preview") match {
           case true => new SessionServiceClient(host = host, authToken = authToken, bucket = Some("preview"))
           case _ => new SessionServiceClient(host = host, authToken = authToken, bucket = None)
