@@ -16,8 +16,8 @@ import scalaz._
  * (see https://github.com/corespring/session-service/tree/master/client#usage for more information)
  */
 class RemoteSessionService(client: SessionServiceClient) extends SessionService {
+  private val REMOTE_TIMEOUT = 30.seconds
 
-  private val REMOTE_TIMEOUT = Duration(30, SECONDS)
   private val logger = Logger(classOf[RemoteSessionService])
 
   override def sessionCount(itemId: VersionedId[ObjectId]): Long =
