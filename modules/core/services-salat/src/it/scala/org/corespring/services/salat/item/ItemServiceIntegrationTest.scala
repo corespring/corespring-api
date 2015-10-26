@@ -46,24 +46,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     def loadItem(id: VersionedId[ObjectId]): Option[Item] = service.findOneById(id)
   }
 
-  "addCollectionIdToSharedCollections" should {
-    trait insertCollectionIdToSharedCollections extends scope {
-      val itemTwo = addItem(2, collectionOne)
-      val sharedCollection = insertCollection("2", org)
-    }
-
-    "add collectionId to item.sharedInCollections" in new insertCollectionIdToSharedCollections {
-      service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
-      loadItem(itemOne.id).map(_.sharedInCollections.contains(sharedCollection.id))
-      loadItem(itemTwo.id).map(_.sharedInCollections.contains(sharedCollection.id))
-    }
-
-    "return ids of updated items when call was successful" in new insertCollectionIdToSharedCollections {
-      val result = service.addCollectionIdToSharedCollections(Seq(itemOne.id, itemTwo.id), sharedCollection.id)
-      result must_== Success(Seq(itemOne.id, itemTwo.id))
-    }
-  }
-
   "countItemsInCollection" should {
 
     "return 1 for collection with 1 item" in new scope {
@@ -104,39 +86,39 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "asMetadataOnly" should {
-    trait asMetadataOnly extends scope {
-      val longAgo = new DateTime(1000, 10, 10, 10, 10)
-
-      val item = new Item(
-        id = VersionedId(ObjectId.get),
-        supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)),
-        data = Some(Resource(name = "test-data", files = Seq.empty)),
-        collectionId = "1234567",
-        dateModified = Some(longAgo))
-    }
-    "set dateModified to the current time" in new asMetadataOnly {
-      val now = DateTime.now().getMillis
-      var dateModified = service.asMetadataOnly(item).get("dateModified")
-      new DateTime(dateModified).getMillis must beGreaterThanOrEqualTo(now)
-    }
-    "remove id from result" in new asMetadataOnly {
-      val res = service.asMetadataOnly(item)
-      res.containsField("id") === false
-    }
-    "remove supportingMaterials from result" in new asMetadataOnly {
-      val res = service.asMetadataOnly(item)
-      res.containsField("supportingMaterials") === false
-    }
-    "remove data from result" in new asMetadataOnly {
-      val res = service.asMetadataOnly(item)
-      res.containsField("data") === false
-    }
-    "remove collectionId from result" in new asMetadataOnly {
-      val res = service.asMetadataOnly(item)
-      res.containsField("collectionId") === false
-    }
-  }
+  //  "asMetadataOnly" should {
+  //    trait asMetadataOnly extends scope {
+  //      val longAgo = new DateTime(1000, 10, 10, 10, 10)
+  //
+  //      val item = new Item(
+  //        id = VersionedId(ObjectId.get),
+  //        supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)),
+  //        data = Some(Resource(name = "test-data", files = Seq.empty)),
+  //        collectionId = "1234567",
+  //        dateModified = Some(longAgo))
+  //    }
+  //    "set dateModified to the current time" in new asMetadataOnly {
+  //      val now = DateTime.now().getMillis
+  //      var dateModified = service.asMetadataOnly(item).get("dateModified")
+  //      new DateTime(dateModified).getMillis must beGreaterThanOrEqualTo(now)
+  //    }
+  //    "remove id from result" in new asMetadataOnly {
+  //      val res = service.asMetadataOnly(item)
+  //      res.containsField("id") === false
+  //    }
+  //    "remove supportingMaterials from result" in new asMetadataOnly {
+  //      val res = service.asMetadataOnly(item)
+  //      res.containsField("supportingMaterials") === false
+  //    }
+  //    "remove data from result" in new asMetadataOnly {
+  //      val res = service.asMetadataOnly(item)
+  //      res.containsField("data") === false
+  //    }
+  //    "remove collectionId from result" in new asMetadataOnly {
+  //      val res = service.asMetadataOnly(item)
+  //      res.containsField("collectionId") === false
+  //    }
+  //  }
 
   "clone" should {
     trait clone extends scope {
@@ -262,37 +244,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "deleteFromSharedCollections" should {
-    trait deleteFromSharedCollections extends scope {
-      val collectionTwo = insertCollection("two", org)
-      val sharedCollectionId = collectionTwo.id
-      service.addCollectionIdToSharedCollections(Seq(itemOne.id), sharedCollectionId)
-    }
-
-    "remove collection from one item" should {
-      "return success" in new deleteFromSharedCollections() {
-        service.deleteFromSharedCollections(sharedCollectionId) must_== Success()
-      }
-
-      "update the item in db" in new deleteFromSharedCollections() {
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        service.deleteFromSharedCollections(sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
-      }
-    }
-    "remove collection from multiples items" should {
-      "update the items in db" in new deleteFromSharedCollections() {
-        val itemTwo = addItem(2, collectionOne)
-        service.addCollectionIdToSharedCollections(Seq(itemTwo.id), sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        loadItem(itemTwo.id).map(_.sharedInCollections === Seq(sharedCollectionId))
-        service.deleteFromSharedCollections(sharedCollectionId)
-        loadItem(itemOne.id).map(_.sharedInCollections === Seq.empty)
-        loadItem(itemTwo.id).map(_.sharedInCollections === Seq.empty)
-      }
-    }
-  }
-
   "find" should {
     "only return item of type item" in pending
     "not return archived items" in pending
@@ -317,27 +268,12 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return None if item cannot be found" in pending
     "return None if item has no title" in pending
     "return None if item has no standards" in pending
-
-  }
-
-  "findMultiple" should {
-    "return Seq of items found" in pending
-    "return empty Seq when o item can be found" in pending
-    "return items with type item only" in pending
-    "allow to select fields of the items" in pending
-    "not return archived items" in pending
   }
 
   "findMultipleById" should {
     "return Stream of items found" in pending
     "return empty Stream if no item can be found" in pending
     "not return archived items" in pending
-  }
-
-  "findOne" should {
-    "return item" in pending
-    "return None if item is in archive" in pending
-    "return None if item cannot be found" in pending
   }
 
   "findOneById" should {
@@ -354,21 +290,9 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "create a new unpublished item, if unpublished item can be found in archive" in pending
   }
 
-  "getQtiXml" should {
-    //TODO Really? Or is it a todo?
-    "return None for any item" in pending
-  }
-
   "insert" should {
     "return the id if successful" in pending
     "return None if not successful" in pending
-  }
-
-  "isPublished" should {
-    "return true if item.isPublished is true" in pending
-    "return false if item.isPublished is false" in pending
-    "return false if item cannot be found" in pending
-    "return false if item is archived" in pending
   }
 
   "moveItemToArchive" should {
@@ -392,29 +316,10 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return Success when item has not been deleted" in pending
   }
 
-  "removeCollectionIdsFromShared" should {
-    "remove one collectionId from one item" in pending
-    "remove multiple collectionIds from one item" in pending
-    "remove one collectionId from multiple items" in pending
-    "remove multiple collectionId from multiple items" in pending
-    "return ids of all items if successful" in pending
-    "return ids of failed items if not successful" in pending
-  }
-
   "saveNewUnpublishedVersion" should {
     "create new unpublished item when item is in current" in pending
     "create new unpublished item when item is in archive" in pending
     "return None if the item cannot be found in current or archive" in pending
-  }
-
-  "saveUsingDbo" should {
-    "return false when item does not exist in current" in pending
-    "return true when item exists in current" in pending
-    "use the dbo to update the item" in pending
-    "create a new version of the item, when createNewVersion is true" in pending
-
-    //TODO Assets should be copied, that seems to be missing in the implementation
-    "copy the assets when createNewVersion is true" in pending
   }
 
 }

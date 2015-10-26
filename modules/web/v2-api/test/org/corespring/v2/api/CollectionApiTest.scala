@@ -3,7 +3,7 @@ package org.corespring.v2.api
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ ContentCollection, ContentCollRef, Organization }
-import org.corespring.services.{ OrgItemSharingService, OrgCollectionService, ContentCollectionUpdate, ContentCollectionService }
+import org.corespring.services.{ ShareItemWithCollectionsService, OrgCollectionService, ContentCollectionUpdate, ContentCollectionService }
 import org.corespring.services.item.ItemAggregationService
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
@@ -54,8 +54,8 @@ class CollectionApiTest extends V2ApiSpec {
       m
     }
 
-    lazy val orgItemSharingService: OrgItemSharingService = {
-      val m = mock[OrgItemSharingService]
+    lazy val shareItemWithCollectionService: ShareItemWithCollectionsService = {
+      val m = mock[ShareItemWithCollectionsService]
       m
     }
 
@@ -96,7 +96,7 @@ class CollectionApiTest extends V2ApiSpec {
     protected val orgId = stubbedOrgAndOpts.org.id
 
     val api = new CollectionApi(
-      orgItemSharingService,
+      shareItemWithCollectionService,
       orgCollectionService,
       contentCollectionService,
       itemAggregationService,

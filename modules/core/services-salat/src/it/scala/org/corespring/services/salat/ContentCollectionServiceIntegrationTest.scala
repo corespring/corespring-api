@@ -116,24 +116,15 @@ class ContentCollectionServiceIntegrationTest
       }
 
       "remove the collection from shared collections" in new scope {
-        def addCollectionToSharedCollectionsOfItem() = {
-          services.itemService.addCollectionIdToSharedCollections(Seq(item.id), writableCollection.id)
-        }
-
-        def isCollectionInSharedCollections(): Boolean = {
-          services.itemService.findOneById(item.id) match {
-            case Some(itm) => itm.sharedInCollections.contains(writableCollection.id)
-            case None => {
-              failure("Item not found")
-              false
-            }
-          }
-        }
-
-        addCollectionToSharedCollectionsOfItem()
-        isCollectionInSharedCollections() must_== true
+        val otherOrgCollection = insertCollection("other-org-collection", otherOrg)
+        val otherOrgItem = insertItem(otherOrgCollection.id)
+        //allow root org read access to the item so that it can shared it
+        giveOrgAccess(rootOrg, otherOrgCollection, Permission.Read)
+        //now share it
+        services.shareItemWithCollectionsService.shareItems(rootOrg.id, Seq(otherOrgItem.id), writableCollection.id)
+        services.shareItemWithCollectionsService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== true
         service.delete(writableCollection.id)
-        isCollectionInSharedCollections() must_== false
+        services.shareItemWithCollectionsService.isItemSharedWith(otherOrgItem.id, writableCollection.id) must_== false
       }
     }
 

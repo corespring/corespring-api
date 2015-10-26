@@ -1,24 +1,76 @@
 package org.corespring.services.salat
 
 import com.mongodb.casbah.Imports._
+import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item
+import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.errors.{ CollectionAuthorizationError, PlatformServiceError, ItemAuthorizationError }
+import org.corespring.services.errors._
 import org.corespring.services.item.ItemService
 
 import scalaz.{ Validation, Failure, Success }
 
-class OrgItemSharingService(
+class ShareItemWithCollectionsService(
+  dao: VersioningDao[Item, VersionedId[ObjectId]],
   itemService: => ItemService,
-  orgCollectionService: => org.corespring.services.OrgCollectionService) extends org.corespring.services.OrgItemSharingService {
+  orgCollectionService: => org.corespring.services.OrgCollectionService) extends org.corespring.services.ShareItemWithCollectionsService {
 
-  private val logger = Logger(classOf[OrgItemSharingService])
+  private val logger = Logger(classOf[ShareItemWithCollectionsService])
 
+  import org.corespring.models.item.Item.Keys
+
+  private def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+    itemIds.filterNot { vid =>
+      try {
+        val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
+        dao.update(vid, update, createNewVersion = false)
+        true
+      } catch {
+        case e: SalatDAOUpdateError => false
+      }
+    } match {
+      case Nil => Success(itemIds)
+      case failedItems => Failure(ItemShareError(failedItems, collectionId))
+    }
+  }
+
+  private def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+    itemIds.filterNot { vid =>
+      try {
+        dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
+        true
+      } catch {
+        case e: SalatDAOUpdateError => false
+      }
+    } match {
+      case Nil => Success(itemIds)
+      case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
+    }
+  }
+
+  /**
+   * Delete collection reference from shared collections (defined in items)
+   * @return
+   */
+  override def unShareAllItemsFromCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
+    try {
+      val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
+      val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
+      dao.update(query, update, upsert = false, multi = true) match {
+        case Left(e) => Failure(PlatformServiceError(e))
+        case Right(wr) =>
+          if (wr.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
+      }
+    } catch {
+      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
+    }
+  }
   /**
    * Unshare the specified items from the specified collections
    */
-  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
+  override def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: ObjectId*): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
 
     lazy val nonWritableCollections = collIds.map { c =>
       (c -> orgCollectionService.isAuthorized(orgId, c, Permission.Write))
@@ -26,7 +78,7 @@ class OrgItemSharingService(
 
     for {
       _ <- if (nonWritableCollections.nonEmpty) Failure(PlatformServiceError(s"Can't write to the following collections: $nonWritableCollections")) else Success()
-      removed <- itemService.removeCollectionIdsFromShared(items, collIds)
+      removed <- removeCollectionIdsFromShared(items, collIds)
     } yield removed
   }
 
@@ -59,7 +111,7 @@ class OrgItemSharingService(
     }
 
     def saveUnsavedItems = {
-      itemService.addCollectionIdToSharedCollections(items, collId)
+      addCollectionIdToSharedCollections(items, collId)
     }
 
     lazy val canWrite = if (orgCollectionService.isAuthorized(orgId, collId, Permission.Write)) {

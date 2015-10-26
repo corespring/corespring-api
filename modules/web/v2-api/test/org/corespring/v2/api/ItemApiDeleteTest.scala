@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.models.auth.Permission
 import org.corespring.models.item.Item.Keys._
+import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models.{ AuthMode, OrgAndOpts, PlayerAccessSettings }
 import org.corespring.v2.errors.Errors._
 import org.corespring.v2.errors.V2Error
@@ -22,7 +23,7 @@ class ItemApiDeleteTest extends ItemApiSpec {
     val dummyOrgId = ObjectId.get
     val dummyCollectionId = ObjectId.get.toString
 
-    itemService.findFieldsById(any, any) returns findFieldsById
+    itemService.collectionIdForItem(any) returns Some(new ObjectId(dummyCollectionId))
 
     if (throwErrorInMoveItemToArchive) {
       OrigMockito.doThrow(
@@ -60,7 +61,8 @@ class ItemApiDeleteTest extends ItemApiSpec {
         result must beCodeAndJson(e.statusCode, e.json)
       }
 
-      s"returns cantFindItemWithId - if item does not exist" in new deleteApiScope() {
+      s"returns cantFindItemWithId - if itemService.collectionIdForItem returns None" in new deleteApiScope() {
+        itemService.collectionIdForItem(any[VersionedId[ObjectId]]) returns None
         val result = api.delete(itemId.toString)(FakeJsonRequest(Json.obj()))
         val e = cantFindItemWithId(itemId)
         result must beCodeAndJson(e.statusCode, e.json)

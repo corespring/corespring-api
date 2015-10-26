@@ -62,7 +62,6 @@ class ItemDraftsTest extends Specification with Mockito {
           Success(if (createNewVersion) bump(itemId) else itemId)
       }
       m.findOneById(any[VersionedId[ObjectId]]) returns Some(item)
-      m.isPublished(any[VersionedId[ObjectId]]) returns false
       m.collectionIdForItem(any[VersionedId[ObjectId]]) returns Some(collectionId)
       m
     }

@@ -6,8 +6,13 @@ import org.corespring.services.errors.PlatformServiceError
 
 import scalaz.Validation
 
-trait OrgItemSharingService {
+/**
+ * The sharing logic here and the access granting logic in OrgCollectionService,
+ * could be abstracted into a SharingService[WHAT,WHO].
+ */
+trait ShareItemWithCollectionsService {
 
+  def unShareAllItemsFromCollection(collectionId: ObjectId): Validation[PlatformServiceError, Unit]
   /**
    * Share items to the collection specified.
    * - must ensure that the context org has write access to the collection
@@ -28,11 +33,7 @@ trait OrgItemSharingService {
    * @param collIds - sequence of collections to have the items removed from
    * @return
    */
-  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
-
-  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    unShareItems(orgId, items, Seq(collId))
-  }
+  def unShareItems(orgId: ObjectId, items: Seq[VersionedId[ObjectId]], collIds: ObjectId*): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]]
 
   /**
    * Is the item shared by the collection

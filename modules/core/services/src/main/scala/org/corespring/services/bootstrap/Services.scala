@@ -12,7 +12,7 @@ trait Services {
   def itemAggregationService: ItemAggregationService
   def contentCollectionService: ContentCollectionService
   def orgCollectionService: OrgCollectionService
-  def orgItemSharingService: OrgItemSharingService
+  def shareItemWithCollectionsService: ShareItemWithCollectionsService
   def orgService: OrganizationService
   def userService: UserService
   def registrationTokenService: RegistrationTokenService

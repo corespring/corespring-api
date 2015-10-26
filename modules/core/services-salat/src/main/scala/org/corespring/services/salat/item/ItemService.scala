@@ -2,12 +2,10 @@ package org.corespring.services.salat.item
 
 import com.mongodb.casbah.Imports._
 import com.novus.salat._
-import com.novus.salat.dao.SalatDAOUpdateError
 import grizzled.slf4j.Logger
 import org.bson.types.ObjectId
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
-import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.models.item.{ Item, ItemStandards }
 import org.corespring.platform.data.VersioningDao
@@ -16,7 +14,6 @@ import org.corespring.services.errors._
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
-import scala.xml.Elem
 import scalaz._
 
 class ItemService(
@@ -30,6 +27,11 @@ class ItemService(
   protected val logger = Logger(classOf[ItemService])
 
   private val baseQuery = MongoDBObject("contentType" -> "item")
+
+  override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
+    val result = dao.update(id, dbo, createNewVersion)
+    result.isRight
+  }
 
   override def clone(item: Item): Option[Item] = {
     val itemClone = item.cloneItem
@@ -55,13 +57,6 @@ class ItemService(
     }.getOrElse(base)
   }
 
-  override def asMetadataOnly(item: Item): DBObject = {
-    import com.novus.salat._
-    val timestamped = item.copy(dateModified = Some(new DateTime()))
-    val dbo: MongoDBObject = grater[Item].asDBObject(timestamped)
-    dbo - "_id" - Keys.supportingMaterials - Keys.data - Keys.collectionId
-  }
-
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     logger.trace(s"function=publish, id=$id")
     val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
@@ -82,8 +77,6 @@ class ItemService(
     }
   }
 
-  private def count(query: DBObject, fields: Option[String] = None): Long = dao.countCurrent(baseQuery ++ query)
-
   override def findFieldsById(id: VersionedId[ObjectId], fields: DBObject = MongoDBObject.empty): Option[DBObject] = dao.findDbo(id, fields)
 
   override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
@@ -91,17 +84,6 @@ class ItemService(
   override def find(query: DBObject, fields: DBObject = new BasicDBObject()): Stream[Item] = dao.findCurrent(baseQuery ++ query, fields).toStream
 
   override def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
-
-  override def findOne(query: DBObject): Option[Item] = dao.findOneCurrent(baseQuery ++ query)
-
-  override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
-    val result = dao.update(id, dbo, createNewVersion)
-    result.isRight
-  }
-
-  override def purge(item: Item) = {
-    purge(item.id)
-  }
 
   override def purge(id: VersionedId[ObjectId]) = {
     dao.delete(id)
@@ -161,55 +143,10 @@ class ItemService(
 
   def insert(i: Item): Option[VersionedId[ObjectId]] = dao.insert(i)
 
-  def findMultiple(ids: Seq[VersionedId[ObjectId]], fields: DBObject): Seq[Item] = {
-    val oids = ids.map(i => i.id)
-    val query = baseQuery ++ MongoDBObject("_id._id" -> MongoDBObject("$in" -> oids))
-    val out = dao.findCurrent(query, fields).toSeq
-    out
-  }
-
-  override def addCollectionIdToSharedCollections(itemIds: Seq[VersionedId[ObjectId]], collectionId: ObjectId): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    itemIds.filterNot { vid =>
-      try {
-        val update = MongoDBObject("$addToSet" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-        dao.update(vid, update, createNewVersion = false)
-        true
-      } catch {
-        case e: SalatDAOUpdateError => false
-      }
-    } match {
-      case Nil => Success(itemIds)
-      case failedItems => Failure(ItemShareError(failedItems, collectionId))
-    }
-  }
-
-  override def removeCollectionIdsFromShared(itemIds: Seq[VersionedId[ObjectId]], collectionIds: Seq[ObjectId]): Validation[PlatformServiceError, Seq[VersionedId[ObjectId]]] = {
-    itemIds.filterNot { vid =>
-      try {
-        dao.update(vid, MongoDBObject("$pullAll" -> MongoDBObject(Keys.sharedInCollections -> collectionIds)), createNewVersion = false)
-        true
-      } catch {
-        case e: SalatDAOUpdateError => false
-      }
-    } match {
-      case Nil => Success(itemIds)
-      case failedItems => Failure(ItemUnShareError(failedItems, collectionIds))
-    }
-  }
-
-  override def getQtiXml(id: VersionedId[ObjectId]): Option[Elem] = {
-    None
-  }
-
   override def moveItemToArchive(id: VersionedId[ObjectId]) = {
     val update = MongoDBObject("$set" -> MongoDBObject(Item.Keys.collectionId -> archiveConfig.contentCollectionId.toString))
     saveUsingDbo(id, update, createNewVersion = false)
     Some(archiveConfig.contentCollectionId.toString)
-  }
-
-  override def isPublished(vid: VersionedId[ObjectId]): Boolean = {
-    val dbo = vidToDbo(vid) ++ MongoDBObject("published" -> true)
-    count(dbo) == 1
   }
 
   override def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item] = {
@@ -221,24 +158,6 @@ class ItemService(
 
   override def findMultipleById(ids: ObjectId*): Stream[Item] = {
     dao.findCurrent(MongoDBObject("_id._id" -> MongoDBObject("$in" -> ids)), MongoDBObject()).toStream
-  }
-
-  /**
-   * Delete collection reference from shared collections (defined in items)
-   * @return
-   */
-  override def deleteFromSharedCollections(collectionId: ObjectId): Validation[PlatformServiceError, Unit] = {
-    try {
-      val query = MongoDBObject(Keys.sharedInCollections -> collectionId)
-      val update = MongoDBObject("$pull" -> MongoDBObject(Keys.sharedInCollections -> collectionId))
-      dao.update(query, update, upsert = false, multi = true) match {
-        case Left(e) => Failure(PlatformServiceError(e))
-        case Right(wr) =>
-          if (wr.getLastError.ok) Success() else Failure(PlatformServiceError(s"error deleting from sharedCollections in item, collectionId: $collectionId"))
-      }
-    } catch {
-      case e: SalatDAOUpdateError => Failure(PlatformServiceError(e.getMessage))
-    }
   }
 
   override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {

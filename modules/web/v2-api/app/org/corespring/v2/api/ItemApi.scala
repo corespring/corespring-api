@@ -190,8 +190,8 @@ class ItemApi(
       val out = for {
         identity <- getOrgAndOptions(request)
         vid <- VersionedId(itemId).toSuccess(cantParseItemId(itemId))
-        dbObject <- itemService.findFieldsById(vid, MongoDBObject(collectionId -> 1)).toSuccess(cantFindItemWithId(vid))
-        canDelete <- itemAuth.canCreateInCollection(dbObject.get(collectionId).toString)(identity)
+        collectionId <- itemService.collectionIdForItem(vid).toSuccess(cantFindItemWithId(vid))
+        canDelete <- itemAuth.canCreateInCollection(collectionId.toString)(identity)
         result <- moveItemToArchive(vid)
       } yield {
         result
