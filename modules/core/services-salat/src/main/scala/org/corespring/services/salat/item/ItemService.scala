@@ -150,8 +150,7 @@ class ItemService(
   }
 
   override def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item] = {
-    val unpublished = dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, "published" -> false))
-    unpublished.orElse {
+    dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, "published" -> false)).orElse {
       saveNewUnpublishedVersion(id).flatMap(vid => findOneById(vid))
     }
   }
