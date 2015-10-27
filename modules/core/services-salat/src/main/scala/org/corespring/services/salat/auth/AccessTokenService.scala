@@ -56,8 +56,6 @@ class AccessTokenService(
    */
   override def findByTokenId(tokenId: String): Option[AccessToken] = dao.findOne(MongoDBObject(Keys.tokenId -> tokenId))
 
-  override def getTokenForOrgById(orgId: ObjectId): Option[AccessToken] = findByOrgId(orgId)
-
   private def mkToken(orgId: ObjectId) = {
     val creationTime = DateTime.now()
     AccessToken(orgId, None, apiClientService.generateTokenId(), creationTime, creationTime.plusHours(config.tokenDurationInHours))
@@ -83,20 +81,9 @@ class AccessTokenService(
 
   override def getOrCreateToken(org: Organization): AccessToken = getOrCreateToken(org.id)
 
-  override def findByOrgId(orgId: ObjectId): Option[AccessToken] = {
-    find(orgId, None) match {
-      case Some(t) if (!t.isExpired) => Some(t)
-      case _ => {
-        val token: AccessToken = mkToken(orgId)
-        dao.insert(token)
-        Some(token)
-      }
-    }
-  }
-
   override def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     try {
-      //TODO: Just do a SAFE WriteConcern instead
+      //TODO: Is this writeConcern safe enough to remove the loading of the item?
       dao.insert(token, dao.collection.writeConcern) match {
         case Some(id) => dao.findOneById(id) match {
           case Some(dbtoken) => Success(dbtoken)

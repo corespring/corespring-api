@@ -5,7 +5,6 @@ import org.corespring.models.auth.AccessToken
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.joda.time.DateTime
 import org.specs2.mutable.BeforeAfter
-import org.specs2.specification.Outside
 
 import scalaz.Success
 
@@ -32,12 +31,13 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
     }
 
     def mkToken(
+      scope: Option[String] = None,
       neverExpire: Option[Boolean] = None,
       creationDate: Option[DateTime] = None,
       expirationDate: Option[DateTime] = None) = {
       val token = AccessToken(
         ObjectId.get,
-        None,
+        scope,
         ObjectId.get.toString,
         neverExpire = neverExpire.getOrElse(false),
         creationDate = creationDate.getOrElse(DateTime.now),
@@ -79,8 +79,8 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
       service.find(org.id, None) must_== token
     }
     "return token for org and scope" in new scope {
-      //TODO How to add scope to access token?
-      //service.find(org.id, Some("test-scope")) must_== token
+      val t = mkToken(scope=Some("test-scope"))
+      service.find(t.organization, Some("test-scope")) must_== Some(t)
     }
     "return None when org is not correct" in new scope {
       service.find(ObjectId.get, None) must_== None
@@ -89,32 +89,6 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
       service.find(org.id, Some("test-scope")) must_== None
     }
 
-  }
-  "findById" should {
-    //@deprecated
-    "work" in pending
-  }
-  "findByOrgId" should {
-    "return the token if it is not expired" in new scope {
-      service.findByOrgId(org.id) must_== token
-    }
-    "create a new token if it is expired" in new scope {
-      //TODO Create? Really? Maybe a name change would be good to signal that
-      val expiredToken = mkExpiredToken()
-      val res = service.findByOrgId(expiredToken.organization)
-      res.isDefined must_== true
-      res must_!= expiredToken
-
-    }
-    "create a new token if it does not exist" in new scope {
-      //TODO Create? Really? Maybe a name change would be good to signal that
-      val orgTwo = insertOrg("2")
-      service.findByOrgId(orgTwo.id).isDefined must_== true
-    }
-  }
-  "findByToken" should {
-    //@deprecated
-    "work" in pending
   }
   "findByTokenId" should {
     "return the token for an id" in new scope {
@@ -144,10 +118,6 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "getTokenForOrgById" should {
-    //@deprecated
-    "work" in pending
-  }
   "insertToken" should {
     "insert a token as is" in new scope {
       val t = mkToken()
