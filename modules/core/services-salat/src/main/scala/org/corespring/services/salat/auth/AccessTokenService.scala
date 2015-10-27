@@ -56,32 +56,23 @@ class AccessTokenService(
    */
   override def findByTokenId(tokenId: String): Option[AccessToken] = dao.findOne(MongoDBObject(Keys.tokenId -> tokenId))
 
-  override def getTokenForOrgById(orgId: ObjectId): Option[AccessToken] = findByOrgId(orgId)
-
-  lazy val tokenDuration = ConfigFactory.load().getString("TOKEN_DURATION").toInt
-
   private def mkToken(orgId: ObjectId) = {
     val creationTime = DateTime.now()
-    AccessToken(orgId, None, apiClientService.generateTokenId(), creationTime, creationTime.plusHours(24))
+    AccessToken(orgId, None, apiClientService.generateTokenId(), creationTime, creationTime.plusHours(config.tokenDurationInHours))
   }
 
-  override def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken] = for {
-    apiClient <- apiClientService.findByIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
-    token <- Success(mkToken(apiClient.orgId))
-    insertedToken <- insertToken(token)
-  } yield insertedToken
+  override def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken] =
+    for {
+      apiClient <- apiClientService.findByIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
+      token <- Success(mkToken(apiClient.orgId))
+      insertedToken <- insertToken(token)
+    } yield insertedToken
 
   override def getOrCreateToken(orgId: ObjectId): AccessToken = {
-    dao.findOne(MongoDBObject("orgId" -> orgId)) match {
+    dao.findOne(MongoDBObject("organization" -> orgId)) match {
       case Some(t) if (!t.isExpired) => t
       case _ => {
-        val now = DateTime.now()
-        val token: AccessToken = new AccessToken(
-          organization = orgId,
-          scope = None,
-          tokenId = new ObjectId().toString,
-          creationDate = now,
-          expirationDate = now.plusHours(tokenDuration))
+        val token: AccessToken = mkToken(orgId)
         dao.insert(token)
         token
       }
@@ -90,27 +81,10 @@ class AccessTokenService(
 
   override def getOrCreateToken(org: Organization): AccessToken = getOrCreateToken(org.id)
 
-  override def findByOrgId(orgId: ObjectId): Option[AccessToken] = {
-    find(orgId, None) match {
-      case Some(t) if (!t.isExpired) => Some(t)
-      case _ => {
-        val now = DateTime.now()
-        val token: AccessToken = new AccessToken(
-          organization = orgId,
-          scope = None,
-          tokenId = new ObjectId().toString,
-          creationDate = now,
-          expirationDate = now.plusHours(config.tokenDurationInHours))
-        dao.insert(token)
-        Some(token)
-      }
-    }
-  }
-
   override def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     try {
-      //TODO: Just do a SAFE WriteConcern instead
-      dao.insert(token) match {
+      //TODO: Is this writeConcern safe enough to remove the loading of the item?
+      dao.insert(token, dao.collection.writeConcern) match {
         case Some(id) => dao.findOneById(id) match {
           case Some(dbtoken) => Success(dbtoken)
           case None => Failure(PlatformServiceError("could not retrieve token that was just inserted"))
