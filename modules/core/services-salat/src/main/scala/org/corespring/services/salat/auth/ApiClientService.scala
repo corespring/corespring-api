@@ -69,7 +69,7 @@ class ApiClientService(orgService: interface.OrganizationService,
               Success(apiClient)
             } catch {
               case e: SalatSaveError => {
-                logger.error("Error registering ortganization %s".format(orgId), e)
+                logger.error("Error registering organization %s".format(orgId), e)
                 val OperationError = "There was an error processing your request"
                 Failure(OperationError)
               }
