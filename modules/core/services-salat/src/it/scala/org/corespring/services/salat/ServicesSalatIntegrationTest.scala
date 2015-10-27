@@ -27,6 +27,8 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
   protected val archiveContentCollectionId = ObjectId.get
   protected val archiveOrgId = ObjectId.get
 
+  protected def testMostRecentDateModifiedForSessions(ids:Seq[ObjectId]): Option[DateTime] = None
+
   protected def removeAllData() = {
     logger.info(s"function=removeAllData - dropping db ---------------")
 
@@ -83,7 +85,7 @@ trait ServicesSalatIntegrationTest extends Specification with Mockito with Aroun
 
     override implicit def context: Context = new ServicesContext(this.getClass.getClassLoader)
 
-    override def mostRecentDateModifiedForSessions: (Seq[ObjectId]) => Option[DateTime] = _ => None
+    override def mostRecentDateModifiedForSessions: (Seq[ObjectId]) => Option[DateTime] = testMostRecentDateModifiedForSessions
 
     override def salatServicesExecutionContext: SalatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
   }
