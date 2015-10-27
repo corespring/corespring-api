@@ -73,7 +73,7 @@ class AssessmentService(
   }
 
   def remove(q: Assessment) {
-    dao.remove(q)
+    dao.removeById(q.id)
   }
 
   def findOneById(id: ObjectId) = dao.findOneById(id)

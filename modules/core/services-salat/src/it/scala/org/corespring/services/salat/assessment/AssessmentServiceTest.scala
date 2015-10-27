@@ -2,7 +2,7 @@ package org.corespring.services.salat.assessment
 
 import org.bson.types.ObjectId
 import org.corespring.models.{ ContentCollection, Organization }
-import org.corespring.models.assessment.{Answer, Participant, Question, Assessment}
+import org.corespring.models.assessment.{ Answer, Participant, Question, Assessment }
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.joda.time.DateTime
@@ -12,7 +12,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
 
   val mostRecently = DateTime.now()
 
-  override def testMostRecentDateModifiedForSessions(ids:Seq[ObjectId]): Option[DateTime] = Some(mostRecently)
+  override def testMostRecentDateModifiedForSessions(ids: Seq[ObjectId]): Option[DateTime] = Some(mostRecently)
 
   trait scope extends BeforeAfter with InsertionHelper {
 
@@ -29,7 +29,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
     val assessmentOne = new Assessment(
       orgId = Some(orgOne.id),
       questions = Seq(questionOne),
-      metadata=Map("authorId" -> "Author-1"))
+      metadata = Map("authorId" -> "Author-1"))
     val sessionOne = ObjectId.get
     val answerOne = Answer(sessionOne, itemOne.id)
 
@@ -45,7 +45,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
     def loadAssessment(id: ObjectId) = service.findOneById(id)
     def loadAssessmentOne() = service.findOneById(assessmentOne.id)
 
-    def participant(uid:String) = Participant(Seq.empty, uid)
+    def participant(uid: String) = Participant(Seq.empty, uid)
   }
 
   "addAnswer" should {
@@ -104,7 +104,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
       loadAssessmentOne().map(_.id) must_== Some(assessmentOne.id)
     }
     "update the questions of the assessment with title and standards of item" in new scope {
-      val res = loadAssessmentOne().map( a => (a.questions(0).title, a.questions(0).standards))
+      val res = loadAssessmentOne().map(a => (a.questions(0).title, a.questions(0).standards))
       res must_== Some((Some("item-title-1"), Seq("item-standard-1", "item-standard-2")))
     }
   }
@@ -192,8 +192,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
 
   "remove" should {
     "remove assessment" in new scope {
-      //TODO the id should be enough to remove, or? dao.remove matches the whole object
-      service.remove(loadAssessmentOne().get)
+      service.remove(assessmentOne)
       loadAssessmentOne() must_== None
     }
     "not fail when assessment does not exist" in new scope {
@@ -210,7 +209,7 @@ class AssessmentServiceTest extends ServicesSalatIntegrationTest {
     "update the questions of the assessment with standards data" in new scope {
       var updatedAssessment = assessmentOne.copy(starts = Some(DateTime.now()))
       service.update(updatedAssessment)
-      val res = loadAssessmentOne().map( a => (a.questions(0).title, a.questions(0).standards))
+      val res = loadAssessmentOne().map(a => (a.questions(0).title, a.questions(0).standards))
       res must_== Some((Some("item-title-1"), Seq("item-standard-1", "item-standard-2")))
     }
   }
