@@ -1,5 +1,6 @@
 package org.corespring.services.salat.item
 
+import com.mongodb.casbah.commons.MongoDBObject
 import org.bson.types.ObjectId
 import org.corespring.models.ContentCollection
 import org.corespring.models.auth.Permission
@@ -13,14 +14,26 @@ import org.specs2.mutable.{ After, BeforeAfter }
 
 import scalaz.{ Failure, Success }
 
+/**
+ * Note: Items can be stored in three different collections
+ * 1. content - contains the current version of items
+ * 2. versioned_content - contains old versions of items. That happens automatically
+ * when you save an item with createNewVersion=true
+ * 3. archive collection - contains items that have been archived using moveToArchive
+ *
+ * The dao methods with "current" in the name only use the content collection, while the
+ * other methods use both, the content and versioned_content collection
+ */
 class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   val service = services.itemService
 
   trait scope extends BeforeAfter with InsertionHelper {
-    lazy val org = insertOrg("1")
+    val org = insertOrg("1")
     val collectionOne = insertCollection("collection-one", org)
     val itemOne = addItem(1, collectionOne)
+
+    def randomItemId = VersionedId(ObjectId.get)
 
     def before: Any = {}
 
@@ -44,17 +57,19 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     def loadItem(id: VersionedId[ObjectId]): Option[Item] = service.findOneById(id)
+
+    def idQuery(id: VersionedId[ObjectId]) = MongoDBObject("_id._id" -> id.id, "_id.version" -> id.version)
   }
 
   "countItemsInCollection" should {
 
     "return 1 for collection with 1 item" in new scope {
-      service.countItemsInCollection(collectionOne.id) must_== 1
+      service.countItemsInCollection(collectionOne.id) === 1
     }
 
     "return 0 for collection with no items" in new scope {
       val collectionTwo = insertCollection("two", org)
-      service.countItemsInCollection(collectionTwo.id) must_== 0
+      service.countItemsInCollection(collectionTwo.id) === 0
     }
   }
 
@@ -64,13 +79,13 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "add file to playerDefinition.files using item id" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne.id, file)
-      loadItem(itemOne.id).map(_.playerDefinition.get.files === Seq(file))
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) === Some(Seq(file))
     }
 
     "add file to playerDefinition.files using item" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne, file)
-      loadItem(itemOne.id).map(_.playerDefinition.get.files === Seq(file))
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) === Some(Seq(file))
     }
     "return true when call was successful" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
@@ -82,7 +97,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     //TODO Do we want it to throw?
     "throw error when item cannot be found" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
-      service.addFileToPlayerDefinition(VersionedId(ObjectId.get), file) must throwA[SalatVersioningDaoException]
+      service.addFileToPlayerDefinition(randomItemId, file) must throwA[SalatVersioningDaoException]
     }
   }
 
@@ -91,7 +106,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   //      val longAgo = new DateTime(1000, 10, 10, 10, 10)
   //
   //      val item = new Item(
-  //        id = VersionedId(ObjectId.get),
+  //        id = randomItemId,
   //        supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)),
   //        data = Some(Resource(name = "test-data", files = Seq.empty)),
   //        collectionId = "1234567",
@@ -126,10 +141,11 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       val clonedItem = service.clone(item)
     }
     "return the cloned item" in new clone {
+      clonedItem.isDefined === true
       clonedItem.get.id !== item.id
     }
     "create a new item in the db" in new clone {
-      loadItem(clonedItem.get.id).isDefined == true
+      loadItem(clonedItem.get.id).isDefined === true
     }
     //TODO How much of file cloning do we want to test?
     "clone stored files" in pending
@@ -148,21 +164,21 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     "return the collectionId of the item" in new collectionIdForItem {
-      val res = service.collectionIdForItem(v1Item.id) === Some(v1CollectionId)
+      service.collectionIdForItem(v1Item.id) === Some(v1CollectionId)
     }
 
     "always return the collectionId of the last version of the item" in new collectionIdForItem {
-      val res = service.collectionIdForItem(v0Item.id) === Some(v1CollectionId)
+      service.collectionIdForItem(v0Item.id) === Some(v1CollectionId)
     }
 
     "return None if item does not exist" in new collectionIdForItem {
-      val res = service.collectionIdForItem(VersionedId(ObjectId.get)) === None
+      service.collectionIdForItem(randomItemId) === None
     }
 
     "return None if collectionId is not an ObjectId" in new collectionIdForItem {
       val itemWithInvalidCollectionId = Item(collectionId = "this is not an ObjectId")
       service.insert(itemWithInvalidCollectionId) !== None
-      val res = service.collectionIdForItem(itemWithInvalidCollectionId.id) must_== None
+      val res = service.collectionIdForItem(itemWithInvalidCollectionId.id) === None
     }
   }
 
@@ -240,86 +256,211 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
     //TODO Shouldn't that result in an error?
     "return 0 for a non existing item" in new scope {
-      service.currentVersion(VersionedId(ObjectId.get)) === 0
+      service.currentVersion(randomItemId) === 0
     }
   }
 
   "find" should {
-    "only return item of type item" in pending
-    "not return archived items" in pending
-    "allow to select the returned fields" in pending
-    "return an empty Stream if no items can be found" in pending
+
+    "find an item" in new scope {
+      val stream = service.find(idQuery(itemOne.id))
+      stream.head.id === itemOne.id
+    }
+    "not return items of type different from item" in new scope {
+      val itemTwo = addItem(2, collectionOne, contentType = Some("not an item"))
+      service.find(idQuery(itemTwo.id)) === Stream.empty
+    }
+    "not return old versions of items" in new scope {
+      val oldVersion = itemOne.id
+      service.save(itemOne, createNewVersion = true)
+      service.find(idQuery(oldVersion)) === Stream.empty
+    }
+    "return an empty Stream if no items can be found" in new scope {
+      service.find(MongoDBObject("impossible" -> "it really is")) === Stream.empty
+    }
+    "required fields" should {
+      "throws exception when collectionId is excluded" in new scope {
+        service.find(idQuery(itemOne.id), MongoDBObject("collectionId" -> 0)) must throwA[Exception]
+      }
+    }
+    "optional fields" should {
+      "allow to exclude id" in new scope {
+        //TODO Doesn't make sense to be able to exclude id.
+        val stream = service.find(idQuery(itemOne.id), MongoDBObject("_id" -> 0))
+        stream.head.id !== itemOne.id
+      }
+      "allow to exclude standards" in new scope {
+        val itemTwo = addItem(2, collectionOne, standards = Seq("stand-1"))
+        val stream = service.find(idQuery(itemTwo.id), MongoDBObject("standards" -> 0))
+        stream.head.standards === Seq.empty
+      }
+      //TODO Test excluding other fields?
+    }
+
   }
 
   "findFieldsById" should {
-    "return all fields of the item by default" in pending
+    //TODO findFieldsById api is deprecated, don't need to test now
     "allow to select fields of the item" in pending
     "return None if item cannot be found" in pending
-    "return Fields of archived item" in pending
+    "return fields of old versions of item" in pending
   }
 
   "findItemStandards" should {
 
     "return item standards of an item" in new scope {
-      override val itemOne = addItem(1, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
-      service.findItemStandards(itemOne.id) must_== Some(ItemStandards("title", Seq("S1", "S2"), itemOne.id))
+      val itemTwo = addItem(2, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
+      service.findItemStandards(itemTwo.id) === Some(ItemStandards("title", Seq("S1", "S2"), itemTwo.id))
     }
-    "return item standards of an archived item" in pending
-    "return None if item cannot be found" in pending
-    "return None if item has no title" in pending
-    "return None if item has no standards" in pending
+    "return item standards of an old version of an item" in new scope {
+      val itemTwo = addItem(2, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
+      val oldVersion = itemTwo.id
+      service.save(itemTwo, createNewVersion = true)
+      service.findItemStandards(oldVersion) === Some(ItemStandards("title", Seq("S1", "S2"), oldVersion))
+    }
+    "return None if item cannot be found" in new scope {
+      service.findItemStandards(randomItemId) === None
+    }
+    "return None if item has no title" in new scope {
+      val itemTwo = addItem(2, collectionOne, title = None, standards = Seq("S1", "S2"))
+      service.findItemStandards(itemTwo.id) === None
+    }
   }
 
   "findMultipleById" should {
-    "return Stream of items found" in pending
-    "return empty Stream if no item can be found" in pending
-    "not return archived items" in pending
+    "return item " in new scope {
+      service.findMultipleById(itemOne.id.id).head.id === itemOne.id
+    }
+    "return Stream of items found" in new scope {
+      val itemTwo = addItem(2, collectionOne)
+      service.findMultipleById(itemOne.id.id, itemTwo.id.id).toSeq.map(_.id) === Seq(itemOne.id, itemTwo.id)
+    }
+    "return empty Stream if no item can be found" in new scope {
+      service.findMultipleById(randomItemId.id) === Stream.empty
+    }
+    "not return old versions of an item" in new scope {
+      val oldVersion = itemOne.id
+      service.save(itemOne, createNewVersion = true)
+      service.findMultipleById(oldVersion.id).length === 1
+    }
   }
 
   "findOneById" should {
+    //TODO Same as dao
     "return current item" in pending
-    "return archived item" in pending
+    "return old versions of an item" in pending
     "return None if item cannot be found" in pending
   }
 
   "getOrCreateUnpublishedVersion" should {
-    "return an existing unpublished current item" in pending
-    "return None if the item does not exist in current or archive" in pending
-    "create a new unpublished item, if published item can be found in current" in pending
-    "create a new unpublished item, if published item can be found in archive" in pending
-    "create a new unpublished item, if unpublished item can be found in archive" in pending
+    "return an existing unpublished current item" in new scope {
+      service.getOrCreateUnpublishedVersion(itemOne.id) === Some(itemOne)
+    }
+    "return None if the item does not exist in current or old versions" in new scope {
+      service.getOrCreateUnpublishedVersion(randomItemId) === None
+    }
+    "create a new unpublished item, if published item can be found in current" in new scope {
+      service.publish(itemOne.id) === true
+      val res = service.getOrCreateUnpublishedVersion(itemOne.id)
+      res.isDefined === true
+      res !== Some(itemOne.id)
+    }
+
+    "create a new unpublished item, if published item can be found in old versions" in new scope {
+      service.publish(itemOne.id) === true
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion = true).toOption.get
+      val res = service.getOrCreateUnpublishedVersion(oldId)
+      res.isDefined === true
+      res !== Some(oldId)
+    }
+
+    "create a new unpublished item, if unpublished item can be found in old versions" in new scope {
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion = true).toOption.get
+      val res = service.getOrCreateUnpublishedVersion(oldId)
+      res.isDefined === true
+      res !== Some(oldId)
+    }
   }
 
   "insert" should {
+    //TODO Same as dao
     "return the id if successful" in pending
     "return None if not successful" in pending
   }
 
   "moveItemToArchive" should {
-    "set the collectionId of an item to the archive collection id" in pending
-    "not add a new item, if it does not exist" in pending
-    "return the archive collection id" in pending
+
+    def archiveCollectionId = services.archiveConfig.contentCollectionId.toString
+
+    "set the collectionId of an item to the archive collection id" in new scope {
+      service.moveItemToArchive(itemOne.id)
+      loadItem(itemOne.id).map(_.collectionId) === Some(archiveCollectionId)
+    }
+    "throw an exception when item does not exist" in new scope {
+      service.moveItemToArchive(randomItemId) must throwA[SalatVersioningDaoException]
+    }
+    "return the archive collection id" in new scope {
+      service.moveItemToArchive(itemOne.id) === Some(archiveCollectionId)
+    }
   }
 
   "publish" should {
-    "set item.isPublished to true" in pending
-    "not create a new item, if it does not exist" in pending
-    "return true, if update is successful" in pending
-    "return true, if isPublished was true already" in pending
+    "set item.published to true" in new scope {
+      service.publish(itemOne.id)
+      loadItem(itemOne.id).map(_.published) === Some(true)
+    }
+    "throw an exception when item does not exist" in new scope {
+      service.publish(randomItemId) must throwA[SalatVersioningDaoException]
+    }
+    "return true, if update is successful" in new scope {
+      service.publish(itemOne.id) === true
+    }
+    "return true, if isPublished was true already" in new scope {
+      service.publish(itemOne.id) === true
+      service.publish(itemOne.id) === true
+    }
+    //TODO Cannot easily be tested without mocking dao
     "return false, if item could not be updated" in pending
   }
 
   "purge" should {
-    "delete item from current" in pending
-    "delete item from archive" in pending
-    "return Success when item has been deleted" in pending
-    "return Success when item has not been deleted" in pending
+    "delete item from current" in new scope {
+      service.purge(itemOne.id)
+      loadItem(itemOne.id) === None
+    }
+    "delete item from old versions" in new scope {
+      service.save(itemOne, createNewVersion = true)
+      service.purge(itemOne.id)
+      loadItem(itemOne.id) === None
+    }
+    "return Success when item has been deleted" in new scope {
+      service.purge(itemOne.id) must_== Success(itemOne.id)
+    }
+    "return Success when item has not been deleted" in new scope {
+      //TODO Maybe an error would be more appropriate?
+      val id = randomItemId
+      service.purge(id) must_== Success(id)
+    }
   }
 
   "saveNewUnpublishedVersion" should {
-    "create new unpublished item when item is in current" in pending
-    "create new unpublished item when item is in archive" in pending
-    "return None if the item cannot be found in current or archive" in pending
+    "create new unpublished item when item is in current" in new scope {
+      val res = service.saveNewUnpublishedVersion(itemOne.id)
+      res.isDefined === true
+      res !== Some(itemOne.id)
+
+    }
+    "throw exception when item has old version" in new scope {
+      val oldId = itemOne.id
+      service.save(itemOne, createNewVersion = true).toOption.get
+      service.saveNewUnpublishedVersion(oldId) must throwA[SalatVersioningDaoException]
+    }
+
+    "return None if the item cannot be found in current or archive" in new scope {
+      service.saveNewUnpublishedVersion(randomItemId) === None
+    }
   }
 
 }
