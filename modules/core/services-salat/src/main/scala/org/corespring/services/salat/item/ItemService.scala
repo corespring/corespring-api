@@ -81,8 +81,6 @@ class ItemService(
 
   override def currentVersion(id: VersionedId[ObjectId]): Long = dao.getCurrentVersion(id)
 
-  override def find(query: DBObject, fields: DBObject = new BasicDBObject()): Stream[Item] = dao.findCurrent(baseQuery ++ query, fields).toStream
-
   override def findOneById(id: VersionedId[ObjectId]): Option[Item] = dao.findOneById(id)
 
   override def purge(id: VersionedId[ObjectId]) = {

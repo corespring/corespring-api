@@ -38,8 +38,6 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def currentVersion(id: VersionedId[ObjectId]): Long
 
-  def find(query: DBObject, fields: DBObject = new BasicDBObject()): Stream[Item]
-
   def findOneById(id: VersionedId[ObjectId]): Option[Item]
 
   def findMultipleById(ids: ObjectId*): Stream[Item]

@@ -64,12 +64,12 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   "countItemsInCollection" should {
 
     "return 1 for collection with 1 item" in new scope {
-      service.countItemsInCollection(collectionOne.id) === 1
+      service.countItemsInCollection(collectionOne.id) must_== 1
     }
 
     "return 0 for collection with no items" in new scope {
       val collectionTwo = insertCollection("two", org)
-      service.countItemsInCollection(collectionTwo.id) === 0
+      service.countItemsInCollection(collectionTwo.id) must_== 0
     }
   }
 
@@ -79,18 +79,18 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "add file to playerDefinition.files using item id" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne.id, file)
-      loadItem(itemOne.id).map(_.playerDefinition.get.files) === Some(Seq(file))
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq(file))
     }
 
     "add file to playerDefinition.files using item" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne, file)
-      loadItem(itemOne.id).map(_.playerDefinition.get.files) === Some(Seq(file))
+      loadItem(itemOne.id).map(_.playerDefinition.get.files) must_== Some(Seq(file))
     }
     "return true when call was successful" in new addFileToPlayerDefinition {
       val file = StoredFile("name.png", "image/png", false)
       service.addFileToPlayerDefinition(itemOne, file) match {
-        case Success(res) => res === true
+        case Success(res) => res must_== true
         case Failure(e) => failure(s"Unexpected error $e")
       }
     }
@@ -119,19 +119,19 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   //    }
   //    "remove id from result" in new asMetadataOnly {
   //      val res = service.asMetadataOnly(item)
-  //      res.containsField("id") === false
+  //      res.containsField("id") must_== false
   //    }
   //    "remove supportingMaterials from result" in new asMetadataOnly {
   //      val res = service.asMetadataOnly(item)
-  //      res.containsField("supportingMaterials") === false
+  //      res.containsField("supportingMaterials") must_== false
   //    }
   //    "remove data from result" in new asMetadataOnly {
   //      val res = service.asMetadataOnly(item)
-  //      res.containsField("data") === false
+  //      res.containsField("data") must_== false
   //    }
   //    "remove collectionId from result" in new asMetadataOnly {
   //      val res = service.asMetadataOnly(item)
-  //      res.containsField("collectionId") === false
+  //      res.containsField("collectionId") must_== false
   //    }
   //  }
 
@@ -141,11 +141,11 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       val clonedItem = service.clone(item)
     }
     "return the cloned item" in new clone {
-      clonedItem.isDefined === true
-      clonedItem.get.id !== item.id
+      clonedItem.isDefined must_== true
+      clonedItem.get.id must_!= item.id
     }
     "create a new item in the db" in new clone {
-      loadItem(clonedItem.get.id).isDefined === true
+      loadItem(clonedItem.get.id).isDefined must_== true
     }
     //TODO How much of file cloning do we want to test?
     "clone stored files" in pending
@@ -164,21 +164,21 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     "return the collectionId of the item" in new collectionIdForItem {
-      service.collectionIdForItem(v1Item.id) === Some(v1CollectionId)
+      service.collectionIdForItem(v1Item.id) must_== Some(v1CollectionId)
     }
 
     "always return the collectionId of the last version of the item" in new collectionIdForItem {
-      service.collectionIdForItem(v0Item.id) === Some(v1CollectionId)
+      service.collectionIdForItem(v0Item.id) must_== Some(v1CollectionId)
     }
 
     "return None if item does not exist" in new collectionIdForItem {
-      service.collectionIdForItem(randomItemId) === None
+      service.collectionIdForItem(randomItemId) must_== None
     }
 
     "return None if collectionId is not an ObjectId" in new collectionIdForItem {
       val itemWithInvalidCollectionId = Item(collectionId = "this is not an ObjectId")
-      service.insert(itemWithInvalidCollectionId) !== None
-      val res = service.collectionIdForItem(itemWithInvalidCollectionId.id) === None
+      service.insert(itemWithInvalidCollectionId) must_!= None
+      val res = service.collectionIdForItem(itemWithInvalidCollectionId.id) must_== None
     }
   }
 
@@ -186,18 +186,18 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     "return single contributor from one collection for an org" in new scope {
       val res = service.contributorsForOrg(org.id)
-      res === Seq("contributor-1")
+      res must_== Seq("contributor-1")
     }
 
     "return multiple contributors from one collection for an org" in new scope {
       addItem(2, collectionOne, contributorId = Some(2))
-      service.contributorsForOrg(org.id) === Seq("contributor-1", "contributor-2")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1", "contributor-2")
     }
 
     "return multiple contributors from multiple collection for an org" in new scope {
       val collectionTwo = insertCollection("two", org)
       addItem(2, collectionTwo, Some(2))
-      service.contributorsForOrg(org.id) === Seq("contributor-1", "contributor-2")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1", "contributor-2")
     }
 
     "not include a contributor more than once" in new scope {
@@ -205,14 +205,14 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       addItem(2, collectionTwo, Some(1))
       addItem(3, collectionTwo, Some(77))
       addItem(4, collectionTwo, Some(77))
-      service.contributorsForOrg(org.id) === Seq("contributor-1", "contributor-77")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1", "contributor-77")
     }
     "include contributors from collections that the org has write access to" in new scope {
       val otherOrg = insertOrg("other-org")
       val otherOrgCollection = insertCollection("other-org-collection", otherOrg)
       addItem(2, otherOrgCollection, contributorId = Some(333))
       giveOrgAccess(org, otherOrgCollection, Permission.Write)
-      service.contributorsForOrg(org.id) === Seq("contributor-1", "contributor-333")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1", "contributor-333")
     }
 
     "include contributors from collections that the org has read access to" in new scope {
@@ -220,19 +220,19 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       val otherOrgCollection = insertCollection("other-org-collection", otherOrg)
       addItem(2, otherOrgCollection, contributorId = Some(333))
       giveOrgAccess(org, otherOrgCollection, Permission.Read)
-      service.contributorsForOrg(org.id) === Seq("contributor-1", "contributor-333")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1", "contributor-333")
     }
 
     "not include contributors from collections that the org has no access to" in new scope {
       val otherOrg = insertOrg("other-org")
       val otherOrgCollection = insertCollection("other-org-collection", otherOrg)
       addItem(2, otherOrgCollection, contributorId = Some(333))
-      service.contributorsForOrg(org.id) === Seq("contributor-1")
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1")
     }
 
     "not include contributors from archived items" in new scope {
       services.itemService.moveItemToArchive(itemOne.id)
-      service.contributorsForOrg(org.id) === Seq.empty
+      service.contributorsForOrg(org.id) must_== Seq.empty
     }
 
     "not include contributors from items in versionedContent" in new scope {
@@ -241,62 +241,23 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       service.save(updatedItem, createNewVersion = true)
 
       //the versioned item has the old contributor still
-      service.findOneById(itemOne.id).map(_.contributorDetails.get.contributor === Some("contributor-1"))
-      service.contributorsForOrg(org.id) === Seq("updated contributor")
+      service.findOneById(itemOne.id).map(_.contributorDetails.get.contributor must_== Some("contributor-1"))
+      service.contributorsForOrg(org.id) must_== Seq("updated contributor")
     }
   }
 
   "currentVersion" should {
     "return 0 as the the current version of a new item" in new scope {
-      service.currentVersion(itemOne.id) === 0
+      service.currentVersion(itemOne.id) must_== 0
     }
     "return 1 as the the current version of an updated item" in new scope {
       service.save(itemOne, true)
-      service.currentVersion(itemOne.id) === 1
+      service.currentVersion(itemOne.id) must_== 1
     }
     //TODO Shouldn't that result in an error?
     "return 0 for a non existing item" in new scope {
-      service.currentVersion(randomItemId) === 0
+      service.currentVersion(randomItemId) must_== 0
     }
-  }
-
-  "find" should {
-
-    "find an item" in new scope {
-      val stream = service.find(idQuery(itemOne.id))
-      stream.head.id === itemOne.id
-    }
-    "not return items of type different from item" in new scope {
-      val itemTwo = addItem(2, collectionOne, contentType = Some("not an item"))
-      service.find(idQuery(itemTwo.id)) === Stream.empty
-    }
-    "not return old versions of items" in new scope {
-      val oldVersion = itemOne.id
-      service.save(itemOne, createNewVersion = true)
-      service.find(idQuery(oldVersion)) === Stream.empty
-    }
-    "return an empty Stream if no items can be found" in new scope {
-      service.find(MongoDBObject("impossible" -> "it really is")) === Stream.empty
-    }
-    "required fields" should {
-      "throws exception when collectionId is excluded" in new scope {
-        service.find(idQuery(itemOne.id), MongoDBObject("collectionId" -> 0)) must throwA[Exception]
-      }
-    }
-    "optional fields" should {
-      "allow to exclude id" in new scope {
-        //TODO Doesn't make sense to be able to exclude id.
-        val stream = service.find(idQuery(itemOne.id), MongoDBObject("_id" -> 0))
-        stream.head.id !== itemOne.id
-      }
-      "allow to exclude standards" in new scope {
-        val itemTwo = addItem(2, collectionOne, standards = Seq("stand-1"))
-        val stream = service.find(idQuery(itemTwo.id), MongoDBObject("standards" -> 0))
-        stream.head.standards === Seq.empty
-      }
-      //TODO Test excluding other fields?
-    }
-
   }
 
   "findFieldsById" should {
@@ -310,38 +271,38 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     "return item standards of an item" in new scope {
       val itemTwo = addItem(2, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
-      service.findItemStandards(itemTwo.id) === Some(ItemStandards("title", Seq("S1", "S2"), itemTwo.id))
+      service.findItemStandards(itemTwo.id) must_== Some(ItemStandards("title", Seq("S1", "S2"), itemTwo.id))
     }
     "return item standards of an old version of an item" in new scope {
       val itemTwo = addItem(2, collectionOne, title = Some("title"), standards = Seq("S1", "S2"))
       val oldVersion = itemTwo.id
       service.save(itemTwo, createNewVersion = true)
-      service.findItemStandards(oldVersion) === Some(ItemStandards("title", Seq("S1", "S2"), oldVersion))
+      service.findItemStandards(oldVersion) must_== Some(ItemStandards("title", Seq("S1", "S2"), oldVersion))
     }
     "return None if item cannot be found" in new scope {
-      service.findItemStandards(randomItemId) === None
+      service.findItemStandards(randomItemId) must_== None
     }
     "return None if item has no title" in new scope {
       val itemTwo = addItem(2, collectionOne, title = None, standards = Seq("S1", "S2"))
-      service.findItemStandards(itemTwo.id) === None
+      service.findItemStandards(itemTwo.id) must_== None
     }
   }
 
   "findMultipleById" should {
     "return item " in new scope {
-      service.findMultipleById(itemOne.id.id).head.id === itemOne.id
+      service.findMultipleById(itemOne.id.id).head.id must_== itemOne.id
     }
     "return Stream of items found" in new scope {
       val itemTwo = addItem(2, collectionOne)
-      service.findMultipleById(itemOne.id.id, itemTwo.id.id).toSeq.map(_.id) === Seq(itemOne.id, itemTwo.id)
+      service.findMultipleById(itemOne.id.id, itemTwo.id.id).toSeq.map(_.id) must_== Seq(itemOne.id, itemTwo.id)
     }
     "return empty Stream if no item can be found" in new scope {
-      service.findMultipleById(randomItemId.id) === Stream.empty
+      service.findMultipleById(randomItemId.id) must_== Stream.empty
     }
     "not return old versions of an item" in new scope {
       val oldVersion = itemOne.id
       service.save(itemOne, createNewVersion = true)
-      service.findMultipleById(oldVersion.id).length === 1
+      service.findMultipleById(oldVersion.id).length must_== 1
     }
   }
 
@@ -354,33 +315,33 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
   "getOrCreateUnpublishedVersion" should {
     "return an existing unpublished current item" in new scope {
-      service.getOrCreateUnpublishedVersion(itemOne.id) === Some(itemOne)
+      service.getOrCreateUnpublishedVersion(itemOne.id) must_== Some(itemOne)
     }
     "return None if the item does not exist in current or old versions" in new scope {
-      service.getOrCreateUnpublishedVersion(randomItemId) === None
+      service.getOrCreateUnpublishedVersion(randomItemId) must_== None
     }
     "create a new unpublished item, if published item can be found in current" in new scope {
-      service.publish(itemOne.id) === true
+      service.publish(itemOne.id) must_== true
       val res = service.getOrCreateUnpublishedVersion(itemOne.id)
-      res.isDefined === true
-      res !== Some(itemOne.id)
+      res.isDefined must_== true
+      res must_!= Some(itemOne.id)
     }
 
     "create a new unpublished item, if published item can be found in old versions" in new scope {
-      service.publish(itemOne.id) === true
+      service.publish(itemOne.id) must_== true
       val oldId = itemOne.id
       service.save(itemOne, createNewVersion = true).toOption.get
       val res = service.getOrCreateUnpublishedVersion(oldId)
-      res.isDefined === true
-      res !== Some(oldId)
+      res.isDefined must_== true
+      res must_!= Some(oldId)
     }
 
     "create a new unpublished item, if unpublished item can be found in old versions" in new scope {
       val oldId = itemOne.id
       service.save(itemOne, createNewVersion = true).toOption.get
       val res = service.getOrCreateUnpublishedVersion(oldId)
-      res.isDefined === true
-      res !== Some(oldId)
+      res.isDefined must_== true
+      res must_!= Some(oldId)
     }
   }
 
@@ -396,30 +357,30 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
 
     "set the collectionId of an item to the archive collection id" in new scope {
       service.moveItemToArchive(itemOne.id)
-      loadItem(itemOne.id).map(_.collectionId) === Some(archiveCollectionId)
+      loadItem(itemOne.id).map(_.collectionId) must_== Some(archiveCollectionId)
     }
     "throw an exception when item does not exist" in new scope {
       service.moveItemToArchive(randomItemId) must throwA[SalatVersioningDaoException]
     }
     "return the archive collection id" in new scope {
-      service.moveItemToArchive(itemOne.id) === Some(archiveCollectionId)
+      service.moveItemToArchive(itemOne.id) must_== Some(archiveCollectionId)
     }
   }
 
   "publish" should {
     "set item.published to true" in new scope {
       service.publish(itemOne.id)
-      loadItem(itemOne.id).map(_.published) === Some(true)
+      loadItem(itemOne.id).map(_.published) must_== Some(true)
     }
     "throw an exception when item does not exist" in new scope {
       service.publish(randomItemId) must throwA[SalatVersioningDaoException]
     }
     "return true, if update is successful" in new scope {
-      service.publish(itemOne.id) === true
+      service.publish(itemOne.id) must_== true
     }
     "return true, if isPublished was true already" in new scope {
-      service.publish(itemOne.id) === true
-      service.publish(itemOne.id) === true
+      service.publish(itemOne.id) must_== true
+      service.publish(itemOne.id) must_== true
     }
     //TODO Cannot easily be tested without mocking dao
     "return false, if item could not be updated" in pending
@@ -428,12 +389,12 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   "purge" should {
     "delete item from current" in new scope {
       service.purge(itemOne.id)
-      loadItem(itemOne.id) === None
+      loadItem(itemOne.id) must_== None
     }
     "delete item from old versions" in new scope {
       service.save(itemOne, createNewVersion = true)
       service.purge(itemOne.id)
-      loadItem(itemOne.id) === None
+      loadItem(itemOne.id) must_== None
     }
     "return Success when item has been deleted" in new scope {
       service.purge(itemOne.id) must_== Success(itemOne.id)
@@ -448,8 +409,8 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
   "saveNewUnpublishedVersion" should {
     "create new unpublished item when item is in current" in new scope {
       val res = service.saveNewUnpublishedVersion(itemOne.id)
-      res.isDefined === true
-      res !== Some(itemOne.id)
+      res.isDefined must_== true
+      res must_!= Some(itemOne.id)
 
     }
     "throw exception when item has old version" in new scope {
@@ -459,7 +420,7 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     }
 
     "return None if the item cannot be found in current or archive" in new scope {
-      service.saveNewUnpublishedVersion(randomItemId) === None
+      service.saveNewUnpublishedVersion(randomItemId) must_== None
     }
   }
 
