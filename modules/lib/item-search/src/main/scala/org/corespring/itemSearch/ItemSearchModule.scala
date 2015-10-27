@@ -1,5 +1,6 @@
 package org.corespring.itemSearch
 
+import org.corespring.itemSearch.AggregateType._
 import org.corespring.models.item.ComponentType
 
 trait ItemSearchModule {

@@ -97,8 +97,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
     }
   }
 
-  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
-  lazy val widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
+  def componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
+  def widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.

@@ -12,10 +12,10 @@ object Main extends Controller with securesocial.core.SecureSocial {
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
-  lazy val defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
+  def defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
     implicit val writeFieldValue = ServiceLookup.jsonFormatting.writesFieldValue
     val fvJson = toJson(fv).as[JsObject]
-    val values = fvJson.deepMerge(obj(
+    def values = fvJson.deepMerge(obj(
       "v2ItemTypes" -> bootstrap.Main.itemType.all,
       "widgetTypes" -> bootstrap.Main.widgetType.all))
     stringify(values)
