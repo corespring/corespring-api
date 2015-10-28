@@ -31,35 +31,35 @@ import scalaz.{ Failure, Success }
 
 object CollectionNames {
 
-  val contentCollection = "contentcolls"
-  val organization = "orgs"
   val accessToken = "accessTokens"
-  val assessmentTemplate = "content"
-  val assessment = "assessments"
   val apiClient = "apiClients"
-  val user = "users"
+  val assessment = "assessments"
+  val assessmentTemplate = "content"
+  val contentCollection = "contentcolls"
+  val fieldValue = "fieldValues"
+  val item = "content"
   val metadataSet = "metadataSets"
+  val organization = "orgs"
   val registrationToken = "regTokens"
   val standard = "ccstandards"
   val subject = "subjects"
-  val fieldValue = "fieldValues"
-  val item = "content"
+  val user = "users"
   val versionedItem = "versioned_content"
 
   val all = Seq(
-    contentCollection,
-    organization,
     accessToken,
+    apiClient,
     assessment,
     assessmentTemplate,
-    apiClient,
-    user,
+    contentCollection,
+    fieldValue,
+    item,
     metadataSet,
+    organization,
     registrationToken,
     standard,
     subject,
-    fieldValue,
-    item,
+    user,
     versionedItem)
 }
 
@@ -122,18 +122,18 @@ trait SalatServices extends interface.bootstrap.Services {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  lazy val contentCollectionDao = new SalatDAO[ContentCollection, ObjectId](db(CollectionNames.contentCollection)) {}
-  lazy val orgDao = new SalatDAO[Organization, ObjectId](db(CollectionNames.organization)) {}
-  lazy val tokenDao = new SalatDAO[AccessToken, ObjectId](db(CollectionNames.accessToken)) {}
-  lazy val assessmentTemplateDao = new SalatDAO[AssessmentTemplate, ObjectId](db(CollectionNames.item)) {}
-  lazy val assessmentsDao = new SalatDAO[Assessment, ObjectId](db(CollectionNames.assessment)) {}
   lazy val apiClientDao = new SalatDAO[ApiClient, ObjectId](db(CollectionNames.apiClient)) {}
-  lazy val userDao = new SalatDAO[User, ObjectId](db(CollectionNames.user)) {}
+  lazy val assessmentsDao = new SalatDAO[Assessment, ObjectId](db(CollectionNames.assessment)) {}
+  lazy val assessmentTemplateDao = new SalatDAO[AssessmentTemplate, ObjectId](db(CollectionNames.item)) {}
+  lazy val contentCollectionDao = new SalatDAO[ContentCollection, ObjectId](db(CollectionNames.contentCollection)) {}
+  lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db(CollectionNames.fieldValue)) {}
   lazy val metadataSetDao = new SalatDAO[MetadataSet, ObjectId](db(CollectionNames.metadataSet)) {}
+  lazy val orgDao = new SalatDAO[Organization, ObjectId](db(CollectionNames.organization)) {}
   lazy val registrationTokenDao = new SalatDAO[RegistrationToken, ObjectId](db(CollectionNames.registrationToken)) {}
   lazy val standardDao = new SalatDAO[Standard, ObjectId](db(CollectionNames.standard)) {}
   lazy val subjectDao = new SalatDAO[Subject, ObjectId](db(CollectionNames.subject)) {}
-  lazy val fieldValueDao = new SalatDAO[FieldValue, ObjectId](db(CollectionNames.fieldValue)) {}
+  lazy val tokenDao = new SalatDAO[AccessToken, ObjectId](db(CollectionNames.accessToken)) {}
+  lazy val userDao = new SalatDAO[User, ObjectId](db(CollectionNames.user)) {}
 
   def itemDao: VersioningDao[Item, VersionedId[ObjectId]] = {
     salatItemDao
@@ -164,47 +164,23 @@ trait SalatServices extends interface.bootstrap.Services {
    *
    * For now going to manually build the objects
    */
-  override lazy val contentCollectionService = new ContentCollectionService(
-    contentCollectionDao,
-    context,
-    orgCollectionService,
-    shareItemWithCollectionsService,
-    itemService,
-    archiveConfig)
-
-  override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
-
-  override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
-
-  override lazy val shareItemWithCollectionsService: interface.ShareItemWithCollectionsService = new ShareItemWithCollectionsService(
-    itemDao,
-    itemService,
-    orgCollectionService)
-
-  override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
-
-  override lazy val assessmentTemplateService: interface.assessment.AssessmentTemplateService = wire[AssessmentTemplateService]
-
-  override lazy val metadataService: interface.metadata.MetadataService = wire[MetadataService]
 
   override lazy val apiClientService: interface.auth.ApiClientService = wire[ApiClientService]
-
-  override lazy val userService: interface.UserService = wire[UserService]
-
-  override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]
-
-  override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
-
-  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, orgCollectionService, context, archiveConfig)
-
-  override lazy val itemAggregationService: interface.item.ItemAggregationService = new ItemAggregationService(db(CollectionNames.item), salatServicesExecutionContext)
-
   override lazy val assessmentService: interface.assessment.AssessmentService = wire[AssessmentService]
-
-  override lazy val subjectService: interface.SubjectService = wire[SubjectService]
-
-  override lazy val standardService: interface.StandardService = wire[StandardService]
-
+  override lazy val assessmentTemplateService: interface.assessment.AssessmentTemplateService = wire[AssessmentTemplateService]
+  override lazy val contentCollectionService = new ContentCollectionService(contentCollectionDao, context, orgCollectionService, shareItemWithCollectionsService, itemService, archiveConfig)
   override lazy val fieldValueService: interface.item.FieldValueService = wire[FieldValueService]
+  override lazy val itemAggregationService: interface.item.ItemAggregationService = new ItemAggregationService(db(CollectionNames.item), salatServicesExecutionContext)
+  override lazy val itemService: interface.item.ItemService = new ItemService(itemDao, itemAssetService, orgCollectionService, context, archiveConfig)
+  override lazy val metadataService: interface.metadata.MetadataService = wire[MetadataService]
+  override lazy val metadataSetService: interface.metadata.MetadataSetService = new MetadataSetService(metadataSetDao, context, orgService)
+  override lazy val orgCollectionService: interface.OrgCollectionService = new OrgCollectionService(orgService, contentCollectionService, itemService, orgDao, contentCollectionDao, context)
+  override lazy val orgService: interface.OrganizationService = new OrganizationService(orgDao, context, orgCollectionService, contentCollectionService, metadataSetService, itemService)
+  override lazy val registrationTokenService: interface.RegistrationTokenService = wire[RegistrationTokenService]
+  override lazy val shareItemWithCollectionsService: interface.ShareItemWithCollectionsService = new ShareItemWithCollectionsService(itemDao, itemService, orgCollectionService)
+  override lazy val standardService: interface.StandardService = wire[StandardService]
+  override lazy val subjectService: interface.SubjectService = wire[SubjectService]
+  override lazy val tokenService: interface.auth.AccessTokenService = wire[AccessTokenService]
+  override lazy val userService: interface.UserService = wire[UserService]
 
 }

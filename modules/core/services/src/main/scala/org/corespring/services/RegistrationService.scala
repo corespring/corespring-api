@@ -12,7 +12,7 @@ trait RegistrationTokenService {
 
   def createToken(token: RegistrationToken): Boolean
   def findTokenByUuid(uuid: String): Option[RegistrationToken]
-  def deleteTokenUuid(uuid: String): Boolean
+  def deleteToken(uuid: String): Boolean
   def deleteExpiredTokens(): Int
 }
 
