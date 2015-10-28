@@ -4,7 +4,6 @@ import org.bson.types.ObjectId
 import org.corespring.models.assessment._
 import org.corespring.models.item.{Item, TaskInfo}
 import org.corespring.services.salat.ServicesSalatIntegrationTest
-import org.joda.time.DateTime
 import org.specs2.mutable.BeforeAfter
 
 class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
@@ -46,10 +45,6 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
       val stream = service.all
       stream.length must_== 2
     }
-  }
-  "clone" should {
-    //TODO clone is not implemented
-    "work" in pending
   }
   "count" should {
     //same as dao.count
