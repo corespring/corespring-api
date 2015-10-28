@@ -8,9 +8,8 @@ case class AssessmentTemplate(id: ObjectId = AssessmentTemplate.Defaults.id,
     orgId: Option[ObjectId] = AssessmentTemplate.Defaults.orgId,
     metadata: Map[String, String] = AssessmentTemplate.Defaults.metadata,
     dateModified: Option[DateTime] = AssessmentTemplate.Defaults.dateModified,
-    questions: Seq[Question] = AssessmentTemplate.Defaults.questions) {
-
-  var contentType = AssessmentTemplate.contentType
+    questions: Seq[Question] = AssessmentTemplate.Defaults.questions,
+    contentType: String = AssessmentTemplate.contentType) {
 
   def merge(that: AssessmentTemplate) = this.copy(
     collectionId = if (that.collectionId.nonEmpty) that.collectionId else this.collectionId,

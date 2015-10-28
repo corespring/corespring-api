@@ -43,12 +43,17 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
   "findByOrg" should {
     "find template by the org" in new scope {
       service.insert(templateTwo)
-      val stream = service.findByOrg(orgOne.id)
+      val stream = service.findByOrg(orgTwo.id)
       stream.length must_== 1
-      stream(0).orgId must_== Some(orgOne.id)
+      stream(0).orgId must_== Some(orgTwo.id)
     }
     "return empty stream if org does not exist" in new scope {
       service.findByOrg(ObjectId.get) must_== Stream.empty
+    }
+    "return empty stream if contentType is not the default" in new scope {
+      val templateWithOtherType = templateTwo.copy(contentType="something other")
+      service.insert(templateWithOtherType)
+      service.findByOrg(orgTwo.id) must_== Stream.empty
     }
   }
 
