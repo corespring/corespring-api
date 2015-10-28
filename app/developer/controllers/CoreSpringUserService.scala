@@ -74,7 +74,7 @@ class CoreSpringUserService(application: Application) extends UserServicePlugin(
   }
 
   override def deleteToken(uuid: String) {
-    ServiceLookup.registrationTokenService.deleteTokenUuid(uuid)
+    ServiceLookup.registrationTokenService.deleteToken(uuid)
   }
 
   def deleteExpiredTokens(): Unit = {

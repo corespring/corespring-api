@@ -18,7 +18,7 @@ class RegistrationTokenService (dao:SalatDAO[RegistrationToken, ObjectId], conte
 
   override def findTokenByUuid(uuid: String): Option[RegistrationToken] = dao.findOne(MongoDBObject(RegistrationToken.Keys.Uuid -> uuid))
 
-  override def deleteTokenUuid(uuid: String): Boolean = {
+  override def deleteToken(uuid: String): Boolean = {
     dao.remove(MongoDBObject(RegistrationToken.Keys.Uuid -> uuid))
     true
   }

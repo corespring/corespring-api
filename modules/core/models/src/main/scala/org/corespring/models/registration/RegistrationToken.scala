@@ -3,16 +3,17 @@ package org.corespring.models.registration
 import org.bson.types.ObjectId
 import org.joda.time.DateTime
 
-case class RegistrationToken(uuid: String,
-                             email: String,
-                             creationTime: Option[DateTime],
-                             expirationTime: Option[DateTime],
-                             isSignUp: Boolean,
-                             id: ObjectId = new ObjectId())
+case class RegistrationToken(
+  uuid: String,
+  email: String,
+  creationTime: Option[DateTime],
+  expirationTime: Option[DateTime],
+  isSignUp: Boolean,
+  id: ObjectId = new ObjectId())
 
-object RegistrationToken{
+object RegistrationToken {
 
-  object Keys{
+  object Keys {
     val Id = "id"
     val Uuid = "uuid"
     val Email = "email"
