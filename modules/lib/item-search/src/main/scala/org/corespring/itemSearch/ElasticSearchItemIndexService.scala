@@ -17,7 +17,7 @@ import scalaz._
 
 case class ElasticSearchUrl(url: URL)
 case class ElasticSearchExecutionContext(context: ExecutionContext)
-case class ElasticSearchConfig(url:URL, mongoUri:String, componentPath:String)
+case class ElasticSearchConfig(url: URL, mongoUri: String, componentPath: String)
 
 /**
  * An ItemIndexService based on Elastic Search.
@@ -27,9 +27,9 @@ case class ElasticSearchConfig(url:URL, mongoUri:String, componentPath:String)
  * test this exhaustively.
  */
 class ElasticSearchItemIndexService(config: ElasticSearchConfig,
-                                    rawTypes: Seq[ComponentType],
-                                    executionContext: ElasticSearchExecutionContext)
-  extends ItemIndexService with AuthenticatedUrl {
+  rawTypes: Seq[ComponentType],
+  executionContext: ElasticSearchExecutionContext)
+  extends ItemIndexService with AuthenticatedUrl with ItemIndexDeleteService {
 
   implicit def ec: ExecutionContext = executionContext.context
 
@@ -57,13 +57,29 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   def distinct(field: String, collectionIds: Seq[String]): Future[Validation[Error, Seq[String]]] = {
     try {
+
+      logger.trace(s"function=distinct, field=$field")
       implicit val AggregationWrites = ItemIndexAggregation.Writes
       val agg = ItemIndexAggregation(field = field, collectionIds = collectionIds)
+      val searchQuery = Json.toJson(agg)
+      logger.trace(s"function=distinct, field=$field, searchQuery=$searchQuery")
+
       authed("/content/_search")(url, ec)
-        .post(Json.toJson(agg))
+        .post(searchQuery)
         .map(result => {
-          Success((Json.parse(result.body) \ "aggregations" \ agg.name \ "buckets").as[Seq[JsObject]]
-            .map(obj => (obj \ "key").as[String]))
+
+          val resultJson = Json.parse(result.body)
+          logger.trace(s"function=distinct, field=$field, resultJson=$resultJson")
+
+          val buckets =
+            (resultJson \ "aggregations" \ agg.name \ "buckets")
+              .asOpt[Seq[JsObject]]
+
+          logger.trace(s"function=distinct, field=$field, buckets=$buckets")
+
+          Success(buckets.map { seq =>
+            seq.map(obj => (obj \ "key").as[String])
+          }.getOrElse(Seq.empty))
         })
     } catch {
       case e: Exception => future { Failure(new Error(e.getMessage)) }
@@ -83,15 +99,15 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   def refresh() = contentIndex.refresh()
 
-
-  private def getTypes(key:String) = {
+  private def getTypes(key: String) = {
     val types: Future[Validation[Error, Seq[String]]] = distinct(key)
 
     types.map { v =>
       v.map { itemTypes =>
+        logger.trace(s"function=getTypes, key=$key, types=$itemTypes")
         val comps = rawTypes.filter(c => itemTypes.contains(c.componentType))
         val out = comps.map(_.tuple).toMap
-        logger.debug(s"function=getTypes, out=$out")
+        logger.debug(s"function=getTypes, key=$key, out=$out")
         out
       }
     }
@@ -111,7 +127,11 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       contentDenormalizer.withCollection("content", collection => {
         collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
           case Some(record) => {
-            contentIndex.add(id.id.toString, contentDenormalizer.denormalize(Json.parse(record.toString)).toString)
+            val recordJson = Json.parse(record.toString)
+            logger.trace(s"function=reindex, id=$id, record=$recordJson")
+            val denormalized = contentDenormalizer.denormalize(recordJson)
+            logger.trace(s"function=reindex, id=$id, denormalized=$denormalized")
+            contentIndex.add(id.id.toString, denormalized.toString)
           }
           case _ => future { Failure(new Error(s"Item with id=$id not found")) }
         }
@@ -119,8 +139,13 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
     }
   }
 
+  override def delete(): Future[Validation[Error, Unit]] = {
+    authed("/content")
+      .delete()
+      .recover({ case e => Failure(new Error("failed to delete the index")) })
+      .map(_ => Success())
+  }
 }
-
 
 trait AuthenticatedUrl {
 

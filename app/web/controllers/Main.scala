@@ -2,12 +2,15 @@ package web.controllers
 
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.{ User }
+import play.api.Logger
 import play.api.libs.json.{ Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
 
 object Main extends Controller with securesocial.core.SecureSocial {
+
+  val logger = Logger(Main.getClass)
 
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
@@ -30,6 +33,10 @@ object Main extends Controller with securesocial.core.SecureSocial {
       val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
       implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
       implicit val writesRef = ServiceLookup.jsonFormatting.writeContentCollRef
+
+      logger.info(s"user org: ${user.org}")
+      logger.info(s" org: ${ServiceLookup.orgService.findOneById(user.org.orgId)}")
+      logger.info(s"default values: $defaultValues")
 
       (for {
         fv <- defaultValues
