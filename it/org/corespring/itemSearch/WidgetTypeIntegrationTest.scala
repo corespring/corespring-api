@@ -40,10 +40,8 @@ class WidgetTypeIntegrationTest extends IntegrationSpecification {
     """return 'corespring-calculator'
       | if an item with a 'corespring-calculator' has been created""".stripMargin in new scope {
 
-      logger.info("call all once")
       widgetType.all must_== Json.arr()
       ItemHelper.create(collectionId, itemWithWidget("corespring-calculator"))
-      logger.info("call all twice")
       widgetType.all must_== Json.arr(
         Json.obj("key" -> "corespring-calculator", "value" -> "Calculator"))
     }

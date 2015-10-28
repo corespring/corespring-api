@@ -128,9 +128,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
         collection.findOne(MongoDBObject("_id._id" -> id.id), ContentIndexer.defaultFilter) match {
           case Some(record) => {
             val recordJson = Json.parse(record.toString)
-            logger.trace(s"function=reindex, id=$id, record=$recordJson")
             val denormalized = contentDenormalizer.denormalize(recordJson)
-            logger.trace(s"function=reindex, id=$id, denormalized=$denormalized")
+            logger.trace(s"function=reindex, id=$id, recordJson=$recordJson, denormalized=$denormalized")
             contentIndex.add(id.id.toString, denormalized.toString)
           }
           case _ => future { Failure(new Error(s"Item with id=$id not found")) }
