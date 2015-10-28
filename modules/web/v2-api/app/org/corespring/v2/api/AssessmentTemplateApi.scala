@@ -31,8 +31,7 @@ class AssessmentTemplateApi(
   }
 
   def getById(assessmentTemplateId: ObjectId) = withIdentity { (identity, _) =>
-    val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
-    val t = assessmentTemplateService.findOne(query, MongoDBObject.empty)
+    val t = assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, identity.org.id)
 
     t match {
       case Some(dbResult) => Ok(Json.toJson(t))
@@ -56,9 +55,8 @@ class AssessmentTemplateApi(
     val json = getJson(identity, request)
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
-        val query = MongoDBObject("_id" -> assessmentTemplateId, "orgId" -> identity.org.id)
         //TODO: RF: Low-Priority: could $set or update work here?
-        assessmentTemplateService.findOne(query, MongoDBObject.empty) match {
+        assessmentTemplateService.findOneByIdAndOrg(assessmentTemplateId, identity.org.id) match {
           case Some(dbResult) => {
             val updatedAssessment = dbResult.merge(jsonAssessment)
             assessmentTemplateService.save(updatedAssessment)
