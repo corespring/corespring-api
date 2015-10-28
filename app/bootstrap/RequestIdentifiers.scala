@@ -57,7 +57,7 @@ class RequestIdentifiers(secureSocialService: SecureSocial,
     override def clientIdToOrg(apiClientId: String): Option[Organization] = {
       logger.trace(s"client to orgId -> $apiClientId")
       for {
-        client <- apiClientService.findByKey(apiClientId)
+        client <- apiClientService.findByClientId(apiClientId)
         org <- orgService.findOneById(client.orgId)
       } yield org
     }

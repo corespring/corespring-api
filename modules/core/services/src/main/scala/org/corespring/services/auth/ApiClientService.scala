@@ -7,13 +7,10 @@ import scalaz.Validation
 
 trait ApiClientService {
 
-  protected val KEY_LENGTH = 16
-  protected val KEY_RADIX = 36
-
-  def generateTokenId(keyLength: Int = KEY_LENGTH): String
+  def generateTokenId(): String
   def getOrCreateForOrg(orgId: ObjectId): Validation[String, ApiClient]
 
-  def findByKey(key: String): Option[ApiClient]
+  def findByClientId(id: String): Option[ApiClient]
 
   /**
    * Retrieves an ApiClient by client id and secret from the services.
@@ -21,7 +18,7 @@ trait ApiClientService {
    * @param secret - the client secret
    * @return an Option[ApiClient]
    */
-  def findByIdAndSecret(id: String, secret: String): Option[ApiClient]
+  def findByClientIdAndSecret(id: String, secret: String): Option[ApiClient]
 
   def findOneByOrgId(orgId: ObjectId): Option[ApiClient]
 }

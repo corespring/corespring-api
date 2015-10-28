@@ -23,7 +23,7 @@ class MainApiClientEncryptionService(
   val logger = Logger(classOf[MainApiClientEncryptionService])
 
   override def encrypt(apiClientId: String, s: String): Option[EncryptionResult] =
-    apiClientService.findByKey(apiClientId).map(encrypt(_, s)).flatten
+    apiClientService.findByClientId(apiClientId).map(encrypt(_, s)).flatten
 
   override def encrypt(apiClient: ApiClient, s: String): Option[EncryptionResult] = {
     val result = try {
@@ -36,7 +36,7 @@ class MainApiClientEncryptionService(
   }
 
   override def decrypt(apiClientId: String, s: String): Option[String] =
-    apiClientService.findByKey(apiClientId).map(decrypt(_, s)).flatten
+    apiClientService.findByClientId(apiClientId).map(decrypt(_, s)).flatten
 
   override def decrypt(apiCilent: ApiClient, s: String): Option[String] = {
     logger.debug(s"[ApiClientEncrypter] decrypt: $s with secret: ${apiCilent.clientSecret}")

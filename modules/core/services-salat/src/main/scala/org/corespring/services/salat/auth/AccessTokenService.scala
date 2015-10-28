@@ -63,7 +63,7 @@ class AccessTokenService(
 
   override def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken] =
     for {
-      apiClient <- apiClientService.findByIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
+      apiClient <- apiClientService.findByClientIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
       token <- Success(mkToken(apiClient.orgId))
       insertedToken <- insertToken(token)
     } yield insertedToken
