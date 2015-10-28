@@ -69,10 +69,6 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
     //same as dao.find.skip.limit
     "work" in pending
   }
-  "findOne" should {
-    //TODO findOne is not implemented
-    "work" in pending
-  }
   "findOneById" should {
     //same as dao.findOneById
     "return template by id" in new scope {
