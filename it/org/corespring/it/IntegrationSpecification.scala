@@ -8,7 +8,7 @@ import org.specs2.execute.{ Result, AsResult, Results }
 import org.specs2.mutable.Around
 import play.api.test._
 
-import scala.concurrent.Await
+import scala.concurrent.{ ExecutionContext, Await }
 import scala.concurrent.duration._
 
 /**
@@ -45,9 +45,17 @@ trait ItemIndexCleaner {
 
   def cleanIndex() = {
     logger.info("cleaning item index...")
-    Await.result(
-      bootstrap.Main.itemIndexService.asInstanceOf[ItemIndexDeleteService].delete(),
-      1.second)
+
+    import ExecutionContext.Implicits.global
+
+    val out = for {
+      deleteResult <- bootstrap.Main.itemIndexService.asInstanceOf[ItemIndexDeleteService].delete()
+      createResult <- bootstrap.Main.itemIndexService.asInstanceOf[ItemIndexDeleteService].create()
+    } yield (deleteResult, createResult)
+
+    val result = Await.result(out, 2.seconds)
+
+    logger.info(s"function=cleanIndex, deleteResult=$result")
   }
 }
 

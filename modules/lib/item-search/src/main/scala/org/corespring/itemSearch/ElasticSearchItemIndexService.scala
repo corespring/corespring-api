@@ -113,8 +113,8 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
     }
   }
 
-  lazy val componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
-  lazy val widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
+  override def componentTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.itemTypes")
+  override def widgetTypes: Future[Validation[Error, Map[String, String]]] = getTypes("taskInfo.widgets")
 
   /**
    * TODO: Big tech debt. This *must* be replaced with a rabbitmq/amqp solution.
@@ -144,6 +144,10 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
       .delete()
       .recover({ case e => Failure(new Error("failed to delete the index")) })
       .map(_ => Success())
+  }
+
+  override def create(): Future[Validation[Error, Unit]] = {
+    ContentIndexer.createIndex(url).map { v => v.map { _ => Unit } }
   }
 }
 

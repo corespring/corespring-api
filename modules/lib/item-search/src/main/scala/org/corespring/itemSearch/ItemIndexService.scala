@@ -20,4 +20,5 @@ trait ItemIndexService {
 
 trait ItemIndexDeleteService {
   def delete(): Future[Validation[Error, Unit]]
+  def create(): Future[Validation[Error, Unit]]
 }

@@ -31,9 +31,9 @@ class ItemIndexServiceIntegrationTest extends IntegrationSpecification {
     }
 
     override def after = {
-      logger.debug(s"cleaning data...")
-      removeData()
-      cleanIndex()
+      //logger.debug(s"cleaning data...")
+      //removeData()
+      //cleanIndex()
     }
   }
 
