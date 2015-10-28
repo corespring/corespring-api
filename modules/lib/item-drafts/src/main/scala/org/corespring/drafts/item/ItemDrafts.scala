@@ -184,11 +184,14 @@ class ItemDrafts(
     val priorUse = a.priorUse != b.priorUse
     val priorUseOther = a.priorUseOther != b.priorUseOther
     val priorGradeLevels = a.priorGradeLevels != b.priorGradeLevels
+    val workflow = a.workflow != b.workflow
+    val pValue = a.pValue != b.pValue
+    val lexile = a.lexile != b.lexile
 
     logger.debug(s"function=hasSrcChanged, taskInfo=$taskInfo, playerDef=$playerDef, supportingMaterials=$supportingMaterials, collectionId=$collectionId")
     Seq(taskInfo, playerDef, supportingMaterials, collectionId, standards,
       reviewsPassed, reviewsPassedOther, otherAlignments, contributorDetails,
-      priorUse, priorUseOther, priorGradeLevels).reduce(_ || _)
+      priorUse, priorUseOther, priorGradeLevels, workflow, pValue, lexile).reduce(_ || _)
   }
 
   def discardDraft(user: OrgAndUser)(id: DraftId) = remove(user)(id)

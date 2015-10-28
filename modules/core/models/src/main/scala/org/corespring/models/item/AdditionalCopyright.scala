@@ -5,5 +5,6 @@ case class AdditionalCopyright(author: Option[String] = None,
   year: Option[String] = None,
   licenseType: Option[String] = None,
   mediaType: Option[String] = None,
-  sourceUrl: Option[String] = None)
+  sourceUrl: Option[String] = None,
+  costForResource: Option[Int] = None)
 
