@@ -25,24 +25,62 @@ class ApiClientServiceTest extends ServicesSalatIntegrationTest {
 
   }
 
-  "findByIdAndSecret" should {
-    "work" in pending
+  "findByClientIdAndSecret" should {
+    trait findByClientIdAndSecretScope extends scope {
+      val apiClient = service.getOrCreateForOrg(org.id).toOption.get
+    }
+    "find apiClient by client id and secret" in new findByClientIdAndSecretScope {
+      service.findByClientIdAndSecret(apiClient.clientId.toString, apiClient.clientSecret) must_== Some(apiClient)
+    }
+    "throw if client id is not an object id" in new findByClientIdAndSecretScope {
+      service.findByClientIdAndSecret("not a client id", apiClient.clientSecret) must throwA[IllegalArgumentException]
+    }
+    "return none if client id is not valid" in new findByClientIdAndSecretScope {
+      service.findByClientIdAndSecret(ObjectId.get.toString, apiClient.clientSecret) must_== None
+    }
+    "return none if secret is not valid" in new findByClientIdAndSecretScope {
+      service.findByClientIdAndSecret(apiClient.clientId.toString, "not a secret") must_== None
+    }
+    "return none if both are not valid" in new findByClientIdAndSecretScope {
+      service.findByClientIdAndSecret(ObjectId.get.toString, "not a secret") must_== None
+    }
   }
-  "findByKey" should {
-    "work" in pending
+
+  "findByClientId" should {
+    trait findByClientIdScope extends scope {
+      val apiClient = service.getOrCreateForOrg(org.id).toOption.get
+    }
+    "find apiClient by clientId" in new findByClientIdScope {
+      service.findByClientId(apiClient.clientId.toString) must_== Some(apiClient)
+    }
+    "throw if client id is not an object id" in new findByClientIdScope {
+      service.findByClientId("not a client id") must throwA[IllegalArgumentException]
+    }
+    "return none when clientId does not match any api client" in new findByClientIdScope {
+      service.findByClientId(ObjectId.get.toString) must_== None
+    }
   }
+
   "findOneByOrgId" should {
-    "work" in pending
+    "find an existing api client by org id" in new scope {
+      val apiClient = service.getOrCreateForOrg(org.id).toOption
+      service.findOneByOrgId(org.id) must_== apiClient
+    }
+    "return none if api client does not exist" in new scope {
+      service.findOneByOrgId(org.id) must_== None
+    }
+    "return none if org does not exist" in new scope {
+      service.findOneByOrgId(ObjectId.get) must_== None
+    }
   }
   "generateTokenId" should {
-    "generate a 25 character token id" in new scope {
-      //TODO Why are we using this strange code to generate a token id?
-      //Not sure, what the requirements are
-      //I think it uses a lot of memory and also the number of primes is limited
-      //Wouldn't a simple id like current Date plus random part be better?
-      //Or the mongo object id ?
+    "generate a token id" in new scope {
       val res = service.generateTokenId()
-      res.length must beEqualTo(25)
+      val validId = """([a-z0-9]{24})""".r
+      res match {
+        case validId(id) => success
+        case _ => failure(s"Unexpected token format: $res")
+      }
     }
   }
 
