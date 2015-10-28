@@ -13,6 +13,7 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
     val service = services.assessmentTemplateService
 
     val orgOne = insertOrg("org-1")
+    val orgTwo = insertOrg("org-2")
     val collectionOne = insertCollection("coll-1", orgOne)
     val itemOne = new Item(
       collectionOne.id.toString,
@@ -26,7 +27,7 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
       questions = Seq(questionOne),
       metadata = Map("authorId" -> "Author-1"))
     val templateTwo = new AssessmentTemplate(
-      orgId = Some(orgOne.id),
+      orgId = Some(orgTwo.id),
       questions = Seq(questionTwo),
       metadata = Map("authorId" -> "Author-2"))
 
@@ -39,31 +40,18 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
     }
   }
 
-  "all" should {
-    "return all templates" in new scope {
-      service.create(templateTwo)
-      val stream = service.all
-      stream.length must_== 2
+  "findByOrg" should {
+    "find template by the org" in new scope {
+      service.insert(templateTwo)
+      val stream = service.findByOrg(orgOne.id)
+      stream.length must_== 1
+      stream(0).orgId must_== Some(orgOne.id)
+    }
+    "return empty stream if org does not exist" in new scope {
+      service.findByOrg(ObjectId.get) must_== Stream.empty
     }
   }
-  "count" should {
-    //same as dao.count
-    "return 2" in new scope {
-      service.create(templateTwo)
-      service.count() must_== 2
-    }
-  }
-  "create" should {
-    //same as dao.insert
-    "add the template to db" in new scope {
-      service.create(templateTwo)
-      service.findOneById(templateTwo.id) must_== Some(templateTwo)
-    }
-  }
-  "find" should {
-    //same as dao.find.skip.limit
-    "work" in pending
-  }
+
   "findOneById" should {
     //same as dao.findOneById
     "return template by id" in new scope {
@@ -73,17 +61,6 @@ class AssessmentTemplateServiceTest extends ServicesSalatIntegrationTest {
   "findOneByIdAndOrg" should {
     "return template by id and org" in new scope {
       service.findOneByIdAndOrg(templateOne.id, orgOne.id) must_== Some(templateOne)
-    }
-  }
-  "findWithIds" should {
-    "find multiple items by id" in new scope {
-      service.create(templateTwo)
-      val stream = service.findWithIds(Seq(templateOne.id, templateTwo.id))
-      stream.length must_== 2
-    }
-    "return empty stream if nothing can be found" in new scope {
-      val stream = service.findWithIds(Seq(ObjectId.get))
-      stream.length must_== 0
     }
   }
   "insert" should {

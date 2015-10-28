@@ -26,7 +26,7 @@ class AssessmentTemplateApi(
   implicit val AssessmentTemplateFormat = jsonFormatting.formatAssessmentTemplate
 
   def get = withIdentity { (identity, _) =>
-    val t = assessmentTemplateService.find(MongoDBObject("orgId" -> identity.org.id), MongoDBObject.empty)
+    val t = assessmentTemplateService.findByOrg(identity.org.id)
     Ok(Json.toJson(t))
   }
 
@@ -44,7 +44,7 @@ class AssessmentTemplateApi(
     Json.fromJson[AssessmentTemplate](json) match {
       case JsSuccess(jsonAssessment, _) => {
         val assessmentTemplate = new AssessmentTemplate().merge(jsonAssessment)
-        assessmentTemplateService.create(assessmentTemplate)
+        assessmentTemplateService.insert(assessmentTemplate)
         Created(Json.prettyPrint(Json.toJson(assessmentTemplate)))
       }
       case _ => incorrectJsonFormat(json).toResult
