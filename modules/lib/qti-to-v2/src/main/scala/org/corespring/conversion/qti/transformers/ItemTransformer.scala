@@ -144,10 +144,14 @@ class ItemTransformer(val itemService: BaseFindAndSaveService[Item, VersionedId[
     val otherAlignments = item.otherAlignments.map { alignments =>
       Json.obj("otherAlignments" -> Json.toJson(alignments))
     }.getOrElse(Json.obj("otherAlignments" -> Json.obj()))
+    val workflow = item.workflow.map { workflow =>
+      Json.obj("workflow" -> Json.toJson(workflow))
+    }.getOrElse(Json.obj("workflow" -> Json.obj()))
 
     taskInfoJson ++
       contributorDetails ++
       otherAlignments ++
+      workflow ++
       Json.obj(
         "standards" -> item.standards.map(standardService.findOneByDotNotation).flatten.map(Json.toJson(_)),
         "reviewsPassed" -> item.reviewsPassed,

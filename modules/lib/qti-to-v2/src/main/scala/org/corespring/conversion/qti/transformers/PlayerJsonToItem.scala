@@ -34,6 +34,7 @@ object PlayerJsonToItem {
     val newReviewsPassed = (profileJson \ "reviewsPassed").asOpt[Seq[String]].getOrElse(item.reviewsPassed)
     val newReviewsPassedOther = (profileJson \ "reviewsPassedOther").asOpt[String].orElse(item.reviewsPassedOther)
     val newStandards = standards(profileJson).getOrElse(item.standards)
+    val newWorkflow = workflow(profileJson)
 
     item.copy(
       contributorDetails = newContributorDetails,
@@ -45,7 +46,8 @@ object PlayerJsonToItem {
       reviewsPassed = newReviewsPassed,
       reviewsPassedOther = newReviewsPassedOther,
       standards = newStandards,
-      taskInfo = newInfo)
+      taskInfo = newInfo,
+      workflow = newWorkflow)
   }
 
   /**
@@ -113,7 +115,8 @@ object PlayerJsonToItem {
         mediaType = (copyright \ "mediaType").asOpt[String],
         owner = (copyright \ "owner").asOpt[String],
         sourceUrl = (copyright \ "sourceUrl").asOpt[String],
-        year = (copyright \ "year").asOpt[String])))
+        year = (copyright \ "year").asOpt[String],
+        costForResource = (copyright \ "costForResource").asOpt[Int])))
       case _ => throw new IllegalArgumentException("additionalCopyrights must be an array")
     }
 
@@ -121,8 +124,18 @@ object PlayerJsonToItem {
     (profileJson \ "otherAlignments").asOpt[JsValue].map { alignments =>
       Alignments(
         bloomsTaxonomy = (alignments \ "bloomsTaxonomy").asOpt[String],
+        relatedCurriculum =  (alignments \ "relatedCurriculum").asOpt[String],
         depthOfKnowledge = (alignments \ "depthOfKnowledge").asOpt[String],
         keySkills = (alignments \ "keySkills").asOpt[Seq[String]].getOrElse(Seq()))
+    }
+
+  def workflow(profileJson: JsValue): Option[Workflow] =
+    (profileJson \ "workflow").asOpt[JsValue].map { workflow =>
+      Workflow(
+        setup = (workflow \ "setup").asOpt[Boolean].getOrElse(false),
+        tagged =  (workflow \ "tagged").asOpt[Boolean].getOrElse(false),
+        standardsAligned = (workflow \ "standardsAligned").asOpt[Boolean].getOrElse(false),
+        qaReview = (workflow \ "qaReview").asOpt[Boolean].getOrElse(false))
     }
 
   def supportingMaterials(item: Item, json: JsValue): Item = {
