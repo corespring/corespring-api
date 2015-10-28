@@ -1,5 +1,6 @@
 package org.corespring.services.salat.auth
 
+import com.mongodb.casbah.WriteConcern
 import com.mongodb.casbah.commons.MongoDBObject
 import com.novus.salat.Context
 import com.novus.salat.dao.{ SalatDAO, SalatInsertError, SalatRemoveError }
@@ -84,7 +85,7 @@ class AccessTokenService(
   override def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     try {
       //TODO: Is this writeConcern safe enough to remove the loading of the item?
-      dao.insert(token, dao.collection.writeConcern) match {
+      dao.insert(token, WriteConcern.Safe) match {
         case Some(id) => dao.findOneById(id) match {
           case Some(dbtoken) => Success(dbtoken)
           case None => Failure(PlatformServiceError("could not retrieve token that was just inserted"))
