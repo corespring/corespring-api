@@ -484,6 +484,21 @@ class ItemDraftsTest extends Specification with Mockito {
         val item2 = item1.copy(priorGradeLevels = Seq(""))
         itemDrafts.hasSrcChanged(item1, item2) must_== true
       }
+
+      "return true if pValue (difficulty level) has changed" in new hasSrcChanged {
+        val item2 = item1.copy(pValue = Some("33"))
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if workflow (status) has changed" in new hasSrcChanged {
+        val item2 = item1.copy(workflow = Some(Workflow(true)))
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
+      }
+
+      "return true if lexile has changed" in new hasSrcChanged {
+        val item2 = item1.copy(lexile = Some("new lexile"))
+        itemDrafts.hasSrcChanged(item1, item2) must_== true
+      }
     }
 
     "addFileToChangeSet" should {

@@ -29,14 +29,14 @@ class ApiClientService(orgService: interface.OrganizationService,
    * @param secret - the client secret
    * @return an Option[ApiClient]
    */
-  def findByIdAndSecret(id: String, secret: String): Option[ApiClient] = {
+  def findByClientIdAndSecret(id: String, secret: String): Option[ApiClient] = {
     val idsObj = MongoDBObject(Keys.clientId -> new ObjectId(id), Keys.clientSecret -> secret)
     dao.findOne(idsObj)
   }
 
-  def findByKey(key: String): Option[ApiClient] = {
+  def findByClientId(id: String): Option[ApiClient] = {
     logger.trace(s"api client count:  ${dao.count()}")
-    dao.findOne(MongoDBObject(Keys.clientId -> new ObjectId(key)))
+    dao.findOne(MongoDBObject(Keys.clientId -> new ObjectId(id)))
   }
 
   def findOneByOrgId(orgId: ObjectId): Option[ApiClient] = dao.findOne(MongoDBObject(Keys.orgId -> orgId))
@@ -46,8 +46,8 @@ class ApiClientService(orgService: interface.OrganizationService,
    *
    * @return a token
    */
-  def generateTokenId(keyLength: Int = KEY_LENGTH) = {
-    BigInt.probablePrime(keyLength * 8, scala.util.Random).toString(KEY_RADIX)
+  def generateTokenId(): String = {
+    ObjectId.get.toString
   }
 
   /**
@@ -69,7 +69,7 @@ class ApiClientService(orgService: interface.OrganizationService,
               Success(apiClient)
             } catch {
               case e: SalatSaveError => {
-                logger.error("Error registering ortganization %s".format(orgId), e)
+                logger.error("Error registering organization %s".format(orgId), e)
                 val OperationError = "There was an error processing your request"
                 Failure(OperationError)
               }

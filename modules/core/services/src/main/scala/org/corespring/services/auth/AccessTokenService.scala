@@ -20,12 +20,6 @@ trait AccessTokenService {
    */
   def findByTokenId(tokenId: String): Option[AccessToken]
 
-  @deprecated("use findByTokenId instead", "0.1")
-  def findByToken(token: String) = findByTokenId(token)
-
-  @deprecated("use findByTokenId instead", "0.1")
-  final def findById(token: String) = findByTokenId(token)
-
   /**
    * Finds an access token by organization and scope
    *
@@ -34,11 +28,6 @@ trait AccessTokenService {
    * @return returns an Option[AccessToken]
    */
   def find(orgId: ObjectId, scope: Option[String]): Option[AccessToken]
-
-  @deprecated("use findByOrgId", "0.1")
-  def getTokenForOrgById(id: ObjectId): Option[AccessToken]
-
-  def findByOrgId(id: ObjectId): Option[AccessToken]
 
   /**
    * Creates an access token to invoke the APIs protected by BaseApi.

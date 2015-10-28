@@ -11,27 +11,19 @@ import org.joda.time.DateTime
 import org.corespring.{ services => interface }
 
 class AssessmentTemplateService(
-                               val dao : SalatDAO[AssessmentTemplate,ObjectId],
-                               val context : Context
-                                 )
-    extends interface.assessment.AssessmentTemplateService
-    with HasDao[AssessmentTemplate, ObjectId] {
+  val dao: SalatDAO[AssessmentTemplate, ObjectId],
+  val context: Context)
+  extends interface.assessment.AssessmentTemplateService
+  with HasDao[AssessmentTemplate, ObjectId] {
 
-  private def baseAssessmentTemplateQuery: DBObject = MongoDBObject("data.name" -> "template")
-
-  override def create(assessmentTemplate: AssessmentTemplate) = dao.insert(assessmentTemplate)
-
-  override def clone(content: AssessmentTemplate): Option[AssessmentTemplate] = ???
-
-  override def count(query: DBObject): Int = dao.count(query).toInt
-
-  override def all: Stream[AssessmentTemplate] = find(baseAssessmentTemplateQuery)
-
-  override def find(query: DBObject, fields: DBObject = new BasicDBObject(), limit: Int = 0, skip: Int = 0): Stream[AssessmentTemplate] = {
-    dao.find(new MongoDBObject(baseAssessmentTemplateQuery) ++ query, fields).limit(limit).skip(skip).toStream
-  }
+  override def findByOrg(orgId: ObjectId): Stream[AssessmentTemplate] = dao.find(MongoDBObject("orgId" -> orgId)).toStream
 
   override def findOneById(id: ObjectId): Option[AssessmentTemplate] = dao.findOneById(id)
+
+  override def findOneByIdAndOrg(id: ObjectId, orgId: ObjectId): Option[AssessmentTemplate] =
+    dao.findOne(MongoDBObject("_id" -> id, "orgId" -> orgId))
+
+  override def insert(assessmentTemplate: AssessmentTemplate): Option[ObjectId] = dao.insert(assessmentTemplate)
 
   override def save(assessmentTemplate: AssessmentTemplate) = {
     val result = dao.save(assessmentTemplate.copy(dateModified = Some(new DateTime())))
@@ -41,12 +33,5 @@ class AssessmentTemplateService(
       Left(result.getLastError.getErrorMessage)
     }
   }
-
-  override def insert(assessmentTemplate: AssessmentTemplate): Option[ObjectId] = dao.insert(assessmentTemplate)
-
-  override def findWithIds(ids: Seq[ObjectId]): Stream[AssessmentTemplate] =
-    this.find(MongoDBObject("_id" -> MongoDBObject("$in" -> ids)))
-
-  override def findOne(query: DBObject, fields: DBObject): Option[AssessmentTemplate] = ???
 }
 

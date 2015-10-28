@@ -1,7 +1,7 @@
 package web.controllers
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.{ ItemType, WidgetType }
+import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.item.FieldValue
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }

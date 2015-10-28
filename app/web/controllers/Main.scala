@@ -1,6 +1,6 @@
 package web.controllers
 
-import org.corespring.itemSearch.{ WidgetType, ItemType }
+import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
 import org.corespring.services.{ OrganizationService, UserService }

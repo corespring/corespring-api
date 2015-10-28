@@ -28,31 +28,10 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
     dao.find(MongoDBObject.empty).limit(l).skip(sk).toStream
   }
 
-  private def toDbo(q: SubjectQuery): DBObject = {
-
-    val base = MongoDBObject(
-      List(q.category.map("category" -> _),
-        q.subject.map("subject" -> _)).flatten)
-
-    def invert(key: String, value: Option[String]): Option[DBObject] = {
-      if (value.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
-    }
-
-    val orObject = List(
-      invert("category", q.category),
-      invert("subject", q.subject)).flatten
-
-    import com.mongodb.casbah.Imports._
-
-    base ++ $or(orObject)
-  }
-
   override def query(term: SubjectQuery, l: Int, sk: Int): Stream[Subject] = {
     val query = toDbo(term)
     dao.find(query).skip(sk).limit(l).toStream
   }
-
-  private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
   override def count(query: DBObject): Long = dao.count(query)
 
@@ -61,5 +40,26 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
   override def insert(s: Subject): Option[ObjectId] = dao.insert(s, WriteConcern.Safe)
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
+
+  private def toDbo(q: SubjectQuery): DBObject = {
+
+    val exactMatchQuery = MongoDBObject(
+      List(q.category.map("category" -> _),
+        q.subject.map("subject" -> _)).flatten)
+
+    def matchAgainstTermQuery(key: String, value: Option[String]): Option[DBObject] = {
+      if (value.isEmpty) Some(MongoDBObject(key -> toRegex(q.term))) else None
+    }
+
+    val orObject = List(
+      matchAgainstTermQuery("category", q.category),
+      matchAgainstTermQuery("subject", q.subject)).flatten
+
+    import com.mongodb.casbah.Imports._
+
+    exactMatchQuery ++ $or(orObject)
+  }
+
+  private def toRegex(searchTerm: String) = MongoDBObject("$regex" -> searchTerm, "$options" -> "i")
 
 }

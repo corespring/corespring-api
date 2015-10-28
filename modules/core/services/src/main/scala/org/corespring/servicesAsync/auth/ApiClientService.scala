@@ -8,13 +8,10 @@ import scala.concurrent.Future
 
 trait ApiClientService {
 
-  protected val KEY_LENGTH = 16
-  protected val KEY_RADIX = 36
-
-  def generateTokenId(keyLength: Int = KEY_LENGTH): Future[String]
+  def generateTokenId(): Future[String]
   def getOrCreateForOrg(orgId: ObjectId): Future[Validation[String, ApiClient]]
 
-  def findByKey(key: String): Future[Option[ApiClient]]
+  def findByClientId(clientId: String): Future[Option[ApiClient]]
 
   /**
    * Retrieves an ApiClient by client id and secret from the services.
@@ -22,7 +19,7 @@ trait ApiClientService {
    * @param secret - the client secret
    * @return an Option[ApiClient]
    */
-  def findByIdAndSecret(id: String, secret: String): Future[Option[ApiClient]]
+  def findByClientIdAndSecret(id: String, secret: String): Future[Option[ApiClient]]
 
   def findOneByOrgId(orgId: ObjectId): Future[Option[ApiClient]]
 }

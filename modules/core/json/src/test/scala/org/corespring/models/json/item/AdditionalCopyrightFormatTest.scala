@@ -13,10 +13,10 @@ class AdditionalCopyrightFormatTest extends Specification {
   "AdditionalCopyright" should {
 
     val jsonAdditionalCopyright = Json.obj("author" -> "author", "owner" -> "owner", "year" -> "year",
-      "licenseType" -> "licenseType", "mediaType" -> "mediaType", "sourceUrl" -> "sourceUrl")
+      "licenseType" -> "licenseType", "mediaType" -> "mediaType", "sourceUrl" -> "sourceUrl", "costForResource" -> 33)
 
     val objAdditionalCopyright = AdditionalCopyright(Some("author"), Some("owner"), Some("year"), Some("licenseType"),
-      Some("mediaType"), Some("sourceUrl"))
+      Some("mediaType"), Some("sourceUrl"), Some(33))
 
     "be serialized properly" in {
       val json = Json.toJson(objAdditionalCopyright)

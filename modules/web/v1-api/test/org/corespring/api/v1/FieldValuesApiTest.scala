@@ -50,7 +50,7 @@ class FieldValuesApiTest
       override def findSubjectById: (ObjectId) => Option[Subject] = _ => None
     }
 
-    protected def wait[A](f: Future[A]) = Await.result(f, 1.second)
+    protected def wait[A](f: Future[A]) = Await.result(f, 30.second)
 
     val ec = new V1ApiExecutionContext(ExecutionContext.global)
     val api = new FieldValuesApi(v2, standardService, subjectService, jsonFormatting, ec)

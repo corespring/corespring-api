@@ -14,17 +14,11 @@ case class StandardQuery(term: String,
 
 trait StandardService extends QueryService[Standard, StandardQuery] {
 
-  def queryDotNotation(dotNotation: String, l: Int = 50, sk: Int = 0): Stream[Standard]
-
-  def delete(id: ObjectId): Boolean
-
-  def insert(standard: Standard): Option[ObjectId]
-
   def count(query: DBObject): Long
-
-  def findOneById(id: ObjectId): Option[Standard]
-
-  def findOneByDotNotation(dotNotation: String): Option[Standard]
-
+  def delete(id: ObjectId): Boolean
   def domains: Future[StandardDomains]
+  def findOneByDotNotation(dotNotation: String): Option[Standard]
+  def findOneById(id: ObjectId): Option[Standard]
+  def insert(standard: Standard): Option[ObjectId]
+  def queryDotNotation(dotNotation: String, l: Int = 50, sk: Int = 0): Stream[Standard]
 }

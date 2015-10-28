@@ -38,12 +38,6 @@ class ItemMetadataApiTest
 
   val mockedOrg = Organization("testorg", id = ObjectId.get)
 
-  val mockAccessTokenService = {
-    val m = mock[AccessTokenService]
-    m.findById(any[String]) returns Some(AccessToken(mockedOrg.id, None, "test_token", expirationDate = DateTime.now().plusHours(24), neverExpire = true))
-    m
-  }
-
   val mockOrgService = {
     val m = mock[OrganizationService]
     m.findOneById(any[ObjectId]) returns Some(mockedOrg)
