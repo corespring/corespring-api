@@ -17,3 +17,8 @@ trait ItemIndexService {
   def widgetTypes: Future[Validation[Error, Map[String, String]]]
 
 }
+
+trait ItemIndexDeleteService {
+  def delete(): Future[Validation[Error, Unit]]
+  def create(): Future[Validation[Error, Unit]]
+}

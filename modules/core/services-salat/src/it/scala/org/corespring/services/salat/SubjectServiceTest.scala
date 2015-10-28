@@ -4,7 +4,7 @@ import com.mongodb.DBObject
 import org.bson.types.ObjectId
 import org.corespring.models.Subject
 import org.corespring.services.SubjectQuery
-import org.specs2.mutable.{BeforeAfter, Before}
+import org.specs2.mutable.{ BeforeAfter, Before }
 
 class SubjectServiceTest extends ServicesSalatIntegrationTest {
 

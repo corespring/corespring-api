@@ -61,7 +61,6 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
 
-
   private def getDomains(getDomain: Standard => Option[String], subjects: String*): Future[Seq[Domain]] = {
     val query = Standard.Keys.Subject $in subjects
     logger.trace(s"function=getDomains, query=$query")
@@ -98,7 +97,5 @@ class StandardService(val dao: SalatDAO[Standard, ObjectId],
     val or = $or(queryList)
     query ++ or
   }
-
-
 
 }

@@ -1,13 +1,13 @@
 package org.corespring.itemSearch
 
 import play.api.Logger
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{ JsArray, Json }
 
-import scala.concurrent.{Await, Future}
-import scalaz.{Failure, Success, Validation}
+import scala.concurrent.{ Await, Future }
+import scalaz.{ Failure, Success, Validation }
 
 class AggregateType(service: ItemIndexService,
-                    indexResult: ItemIndexService => Future[Validation[Error, Map[String, String]]]) {
+  indexResult: ItemIndexService => Future[Validation[Error, Map[String, String]]]) {
 
   import scala.concurrent.duration._
 
@@ -21,9 +21,9 @@ class AggregateType(service: ItemIndexService,
     logger.debug(s"val=all, result=$result")
     result match {
       case Success(keyValues) => {
-         val result = JsArray(keyValues.toSeq.map{
-           case (key, value) => Json.obj("key" -> key, "value" -> value)
-         })
+        val result = JsArray(keyValues.toSeq.map {
+          case (key, value) => Json.obj("key" -> key, "value" -> value)
+        })
         logger.debug(s"val=all, out=$result")
         result
       }

@@ -16,7 +16,7 @@ class AssessmentTemplateService(
   extends interface.assessment.AssessmentTemplateService
   with HasDao[AssessmentTemplate, ObjectId] {
 
-  override def findByOrg(orgId:ObjectId): Stream[AssessmentTemplate] = dao.find(MongoDBObject("orgId" -> orgId)).toStream
+  override def findByOrg(orgId: ObjectId): Stream[AssessmentTemplate] = dao.find(MongoDBObject("orgId" -> orgId)).toStream
 
   override def findOneById(id: ObjectId): Option[AssessmentTemplate] = dao.findOneById(id)
 

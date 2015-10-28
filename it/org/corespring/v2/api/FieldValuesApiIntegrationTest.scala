@@ -26,7 +26,7 @@ class FieldValuesApiIntegrationTest extends IntegrationSpecification {
     lazy val queryString = query.map(Json.stringify(_))
 
     override def before: Any = {
-      dropDb()
+      removeData()
     }
   }
 

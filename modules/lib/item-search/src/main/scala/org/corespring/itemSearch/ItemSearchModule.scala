@@ -9,9 +9,9 @@ trait ItemSearchModule {
 
   def componentTypes: Seq[ComponentType]
   def elasticSearchExecutionContext: ElasticSearchExecutionContext
-  def elasticSearchConfig : ElasticSearchConfig
+  def elasticSearchConfig: ElasticSearchConfig
 
   lazy val itemIndexService: ItemIndexService = wire[ElasticSearchItemIndexService]
-  lazy val itemType : ItemType =  wire[ItemType]
-  lazy val widgetType : WidgetType =  wire[WidgetType]
+  lazy val itemType: ItemType = wire[ItemType]
+  lazy val widgetType: WidgetType = wire[WidgetType]
 }

@@ -124,7 +124,7 @@ object PlayerJsonToItem {
     (profileJson \ "otherAlignments").asOpt[JsValue].map { alignments =>
       Alignments(
         bloomsTaxonomy = (alignments \ "bloomsTaxonomy").asOpt[String],
-        relatedCurriculum =  (alignments \ "relatedCurriculum").asOpt[String],
+        relatedCurriculum = (alignments \ "relatedCurriculum").asOpt[String],
         depthOfKnowledge = (alignments \ "depthOfKnowledge").asOpt[String],
         keySkills = (alignments \ "keySkills").asOpt[Seq[String]].getOrElse(Seq()))
     }
@@ -133,7 +133,7 @@ object PlayerJsonToItem {
     (profileJson \ "workflow").asOpt[JsValue].map { workflow =>
       Workflow(
         setup = (workflow \ "setup").asOpt[Boolean].getOrElse(false),
-        tagged =  (workflow \ "tagged").asOpt[Boolean].getOrElse(false),
+        tagged = (workflow \ "tagged").asOpt[Boolean].getOrElse(false),
         standardsAligned = (workflow \ "standardsAligned").asOpt[Boolean].getOrElse(false),
         qaReview = (workflow \ "qaReview").asOpt[Boolean].getOrElse(false))
     }

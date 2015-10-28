@@ -41,7 +41,6 @@ class SubjectService(dao: SalatDAO[Subject, ObjectId], context: Context) extends
 
   override def delete(id: ObjectId): Boolean = dao.removeById(id).getN == 1
 
-
   private def toDbo(q: SubjectQuery): DBObject = {
 
     val exactMatchQuery = MongoDBObject(

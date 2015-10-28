@@ -1,23 +1,39 @@
 package web.controllers
 
-import org.corespring.legacy.ServiceLookup
+import org.corespring.itemSearch.AggregateType.{ WidgetType, ItemType }
+import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ User }
+import org.corespring.services.{ OrganizationService, UserService }
+import org.corespring.services.item.FieldValueService
+import play.api.Logger
 import play.api.libs.json.{ Json, JsObject }
 import play.api.mvc._
 import play.api.libs.json.Json._
 import securesocial.core.{ SecuredRequest }
 
-object Main extends Controller with securesocial.core.SecureSocial {
+class Main(
+  fieldValueService: FieldValueService,
+  jsonFormatting: JsonFormatting,
+  userService: UserService,
+  orgService: OrganizationService,
+  itemType: ItemType,
+  widgetType: WidgetType) extends Controller with securesocial.core.SecureSocial {
+
+  val logger = Logger(classOf[Main])
 
   val UserKey = "securesocial.user"
   val ProviderKey = "securesocial.provider"
 
-  def defaultValues: Option[String] = ServiceLookup.fieldValueService.get.map { fv =>
-    implicit val writeFieldValue = ServiceLookup.jsonFormatting.writesFieldValue
-    val fvJson = toJson(fv).as[JsObject]
-    def values = fvJson.deepMerge(obj(
-      "v2ItemTypes" -> bootstrap.Main.itemType.all,
-      "widgetTypes" -> bootstrap.Main.widgetType.all))
+  private lazy val fieldValues: Option[JsObject] = fieldValueService.get.map {
+    fv =>
+      implicit val writeFieldValue = jsonFormatting.writesFieldValue
+      toJson(fv).as[JsObject]
+  }
+
+  def defaultValues: Option[String] = fieldValues.map { fvJson =>
+    val values = fvJson.deepMerge(obj(
+      "v2ItemTypes" -> itemType.all,
+      "widgetTypes" -> widgetType.all))
     stringify(values)
   }
 
@@ -27,13 +43,13 @@ object Main extends Controller with securesocial.core.SecureSocial {
       val uri: Option[String] = play.api.Play.current.configuration.getString("mongodb.default.uri")
       val (dbServer, dbName) = getDbName(uri)
       val userId = request.user.identityId
-      val user: User = ServiceLookup.userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
-      implicit val writesOrg = ServiceLookup.jsonFormatting.writeOrg
-      implicit val writesRef = ServiceLookup.jsonFormatting.writeContentCollRef
+      val user: User = userService.getUser(userId.userId, userId.providerId).getOrElse(throw new RuntimeException("Unknown user"))
+      implicit val writesOrg = jsonFormatting.writeOrg
+      implicit val writesRef = jsonFormatting.writeContentCollRef
 
       (for {
         fv <- defaultValues
-        org <- ServiceLookup.orgService.findOneById(user.org.orgId)
+        org <- orgService.findOneById(user.org.orgId)
       } yield {
         //Add old 'collections' field
         val legacyJson = Json.obj("collections" -> toJson(org.contentcolls)) ++ toJson(org).as[JsObject]

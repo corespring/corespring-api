@@ -40,6 +40,10 @@ class PlayerDefinition(
 object PlayerDefinition {
   def apply(xhtml: String) = new PlayerDefinition(Seq.empty, xhtml, Json.obj(), "", None)
 
+  def apply(xhtml: String, components: JsValue) = {
+    new PlayerDefinition(Seq.empty, xhtml, components, "", None)
+  }
+
   def apply(
     files: Seq[BaseFile],
     xhtml: String,

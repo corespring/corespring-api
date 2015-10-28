@@ -1,7 +1,7 @@
 package org.corespring.services.salat
 
 import org.bson.types.ObjectId
-import org.corespring.models.{Domain, Standard, StandardDomains}
+import org.corespring.models.{ Domain, Standard, StandardDomains }
 import org.corespring.services.StandardQuery
 import org.specs2.mutable.BeforeAfter
 import org.specs2.time.NoTimeConversions

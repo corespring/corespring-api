@@ -28,8 +28,7 @@ trait AdditionalCopyrightFormat extends ValueGetter with Format[Model] {
         copyright.licenseType.map((licenseType -> JsString(_))),
         copyright.mediaType.map((mediaType -> JsString(_))),
         copyright.sourceUrl.map((sourceUrl -> JsString(_))),
-        copyright.costForResource.map((costForResource -> JsNumber(_)))
-      ).flatten)
+        copyright.costForResource.map((costForResource -> JsNumber(_)))).flatten)
   }
 
   override def reads(json: JsValue): JsResult[Model] = {

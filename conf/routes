@@ -47,7 +47,7 @@ GET         /reset/:token                                             securesoci
 POST        /reset/:token                                             securesocial.controllers.Registration.handleResetPassword(token)
 
 # Web tier
-GET         /web                                                      web.controllers.Main.index
+GET         /web                                                      @web.controllers.Main.index
 
 # Item Preview
 GET         /web/partials/editItem                                    web.controllers.Partials.editItem

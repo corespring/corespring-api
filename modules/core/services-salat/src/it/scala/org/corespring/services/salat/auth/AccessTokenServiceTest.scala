@@ -48,10 +48,10 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
 
     def mkExpiredToken() = {
       val now = DateTime.now
-      mkToken(creationDate=Some(now), expirationDate=Some(now.minusDays(10)))
+      mkToken(creationDate = Some(now), expirationDate = Some(now.minusDays(10)))
     }
     def mkNeverExpiringToken() = {
-      mkToken(neverExpire=Some(true))
+      mkToken(neverExpire = Some(true))
     }
 
   }
@@ -79,7 +79,7 @@ class AccessTokenServiceTest extends ServicesSalatIntegrationTest {
       service.find(org.id, None) must_== token
     }
     "return token for org and scope" in new scope {
-      val t = mkToken(scope=Some("test-scope"))
+      val t = mkToken(scope = Some("test-scope"))
       service.find(t.organization, Some("test-scope")) must_== Some(t)
     }
     "return None when org is not correct" in new scope {

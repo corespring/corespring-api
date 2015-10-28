@@ -2,7 +2,7 @@ package org.corespring.services.salat.assessment
 
 import org.bson.types.ObjectId
 import org.corespring.models.assessment._
-import org.corespring.models.item.{Item, TaskInfo}
+import org.corespring.models.item.{ Item, TaskInfo }
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.specs2.mutable.BeforeAfter
 
