@@ -8,11 +8,8 @@ case class SubjectQuery(term: String, subject: Option[String], category: Option[
 
 trait SubjectService extends QueryService[Subject, SubjectQuery] {
 
-  def delete(id: ObjectId): Boolean
-
-  def insert(s: Subject): Option[ObjectId]
-
   def count(query: DBObject): Long
-
+  def delete(id: ObjectId): Boolean
   def findOneById(id: ObjectId): Option[Subject]
+  def insert(s: Subject): Option[ObjectId]
 }
