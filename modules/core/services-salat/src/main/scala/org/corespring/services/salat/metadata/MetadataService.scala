@@ -16,7 +16,7 @@ class MetadataService(itemService: services.item.ItemService)
       extendedMetadata <- toMetadataMap(info.extended)
     } yield extendedMetadata.filter(e => keys.exists(_ == e.key))
 
-    maybeSeq.getOrElse(Seq())
+    maybeSeq.getOrElse(Seq.empty)
   }
 
   def toMetadataMap(m: Map[String, DBObject]): Option[Seq[Metadata]] = {
