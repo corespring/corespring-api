@@ -7,8 +7,10 @@ import org.bson.types.ObjectId
 import org.corespring.errors.{ ItemNotFoundError, GeneralError, PlatformServiceError }
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.models.auth.Permission
+import org.corespring.models.item.Item.Keys
 import org.corespring.models.item.resource._
 import org.corespring.models.item.{ Item, ItemStandards }
+import org.corespring.mongo.IdConverters
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.{ services => interface }
@@ -22,11 +24,11 @@ class ItemService(
   orgCollectionService: => interface.OrgCollectionService,
   implicit val context: Context,
   archiveConfig: ArchiveConfig)
-  extends interface.item.ItemService {
+  extends interface.item.ItemService with IdConverters {
 
   protected val logger = Logger(classOf[ItemService])
 
-  private val baseQuery = MongoDBObject("contentType" -> "item")
+  private val baseQuery = MongoDBObject(Keys.contentType -> Item.contentType)
 
   override def saveUsingDbo(id: VersionedId[ObjectId], dbo: DBObject, createNewVersion: Boolean = false): Boolean = {
     val result = dao.update(id, dbo, createNewVersion)
@@ -50,16 +52,9 @@ class ItemService(
     }
   }
 
-  def vidToDbo(vid: VersionedId[ObjectId]): DBObject = {
-    val base = MongoDBObject("_id._id" -> vid.id)
-    vid.version.map { v =>
-      base ++ MongoDBObject("_id.version" -> v)
-    }.getOrElse(base)
-  }
-
   override def publish(id: VersionedId[ObjectId]): Boolean = {
     logger.trace(s"function=publish, id=$id")
-    val update = MongoDBObject("$set" -> MongoDBObject("published" -> true))
+    val update = MongoDBObject("$set" -> MongoDBObject(Keys.published -> true))
     val result = dao.update(id, update, false)
     result.isRight
   }
@@ -148,7 +143,7 @@ class ItemService(
   }
 
   override def getOrCreateUnpublishedVersion(id: VersionedId[ObjectId]): Option[Item] = {
-    dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, "published" -> false)).orElse {
+    dao.findOneCurrent(MongoDBObject("_id._id" -> id.id, Keys.published -> false)).orElse {
       saveNewUnpublishedVersion(id).flatMap(vid => findOneById(vid))
     }
   }
@@ -158,8 +153,8 @@ class ItemService(
   }
 
   override def isAuthorized(orgId: ObjectId, contentId: VersionedId[ObjectId], p: Permission): Validation[PlatformServiceError, Unit] = {
-    dao.findDbo(contentId, MongoDBObject("collectionId" -> 1)).map { dbo =>
-      val collectionId = dbo.get("collectionId").asInstanceOf[String]
+    dao.findDbo(contentId, MongoDBObject(Keys.collectionId -> 1)).map { dbo =>
+      val collectionId = dbo.get(Keys.collectionId).asInstanceOf[String]
       if (ObjectId.isValid(collectionId) && orgCollectionService.isAuthorized(orgId, new ObjectId(collectionId), p)) {
         Success()
       } else {
@@ -183,9 +178,8 @@ class ItemService(
 
     logger.trace(s"function=contributorsForOrg readableCollectionIds=$readableCollectionIds")
 
-    val filter = MongoDBObject(
-      "contentType" -> "item",
-      "collectionId" -> MongoDBObject("$in" -> readableCollectionIds))
+    val filter = baseQuery ++ MongoDBObject(
+      Keys.collectionId -> MongoDBObject("$in" -> readableCollectionIds))
     //TODO: RF - include versioned content?
 
     logger.trace(s"distinct.filter=$filter")
@@ -193,14 +187,14 @@ class ItemService(
   }
 
   override def countItemsInCollection(collectionId: ObjectId): Long = {
-    dao.countCurrent(MongoDBObject("collectionId" -> collectionId.toString))
+    dao.countCurrent(baseQuery ++ MongoDBObject(Keys.collectionId -> collectionId.toString))
   }
 
   override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
-    dao.findDbo(itemId.copy(version = None), MongoDBObject("collectionId" -> 1)).flatMap {
+    dao.findDbo(itemId.copy(version = None), MongoDBObject(Keys.collectionId -> 1)).flatMap {
       dbo =>
         try {
-          val idString = dbo.get("collectionId").asInstanceOf[String]
+          val idString = dbo.get(Keys.collectionId).asInstanceOf[String]
           Some(new ObjectId(idString))
         } catch {
           case t: Throwable =>
@@ -214,13 +208,13 @@ class ItemService(
   }
 
   override def findItemStandards(itemId: VersionedId[ObjectId]): Option[ItemStandards] = {
-    val fields = MongoDBObject("taskInfo.title" -> 1, "standards" -> 1)
+    val fields = MongoDBObject("taskInfo.title" -> 1, Keys.standards -> 1)
     for {
       dbo <- dao.findDbo(itemId, fields)
       _ <- Some(logger.debug(s"function=findItemStandards, dbo=$dbo"))
       title <- dbo.expand[String]("taskInfo.title")
       _ <- Some(logger.trace(s"function=findItemStandards, title=$title"))
-      standards <- dbo.expand[Seq[String]]("standards")
+      standards <- dbo.expand[Seq[String]](Keys.standards)
       _ <- Some(logger.trace(s"function=findItemStandards, standards=$standards"))
     } yield ItemStandards(title, standards, itemId)
   }

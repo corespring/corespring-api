@@ -44,14 +44,17 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       contentType: Option[String] = None,
       standards: Seq[String] = Seq.empty,
       title: Option[String] = None) = {
+
       val contributorDetails = ContributorDetails(
         contributor = Some("contributor-" + contributorId.getOrElse(id)))
+
       val item = Item(
         collectionId = c.id.toString,
         contributorDetails = Some(contributorDetails),
         contentType = contentType.getOrElse(Item.contentType),
         standards = standards,
         taskInfo = Some(TaskInfo(title = title)))
+
       services.itemService.insert(item)
       item
     }
@@ -59,18 +62,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     def loadItem(id: VersionedId[ObjectId]): Option[Item] = service.findOneById(id)
 
     def idQuery(id: VersionedId[ObjectId]) = MongoDBObject("_id._id" -> id.id, "_id.version" -> id.version)
-  }
-
-  "countItemsInCollection" should {
-
-    "return 1 for collection with 1 item" in new scope {
-      service.countItemsInCollection(collectionOne.id) must_== 1
-    }
-
-    "return 0 for collection with no items" in new scope {
-      val collectionTwo = insertCollection("two", org)
-      service.countItemsInCollection(collectionTwo.id) must_== 0
-    }
   }
 
   "addFileToPlayerDefinition" should {
@@ -100,40 +91,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       service.addFileToPlayerDefinition(randomItemId, file) must throwA[SalatVersioningDaoException]
     }
   }
-
-  //  "asMetadataOnly" should {
-  //    trait asMetadataOnly extends scope {
-  //      val longAgo = new DateTime(1000, 10, 10, 10, 10)
-  //
-  //      val item = new Item(
-  //        id = randomItemId,
-  //        supportingMaterials = Seq(Resource(name = "test", files = Seq.empty)),
-  //        data = Some(Resource(name = "test-data", files = Seq.empty)),
-  //        collectionId = "1234567",
-  //        dateModified = Some(longAgo))
-  //    }
-  //    "set dateModified to the current time" in new asMetadataOnly {
-  //      val now = DateTime.now().getMillis
-  //      var dateModified = service.asMetadataOnly(item).get("dateModified")
-  //      new DateTime(dateModified).getMillis must beGreaterThanOrEqualTo(now)
-  //    }
-  //    "remove id from result" in new asMetadataOnly {
-  //      val res = service.asMetadataOnly(item)
-  //      res.containsField("id") must_== false
-  //    }
-  //    "remove supportingMaterials from result" in new asMetadataOnly {
-  //      val res = service.asMetadataOnly(item)
-  //      res.containsField("supportingMaterials") must_== false
-  //    }
-  //    "remove data from result" in new asMetadataOnly {
-  //      val res = service.asMetadataOnly(item)
-  //      res.containsField("data") must_== false
-  //    }
-  //    "remove collectionId from result" in new asMetadataOnly {
-  //      val res = service.asMetadataOnly(item)
-  //      res.containsField("collectionId") must_== false
-  //    }
-  //  }
 
   "clone" should {
     trait clone extends scope {
@@ -240,9 +197,36 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
         contributorDetails = Some(ContributorDetails(contributor = Some("updated contributor"))))
       service.save(updatedItem, createNewVersion = true)
 
-      //the versioned item has the old contributor still
+      //check that the versioned item still has the old contributor
       service.findOneById(itemOne.id).map(_.contributorDetails.get.contributor must_== Some("contributor-1"))
       service.contributorsForOrg(org.id) must_== Seq("updated contributor")
+    }
+
+    "not include contributors from items with a contentType != item" in new scope {
+      val unusualItem = itemOne.copy(
+        id = randomItemId,
+        contributorDetails = Some(ContributorDetails(contributor = Some("contributor from an unusual item"))),
+        contentType = "not the usual content type"
+      )
+      service.insert(unusualItem)
+      service.contributorsForOrg(org.id) must_== Seq("contributor-1")
+    }
+  }
+
+  "countItemsInCollection" should {
+
+    "return 1 for collection with 1 item" in new scope {
+      service.countItemsInCollection(collectionOne.id) must_== 1
+    }
+
+    "return 1 for collection with 1 item with contentType=item " in new scope {
+      addItem(2, collectionOne, contentType=Some("something else"))
+      service.countItemsInCollection(collectionOne.id) must_== 1
+    }
+
+    "return 0 for collection with no items" in new scope {
+      val collectionTwo = insertCollection("two", org)
+      service.countItemsInCollection(collectionTwo.id) must_== 0
     }
   }
 
@@ -350,6 +334,8 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return the id if successful" in pending
     "return None if not successful" in pending
   }
+
+
 
   "moveItemToArchive" should {
 
