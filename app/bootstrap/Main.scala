@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
 import common.db.Db
+import developer.DeveloperModule
 import org.apache.commons.io.IOUtils
 import org.bson.types.ObjectId
 import org.corespring.amazon.s3.S3Service
@@ -27,6 +28,7 @@ import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucke
 import org.corespring.models.item.{ ComponentType, FieldValue, Item }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.models.{ Standard, Subject }
+import org.corespring.platform.core.LegacyModule
 import org.corespring.platform.core.services.item.SupportingMaterialsAssets
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
@@ -47,6 +49,7 @@ import play.api.Mode.{ Mode => PlayMode }
 import play.api.libs.json.{ JsArray, Json }
 import play.api.mvc._
 import play.api.{ Play, Mode, Configuration, Logger }
+import web.WebModule
 import web.controllers.{ Main, ShowResource }
 
 import scala.concurrent.ExecutionContext
@@ -60,7 +63,10 @@ object Main
   with V2ApiModule
   with V1ApiModule
   with V2PlayerModule
-  with SessionDbModule {
+  with SessionDbModule
+  with LegacyModule
+  with DeveloperModule
+  with WebModule {
 
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
@@ -74,16 +80,17 @@ object Main
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
 
-  //Old cms v1 controllers
-  lazy val showResource = new ShowResource(itemService, s3Service)
-  lazy val webMain = new Main(fieldValueService, jsonFormatting, userService, orgService, itemType, widgetType)
-
   private lazy val logger = Logger(Main.getClass)
 
   logger.debug("bootstrapping...")
 
   override lazy val controllers: Seq[Controller] = {
-    Seq(itemDraftsController) ++ super.controllers ++ v2ApiControllers ++ v1ApiControllers ++ Seq(showResource, webMain)
+    super.controllers ++
+      v2ApiControllers ++
+      v1ApiControllers ++
+      webControllers ++
+      developerControllers :+
+      itemDraftsController
   }
 
   lazy val configuration = current.configuration
