@@ -19,7 +19,8 @@ class PlayerDefinition(
   val components: JsValue,
   val summaryFeedback: String,
   val customScoring: Option[String]) {
-  override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback"""
+
+  override def toString = s"""PlayerDefinition(${files}, $xhtml, ${Json.stringify(components)}, $summaryFeedback)"""
 
   override def hashCode() = {
     new HashCodeBuilder(17, 31)
@@ -32,7 +33,8 @@ class PlayerDefinition(
   }
 
   override def equals(other: Any) = other match {
-    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) && p.summaryFeedback == summaryFeedback && p.customScoring == customScoring
+    case p: PlayerDefinition => p.files == files && p.xhtml == xhtml && p.components.equals(components) &&
+      p.summaryFeedback == summaryFeedback && p.customScoring == customScoring
     case _ => false
   }
 }
