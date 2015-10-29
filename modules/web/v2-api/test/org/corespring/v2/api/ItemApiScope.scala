@@ -30,7 +30,7 @@ private[api] case class beCodeAndJson(code: Int, json: JsValue) extends Matcher[
     import play.api.test.Helpers.{ status, contentAsJson }
 
     import scala.concurrent.duration._
-    implicit val timeout = new akka.util.Timeout(1.second)
+    implicit val timeout = new akka.util.Timeout(10.second)
     val statusMatch = status(t.value) == code
     val jsonMatch = contentAsJson(t.value) == json
 

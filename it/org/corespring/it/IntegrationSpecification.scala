@@ -24,7 +24,7 @@ abstract class IntegrationSpecification
 
   lazy val logger: grizzled.slf4j.Logger = Logger(this.getClass)
 
-  override implicit def defaultAwaitTimeout: Timeout = 3.seconds
+  override implicit def defaultAwaitTimeout: Timeout = 30.seconds
 
   protected def removeData() = {
     logger.debug(s"function=removeData - dropping collections")
