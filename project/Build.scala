@@ -14,6 +14,8 @@ object Build extends sbt.Build {
 
   lazy val builders = new Builders(appName, org, appVersion, ScalaVersion)
 
+  import scoverage.ScoverageKeys._
+
   lazy val customImports = Seq(
     "scala.language.reflectiveCalls",
     "se.radley.plugin.salat.Binders._",
@@ -247,6 +249,7 @@ object Build extends sbt.Build {
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,
       moduleConfigurations ++= Builders.moduleConfig,
+      coverageExcludedPackages := "<empty>;Reverse.*;.*template\\.scala",
 
       /**
        * Warning: Don't enable this for now:

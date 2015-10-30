@@ -16,7 +16,6 @@ dist
 logs
 mongo-migrator.log
 project/project
-project/scoverage.sbt
 project/target
 staging.env
 target
