@@ -53,7 +53,7 @@ object Build extends sbt.Build {
   lazy val coreUtils = builders.lib("utils", "core")
 
   lazy val coreLegacy = builders.lib("legacy", "core")
-    .settings(libraryDependencies ++= Seq(securesocial, playFramework, specs2 % "test", playS3))
+    .settings(libraryDependencies ++= Seq(macWireMacro, macWireRuntime, securesocial, playFramework, specs2 % "test", playS3))
     .dependsOn(coreServices, coreModels, coreJson, qtiToV2)
 
   lazy val coreWeb = builders.lib("web", "core")

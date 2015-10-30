@@ -53,11 +53,9 @@ trait V1ApiModule {
 
   def v2OrganizationApi: v2.api.OrganizationApi
 
-  def apiClientService: ApiClientService
-
   def tokenService: AccessTokenService
 
-  def userService: UserService
+  def oauthProvider: OAuthProvider
 
   def standardService: StandardService
 
@@ -69,8 +67,6 @@ trait V1ApiModule {
   def context: Context
 
   lazy val salatContentService = new ItemApiContentService(itemService, salatItemDao)
-
-  lazy val oauthProvider = wire[OAuthProvider]
 
   lazy val v1ItemApi: Controller = wire[org.corespring.api.v1.ItemApi]
   lazy val v1FieldValuesApi: Controller = wire[org.corespring.api.v1.FieldValuesApi]

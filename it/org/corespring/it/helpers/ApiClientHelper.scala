@@ -9,6 +9,7 @@ import org.corespring.services.salat.bootstrap.CollectionNames
 object ApiClientHelper {
 
   lazy val service = bootstrap.Main.apiClientService
+  //TODO: remove mongo reference - use service instead.
   lazy val mongoCollection = Main.db(CollectionNames.apiClient)
 
   def create(orgId: ObjectId): ApiClient = {
