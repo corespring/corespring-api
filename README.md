@@ -78,6 +78,21 @@ Add a logger to `it-resources/application-logger.xml` - it's ignored by git so d
 
 see: [corespring-container-regression-tests](https://github.com/corespring/corespring-container-regression-tests)
 
+### Test code coverage
+
+scoverage is included in the build. This can be useful to give you an idea of what our coverage is like.
+
+Usage:
+
+```bash
+    > clean
+    > coverage
+    > test #or it:test
+```
+
+Reports will be generated in the modules' target directories.
+
+
 ### Application configuration
 
 The application will run without any configuration by using a set of default values.
