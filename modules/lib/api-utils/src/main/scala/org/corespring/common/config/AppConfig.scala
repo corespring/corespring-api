@@ -34,7 +34,6 @@ class AppConfig(config: Configuration) {
   lazy val archiveOrgId: ObjectId = new ObjectId(getString("archive.orgId"))
   lazy val publicSite = config.getString("publicSiteUrl").getOrElse("//www.corespring.org")
   lazy val mongoUri = getString("mongodb.default.uri")
-  lazy val componentsPath = getString("container.components.path")
   lazy val componentFilteringEnabled: Boolean = config.getBoolean(Key.COMPONENT_FILTERING_ENABLED).getOrElse(notFound(Key.COMPONENT_FILTERING_ENABLED))
   lazy val sessionService: String = config.getString(Key.SESSION_SERVICE).getOrElse("?")
   lazy val sessionServiceUrl: String = config.getString(Key.SESSION_SERVICE_URL).getOrElse("?")

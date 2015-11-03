@@ -1,6 +1,7 @@
 package org.corespring.v2.player
 
 import org.corespring.amazon.s3.S3Service
+import org.corespring.common.config.ContainerConfig
 import org.corespring.container.client.VersionInfo
 import org.corespring.container.client.integration.DefaultIntegration
 import org.corespring.container.components.loader.ComponentLoader
@@ -85,7 +86,9 @@ trait V2PlayerModule extends DefaultIntegration {
     wire[ItemSupportingMaterialHooks]
   }
 
-  override lazy val versionInfo: JsObject = VersionInfo(configuration)
+  lazy val containerConfig : ContainerConfig = ContainerConfig
+
+  override lazy val versionInfo: JsObject = VersionInfo(containerConfig.config)
 
   override lazy val draftEditorHooks: client.hooks.DraftEditorHooks = wire[DraftEditorHooks]
 

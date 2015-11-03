@@ -13,7 +13,7 @@ import org.corespring.amazon.s3.S3Service
 import org.corespring.api.tracking.{ ApiTrackingLogger, NullTracking, ApiTracking }
 import org.corespring.api.v1.{ V1ApiExecutionContext, V1ApiModule }
 import org.corespring.assets.{ CorespringS3ServiceExtended, ItemAssetKeys }
-import org.corespring.common.config.AppConfig
+import org.corespring.common.config.{ContainerConfig, AppConfig}
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.{ ComponentLoader, FileComponentLoader }
 import org.corespring.container.components.model.Component
@@ -98,7 +98,7 @@ object Main
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     AppConfig.elasticSearchUrl,
     AppConfig.mongoUri,
-    AppConfig.componentsPath)
+    ContainerConfig.componentsPath)
 
   lazy val transformerItemService = new TransformerItemService(itemService,
     db(CollectionNames.versionedItem),
@@ -221,32 +221,13 @@ object Main
   override def s3Service: S3Service = wire[CorespringS3ServiceExtended]
 
   lazy val componentLoader: ComponentLoader = {
-    val path = containerConfig.getString("components.path").toSeq
-
-    val showNonReleasedComponents: Boolean = containerConfig.getBoolean("components.showNonReleasedComponents")
-      .getOrElse {
-        Play.current.mode == play.api.Mode.Dev
-      }
-
-    val out = new FileComponentLoader(path, showNonReleasedComponents)
+    val path = ContainerConfig.componentsPath
+    val showNonReleasedComponents: Boolean = ContainerConfig.showNonReleasedComponents
+    val out = new FileComponentLoader(Seq(path), showNonReleasedComponents)
     out.reload
     out
   }
 
-  private lazy val containerConfig = {
-    for {
-      container <- current.configuration.getConfig("container")
-      modeSpecific <- current.configuration
-        .getConfig(s"container-${Play.current.mode.toString.toLowerCase}")
-        .orElse(Some(Configuration.empty))
-    } yield {
-      val out = container ++ modeSpecific ++ current.configuration
-        .getConfig("v2.auth")
-        .getOrElse(Configuration.empty)
-      logger.debug(s"Container config: \n${out.underlying.root.render}")
-      out
-    }
-  }.getOrElse(Configuration.empty)
 
   override lazy val standardTree: StandardsTree = {
     val json: JsArray = {
