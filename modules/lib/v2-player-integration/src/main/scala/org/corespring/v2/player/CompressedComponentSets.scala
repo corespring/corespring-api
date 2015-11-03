@@ -4,6 +4,7 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.{ FileUtils, IOUtils }
+import org.corespring.common.config.ContainerConfig
 import org.corespring.container.client.CompressedAndMinifiedComponentSets
 import org.corespring.container.client.integration.ContainerExecutionContext
 import org.corespring.container.components.loader.ComponentLoader
@@ -13,7 +14,7 @@ import play.api.Mode.Mode
 import play.api.{ Mode, Play, Configuration }
 
 class CompressedComponentSets(
-  val rootConfig: Configuration,
+  val containerConfig: ContainerConfig,
   val componentLoader: ComponentLoader,
   val mode: Mode,
   implicit val containerContext: ContainerExecutionContext) extends CompressedAndMinifiedComponentSets {
@@ -24,15 +25,16 @@ class CompressedComponentSets(
 
     val c = ConfigFactory.parseString(
       s"""
-         |minify: ${rootConfig.getBoolean("components.minify").getOrElse(mode == Mode.Prod)}
-         |gzip: ${rootConfig.getBoolean("components.gzip").getOrElse(mode == Mode.Prod)}
+         |minify: ${containerConfig.componentsMinify}
+         |gzip: ${containerConfig.componentsGzip}
+         |path: ${containerConfig.componentsPath}
            """.stripMargin)
 
     new Configuration(c)
   }
 
   override def loadLibrarySource(path: String): Option[String] = {
-    val componentsPath = rootConfig.getString("components.path").getOrElse("?")
+    val componentsPath = containerConfig.componentsPath
     val fullPath = s"$componentsPath/$path"
     val file = new File(fullPath)
 
