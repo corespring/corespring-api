@@ -27,7 +27,7 @@ trait OrgCollectionService {
    * @param orgId
    * @return a stream of [[org.corespring.models.CollectionInfo]]
    */
-  def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo]
+  def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Stream[CollectionInfo]
 
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 

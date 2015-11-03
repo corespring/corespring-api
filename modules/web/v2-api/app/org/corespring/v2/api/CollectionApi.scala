@@ -237,7 +237,7 @@ class CollectionApi(
     list(q, f, c, sk, l, sort)
   }
 
-  /** Note: ignoring q,f,c,sk,sort and l for this 1st iteration */
+  /** Note: ignoring q,f,c,sort for this 1st iteration */
   def list(
     q: Option[String] = None,
     f: Option[String] = None,
@@ -254,7 +254,7 @@ class CollectionApi(
 
       getOrgAndOptionsFn(request).map { identity =>
         val infoList = orgCollectionService
-          .listAllCollectionsAvailableForOrg(identity.org.id)
+          .listAllCollectionsAvailableForOrg(identity.org.id, sk, l)
         Ok(Json.toJson(infoList.toSeq))
       }.getOrElse(Unauthorized)
     }

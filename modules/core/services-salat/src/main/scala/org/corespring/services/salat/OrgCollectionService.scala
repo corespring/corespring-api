@@ -33,11 +33,18 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
   private val logger = Logger(classOf[OrgCollectionService])
 
-  override def listAllCollectionsAvailableForOrg(orgId: ObjectId): Stream[CollectionInfo] = {
+  override def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Stream[CollectionInfo] = {
+
+    def listCollectionsByOrg(refs: Seq[ContentCollRef]): Stream[ContentCollection] = {
+      val collectionIds = refs.map(_.collectionId)
+      val query = ("_id" $in collectionIds)
+      logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query, skip=$skip, limit=$limit")
+      collectionDao.find(query).skip(skip).limit(limit).toStream
+    }
 
     logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId")
     val refs = getContentCollRefs(orgId, Permission.Read)
-    listCollectionsByOrg(orgId)
+    listCollectionsByOrg(refs)
       .filterNot(_.id == collectionService.archiveCollectionId)
       .flatMap { c =>
         val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
@@ -45,13 +52,6 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
         permission.map(p =>
           CollectionInfo(c, itemService.countItemsInCollection(c.id), orgId, p))
       }
-  }
-
-  private def listCollectionsByOrg(orgId: ObjectId): Stream[ContentCollection] = {
-    val refs = getContentCollRefs(orgId, Permission.Read).map(_.collectionId)
-    val query = ("_id" $in refs)
-    logger.trace(s"function=listCollectionsByOrg, orgId=$orgId, query=$query")
-    collectionDao.find(query).toStream
   }
 
   override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = {

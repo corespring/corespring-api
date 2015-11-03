@@ -88,6 +88,7 @@ trait SalatServices extends interface.bootstrap.Services {
       logger.debug(s"function=init - call initArchive")
       initArchive()
     }
+
   }
 
   /**

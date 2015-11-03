@@ -2,8 +2,9 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ AccessTokenHelper, OrganizationHelper }
+import org.corespring.it.helpers.{ ItemHelper, AccessTokenHelper, OrganizationHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
+import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
 import org.specs2.specification.Scope
@@ -135,6 +136,31 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
   "deleteCollection" should {
     "work" in pending
+  }
+
+  "list" should {
+
+    trait list extends scope {
+
+      val items = (1 to 100).map { i =>
+        val item = Item(collectionId = collectionId.toString, taskInfo = Some(TaskInfo(title = Some(s"title-$i"))))
+        val vid = ItemHelper.create(collectionId, item)
+        item.copy(id = vid)
+      }
+
+      def skip: Int = 0
+      def limit: Int = 0
+      lazy val listCollectionsCall = Routes.list(sk = skip, l = limit)
+      lazy val request = makeRequest(listCollectionsCall)
+      lazy val listCollectionsResult = route(request).get
+      lazy val json = contentAsJson(listCollectionsResult)
+      lazy val ids = (json \\ "id").map(_.as[String])
+    }
+
+    "supports limit" in new list {
+      override val limit = 5
+      ids.length === 5
+    }
   }
 
 }
