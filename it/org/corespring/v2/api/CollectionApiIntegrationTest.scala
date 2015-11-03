@@ -169,7 +169,6 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     "supports skip" in new list {
       override lazy val skip = 5
-      logger.debug(s"json: ")
       (json.as[JsArray].value(0) \ "name").asOpt[String] === Some("collection-5")
     }
 
