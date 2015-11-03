@@ -244,19 +244,16 @@ class CollectionApi(
     c: Option[Boolean] = None,
     sk: Int = 0,
     l: Int = 50,
-    sort: Option[String] = None) = Action.async { request =>
+    sort: Option[String] = None) = futureWithIdentity { (identity, _) =>
 
     logger.info(s"[list] params: q=$q, f=$f, c=$c, sk=$sk, l=$l, sort=$sort")
 
-    Future {
+    implicit val writes = CollectionInfoWrites
 
-      implicit val writes = CollectionInfoWrites
-
-      getOrgAndOptionsFn(request).map { identity =>
-        val infoList = orgCollectionService
-          .listAllCollectionsAvailableForOrg(identity.org.id, sk, l)
-        Ok(Json.toJson(infoList.toSeq))
-      }.getOrElse(Unauthorized)
-    }
+    orgCollectionService
+      .listAllCollectionsAvailableForOrg(identity.org.id, sk, l).map { infoList =>
+        Ok(Json.toJson(infoList))
+      }
   }
+
 }

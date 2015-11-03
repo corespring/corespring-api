@@ -2,20 +2,23 @@ package org.corespring.v2.api
 
 import org.bson.types.ObjectId
 import org.corespring.it.IntegrationSpecification
-import org.corespring.it.helpers.{ ItemHelper, AccessTokenHelper, OrganizationHelper }
+import org.corespring.it.helpers.{ CollectionHelper, ItemHelper, AccessTokenHelper, OrganizationHelper }
 import org.corespring.it.scopes.{ TokenRequestBuilder, orgWithAccessTokenAndItem }
 import org.corespring.models.item.{ TaskInfo, Item }
 import org.corespring.models.json.ContentCollectionWrites
 import org.corespring.v2.errors.Errors.{ propertyNotFoundInJson, propertyNotAllowedInJson }
+import org.specs2.mutable.After
 import org.specs2.specification.Scope
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.mvc.{ Request, AnyContentAsJson }
 import play.api.test.FakeRequest
 
 class CollectionApiIntegrationTest extends IntegrationSpecification {
 
   import org.corespring.v2.api.routes.{ CollectionApi => Routes }
-  trait scope extends Scope with orgWithAccessTokenAndItem with TokenRequestBuilder
+  trait scope extends Scope with orgWithAccessTokenAndItem with TokenRequestBuilder with After {
+    override def after = removeData()
+  }
 
   "get" should {
 
@@ -142,24 +145,39 @@ class CollectionApiIntegrationTest extends IntegrationSpecification {
 
     trait list extends scope {
 
-      val items = (1 to 100).map { i =>
-        val item = Item(collectionId = collectionId.toString, taskInfo = Some(TaskInfo(title = Some(s"title-$i"))))
-        val vid = ItemHelper.create(collectionId, item)
+      val items = (1 to 20).map { i =>
+
+        val tmpCollectionId = CollectionHelper.create(orgId, s"collection-$i")
+        val item = Item(collectionId = tmpCollectionId.toString, taskInfo = Some(TaskInfo(title = Some(s"title-$i"))))
+        val vid = ItemHelper.create(tmpCollectionId, item)
         item.copy(id = vid)
       }
-
       def skip: Int = 0
       def limit: Int = 0
       lazy val listCollectionsCall = Routes.list(sk = skip, l = limit)
       lazy val request = makeRequest(listCollectionsCall)
       lazy val listCollectionsResult = route(request).get
       lazy val json = contentAsJson(listCollectionsResult)
+      logger.debug(s"json=$json")
       lazy val ids = (json \\ "id").map(_.as[String])
     }
 
     "supports limit" in new list {
-      override val limit = 5
+      override lazy val limit = 5
       ids.length === 5
+    }
+
+    "supports skip" in new list {
+      override lazy val skip = 5
+      logger.debug(s"json: ")
+      (json.as[JsArray].value(0) \ "name").asOpt[String] === Some("collection-5")
+    }
+
+    "supports skip and limit" in new list {
+      override lazy val skip = 10
+      override lazy val limit = 4
+      (json.as[JsArray].value(0) \ "name").asOpt[String] === Some("collection-10")
+      ids.length === 4
     }
   }
 

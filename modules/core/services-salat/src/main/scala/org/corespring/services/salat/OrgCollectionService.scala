@@ -10,7 +10,9 @@ import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 import org.corespring.services.salat.OrgCollectionService.OrgKeys
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -29,11 +31,14 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
   itemService: org.corespring.services.item.ItemService,
   orgDao: SalatDAO[Organization, ObjectId],
   collectionDao: SalatDAO[ContentCollection, ObjectId],
+  salatServicesExecutionContext: SalatServicesExecutionContext,
   implicit val context: Context) extends org.corespring.services.OrgCollectionService {
+
+  implicit val ec: ExecutionContext = salatServicesExecutionContext.ctx
 
   private val logger = Logger(classOf[OrgCollectionService])
 
-  override def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Stream[CollectionInfo] = {
+  override def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Future[Stream[CollectionInfo]] = {
 
     def listCollectionsByOrg(refs: Seq[ContentCollRef]): Stream[ContentCollection] = {
       val collectionIds = refs.map(_.collectionId)
@@ -44,14 +49,19 @@ class OrgCollectionService(orgService: => org.corespring.services.OrganizationSe
 
     logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId")
     val refs = getContentCollRefs(orgId, Permission.Read)
-    listCollectionsByOrg(refs)
+    val collections = listCollectionsByOrg(refs)
       .filterNot(_.id == collectionService.archiveCollectionId)
-      .flatMap { c =>
-        val permission = refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
 
-        permission.map(p =>
-          CollectionInfo(c, itemService.countItemsInCollection(c.id), orgId, p))
+    logger.trace(s"function=listAllCollectionsAvailableForOrg, orgId=$orgId - call count")
+    itemService.countItemsInCollections(collections.map(_.id): _*).map { counts =>
+      collections.flatMap { c =>
+        for {
+          p <- refs.find(r => r.collectionId == c.id).flatMap(r => Permission.fromLong(r.pval))
+          count <- counts.find(_.collectionId == c.id).map(_.count)
+        } yield CollectionInfo(c, count, orgId, p)
       }
+    }
+
   }
 
   override def ownsCollection(org: Organization, collectionId: ObjectId): Validation[PlatformServiceError, Boolean] = {

@@ -4,6 +4,7 @@ import org.corespring.errors.PlatformServiceError
 import org.corespring.models.auth.Permission
 import org.corespring.models.{ CollectionInfo, ContentCollRef, ContentCollection, Organization }
 
+import scala.concurrent.Future
 import scalaz.Validation
 
 /**
@@ -27,7 +28,7 @@ trait OrgCollectionService {
    * @param orgId
    * @return a stream of [[org.corespring.models.CollectionInfo]]
    */
-  def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Stream[CollectionInfo]
+  def listAllCollectionsAvailableForOrg(orgId: ObjectId, skip: Int, limit: Int): Future[Stream[CollectionInfo]]
 
   def getOrgsWithAccessTo(collectionId: ObjectId): Stream[Organization]
 
