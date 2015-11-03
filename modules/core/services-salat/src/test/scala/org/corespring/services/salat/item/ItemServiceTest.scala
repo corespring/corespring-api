@@ -1,9 +1,11 @@
 package org.corespring.services.salat.item
 
+import com.mongodb.casbah.MongoCollection
 import com.novus.salat.Context
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.appConfig.ArchiveConfig
 import org.corespring.platform.data.VersioningDao
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.specs2.mutable.Specification
 import org.bson.types.ObjectId
 import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
@@ -14,6 +16,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 
+import scala.concurrent.ExecutionContext
 import scalaz.{ Failure, Success, Validation }
 
 class ItemServiceTest extends Specification with Mockito {
@@ -58,9 +61,18 @@ class ItemServiceTest extends Specification with Mockito {
         override val name: String = "mock-context"
       }
 
-      val archiveConfig = ArchiveConfig(ObjectId.get, ObjectId.get)
+      val mongoCollection = mock[MongoCollection]
 
-      val itemService = new ItemService(dao, assets, orgCollectionService, context, archiveConfig)
+      val archiveConfig = ArchiveConfig(ObjectId.get, ObjectId.get)
+      val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
+      val itemService = new ItemService(
+        dao,
+        mongoCollection,
+        assets,
+        orgCollectionService,
+        context,
+        archiveConfig,
+        salatServicesExecutionContext)
     }
 
     "revert the version if a failure occurred when cloning stored files" in new save {
@@ -78,6 +90,13 @@ class ItemServiceTest extends Specification with Mockito {
       there was no(dao).revertToVersion(item.id)
       result must_== Success(inc(item.id))
     }
+  }
+
+  "countItemsInCollections" should {
+    "call mongoCollection.aggregate" in pending
+    "add empty ItemCounts" in pending
+    "sort by collectionId" in pending
+    "return Seq[ItemCount]" in pending
   }
 
 }
