@@ -1,23 +1,14 @@
 package org.corespring.v2.api
 
-import com.mongodb.casbah.Imports._
 import org.bson.types.ObjectId
 import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult, ItemIndexService }
 import org.corespring.models.ContentCollRef
-import org.corespring.models.item.Item.Keys._
 import org.corespring.models.item.{ ComponentType, Item }
 import org.corespring.models.json.{ JsonFormatting, JsonUtil }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.services.item.ItemService
+import org.corespring.services.{ OrgCollectionService, OrganizationService }
 import org.corespring.v2.api.services.ScoreService
-import org.corespring.v2.auth.identifiers.RequestIdentity
-import org.corespring.v2.auth.models.OrgAndOpts
-import play.api.libs.iteratee.Iteratee
-
-import scala.concurrent
-import scala.concurrent._
-
 import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.Errors._
@@ -101,6 +92,8 @@ class ItemApi(
       case true => q.copy(collections = accessibleCollectionStrings)
       case _ => q.copy(collections = collections)
     }
+
+    logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
     itemIndexService.search(scopedQuery)
   }
 
