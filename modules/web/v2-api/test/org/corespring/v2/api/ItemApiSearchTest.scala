@@ -99,6 +99,7 @@ class ItemApiSearchTest extends ItemApiSpec {
       status(result) must_== OK
       there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi")))
     }
+
     def hit(title: String) = ItemIndexHit("id",
       None,
       None,
@@ -111,11 +112,11 @@ class ItemApiSearchTest extends ItemApiSpec {
       None,
       0,
       Seq.empty)
+
     "returns a json array" in new searchApiScope(
       searchResult =
         ItemIndexSearchResult(total = 1, hits = Seq(hit("one")))) {
       val result = api.searchByCollectionId(collectionId, None)(FakeJsonRequest(Json.obj()))
-
       implicit val f = ItemIndexHit.Format
       contentAsJson(result) must_== Json.arr(Json.toJson(hit("one")))
     }
