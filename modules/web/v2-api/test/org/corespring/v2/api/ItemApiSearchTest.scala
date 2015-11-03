@@ -1,7 +1,7 @@
 package org.corespring.v2.api
 
 import org.bson.types.ObjectId
-import org.corespring.itemSearch.{ ItemIndexQuery, ItemIndexSearchResult }
+import org.corespring.itemSearch.{ ItemIndexHit, ItemIndexQuery, ItemIndexSearchResult }
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.v2.auth.models._
 import org.corespring.v2.errors.Errors.invalidToken
@@ -65,25 +65,58 @@ class ItemApiSearchTest extends ItemApiSpec {
 
     "return results as JSON" in new searchApiScope {
       val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-      contentAsJson(result) === Json.toJson(searchResult)
+      contentAsJson(result) must_== Json.toJson(searchResult)
     }
 
     "without proper authentication" should {
 
       "return unauthorized" in new searchApiScope(orgAndOpts = Failure(invalidToken(FakeJsonRequest()))) {
         val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
-        status(result) === (UNAUTHORIZED)
+        status(result) must_== UNAUTHORIZED
       }
-
     }
 
     "with bad json" should {
 
       "return bad request" in new searchApiScope {
         val result = api.search(Some("this is not json."))(FakeJsonRequest(Json.obj()))
-        status(result) === (BAD_REQUEST)
+        status(result) must_== BAD_REQUEST
       }
+    }
+  }
 
+  "searchByCollectionId" should {
+    "returns an error if it can't parse the query string" in new searchApiScope {
+      val result = api.searchByCollectionId(ObjectId.get(), Some("this is not json"))(FakeJsonRequest(Json.obj()))
+      status(result) must_== BAD_REQUEST
+    }
+
+    "calls itemIndexService.search with the query" in new searchApiScope {
+      val query = """{"offset":  4, "count" : 2, "text" : "hi"}"""
+      val result = api.searchByCollectionId(collectionId, Some(query))(FakeJsonRequest(Json.obj()))
+      status(result) must_== OK
+      there was one(itemIndexService).search(ItemIndexQuery(offset = 4, count = 2, text = Some("hi")))
+    }
+
+    def hit(title: String) = ItemIndexHit("id",
+      None,
+      None,
+      false,
+      Map.empty,
+      None,
+      Seq.empty,
+      Some(title),
+      None,
+      None,
+      0,
+      Seq.empty)
+
+    "returns a json array" in new searchApiScope(
+      searchResult =
+        ItemIndexSearchResult(total = 1, hits = Seq(hit("one")))) {
+      val result = api.searchByCollectionId(collectionId, None)(FakeJsonRequest(Json.obj()))
+      implicit val f = ItemIndexHit.Format
+      contentAsJson(result) must_== Json.arr(Json.toJson(hit("one")))
     }
   }
 

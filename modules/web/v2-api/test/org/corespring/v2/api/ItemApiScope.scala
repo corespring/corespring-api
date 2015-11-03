@@ -13,7 +13,7 @@ import org.corespring.v2.auth.ItemAuth
 import org.corespring.v2.auth.models.{ MockFactory, OrgAndOpts }
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.sessiondb.SessionService
-import org.specs2.matcher.{ Expectable, MatchResult, Matcher }
+import org.specs2.matcher.{ ThrownExpectations, Expectable, MatchResult, Matcher }
 import org.specs2.specification.Scope
 import play.api.http.HeaderNames
 import play.api.libs.json.{ JsValue, Json }
@@ -58,7 +58,7 @@ private[api] trait ItemApiSpec extends V2ApiSpec {
   }
 }
 
-private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory {
+private[api] trait ItemApiScope extends V2ApiScope with Scope with MockFactory with ThrownExpectations {
 
   import ExecutionContext.Implicits.global
 
