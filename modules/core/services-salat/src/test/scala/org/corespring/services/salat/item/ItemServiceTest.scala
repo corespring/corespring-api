@@ -2,18 +2,17 @@ package org.corespring.services.salat.item
 
 import com.mongodb.casbah.MongoCollection
 import com.novus.salat.Context
+import org.bson.types.ObjectId
 import org.corespring.errors.PlatformServiceError
 import org.corespring.models.appConfig.ArchiveConfig
+import org.corespring.models.item.Item
+import org.corespring.models.item.resource.CloneFileResult
 import org.corespring.platform.data.VersioningDao
-import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
-import org.specs2.mutable.Specification
-import org.bson.types.ObjectId
-import org.corespring.models.item.resource.{ CloneFileResult, Resource, StoredFile }
-import org.corespring.models.item.{ Item, ItemStandards, TaskInfo }
 import org.corespring.platform.data.mongo.models.VersionedId
-import org.corespring.services.{ OrgCollectionService, ContentCollectionService }
-import org.specs2.matcher.MatchResult
+import org.corespring.services.OrgCollectionService
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.specs2.mock.Mockito
+import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 import scala.concurrent.ExecutionContext
