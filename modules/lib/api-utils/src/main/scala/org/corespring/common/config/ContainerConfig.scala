@@ -3,7 +3,7 @@ package org.corespring.common.config
 import play.api.{Mode, Configuration}
 import play.api.Mode.Mode
 
-class ContainerConfig(rootConfig: Configuration, mode: Mode){
+case class ContainerConfig(rootConfig: Configuration, mode: Mode){
 
   lazy val config = {
     for {
@@ -38,5 +38,3 @@ class ContainerConfig(rootConfig: Configuration, mode: Mode){
   lazy val showNonReleasedComponents = getBoolean("components.showNonReleasedComponents", Some(mode == Mode.Dev))
 }
 
-
-object ContainerConfig extends ContainerConfig(play.api.Play.current.configuration, play.api.Play.current.mode)

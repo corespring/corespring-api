@@ -95,10 +95,12 @@ object Main
 
   lazy val configuration = current.configuration
 
+  lazy val containerConfig = ContainerConfig(configuration, current.mode)
+
   override lazy val elasticSearchConfig = ElasticSearchConfig(
     AppConfig.elasticSearchUrl,
     AppConfig.mongoUri,
-    ContainerConfig.componentsPath)
+    containerConfig.componentsPath)
 
   lazy val transformerItemService = new TransformerItemService(itemService,
     db(CollectionNames.versionedItem),
@@ -221,8 +223,8 @@ object Main
   override def s3Service: S3Service = wire[CorespringS3ServiceExtended]
 
   lazy val componentLoader: ComponentLoader = {
-    val path = ContainerConfig.componentsPath
-    val showNonReleasedComponents: Boolean = ContainerConfig.showNonReleasedComponents
+    val path = containerConfig.componentsPath
+    val showNonReleasedComponents: Boolean = containerConfig.showNonReleasedComponents
     val out = new FileComponentLoader(Seq(path), showNonReleasedComponents)
     out.reload
     out

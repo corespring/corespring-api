@@ -67,6 +67,8 @@ trait V2PlayerModule extends DefaultIntegration {
 
   def v2PlayerExecutionContext: V2PlayerExecutionContext
 
+  def containerConfig: ContainerConfig
+
   lazy val catalogAssets: CatalogAssets = wire[CatalogAssetHelper]
   lazy val playerAssets: PlayerAssets = wire[PlayerAssetHelper]
 
@@ -85,8 +87,6 @@ trait V2PlayerModule extends DefaultIntegration {
   override lazy val itemSupportingMaterialHooks: client.hooks.ItemSupportingMaterialHooks = {
     wire[ItemSupportingMaterialHooks]
   }
-
-  lazy val containerConfig : ContainerConfig = ContainerConfig
 
   override lazy val versionInfo: JsObject = VersionInfo(containerConfig.config)
 
