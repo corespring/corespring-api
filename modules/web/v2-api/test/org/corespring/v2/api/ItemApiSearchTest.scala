@@ -74,7 +74,6 @@ class ItemApiSearchTest extends ItemApiSpec {
         val result = api.search(Some("{}"))(FakeJsonRequest(Json.obj()))
         status(result) must_== UNAUTHORIZED
       }
-
     }
 
     "with bad json" should {
@@ -83,7 +82,6 @@ class ItemApiSearchTest extends ItemApiSpec {
         val result = api.search(Some("this is not json."))(FakeJsonRequest(Json.obj()))
         status(result) must_== BAD_REQUEST
       }
-
     }
   }
 
