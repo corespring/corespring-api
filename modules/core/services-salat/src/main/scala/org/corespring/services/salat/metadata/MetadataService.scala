@@ -19,6 +19,17 @@ class MetadataService(itemService: services.item.ItemService)
     maybeSeq.getOrElse(Seq.empty)
   }
 
+  def get(itemId: VersionedId[ObjectId]): Seq[Metadata] = {
+
+    val maybeSeq: Option[Seq[Metadata]] = for {
+      i <- itemService.findOneById(itemId)
+      info <- i.taskInfo
+      extendedMetadata <- toMetadataMap(info.extended)
+    } yield extendedMetadata
+
+    maybeSeq.getOrElse(Seq())
+  }
+
   def toMetadataMap(m: Map[String, DBObject]): Option[Seq[Metadata]] = {
 
     def dboToMap(dbo: DBObject): Map[String, String] = {
