@@ -8,6 +8,7 @@ import org.corespring.models.item._
 import org.corespring.models.item.resource.{ Resource, StoredFile }
 import org.corespring.platform.data.mongo.exceptions.SalatVersioningDaoException
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemCount
 import org.corespring.services.salat.ServicesSalatIntegrationTest
 import org.joda.time.DateTime
 import org.specs2.mutable.{ After, BeforeAfter }
@@ -206,27 +207,59 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
       val unusualItem = itemOne.copy(
         id = randomItemId,
         contributorDetails = Some(ContributorDetails(contributor = Some("contributor from an unusual item"))),
-        contentType = "not the usual content type"
-      )
+        contentType = "not the usual content type")
       service.insert(unusualItem)
       service.contributorsForOrg(org.id) must_== Seq("contributor-1")
     }
   }
 
-  "countItemsInCollection" should {
+  "countItemsInCollections" should {
+    trait countItemsInCollections extends scope
 
-    "return 1 for collection with 1 item" in new scope {
-      service.countItemsInCollection(collectionOne.id) must_== 1
+    "return 1 ItemCount with a count of 1" in new countItemsInCollections {
+      service.countItemsInCollections(collectionOne.id) must equalTo(Seq(ItemCount(collectionOne.id, 1))).await
     }
 
-    "return 1 for collection with 1 item with contentType=item " in new scope {
-      addItem(2, collectionOne, contentType=Some("something else"))
-      service.countItemsInCollection(collectionOne.id) must_== 1
+    "return 1 ItemCount with a count of 20" in new countItemsInCollections {
+
+      (1 to 19).foreach { i =>
+        insertItem(collectionOne.id)
+      }
+
+      service.countItemsInCollections(collectionOne.id) must equalTo(Seq(ItemCount(collectionOne.id, 20))).await
     }
 
-    "return 0 for collection with no items" in new scope {
-      val collectionTwo = insertCollection("two", org)
-      service.countItemsInCollection(collectionTwo.id) must_== 0
+    "return multiple ItemCounts with a count of 0" in new countItemsInCollections {
+
+      val collections = (1 to 19).map { i =>
+        insertCollection(s"collection-$i", org)
+      }
+
+      val ids = collections.map(_.id)
+      val expectedCounts = collections.map { c =>
+        ItemCount(c.id, 0)
+      }
+
+      service.countItemsInCollections(ids: _*) must equalTo(expectedCounts).await
+    }
+
+    "return multiple ItemCounts with a counts of 0 and 1" in new countItemsInCollections {
+
+      val collections = (0 to 3).map { i =>
+        val coll = insertCollection(s"collection-$i", org)
+        if (i < 2) {
+          insertItem(coll.id)
+        }
+        coll
+      }
+
+      val ids = collections.map(_.id)
+      val expectedCounts = collections.map { c =>
+        val count = if (collections.indexOf(c) < 2) 1 else 0
+        ItemCount(c.id, count)
+      }
+
+      service.countItemsInCollections(ids: _*) must equalTo(expectedCounts).await
     }
   }
 
@@ -334,8 +367,6 @@ class ItemServiceIntegrationTest extends ServicesSalatIntegrationTest {
     "return the id if successful" in pending
     "return None if not successful" in pending
   }
-
-
 
   "moveItemToArchive" should {
 

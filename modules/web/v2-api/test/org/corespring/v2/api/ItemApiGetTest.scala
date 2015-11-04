@@ -41,7 +41,7 @@ class ItemApiGetTest extends ItemApiSpec {
         val expectedItem = loadForRead.toEither.right.get
         val result = api.get(expectedItem.id.toString)(FakeJsonRequest(Json.obj()))
         import scala.language.reflectiveCalls
-        contentAsJson(result) === transformItemToJson(expectedItem)
+        contentAsJson(result) === jsonFormatting.itemSummary.write(expectedItem, None)
       }
 
     }

@@ -13,18 +13,25 @@ import org.corespring.models.item.{ Item, ItemStandards }
 import org.corespring.mongo.IdConverters
 import org.corespring.platform.data.VersioningDao
 import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.item.ItemCount
+import org.corespring.services.salat.bootstrap.SalatServicesExecutionContext
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scalaz._
 
 class ItemService(
   val dao: VersioningDao[Item, VersionedId[ObjectId]],
+  currentCollection: MongoCollection,
   assets: interface.item.ItemAssetService,
   orgCollectionService: => interface.OrgCollectionService,
   implicit val context: Context,
-  archiveConfig: ArchiveConfig)
+  archiveConfig: ArchiveConfig,
+  salatServicesExecutionContext: SalatServicesExecutionContext)
   extends interface.item.ItemService with IdConverters {
+
+  implicit val ec: ExecutionContext = salatServicesExecutionContext.ctx
 
   protected val logger = Logger(classOf[ItemService])
 
@@ -185,9 +192,34 @@ class ItemService(
     logger.trace(s"distinct.filter=$filter")
     dao.distinct("contributorDetails.contributor", filter).toSeq.map(_.toString)
   }
+  //TODO - would db("content").group be quicker?
+  override def countItemsInCollections(collectionIds: ObjectId*): Future[Seq[ItemCount]] = Future {
 
-  override def countItemsInCollection(collectionId: ObjectId): Long = {
-    dao.countCurrent(baseQuery ++ MongoDBObject(Keys.collectionId -> collectionId.toString))
+    logger.debug(s"function=countItemsInCollections, collectionIds=$collectionIds")
+
+    def toItemCount(dbo: DBObject): Option[ItemCount] = {
+      for {
+        rawId <- dbo.expand[String]("_id")
+        if (ObjectId.isValid(rawId))
+        count <- dbo.expand[Int]("count")
+      } yield ItemCount(new ObjectId(rawId), count)
+    }
+
+    def toEmptyItemCount(id: ObjectId) = ItemCount(id, 0)
+
+    val in: MongoDBObject = ("collectionId" $in collectionIds.map(_.toString))
+    val matchQuery = MongoDBObject("$match" -> in)
+    val group = MongoDBObject("$group" -> MongoDBObject("_id" -> "$collectionId", "count" -> MongoDBObject("$sum" -> 1)))
+    val output = currentCollection.aggregate(Seq(matchQuery, group))
+    val foundCounts = output.results.toSeq.flatMap(toItemCount)
+    logger.trace(s"function=countItemsInCollections, foundCounts=$foundCounts")
+    val emptyCounts = collectionIds.filterNot(id => foundCounts.exists(_.collectionId == id)).map(toEmptyItemCount)
+    logger.trace(s"function=countItemsInCollections, emptyCounts=$emptyCounts")
+    val out = foundCounts ++ emptyCounts
+    logger.trace(s"function=countItemsInCollections, out=$out")
+
+    require(collectionIds.length == out.length, "Missing item counts")
+    out.sortBy(_.collectionId)
   }
 
   override def collectionIdForItem(itemId: VersionedId[ObjectId]): Option[ObjectId] = {
@@ -218,4 +250,5 @@ class ItemService(
       _ <- Some(logger.trace(s"function=findItemStandards, standards=$standards"))
     } yield ItemStandards(title, standards, itemId)
   }
+
 }

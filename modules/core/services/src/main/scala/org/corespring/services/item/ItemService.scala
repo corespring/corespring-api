@@ -15,6 +15,8 @@ trait ItemServiceClient {
   def itemService: ItemService
 }
 
+case class ItemCount(collectionId: ObjectId, count: Long)
+
 trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def addFileToPlayerDefinition(item: Item, file: StoredFile): Validation[String, Boolean]
@@ -27,7 +29,7 @@ trait ItemService extends BaseContentService[Item, VersionedId[ObjectId]] {
 
   def contributorsForOrg(orgId: ObjectId): Seq[String]
 
-  def countItemsInCollection(collectionId: ObjectId): Long
+  def countItemsInCollections(collectionId: ObjectId*): Future[Seq[ItemCount]]
 
   def currentVersion(id: VersionedId[ObjectId]): Long
 

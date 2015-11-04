@@ -264,7 +264,7 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
     }
 
     "list all the collections for org" in new listAllCollectionsAvailableForOrg {
-      lazy val result = service.listAllCollectionsAvailableForOrg(orgOne.id).toSeq
+      lazy val result = waitFor(service.listAllCollectionsAvailableForOrg(orgOne.id, 0, 0)).toSeq
       result must_== Stream(
         CollectionInfo(writeOne, 0, orgOne.id, Permission.Write),
         CollectionInfo(readOne, 0, orgOne.id, Permission.Write),
@@ -272,12 +272,18 @@ class OrgCollectionServiceTest extends ServicesSalatIntegrationTest {
         CollectionInfo(otherOrgColl, 0, orgOne.id, Permission.Read))
     }
 
+    "list all the collections for org with limit of 1" in new listAllCollectionsAvailableForOrg {
+      lazy val result = waitFor(service.listAllCollectionsAvailableForOrg(orgOne.id, 0, 1))
+      result must_== Stream(CollectionInfo(writeOne, 0, orgOne.id, Permission.Write))
+    }
+
     "list public collections for other org" in new listAllCollectionsAvailableForOrg {
       val orgTwo = insertOrg("org-two")
-      lazy val result = service.listAllCollectionsAvailableForOrg(orgTwo.id)
+      lazy val result = waitFor(service.listAllCollectionsAvailableForOrg(orgTwo.id, 0, 0))
       result must_== Stream(
         CollectionInfo(publicOne, 0, orgTwo.id, Permission.Read))
     }
+
   }
 
   "getPermission" should {

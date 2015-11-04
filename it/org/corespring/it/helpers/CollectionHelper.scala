@@ -14,9 +14,11 @@ object CollectionHelper {
   lazy val service = Main.contentCollectionService
   lazy val mongoCollection = Main.db(CollectionNames.contentCollection)
 
-  def create(organizationId: ObjectId): ObjectId =
+  def create(organizationId: ObjectId): ObjectId = create(organizationId, Company.name)
+
+  def create(organizationId: ObjectId, name: String): ObjectId =
     service.insertCollection(
-      ContentCollection(id = new ObjectId, name = Company.name, ownerOrgId = organizationId)) match {
+      ContentCollection(id = new ObjectId, name = name, ownerOrgId = organizationId)) match {
         case Success(contentCollection) => contentCollection.id
         case _ => throw new Exception("Failed to create collection")
       }

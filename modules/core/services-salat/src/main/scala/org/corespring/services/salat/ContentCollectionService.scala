@@ -10,6 +10,7 @@ import org.corespring.models.{ ContentCollection, Organization }
 import org.corespring.services.ContentCollectionUpdate
 import org.corespring.{ services => interface }
 
+import scala.concurrent.Await
 import scalaz.Scalaz._
 import scalaz.{ Failure, Success, Validation }
 
@@ -50,10 +51,12 @@ class ContentCollectionService(
 
   override def delete(collId: ObjectId): Validation[PlatformServiceError, Unit] = {
     //todo: roll backs after detecting error in organization update
-
-    val isEmptyCollection = itemService.countItemsInCollection(collId) match {
-      case 0 => Success()
-      case n => Failure(PlatformServiceError(s"Can't delete this collection it has $n item(s) in it."))
+    import scala.concurrent.duration._
+    val count = Await.result(itemService.countItemsInCollections(collId), 5.seconds).headOption.map(_.count)
+    val isEmptyCollection = count match {
+      case Some(0) => Success()
+      case Some(c) if c > 0 => Failure(PlatformServiceError(s"Can't delete this collection it has $c item(s) in it."))
+      case None => Success()
     }
 
     lazy val delete = for {
