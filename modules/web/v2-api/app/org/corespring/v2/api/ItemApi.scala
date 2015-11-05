@@ -86,14 +86,11 @@ class ItemApi(
 
   private def searchWithQuery(q: ItemIndexQuery,
     accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
-
-    logger.trace(s"function=searchWithQuery, q=$q")
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
-    val scoped = q.collections.intersect(accessibleCollections)
-    logger.trace(s"function=searchWithQuery, scoped=$scoped")
-    val scopedQuery = scoped.isEmpty match {
+    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
+    val scopedQuery = collections.isEmpty match {
       case true => q.copy(collections = accessibleCollectionStrings)
-      case _ => q.copy(collections = scoped)
+      case _ => q.copy(collections = collections)
     }
 
     logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
