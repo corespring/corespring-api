@@ -86,11 +86,14 @@ class ItemApi(
 
   private def searchWithQuery(q: ItemIndexQuery,
     accessibleCollections: Seq[ContentCollRef]): Future[Validation[Error, ItemIndexSearchResult]] = {
+
+    logger.trace(s"function=searchWithQuery, q=$q")
     val accessibleCollectionStrings = accessibleCollections.map(_.collectionId.toString)
-    val collections = q.collections.filter(id => accessibleCollectionStrings.contains(id))
-    val scopedQuery = collections.isEmpty match {
+    val scoped = q.collections.intersect(accessibleCollections)
+    logger.trace(s"function=searchWithQuery, scoped=$scoped")
+    val scopedQuery = scoped.isEmpty match {
       case true => q.copy(collections = accessibleCollectionStrings)
-      case _ => q.copy(collections = collections)
+      case _ => q.copy(collections = scoped)
     }
 
     logger.trace(s"function=searchWithQuery, scopedQuery=$scopedQuery")
@@ -135,22 +138,28 @@ class ItemApi(
 
   def search(query: Option[String]) = Action.async { implicit request =>
 
+    logger.debug(s"function=search, rawQueryString=${request.rawQueryString}")
+
     logger.debug(s"function=search, query=$query")
 
     def searchQueryResult(q: ItemIndexQuery,
       accessibleCollections: Seq[ContentCollRef]): Future[SimpleResult] = {
+      logger.trace(s"function=search#searchQueryResult, q=$q")
       searchWithQuery(q, accessibleCollections).map(result => result match {
-        case Success(searchResult) => Ok(Json.prettyPrint(Json.toJson(searchResult)))
+        case Success(searchResult) => Ok(Json.toJson(searchResult))
         case Failure(error) => BadRequest(error.getMessage)
       })
     }
 
     val queryString = query.getOrElse("{}")
 
+    logger.trace(s"function=search, queryString=$queryString")
+
     getOrgAndOptions(request) match {
       case Success(orgAndOpts) => safeParse(queryString) match {
         case Success(json) => Json.fromJson[ItemIndexQuery](json) match {
           case JsSuccess(query, _) => searchQueryResult(query, orgAndOpts.org.accessibleCollections)
+
           case _ => future {
             val error = invalidJson(queryString)
             Status(error.statusCode)(error.message)
@@ -173,7 +182,7 @@ class ItemApi(
       Future {
         val keyValues = itemTypes.map(it => Json.obj("key" -> it.componentType, "value" -> it.label))
         val json = JsArray(keyValues)
-        Ok(Json.prettyPrint(json))
+        Ok(Json.toJson(json))
       }
   }
 
