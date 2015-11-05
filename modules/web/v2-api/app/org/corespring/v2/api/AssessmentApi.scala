@@ -31,7 +31,7 @@ class AssessmentApi(
       case JsSuccess(jsonAssessment, _) => {
         val assessment = new Assessment().merge(jsonAssessment)
         assessmentService.create(assessment)
-        Created(Json.prettyPrint(Json.toJson(assessment)))
+        Created(toJson(assessment))
       }
       case _ => incorrectJsonFormat(json).toResult
     }
@@ -42,17 +42,17 @@ class AssessmentApi(
     val assessments = assessmentService.findByIds(ids, identity.org.id)
     ids.length match {
       case 1 => assessments.length match {
-        case 1 => Ok(Json.prettyPrint(toJson(assessments.head)))
+        case 1 => Ok(toJson(assessments.head))
         case 0 => cantFindAssessmentWithId(ids.head).toResult
       }
-      case _ => Ok(Json.prettyPrint(toJson(assessments)))
+      case _ => Ok(toJson(assessments))
     }
   }
 
   def get(authorId: Option[String]) = withIdentity { (identity, _) =>
     authorId match {
       case Some(authorId) => getByAuthorId(authorId, identity.org.id)
-      case _ => Ok(Json.prettyPrint(toJson(assessmentService.findAllByOrgId(identity.org.id))))
+      case _ => Ok(toJson(assessmentService.findAllByOrgId(identity.org.id)))
     }
   }
 
@@ -62,7 +62,7 @@ class AssessmentApi(
       case JsSuccess(jsonAssessment, _) => {
         val newAssessment = assessment.merge(jsonAssessment)
         assessmentService.update(newAssessment)
-        Ok(Json.prettyPrint(toJson(newAssessment)))
+        Ok(toJson(newAssessment))
       }
       case _ => incorrectJsonFormat(json).toResult
     }
@@ -70,7 +70,7 @@ class AssessmentApi(
 
   def delete(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, _, _) =>
     assessmentService.remove(assessment)
-    Ok(Json.prettyPrint(toJson(assessment)))
+    Ok(toJson(assessment))
   })
 
   def addParticipants(assessmentId: ObjectId) = withAssessment(assessmentId, { (assessment, identity, request) =>
@@ -79,7 +79,7 @@ class AssessmentApi(
         (json \ "ids").asOpt[Seq[String]] match {
           case Some(ids) => {
             val updated = assessmentService.addParticipants(assessmentId, ids)
-            Ok(Json.prettyPrint(toJson(updated)))
+            Ok(toJson(updated))
           }
           case _ => incorrectJsonFormat(json).toResult
         }
@@ -100,7 +100,7 @@ class AssessmentApi(
             case Some(json) => Json.fromJson[Answer](json) match {
               case JsSuccess(answer, _) => {
                 assessmentService.addAnswer(assessmentId, id, answer) match {
-                  case Some(updatedAssessment) => Ok(Json.prettyPrint(Json.toJson(updatedAssessment)))
+                  case Some(updatedAssessment) => Ok(toJson(updatedAssessment))
                   case _ => incorrectJsonFormat(json).toResult
                 }
               }
@@ -114,7 +114,7 @@ class AssessmentApi(
     })
 
   private def getByAuthorId(authorId: String, organizationId: ObjectId) =
-    Ok(Json.prettyPrint(toJson(assessmentService.findByAuthorAndOrg(authorId, organizationId))))
+    Ok(toJson(assessmentService.findByAuthorAndOrg(authorId, organizationId)))
 
   private def getAssessmentJson(identity: OrgAndOpts, request: Request[AnyContent]): JsObject = (try {
     request.body.asJson.map(_.asInstanceOf[JsObject])

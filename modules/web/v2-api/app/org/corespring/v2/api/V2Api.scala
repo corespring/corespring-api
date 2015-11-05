@@ -40,7 +40,7 @@ trait V2Api extends Controller with LoadOrgAndOptions {
   }
 
   protected implicit class V2ErrorWithSimpleResult(error: V2Error) {
-    def toResult: SimpleResult = Status(error.statusCode)(Json.prettyPrint(error.json))
+    def toResult: SimpleResult = Status(error.statusCode)(error.json)
   }
 
   protected implicit class ValidationToSimpleResult(v: Validation[V2Error, JsValue]) {
