@@ -63,7 +63,7 @@ class ApiClientService(orgService: interface.OrganizationService,
         // check we got an existing org id
         orgService.findOneById(orgId) match {
           case Some(org) =>
-            val apiClient = ApiClient(orgId, new ObjectId(), generateTokenId())
+            val apiClient = ApiClient(new ObjectId(), orgId, new ObjectId(), generateTokenId())
             try {
               dao.save(apiClient)
               Success(apiClient)

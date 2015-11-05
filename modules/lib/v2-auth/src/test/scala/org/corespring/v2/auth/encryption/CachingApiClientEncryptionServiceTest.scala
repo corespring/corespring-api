@@ -10,7 +10,7 @@ import org.specs2.specification.Scope
 import scala.concurrent.duration.Duration
 
 class CachingApiClientEncryptionServiceTest extends Specification with Mockito {
-  val apiClient = ApiClient(orgId = new ObjectId(), clientId = new ObjectId(), clientSecret = "secret")
+  val apiClient = ApiClient(id = new ObjectId(), orgId = new ObjectId(), clientId = new ObjectId(), clientSecret = "secret")
   val data = "this is my data"
   val encryptedData = "guvf vf zl qngn"
   val encryptionSuccess = EncryptionSuccess(apiClient.clientId.toString, encryptedData, Some(data))

@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 import org.corespring.errors.{ GeneralError, PlatformServiceError }
 import org.corespring.models.Organization
 import org.corespring.models.appConfig.AccessTokenConfig
-import org.corespring.models.auth.AccessToken
+import org.corespring.models.auth.{ApiClient, AccessToken}
 import org.corespring.services.salat.HasDao
 import org.corespring.{ services => interface }
 import org.joda.time.DateTime
@@ -57,30 +57,35 @@ class AccessTokenService(
    */
   override def findByTokenId(tokenId: String): Option[AccessToken] = dao.findOne(MongoDBObject(Keys.tokenId -> tokenId))
 
-  private def mkToken(orgId: ObjectId) = {
+  private def mkToken(apiClient: ApiClient) = {
     val creationTime = DateTime.now()
-    AccessToken(orgId, None, apiClientService.generateTokenId(), creationTime, creationTime.plusHours(config.tokenDurationInHours))
+    AccessToken(
+      apiClient.orgId,
+      None,
+      apiClientService.generateTokenId(),
+      apiClient.id,
+      creationTime,
+      creationTime.plusHours(config.tokenDurationInHours)
+    )
   }
 
   override def createToken(clientId: String, clientSecret: String): Validation[PlatformServiceError, AccessToken] =
     for {
       apiClient <- apiClientService.findByClientIdAndSecret(clientId, clientSecret).toSuccess(GeneralError("No api client found", None))
-      token <- Success(mkToken(apiClient.orgId))
+      token <- Success(mkToken(apiClient))
       insertedToken <- insertToken(token)
     } yield insertedToken
 
-  override def getOrCreateToken(orgId: ObjectId): AccessToken = {
-    dao.findOne(MongoDBObject("organization" -> orgId)) match {
+  override def getOrCreateToken(apiClient: ApiClient): AccessToken = {
+    dao.findOne(MongoDBObject("apiClientId" -> apiClient.id)) match {
       case Some(t) if (!t.isExpired) => t
       case _ => {
-        val token: AccessToken = mkToken(orgId)
+        val token: AccessToken = mkToken(apiClient)
         dao.insert(token)
         token
       }
     }
   }
-
-  override def getOrCreateToken(org: Organization): AccessToken = getOrCreateToken(org.id)
 
   override def insertToken(token: AccessToken): Validation[PlatformServiceError, AccessToken] = {
     try {
