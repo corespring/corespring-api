@@ -41,11 +41,15 @@ class ElasticSearchItemIndexService(config: ElasticSearchConfig,
 
   def search(query: ItemIndexQuery): Future[Validation[Error, ItemIndexSearchResult]] = {
     try {
+
       implicit val QueryWrites = ItemIndexQuery.ElasticSearchWrites
       implicit val ItemIndexSearchResultFormat = ItemIndexSearchResult.Format
 
+      val queryJson = Json.toJson(query)
+      logger.trace(s"function=search, query=$queryJson")
+
       authed("/content/_search")(url, ec)
-        .post(Json.toJson(query))
+        .post(queryJson)
         .map(result => Json.fromJson[ItemIndexSearchResult](Json.parse(result.body)) match {
           case JsSuccess(searchResult, _) => Success(searchResult)
           case _ => Failure(new Error("Could not read results"))

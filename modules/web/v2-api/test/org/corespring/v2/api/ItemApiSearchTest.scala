@@ -55,7 +55,8 @@ class ItemApiSearchTest extends ItemApiSpec {
     "with allowed and unallowed collections" should {
 
       "call itemIndexService#search with only allowed collections" in
-        new searchApiScope(orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
+        new searchApiScope(
+          orgAndOpts = Success(mockOrgAndOpts(collections = allowableCollections))) {
           val query = Json.obj("collections" -> Seq(allowableCollections.head.toString, unallowedCollection.toString)).toString
           val result = api.search(Some(query))(FakeJsonRequest(Json.obj()))
           there was one(itemIndexService).search(ItemIndexQuery(collections = Seq(allowableCollections.head.toString)))
