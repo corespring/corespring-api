@@ -81,6 +81,8 @@ object Dependencies {
   val jsoup = "org.jsoup" % "jsoup" % "1.8.1"
   val sessionServiceClient = "org.corespring" %% "session-service-client" % "0.3"
 
+  val ztZip = "org.zeroturnaround" % "zt-zip" % "1.8" % "it"
+
   object Resolvers {
 
     val corespringSnapshots = "Corespring Artifactory Snapshots" at "http://repository.corespring.org/artifactory/ivy-snapshots"

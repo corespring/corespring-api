@@ -2,6 +2,7 @@ package bootstrap
 
 import bootstrap.Actors.UpdateItem
 import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.s3.transfer.TransferManager
 import com.amazonaws.services.s3.{ AmazonS3, AmazonS3Client, S3ClientOptions }
 import com.mongodb.casbah.MongoDB
 import com.novus.salat.Context
@@ -22,6 +23,8 @@ import org.corespring.drafts.item.DraftAssetKeys
 import org.corespring.drafts.item.models.{ DraftId, OrgAndUser, SimpleOrg, SimpleUser }
 import org.corespring.drafts.item.services.ItemDraftConfig
 import org.corespring.encryption.EncryptionModule
+import org.corespring.importing.validation.ItemSchema
+import org.corespring.importing.{ImportingExecutionContext, ItemImportModule}
 import org.corespring.itemSearch.{ ElasticSearchConfig, ElasticSearchExecutionContext, ItemSearchModule }
 import org.corespring.legacy.ServiceLookup
 import org.corespring.models.appConfig.{ AccessTokenConfig, ArchiveConfig, Bucket }
@@ -37,6 +40,7 @@ import org.corespring.services.salat.bootstrap._
 import org.corespring.v2.api._
 import org.corespring.v2.api.services.{ BasicScoreService, ScoreService }
 import org.corespring.v2.auth.V2AuthModule
+import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
 import org.corespring.v2.errors.V2Error
 import org.corespring.v2.player.hooks.StandardsTree
@@ -66,7 +70,8 @@ object Main
   with SessionDbModule
   with LegacyModule
   with DeveloperModule
-  with WebModule {
+  with WebModule
+  with ItemImportModule {
 
   import com.softwaremill.macwire.MacwireMacros._
   import play.api.Play.current
@@ -75,7 +80,8 @@ object Main
   override lazy val v1ApiExecutionContext = V1ApiExecutionContext(ExecutionContext.global)
   override lazy val v2PlayerExecutionContext = V2PlayerExecutionContext(ExecutionContext.global)
   override lazy val salatServicesExecutionContext = SalatServicesExecutionContext(ExecutionContext.global)
-  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.Implicits.global)
+  override lazy val elasticSearchExecutionContext = ElasticSearchExecutionContext(ExecutionContext.global)
+  override lazy val importingExecutionContext: ImportingExecutionContext = ImportingExecutionContext(ExecutionContext.global)
 
   override lazy val externalModelLaunchConfig: ExternalModelLaunchConfig = ExternalModelLaunchConfig(
     org.corespring.container.client.controllers.launcher.player.routes.PlayerLauncher.playerJs().url)
@@ -89,6 +95,7 @@ object Main
       v2ApiControllers ++
       v1ApiControllers ++
       webControllers ++
+      itemImportControllers ++
       developerControllers :+
       itemDraftsController
   }
@@ -143,6 +150,8 @@ object Main
 
   private lazy val secureSocial: SecureSocial = new SecureSocial {}
 
+  override lazy val userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts] = requestIdentifiers.userSession
+
   private lazy val requestIdentifiers: RequestIdentifiers = wire[RequestIdentifiers]
 
   override lazy val getOrgAndOptsFn: (RequestHeader) => Validation[V2Error, OrgAndOpts] = requestIdentifiers.allIdentifiers.apply
@@ -162,6 +171,8 @@ object Main
   override lazy val archiveConfig = ArchiveConfig(AppConfig.archiveContentCollectionId, AppConfig.archiveOrgId)
 
   override lazy val accessTokenConfig = AccessTokenConfig()
+
+  override lazy val transferManager: TransferManager = new TransferManager(s3)
 
   override lazy val s3: AmazonS3 = {
     val client = new AmazonS3Client(awsCredentials)
@@ -281,6 +292,15 @@ object Main
     } else {
       NullTracking
     }
+  }
+
+  override lazy val itemSchema: ItemSchema = {
+    val file = "schema/item-schema.json"
+    val inputStream = Play.application.resourceAsStream("schema/item-schema.json")
+      .getOrElse(throw new IllegalArgumentException(s"File $file not found"))
+    val schema = ItemSchema(IOUtils.toString(inputStream, "UTF-8"))
+    IOUtils.closeQuietly(inputStream)
+    schema
   }
 
 }
