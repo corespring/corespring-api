@@ -2,9 +2,10 @@ package org.corespring.importing
 
 import com.fasterxml.jackson.core.JsonParseException
 import org.bson.types.ObjectId
-import org.corespring.importing.validation.{ItemJsonValidator}
+import org.corespring.assets.AssetKeys
+import org.corespring.importing.validation.{ ItemJsonValidator }
 import org.corespring.models.item._
-import org.corespring.models.item.resource.{BaseFile,  Resource}
+import org.corespring.models.item.resource.{ BaseFile, Resource }
 import org.corespring.models.json.JsonFormatting
 import org.corespring.platform.data.mongo.models.VersionedId
 import org.corespring.services.item.ItemService
@@ -19,19 +20,18 @@ import scalaz.{ Success, Failure, Validation }
 case class ImportingExecutionContext(ctx: ExecutionContext)
 
 class ItemFileConverter(
-                         uploader:Uploader,
-                         itemService : ItemService,
-                         jsonFormatting : JsonFormatting,
-                         context : ImportingExecutionContext,
-                         itemValidator : ItemJsonValidator) {
+  uploader: Uploader,
+  itemAssetKeys: AssetKeys[VersionedId[ObjectId]],
+  itemService: ItemService,
+  jsonFormatting: JsonFormatting,
+  context: ImportingExecutionContext,
+  itemValidator: ItemJsonValidator) {
 
   implicit val ec = context.ctx
 
   private val logger = Logger(classOf[ItemFileConverter])
 
   import jsonFormatting._
-
-  val S3_UPLOAD_TIMEOUT = Duration(5, MINUTES)
 
   object errors {
     val cannotCreateItem = "There was an error saving the item to the database"
@@ -105,11 +105,11 @@ class ItemFileConverter(
 
     logger.trace(s"function=loadJson, sources=${sources.map(_._1)}")
     for {
-    source <- sources.get(itemJsonFilename).toSuccess(new Error(s"Can't find file $itemJsonFilename"))
-    itemJson <- Validation.fromTryCatch(Json.parse(source.mkString)).leftMap( _ => new Error("Can't parse json"))
-    validated <- itemValidator.validate(itemJson).leftMap(e => new Error(e.mkString("\n")))
-  } yield validated }
-
+      source <- sources.get(itemJsonFilename).toSuccess(new Error(s"Can't find file $itemJsonFilename"))
+      itemJson <- Validation.fromTryCatch(Json.parse(source.mkString)).leftMap(_ => new Error("Can't parse json"))
+      validated <- itemValidator.validate(itemJson).leftMap(e => new Error(e.mkString("\n")))
+    } yield validated
+  }
 
   private def metadata(implicit sources: Map[String, Source]): Validation[Error, Option[JsValue]] = {
     try {
@@ -135,13 +135,18 @@ class ItemFileConverter(
   }
 
   private def upload(itemId: VersionedId[ObjectId], files: Map[String, Source]): Validation[Error, Seq[BaseFile]] = {
-    val futureFiles =
-      Future.sequence(files.map { case (filename, source) => uploader.upload(filename, s"$itemId/data/$filename", source) }.toSeq)
-    try {
-      Success(Await.result(futureFiles, S3_UPLOAD_TIMEOUT))
-    } catch {
-      case e: Exception => Failure(new Error(e.getMessage))
-    }
+
+    val uploads: Seq[Future[BaseFile]] = files.map {
+      case (filename, source) => {
+        val key = itemAssetKeys.file(itemId, filename)
+        uploader.upload(filename, key, source)
+      }
+    }.toSeq
+
+    Validation.fromTryCatch {
+      val futures = Future.sequence(uploads)
+      Await.result(futures, 5.minutes)
+    }.leftMap(t => new Error(t.getMessage))
   }
 
   private def extractString(field: String)(implicit metadata: Option[JsValue]): Option[String] =

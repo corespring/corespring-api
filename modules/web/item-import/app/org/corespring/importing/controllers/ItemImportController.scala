@@ -3,7 +3,7 @@ package org.corespring.importing.controllers
 import java.util.zip.ZipFile
 
 import org.corespring.importing.ItemFileConverter
-import org.corespring.services.{OrgCollectionService}
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.v2.auth.LoadOrgAndOptions
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -15,11 +15,11 @@ import scala.io.Source
 import scalaz._
 
 class ItemImportController(converter: ItemFileConverter,
-                           userSession: UserSessionOrgIdentity[OrgAndOpts],
-                           orgCollectionService:OrgCollectionService) extends LoadOrgAndOptions with Controller {
+  userSession: UserSessionOrgIdentity[OrgAndOpts],
+  orgCollectionService: OrgCollectionService) extends LoadOrgAndOptions with Controller {
 
   def uploadForm() = Action {
-    Ok(org.corespring.importing.views.html.uploadForm.render())
+    Ok(org.corespring.importing.views.html.uploadForm())
   }
 
   def upload() = Action(parse.multipartFormData) { request =>

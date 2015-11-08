@@ -1,11 +1,14 @@
 package org.corespring.importing
 
 import com.amazonaws.services.s3.transfer.TransferManager
+import org.bson.types.ObjectId
+import org.corespring.assets.AssetKeys
 import org.corespring.importing.controllers.ItemImportController
-import org.corespring.importing.validation.{ItemSchema, ItemJsonValidator}
+import org.corespring.importing.validation.{ ItemSchema, ItemJsonValidator }
 import org.corespring.models.appConfig.Bucket
 import org.corespring.models.json.JsonFormatting
-import org.corespring.services.{OrgCollectionService}
+import org.corespring.platform.data.mongo.models.VersionedId
+import org.corespring.services.{ OrgCollectionService }
 import org.corespring.services.item.ItemService
 import org.corespring.v2.auth.identifiers.UserSessionOrgIdentity
 import org.corespring.v2.auth.models.OrgAndOpts
@@ -15,29 +18,31 @@ trait ItemImportModule {
 
   import com.softwaremill.macwire.MacwireMacros._
 
-  def transferManager : TransferManager
+  def transferManager: TransferManager
 
   def userSessionOrgIdentity: UserSessionOrgIdentity[OrgAndOpts]
 
-  def itemService : ItemService
+  def itemService: ItemService
 
-  def orgCollectionService : OrgCollectionService
+  def orgCollectionService: OrgCollectionService
 
-  def bucket : Bucket
+  def bucket: Bucket
 
-  def jsonFormatting : JsonFormatting
+  def jsonFormatting: JsonFormatting
 
-  def importingExecutionContext : ImportingExecutionContext
+  def importingExecutionContext: ImportingExecutionContext
 
-  def itemSchema : ItemSchema
+  def itemSchema: ItemSchema
 
-  lazy val itemJsonValidator : ItemJsonValidator = wire[ItemJsonValidator]
+  def itemAssetKeys: AssetKeys[VersionedId[ObjectId]]
+
+  lazy val itemJsonValidator: ItemJsonValidator = wire[ItemJsonValidator]
 
   lazy val transferManagerUploader = wire[TransferManagerUploader]
 
-  lazy val itemImportController : Controller = wire[ItemImportController]
+  lazy val itemImportController: Controller = wire[ItemImportController]
 
-  lazy val itemFileConverter : ItemFileConverter = wire[ItemFileConverter]
+  lazy val itemFileConverter: ItemFileConverter = wire[ItemFileConverter]
 
-  lazy val itemImportControllers : Seq[Controller] = Seq(itemImportController)
+  lazy val itemImportControllers: Seq[Controller] = Seq(itemImportController)
 }
