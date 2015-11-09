@@ -173,7 +173,11 @@ object Build extends sbt.Build {
     .dependsOn(coreServices, v2Errors, testLib % "test->compile")
 
   lazy val itemImport = builders.web("item-import")
-    .settings(libraryDependencies ++= Seq(playJson, jsonValidator, salatVersioningDao, mockito))
+    .settings(
+      libraryDependencies ++= Seq(
+        playJson, jsonValidator, salatVersioningDao, mockito, macWireMacro, macWireRuntime
+      )
+    )
     .dependsOn(coreJson, coreServices, v2Auth, testLib % "test->compile")
 
   lazy val draftsApi = builders.web("v2-api-drafts")
@@ -242,7 +246,7 @@ object Build extends sbt.Build {
     .settings(
       //disable publishing of the root project
       packagedArtifacts := Map.empty,
-      libraryDependencies ++= Seq(playMemcached, assetsLoader),
+      libraryDependencies ++= Seq(playMemcached, assetsLoader, ztZip),
       (javacOptions in Compile) ++= Seq("-source", "1.7", "-target", "1.7"),
       routesImport ++= customImports,
       templatesImport ++= TemplateImports.Ids,

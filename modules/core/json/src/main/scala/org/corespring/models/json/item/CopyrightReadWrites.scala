@@ -1,40 +1,31 @@
 package org.corespring.models.json.item
 
+import org.corespring.models.item.Copyright
 import org.corespring.models.json.ValueGetter
 import org.corespring.models.{ item => model }
 import play.api.libs.json._
 
-trait CopyrightFormat extends ValueGetter with Format[model.Copyright] {
+private[json] case class JsonCopyright(
+  copyrightOwner: Option[String],
+  copyrightYear: Option[String],
+  copyrightExpirationDate: Option[String],
+  copyrightImageName: Option[String]) {
 
-  object Keys {
-    val copyrightOwner = "copyrightOwner"
-    val copyrightYear = "copyrightYear"
-    val copyrightExpirationDate = "copyrightExpirationDate"
-    val copyrightImageName = "copyrightImageName"
-    val owner = "owner"
-    val year = "year"
-    val expirationDate = "expirationDate"
-    val imageName = "imageName"
-  }
+  def toCopyright = Copyright(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName)
+}
 
-  import Keys._
+object JsonCopyright {
+  def fromCopyright(c: Copyright): JsonCopyright = JsonCopyright(c.owner, c.year, c.expirationDate, c.imageName)
+}
 
-  def reads(json: JsValue): JsResult[model.Copyright] = {
-    val maybeCopyright = get[model.Copyright](
-      json,
-      Seq(copyrightOwner, copyrightYear, copyrightExpirationDate, copyrightImageName),
-      (s: Seq[Option[String]]) => Some(model.Copyright(s(0), s(1), s(2), s(3))))
+trait CopyrightFormat extends Format[Copyright] with ValueGetter {
 
-    JsSuccess(maybeCopyright.get)
+  def reads(json: JsValue) = {
+    Json.reads[JsonCopyright].reads(json).map(_.toCopyright)
   }
 
   def writes(copyright: model.Copyright): JsValue = {
-    JsObject(
-      Seq(
-        copyright.owner.map((copyrightOwner -> JsString(_))),
-        copyright.year.map((copyrightYear -> JsString(_))),
-        copyright.expirationDate.map((copyrightExpirationDate -> JsString(_))),
-        copyright.imageName.map((copyrightImageName -> JsString(_)))).flatten)
+    Json.writes[JsonCopyright].writes(JsonCopyright.fromCopyright(copyright))
   }
 
 }
